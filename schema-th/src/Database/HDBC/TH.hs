@@ -63,6 +63,7 @@ import Language.Haskell.TH
 import qualified Language.Haskell.TH.PprLib as TH
 import qualified Language.Haskell.TH.Syntax as TH
 
+import Database.HDBC.Session (withConnectionIO)
 import Database.HDBC.Record.Persistable
   (persistableRecord, Persistable, persistable, Singleton)
 import Database.HDBC.Record.KeyConstraint
@@ -392,24 +393,26 @@ putLog :: String -> IO ()
 putLog =  putStrLn
 
 defineTableFromDB :: IConnection conn
-                   => Driver conn
-                   -> conn
+                   => IO conn
+                   -> Driver conn
                    -> String
-                   -> String
+                   -> String 
                    -> [ConName]
                    -> Q [Dec]
-defineTableFromDB drv conn scm tbl derives = do
+defineTableFromDB connect drv scm tbl derives = do
   let getDBinfo =
-        do (cols, notNullIdxs) <- getFields drv conn scm tbl
-           mayPrimaryKey       <- getPrimaryKey drv conn scm tbl
+        withConnectionIO connect
+        (\conn ->  do
+            (cols, notNullIdxs) <- getFields drv conn scm tbl
+            mayPrimaryKey       <- getPrimaryKey drv conn scm tbl
 
-           mayPrimaryIdx <- case mayPrimaryKey of
-             Just key -> case elemIndex key $ map fst cols of
-               Nothing -> do putLog $ "defineTableFromDB: fail to find index of pkey - " ++ key ++ ". Something wrong!!"
-                             return   Nothing
-               Just ix ->    return $ Just ix
-             Nothing  ->     return   Nothing
-           return (cols, notNullIdxs, mayPrimaryIdx)
+            mayPrimaryIdx <- case mayPrimaryKey of
+              Just key -> case elemIndex key $ map fst cols of
+                Nothing -> do putLog $ "defineTableFromDB: fail to find index of pkey - " ++ key ++ ". Something wrong!!"
+                              return   Nothing
+                Just ix ->    return $ Just ix
+              Nothing  ->     return   Nothing
+            return (cols, notNullIdxs, mayPrimaryIdx) )
 
   (cols, notNullIdxs, mayPrimaryIdx) <- runIO getDBinfo
   defineTableDefault scm tbl cols mayPrimaryIdx (listToMaybe notNullIdxs) derives
