@@ -1,0 +1,79 @@
+Source: haskell-hdbc-schema-th
+Priority: extra
+Section: haskell
+Maintainer: Kei Hibino <ex8k.hibino@gmail.com>
+Build-Depends: debhelper (>= 7.0)
+               , haskell-devscripts (>= 0.8)
+               , cdbs
+               , ghc
+               , ghc-prof
+               , libghc-hdbc-dev (>= 2)
+               , libghc-hdbc-prof (>= 2)
+               , libghc-hdbc-session-dev
+               , libghc-hdbc-session-prof
+               , libghc-base-dev (<< 5) | ghc
+               , libghc-base-prof (<< 5) | ghc-prof
+               , libghc-convertible-dev
+               , libghc-convertible-prof
+               , libghc-template-haskell-dev | ghc
+               , libghc-template-haskell-prof | ghc-prof
+Build-Depends-Indep: ghc-doc
+                     , libghc-hdbc-doc (>= 2)
+                     , libghc-hdbc-session-doc
+                     , libghc-base-doc (<< 5) | ghc-doc
+                     , libghc-convertible-doc
+                     , libghc-template-haskell-doc | ghc-doc
+Standards-Version: 3.9.3
+Homepage: http://twitter.com/khibino
+
+Package: libghc-hdbc-schema-th-dev
+Architecture: any
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
+         , ${misc:Depends}
+Recommends: ${haskell:Recommends}
+Suggests: ${haskell:Suggests}
+Provides: ${haskell:Provides}
+Description: Database access template for HDBC using database system catalogs
+ This package contains template haskell functions to generate codes
+ correspond to Database table definitions and functions which read
+ table and index definitions from Database system catalogs.
+ .
+  Author: Kei Hibino
+  Upstream-Maintainer: ex8k.hibino@gmail.com
+ .
+ This package contains the normal library files.
+
+Package: libghc-hdbc-schema-th-prof
+Architecture: any
+Depends: ${haskell:Depends}
+         , ${misc:Depends}
+Recommends: ${haskell:Recommends}
+Suggests: ${haskell:Suggests}
+Provides: ${haskell:Provides}
+Description: Database access template for HDBC using database system catalogs
+ This package contains template haskell functions to generate codes
+ correspond to Database table definitions and functions which read
+ table and index definitions from Database system catalogs.
+ .
+  Author: Kei Hibino
+  Upstream-Maintainer: ex8k.hibino@gmail.com
+ .
+ This package contains the libraries compiled with profiling enabled.
+
+Package: libghc-hdbc-schema-th-doc
+Architecture: all
+Section: doc
+Depends: ${haskell:Depends}
+         , ${misc:Depends}
+Recommends: ${haskell:Recommends}
+Suggests: ${haskell:Suggests}
+Description: Database access template for HDBC using database system catalogs
+ This package contains template haskell functions to generate codes
+ correspond to Database table definitions and functions which read
+ table and index definitions from Database system catalogs.
+ .
+  Author: Kei Hibino
+  Upstream-Maintainer: ex8k.hibino@gmail.com
+ .
+ This package contains the documentation files.

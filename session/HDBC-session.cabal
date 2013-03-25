@@ -1,0 +1,21 @@
+
+name:                HDBC-session
+version:             0.0.1.0
+synopsis:            Bracketed connection for HDBC
+description:         This package contains 
+homepage:            http://twitter.com/khibino
+license:             BSD3
+license-file:        LICENSE
+author:              Kei Hibino
+maintainer:          ex8k.hibino@gmail.com
+copyright:           Copyright (c) 2013 Kei Hibino
+category:            Database
+build-type:          Simple
+cabal-version:       >=1.2
+
+library
+  exposed-modules:     Database.HDBC.Session
+  -- other-modules:
+  build-depends:         base <5
+                       , HDBC
+  hs-source-dirs:      src

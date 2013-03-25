@@ -1,0 +1,228 @@
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
+
+-- |
+-- Module      : Database.HDBC.Schema.IBMDB2
+-- Copyright   : 2013 Kei Hibino
+-- License     : BSD3
+--
+-- Maintainer  : ex8k.hibino@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
+module Database.HDBC.Schema.IBMDB2 (
+  driverIBMDB2
+  ) where
+
+import Prelude hiding (length)
+
+import qualified Data.List as List
+import Data.Int (Int16, Int32, Int64)
+import Data.Char (toUpper, toLower)
+import Data.Map (Map, fromList)
+import qualified Data.Map as Map
+import Data.Time (LocalTime, Day)
+import Language.Haskell.TH (Q, Type)
+
+import Database.HDBC (IConnection)
+import Database.HDBC.TH (derivingShow)
+import qualified Database.HDBC.TH as Base
+import Database.HDBC.Record.Persistable (Singleton, singleton, runSingleton)
+import Database.HDBC.Record.Query (Query(..), typedQuery, runQuery', listToUnique)
+import Language.SQL.SqlWord (SqlWord(..))
+import qualified Language.SQL.SqlWord as SQL
+
+import Database.HDBC.Schema.Driver (Driver, getFields, getPrimaryKey, emptyDriver)
+
+
+$(Base.defineTableDefault'
+  "SYSCAT" "columns"
+  [
+    -- column                         schema    type               length         NULL
+    -- ------------------------------ --------- ------------------ -------- ----- ------
+    -- TABSCHEMA                      SYSIBM    VARCHAR                 128     0 No
+    ("tabschema", [t|String|]),
+    -- TABNAME                        SYSIBM    VARCHAR                 128     0 No
+    ("tabname", [t|String|]),
+    -- COLNAME                        SYSIBM    VARCHAR                 128     0 No
+    ("colname", [t|String|]),
+    -- COLNO                          SYSIBM    SMALLINT                  2     0 No
+    ("colno", [t|Int|]),
+    -- TYPESCHEMA                     SYSIBM    VARCHAR                 128     0 No
+    ("typeschema", [t|String|]),
+    -- TYPENAME                       SYSIBM    VARCHAR                  18     0 No
+    ("typename", [t|String|]),
+    -- LENGTH                         SYSIBM    INTEGER                   4     0 No
+    ("length", [t|Int|]),
+    -- SCALE                          SYSIBM    SMALLINT                  2     0 No
+    ("scale", [t|Int|]),
+    -- DEFAULT                        SYSIBM    VARCHAR                 254     0 Yes
+    ("default", [t|Maybe String|]),
+    -- NULLS                          SYSIBM    CHARACTER                 1     0 No
+    ("nulls", [t|String|]),
+    -- CODEPAGE                       SYSIBM    SMALLINT                  2     0 No
+    ("codepage", [t|Int|]),
+    -- LOGGED                         SYSIBM    CHARACTER                 1     0 No
+    ("logged", [t|String|]),
+    -- COMPACT                        SYSIBM    CHARACTER                 1     0 No
+    ("compact", [t|String|]),
+    -- COLCARD                        SYSIBM    BIGINT                    8     0 No
+    ("colcard", [t|Integer|]),
+    -- HIGH2KEY                       SYSIBM    VARCHAR                 254     0 Yes
+    ("high2key", [t|Maybe String|]),
+    -- LOW2KEY                        SYSIBM    VARCHAR                 254     0 Yes
+    ("low2key", [t|Maybe String|]),
+    -- AVGCOLLEN                      SYSIBM    INTEGER                   4     0 No
+    ("avgcollen", [t|Int|]),
+    -- KEYSEQ                         SYSIBM    SMALLINT                  2     0 Yes
+    ("keyseq", [t|Maybe Int|]),
+    -- PARTKEYSEQ                     SYSIBM    SMALLINT                  2     0 Yes
+    ("partkeyseq", [t|Maybe Int|]),
+    -- NQUANTILES                     SYSIBM    SMALLINT                  2     0 No
+    ("nquantiles", [t|Int|]),
+    -- NMOSTFREQ                      SYSIBM    SMALLINT                  2     0 No
+    ("nmostfreq", [t|Int|]),
+    -- NUMNULLS                       SYSIBM    BIGINT                    8     0 No
+    ("numnulls", [t|Integer|]),
+    -- TARGET_TYPESCHEMA              SYSIBM    VARCHAR                 128     0 Yes
+    ("target_typeschema", [t|Maybe String|]),
+    -- TARGET_TYPENAME                SYSIBM    VARCHAR                  18     0 Yes
+    ("target_typename", [t|Maybe String|]),
+    -- SCOPE_TABSCHEMA                SYSIBM    VARCHAR                 128     0 Yes
+    ("scope_tabschema", [t|Maybe String|]),
+    -- SCOPE_TABNAME                  SYSIBM    VARCHAR                 128     0 Yes
+    ("scope_tabname", [t|Maybe String|]),
+    -- SOURCE_TABSCHEMA               SYSIBM    VARCHAR                 128     0 Yes
+    ("source_tabschema", [t|Maybe String|]),
+    -- SOURCE_TABNAME                 SYSIBM    VARCHAR                 128     0 Yes
+    ("source_tabname", [t|Maybe String|]),
+    -- DL_FEATURES                    SYSIBM    CHARACTER                10     0 Yes
+    ("dl_features", [t|Maybe String|]),
+    -- SPECIAL_PROPS                  SYSIBM    CHARACTER                 8     0 Yes
+    ("special_props", [t|Maybe String|]),
+    -- HIDDEN                         SYSIBM    CHARACTER                 1     0 No
+    ("hidden", [t|String|]),
+    -- INLINE_LENGTH                  SYSIBM    INTEGER                   4     0 No
+    ("inline_length", [t|Int|]),
+    -- IDENTITY                       SYSIBM    CHARACTER                 1     0 No
+    ("identity", [t|String|]),
+    -- GENERATED                      SYSIBM    CHARACTER                 1     0 No
+    ("generated", [t|String|]),
+    -- TEXT                           SYSIBM    CLOB                  65538     0 Yes
+    ("text", [t|Maybe String|]),
+    -- REMARKS                        SYSIBM    VARCHAR                 254     0 Yes
+    ("remarks", [t|Maybe String|])
+
+  ]
+  Nothing Nothing [derivingShow])
+
+
+mapFromSqlDefault :: Map String (Q Type)
+mapFromSqlDefault =
+  fromList [("VARCHAR",   [t|String|]),
+            ("CHAR",      [t|String|]),
+            ("CHARACTER", [t|String|]),
+            ("TIMESTAMP", [t|LocalTime|]),
+            ("DATE",      [t|Day|]),
+            ("SMALLINT",  [t|Int16|]),
+            ("INTEGER",   [t|Int32|]),
+            ("BIGINT",    [t|Int64|]),
+            ("BLOB",      [t|String|]),
+            ("CLOB",      [t|String|])]
+
+normalizeField :: String -> String
+normalizeField =  map toLower
+
+notNull :: Columns -> Bool
+notNull =  (== "N") . nulls
+
+getType :: Columns -> (String, Q Type)
+getType rec =
+  (normalizeField $ colname rec,
+   mayNull $ mapFromSqlDefault Map.! (typename rec))
+  where mayNull typ = if notNull rec
+                      then typ
+                      else [t| Maybe $(typ) |]
+
+columnsQuerySQL :: Query (Singleton String, Singleton String) Columns
+columnsQuerySQL =
+  typedQuery .
+  SQL.unwordsSQL
+  $ [SELECT, fields `SQL.sepBy` ", ",
+     FROM, SQL.word tableOfColumns,
+     WHERE, "tabschema = ?", AND, "tabname = ?",
+     ORDER, BY, "colno"]
+  where fields = map SQL.word fieldsOfColumns
+
+primaryKeyQuerySQL :: Query (Singleton String, Singleton String) (Singleton String)
+primaryKeyQuerySQL =
+  typedQuery .
+  SQL.unwordsSQL
+  $ [SELECT, "key.colname",
+     FROM,
+     "SYSCAT.tabconst", AS, "const", ",",
+     "SYSCAT.keycoluse", AS, "key", ",",
+     SQL.word tableOfColumns, AS, "col",
+     WHERE,
+     "const.tabschema = col.tabschema", AND,
+     "const.tabname = col.tabname", AND,
+     "key.colname = col.colname", AND,
+     "const.constname = key.constname", AND,
+
+     "col.nulls = 'N'", AND,
+     "const.type = 'P'", AND, "const.enforced = 'Y'", AND,
+
+     "const.tabschema = ?", AND, "const.tabname = ?"]
+
+logPrefix :: String -> String
+logPrefix =  ("IBMDB2: " ++)
+
+putLog :: String -> IO ()
+putLog =  putStrLn . logPrefix
+
+compileErrorIO :: String -> IO a
+compileErrorIO =  Base.compileErrorIO . logPrefix
+
+compileError :: String -> Q a
+compileError = Base.compileError . logPrefix
+
+getPrimaryKey' :: IConnection conn
+              => conn
+              -> String
+              -> String
+              -> IO (Maybe String)
+getPrimaryKey' conn scm' tbl' = do
+  let tbl = map toUpper tbl'
+      scm = map toUpper scm'
+  mayPrim <- runQuery' conn (singleton scm, singleton tbl) primaryKeyQuerySQL
+             >>= listToUnique
+  let mayPrimaryKey = runSingleton `fmap` mayPrim
+  putLog $ "getPrimaryKey: primary key = " ++ show mayPrimaryKey
+
+  return mayPrimaryKey
+
+getFields' :: IConnection conn
+          => conn
+          -> String
+          -> String
+          -> IO ([(String, Q Type)], [Int])
+getFields' conn scm' tbl' = do
+  let tbl = map toUpper tbl'
+      scm = map toUpper scm'
+      
+  cols <- runQuery' conn (singleton scm, singleton tbl) columnsQuerySQL
+  case cols of
+    [] ->  compileErrorIO
+           $ "getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl
+    _  ->  return ()
+
+  let notNullIdxs = map fst . filter (notNull . snd) . zip [0..] $ cols
+  putLog
+    $  "getFields: num of columns = " ++ show (List.length cols)
+    ++ ", not null columns = " ++ show notNullIdxs
+
+  return $ (map getType cols, notNullIdxs)
+
+driverIBMDB2 :: IConnection conn => Driver conn
+driverIBMDB2 =
+  emptyDriver { getFields     = getFields' }
+              { getPrimaryKey = getPrimaryKey' }

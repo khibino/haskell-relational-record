@@ -1,0 +1,51 @@
+
+name:                HDBC-schema-th
+version:             0.0.1.0
+synopsis:            Database access template for HDBC using database system catalogs
+description:         This package contains template haskell functions to generate codes
+                     correspond to Database table definitions and functions which read
+                     table and index definitions from Database system catalogs.
+homepage:            http://twitter.com/khibino
+license:             BSD3
+license-file:        LICENSE
+author:              Kei Hibino
+maintainer:          ex8k.hibino@gmail.com
+copyright:           Copyright (c) 2013 Kei Hibino
+category:            Database
+build-type:          Simple
+cabal-version:       >=1.10
+
+library
+  other-modules:       Language.SQL.SqlWord
+
+  exposed-modules:     Database.HDBC.Record.Persistable
+                       Database.HDBC.Record.KeyConstraint
+                       Database.HDBC.Record.FromSql
+                       Database.HDBC.Record.ToSql
+                       Database.HDBC.Record.Query
+                       Database.HDBC.TH
+                       Database.HDBC.SqlValueExtra
+                       Database.HDBC.Schema.Driver
+                       Database.HDBC.Schema.IBMDB2
+                       Database.HDBC.Schema.PgCatalog.PgAttribute
+                       Database.HDBC.Schema.PgCatalog.PgType
+                       Database.HDBC.Schema.PostgreSQL
+
+  build-depends:         base <5
+                       , template-haskell
+                       , containers
+                       , time
+                       , convertible
+                       , HDBC >=2
+                       , HDBC-session
+  hs-source-dirs:      src
+
+Test-suite postgreSQL
+  Build-depends:         HDBC-schema-th
+                       , Cabal
+                       , HDBC-postgresql
+
+  Type:                detailed-0.9
+  Test-module:         PgTest
+  hs-source-dirs:      pgTest
+
