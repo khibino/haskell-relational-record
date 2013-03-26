@@ -40,7 +40,7 @@ module Database.HDBC.TH (
 
   defineSqls, defineSqlsDefault,
 
-  defineTableDefault,
+  defineWithTableDefault,
   defineWithPrimaryKeyDefault,
   defineWithNotNullKeyDefault,
 
@@ -395,12 +395,12 @@ defineSqlsWithPrimaryKeyDefault schema table fields idx =
     sel = table `varNameWithPrefix` "select"
     upd = table `varNameWithPrefix` "update"
 
-defineTableDefault :: String
+defineWithTableDefault :: String
                    -> String
                    -> [(String, TypeQ)]
                    -> [ConName]
                    -> Q [Dec]
-defineTableDefault schema table fields derives = do
+defineWithTableDefault schema table fields derives = do
   recD <- defineRecordDefault schema table fields derives
   sqlD <- defineSqlsDefault schema table fields
   return $ recD ++ sqlD
@@ -441,7 +441,7 @@ defineTableFromDB connect drv scm tbl derives = do
             return (cols, notNullIdxs, mayPrimaryIdx) )
 
   (cols, notNullIdxs, mayPrimaryIdx) <- runIO getDBinfo
-  tblD  <- defineTableDefault scm tbl cols derives
+  tblD  <- defineWithTableDefault scm tbl cols derives
   primD <- mayDeclare (defineWithPrimaryKeyDefault scm tbl cols) mayPrimaryIdx
   nnD   <- mayDeclare (defineWithNotNullKeyDefault tbl) (listToMaybe notNullIdxs)
   return $ tblD ++ primD ++ nnD
