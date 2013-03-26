@@ -74,4 +74,4 @@ $(Base.defineTableDefault
 --  typdefault     | text         |
     ("typdefault", [t|Maybe String|])
   ]
-  Nothing Nothing [derivingShow])
+  [derivingShow])

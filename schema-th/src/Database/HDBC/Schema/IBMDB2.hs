@@ -113,7 +113,7 @@ $(Base.defineTableDefault'
     ("remarks", [t|Maybe String|])
 
   ]
-  Nothing Nothing [derivingShow])
+  [derivingShow])
 
 
 mapFromSqlDefault :: Map String (Q Type)

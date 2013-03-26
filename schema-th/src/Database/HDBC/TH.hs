@@ -41,6 +41,8 @@ module Database.HDBC.TH (
   defineSqls, defineSqlsDefault,
 
   defineTableDefault,
+  defineWithPrimaryKeyDefault,
+  defineWithNotNullKeyDefault,
 
   defineTableFromDB
   ) where
@@ -119,8 +121,14 @@ varCamelcaseName =  toVarName . camelcaseUpper
 varNameWithPrefix :: String -> String -> VarName
 varNameWithPrefix n p =  toVarName $ p ++ camelcaseUpper n
 
+nameOfTableSQL :: String -> String -> String
+nameOfTableSQL schema table = map toUpper schema ++ '.' : map toLower table
+
+recordTypeNameDefault :: String -> ConName
+recordTypeNameDefault =  conCamelcaseName
+
 recordTypeDefault :: String -> TypeQ
-recordTypeDefault =  conT . conName . conCamelcaseName
+recordTypeDefault =  conT . conName . recordTypeNameDefault
 
 
 pprQ :: (Functor m, TH.Quasi m, Ppr a) => Q a -> m TH.Doc
@@ -253,14 +261,12 @@ defineTable :: (VarName, VarName)
             -> (String, ConName)
             -> (VarName, VarName, VarName)
             -> [((VarName, TypeQ), String)]
-            -> Maybe Int
-            -> Maybe Int
             -> [ConName]
             -> Q [Dec]
 defineTable
   (cF, dF) (tableSQL, tyC)
   (tableN, fldsN, widthN)
-  schemas' primaryKey notNullKey drvs = do
+  schemas' drvs = do
 
   let schemas = map fst schemas'
   typ  <- defineRecordType tyC schemas drvs
@@ -271,35 +277,34 @@ defineTable
               tableN tableSQL
               fldsN (map snd schemas') widthN width
   instSQL  <- definePersistableInstance widthN tyC cF dF width
-  mayHasNN <- mayDeclare (defineHasNotNullKeyInstance tyC) notNullKey
-  mayHasPk <- mayDeclare (defineHasPrimaryKeyInstance tyC) primaryKey
-  return $ typ : fromSQL ++ toSQL ++ tableI ++ instSQL ++ mayHasNN ++ mayHasPk
-
-nameOfTableSQL :: String -> String -> String
-nameOfTableSQL schema table = map toUpper schema ++ '.' : map toLower table
+  return $ typ : fromSQL ++ toSQL ++ tableI ++ instSQL
 
 defineTableDefault' :: String
                     -> String
                     -> [(String, TypeQ)]
-                    -> Maybe Int
-                    -> Maybe Int
                     -> [ConName]
                     -> Q [Dec]
-defineTableDefault' schema table fields {- primaryKey notNullKey drives -} =
+defineTableDefault' schema table fields drives = do
+  let tableSQL = nameOfTableSQL schema table
+      fields' = map (uncurry fieldInfo) fields
   defineTable
-  (table `varNameWithPrefix` "fromSqlOf",
-   table `varNameWithPrefix` "toSqlOf")
-  (tableSQL, conCamelcaseName table)
-  (table `varNameWithPrefix` "tableOf",
-   table `varNameWithPrefix` "fieldsOf",
-   table `varNameWithPrefix` "widthOf")
-  fields'
-  -- primaryKey
-  -- notNullKey
-  -- drives
-  where
-    tableSQL = nameOfTableSQL schema table
-    fields' = map (uncurry fieldInfo) fields
+    (table `varNameWithPrefix` "fromSqlOf",
+     table `varNameWithPrefix` "toSqlOf")
+    (tableSQL, recordTypeNameDefault table)
+    (table `varNameWithPrefix` "tableOf",
+     table `varNameWithPrefix` "fieldsOf",
+     table `varNameWithPrefix` "widthOf")
+    fields'
+    drives
+
+defineHasPrimaryKeyInstanceDefault :: String -> Int -> Q [Dec]
+defineHasPrimaryKeyInstanceDefault =
+  defineHasPrimaryKeyInstance . recordTypeNameDefault
+
+defineHasNotNullKeyInstanceDefault :: String -> Int -> Q [Dec]
+defineHasNotNullKeyInstanceDefault =
+  defineHasNotNullKeyInstance . recordTypeNameDefault
+
 
 defineConstantSql :: VarName -> String -> Q [Dec]
 defineConstantSql name' sqlStr = do
@@ -345,49 +350,68 @@ defineSqlInsert name' table fields = do
     where fields' = map SQL.word fields
           pfs     = replicate (length fields) (SQL.word "?")
 
-defineSqls :: VarName      -- ^ SQL insert statement var name
-           -> (String, TypeQ)       -- ^ Table name string
-           -> [(String, TypeQ)]     -- ^ Field name strings
-           -> Maybe (Int, (VarName, VarName)) -- ^ Primary key field name, SQL select statement var name, SQL update statement var name
-           -> Q [Dec]      -- ^ SQL statement String declarations
-defineSqls ins (table, recordType) fields primaryKey = do
-  let width = length fields
-      getPKeyName = case primaryKey of
-        Just (i, (_, _))
-          | i < 0 || width <= i -> compileError
-                                   $  "defineSqls: Index out of bounds!: "
-                                   ++ "fields count is " ++ show width ++ ", but index is " ++ show i
-          | otherwise           -> return (Just . fst $ fields !! i)
-        Nothing                 -> return Nothing
-  primaryKey' <- getPKeyName
-  let (_, (sel, upd)) = fromJust primaryKey
-      fields' = map fst fields
-  selD <- mayDeclare (defineSqlPrimarySelect sel (table, recordType) fields) primaryKey'
-  updD <- mayDeclare (defineSqlPrimaryUpdate upd table fields') primaryKey'
-  insD <- defineSqlInsert ins table fields'
-  return $ concat [selD, updD, insD]
+defineSqls :: VarName -- ^ SQL insert statement var name
+               -> (String, TypeQ)
+               -> [(String, TypeQ)]
+               -> Q [Dec] -- ^ SQL statement String declarations
+defineSqls ins (table, _recordType) fields =
+  defineSqlInsert ins table (map fst fields)
 
-defineSqlsDefault :: String -> (String, TypeQ) -> [(String, TypeQ)] -> Maybe Int -> Q [Dec]
-defineSqlsDefault schema (table, recordType) fields primaryKey' =
-  defineSqls ins (tableSQL, recordType) fields primaryKey
+defineSqlsWithPrimaryKey :: Int               -- ^ Primary key field index
+                         -> VarName           -- ^ SQL select statement var name
+                         -> VarName           -- ^ SQL update statement var name
+                         -> (String, TypeQ)   -- ^ Table name String in SQL and record type
+                         -> [(String, TypeQ)] -- ^ Field name strings
+                         -> Q [Dec]           -- ^ SQL statement String declarations
+defineSqlsWithPrimaryKey i sel upd (table, recordType) fields = do
+  let width = length fields
+      fields' = map fst fields
+      getPrimaryKeyName
+        | i < 0 || width <= i = compileError
+                                $  "defineSqls: Index out of bounds!: "
+                                ++ "fields count is " ++ show width ++ ", but index is " ++ show i
+        | otherwise           = return . fst $ fields !! i
+  keyName <- getPrimaryKeyName
+  selD <- defineSqlPrimarySelect sel (table, recordType) fields keyName
+  updD <- defineSqlPrimaryUpdate upd table fields' keyName
+  return $ selD ++ updD
+
+defineSqlsDefault :: String -> String -> [(String, TypeQ)] -> Q [Dec]
+defineSqlsDefault schema table fields =
+  defineSqls ins (tableSQL, recordType) fields
   where
     tableSQL = nameOfTableSQL schema table
+    recordType = recordTypeDefault table
+    ins = table `varNameWithPrefix` "insert"
+
+defineSqlsWithPrimaryKeyDefault :: String -> String -> [(String, TypeQ)] -> Int -> Q [Dec]
+defineSqlsWithPrimaryKeyDefault schema table fields idx =
+  defineSqlsWithPrimaryKey idx sel upd (tableSQL, recordType) fields
+  where
+    tableSQL = nameOfTableSQL schema table
+    recordType = recordTypeDefault table
     sel = table `varNameWithPrefix` "select"
     upd = table `varNameWithPrefix` "update"
-    ins = table `varNameWithPrefix` "insert"
-    primaryKey = fmap (\pk -> (pk, (sel, upd))) primaryKey'
 
 defineTableDefault :: String
                    -> String
                    -> [(String, TypeQ)]
-                   -> Maybe Int
-                   -> Maybe Int
                    -> [ConName]
                    -> Q [Dec]
-defineTableDefault schema table fields primaryKey notNullKey derives = do
-  recD <- defineTableDefault' schema table fields primaryKey notNullKey derives
-  sqlD <- defineSqlsDefault schema (table, recordTypeDefault table) fields primaryKey
+defineTableDefault schema table fields derives = do
+  recD <- defineTableDefault' schema table fields derives
+  sqlD <- defineSqlsDefault schema table fields
   return $ recD ++ sqlD
+
+defineWithPrimaryKeyDefault :: String -> String -> [(String, TypeQ)] -> Int -> Q [Dec]
+defineWithPrimaryKeyDefault schema table fields idx = do
+  instD <- defineHasPrimaryKeyInstanceDefault table idx
+  sqlsD <- defineSqlsWithPrimaryKeyDefault schema table fields idx
+  return $ instD ++ sqlsD
+
+defineWithNotNullKeyDefault :: String -> Int -> Q [Dec]
+defineWithNotNullKeyDefault =  defineHasNotNullKeyInstanceDefault
+
 
 putLog :: String -> IO ()
 putLog =  putStrLn
@@ -415,4 +439,7 @@ defineTableFromDB connect drv scm tbl derives = do
             return (cols, notNullIdxs, mayPrimaryIdx) )
 
   (cols, notNullIdxs, mayPrimaryIdx) <- runIO getDBinfo
-  defineTableDefault scm tbl cols mayPrimaryIdx (listToMaybe notNullIdxs) derives
+  tblD  <- defineTableDefault scm tbl cols derives
+  primD <- mayDeclare (defineWithPrimaryKeyDefault scm tbl cols) mayPrimaryIdx
+  nnD   <- mayDeclare (defineWithNotNullKeyDefault tbl) (listToMaybe notNullIdxs)
+  return $ tblD ++ primD ++ nnD

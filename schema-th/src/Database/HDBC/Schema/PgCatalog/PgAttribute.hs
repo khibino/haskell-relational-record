@@ -53,4 +53,4 @@ $(Base.defineTableDefault
 --  attoptions    | text[]    |
     -- ("attoptions"  , [t|String|])
   ]
-  Nothing Nothing [derivingShow])
+  [derivingShow])
