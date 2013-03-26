@@ -124,11 +124,14 @@ varNameWithPrefix n p =  toVarName $ p ++ camelcaseUpper n
 nameOfTableSQL :: String -> String -> String
 nameOfTableSQL schema table = map toUpper schema ++ '.' : map toLower table
 
+typeOfName :: ConName -> TypeQ
+typeOfName =  conT . conName
+
 recordTypeNameDefault :: String -> ConName
 recordTypeNameDefault =  conCamelcaseName
 
 recordTypeDefault :: String -> TypeQ
-recordTypeDefault =  conT . conName . recordTypeNameDefault
+recordTypeDefault =  typeOfName . recordTypeNameDefault
 
 
 pprQ :: (Functor m, TH.Quasi m, Ppr a) => Q a -> m TH.Doc
@@ -213,9 +216,8 @@ defineTableInfo tableVar' table fieldsVar' fields widthVar' width = do
   widthQ  <- simpleValD widthVar  [t| Int |]      [| $(integralE $ width) |]
   return $ concat [tableQ, fieldsQ, widthQ]
 
-definePersistableInstance :: VarName -> ConName -> VarName -> VarName -> Int -> Q [Dec]
-definePersistableInstance widthVar' typeName' consFunName' decompFunName' width = do
-  let typeCon = conT $ conName typeName'
+definePersistableInstance :: VarName -> TypeQ -> VarName -> VarName -> Int -> Q [Dec]
+definePersistableInstance widthVar' typeCon consFunName' decompFunName' width = do
   [d| instance Persistable $typeCon where
         persistable = persistableRecord
                       $(varE $ varName consFunName')
@@ -230,8 +232,8 @@ definePersistableInstance widthVar' typeName' consFunName' decompFunName' width 
     |]
 
 defineHasKeyConstraintInstance :: TypeQ -> TypeQ -> Int -> Q [Dec]
-defineHasKeyConstraintInstance constraint type' index =
-  [d| instance HasKeyConstraint $constraint $type' where
+defineHasKeyConstraintInstance constraint typeCon index =
+  [d| instance HasKeyConstraint $constraint $typeCon where
         constraintKey = specifyKeyConstraint $(integralE index) |]
 
 defineHasNotNullKeyInstance :: TypeQ -> Int -> Q [Dec]
@@ -243,15 +245,14 @@ defineHasPrimaryKeyInstance =
   defineHasKeyConstraintInstance [t| Primary |]
 
 defineRecordDecomposeFunction :: VarName   -- ^ Name of record decompose function.
-                              -> ConName   -- ^ Name of record type.
+                              -> TypeQ     -- ^ Name of record type.
                               -> [VarName] -- ^ List of field names of record.
                               -> Q [Dec]   -- ^ Declaration of record construct function from SqlValues.
-defineRecordDecomposeFunction funName' typeName' fields = do
+defineRecordDecomposeFunction funName' typeCon fields = do
   let funName = varName funName'
-      typeName = conName typeName'
       accessors = map (varE . varName) fields
       recVar = mkName "rec"
-  sig <- sigD funName [t| $(conT typeName) -> [SqlValue] |]
+  sig <- sigD funName [t| $typeCon -> [SqlValue] |]
   var <- funD funName [ clause [varP recVar]
                         (normalB . listE $ map (\a -> [| toSql ($a $(varE recVar)) |]) accessors)
                         [] ]
@@ -271,12 +272,13 @@ defineTable
   let schemas = map fst schemas'
   typ  <- defineRecordType tyC schemas drvs
   let width = length schemas'
+      typeCon = typeOfName tyC
   fromSQL  <- defineRecordConstructFunction cF tyC width
-  toSQL    <- defineRecordDecomposeFunction dF tyC (map fst schemas)
+  toSQL    <- defineRecordDecomposeFunction dF typeCon (map fst schemas)
   tableI   <- defineTableInfo
               tableN tableSQL
               fldsN (map snd schemas') widthN width
-  instSQL  <- definePersistableInstance widthN tyC cF dF width
+  instSQL  <- definePersistableInstance widthN typeCon cF dF width
   return $ typ : fromSQL ++ toSQL ++ tableI ++ instSQL
 
 defineTableDefault' :: String
