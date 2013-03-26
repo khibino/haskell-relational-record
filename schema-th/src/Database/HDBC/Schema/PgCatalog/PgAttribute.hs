@@ -2,6 +2,8 @@
 
 module Database.HDBC.Schema.PgCatalog.PgAttribute where
 
+import Data.Int (Int16, Int32)
+import Database.HDBC.SqlValueExtra ()
 import Database.HDBC.TH (derivingShow)
 import qualified Database.HDBC.TH as Base
 
@@ -13,23 +15,23 @@ $(Base.defineTableDefault
 --     Column     |   Type    | Modifiers
 -- ---------------+-----------+-----------
 --  attrelid      | oid       | not null
-    ("attrelid"     , [t|Int|]),
+    ("attrelid"     , [t|Int32|]),
 --  attname       | name      | not null
     ("attname"      , [t|String|]),
 --  atttypid      | oid       | not null
-    ("atttypid"     , [t|Int|]),
+    ("atttypid"     , [t|Int32|]),
 --  attstattarget | integer   | not null
-    ("attstattarget", [t|Int|]),
+    ("attstattarget", [t|Int32|]),
 --  attlen        | smallint  | not null
-    ("attlen"       , [t|Int|]),
+    ("attlen"       , [t|Int16|]),
 --  attnum        | smallint  | not null
-    ("attnum"      , [t|Int|]),
+    ("attnum"      , [t|Int16|]),
 --  attndims      | integer   | not null
-    ("attndims"    , [t|Int|]),
+    ("attndims"    , [t|Int32|]),
 --  attcacheoff   | integer   | not null
-    ("attcacheoff" , [t|Int|]),
+    ("attcacheoff" , [t|Int32|]),
 --  atttypmod     | integer   | not null
-    ("atttypmod"   , [t|Int|]),
+    ("atttypmod"   , [t|Int32|]),
 --  attbyval      | boolean   | not null
     ("attbyval"    , [t|Bool|]),
 --  attstorage    | "char"    | not null
@@ -45,9 +47,9 @@ $(Base.defineTableDefault
 --  attislocal    | boolean   | not null
     ("attislocal"  , [t|Bool|]),
 --  attinhcount   | integer   | not null
-    ("attinhcount" , [t|Int|]),
+    ("attinhcount" , [t|Int32|]),
 --  attcollation  | oid       | not null
-    ("attcollation", [t|Int|])
+    ("attcollation", [t|Int32|])
 --  attacl        | aclitem[] |
     -- ("attacl"      , [t|String|]),
 --  attoptions    | text[]    |

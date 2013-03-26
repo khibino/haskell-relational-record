@@ -48,43 +48,43 @@ $(Base.defineTableDefault'
     -- COLNAME                        SYSIBM    VARCHAR                 128     0 No
     ("colname", [t|String|]),
     -- COLNO                          SYSIBM    SMALLINT                  2     0 No
-    ("colno", [t|Int|]),
+    ("colno", [t|Int16|]),
     -- TYPESCHEMA                     SYSIBM    VARCHAR                 128     0 No
     ("typeschema", [t|String|]),
     -- TYPENAME                       SYSIBM    VARCHAR                  18     0 No
     ("typename", [t|String|]),
     -- LENGTH                         SYSIBM    INTEGER                   4     0 No
-    ("length", [t|Int|]),
+    ("length", [t|Int32|]),
     -- SCALE                          SYSIBM    SMALLINT                  2     0 No
-    ("scale", [t|Int|]),
+    ("scale", [t|Int16|]),
     -- DEFAULT                        SYSIBM    VARCHAR                 254     0 Yes
     ("default", [t|Maybe String|]),
     -- NULLS                          SYSIBM    CHARACTER                 1     0 No
     ("nulls", [t|String|]),
     -- CODEPAGE                       SYSIBM    SMALLINT                  2     0 No
-    ("codepage", [t|Int|]),
+    ("codepage", [t|Int16|]),
     -- LOGGED                         SYSIBM    CHARACTER                 1     0 No
     ("logged", [t|String|]),
     -- COMPACT                        SYSIBM    CHARACTER                 1     0 No
     ("compact", [t|String|]),
     -- COLCARD                        SYSIBM    BIGINT                    8     0 No
-    ("colcard", [t|Integer|]),
+    ("colcard", [t|Int64|]),
     -- HIGH2KEY                       SYSIBM    VARCHAR                 254     0 Yes
     ("high2key", [t|Maybe String|]),
     -- LOW2KEY                        SYSIBM    VARCHAR                 254     0 Yes
     ("low2key", [t|Maybe String|]),
     -- AVGCOLLEN                      SYSIBM    INTEGER                   4     0 No
-    ("avgcollen", [t|Int|]),
+    ("avgcollen", [t|Int32|]),
     -- KEYSEQ                         SYSIBM    SMALLINT                  2     0 Yes
-    ("keyseq", [t|Maybe Int|]),
+    ("keyseq", [t|Maybe Int16|]),
     -- PARTKEYSEQ                     SYSIBM    SMALLINT                  2     0 Yes
-    ("partkeyseq", [t|Maybe Int|]),
+    ("partkeyseq", [t|Maybe Int16|]),
     -- NQUANTILES                     SYSIBM    SMALLINT                  2     0 No
-    ("nquantiles", [t|Int|]),
+    ("nquantiles", [t|Int16|]),
     -- NMOSTFREQ                      SYSIBM    SMALLINT                  2     0 No
-    ("nmostfreq", [t|Int|]),
+    ("nmostfreq", [t|Int16|]),
     -- NUMNULLS                       SYSIBM    BIGINT                    8     0 No
-    ("numnulls", [t|Integer|]),
+    ("numnulls", [t|Int64|]),
     -- TARGET_TYPESCHEMA              SYSIBM    VARCHAR                 128     0 Yes
     ("target_typeschema", [t|Maybe String|]),
     -- TARGET_TYPENAME                SYSIBM    VARCHAR                  18     0 Yes
@@ -104,7 +104,7 @@ $(Base.defineTableDefault'
     -- HIDDEN                         SYSIBM    CHARACTER                 1     0 No
     ("hidden", [t|String|]),
     -- INLINE_LENGTH                  SYSIBM    INTEGER                   4     0 No
-    ("inline_length", [t|Int|]),
+    ("inline_length", [t|Int32|]),
     -- IDENTITY                       SYSIBM    CHARACTER                 1     0 No
     ("identity", [t|String|]),
     -- GENERATED                      SYSIBM    CHARACTER                 1     0 No
