@@ -24,6 +24,8 @@ import Data.Time (LocalTime, Day)
 import Language.Haskell.TH (Q, Type)
 
 import Database.HDBC (IConnection)
+
+import Database.HDBC.SqlValueExtra ()
 import Database.HDBC.TH (derivingShow)
 import qualified Database.HDBC.TH as Base
 import Database.HDBC.Record.Persistable (Singleton, singleton, runSingleton)

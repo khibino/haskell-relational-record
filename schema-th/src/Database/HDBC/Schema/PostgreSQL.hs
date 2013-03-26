@@ -17,7 +17,7 @@ import Data.Time
 
 import Database.HDBC (IConnection)
 
-
+import Database.HDBC.SqlValueExtra ()
 import qualified Database.HDBC.TH as Base
 import Database.HDBC.Record.Persistable (Singleton, singleton, runSingleton)
 import Database.HDBC.Record.Query (Query(..), typedQuery, runQuery', listToUnique)
