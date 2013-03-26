@@ -195,7 +195,7 @@ getPrimaryKey' conn scm' tbl' = do
       scm = map toUpper scm'
   mayPrim <- runQuery' conn (singleton scm, singleton tbl) primaryKeyQuerySQL
              >>= listToUnique
-  let mayPrimaryKey = runSingleton `fmap` mayPrim
+  let mayPrimaryKey = (normalizeField . runSingleton) `fmap` mayPrim
   putLog $ "getPrimaryKey: primary key = " ++ show mayPrimaryKey
 
   return mayPrimaryKey

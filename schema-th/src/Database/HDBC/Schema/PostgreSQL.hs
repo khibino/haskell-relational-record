@@ -169,7 +169,7 @@ getPrimaryKey' conn scm' tbl' = do
       tbl = map toLower tbl'
   mayPrim <- runQuery' conn (singleton scm, singleton tbl) primaryKeyQuerySQL
              >>= listToUnique
-  return $ runSingleton `fmap` mayPrim
+  return $ (normalizeField . runSingleton) `fmap` mayPrim
 
 getFields' :: IConnection conn
           => conn
