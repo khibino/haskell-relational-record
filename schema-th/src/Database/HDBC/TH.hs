@@ -229,16 +229,16 @@ definePersistableInstance widthVar' typeName' consFunName' decompFunName' width 
         recordToSql = recordToSql'
     |]
 
-defineHasKeyConstraintInstance :: TypeQ -> ConName -> Int -> Q [Dec]
-defineHasKeyConstraintInstance constraint typeName' index =
-  [d| instance HasKeyConstraint $constraint $(conT $ conName typeName') where
+defineHasKeyConstraintInstance :: TypeQ -> TypeQ -> Int -> Q [Dec]
+defineHasKeyConstraintInstance constraint type' index =
+  [d| instance HasKeyConstraint $constraint $type' where
         constraintKey = specifyKeyConstraint $(integralE index) |]
 
-defineHasNotNullKeyInstance :: ConName -> Int -> Q [Dec]
+defineHasNotNullKeyInstance :: TypeQ -> Int -> Q [Dec]
 defineHasNotNullKeyInstance =
   defineHasKeyConstraintInstance [t| NotNull |]
 
-defineHasPrimaryKeyInstance :: ConName -> Int -> Q [Dec]
+defineHasPrimaryKeyInstance :: TypeQ -> Int -> Q [Dec]
 defineHasPrimaryKeyInstance =
   defineHasKeyConstraintInstance [t| Primary |]
 
@@ -299,11 +299,11 @@ defineTableDefault' schema table fields drives = do
 
 defineHasPrimaryKeyInstanceDefault :: String -> Int -> Q [Dec]
 defineHasPrimaryKeyInstanceDefault =
-  defineHasPrimaryKeyInstance . recordTypeNameDefault
+  defineHasPrimaryKeyInstance . recordTypeDefault
 
 defineHasNotNullKeyInstanceDefault :: String -> Int -> Q [Dec]
 defineHasNotNullKeyInstanceDefault =
-  defineHasNotNullKeyInstance . recordTypeNameDefault
+  defineHasNotNullKeyInstance . recordTypeDefault
 
 
 defineConstantSql :: VarName -> String -> Q [Dec]
