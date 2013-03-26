@@ -395,12 +395,12 @@ defineSqlsWithPrimaryKeyDefault schema table fields idx =
     sel = table `varNameWithPrefix` "select"
     upd = table `varNameWithPrefix` "update"
 
-defineWithTableDefault :: String
-                   -> String
-                   -> [(String, TypeQ)]
-                   -> [ConName]
-                   -> Q [Dec]
-defineWithTableDefault schema table fields derives = do
+defineWithTableDefault' :: String
+                        -> String
+                        -> [(String, TypeQ)]
+                        -> [ConName]
+                        -> Q [Dec]
+defineWithTableDefault' schema table fields derives = do
   recD <- defineRecordDefault schema table fields derives
   sqlD <- defineSqlsDefault schema table fields
   return $ recD ++ sqlD
@@ -414,6 +414,18 @@ defineWithPrimaryKeyDefault schema table fields idx = do
 defineWithNotNullKeyDefault :: String -> Int -> Q [Dec]
 defineWithNotNullKeyDefault =  defineHasNotNullKeyInstanceDefault
 
+defineWithTableDefault :: String
+                       -> String
+                       -> [(String, TypeQ)]
+                       -> [ConName]
+                       -> Maybe Int
+                       -> Maybe Int
+                       -> Q [Dec]
+defineWithTableDefault schema table fields derives mayPrimaryIdx mayNotNullIdx  = do
+  tblD  <- defineWithTableDefault' schema table fields derives
+  primD <- mayDeclare (defineWithPrimaryKeyDefault schema table fields) mayPrimaryIdx
+  nnD   <- mayDeclare (defineWithNotNullKeyDefault table) mayNotNullIdx
+  return $ tblD ++ primD ++ nnD
 
 putLog :: String -> IO ()
 putLog =  putStrLn
@@ -441,7 +453,4 @@ defineTableFromDB connect drv scm tbl derives = do
             return (cols, notNullIdxs, mayPrimaryIdx) )
 
   (cols, notNullIdxs, mayPrimaryIdx) <- runIO getDBinfo
-  tblD  <- defineWithTableDefault scm tbl cols derives
-  primD <- mayDeclare (defineWithPrimaryKeyDefault scm tbl cols) mayPrimaryIdx
-  nnD   <- mayDeclare (defineWithNotNullKeyDefault tbl) (listToMaybe notNullIdxs)
-  return $ tblD ++ primD ++ nnD
+  defineWithTableDefault scm tbl cols derives mayPrimaryIdx (listToMaybe notNullIdxs)
