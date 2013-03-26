@@ -7,7 +7,7 @@ import Database.HDBC.SqlValueExtra ()
 import Database.HDBC.TH (derivingShow)
 import qualified Database.HDBC.TH as Base
 
-$(Base.defineTableDefault
+$(Base.defineRecordDefault
   "PG_CATALOG" "pg_type"
 
   [

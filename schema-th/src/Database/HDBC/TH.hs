@@ -30,8 +30,8 @@ module Database.HDBC.TH (
   definePersistableInstance,
   defineRecordDecomposeFunction,
 
-  defineTable,
-  defineTableDefault',
+  defineRecord,
+  defineRecordDefault,
 
   defineConstantSql,
   defineSqlPrimarySelect,
@@ -258,13 +258,13 @@ defineRecordDecomposeFunction funName' typeCon fields = do
                         [] ]
   return [sig, var]
 
-defineTable :: (VarName, VarName)
+defineRecord :: (VarName, VarName)
             -> (String, ConName)
             -> (VarName, VarName, VarName)
             -> [((VarName, TypeQ), String)]
             -> [ConName]
             -> Q [Dec]
-defineTable
+defineRecord
   (cF, dF) (tableSQL, tyC)
   (tableN, fldsN, widthN)
   schemas' drvs = do
@@ -281,15 +281,15 @@ defineTable
   instSQL  <- definePersistableInstance widthN typeCon cF dF width
   return $ typ : fromSQL ++ toSQL ++ tableI ++ instSQL
 
-defineTableDefault' :: String
+defineRecordDefault :: String
                     -> String
                     -> [(String, TypeQ)]
                     -> [ConName]
                     -> Q [Dec]
-defineTableDefault' schema table fields drives = do
+defineRecordDefault schema table fields drives = do
   let tableSQL = nameOfTableSQL schema table
       fields' = map (uncurry fieldInfo) fields
-  defineTable
+  defineRecord
     (table `varNameWithPrefix` "fromSqlOf",
      table `varNameWithPrefix` "toSqlOf")
     (tableSQL, recordTypeNameDefault table)
@@ -401,7 +401,7 @@ defineTableDefault :: String
                    -> [ConName]
                    -> Q [Dec]
 defineTableDefault schema table fields derives = do
-  recD <- defineTableDefault' schema table fields derives
+  recD <- defineRecordDefault schema table fields derives
   sqlD <- defineSqlsDefault schema table fields
   return $ recD ++ sqlD
 

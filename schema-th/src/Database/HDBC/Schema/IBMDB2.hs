@@ -36,7 +36,7 @@ import qualified Language.SQL.SqlWord as SQL
 import Database.HDBC.Schema.Driver (Driver, getFields, getPrimaryKey, emptyDriver)
 
 
-$(Base.defineTableDefault'
+$(Base.defineRecordDefault
   "SYSCAT" "columns"
   [
     -- column                         schema    type               length         NULL
