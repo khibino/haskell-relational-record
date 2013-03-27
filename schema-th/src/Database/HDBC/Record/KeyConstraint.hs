@@ -5,10 +5,10 @@
 module Database.HDBC.Record.KeyConstraint (
   KeyConstraint (index), specifyKeyConstraint,
 
-  Unique,
-  NotNull,
+  Unique, UniqueConstraint,
+  NotNull, NotNullConstraint,
 
-  Primary,
+  Primary, PrimaryConstraint,
   unique, notNull,
 
   leftKeyConstraint,
@@ -21,17 +21,17 @@ data Unique
 data NotNull
 data Primary
 
-type UniqueKey  = KeyConstraint Unique
-type NotNullKey = KeyConstraint NotNull
-type PrimaryKey = KeyConstraint Primary
+type UniqueConstraint  = KeyConstraint Unique
+type NotNullConstraint = KeyConstraint NotNull
+type PrimaryConstraint = KeyConstraint Primary
 
 specifyKeyConstraint :: Int -> KeyConstraint c a
 specifyKeyConstraint =  KeyConstraint
 
-unique :: PrimaryKey a -> UniqueKey a
+unique :: PrimaryConstraint a -> UniqueConstraint a
 unique =  specifyKeyConstraint . index
 
-notNull :: PrimaryKey a -> NotNullKey a
+notNull :: PrimaryConstraint a -> NotNullConstraint a
 notNull =  specifyKeyConstraint . index
 
 
