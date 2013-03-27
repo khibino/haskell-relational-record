@@ -1,17 +1,24 @@
 
 module Database.HDBC.Schema.Driver (
-  Driver(Driver, getFields, getPrimaryKey), emptyDriver
+  TypeMap,
+  Driver(Driver, typeMap, getFieldsWithMap, getPrimaryKey),
+  emptyDriver,
+  getFields
   ) where
 
 import Database.HDBC (IConnection)
-import Language.Haskell.TH (Q, Type)
+import Language.Haskell.TH (TypeQ)
+
+type TypeMap = [(String, TypeQ)]
 
 data Driver conn =
   Driver
-  { getFields :: conn
-              -> String
-              -> String
-              -> IO ([(String, Q Type)], [Int])
+  { typeMap   :: TypeMap
+  , getFieldsWithMap :: TypeMap
+                        -> conn
+                        -> String
+                        -> String
+                        -> IO ([(String, TypeQ)], [Int])
   , getPrimaryKey :: conn
                   -> String
                   -> String
@@ -19,4 +26,7 @@ data Driver conn =
   }
 
 emptyDriver :: IConnection conn => Driver conn
-emptyDriver =  Driver (\_ _ _ -> return ([],[])) (\_ _ _ -> return Nothing)
+emptyDriver =  Driver [] (\_ _ _ _ -> return ([],[])) (\_ _ _ -> return Nothing)
+
+getFields :: IConnection conn => Driver conn -> conn -> String -> String -> IO ([(String, TypeQ)], [Int])
+getFields drv = getFieldsWithMap drv (typeMap drv)

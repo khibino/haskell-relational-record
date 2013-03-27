@@ -4,11 +4,13 @@ PATH='/usr/bin:/bin'
 
 create0='
 CREATE TABLE TEST.test_table0 (
- foo INTEGER NOT NULL,
- bar VARCHAR(10),
- baz date,
+ foo smallint NOT NULL,
+ foo_bar integer NOT NULL,
+ bar date,
+ bar_baz text,
+ baz VARCHAR(10),
 
- PRIMARY KEY(foo)
+ PRIMARY KEY(foo_bar)
 )
 '
 

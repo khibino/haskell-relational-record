@@ -9,7 +9,7 @@ import Language.Haskell.TH (Q, Type)
 
 import Data.Int (Int16, Int32, Int64)
 import Data.Char (toLower)
-import Data.Map (Map, fromList)
+import Data.Map (Map, fromList, (!))
 import qualified Data.Map as Map
 import Data.Time
   (DiffTime, NominalDiffTime,
@@ -30,7 +30,8 @@ import qualified Database.HDBC.Schema.PgCatalog.PgType as Type
 import Language.SQL.SqlWord (SqlWord(..), (<.>), (<=>))
 import qualified Language.SQL.SqlWord as SQL
 
-import Database.HDBC.Schema.Driver (Driver, getFields, getPrimaryKey, emptyDriver)
+import Database.HDBC.Schema.Driver
+  (TypeMap, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
 
 mapFromSqlDefault :: Map String (Q Type)
 mapFromSqlDefault =
@@ -72,10 +73,10 @@ type Column = (PgAttribute, PgType)
 notNull :: Column -> Bool
 notNull =  Attr.attnotnull . fst
 
-getType :: Column -> (String, Q Type)
-getType column@(pgAttr, pgType) =
+getType :: Map String (Q Type) -> Column -> (String, Q Type)
+getType mapFromSql column@(pgAttr, pgType) =
   (normalizeField $ Attr.attname pgAttr,
-   mayNull $ mapFromSqlDefault Map.! (Type.typname pgType))
+   mayNull $ mapFromSql ! Type.typname pgType)
   where
     mayNull typ = if notNull column
                   then typ
@@ -172,11 +173,12 @@ getPrimaryKey' conn scm' tbl' = do
   return $ (normalizeField . runSingleton) `fmap` mayPrim
 
 getFields' :: IConnection conn
-          => conn
+          => TypeMap
+          -> conn
           -> String
           -> String
           -> IO ([(String, Q Type)], [Int])
-getFields' conn scm' tbl' = do
+getFields' tmap conn scm' tbl' = do
   let scm = map toLower scm'
       tbl = map toLower tbl'
   cols <- runQuery' conn (singleton scm, singleton tbl) columnQuerySQL
@@ -189,11 +191,12 @@ getFields' conn scm' tbl' = do
   putLog
     $  "getFields: num of columns = " ++ show (length cols)
     ++ ", not null columns = " ++ show notNullIdxs
+  let mapFromSql = fromList tmap `Map.union` mapFromSqlDefault
 
-  return $ (map getType cols, notNullIdxs)
+  return $ (map (getType mapFromSql) cols, notNullIdxs)
 
 driverPostgreSQL :: IConnection conn => Driver conn
 driverPostgreSQL =
-  emptyDriver { getFields     = getFields' }
-              { getPrimaryKey = getPrimaryKey' }
+  emptyDriver { getFieldsWithMap = getFields' }
+              { getPrimaryKey    = getPrimaryKey' }
 

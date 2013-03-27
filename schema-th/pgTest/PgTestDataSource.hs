@@ -3,15 +3,18 @@ module PgTestDataSource (
   defineTable
   ) where
 
-import Language.Haskell.TH (Q, Dec, runIO)
+import Language.Haskell.TH (Q, Dec, TypeQ)
 import Database.HDBC.PostgreSQL (connectPostgreSQL, Connection)
 import Database.HDBC.Schema.PostgreSQL (driverPostgreSQL)
-import Database.HDBC.TH (ConName, pprQ, defineTableFromDB)
+import Database.HDBC.Schema.Driver (typeMap)
+import Database.HDBC.TH (ConName, defineTableFromDB)
 
 connect :: IO Connection
 connect = connectPostgreSQL "dbname=testdb"
 
-defineTable :: String -> String -> [ConName] -> Q [Dec]
-defineTable scm tbl derives = do
-  conn <- runIO connect
-  defineTableFromDB driverPostgreSQL conn scm tbl derives
+defineTable :: [(String, TypeQ)] -> String -> String -> [ConName] -> Q [Dec]
+defineTable tmap scm tbl derives = do
+  defineTableFromDB
+    connect
+    (driverPostgreSQL { typeMap = tmap })
+    scm tbl derives

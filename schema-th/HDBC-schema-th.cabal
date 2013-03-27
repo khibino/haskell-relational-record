@@ -44,6 +44,8 @@ Test-suite postgreSQL
   Build-depends:         HDBC-schema-th
                        , Cabal
                        , HDBC-postgresql
+                       , bytestring
+                       , text
 
   Type:                detailed-0.9
   Test-module:         PgTest

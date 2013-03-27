@@ -18,7 +18,7 @@ import Prelude hiding (length)
 import qualified Data.List as List
 import Data.Int (Int16, Int32, Int64)
 import Data.Char (toUpper, toLower)
-import Data.Map (Map, fromList)
+import Data.Map (Map, fromList, (!))
 import qualified Data.Map as Map
 import Data.Time (LocalTime, Day)
 import Language.Haskell.TH (Q, Type)
@@ -33,7 +33,8 @@ import Database.HDBC.Record.Query (Query(..), typedQuery, runQuery', listToUniqu
 import Language.SQL.SqlWord (SqlWord(..))
 import qualified Language.SQL.SqlWord as SQL
 
-import Database.HDBC.Schema.Driver (Driver, getFields, getPrimaryKey, emptyDriver)
+import Database.HDBC.Schema.Driver
+  (TypeMap, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
 
 
 $(Base.defineRecordDefault
@@ -137,10 +138,10 @@ normalizeField =  map toLower
 notNull :: Columns -> Bool
 notNull =  (== "N") . nulls
 
-getType :: Columns -> (String, Q Type)
-getType rec =
+getType :: Map String (Q Type) -> Columns -> (String, Q Type)
+getType mapFromSql rec =
   (normalizeField $ colname rec,
-   mayNull $ mapFromSqlDefault Map.! (typename rec))
+   mayNull $ mapFromSql ! typename rec)
   where mayNull typ = if notNull rec
                       then typ
                       else [t| Maybe $(typ) |]
@@ -203,11 +204,12 @@ getPrimaryKey' conn scm' tbl' = do
   return mayPrimaryKey
 
 getFields' :: IConnection conn
-          => conn
+          => TypeMap
+          -> conn
           -> String
           -> String
           -> IO ([(String, Q Type)], [Int])
-getFields' conn scm' tbl' = do
+getFields' tmap conn scm' tbl' = do
   let tbl = map toUpper tbl'
       scm = map toUpper scm'
       
@@ -221,10 +223,11 @@ getFields' conn scm' tbl' = do
   putLog
     $  "getFields: num of columns = " ++ show (List.length cols)
     ++ ", not null columns = " ++ show notNullIdxs
+  let mapFromSql = fromList tmap `Map.union` mapFromSqlDefault
 
-  return $ (map getType cols, notNullIdxs)
+  return $ (map (getType mapFromSql) cols, notNullIdxs)
 
 driverIBMDB2 :: IConnection conn => Driver conn
 driverIBMDB2 =
-  emptyDriver { getFields     = getFields' }
-              { getPrimaryKey = getPrimaryKey' }
+  emptyDriver { getFieldsWithMap = getFields' }
+              { getPrimaryKey    = getPrimaryKey' }
