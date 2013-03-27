@@ -10,7 +10,7 @@
 -- Stability   : experimental
 -- Portability : unknown
 module Database.HDBC.Schema.IBMDB2 (
-  driverIBMDB2
+  Columns, driverIBMDB2
   ) where
 
 import Prelude hiding (length)
