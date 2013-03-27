@@ -1,5 +1,13 @@
 {-# LANGUAGE TemplateHaskell #-}
 
+-- |
+-- Module      : Database.HDBC.Schema.PgCatalog.PgType
+-- Copyright   : 2013 Kei Hibino
+-- License     : BSD3
+--
+-- Maintainer  : ex8k.hibino@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
 module Database.HDBC.Schema.PgCatalog.PgType where
 
 import Data.Int (Int16, Int32)

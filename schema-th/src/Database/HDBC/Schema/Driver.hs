@@ -1,4 +1,11 @@
-
+-- |
+-- Module      : Database.HDBC.Schema.Driver
+-- Copyright   : 2013 Kei Hibino
+-- License     : BSD3
+--
+-- Maintainer  : ex8k.hibino@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
 module Database.HDBC.Schema.Driver (
   TypeMap,
   Driver(Driver, typeMap, getFieldsWithMap, getPrimaryKey),

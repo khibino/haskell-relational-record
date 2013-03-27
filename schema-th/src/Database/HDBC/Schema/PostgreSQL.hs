@@ -1,6 +1,14 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 
+-- |
+-- Module      : Database.HDBC.Schema.PostgreSQL
+-- Copyright   : 2013 Kei Hibino
+-- License     : BSD3
+--
+-- Maintainer  : ex8k.hibino@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
 module Database.HDBC.Schema.PostgreSQL (
   driverPostgreSQL
   ) where

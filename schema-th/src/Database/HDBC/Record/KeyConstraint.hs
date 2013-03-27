@@ -2,6 +2,14 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
+-- |
+-- Module      : Database.HDBC.Record.KeyConstraint
+-- Copyright   : 2013 Kei Hibino
+-- License     : BSD3
+--
+-- Maintainer  : ex8k.hibino@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
 module Database.HDBC.Record.KeyConstraint (
   KeyConstraint (index), specifyKeyConstraint,
 
