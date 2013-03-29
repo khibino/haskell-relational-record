@@ -15,7 +15,7 @@ module Language.SQL.SqlWord (
   wordShow, unwordsSQL,
 
   sepBy, parenSepBy,
-  (<.>), (<=>), (<<>>),
+  as, (<.>), (<=>), (<<>>),
 
   stringMap
   ) where
@@ -87,14 +87,20 @@ ws `sepBy` d = concat' $ ws `sepBy'` d
 parenSepBy :: [SqlWord] -> SqlWord -> SqlWord
 ws `parenSepBy` d = concat' $ "(" : (ws `sepBy'` d) ++ [")"]
 
+defineBinOp :: SqlWord -> SqlWord -> SqlWord -> SqlWord
+defineBinOp op a b = concat' $ [a, b] `sepBy'` op
+
+as :: SqlWord -> SqlWord -> SqlWord
+as =  defineBinOp AS
+
 (<.>) :: SqlWord -> SqlWord -> SqlWord
-a <.> b = concat' $ [a, b] `sepBy'` "."
+(<.>) =  defineBinOp "."
 
 (<=>) :: SqlWord -> SqlWord -> SqlWord
-a <=> b = concat' $ [a, b] `sepBy'` "="
+(<=>) =  defineBinOp "="
 
 (<<>>) :: SqlWord -> SqlWord -> SqlWord
-a <<>> b = concat' $ [a, b] `sepBy'` "<>"
+(<<>>) =  defineBinOp "<>"
 
 infixl 2 <=>, <<>>
 
