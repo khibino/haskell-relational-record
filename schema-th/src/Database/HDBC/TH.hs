@@ -10,6 +10,9 @@
 -- Maintainer  : ex8k.hibino@gmail.com
 -- Stability   : experimental
 -- Portability : unknown
+--
+-- This module contains templates to generate Haskell record types
+-- and instances correspond to RDB table schema.
 module Database.HDBC.TH (
   ConName(conName), toConName,
   VarName(varName), toVarName,
