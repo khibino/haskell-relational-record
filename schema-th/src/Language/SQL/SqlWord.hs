@@ -69,8 +69,8 @@ wordShow =  d  where
   d (Sequence s)   = s
   d w              = show w
 
-sepBy' :: [SqlWord] -> String -> [String]
-ws `sepBy'` d = intersperse d $ map wordShow ws
+sepBy' :: [SqlWord] -> SqlWord -> [String]
+ws `sepBy'` d =  map wordShow . intersperse d $ ws
 
 unwordsSQL :: [SqlWord] -> String
 unwordsSQL =  unwords . map wordShow
@@ -81,10 +81,10 @@ unwordsSQL =  unwords . map wordShow
 concat' :: [String] -> SqlWord
 concat' =  word . concat
 
-sepBy :: [SqlWord] -> String -> SqlWord
+sepBy :: [SqlWord] -> SqlWord -> SqlWord
 ws `sepBy` d = concat' $ ws `sepBy'` d
 
-parenSepBy :: [SqlWord] -> String -> SqlWord
+parenSepBy :: [SqlWord] -> SqlWord -> SqlWord
 ws `parenSepBy` d = concat' $ "(" : (ws `sepBy'` d) ++ [")"]
 
 (<.>) :: SqlWord -> SqlWord -> SqlWord

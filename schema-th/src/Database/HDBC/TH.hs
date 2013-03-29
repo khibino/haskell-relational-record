@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
@@ -334,7 +335,7 @@ defineSqlPrimarySelect name' (table, recordType) fields pkey =
   defineConstantSqlQuery pkeyType recordType name'
   . SQL.unwordsSQL
   $ [SELECT, fields' `SQL.sepBy` ", ",
-     FROM, SQL.word table, WHERE, SQL.word pkey <=> SQL.word "?"]
+     FROM, SQL.word table, WHERE, SQL.word pkey <=> "?"]
   where fields' = map (SQL.word . fst) fields
         pkeyType = fromJust $ lookup pkey fields
 
@@ -343,8 +344,8 @@ defineSqlPrimaryUpdate name' table fields pkey =
   defineConstantSql name'
   . SQL.unwordsSQL
   $ [UPDATE, SQL.word table, SET, assignments `SQL.sepBy` ", ",
-     WHERE, SQL.word pkey, SQL.word "= ?"]
-  where assignments = map (\f -> SQL.word f <=> SQL.word "?") . filter (/= pkey) $ fields
+     WHERE, SQL.word pkey, "= ?"]
+  where assignments = map (\f -> SQL.word f <=> "?") . filter (/= pkey) $ fields
 
 defineSqlInsert :: VarName -> String -> [String] -> Q [Dec]
 defineSqlInsert name' table fields = do
@@ -353,7 +354,7 @@ defineSqlInsert name' table fields = do
   $ [INSERT, INTO, SQL.word table, fields' `SQL.parenSepBy` ", ",
      VALUES, pfs `SQL.parenSepBy` ", "]
     where fields' = map SQL.word fields
-          pfs     = replicate (length fields) (SQL.word "?")
+          pfs     = replicate (length fields) "?"
 
 defineSqls :: VarName -- ^ SQL insert statement var name
                -> (String, TypeQ)
