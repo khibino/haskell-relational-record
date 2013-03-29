@@ -1,9 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-module PgTest (
-  tests
-  ) where
+module PgTest  where
 
 import Distribution.TestSuite (Test)
 import PgTestDataSource (defineTable)

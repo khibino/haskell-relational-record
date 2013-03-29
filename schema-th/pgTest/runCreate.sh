@@ -6,6 +6,7 @@ create0='
 CREATE TABLE TEST.test_table0 (
  foo smallint NOT NULL,
  foo_bar integer NOT NULL,
+ par_ent integer NOT NULL,
  bar date,
  bar_baz text,
  baz VARCHAR(10),
