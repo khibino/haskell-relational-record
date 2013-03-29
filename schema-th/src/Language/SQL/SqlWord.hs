@@ -87,14 +87,17 @@ ws `sepBy` d = concat' $ ws `sepBy'` d
 parenSepBy :: [SqlWord] -> SqlWord -> SqlWord
 ws `parenSepBy` d = concat' $ "(" : (ws `sepBy'` d) ++ [")"]
 
+defineBinOp' :: SqlWord -> SqlWord -> SqlWord -> SqlWord
+defineBinOp' op a b = concat' $ [a, b] `sepBy'` op
+
 defineBinOp :: SqlWord -> SqlWord -> SqlWord -> SqlWord
-defineBinOp op a b = concat' $ [a, b] `sepBy'` op
+defineBinOp op a b = word . unwords $ [a, b] `sepBy'` op
 
 as :: SqlWord -> SqlWord -> SqlWord
 as =  defineBinOp AS
 
 (<.>) :: SqlWord -> SqlWord -> SqlWord
-(<.>) =  defineBinOp "."
+(<.>) =  defineBinOp' "."
 
 (<=>) :: SqlWord -> SqlWord -> SqlWord
 (<=>) =  defineBinOp "="
