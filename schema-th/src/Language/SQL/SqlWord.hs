@@ -14,12 +14,15 @@ module Language.SQL.SqlWord (
   word,
   wordShow, unwordsSQL,
 
-  sepBy, parenSepBy,
-  as, (<.>), (<=>), (<<>>),
+  sepBy, parenSepBy, defineBinOp,
+  as, (<.>),
+
+  (<=>), (<<>>), and, or,
 
   stringMap
   ) where
 
+import Prelude hiding (and, or)
 import Data.String (IsString(fromString))
 import Data.List (find, intersperse)
 
@@ -105,6 +108,14 @@ as =  defineBinOp AS
 (<<>>) :: SqlWord -> SqlWord -> SqlWord
 (<<>>) =  defineBinOp "<>"
 
+and :: SqlWord -> SqlWord -> SqlWord
+and =  defineBinOp AND
+
+or :: SqlWord -> SqlWord -> SqlWord
+or =  defineBinOp OR
+
+infixl 4 `and`
+infixl 3 `or`
 infixl 2 <=>, <<>>
 
 
