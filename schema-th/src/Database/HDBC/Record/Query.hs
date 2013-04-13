@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 -- |
 -- Module      : Database.HDBC.Record.Query
 -- Copyright   : 2013 Kei Hibino
@@ -27,8 +28,8 @@ import Data.Maybe (listToMaybe)
 import Database.HDBC (IConnection, Statement, SqlValue)
 import qualified Database.HDBC as HDBC
 
-import Database.HDBC.Record.ToSql (RecordToSql(fromRecord), ToSql(recordToSql))
-import Database.HDBC.Record.FromSql (RecordFromSql, runToRecord, FromSql(recordFromSql))
+import Database.Record.ToSql (RecordToSql(fromRecord), ToSql(recordToSql))
+import Database.Record.FromSql (RecordFromSql, runToRecord, FromSql(recordFromSql))
 
 newtype Query p a = Query { untypeQuery :: String }
 
@@ -55,10 +56,10 @@ data ExecutedStatement a =
 prepare :: IConnection conn => conn -> Query p a -> IO (PreparedQuery p a)
 prepare conn = fmap PreparedQuery . HDBC.prepare conn . untypeQuery
 
-bindTo' :: RecordToSql p -> p -> PreparedQuery p a -> BoundStatement a
+bindTo' :: RecordToSql SqlValue p -> p -> PreparedQuery p a -> BoundStatement a
 bindTo' toSql p q = BoundStatement { bound = prepared q, params = fromRecord toSql p }
 
-bindTo :: ToSql p => p -> PreparedQuery p a -> BoundStatement a
+bindTo :: ToSql SqlValue p => p -> PreparedQuery p a -> BoundStatement a
 bindTo =  bindTo' recordToSql
 
 execute :: BoundStatement a -> IO (ExecutedStatement a)
@@ -67,18 +68,21 @@ execute bs = do
   n <- HDBC.execute stmt (params bs)
   return $ ExecutedStatement stmt n
 
-fetchRecordsExplicit :: (Statement -> IO [[SqlValue]]) -> RecordFromSql a -> ExecutedStatement a -> IO [a]
+fetchRecordsExplicit :: (Statement -> IO [[SqlValue]])
+                     -> RecordFromSql SqlValue a
+                     -> ExecutedStatement a
+                     -> IO [a]
 fetchRecordsExplicit fetch fromSql es = do
   rows <- fetch (executed es)
   return $ map (runToRecord fromSql) rows
 
-fetchAll :: FromSql a => ExecutedStatement a -> IO [a]
+fetchAll :: FromSql SqlValue a => ExecutedStatement a -> IO [a]
 fetchAll =  fetchRecordsExplicit HDBC.fetchAllRows recordFromSql
 
-fetchAll' :: FromSql a => ExecutedStatement a -> IO [a]
+fetchAll' :: FromSql SqlValue a => ExecutedStatement a -> IO [a]
 fetchAll' =  fetchRecordsExplicit HDBC.fetchAllRows' recordFromSql
 
-fetchUnique :: FromSql a => ExecutedStatement a -> IO (Maybe a)
+fetchUnique :: FromSql SqlValue a => ExecutedStatement a -> IO (Maybe a)
 fetchUnique =  fmap listToMaybe . fetchAll
 
 listToUnique :: [a] -> IO (Maybe a)
@@ -87,24 +91,38 @@ listToUnique =  d  where
   d [r]     = return $ Just r
   d (_:_:_) = ioError . userError $ "listToUnique': more than one record found."
 
-fetchUnique' :: FromSql a => ExecutedStatement a -> IO (Maybe a)
+fetchUnique' :: FromSql SqlValue a => ExecutedStatement a -> IO (Maybe a)
 fetchUnique' es = do
   fetchAll es >>= listToUnique
 
-runStatement :: FromSql a => BoundStatement a -> IO [a]
+runStatement :: FromSql SqlValue a => BoundStatement a -> IO [a]
 runStatement =  (>>= fetchAll) . execute
 
-runStatement' :: FromSql a => BoundStatement a -> IO [a]
+runStatement' :: FromSql SqlValue a => BoundStatement a -> IO [a]
 runStatement' =  (>>= fetchAll') . execute
 
-runPreparedQuery :: (ToSql p, FromSql a) => p -> PreparedQuery p a -> IO [a]
+runPreparedQuery :: (ToSql SqlValue p, FromSql SqlValue a)
+                 => p
+                 -> PreparedQuery p a
+                 -> IO [a]
 runPreparedQuery p = runStatement . (p `bindTo`)
 
-runPreparedQuery' :: (ToSql p, FromSql a) => p -> PreparedQuery p a -> IO [a]
+runPreparedQuery' :: (ToSql SqlValue p, FromSql SqlValue a)
+                  => p
+                  -> PreparedQuery p a
+                  -> IO [a]
 runPreparedQuery' p = runStatement' . (p `bindTo`)
 
-runQuery :: (IConnection conn, ToSql p, FromSql a) => conn -> p -> Query p a -> IO [a]
+runQuery :: (IConnection conn, ToSql SqlValue p, FromSql SqlValue a)
+         => conn
+         -> p
+         -> Query p a
+         -> IO [a]
 runQuery conn p = (>>= runPreparedQuery p) . prepare conn
 
-runQuery' :: (IConnection conn, ToSql p, FromSql a) => conn -> p -> Query p a -> IO [a]
+runQuery' :: (IConnection conn, ToSql SqlValue p, FromSql SqlValue a)
+          => conn
+          -> p
+          -> Query p a
+          -> IO [a]
 runQuery' conn p = (>>= runPreparedQuery' p) . prepare conn

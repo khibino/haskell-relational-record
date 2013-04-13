@@ -10,7 +10,7 @@
 -- Maintainer  : ex8k.hibino@gmail.com
 -- Stability   : experimental
 -- Portability : unknown
-module Database.HDBC.Record.KeyConstraint (
+module Database.Record.KeyConstraint (
   KeyConstraint (index), specifyKeyConstraint,
 
   Unique, UniqueConstraint,

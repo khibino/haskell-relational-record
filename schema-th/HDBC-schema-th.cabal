@@ -19,10 +19,11 @@ library
   default-language:    Haskell2010
   other-modules:       Language.SQL.SqlWord
 
-  exposed-modules:     Database.HDBC.Record.Persistable
-                       Database.HDBC.Record.KeyConstraint
-                       Database.HDBC.Record.FromSql
-                       Database.HDBC.Record.ToSql
+  exposed-modules:     Database.Record.Persistable
+                       Database.Record.KeyConstraint
+                       Database.Record.FromSql
+                       Database.Record.ToSql
+                       Database.HDBC.Record.Persistable
                        Database.HDBC.Record.Query
                        Database.HDBC.TH
                        Database.HDBC.SqlValueExtra

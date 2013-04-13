@@ -70,12 +70,13 @@ import qualified Language.Haskell.TH.PprLib as TH
 import qualified Language.Haskell.TH.Syntax as TH
 
 import Database.HDBC.Session (withConnectionIO)
-import Database.HDBC.Record.Persistable
+import Database.Record.Persistable
   (persistableRecord, Persistable, persistable, Singleton)
-import Database.HDBC.Record.KeyConstraint
+import Database.Record.KeyConstraint
   (HasKeyConstraint(constraintKey), specifyKeyConstraint, Primary, NotNull)
-import Database.HDBC.Record.FromSql (FromSql(recordFromSql), recordFromSql')
-import Database.HDBC.Record.ToSql (ToSql(recordToSql), recordToSql')
+import Database.Record.FromSql (FromSql(recordFromSql), recordFromSql')
+import Database.Record.ToSql (ToSql(recordToSql), recordToSql')
+import Database.HDBC.Record.Persistable ()
 import Database.HDBC.Record.Query (Query, typedQuery)
 import Language.SQL.SqlWord (SqlWord(..), (<=>))
 import qualified Language.SQL.SqlWord as SQL
@@ -222,16 +223,16 @@ defineTableInfo tableVar' table fieldsVar' fields widthVar' width = do
 
 definePersistableInstance :: VarName -> TypeQ -> VarName -> VarName -> Int -> Q [Dec]
 definePersistableInstance widthVar' typeCon consFunName' decompFunName' width = do
-  [d| instance Persistable $typeCon where
+  [d| instance Persistable SqlValue $typeCon where
         persistable = persistableRecord
                       $(varE $ varName consFunName')
                       $(varE $ varName decompFunName')
                       $(varE $ varName widthVar')
 
-      instance FromSql $typeCon where
+      instance FromSql SqlValue $typeCon where
         recordFromSql = recordFromSql'
 
-      instance ToSql $typeCon where
+      instance ToSql SqlValue $typeCon where
         recordToSql = recordToSql'
     |]
 
