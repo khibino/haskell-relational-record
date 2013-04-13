@@ -1,0 +1,24 @@
+name:                DB-record
+version:             0.0.1.0
+synopsis:            Mapping between SQL database values and haskell records.
+description:         This package contiains type constrains to map
+                     between SQL database values and haskell records.
+homepage:            http://twitter.com/khibino
+license:             BSD3
+license-file:        LICENSE
+author:              Kei Hibino
+maintainer:          ex8k.hibino@gmail.com
+copyright:           Copyright (c) 2013 Kei Hibino
+category:            Database
+build-type:          Simple
+cabal-version:       >=1.8
+
+library
+  exposed-modules:
+                        Database.Record.FromSql
+                        Database.Record.ToSql
+                        Database.Record.Persistable
+                        Database.Record.KeyConstraint
+
+  build-depends:          base <5
+  hs-source-dirs:       src

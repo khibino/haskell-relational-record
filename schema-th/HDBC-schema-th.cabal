@@ -19,10 +19,7 @@ library
   default-language:    Haskell2010
   other-modules:       Language.SQL.SqlWord
 
-  exposed-modules:     Database.Record.Persistable
-                       Database.Record.KeyConstraint
-                       Database.Record.FromSql
-                       Database.Record.ToSql
+  exposed-modules:
                        Database.HDBC.Record.Persistable
                        Database.HDBC.Record.Query
                        Database.HDBC.TH
@@ -38,6 +35,7 @@ library
                        , containers
                        , time
                        , convertible
+                       , DB-record
                        , HDBC >=2
                        , HDBC-session
   hs-source-dirs:      src

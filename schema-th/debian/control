@@ -7,22 +7,31 @@ Build-Depends: debhelper (>= 7.0)
                , cdbs
                , ghc
                , ghc-prof
+               , libghc-db-record-dev
+               , libghc-db-record-prof
                , libghc-hdbc-dev (>= 2)
                , libghc-hdbc-prof (>= 2)
                , libghc-hdbc-session-dev
                , libghc-hdbc-session-prof
                , libghc-base-dev (<< 5) | ghc
                , libghc-base-prof (<< 5) | ghc-prof
+               , libghc-containers-dev | ghc
+               , libghc-containers-prof | ghc-prof
                , libghc-convertible-dev
                , libghc-convertible-prof
                , libghc-template-haskell-dev | ghc
                , libghc-template-haskell-prof | ghc-prof
+               , libghc-time-dev | ghc
+               , libghc-time-prof | ghc-prof
 Build-Depends-Indep: ghc-doc
+                     , libghc-db-record-doc
                      , libghc-hdbc-doc (>= 2)
                      , libghc-hdbc-session-doc
                      , libghc-base-doc (<< 5) | ghc-doc
+                     , libghc-containers-doc | ghc-doc
                      , libghc-convertible-doc
                      , libghc-template-haskell-doc | ghc-doc
+                     , libghc-time-doc | ghc-doc
 Standards-Version: 3.9.3
 Homepage: http://twitter.com/khibino
 
