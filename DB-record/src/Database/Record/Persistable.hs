@@ -18,13 +18,14 @@ module Database.Record.Persistable (
   PersistableRecord, persistableRecord,
   toRecord, fromRecord, width,
 
-  persistableRecordFromValue,
+  persistableSingletonFromValue,
 
   PersistableNull(..), sqlNullValue,
-  PersistableValue (..),
+  PersistableValue (..), fromSql, toSql,
   Persistable (..), takeRecord
   ) where
 
+-- Singleton value record.
 newtype Singleton a = Singleton { runSingleton :: a }
 
 newtype PersistableNullValue q =
@@ -56,9 +57,9 @@ persistableSqlValue =  PersistableSqlValue
 persistableRecord :: ([q] -> a) -> (a -> [q]) -> Int -> PersistableRecord q a
 persistableRecord =  PersistableRecord
 
-persistableRecordFromValue :: PersistableSqlValue q a -> PersistableRecord q a
-persistableRecordFromValue pv =
-  persistableRecord(toValue pv . head) ((:[]) . fromValue pv) 1
+persistableSingletonFromValue :: PersistableSqlValue q a -> PersistableRecord q (Singleton a)
+persistableSingletonFromValue pv =
+  persistableRecord(singleton . toValue pv . head) ((:[]) . fromValue pv . runSingleton) 1
 
 class Eq q => PersistableNull q where
   persistableNull :: PersistableNullValue q
@@ -68,6 +69,12 @@ sqlNullValue =  runPersistableNullValue persistableNull
 
 class PersistableValue q a where
   persistableValue :: PersistableSqlValue q a
+
+fromSql :: PersistableValue q a => q -> a
+fromSql =  toValue persistableValue
+
+toSql :: PersistableValue q a => a -> q
+toSql =  fromValue persistableValue
 
 class Persistable q a where
   persistable :: PersistableRecord q a
