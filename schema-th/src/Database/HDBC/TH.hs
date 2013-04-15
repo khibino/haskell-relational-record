@@ -55,7 +55,7 @@ import Data.Char (toUpper, toLower)
 import Data.Maybe (fromJust, listToMaybe)
 import Data.List (elemIndex)
 
-import Database.HDBC (IConnection, SqlValue, fromSql, toSql)
+import Database.HDBC (IConnection, SqlValue)
 
 import Language.Haskell.TH
   (Q, Name, mkName, runQ, runIO, Ppr, ppr,
@@ -71,7 +71,8 @@ import qualified Language.Haskell.TH.Syntax as TH
 
 import Database.HDBC.Session (withConnectionIO)
 import Database.Record.Persistable
-  (persistableRecord, Persistable, persistable, Singleton)
+  (persistableRecord, Persistable, persistable,
+   fromSql, toSql, Singleton)
 import Database.Record.KeyConstraint
   (HasKeyConstraint(constraintKey), specifyKeyConstraint, Primary, NotNull)
 import Database.Record.FromSql (FromSql(recordFromSql), recordFromSql')
