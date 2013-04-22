@@ -15,8 +15,18 @@ CREATE TABLE TEST.test_table0 (
 )
 '
 
+create1='
+CREATE TABLE TEST.test_table1 (
+  foo integer NOT NULL,
+
+  PRIMARY KEY (foo)
+)
+'
+
 set -x
 
 psql -c "CREATE SCHEMA TEST" testdb
 psql -c "$create0" testdb
+psql -c "$create1" testdb
 
+psql -c "INSERT INTO TEST.test_table1 (foo) VALUES (1)" testdb
