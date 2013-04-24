@@ -78,8 +78,8 @@ import Database.Record.FromSql (FromSql(recordFromSql), recordFromSql')
 import Database.Record.ToSql (ToSql(recordToSql), recordToSql')
 import Database.HDBC.Record.Persistable ()
 import Database.HDBC.Record.Query (Query, typedQuery)
-import Language.SQL.SqlWord (SqlWord(..), (<=>))
-import qualified Language.SQL.SqlWord as SQL
+import Language.SQL.Keyword (Keyword(..), (<=>))
+import qualified Language.SQL.Keyword as SQL
 
 import Database.HDBC.Schema.Driver (Driver, getFields, getPrimaryKey)
 

@@ -31,8 +31,8 @@ import Database.HDBC.TH (derivingShow)
 import qualified Database.HDBC.TH as Base
 import Database.Record.Persistable (Singleton, singleton, runSingleton)
 import Database.HDBC.Record.Query (Query(..), typedQuery, runQuery', listToUnique)
-import Language.SQL.SqlWord (SqlWord(..))
-import qualified Language.SQL.SqlWord as SQL
+import Language.SQL.Keyword (Keyword(..))
+import qualified Language.SQL.Keyword as SQL
 
 import Database.HDBC.Schema.Driver
   (TypeMap, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)

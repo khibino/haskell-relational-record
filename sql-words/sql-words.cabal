@@ -1,0 +1,20 @@
+name:                sql-words
+version:             0.0.1.0
+synopsis:            Simple idea SQL keywords data constructor into OverloadedString
+description:         This package contiains SQL keywords constructors defined as OverloadedString literals.
+homepage:            http://twitter.com/khibino
+license:             BSD3
+license-file:        LICENSE
+author:              Kei Hibino
+maintainer:          ex8k.hibino@gmail.com
+copyright:           Copyright (c) 2013 Kei Hibino
+category:            Database
+build-type:          Simple
+cabal-version:       >=1.8
+
+library
+  exposed-modules:
+                        Language.SQL.Keyword
+
+  build-depends:          base <5
+  hs-source-dirs:       src

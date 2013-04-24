@@ -17,7 +17,6 @@ cabal-version:       >=1.10
 
 library
   default-language:    Haskell2010
-  other-modules:       Language.SQL.SqlWord
 
   exposed-modules:
                        Database.HDBC.Record.Persistable
@@ -35,6 +34,7 @@ library
                        , containers
                        , time
                        , convertible
+                       , sql-words
                        , DB-record
                        , HDBC >=2
                        , HDBC-session

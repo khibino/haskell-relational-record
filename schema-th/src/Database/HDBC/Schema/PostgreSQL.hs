@@ -35,8 +35,8 @@ import qualified Database.HDBC.Schema.PgCatalog.PgAttribute as Attr
 import Database.HDBC.Schema.PgCatalog.PgType (PgType(..), tableOfPgType, fieldsOfPgType)
 import qualified Database.HDBC.Schema.PgCatalog.PgType as Type
 
-import Language.SQL.SqlWord (SqlWord(..), (<.>), (<=>))
-import qualified Language.SQL.SqlWord as SQL
+import Language.SQL.Keyword (Keyword(..), (<.>), (<=>))
+import qualified Language.SQL.Keyword as SQL
 
 import Database.HDBC.Schema.Driver
   (TypeMap, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
@@ -90,7 +90,7 @@ getType mapFromSql column@(pgAttr, pgType) =
                   then typ
                   else [t| Maybe $typ |]
 
-pgCatalog :: SqlWord
+pgCatalog :: SQL.Keyword
 pgCatalog =  "PG_CATALOG"
 
 relOidQuerySQL :: Query (Singleton String, Singleton String) (Singleton Int32)
