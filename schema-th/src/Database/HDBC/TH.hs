@@ -78,7 +78,7 @@ import Database.Record.FromSql (FromSql(recordFromSql), recordFromSql')
 import Database.Record.ToSql (ToSql(recordToSql), recordToSql')
 import Database.HDBC.Record.Persistable ()
 import Database.HDBC.Record.Query (Query, typedQuery)
-import Language.SQL.Keyword (Keyword(..), (<=>))
+import Language.SQL.Keyword (Keyword(..), (.=.))
 import qualified Language.SQL.Keyword as SQL
 
 import Database.HDBC.Schema.Driver (Driver, getFields, getPrimaryKey)
@@ -336,7 +336,7 @@ defineSqlPrimarySelect name' (table, recordType) fields pkey =
   defineConstantSqlQuery pkeyType recordType name'
   . SQL.unwordsSQL
   $ [SELECT, fields' `SQL.sepBy` ", ",
-     FROM, SQL.word table, WHERE, SQL.word pkey <=> "?"]
+     FROM, SQL.word table, WHERE, SQL.word pkey .=. "?"]
   where fields' = map (SQL.word . fst) fields
         pkeyType = fromJust $ lookup pkey fields
 
@@ -346,7 +346,7 @@ defineSqlPrimaryUpdate name' table fields pkey =
   . SQL.unwordsSQL
   $ [UPDATE, SQL.word table, SET, assignments `SQL.sepBy` ", ",
      WHERE, SQL.word pkey, "= ?"]
-  where assignments = map (\f -> SQL.word f <=> "?") . filter (/= pkey) $ fields
+  where assignments = map (\f -> SQL.word f .=. "?") . filter (/= pkey) $ fields
 
 defineSqlInsert :: VarName -> String -> [String] -> Q [Dec]
 defineSqlInsert name' table fields = do

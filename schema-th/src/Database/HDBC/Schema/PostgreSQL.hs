@@ -35,7 +35,7 @@ import qualified Database.HDBC.Schema.PgCatalog.PgAttribute as Attr
 import Database.HDBC.Schema.PgCatalog.PgType (PgType(..), tableOfPgType, fieldsOfPgType)
 import qualified Database.HDBC.Schema.PgCatalog.PgType as Type
 
-import Language.SQL.Keyword (Keyword(..), (<.>), (<=>))
+import Language.SQL.Keyword (Keyword(..), (<.>), (.=.))
 import qualified Language.SQL.Keyword as SQL
 
 import Database.HDBC.Schema.Driver
@@ -103,9 +103,9 @@ relOidQuerySQL =
      pgCatalog <.> "pg_namespace", AS, "nsp", ",",
      pgCatalog <.> "pg_class",     AS, "rel",
      WHERE,
-     "rel" <.> "relnamespace" <=> "nsp" <.> "oid",  AND,
+     "rel" <.> "relnamespace" .=. "nsp" <.> "oid",  AND,
 
-     "nspname" <=> "?", AND, "relname" <=> "?"
+     "nspname" .=. "?", AND, "relname" .=. "?"
     ]
 
 attributeQuerySQL :: Query (Singleton String, Singleton String) PgAttribute
@@ -118,7 +118,7 @@ attributeQuerySQL =
      "(", SQL.word $ untypeQuery relOidQuerySQL, ")", AS, "rel", ",",
      SQL.word tableOfPgAttribute,                      AS, "att",
      WHERE,
-     "attrelid" <=> "rel_object_id", AND,
+     "attrelid" .=. "rel_object_id", AND,
      "attnum", ">", "0" -- attnum of normal attributes begins from 1
     ]
 
@@ -134,8 +134,8 @@ columnQuerySQL =
      "(", SQL.word $ untypeQuery attributeQuerySQL, ")", AS, "att", ",",
      SQL.word tableOfPgType,                              AS, "typ",
      WHERE,
-     "atttypid" <=> "typ" <.> "oid", AND,
-     "typ" <.> "typtype" <=> "'b'",  AND,
+     "atttypid" .=. "typ" <.> "oid", AND,
+     "typ" <.> "typtype" .=. "'b'",  AND,
      "(",
      "typcategory = 'B'", OR,
      "typcategory = 'D'", OR,
@@ -152,12 +152,12 @@ primaryKeyQuerySQL =
      "(", SQL.word $ untypeQuery attributeQuerySQL, ")", AS, "att", ",",
      pgCatalog <.> "pg_constraint",                      AS, "con",
      WHERE,
-     "conrelid"  <=> "attrelid", AND,
-     "conkey[1]" <=> "attnum",   AND,
+     "conrelid"  .=. "attrelid", AND,
+     "conkey[1]" .=. "attnum",   AND,
 
-     "attnotnull" <=> "TRUE",    AND,
-     "contype" <=> "'p'",        AND,
-     "array_length (conkey, 1)" <=> "1"]
+     "attnotnull" .=. "TRUE",    AND,
+     "contype" .=. "'p'",        AND,
+     "array_length (conkey, 1)" .=. "1"]
 
 logPrefix :: String -> String
 logPrefix =  ("PostgreSQL: " ++)
