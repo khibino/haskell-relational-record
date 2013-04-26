@@ -114,9 +114,9 @@ and =  defineBinOp AND
 or :: Keyword -> Keyword -> Keyword
 or =  defineBinOp OR
 
-infixl 4 `and`
-infixl 3 `or`
-infixl 2 .=., .<>.
+infixr 4 .=., .<>.
+infixr 3 `and`
+infixr 2 `or`
 
 
 stringMap :: (String -> String) -> Keyword -> Keyword
