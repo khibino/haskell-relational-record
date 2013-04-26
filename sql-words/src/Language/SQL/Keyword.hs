@@ -17,7 +17,7 @@ module Language.SQL.Keyword (
   sepBy, parenSepBy, defineBinOp,
   as, (<.>),
 
-  (<=>), (<<>>), and, or,
+  (.=.), (.<>.), and, or,
 
   stringMap
   ) where
@@ -102,11 +102,11 @@ as =  defineBinOp AS
 (<.>) :: Keyword -> Keyword -> Keyword
 (<.>) =  defineBinOp' "."
 
-(<=>) :: Keyword -> Keyword -> Keyword
-(<=>) =  defineBinOp "="
+(.=.) :: Keyword -> Keyword -> Keyword
+(.=.) =  defineBinOp "="
 
-(<<>>) :: Keyword -> Keyword -> Keyword
-(<<>>) =  defineBinOp "<>"
+(.<>.) :: Keyword -> Keyword -> Keyword
+(.<>.) =  defineBinOp "<>"
 
 and :: Keyword -> Keyword -> Keyword
 and =  defineBinOp AND
@@ -116,7 +116,7 @@ or =  defineBinOp OR
 
 infixl 4 `and`
 infixl 3 `or`
-infixl 2 <=>, <<>>
+infixl 2 .=., .<>.
 
 
 stringMap :: (String -> String) -> Keyword -> Keyword
