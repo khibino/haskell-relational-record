@@ -30,3 +30,4 @@ psql -c "$create0" testdb
 psql -c "$create1" testdb
 
 psql -c "INSERT INTO TEST.test_table1 (foo) VALUES (1)" testdb
+psql -c "INSERT INTO TEST.test_table1 (foo) VALUES (2)" testdb
