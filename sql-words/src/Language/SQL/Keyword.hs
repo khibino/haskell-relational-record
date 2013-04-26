@@ -14,10 +14,14 @@ module Language.SQL.Keyword (
   word,
   wordShow, unwordsSQL,
 
+  string, integer,
+
   sepBy, parenSepBy, defineBinOp,
   as, (<.>),
 
-  (.=.), (.<>.), and, or,
+  (.||.),
+  (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
+  and, or,
 
   stringMap
   ) where
@@ -81,6 +85,12 @@ unwordsSQL =  unwords . map wordShow
 -- unwords' :: [Keyword] -> Keyword
 -- unwords' =  word . unwordsSQL
 
+string :: String -> Keyword
+string =  Sequence . ('\'' :) . (++ "'")
+
+integer :: (Integral a, Show a) => a -> Keyword
+integer =  Sequence . show
+
 concat' :: [String] -> Keyword
 concat' =  word . concat
 
@@ -102,8 +112,23 @@ as =  defineBinOp AS
 (<.>) :: Keyword -> Keyword -> Keyword
 (<.>) =  defineBinOp' "."
 
+(.||.) :: Keyword -> Keyword -> Keyword
+(.||.) =  defineBinOp "||"
+
 (.=.) :: Keyword -> Keyword -> Keyword
 (.=.) =  defineBinOp "="
+
+(.<.) :: Keyword -> Keyword -> Keyword
+(.<.) =  defineBinOp "<"
+
+(.<=.) :: Keyword -> Keyword -> Keyword
+(.<=.) =  defineBinOp "<="
+
+(.>.) :: Keyword -> Keyword -> Keyword
+(.>.) =  defineBinOp ">"
+
+(.>=.) :: Keyword -> Keyword -> Keyword
+(.>=.) =  defineBinOp ">="
 
 (.<>.) :: Keyword -> Keyword -> Keyword
 (.<>.) =  defineBinOp "<>"
@@ -114,7 +139,8 @@ and =  defineBinOp AND
 or :: Keyword -> Keyword -> Keyword
 or =  defineBinOp OR
 
-infixr 4 .=., .<>.
+infixr 5 .||.
+infixr 4 .=., .<., .<=., .>., .>=., .<>.
 infixr 3 `and`
 infixr 2 `or`
 
