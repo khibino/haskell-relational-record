@@ -1,0 +1,36 @@
+name:                relational-join
+version:             0.0.1.0
+synopsis:            Joining Relational types
+description:         This package contiains combinators to join relational types.
+homepage:            http://twitter.com/khibino
+license:             BSD3
+license-file:        LICENSE
+author:              Kei Hibino
+maintainer:          ex8k.hibino@gmail.com
+copyright:           Copyright (c) 2013 Kei Hibino
+category:            Database
+build-type:          Simple
+cabal-version:       >=1.8
+
+library
+  exposed-modules:
+                       Database.Relational.Query
+                       Database.Relational.Query.AliasId
+                       Database.Relational.Query.AliasId.Unsafe
+                       Database.Relational.Query.Product
+                       Database.Relational.Query.Table
+                       Database.Relational.Query.Pi
+                       Database.Relational.Query.Pi.Unsafe
+                       Database.Relational.Query.Projection
+                       Database.Relational.Query.Join
+                       Database.Relational.Query.Expr
+                       Database.Relational.Query.Expr.Unsafe
+                       Database.Relational.Query.Relation
+                       Database.Relational.Query.Sub
+  -- other-modules:
+  build-depends:         base <5
+                       , array
+                       , sql-words
+                       , bytestring
+                       , text
+  hs-source-dirs:      src
