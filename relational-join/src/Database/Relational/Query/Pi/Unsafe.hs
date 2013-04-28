@@ -1,32 +1,36 @@
 {-# LANGUAGE ExistentialQuantification #-}
 
 module Database.Relational.Query.Pi.Unsafe (
-  Column (index),
+  Column, index,
 
-  Pi (offset), definePi,
+  PiUnit (offset), definePiUnit,
 
-  PiSeq ((:*), Leaf),
+  Pi ((:*), Leaf),
 
   defineColumn
   ) where
 
-newtype Column r ft = Column { index :: Int }
-
-newtype Pi r ft = Pi { offset :: Int }
--- data Pi r ft = Pi
+newtype PiUnit r ft = PiUnit { offset :: Int }
+-- data PiUnit r ft = PiUnit
 --                { offset  :: Int
 --                , column  :: Column r ft
 --                }
 
-data PiSeq r ft = forall r' . Pi r r' :* PiSeq r' ft
-                |             Leaf (Column r ft)
+-- newtype Column r ft = Column { index :: Int }
+type Column = PiUnit
+
+index :: Column r ft -> Int
+index =  offset
+
+data Pi r ft = forall r' . PiUnit r r' :* Pi r' ft
+             |             Leaf (Column r ft)
 
 infixr 9 :*
 
 
-defineColumn :: Int -> PiSeq r ft
-defineColumn =  Leaf . Column
+defineColumn :: Int -> Pi r ft
+defineColumn =  Leaf . PiUnit
 
 -- definePi :: Int -> Column r ft -> Pi r ft
-definePi :: Int -> Pi r ft
-definePi =  Pi
+definePiUnit :: Int -> PiUnit r ft
+definePiUnit =  PiUnit

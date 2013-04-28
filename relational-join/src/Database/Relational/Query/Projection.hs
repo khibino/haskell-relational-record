@@ -9,7 +9,7 @@ module Database.Relational.Query.Projection (
   compose, fromQualifiedSubQuery, fromExpr
   ) where
 
-import Database.Relational.Query.Pi (PiSeq)
+import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi as Pi
 import Database.Relational.Query.Expr (Expr, showExpr)
 import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr
@@ -68,17 +68,17 @@ fromQualifiedSubQuery =  fromUnit . Sub
 fromExpr :: Expr ft -> Projection ft
 fromExpr =  fromUnit . Expr . showExpr
 
-unsafeColumnExpr :: Projection r' -> PiSeq r ft -> Expr ft'
+unsafeColumnExpr :: Projection r' -> Pi r ft -> Expr ft'
 unsafeColumnExpr p ps = UnsafeExpr.Expr $ column p (Pi.leafIndex ps)
 
-columnExpr :: Projection r -> PiSeq r ft -> Expr ft
+columnExpr :: Projection r -> Pi r ft -> Expr ft
 columnExpr p ps = unsafeColumnExpr p ps
 
-columnMaybeExpr :: Projection (Maybe r) -> PiSeq r ft -> Expr (Maybe ft)
+columnMaybeExpr :: Projection (Maybe r) -> Pi r ft -> Expr (Maybe ft)
 columnMaybeExpr p ps = unsafeColumnExpr p ps
 
-(!) :: Projection r -> PiSeq r ft -> Expr ft
+(!) :: Projection r -> Pi r ft -> Expr ft
 (!) =  columnExpr
 
-(!?) :: Projection (Maybe r) -> PiSeq r ft -> Expr (Maybe ft)
+(!?) :: Projection (Maybe r) -> Pi r ft -> Expr (Maybe ft)
 (!?) =  columnMaybeExpr

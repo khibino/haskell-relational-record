@@ -1,31 +1,29 @@
 module Database.Relational.Query.Pi (
-  Column,
+  PiUnit,
+  pairPiFstUnit, pairPiSndUnit, fst', snd',
 
-  Pi,
-  pairPiFst, pairPiSnd, fst', snd',
-
-  PiSeq((:*)),
+  Pi((:*)),
   leafIndex,
   ) where
 
 import Database.Relational.Query.Pi.Unsafe
-  (Column, index, Pi, offset, PiSeq ((:*), Leaf), definePi)
+  (index, PiUnit, offset, Pi ((:*), Leaf), definePiUnit)
 
 
-leafIndex :: PiSeq r f -> Int
+leafIndex :: Pi r f -> Int
 leafIndex =  rec  where
-  rec :: PiSeq r f -> Int
+  rec :: Pi r f -> Int
   rec (Leaf pi0) = index pi0
   rec (pi0 :* x) = offset pi0 + rec x
 
-pairPiFst :: Pi (c a b) a
-pairPiFst =  definePi 0 -- (Column 0)
+pairPiFstUnit :: PiUnit (c a b) a
+pairPiFstUnit =  definePiUnit 0 -- (Column 0)
 
-pairPiSnd :: Int -> Pi (c a b) b
-pairPiSnd off = definePi off -- (Column 1)
+pairPiSndUnit :: Int -> PiUnit (c a b) b
+pairPiSndUnit off = definePiUnit off -- (Column 1)
 
-fst' :: Pi (a, b) a
-fst' =  pairPiFst
+fst' :: PiUnit (a, b) a
+fst' =  pairPiFstUnit
 
-snd' :: Int -> Pi (a, b) b
-snd' =  pairPiSnd
+snd' :: Int -> PiUnit (a, b) b
+snd' =  pairPiSndUnit
