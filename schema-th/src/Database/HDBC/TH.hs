@@ -71,7 +71,9 @@ import qualified Language.Haskell.TH.Syntax as TH
 
 import Database.HDBC.Session (withConnectionIO)
 import Database.Record.Persistable
-  (persistableRecord, Persistable, persistable, Singleton)
+  (persistableRecord, Persistable, persistable,
+   persistableRecordWidth, PersistableWidth, persistableWidth,
+   Singleton)
 import Database.Record.KeyConstraint
   (HasKeyConstraint(constraintKey), specifyKeyConstraint, Primary, NotNull)
 import Database.Record.FromSql (FromSql(recordFromSql), recordFromSql')
@@ -223,11 +225,14 @@ defineTableInfo tableVar' table fieldsVar' fields widthVar' width = do
 
 definePersistableInstance :: VarName -> TypeQ -> VarName -> VarName -> Int -> Q [Dec]
 definePersistableInstance widthVar' typeCon consFunName' decompFunName' width = do
-  [d| instance Persistable SqlValue $typeCon where
+  [d| instance PersistableWidth $typeCon where
+        persistableWidth = persistableRecordWidth $(varE $ varName widthVar')
+
+      instance Persistable SqlValue $typeCon where
         persistable = persistableRecord
+                      persistableWidth
                       $(varE $ varName consFunName')
                       $(varE $ varName decompFunName')
-                      $(varE $ varName widthVar')
 
       instance FromSql SqlValue $typeCon where
         recordFromSql = recordFromSql'
