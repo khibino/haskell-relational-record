@@ -36,7 +36,6 @@ library
                        , convertible
                        , sql-words
                        , DB-record
-                       , relational-join
                        , HDBC >=2
                        , HDBC-session
   hs-source-dirs:      src
