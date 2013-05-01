@@ -14,6 +14,7 @@ import Database.Record.Persistable
    PersistableSqlValue, -- persistableSqlValue,
    PersistableRecord, persistableSingletonFromValue,
    PersistableValue (persistableValue),
+   PersistableWidth (),
    Persistable (persistable))
 import qualified Database.Record.Persistable as Persistable
 
@@ -24,7 +25,7 @@ persistableSqlValue :: (Convertible SqlValue a, Convertible a SqlValue)
                        => PersistableSqlValue SqlValue a
 persistableSqlValue =  Persistable.persistableSqlValue fromSql toSql
 
-persistableSingleton :: (Convertible SqlValue a, Convertible a SqlValue)
+persistableSingleton :: (Convertible SqlValue a, Convertible a SqlValue, PersistableWidth (Singleton a))
                      => PersistableRecord SqlValue (Singleton a)
 persistableSingleton =  persistableSingletonFromValue persistableSqlValue
 
@@ -35,6 +36,6 @@ instance (Convertible SqlValue a, Convertible a SqlValue)
          => PersistableValue SqlValue a  where
   persistableValue = persistableSqlValue
 
-instance (Convertible SqlValue a, Convertible a SqlValue)
+instance (Convertible SqlValue a, Convertible a SqlValue, PersistableWidth (Singleton a))
          => Persistable SqlValue (Singleton a)  where
   persistable = persistableSingleton
