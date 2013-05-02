@@ -9,7 +9,12 @@ module Database.Relational.Query.Projection (
 
   toExpr,
 
-  Projectable ((!)), ProjectableMaybe ((!?))
+  Projectable ((!)), ProjectableMaybe ((!?)),
+
+  valueProjection,
+  ValueProjectable (value),
+
+  valueTrue, valueFalse, valueNull
   ) where
 
 import Prelude hiding ((!!))
@@ -20,11 +25,11 @@ import Data.List (intercalate)
 
 import Database.Record.Persistable
   (PersistableRecordWidth, runPersistableRecordWidth,
-   PersistableWidth, persistableWidth)
+   PersistableWidth, persistableWidth, Singleton)
 
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi as Pi
-import Database.Relational.Query.Expr (Expr)
+import Database.Relational.Query.Expr (Expr, valueExpr, ShowConstantSQL (showConstantSQL))
 import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr
 import Database.Relational.Query.AliasId (Qualified)
 import Database.Relational.Query.Sub (SubQuery, queryWidth)
@@ -119,3 +124,26 @@ instance ProjectableMaybe Projection where
 
 instance ProjectableMaybe Expr where
   p !? pi' = toExpr $ p `projectMaybe` pi'
+
+
+valueProjection :: ShowConstantSQL t => t -> Projection (Singleton t)
+valueProjection =  unsafeFromColumns . (:[]) . showConstantSQL
+
+class ValueProjectable p where
+  value :: (ShowConstantSQL t) => t -> p (Singleton t)
+
+instance ValueProjectable Projection where
+  value = valueProjection
+
+instance ValueProjectable Expr where
+  value = valueExpr
+
+
+valueTrue :: ValueProjectable p => p (Singleton Bool)
+valueTrue =  value True
+
+valueFalse :: ValueProjectable p => p (Singleton Bool)
+valueFalse =  value False
+
+valueNull :: (ValueProjectable p, ShowConstantSQL a) => p (Singleton (Maybe a))
+valueNull =  value Nothing

@@ -15,7 +15,7 @@ import Prelude hiding (product, and)
 
 import Database.Relational.Query.AliasId (asColumnN)
 
-import Database.Relational.Query.Expr (Expr, showExpr)
+import Database.Relational.Query.Expr (UExpr, showExpr)
 
 import Database.Relational.Query.Table (Table)
 import qualified Database.Relational.Query.Table as Table
@@ -36,7 +36,7 @@ data Relation r = Table (Table r)
                 | Relation
                   { projection  :: Projection r
                   , product     :: Product
-                  , restriction :: Maybe (Expr Bool)
+                  , restriction :: Maybe (UExpr Bool)
                   }
 
 outer :: Relation r -> Relation (Maybe r)
@@ -52,7 +52,7 @@ width =  d  where
 fromTable :: Table r -> Relation r
 fromTable =  Table
 
-composedSQL :: Projection r -> Product -> Maybe (Expr Bool) -> String
+composedSQL :: Projection r -> Product -> Maybe (UExpr Bool) -> String
 composedSQL pj pd re =
   unwordsSQL
   $ [SELECT, columns' `SQL.sepBy` SQL.word ", ",
@@ -74,7 +74,7 @@ toSubQuery =  d  where
                           (restriction rel))
                          (width rel)
 
-finalizeRelation :: Projection r -> Product -> Maybe (Expr Bool) -> Relation r
+finalizeRelation :: Projection r -> Product -> Maybe (UExpr Bool) -> Relation r
 finalizeRelation =  Relation
 
 instance Show (Relation r) where

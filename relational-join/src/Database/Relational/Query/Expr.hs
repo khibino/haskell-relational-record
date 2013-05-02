@@ -5,10 +5,11 @@ module Database.Relational.Query.Expr (
 
   ShowConstantSQL (showConstantSQL),
 
-  valueExpr, just, unsafeFromJust, valueExpr',
-  exprTrue, exprNull,
+  UExpr, valueExpr,
 
-  (.=.), (.<>.), (.>.), (.<.), and, or,
+  just, unsafeFromJust,
+
+  (.=.), (.<>.), (.>.), (.<.), and, or
   ) where
 
 import Prelude hiding (and, or)
@@ -20,7 +21,7 @@ import qualified Data.Text as T
 
 import qualified Language.SQL.Keyword as SQL
 
-import Database.Relational.Query.Expr.Unsafe (Expr(Expr, showExpr), compareBinOp)
+import Database.Relational.Query.Expr.Unsafe (Expr(Expr, showExpr), UExpr, compareBinOp)
 
 
 intExprSQL :: (Show a, Integral a) => a -> String
@@ -56,8 +57,18 @@ instance ShowConstantSQL ByteString where
 instance ShowConstantSQL Text where
   showConstantSQL = stringExprSQL . T.unpack
 
+instance ShowConstantSQL Bool where
+  showConstantSQL = d  where
+    d True  = "(0=0)"
+    d False = "(0=1)"
 
-valueExpr :: ShowConstantSQL ft => ft -> Expr ft
+instance ShowConstantSQL a => ShowConstantSQL (Maybe a) where
+  showConstantSQL = d  where
+    d (Just a)  = showConstantSQL a
+    d (Nothing) = "NULL"
+
+
+valueExpr :: ShowConstantSQL ft => ft -> UExpr ft
 valueExpr =  Expr . showConstantSQL
 
 just :: Expr ft -> Expr (Maybe ft)
@@ -67,32 +78,22 @@ unsafeFromJust :: Expr (Maybe ft) -> Expr ft
 unsafeFromJust =  Expr . showExpr
 
 
-valueExpr' :: ShowConstantSQL ft => ft -> Expr (Maybe ft)
-valueExpr' =  just . valueExpr
-
-exprTrue :: Expr Bool
-exprTrue =  Expr "(0=0)"
-
-exprNull :: Expr (Maybe a)
-exprNull =  Expr "NULL"
-
-
-(.=.) :: Expr ft -> Expr ft -> Expr Bool
+(.=.) :: Expr ft -> Expr ft -> UExpr Bool
 (.=.) =  compareBinOp (SQL..=.)
 
-(.<>.) :: Expr ft -> Expr ft -> Expr Bool
+(.<>.) :: Expr ft -> Expr ft -> UExpr Bool
 (.<>.) =  compareBinOp (SQL..<>.)
 
-(.>.) :: Expr ft -> Expr ft -> Expr Bool
+(.>.) :: Expr ft -> Expr ft -> UExpr Bool
 (.>.) =  compareBinOp (SQL.defineBinOp (SQL.word ">"))
 
-(.<.) :: Expr ft -> Expr ft -> Expr Bool
+(.<.) :: Expr ft -> Expr ft -> UExpr Bool
 (.<.) =  compareBinOp (SQL.defineBinOp (SQL.word "<"))
 
-and :: Expr Bool ->  Expr Bool ->  Expr Bool
+and :: UExpr Bool ->  UExpr Bool ->  UExpr Bool
 and =  compareBinOp SQL.and
 
-or :: Expr Bool ->  Expr Bool ->  Expr Bool
+or :: UExpr Bool ->  UExpr Bool ->  UExpr Bool
 or =  compareBinOp SQL.or
 
 infixr 4 .=., .<>.
