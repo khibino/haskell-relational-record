@@ -30,7 +30,9 @@ import Database.HDBC.SqlValueExtra ()
 import Database.HDBC.TH (derivingShow)
 import qualified Database.HDBC.TH as Base
 import Database.Record.Persistable (Singleton, singleton, runSingleton)
-import Database.HDBC.Record.Query (Query(..), typedQuery, runQuery', listToUnique)
+import Database.Relational.Query.Type (unsafeTypedQuery)
+import Database.Relational.Query (Query)
+import Database.HDBC.Record.Query (runQuery', listToUnique)
 import Language.SQL.Keyword (Keyword(..))
 import qualified Language.SQL.Keyword as SQL
 
@@ -149,7 +151,7 @@ getType mapFromSql rec =
 
 columnsQuerySQL :: Query (Singleton String, Singleton String) Columns
 columnsQuerySQL =
-  typedQuery .
+  unsafeTypedQuery .
   SQL.unwordsSQL
   $ [SELECT, fields `SQL.sepBy` ", ",
      FROM, SQL.word tableOfColumns,
@@ -159,7 +161,7 @@ columnsQuerySQL =
 
 primaryKeyQuerySQL :: Query (Singleton String, Singleton String) (Singleton String)
 primaryKeyQuerySQL =
-  typedQuery .
+  unsafeTypedQuery .
   SQL.unwordsSQL
   $ [SELECT, "key.colname",
      FROM,

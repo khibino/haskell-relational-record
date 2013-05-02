@@ -28,7 +28,9 @@ import Database.HDBC (IConnection)
 import Database.HDBC.SqlValueExtra ()
 import qualified Database.HDBC.TH as Base
 import Database.Record.Persistable (Singleton, singleton, runSingleton)
-import Database.HDBC.Record.Query (Query(..), typedQuery, runQuery', listToUnique)
+import Database.Relational.Query.Type (unsafeTypedQuery)
+import Database.Relational.Query (Query(untypeQuery))
+import Database.HDBC.Record.Query (runQuery', listToUnique)
 
 import Database.HDBC.Schema.PgCatalog.PgAttribute (PgAttribute, tableOfPgAttribute, fieldsOfPgAttribute)
 import qualified Database.HDBC.Schema.PgCatalog.PgAttribute as Attr
@@ -95,7 +97,7 @@ pgCatalog =  "PG_CATALOG"
 
 relOidQuerySQL :: Query (Singleton String, Singleton String) (Singleton Int32)
 relOidQuerySQL =
-  typedQuery .
+  unsafeTypedQuery .
   SQL.unwordsSQL
   $ [SELECT,
      "rel" <.> "oid", AS, "rel_object_id",
@@ -110,7 +112,7 @@ relOidQuerySQL =
 
 attributeQuerySQL :: Query (Singleton String, Singleton String) PgAttribute
 attributeQuerySQL =
-  typedQuery .
+  unsafeTypedQuery .
   SQL.unwordsSQL
   $ [SELECT,
      map (("att" <.>) . SQL.word) fieldsOfPgAttribute `SQL.sepBy` ", ",
@@ -124,7 +126,7 @@ attributeQuerySQL =
 
 columnQuerySQL :: Query (Singleton String, Singleton String) Column
 columnQuerySQL =
-  typedQuery .
+  unsafeTypedQuery .
   SQL.unwordsSQL
   $ [SELECT,
      (map (("att" <.>) . SQL.word) fieldsOfPgAttribute ++
@@ -146,7 +148,7 @@ columnQuerySQL =
 
 primaryKeyQuerySQL :: Query (Singleton String, Singleton String) (Singleton String)
 primaryKeyQuerySQL =
-  typedQuery .
+  unsafeTypedQuery .
   SQL.unwordsSQL
   $ [SELECT, "attname", FROM,
      "(", SQL.word $ untypeQuery attributeQuerySQL, ")", AS, "att", ",",

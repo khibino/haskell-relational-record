@@ -8,8 +8,6 @@
 -- Stability   : experimental
 -- Portability : unknown
 module Database.HDBC.Record.Query (
-  Query (untypeQuery), typedQuery,
-
   PreparedQuery, prepare,
 
   BoundStatement, bindTo', bindTo,
@@ -28,16 +26,10 @@ import Data.Maybe (listToMaybe)
 import Database.HDBC (IConnection, Statement, SqlValue)
 import qualified Database.HDBC as HDBC
 
+import Database.Relational.Query (Query, untypeQuery)
+
 import Database.Record.ToSql (RecordToSql(fromRecord), ToSql(recordToSql))
 import Database.Record.FromSql (RecordFromSql, runToRecord, FromSql(recordFromSql))
-
-newtype Query p a = Query { untypeQuery :: String }
-
-typedQuery :: String -> Query p a
-typedQuery =  Query
-
-instance Show (Query p a) where
-  show = untypeQuery
 
 newtype PreparedQuery p a = PreparedQuery { prepared :: Statement }
 

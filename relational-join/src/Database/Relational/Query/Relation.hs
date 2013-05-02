@@ -7,6 +7,7 @@ module Database.Relational.Query.Relation (
   fromTable,
 
   toSubQuery,
+  toSQL,
 
   finalizeRelation
   ) where
@@ -76,6 +77,9 @@ toSubQuery =  d  where
 
 finalizeRelation :: Projection r -> Product -> Maybe (UExpr Bool) -> Relation r
 finalizeRelation =  Relation
+
+toSQL :: Relation r -> String
+toSQL =  SubQuery.toSQL . toSubQuery
 
 instance Show (Relation r) where
   show = show . toSubQuery

@@ -27,6 +27,7 @@ library
                        Database.Relational.Query.Expr.Unsafe
                        Database.Relational.Query.Relation
                        Database.Relational.Query.Sub
+                       Database.Relational.Query.Type
   -- other-modules:
   build-depends:         base <5
                        , array

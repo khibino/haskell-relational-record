@@ -1,6 +1,6 @@
 
 module Database.Relational.Query.Sub (
-  SubQuery, fromTable, subQuery, unitSQL, width,
+  SubQuery, fromTable, subQuery, toSQL, unitSQL, width,
 
   queryWidth,
 

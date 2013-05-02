@@ -78,8 +78,9 @@ import Database.Record.KeyConstraint
   (HasKeyConstraint(constraintKey), specifyKeyConstraint, Primary, NotNull)
 import Database.Record.FromSql (FromSql(recordFromSql), recordFromSql')
 import Database.Record.ToSql (ToSql(recordToSql), recordToSql')
+import Database.Relational.Query.Type (unsafeTypedQuery)
+import Database.Relational.Query (Query)
 import Database.HDBC.Record.Persistable ()
-import Database.HDBC.Record.Query (Query, typedQuery)
 import Language.SQL.Keyword (Keyword(..), (.=.))
 import qualified Language.SQL.Keyword as SQL
 
@@ -332,7 +333,7 @@ defineConstantSqlQuery pkeyType recordType name' sqlStr = do
   let name = varName name'
   sig <- sigD name [t| Query (Singleton $pkeyType) $recordType |]
   var <- valD (varP name)
-         (normalB [| typedQuery $(stringE $ sqlStr) |])
+         (normalB [| unsafeTypedQuery $(stringE $ sqlStr) |])
          []
   return [sig, var]
 
