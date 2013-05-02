@@ -14,7 +14,10 @@ module Database.Relational.Query.Projection (
   valueProjection,
   ValueProjectable (value),
 
-  valueTrue, valueFalse, valueNull
+  valueTrue, valueFalse,
+
+  SqlProjectable (unsafeSqlValue),
+  valueNull, placeholder
   ) where
 
 import Prelude hiding ((!!))
@@ -125,9 +128,11 @@ instance ProjectableMaybe Projection where
 instance ProjectableMaybe Expr where
   p !? pi' = toExpr $ p `projectMaybe` pi'
 
+unsafeSqlProjection :: String -> Projection (Singleton t)
+unsafeSqlProjection =  unsafeFromColumns . (:[])
 
 valueProjection :: ShowConstantSQL t => t -> Projection (Singleton t)
-valueProjection =  unsafeFromColumns . (:[]) . showConstantSQL
+valueProjection =  unsafeSqlProjection . showConstantSQL
 
 class ValueProjectable p where
   value :: (ShowConstantSQL t) => t -> p (Singleton t)
@@ -145,5 +150,18 @@ valueTrue =  value True
 valueFalse :: ValueProjectable p => p (Singleton Bool)
 valueFalse =  value False
 
-valueNull :: (ValueProjectable p, ShowConstantSQL a) => p (Singleton (Maybe a))
-valueNull =  value Nothing
+
+class SqlProjectable p where
+  unsafeSqlValue :: String -> p (Singleton t)
+
+instance SqlProjectable Projection where
+  unsafeSqlValue = unsafeSqlProjection
+
+instance SqlProjectable Expr where
+  unsafeSqlValue = UnsafeExpr.Expr
+
+valueNull :: SqlProjectable p => p (Singleton (Maybe a))
+valueNull =  unsafeSqlValue "NULL"
+
+placeholder :: SqlProjectable p => p (Singleton t)
+placeholder =  unsafeSqlValue "?"
