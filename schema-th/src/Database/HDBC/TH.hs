@@ -15,14 +15,6 @@
 -- This module contains templates to generate Haskell record types
 -- and instances correspond to RDB table schema.
 module Database.HDBC.TH (
-  ConName(conName), toConName,
-  VarName(varName), toVarName,
-
-  conCamelcaseName,
-  varCamelcaseName,
-
-  pprQ,
-
   fieldInfo,
 
   derivingEq, derivingShow, derivingRead, derivingData, derivingTypable,
@@ -57,8 +49,13 @@ import Data.List (elemIndex)
 
 import Database.HDBC (IConnection, SqlValue, fromSql, toSql)
 
+import Language.Haskell.TH.CamelCaseNames
+  (ConName (conName), VarName (varName),
+   conCamelcaseName, varCamelcaseName,
+   varNameWithPrefix,
+   toTypeCon)
 import Language.Haskell.TH
-  (Q, Name, mkName, runQ, runIO, Ppr, ppr,
+  (Q, Name, mkName, runIO,
    TypeQ, ExpQ, DecQ, Dec,
    appsE, conE, varE, listE, litE, stringE, integerL,
    listP, varP, wildP,
@@ -66,8 +63,6 @@ import Language.Haskell.TH
    dataD, sigD, funD, valD,
    clause, normalB,
    recC, cxt, varStrictType, strictType, isStrict)
-import qualified Language.Haskell.TH.PprLib as TH
-import qualified Language.Haskell.TH.Syntax as TH
 
 import Database.HDBC.Session (withConnectionIO)
 import Database.Record.Persistable
@@ -87,63 +82,15 @@ import qualified Language.SQL.Keyword as SQL
 import Database.HDBC.Schema.Driver (Driver, getFields, getPrimaryKey)
 
 
-capitalize :: String -> String
-capitalize (c:cs) = toUpper c : cs
-capitalize ""     = ""
-
-unCapitalize :: String -> String
-unCapitalize (c:cs) = toLower c : cs
-unCapitalize ""     = ""
-
-newtype ConName = ConName { conName :: Name }
-newtype VarName = VarName { varName :: Name }
-
-toConName :: String -> ConName
-toConName =  ConName . mkName . capitalize
-
-toVarName :: String -> VarName
-toVarName =  VarName . mkName . unCapitalize
-
-nameChars :: String
-nameChars =  '\'' : ['0' .. '9'] ++ ['A' .. 'Z'] ++  ['a' .. 'z']
-
-splitForName :: String -> [String]
-splitForName str
-  | rest /= [] = tk : splitForName (tail rest)
-  | otherwise  = [tk]
-  where
-    (tk, rest) = span (`elem` nameChars) str
-
-camelcaseUpper :: String -> String
-camelcaseUpper =  concat . map capitalize . splitForName
-
--- camelcaseLower :: String -> String
--- camelcaseLower =  unCapitalize . camelcaseUpper
-
-conCamelcaseName :: String -> ConName
-conCamelcaseName =  toConName . camelcaseUpper
-
-varCamelcaseName :: String -> VarName
-varCamelcaseName =  toVarName . camelcaseUpper
-
-varNameWithPrefix :: String -> String -> VarName
-varNameWithPrefix n p =  toVarName $ p ++ camelcaseUpper n
-
 nameOfTableSQL :: String -> String -> String
 nameOfTableSQL schema table = map toUpper schema ++ '.' : map toLower table
-
-typeOfName :: ConName -> TypeQ
-typeOfName =  conT . conName
 
 recordTypeNameDefault :: String -> ConName
 recordTypeNameDefault =  conCamelcaseName
 
 recordTypeDefault :: String -> TypeQ
-recordTypeDefault =  typeOfName . recordTypeNameDefault
+recordTypeDefault =  toTypeCon . recordTypeNameDefault
 
-
-pprQ :: (Functor m, TH.Quasi m, Ppr a) => Q a -> m TH.Doc
-pprQ =  fmap ppr . runQ
 
 fieldInfo :: String
           -> TypeQ
@@ -283,7 +230,7 @@ defineRecord
   let schemas = map fst schemas'
   typ  <- defineRecordType tyC schemas drvs
   let width = length schemas'
-      typeCon = typeOfName tyC
+      typeCon = toTypeCon tyC
   fromSQL  <- defineRecordConstructFunction cF tyC width
   toSQL    <- defineRecordDecomposeFunction dF typeCon (map fst schemas)
   tableI   <- defineTableInfo

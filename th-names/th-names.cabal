@@ -1,0 +1,19 @@
+name:                th-names
+version:             0.0.1.0
+synopsis:            Manipulate name strings for TH
+description:         This package includes functions to manipulate name string for Template Haskell.
+homepage:            http://twitter.com/khibino
+license:             BSD3
+license-file:        LICENSE
+author:              Kei Hibino
+maintainer:          ex8k.hibino@gmail.com
+copyright:           Copyright (c) 2013 Kei Hibino
+category:            Development
+build-type:          Simple
+cabal-version:       >=1.8
+
+library
+  exposed-modules:
+                     Language.Haskell.TH.CamelCaseNames
+  build-depends:       base <5, template-haskell
+  hs-source-dirs:    src
