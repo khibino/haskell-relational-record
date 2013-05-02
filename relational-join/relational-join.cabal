@@ -33,4 +33,5 @@ library
                        , sql-words
                        , bytestring
                        , text
+                       , DB-record
   hs-source-dirs:      src

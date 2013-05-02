@@ -99,8 +99,8 @@ table =  Relation.fromTable
 record :: Qualified (Relation r) -> Projection r
 record =  Projection.fromQualifiedSubQuery  . fmap Relation.toSubQuery
 
-expr :: Expr ft -> Projection ft
-expr =  Projection.fromExpr
+expr :: Projection ft -> Expr ft
+expr =  Projection.toExpr
 
 compose :: Projection a -> Projection b -> Projection (c a b)
 compose =  Projection.compose
