@@ -17,7 +17,9 @@ import Database.Relational.Query.AliasId (Qualified)
 import Database.Relational.Query.Expr
 import Database.Relational.Query.Sub (SubQuery, unitSQL, width, queryWidth)
 import Database.Relational.Query.Projection
-  (Projectable((!)), ProjectableMaybe((!?)), ValueProjectable(value))
+  (Projectable((!)), ProjectableMaybe((!?)),
+   ValueProjectable(value), SqlProjectable (unsafeSqlValue),
+   valueTrue, valueFalse, valueNull, placeholder)
 import Database.Relational.Query.Relation (Relation)
 import Database.Relational.Query.Join
 import Database.Relational.Query.Type (Query, untypeQuery, toQuery)
