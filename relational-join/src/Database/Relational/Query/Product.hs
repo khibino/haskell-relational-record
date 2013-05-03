@@ -48,6 +48,7 @@ restrictProduct :: ProductTree q -> UExpr Bool -> ProductTree q
 restrictProduct =  d  where
   d (Join ja lp rp Nothing)   rs' = Join ja lp rp (Just rs')
   d (Join ja lp rp (Just rs)) rs' = Join ja lp rp (Just $ rs `and` rs')
+  d leaf@(Leaf _ _)           _   = leaf -- or error on compile
 
 
 newtype Product = Tree QueryProduct
@@ -87,7 +88,7 @@ showQueryProduct =  rec  where
      showWordsSQL [joinType (joinAttr left') (joinAttr right'), JOIN],
      urec right',
      showWordSQL ON,
-     showString . showExpr . fromMaybe valueTrue $ rs]
+     showString . showExpr . fromMaybe valueTrue {- or error on compile -}  $ rs]
 
 productSQL :: Product -> String
 productSQL =  d  where
