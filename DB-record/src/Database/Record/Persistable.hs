@@ -14,9 +14,10 @@ module Database.Record.Persistable (
   Singleton(runSingleton), singleton,
 
   PersistableNullValue(runPersistableNullValue), persistableNullValue,
-  PersistableSqlValue, persistableSqlValue,
 
   PersistableRecordWidth(runPersistableRecordWidth),
+  PersistableSqlValue, persistableSqlValue,
+
   PersistableRecord, persistableRecord,
   toRecord, fromRecord, width,
 
@@ -24,6 +25,7 @@ module Database.Record.Persistable (
 
   PersistableNull(..), sqlNullValue,
   PersistableValue (..), fromSql, toSql,
+  derivedPersistableRecord, derivedPersistableSingleton,
   PersistableWidth (..), persistableRecordWidth, singletonWidth, (<&>),
   Persistable (..), takeRecord
   ) where
@@ -59,6 +61,9 @@ newtype PersistableRecordWidth a =
 persistableRecordWidth :: Int -> PersistableRecordWidth a
 persistableRecordWidth =  PersistableRecordWidth
 
+valueWidth :: PersistableRecordWidth a
+valueWidth =  persistableRecordWidth 1
+
 singletonWidth :: PersistableRecordWidth (Singleton a)
 singletonWidth =  persistableRecordWidth 1
 
@@ -79,6 +84,10 @@ width =  runPersistableRecordWidth . widthOfRecord
 persistableRecord :: PersistableRecordWidth a -> ([q] -> a) -> (a -> [q]) -> PersistableRecord q a
 persistableRecord =  PersistableRecord
 
+persistableFromValue :: PersistableSqlValue q a -> PersistableRecord q a
+persistableFromValue pv =
+  persistableRecord valueWidth (toValue pv . head) ((:[]) . fromValue pv)
+
 persistableSingletonFromValue :: PersistableSqlValue q a -> PersistableRecord q (Singleton a)
 persistableSingletonFromValue pv =
   persistableRecord singletonWidth (singleton . toValue pv . head) ((:[]) . fromValue pv . runSingleton)
@@ -90,14 +99,6 @@ class Eq q => PersistableNull q where
 sqlNullValue :: PersistableNull q => q
 sqlNullValue =  runPersistableNullValue persistableNull
 
-class PersistableValue q a where
-  persistableValue :: PersistableSqlValue q a
-
-fromSql :: PersistableValue q a => q -> a
-fromSql =  toValue persistableValue
-
-toSql :: PersistableValue q a => a -> q
-toSql =  fromValue persistableValue
 
 class PersistableWidth a where
   persistableWidth :: PersistableRecordWidth a
@@ -107,6 +108,22 @@ instance PersistableWidth (Singleton a) where
 
 instance (PersistableWidth a, PersistableWidth b) => PersistableWidth (a, b) where
   persistableWidth = persistableWidth <&> persistableWidth
+
+
+class PersistableWidth a => PersistableValue q a where
+  persistableValue :: PersistableSqlValue q a
+
+fromSql :: PersistableValue q a => q -> a
+fromSql =  toValue persistableValue
+
+toSql :: PersistableValue q a => a -> q
+toSql =  fromValue persistableValue
+
+derivedPersistableRecord :: PersistableValue q a => PersistableRecord q a
+derivedPersistableRecord =  persistableFromValue persistableValue
+
+derivedPersistableSingleton :: PersistableValue q a => PersistableRecord q (Singleton a)
+derivedPersistableSingleton =  persistableSingletonFromValue persistableValue
 
 
 class PersistableWidth a => Persistable q a where
