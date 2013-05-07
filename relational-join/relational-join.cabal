@@ -28,6 +28,7 @@ library
                        Database.Relational.Query.Relation
                        Database.Relational.Query.Sub
                        Database.Relational.Query.Type
+                       Database.Relational.Query.TH
   -- other-modules:
   build-depends:         base <5
                        , array
