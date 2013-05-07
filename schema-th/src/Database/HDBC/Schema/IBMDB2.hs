@@ -23,6 +23,7 @@ import Data.Map (Map, fromList, (!))
 import qualified Data.Map as Map
 import Data.Time (LocalTime, Day)
 import Language.Haskell.TH (Q, Type)
+import qualified Language.Haskell.TH.Name.Extra as TH
 
 import Database.HDBC (IConnection)
 
@@ -185,10 +186,7 @@ putLog :: String -> IO ()
 putLog =  putStrLn . logPrefix
 
 compileErrorIO :: String -> IO a
-compileErrorIO =  Base.compileErrorIO . logPrefix
-
-compileError :: String -> Q a
-compileError = Base.compileError . logPrefix
+compileErrorIO =  TH.compileErrorIO . logPrefix
 
 getPrimaryKey' :: IConnection conn
               => conn

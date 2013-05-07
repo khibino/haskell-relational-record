@@ -19,8 +19,6 @@ module Database.HDBC.TH (
 
   derivingEq, derivingShow, derivingRead, derivingData, derivingTypable,
 
-  compileErrorIO, compileError,
-
   defineRecordType,
   defineRecordConstructFunction,
   definePersistableInstance,
@@ -54,10 +52,12 @@ import Language.Haskell.TH.Name.CamelCase
    conCamelcaseName, varCamelcaseName,
    varNameWithPrefix,
    toTypeCon)
+import Language.Haskell.TH.Name.Extra
+  (integralE, simpleValD, compileError)
 import Language.Haskell.TH
-  (Q, Name, mkName, runIO,
-   TypeQ, ExpQ, DecQ, Dec,
-   appsE, conE, varE, listE, litE, stringE, integerL,
+  (Q, mkName, runIO,
+   TypeQ, DecQ, Dec,
+   appsE, conE, varE, listE, stringE,
    listP, varP, wildP,
    conT,
    dataD, sigD, funD, valD,
@@ -99,17 +99,8 @@ derivingData = conCamelcaseName "Data"
 derivingTypable = conCamelcaseName "Typable"
 derivingEq, derivingShow, derivingRead, derivingData, derivingTypable :: ConName
 
-compileErrorIO :: String -> IO a
-compileErrorIO =  ioError . userError
-
-compileError :: String -> Q a
-compileError =  runIO . compileErrorIO
-
 mayDeclare :: (a -> Q [Dec]) -> Maybe a -> Q [Dec]
 mayDeclare =  maybe (return [])
-
-integralE :: Integral a => a -> ExpQ
-integralE =  litE . integerL . toInteger
 
 defineRecordType :: ConName            -- ^ Name of the data type of table record type.
                  -> [(VarName, TypeQ)] -- ^ List of fields in the table. Must be legal, properly cased record fields.
@@ -145,12 +136,6 @@ defineRecordConstructFunction funName' typeName' width = do
                   ++ ", count of fields is " ++ show width) |])
             [] ]
   return [sig, var]
-
-simpleValD :: Name -> TypeQ -> ExpQ -> Q [Dec]
-simpleValD var typ expr =  do
-  sig <- sigD var typ
-  val <- valD (varP var) (normalB expr) []
-  return [sig, val]
 
 defineTableInfo :: VarName -> String
                 -> VarName -> [String]

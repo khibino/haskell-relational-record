@@ -14,6 +14,7 @@ module Database.HDBC.Schema.PostgreSQL (
   ) where
 
 import Language.Haskell.TH (Q, Type)
+import qualified Language.Haskell.TH.Name.Extra as TH
 
 import Data.Int (Int16, Int32, Int64)
 import Data.Char (toLower)
@@ -167,7 +168,7 @@ putLog :: String -> IO ()
 putLog =  putStrLn . logPrefix
 
 compileErrorIO :: String -> IO a
-compileErrorIO =  Base.compileErrorIO . logPrefix
+compileErrorIO =  TH.compileErrorIO . logPrefix
 
 getPrimaryKey' :: IConnection conn
               => conn
