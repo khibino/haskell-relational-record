@@ -49,7 +49,7 @@ import Data.List (elemIndex)
 
 import Database.HDBC (IConnection, SqlValue, fromSql, toSql)
 
-import Language.Haskell.TH.CamelCaseNames
+import Language.Haskell.TH.Name.CamelCase
   (ConName (conName), VarName (varName),
    conCamelcaseName, varCamelcaseName,
    varNameWithPrefix,

@@ -1,4 +1,5 @@
-module Language.Haskell.TH.CamelCaseNames (
+
+module Language.Haskell.TH.Name.CamelCase (
   ConName (ConName, conName), toConName,
   VarName (VarName, varName), toVarName,
 
@@ -11,8 +12,7 @@ module Language.Haskell.TH.CamelCaseNames (
 
 import Data.Char (toUpper, toLower)
 import Language.Haskell.TH
-  (Name, mkName, TypeQ, conT, ExpQ, conE,
-   Ppr, ppr, Q, runQ)
+  (Name, mkName, TypeQ, conT, ExpQ, conE)
 
 capitalize :: String -> String
 capitalize (c:cs) = toUpper c : cs
@@ -58,4 +58,3 @@ toTypeCon =  conT . conName
 
 toDataCon :: ConName -> ExpQ
 toDataCon =  conE . conName
-

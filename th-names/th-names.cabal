@@ -14,7 +14,7 @@ cabal-version:       >=1.8
 
 library
   exposed-modules:
-                     Language.Haskell.TH.CamelCaseNames
-                     Language.Haskell.TH.Extra
+                     Language.Haskell.TH.Name.CamelCase
+                     Language.Haskell.TH.Name.Extra
   build-depends:       base <5, template-haskell
   hs-source-dirs:    src

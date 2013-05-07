@@ -1,4 +1,5 @@
-module Language.Haskell.TH.Extra (
+
+module Language.Haskell.TH.Name.Extra (
   pprQ,
 
   compileError,
