@@ -42,7 +42,7 @@ import Data.Char (toUpper, toLower)
 import Data.Maybe (fromJust, listToMaybe)
 import Data.List (elemIndex)
 
-import Database.HDBC (IConnection, SqlValue, fromSql, toSql)
+import Database.HDBC (IConnection, SqlValue)
 
 import Language.Haskell.TH.Name.CamelCase
   (ConName (conName), VarName (varName),
@@ -62,7 +62,7 @@ import Language.Haskell.TH
 
 import Database.HDBC.Session (withConnectionIO)
 import Database.Record.Persistable
-  (persistableRecord, Persistable, persistable,
+  (fromSql, toSql, persistableRecord, Persistable, persistable,
    persistableRecordWidth, PersistableWidth, persistableWidth)
 import Database.Record.TH
   (recordTypeNameDefault, recordTypeDefault,
@@ -92,16 +92,17 @@ fieldInfo n t = ((varCamelcaseName n, t), n)
 mayDeclare :: (a -> Q [Dec]) -> Maybe a -> Q [Dec]
 mayDeclare =  maybe (return [])
 
-defineRecordConstructFunction :: VarName   -- ^ Name of record construct function.
+defineRecordConstructFunction :: TypeQ     -- ^ SQL value type.
+                              -> VarName   -- ^ Name of record construct function.
                               -> ConName   -- ^ Name of record type.
                               -> Int       -- ^ Count of record fields.
                               -> Q [Dec]   -- ^ Declaration of record construct function from SqlValues.
-defineRecordConstructFunction funName' typeName' width = do
+defineRecordConstructFunction sqlValType funName' typeName' width = do
   let funName = varName funName'
       typeName = conName typeName'
       names = map (mkName . ('f':) . show) [1 .. width]
       fromSqlE n = [| fromSql $(varE n) |]
-  sig <- sigD funName [t| [SqlValue] -> $(conT typeName) |]
+  sig <- sigD funName [t| [$(sqlValType)] -> $(conT typeName) |]
   var <- funD funName
          [ clause
            [listP (map varP names)]
@@ -148,15 +149,16 @@ definePersistableInstance widthVar' typeCon consFunName' decompFunName' width = 
         recordToSql = recordToSql'
     |]
 
-defineRecordDecomposeFunction :: VarName   -- ^ Name of record decompose function.
+defineRecordDecomposeFunction :: TypeQ     -- ^ SQL value type.
+                              -> VarName   -- ^ Name of record decompose function.
                               -> TypeQ     -- ^ Name of record type.
                               -> [VarName] -- ^ List of field names of record.
                               -> Q [Dec]   -- ^ Declaration of record construct function from SqlValues.
-defineRecordDecomposeFunction funName' typeCon fields = do
+defineRecordDecomposeFunction sqlValType funName' typeCon fields = do
   let funName = varName funName'
       accessors = map (varE . varName) fields
       recVar = mkName "rec"
-  sig <- sigD funName [t| $typeCon -> [SqlValue] |]
+  sig <- sigD funName [t| $typeCon -> [$(sqlValType)] |]
   var <- funD funName [ clause [varP recVar]
                         (normalB . listE $ map (\a -> [| toSql ($a $(varE recVar)) |]) accessors)
                         [] ]
@@ -177,8 +179,8 @@ defineRecord
   typ  <- defineRecordType tyC schemas drvs
   let width = length schemas'
       typeCon = toTypeCon tyC
-  fromSQL  <- defineRecordConstructFunction cF tyC width
-  toSQL    <- defineRecordDecomposeFunction dF typeCon (map fst schemas)
+  fromSQL  <- defineRecordConstructFunction [t| SqlValue |] cF tyC width
+  toSQL    <- defineRecordDecomposeFunction [t| SqlValue |] dF typeCon (map fst schemas)
   tableI   <- defineTableInfo
               tableN tableSQL
               fldsN (map snd schemas') widthN width
