@@ -27,7 +27,7 @@ import Data.List (intercalate)
 
 import Database.Record.Persistable
   (PersistableRecordWidth, runPersistableRecordWidth,
-   PersistableWidth, persistableWidth, Singleton)
+   PersistableWidth, persistableWidth)
 
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi as Pi
@@ -127,12 +127,12 @@ instance ProjectableMaybe Projection where
 instance ProjectableMaybe Expr where
   p !? pi' = toExpr $ p `projectMaybe` pi'
 
-unsafeSqlProjection :: String -> Projection (Singleton t)
+unsafeSqlProjection :: String -> Projection t
 unsafeSqlProjection =  unsafeFromColumns . (:[])
 
 
 class SqlProjectable p where
-  unsafeSqlValue :: String -> p (Singleton t)
+  unsafeSqlValue :: String -> p t
 
 instance SqlProjectable Projection where
   unsafeSqlValue = unsafeSqlProjection
@@ -140,17 +140,17 @@ instance SqlProjectable Projection where
 instance SqlProjectable Expr where
   unsafeSqlValue = UnsafeExpr.Expr
 
-valueNull :: SqlProjectable p => p (Singleton (Maybe a))
+valueNull :: SqlProjectable p => p (Maybe a)
 valueNull =  unsafeSqlValue "NULL"
 
-placeholder :: SqlProjectable p => p (Singleton t)
+placeholder :: SqlProjectable p => p t
 placeholder =  unsafeSqlValue "?"
 
-value :: (ShowConstantSQL t, SqlProjectable p) => t -> p (Singleton t)
+value :: (ShowConstantSQL t, SqlProjectable p) => t -> p t
 value =  unsafeSqlValue . showConstantSQL
 
-valueTrue :: SqlProjectable p => p (Singleton Bool)
+valueTrue :: SqlProjectable p => p Bool
 valueTrue =  value True
 
-valueFalse :: SqlProjectable p => p (Singleton Bool)
+valueFalse :: SqlProjectable p => p Bool
 valueFalse =  value False

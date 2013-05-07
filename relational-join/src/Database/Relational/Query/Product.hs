@@ -7,7 +7,7 @@ module Database.Relational.Query.Product (
   ) where
 
 import Prelude hiding (and)
-import Database.Relational.Query.Expr (UExpr, showExpr, and)
+import Database.Relational.Query.Expr (Expr, showExpr, and)
 import Database.Relational.Query.Projection (valueTrue)
 import Database.Relational.Query.AliasId (Qualified)
 import Database.Relational.Query.Sub (SubQuery)
@@ -24,7 +24,7 @@ import Data.Foldable (Foldable (foldMap))
 data JoinAttr = Inner | Outer
 
 data ProductTree q = Leaf JoinAttr q
-                   | Join JoinAttr !(ProductTree q) !(ProductTree q) !(Maybe (UExpr Bool))
+                   | Join JoinAttr !(ProductTree q) !(ProductTree q) !(Maybe (Expr Bool))
 
 joinAttr :: ProductTree q -> JoinAttr
 joinAttr =  d  where
@@ -44,7 +44,7 @@ growProduct =  d  where
   d Nothing  (ja, q) = Leaf ja q
   d (Just t) (ja, q) = Join Inner t (Leaf ja q) Nothing
 
-restrictProduct :: ProductTree q -> UExpr Bool -> ProductTree q
+restrictProduct :: ProductTree q -> Expr Bool -> ProductTree q
 restrictProduct =  d  where
   d (Join ja lp rp Nothing)   rs' = Join ja lp rp (Just rs')
   d (Join ja lp rp (Just rs)) rs' = Join ja lp rp (Just $ rs `and` rs')

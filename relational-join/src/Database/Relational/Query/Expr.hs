@@ -5,7 +5,7 @@ module Database.Relational.Query.Expr (
 
   ShowConstantSQL (showConstantSQL),
 
-  UExpr, valueExpr,
+  valueExpr,
 
   just, unsafeFromJust,
 
@@ -21,7 +21,7 @@ import qualified Data.Text as T
 
 import qualified Language.SQL.Keyword as SQL
 
-import Database.Relational.Query.Expr.Unsafe (Expr(Expr, showExpr), UExpr, compareBinOp)
+import Database.Relational.Query.Expr.Unsafe (Expr(Expr, showExpr), compareBinOp)
 
 
 intExprSQL :: (Show a, Integral a) => a -> String
@@ -68,7 +68,7 @@ instance ShowConstantSQL a => ShowConstantSQL (Maybe a) where
     d (Nothing) = "NULL"
 
 
-valueExpr :: ShowConstantSQL ft => ft -> UExpr ft
+valueExpr :: ShowConstantSQL ft => ft -> Expr ft
 valueExpr =  Expr . showConstantSQL
 
 just :: Expr ft -> Expr (Maybe ft)
@@ -78,22 +78,22 @@ unsafeFromJust :: Expr (Maybe ft) -> Expr ft
 unsafeFromJust =  Expr . showExpr
 
 
-(.=.) :: Expr ft -> Expr ft -> UExpr Bool
+(.=.) :: Expr ft -> Expr ft -> Expr Bool
 (.=.) =  compareBinOp (SQL..=.)
 
-(.<>.) :: Expr ft -> Expr ft -> UExpr Bool
+(.<>.) :: Expr ft -> Expr ft -> Expr Bool
 (.<>.) =  compareBinOp (SQL..<>.)
 
-(.>.) :: Expr ft -> Expr ft -> UExpr Bool
+(.>.) :: Expr ft -> Expr ft -> Expr Bool
 (.>.) =  compareBinOp (SQL.defineBinOp (SQL.word ">"))
 
-(.<.) :: Expr ft -> Expr ft -> UExpr Bool
+(.<.) :: Expr ft -> Expr ft -> Expr Bool
 (.<.) =  compareBinOp (SQL.defineBinOp (SQL.word "<"))
 
-and :: UExpr Bool ->  UExpr Bool ->  UExpr Bool
+and :: Expr Bool ->  Expr Bool ->  Expr Bool
 and =  compareBinOp SQL.and
 
-or :: UExpr Bool ->  UExpr Bool ->  UExpr Bool
+or :: Expr Bool ->  Expr Bool ->  Expr Bool
 or =  compareBinOp SQL.or
 
 infixr 4 .=., .<>.

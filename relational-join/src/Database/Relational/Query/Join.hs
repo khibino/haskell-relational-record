@@ -23,7 +23,7 @@ import qualified Database.Relational.Query.AliasId as AliasId
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Sub (SubQuery)
 
-import Database.Relational.Query.Expr (Expr, UExpr)
+import Database.Relational.Query.Expr (Expr)
 import qualified Database.Relational.Query.Expr as Expr
 
 import Database.Relational.Query.Product
@@ -39,7 +39,7 @@ import qualified Database.Relational.Query.Relation as Relation
 data Context = Context
                { currentAliasId :: AliasId
                , product :: Maybe QueryProduct
-               , restriction :: Maybe (UExpr Bool)
+               , restriction :: Maybe (Expr Bool)
                }
 
 primContext :: Context
@@ -52,7 +52,7 @@ updateProduct' :: (Maybe QueryProduct -> QueryProduct) -> Context -> Context
 updateProduct' uf ctx =
   ctx { product = Just . uf . product $ ctx }
 
-updateRestriction' :: UExpr Bool -> Context -> Context
+updateRestriction' :: Expr Bool -> Context -> Context
 updateRestriction' e1 ctx =
   ctx { restriction = Just . uf . restriction $ ctx }
   where uf  Nothing = e1
@@ -77,19 +77,19 @@ updateContext uf =
 updateProduct :: JoinAttr -> Qualified (Relation r) -> QueryJoin ()
 updateProduct attr qrel = updateContext (updateProduct' (`growProduct` (attr, fmap Relation.toSubQuery qrel)))
 
-updateJoinRestriction :: UExpr Bool -> QueryJoin ()
+updateJoinRestriction :: Expr Bool -> QueryJoin ()
 updateJoinRestriction e = updateContext (updateProduct' d)  where
   d  Nothing  = error "addProductRestriction: product is empty!"
   d (Just pt) = restrictProduct pt e
 
-updateRestriction :: UExpr Bool -> QueryJoin ()
+updateRestriction :: Expr Bool -> QueryJoin ()
 updateRestriction e = updateContext (updateRestriction' e)
 
 
-on :: UExpr Bool -> QueryJoin ()
+on :: Expr Bool -> QueryJoin ()
 on =  updateJoinRestriction
 
-wheres :: UExpr Bool -> QueryJoin ()
+wheres :: Expr Bool -> QueryJoin ()
 wheres =  updateRestriction
 
 
