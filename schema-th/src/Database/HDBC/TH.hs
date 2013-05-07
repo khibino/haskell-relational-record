@@ -68,8 +68,9 @@ import Database.HDBC.Session (withConnectionIO)
 import Database.Record.Persistable
   (persistableRecord, Persistable, persistable,
    persistableRecordWidth, PersistableWidth, persistableWidth)
-import Database.Record.KeyConstraint
-  (HasKeyConstraint(constraintKey), specifyKeyConstraint, Primary, NotNull)
+import Database.Record.TH
+  (recordTypeNameDefault, recordTypeDefault,
+   defineHasPrimaryKeyInstanceDefault, defineHasNotNullKeyInstanceDefault)
 import Database.Record.FromSql (FromSql(recordFromSql), recordFromSql')
 import Database.Record.ToSql (ToSql(recordToSql), recordToSql')
 import Database.Relational.Query.Type (unsafeTypedQuery)
@@ -83,12 +84,6 @@ import Database.HDBC.Schema.Driver (Driver, getFields, getPrimaryKey)
 
 nameOfTableSQL :: String -> String -> String
 nameOfTableSQL schema table = map toUpper schema ++ '.' : map toLower table
-
-recordTypeNameDefault :: String -> ConName
-recordTypeNameDefault =  conCamelcaseName
-
-recordTypeDefault :: String -> TypeQ
-recordTypeDefault =  toTypeCon . recordTypeNameDefault
 
 
 fieldInfo :: String
@@ -188,19 +183,6 @@ definePersistableInstance widthVar' typeCon consFunName' decompFunName' width = 
         recordToSql = recordToSql'
     |]
 
-defineHasKeyConstraintInstance :: TypeQ -> TypeQ -> Int -> Q [Dec]
-defineHasKeyConstraintInstance constraint typeCon index =
-  [d| instance HasKeyConstraint $constraint $typeCon where
-        constraintKey = specifyKeyConstraint $(integralE index) |]
-
-defineHasNotNullKeyInstance :: TypeQ -> Int -> Q [Dec]
-defineHasNotNullKeyInstance =
-  defineHasKeyConstraintInstance [t| NotNull |]
-
-defineHasPrimaryKeyInstance :: TypeQ -> Int -> Q [Dec]
-defineHasPrimaryKeyInstance =
-  defineHasKeyConstraintInstance [t| Primary |]
-
 defineRecordDecomposeFunction :: VarName   -- ^ Name of record decompose function.
                               -> TypeQ     -- ^ Name of record type.
                               -> [VarName] -- ^ List of field names of record.
@@ -255,15 +237,6 @@ defineRecordDefault schema table fields drives = do
      table `varNameWithPrefix` "widthOf")
     fields'
     drives
-
-defineHasPrimaryKeyInstanceDefault :: String -> Int -> Q [Dec]
-defineHasPrimaryKeyInstanceDefault =
-  defineHasPrimaryKeyInstance . recordTypeDefault
-
-defineHasNotNullKeyInstanceDefault :: String -> Int -> Q [Dec]
-defineHasNotNullKeyInstanceDefault =
-  defineHasNotNullKeyInstance . recordTypeDefault
-
 
 defineConstantSql :: VarName -> String -> Q [Dec]
 defineConstantSql name' sqlStr = do

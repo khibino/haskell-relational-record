@@ -19,6 +19,9 @@ library
                         Database.Record.ToSql
                         Database.Record.Persistable
                         Database.Record.KeyConstraint
+                        Database.Record.TH
 
   build-depends:          base <5
+                        , template-haskell
+                        , names-th
   hs-source-dirs:       src
