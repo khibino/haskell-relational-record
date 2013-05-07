@@ -17,9 +17,6 @@
 module Database.HDBC.TH (
   fieldInfo,
 
-  derivingEq, derivingShow, derivingRead, derivingData, derivingTypable,
-
-  defineRecordType,
   defineRecordConstructFunction,
   definePersistableInstance,
   defineRecordDecomposeFunction,
@@ -49,20 +46,19 @@ import Database.HDBC (IConnection, SqlValue, fromSql, toSql)
 
 import Language.Haskell.TH.Name.CamelCase
   (ConName (conName), VarName (varName),
-   conCamelcaseName, varCamelcaseName,
+   varCamelcaseName,
    varNameWithPrefix,
    toTypeCon)
 import Language.Haskell.TH.Name.Extra
   (integralE, simpleValD, compileError)
 import Language.Haskell.TH
   (Q, mkName, runIO,
-   TypeQ, DecQ, Dec,
+   TypeQ, Dec,
    appsE, conE, varE, listE, stringE,
    listP, varP, wildP,
    conT,
-   dataD, sigD, funD, valD,
-   clause, normalB,
-   recC, cxt, varStrictType, strictType, isStrict)
+   sigD, funD, valD,
+   clause, normalB)
 
 import Database.HDBC.Session (withConnectionIO)
 import Database.Record.Persistable
@@ -70,7 +66,8 @@ import Database.Record.Persistable
    persistableRecordWidth, PersistableWidth, persistableWidth)
 import Database.Record.TH
   (recordTypeNameDefault, recordTypeDefault,
-   defineHasPrimaryKeyInstanceDefault, defineHasNotNullKeyInstanceDefault)
+   defineHasPrimaryKeyInstanceDefault, defineHasNotNullKeyInstanceDefault,
+   defineRecordType)
 import Database.Record.FromSql (FromSql(recordFromSql), recordFromSql')
 import Database.Record.ToSql (ToSql(recordToSql), recordToSql')
 import Database.Relational.Query.Type (unsafeTypedQuery)
@@ -92,25 +89,8 @@ fieldInfo :: String
 fieldInfo n t = ((varCamelcaseName n, t), n)
 
 
-derivingEq   = conCamelcaseName "Eq"
-derivingShow = conCamelcaseName "Show"
-derivingRead = conCamelcaseName "Read"
-derivingData = conCamelcaseName "Data"
-derivingTypable = conCamelcaseName "Typable"
-derivingEq, derivingShow, derivingRead, derivingData, derivingTypable :: ConName
-
 mayDeclare :: (a -> Q [Dec]) -> Maybe a -> Q [Dec]
 mayDeclare =  maybe (return [])
-
-defineRecordType :: ConName            -- ^ Name of the data type of table record type.
-                 -> [(VarName, TypeQ)] -- ^ List of fields in the table. Must be legal, properly cased record fields.
-                 -> [ConName]          -- ^ Deriving type class names.
-                 -> DecQ               -- ^ The data type record declaration.
-defineRecordType typeName' fields derives = do
-  let typeName = conName typeName'
-  dataD (cxt []) typeName [] [recC typeName (map fld fields)] (map conName derives)
-  where
-    fld (n, tq) = varStrictType (varName n) (strictType isStrict tq)
 
 defineRecordConstructFunction :: VarName   -- ^ Name of record construct function.
                               -> ConName   -- ^ Name of record type.

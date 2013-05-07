@@ -12,8 +12,8 @@
 module Database.HDBC.Schema.PgCatalog.PgType where
 
 import Data.Int (Int16, Int32)
+import Database.Record.TH (derivingShow)
 import Database.HDBC.SqlValueExtra ()
-import Database.HDBC.TH (derivingShow)
 import qualified Database.HDBC.TH as Base
 
 $(Base.defineRecordDefault

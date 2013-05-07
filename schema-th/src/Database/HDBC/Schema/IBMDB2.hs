@@ -28,11 +28,11 @@ import qualified Language.Haskell.TH.Name.Extra as TH
 import Database.HDBC (IConnection)
 
 import Database.HDBC.SqlValueExtra ()
-import Database.HDBC.TH (derivingShow)
 import qualified Database.HDBC.TH as Base
 import Database.Relational.Query.Type (unsafeTypedQuery)
 import Database.Relational.Query (Query)
 import Database.HDBC.Record.Query (runQuery', listToUnique)
+import Database.Record.TH (derivingShow)
 import Language.SQL.Keyword (Keyword(..))
 import qualified Language.SQL.Keyword as SQL
 
