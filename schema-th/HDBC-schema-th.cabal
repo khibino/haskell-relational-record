@@ -31,11 +31,11 @@ library
                        Database.HDBC.Schema.PostgreSQL
 
   build-depends:         base <5
-                       , template-haskell
-                       , th-names
                        , containers
                        , time
                        , convertible
+                       , template-haskell
+                       , names-th
                        , sql-words
                        , DB-record
                        , relational-join

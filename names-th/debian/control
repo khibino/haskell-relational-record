@@ -1,4 +1,4 @@
-Source: haskell-th-names
+Source: haskell-names-th
 Priority: extra
 Section: haskell
 Maintainer: Kei Hibino <ex8k.hibino@gmail.com>
@@ -17,7 +17,7 @@ Build-Depends-Indep: ghc-doc
 Standards-Version: 3.9.3
 Homepage: http://twitter.com/khibino
 
-Package: libghc-th-names-dev
+Package: libghc-names-th-dev
 Architecture: any
 Depends: ${shlibs:Depends}
          , ${haskell:Depends}
@@ -33,7 +33,7 @@ Description: Manipulate name strings for TH
  .
  This package contains the normal library files.
 
-Package: libghc-th-names-prof
+Package: libghc-names-th-prof
 Architecture: any
 Depends: ${haskell:Depends}
          , ${misc:Depends}
@@ -48,7 +48,7 @@ Description: Manipulate name strings for TH
  .
  This package contains the libraries compiled with profiling enabled.
 
-Package: libghc-th-names-doc
+Package: libghc-names-th-doc
 Architecture: all
 Section: doc
 Depends: ${haskell:Depends}

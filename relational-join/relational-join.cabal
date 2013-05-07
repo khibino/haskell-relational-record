@@ -35,6 +35,6 @@ library
                        , bytestring
                        , text
                        , template-haskell
-                       , th-names
+                       , names-th
                        , DB-record
   hs-source-dirs:      src
