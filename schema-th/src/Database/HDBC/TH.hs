@@ -67,8 +67,7 @@ import Language.Haskell.TH
 import Database.HDBC.Session (withConnectionIO)
 import Database.Record.Persistable
   (persistableRecord, Persistable, persistable,
-   persistableRecordWidth, PersistableWidth, persistableWidth,
-   Singleton)
+   persistableRecordWidth, PersistableWidth, persistableWidth)
 import Database.Record.KeyConstraint
   (HasKeyConstraint(constraintKey), specifyKeyConstraint, Primary, NotNull)
 import Database.Record.FromSql (FromSql(recordFromSql), recordFromSql')
@@ -278,7 +277,7 @@ defineConstantSql name' sqlStr = do
 defineConstantSqlQuery :: TypeQ -> TypeQ -> VarName -> String -> Q [Dec]
 defineConstantSqlQuery pkeyType recordType name' sqlStr = do
   let name = varName name'
-  sig <- sigD name [t| Query (Singleton $pkeyType) $recordType |]
+  sig <- sigD name [t| Query $pkeyType $recordType |]
   var <- valD (varP name)
          (normalB [| unsafeTypedQuery $(stringE $ sqlStr) |])
          []

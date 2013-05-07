@@ -27,7 +27,6 @@ import Database.HDBC (IConnection)
 
 import Database.HDBC.SqlValueExtra ()
 import qualified Database.HDBC.TH as Base
-import Database.Record.Persistable (Singleton, singleton, runSingleton)
 import Database.Relational.Query.Type (unsafeTypedQuery)
 import Database.Relational.Query (Query(untypeQuery))
 import Database.HDBC.Record.Query (runQuery', listToUnique)
@@ -95,7 +94,7 @@ getType mapFromSql column@(pgAttr, pgType) =
 pgCatalog :: SQL.Keyword
 pgCatalog =  "PG_CATALOG"
 
-relOidQuerySQL :: Query (Singleton String, Singleton String) (Singleton Int32)
+relOidQuerySQL :: Query (String, String) (Int32)
 relOidQuerySQL =
   unsafeTypedQuery .
   SQL.unwordsSQL
@@ -110,7 +109,7 @@ relOidQuerySQL =
      "nspname" .=. "?", AND, "relname" .=. "?"
     ]
 
-attributeQuerySQL :: Query (Singleton String, Singleton String) PgAttribute
+attributeQuerySQL :: Query (String, String) PgAttribute
 attributeQuerySQL =
   unsafeTypedQuery .
   SQL.unwordsSQL
@@ -124,7 +123,7 @@ attributeQuerySQL =
      "attnum", ">", "0" -- attnum of normal attributes begins from 1
     ]
 
-columnQuerySQL :: Query (Singleton String, Singleton String) Column
+columnQuerySQL :: Query (String, String) Column
 columnQuerySQL =
   unsafeTypedQuery .
   SQL.unwordsSQL
@@ -146,7 +145,7 @@ columnQuerySQL =
      "typcategory = 'T'",
      ")" ]
 
-primaryKeyQuerySQL :: Query (Singleton String, Singleton String) (Singleton String)
+primaryKeyQuerySQL :: Query (String, String) String
 primaryKeyQuerySQL =
   unsafeTypedQuery .
   SQL.unwordsSQL
@@ -178,9 +177,9 @@ getPrimaryKey' :: IConnection conn
 getPrimaryKey' conn scm' tbl' = do
   let scm = map toLower scm'
       tbl = map toLower tbl'
-  mayPrim <- runQuery' conn (singleton scm, singleton tbl) primaryKeyQuerySQL
+  mayPrim <- runQuery' conn (scm, tbl) primaryKeyQuerySQL
              >>= listToUnique
-  return $ (normalizeField . runSingleton) `fmap` mayPrim
+  return $ normalizeField `fmap` mayPrim
 
 getFields' :: IConnection conn
           => TypeMap
@@ -191,7 +190,7 @@ getFields' :: IConnection conn
 getFields' tmap conn scm' tbl' = do
   let scm = map toLower scm'
       tbl = map toLower tbl'
-  cols <- runQuery' conn (singleton scm, singleton tbl) columnQuerySQL
+  cols <- runQuery' conn (scm, tbl) columnQuerySQL
   case cols of
     [] ->  compileErrorIO
            $ "getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl

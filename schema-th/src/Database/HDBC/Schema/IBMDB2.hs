@@ -29,7 +29,6 @@ import Database.HDBC (IConnection)
 import Database.HDBC.SqlValueExtra ()
 import Database.HDBC.TH (derivingShow)
 import qualified Database.HDBC.TH as Base
-import Database.Record.Persistable (Singleton, singleton, runSingleton)
 import Database.Relational.Query.Type (unsafeTypedQuery)
 import Database.Relational.Query (Query)
 import Database.HDBC.Record.Query (runQuery', listToUnique)
@@ -149,7 +148,7 @@ getType mapFromSql rec =
                       then typ
                       else [t| Maybe $(typ) |]
 
-columnsQuerySQL :: Query (Singleton String, Singleton String) Columns
+columnsQuerySQL :: Query (String, String) Columns
 columnsQuerySQL =
   unsafeTypedQuery .
   SQL.unwordsSQL
@@ -159,7 +158,7 @@ columnsQuerySQL =
      ORDER, BY, "colno"]
   where fields = map SQL.word fieldsOfColumns
 
-primaryKeyQuerySQL :: Query (Singleton String, Singleton String) (Singleton String)
+primaryKeyQuerySQL :: Query (String, String) String
 primaryKeyQuerySQL =
   unsafeTypedQuery .
   SQL.unwordsSQL
@@ -199,9 +198,9 @@ getPrimaryKey' :: IConnection conn
 getPrimaryKey' conn scm' tbl' = do
   let tbl = map toUpper tbl'
       scm = map toUpper scm'
-  mayPrim <- runQuery' conn (singleton scm, singleton tbl) primaryKeyQuerySQL
+  mayPrim <- runQuery' conn (scm, tbl) primaryKeyQuerySQL
              >>= listToUnique
-  let mayPrimaryKey = (normalizeField . runSingleton) `fmap` mayPrim
+  let mayPrimaryKey = normalizeField `fmap` mayPrim
   putLog $ "getPrimaryKey: primary key = " ++ show mayPrimaryKey
 
   return mayPrimaryKey
@@ -216,7 +215,7 @@ getFields' tmap conn scm' tbl' = do
   let tbl = map toUpper tbl'
       scm = map toUpper scm'
       
-  cols <- runQuery' conn (singleton scm, singleton tbl) columnsQuerySQL
+  cols <- runQuery' conn (scm, tbl) columnsQuerySQL
   case cols of
     [] ->  compileErrorIO
            $ "getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl
