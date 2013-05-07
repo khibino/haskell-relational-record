@@ -9,7 +9,7 @@ module Database.Relational.Query.Projection (
 
   toExpr,
 
-  Projectable ((!)), ProjectableMaybe ((!?)),
+  pi, piMaybe, Projectable (project),
 
   value,
 
@@ -19,7 +19,7 @@ module Database.Relational.Query.Projection (
   valueNull, placeholder
   ) where
 
-import Prelude hiding ((!!))
+import Prelude hiding ((!!), pi)
 
 import Data.Array (Array, listArray)
 import qualified Data.Array as Array
@@ -102,30 +102,20 @@ unsafeProject pr p pi' =
   . take (runPersistableRecordWidth pr) . drop (Pi.leafIndex pi')
   . columns $ p
 
-project :: PersistableWidth b => Projection a -> Pi a b -> Projection b
-project =  unsafeProject persistableWidth
+pi :: PersistableWidth b => Projection a -> Pi a b -> Projection b
+pi =  unsafeProject persistableWidth
 
-projectMaybe :: PersistableWidth b => Projection (Maybe a) -> Pi a b -> Projection (Maybe b)
-projectMaybe =  unsafeProject persistableWidth
-
+piMaybe :: PersistableWidth b => Projection (Maybe a) -> Pi a b -> Projection (Maybe b)
+piMaybe =  unsafeProject persistableWidth
 
 class Projectable p where
-  (!) :: PersistableWidth b => Projection a -> Pi a b -> p b
+  project :: Projection a -> p a
 
 instance Projectable Projection where
-  (!) = project
+  project = id
 
 instance Projectable Expr where
-  p ! pi' = toExpr $ p `project` pi'
-
-class ProjectableMaybe p where
-  (!?) :: PersistableWidth b => Projection (Maybe a) -> Pi a b -> p (Maybe b)
-
-instance ProjectableMaybe Projection where
-  (!?) = projectMaybe
-
-instance ProjectableMaybe Expr where
-  p !? pi' = toExpr $ p `projectMaybe` pi'
+  project = toExpr
 
 unsafeSqlProjection :: String -> Projection t
 unsafeSqlProjection =  unsafeFromColumns . (:[])

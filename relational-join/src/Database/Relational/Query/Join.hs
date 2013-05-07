@@ -5,7 +5,7 @@ module Database.Relational.Query.Join (
   on, wheres,
   table,
 
-  record, expr, compose, (>*<), relation,
+  record, expr, compose, (>*<), (!), (!?), relation,
 
   inner, outer, from,
 
@@ -15,6 +15,8 @@ module Database.Relational.Query.Join (
 import Prelude hiding (product)
 import Control.Monad (liftM, ap)
 import Control.Applicative (Applicative (pure, (<*>)))
+
+import Database.Record.Persistable (PersistableWidth)
 
 import Database.Relational.Query.AliasId.Unsafe (primAlias)
 import Database.Relational.Query.AliasId (AliasId, newAliasId, Qualified)
@@ -30,8 +32,10 @@ import Database.Relational.Query.Product
   (QueryProduct, JoinAttr(Inner, Outer), growProduct, restrictProduct)
 import qualified Database.Relational.Query.Product as Product
 
-import Database.Relational.Query.Projection (Projection)
+import Database.Relational.Query.Projection (Projection, Projectable(project))
 import qualified Database.Relational.Query.Projection as Projection
+
+import Database.Relational.Query.Pi (Pi)
 
 import Database.Relational.Query.Relation (Relation, finalizeRelation)
 import qualified Database.Relational.Query.Relation as Relation
@@ -107,6 +111,14 @@ compose =  Projection.compose
 
 (>*<) :: Projection a -> Projection b -> Projection (a, b)
 (>*<) =  compose
+
+(!) :: (PersistableWidth b, Projectable p) => Projection a -> Pi a b -> p b
+p ! pi' = project $ Projection.pi p pi'
+
+(!?) :: (PersistableWidth b, Projectable p) => Projection (Maybe a) -> Pi a b -> p (Maybe b)
+p !? pi' = project $ Projection.piMaybe p pi'
+
+infixl 1 >*<
 
 
 instance Monad QueryJoin where

@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module Database.Relational.Query.TH (
-  inlineQuery
+  VarName, inlineQuery
   ) where
 
 import Language.Haskell.TH
