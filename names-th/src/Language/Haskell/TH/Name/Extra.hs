@@ -2,7 +2,7 @@
 module Language.Haskell.TH.Name.Extra (
   pprQ,
 
-  compileError,
+  compileErrorIO, compileError,
 
   integralE, simpleValD
   ) where
@@ -18,8 +18,11 @@ import Language.Haskell.TH.Syntax (Quasi)
 pprQ :: (Functor m, Quasi m, Ppr a) => Q a -> m Doc
 pprQ =  fmap ppr . runQ
 
+compileErrorIO :: String -> IO a
+compileErrorIO =  ioError . userError
+
 compileError :: String -> Q a
-compileError =  runIO . ioError . userError
+compileError =  runIO . compileErrorIO
 
 integralE :: Integral a => a -> ExpQ
 integralE =  litE . integerL . toInteger
