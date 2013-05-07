@@ -45,29 +45,28 @@ import Data.List (elemIndex)
 import Database.HDBC (IConnection, SqlValue)
 
 import Language.Haskell.TH.Name.CamelCase
-  (ConName (conName), VarName (varName),
+  (ConName, VarName (varName),
    varCamelcaseName,
    varNameWithPrefix,
    toTypeCon)
 import Language.Haskell.TH.Name.Extra
   (integralE, simpleValD, compileError)
 import Language.Haskell.TH
-  (Q, mkName, runIO,
+  (Q, runIO,
    TypeQ, Dec,
-   appsE, conE, varE, listE, stringE,
-   listP, varP, wildP,
-   conT,
-   sigD, funD, valD,
-   clause, normalB)
+   varE, listE, stringE,
+   varP,
+   sigD, valD,
+   normalB)
 
 import Database.HDBC.Session (withConnectionIO)
 import Database.Record.Persistable
-  (fromSql, toSql, persistableRecord, Persistable, persistable,
+  (persistableRecord, Persistable, persistable,
    persistableRecordWidth, PersistableWidth, persistableWidth)
 import Database.Record.TH
   (recordTypeNameDefault, recordTypeDefault,
    defineHasPrimaryKeyInstanceDefault, defineHasNotNullKeyInstanceDefault,
-   defineRecordType)
+   defineRecordType, defineRecordConstructFunction, defineRecordDecomposeFunction)
 import Database.Record.FromSql (FromSql(recordFromSql), recordFromSql')
 import Database.Record.ToSql (ToSql(recordToSql), recordToSql')
 import Database.Relational.Query.Type (unsafeTypedQuery)
@@ -91,32 +90,6 @@ fieldInfo n t = ((varCamelcaseName n, t), n)
 
 mayDeclare :: (a -> Q [Dec]) -> Maybe a -> Q [Dec]
 mayDeclare =  maybe (return [])
-
-defineRecordConstructFunction :: TypeQ     -- ^ SQL value type.
-                              -> VarName   -- ^ Name of record construct function.
-                              -> ConName   -- ^ Name of record type.
-                              -> Int       -- ^ Count of record fields.
-                              -> Q [Dec]   -- ^ Declaration of record construct function from SqlValues.
-defineRecordConstructFunction sqlValType funName' typeName' width = do
-  let funName = varName funName'
-      typeName = conName typeName'
-      names = map (mkName . ('f':) . show) [1 .. width]
-      fromSqlE n = [| fromSql $(varE n) |]
-  sig <- sigD funName [t| [$(sqlValType)] -> $(conT typeName) |]
-  var <- funD funName
-         [ clause
-           [listP (map varP names)]
-            (normalB . appsE $ conE typeName : map fromSqlE names)
-            [],
-            clause [wildP]
-            (normalB
-             [| error
-                $(stringE
-                  $ "Generated code of 'defineRecordConstructFunction': Fail to pattern match in: "
-                  ++ show funName
-                  ++ ", count of fields is " ++ show width) |])
-            [] ]
-  return [sig, var]
 
 defineTableInfo :: VarName -> String
                 -> VarName -> [String]
@@ -148,21 +121,6 @@ definePersistableInstance widthVar' typeCon consFunName' decompFunName' width = 
       instance ToSql SqlValue $typeCon where
         recordToSql = recordToSql'
     |]
-
-defineRecordDecomposeFunction :: TypeQ     -- ^ SQL value type.
-                              -> VarName   -- ^ Name of record decompose function.
-                              -> TypeQ     -- ^ Name of record type.
-                              -> [VarName] -- ^ List of field names of record.
-                              -> Q [Dec]   -- ^ Declaration of record construct function from SqlValues.
-defineRecordDecomposeFunction sqlValType funName' typeCon fields = do
-  let funName = varName funName'
-      accessors = map (varE . varName) fields
-      recVar = mkName "rec"
-  sig <- sigD funName [t| $typeCon -> [$(sqlValType)] |]
-  var <- funD funName [ clause [varP recVar]
-                        (normalB . listE $ map (\a -> [| toSql ($a $(varE recVar)) |]) accessors)
-                        [] ]
-  return [sig, var]
 
 defineRecord :: (VarName, VarName)
             -> (String, ConName)
