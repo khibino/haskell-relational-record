@@ -10,7 +10,7 @@ module Database.HDBC.Record.Persistable (
 
 import Database.Record.Persistable
   (Singleton,
-   persistableNullValue, PersistableNull (..),
+   persistableSqlTypeFromNull, PersistableType (..),
    PersistableSqlValue,
    PersistableWidth (),
    PersistableValue (persistableValue), derivedPersistableSingleton,
@@ -21,12 +21,12 @@ import Database.HDBC.Record.TH (derivePersistableInstancesFromConvertibleSqlValu
 import Data.Convertible (Convertible)
 import Database.HDBC (SqlValue(SqlNull), fromSql, toSql)
 
+instance PersistableType SqlValue  where
+  persistableType = persistableSqlTypeFromNull SqlNull
+
 persistableSqlValue :: (Convertible SqlValue a, Convertible a SqlValue)
                        => PersistableSqlValue SqlValue a
-persistableSqlValue =  Persistable.persistableSqlValue fromSql toSql
-
-instance PersistableNull SqlValue  where
-  persistableNull = persistableNullValue SqlNull
+persistableSqlValue =  Persistable.persistableSqlValue persistableType fromSql toSql
 
 instance (Convertible SqlValue a, Convertible a SqlValue)
          => PersistableValue SqlValue a  where

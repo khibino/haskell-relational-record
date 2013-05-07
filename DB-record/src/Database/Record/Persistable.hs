@@ -12,7 +12,7 @@
 module Database.Record.Persistable (
   Singleton(runSingleton), singleton,
 
-  PersistableNullValue(runPersistableNullValue), persistableNullValue,
+  PersistableSqlType(runPersistableNullValue), persistableSqlTypeFromNull,
 
   PersistableRecordWidth(runPersistableRecordWidth), valueWidth,
   PersistableSqlValue, persistableSqlValue,
@@ -22,36 +22,40 @@ module Database.Record.Persistable (
 
   persistableFromValue, persistableSingletonFromValue,
 
-  PersistableNull(..), sqlNullValue,
+  PersistableType(..), sqlNullValue,
   PersistableValue (..), fromSql, toSql,
   derivedPersistableRecord, derivedPersistableSingleton,
   PersistableWidth (..), persistableRecordWidth, singletonWidth, (<&>),
   Persistable (..), takeRecord
   ) where
 
--- Singleton value record.
+-- | Singleton value record.
 newtype Singleton a = Singleton { runSingleton :: a }
 
 singleton :: a -> Singleton a
 singleton = Singleton
 
 
-newtype PersistableNullValue q =
-  PersistableNullValue
+-- | Proof object to specify 'q' is SQL type
+newtype PersistableSqlType q =
+  PersistableSqlType
   { runPersistableNullValue :: q }
 
-persistableNullValue :: q -> PersistableNullValue q
-persistableNullValue =  PersistableNullValue
+-- | Proof for PersistableSqlType requires SQL null value
+persistableSqlTypeFromNull :: q -> PersistableSqlType q
+persistableSqlTypeFromNull =  PersistableSqlType
 
 
+-- | Proof object to specify value type 'a' is convertible with SQL type 'q'
 data PersistableSqlValue q a =
   PersistableSqlValue
-  { toValue :: q -> a
+  { toValue     :: q -> a
   , fromValue   :: a -> q
   }
 
-persistableSqlValue :: (q -> a) -> (a -> q) -> PersistableSqlValue q a
-persistableSqlValue =  PersistableSqlValue
+-- | Proof for PersistableSqlValue q a
+persistableSqlValue :: PersistableSqlType q -> (q -> a) -> (a -> q) -> PersistableSqlValue q a
+persistableSqlValue =  const PersistableSqlValue
 
 
 newtype PersistableRecordWidth a =
@@ -92,11 +96,11 @@ persistableSingletonFromValue pw pv =
   persistableRecord pw (singleton . toValue pv . head) ((:[]) . fromValue pv . runSingleton)
 
 
-class Eq q => PersistableNull q where
-  persistableNull :: PersistableNullValue q
+class Eq q => PersistableType q where
+  persistableType :: PersistableSqlType q
 
-sqlNullValue :: PersistableNull q => q
-sqlNullValue =  runPersistableNullValue persistableNull
+sqlNullValue :: PersistableType q => q
+sqlNullValue =  runPersistableNullValue persistableType
 
 
 class PersistableWidth a where
@@ -109,7 +113,7 @@ instance (PersistableWidth a, PersistableWidth b) => PersistableWidth (a, b) whe
   persistableWidth = persistableWidth <&> persistableWidth
 
 
-class PersistableValue q a where
+class PersistableType q => PersistableValue q a where
   persistableValue :: PersistableSqlValue q a
 
 fromSql :: PersistableValue q a => q -> a

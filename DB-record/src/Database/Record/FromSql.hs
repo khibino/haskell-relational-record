@@ -27,7 +27,7 @@ module Database.Record.FromSql (
 
 import Database.Record.Persistable
   (PersistableRecord, Singleton,
-   Persistable(persistable), PersistableNull)
+   Persistable(persistable), PersistableType)
 import qualified Database.Record.Persistable as Persistable
 import Database.Record.KeyConstraint
   (HasKeyConstraint(constraintKey), KeyConstraint, NotNull, index)
@@ -69,7 +69,7 @@ a <&> b = (,) <$> a <*> b
 infixl 4 <&>
 
 
-outer :: PersistableNull q
+outer :: PersistableType q
       => RecordFromSql q a
       -> KeyConstraint NotNull a
       -> RecordFromSql q (Maybe a)
@@ -92,7 +92,7 @@ instance Persistable q (Singleton a) => FromSql q (Singleton a)  where
 instance (FromSql q a, FromSql q b) => FromSql q (a, b)  where
   recordFromSql = recordFromSql <&> recordFromSql
 
-instance (HasKeyConstraint NotNull a, FromSql q a, PersistableNull q)
+instance (HasKeyConstraint NotNull a, FromSql q a, PersistableType q)
          => FromSql q (Maybe a)  where
   recordFromSql = outer recordFromSql $ constraintKey
 
