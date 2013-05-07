@@ -16,6 +16,8 @@ import Data.Convertible (Convertible)
 import Database.HDBC (SqlValue)
 import Database.Record.Persistable
   (Persistable(persistable), derivedPersistableRecord, PersistableWidth(persistableWidth))
+import Database.Record.FromSql (FromSql(recordFromSql), recordFromSql')
+import Database.Record.ToSql (ToSql(recordToSql), recordToSql')
 import qualified Database.Record.Persistable as Persistable
 
 
@@ -55,6 +57,12 @@ derivePersistableInstanceFromValue typ =
 
       instance Persistable SqlValue $(typ)  where
         persistable = derivedPersistableRecord
+
+      instance FromSql SqlValue $(typ)  where
+        recordFromSql = recordFromSql'
+
+      instance ToSql SqlValue $(typ)  where
+        recordToSql = recordToSql'
     |]
 
 derivePersistableInstancesFromConvertibleSqlValues :: Q [Dec]
