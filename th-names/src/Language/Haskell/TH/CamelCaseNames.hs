@@ -7,16 +7,12 @@ module Language.Haskell.TH.CamelCaseNames (
   varNameWithPrefix,
 
   toTypeCon, toDataCon,
-
-  pprQ
   ) where
 
 import Data.Char (toUpper, toLower)
 import Language.Haskell.TH
   (Name, mkName, TypeQ, conT, ExpQ, conE,
    Ppr, ppr, Q, runQ)
-import Language.Haskell.TH.PprLib (Doc)
-import Language.Haskell.TH.Syntax (Quasi)
 
 capitalize :: String -> String
 capitalize (c:cs) = toUpper c : cs
@@ -63,6 +59,3 @@ toTypeCon =  conT . conName
 toDataCon :: ConName -> ExpQ
 toDataCon =  conE . conName
 
-
-pprQ :: (Functor m, Quasi m, Ppr a) => Q a -> m Doc
-pprQ =  fmap ppr . runQ

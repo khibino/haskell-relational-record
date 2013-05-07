@@ -34,5 +34,7 @@ library
                        , sql-words
                        , bytestring
                        , text
+                       , template-haskell
+                       , th-names
                        , DB-record
   hs-source-dirs:      src
