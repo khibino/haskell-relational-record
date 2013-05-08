@@ -12,11 +12,18 @@
 module Database.HDBC.Schema.PgCatalog.PgAttribute where
 
 import Data.Int (Int16, Int32)
-import Database.Record.TH (derivingShow)
-import Database.HDBC.SqlValueExtra ()
-import qualified Database.HDBC.TH as Base
 
-$(Base.defineRecordDefault
+import Database.HDBC (SqlValue)
+
+import Database.HDBC.SqlValueExtra ()
+import Database.HDBC.Record.Persistable ()
+
+import Database.Record.TH (derivingShow)
+
+import Database.Relational.Query.TH (defineRecordAndTableDefault)
+
+$(defineRecordAndTableDefault
+  [t| SqlValue |]
   "PG_CATALOG" "pg_attribute"
 
   [

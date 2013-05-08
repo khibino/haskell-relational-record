@@ -27,14 +27,15 @@ import Data.Time
 import Database.HDBC (IConnection)
 
 import Database.HDBC.SqlValueExtra ()
-import qualified Database.HDBC.TH as Base
+
+import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Type (unsafeTypedQuery)
 import Database.Relational.Query (Query(untypeQuery))
 import Database.HDBC.Record.Query (runQuery', listToUnique)
 
-import Database.HDBC.Schema.PgCatalog.PgAttribute (PgAttribute, tableOfPgAttribute, fieldsOfPgAttribute)
+import Database.HDBC.Schema.PgCatalog.PgAttribute (PgAttribute, tableOfPgAttribute)
 import qualified Database.HDBC.Schema.PgCatalog.PgAttribute as Attr
-import Database.HDBC.Schema.PgCatalog.PgType (PgType(..), tableOfPgType, fieldsOfPgType)
+import Database.HDBC.Schema.PgCatalog.PgType (PgType(..), tableOfPgType)
 import qualified Database.HDBC.Schema.PgCatalog.PgType as Type
 
 import Language.SQL.Keyword (Keyword(..), (<.>), (.=.))
@@ -115,10 +116,10 @@ attributeQuerySQL =
   unsafeTypedQuery .
   SQL.unwordsSQL
   $ [SELECT,
-     map (("att" <.>) . SQL.word) fieldsOfPgAttribute `SQL.sepBy` ", ",
+     map (("att" <.>) . SQL.word) (Table.columns tableOfPgAttribute) `SQL.sepBy` ", ",
      FROM,
      "(", SQL.word $ untypeQuery relOidQuerySQL, ")", AS, "rel", ",",
-     SQL.word tableOfPgAttribute,                      AS, "att",
+     SQL.word (Table.name tableOfPgAttribute),        AS, "att",
      WHERE,
      "attrelid" .=. "rel_object_id", AND,
      "attnum", ">", "0" -- attnum of normal attributes begins from 1
@@ -129,12 +130,12 @@ columnQuerySQL =
   unsafeTypedQuery .
   SQL.unwordsSQL
   $ [SELECT,
-     (map (("att" <.>) . SQL.word) fieldsOfPgAttribute ++
-      map (("typ"  <.>) . SQL.word) fieldsOfPgType)
+     (map (("att" <.>) . SQL.word) (Table.columns tableOfPgAttribute) ++
+      map (("typ"  <.>) . SQL.word) (Table.columns tableOfPgType))
      `SQL.sepBy` ", ",
      FROM,
      "(", SQL.word $ untypeQuery attributeQuerySQL, ")", AS, "att", ",",
-     SQL.word tableOfPgType,                              AS, "typ",
+     SQL.word (Table.name tableOfPgType),                AS, "typ",
      WHERE,
      "atttypid" .=. "typ" <.> "oid", AND,
      "typ" <.> "typtype" .=. "'b'",  AND,

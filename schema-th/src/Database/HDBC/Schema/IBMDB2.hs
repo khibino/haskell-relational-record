@@ -25,14 +25,19 @@ import Data.Time (LocalTime, Day)
 import Language.Haskell.TH (Q, Type)
 import qualified Language.Haskell.TH.Name.Extra as TH
 
-import Database.HDBC (IConnection)
+import Database.HDBC (IConnection, SqlValue)
 
 import Database.HDBC.SqlValueExtra ()
-import qualified Database.HDBC.TH as Base
-import Database.Relational.Query.Type (unsafeTypedQuery)
-import Database.Relational.Query (Query)
 import Database.HDBC.Record.Query (runQuery', listToUnique)
+import Database.HDBC.Record.Persistable ()
+
 import Database.Record.TH (derivingShow)
+
+import qualified Database.Relational.Query.Table as Table
+import Database.Relational.Query.Type (unsafeTypedQuery)
+import Database.Relational.Query.TH (defineRecordAndTableDefault)
+import Database.Relational.Query (Query)
+
 import Language.SQL.Keyword (Keyword(..))
 import qualified Language.SQL.Keyword as SQL
 
@@ -40,7 +45,8 @@ import Database.HDBC.Schema.Driver
   (TypeMap, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
 
 
-$(Base.defineRecordDefault
+$(defineRecordAndTableDefault
+  [t| SqlValue |]
   "SYSCAT" "columns"
   [
     -- column                         schema    type               length         NULL
@@ -154,10 +160,10 @@ columnsQuerySQL =
   unsafeTypedQuery .
   SQL.unwordsSQL
   $ [SELECT, fields `SQL.sepBy` ", ",
-     FROM, SQL.word tableOfColumns,
+     FROM, SQL.word (Table.name tableOfColumns),
      WHERE, "tabschema = ?", AND, "tabname = ?",
      ORDER, BY, "colno"]
-  where fields = map SQL.word fieldsOfColumns
+  where fields = map SQL.word (Table.columns tableOfColumns)
 
 primaryKeyQuerySQL :: Query (String, String) String
 primaryKeyQuerySQL =
@@ -167,7 +173,7 @@ primaryKeyQuerySQL =
      FROM,
      "SYSCAT.tabconst", AS, "const", ",",
      "SYSCAT.keycoluse", AS, "key", ",",
-     SQL.word tableOfColumns, AS, "col",
+     SQL.word (Table.name tableOfColumns), AS, "col",
      WHERE,
      "const.tabschema = col.tabschema", AND,
      "const.tabname = col.tabname", AND,

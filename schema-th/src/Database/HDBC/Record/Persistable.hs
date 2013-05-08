@@ -6,6 +6,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module Database.HDBC.Record.Persistable (
+  persistableSqlValue
   ) where
 
 import Database.Record.Persistable
