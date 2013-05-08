@@ -4,7 +4,7 @@ module Language.Haskell.TH.Name.Extra (
 
   compileErrorIO, compileError,
 
-  integralE, simpleValD
+  integralE, simpleValD, maybeD
   ) where
 
 import Language.Haskell.TH
@@ -32,3 +32,6 @@ simpleValD var typ expr =  do
   sig <- sigD var typ
   val <- valD (varP var) (normalB expr) []
   return [sig, val]
+
+maybeD :: (a -> Q [Dec]) -> Maybe a -> Q [Dec]
+maybeD =  maybe (return [])
