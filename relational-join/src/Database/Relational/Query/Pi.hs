@@ -1,10 +1,17 @@
 module Database.Relational.Query.Pi (
   PiUnit,
-  pairPiFstUnit, pairPiSndUnit, fst', snd',
+  pairPiFstUnit, pairPiSndUnit,
+
+  fst'', snd'',
+  fst', snd',
 
   Pi((:*)),
   leafIndex,
   ) where
+
+import Database.Record.Persistable
+  (PersistableWidth, persistableWidth,
+   PersistableRecordWidth, runPersistableRecordWidth)
 
 import Database.Relational.Query.Pi.Unsafe
   (PiUnit, offset, Pi ((:*), Leaf), definePiUnit)
@@ -19,11 +26,21 @@ leafIndex =  rec  where
 pairPiFstUnit :: PiUnit (c a b) a
 pairPiFstUnit =  definePiUnit 0
 
-pairPiSndUnit :: Int -> PiUnit (c a b) b
-pairPiSndUnit off = definePiUnit off
+pairPiSndUnit' :: PersistableRecordWidth a -> PiUnit (c a b) b
+pairPiSndUnit' pw = definePiUnit (runPersistableRecordWidth pw)
 
-fst' :: PiUnit (a, b) a
-fst' =  pairPiFstUnit
+pairPiSndUnit :: PersistableWidth a => PiUnit (c a b) b
+pairPiSndUnit =  pairPiSndUnit' persistableWidth
 
-snd' :: Int -> PiUnit (a, b) b
-snd' =  pairPiSndUnit
+
+fst'' :: PiUnit (a, b) a
+fst'' =  pairPiFstUnit
+
+snd'' :: PersistableWidth a =>  PiUnit (a, b) b
+snd'' =  pairPiSndUnit
+
+fst' :: Pi (a, b) a
+fst' =  Leaf fst''
+
+snd' :: PersistableWidth a =>  Pi (a, b) b
+snd' =  Leaf snd''
