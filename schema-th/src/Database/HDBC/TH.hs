@@ -15,12 +15,6 @@
 -- This module contains templates to generate Haskell record types
 -- and instances correspond to RDB table schema.
 module Database.HDBC.TH (
-  fieldInfo,
-
-  defineRecordConstructFunction,
-  definePersistableInstance,
-  defineRecordDecomposeFunction,
-
   defineRecord,
   defineRecordDefault,
 
@@ -46,10 +40,9 @@ import Database.HDBC (IConnection, SqlValue)
 
 import Language.Haskell.TH.Name.CamelCase
   (ConName, VarName (varName),
-   varCamelcaseName,
    varNameWithPrefix)
 import Language.Haskell.TH.Name.Extra
-  (integralE, simpleValD, compileError)
+  (integralE, simpleValD, maybeD, compileError)
 import Language.Haskell.TH
   (Q, runIO,
    TypeQ, Dec,
@@ -61,9 +54,7 @@ import Language.Haskell.TH
 import Database.HDBC.Session (withConnectionIO)
 import Database.Record.TH
   (recordTypeDefault,
-   defineHasPrimaryKeyInstanceDefault, defineHasNotNullKeyInstanceDefault,
-   defineRecordConstructFunction, defineRecordDecomposeFunction,
-   definePersistableInstance)
+   defineHasPrimaryKeyInstanceDefault, defineHasNotNullKeyInstanceDefault)
 import qualified Database.Record.TH as Record
 import Database.Relational.Query.Type (unsafeTypedQuery)
 import Database.Relational.Query (Query)
@@ -77,15 +68,6 @@ import Database.HDBC.Schema.Driver (Driver, getFields, getPrimaryKey)
 nameOfTableSQL :: String -> String -> String
 nameOfTableSQL schema table = map toUpper schema ++ '.' : map toLower table
 
-
-fieldInfo :: String
-          -> TypeQ
-          -> ((VarName, TypeQ), String) -- ^ (fieldVarName, (fieldInSQL, fieldTypeInTable))
-fieldInfo n t = ((varCamelcaseName n, t), n)
-
-
-mayDeclare :: (a -> Q [Dec]) -> Maybe a -> Q [Dec]
-mayDeclare =  maybe (return [])
 
 defineTableInfo :: VarName -> String
                 -> VarName -> [String]
@@ -248,8 +230,8 @@ defineWithTableDefault :: String
                        -> Q [Dec]
 defineWithTableDefault schema table fields derives mayPrimaryIdx mayNotNullIdx  = do
   tblD  <- defineWithTableDefault' schema table fields derives
-  primD <- mayDeclare (defineWithPrimaryKeyDefault schema table fields) mayPrimaryIdx
-  nnD   <- mayDeclare (defineWithNotNullKeyDefault table) mayNotNullIdx
+  primD <- maybeD (defineWithPrimaryKeyDefault schema table fields) mayPrimaryIdx
+  nnD   <- maybeD (defineWithNotNullKeyDefault table) mayNotNullIdx
   return $ tblD ++ primD ++ nnD
 
 putLog :: String -> IO ()
