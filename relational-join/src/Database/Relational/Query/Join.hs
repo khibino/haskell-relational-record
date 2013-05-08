@@ -118,6 +118,7 @@ p ! pi' = project $ Projection.pi p pi'
 (!?) :: (PersistableWidth b, Projectable p) => Projection (Maybe a) -> Pi a b -> p (Maybe b)
 p !? pi' = project $ Projection.piMaybe p pi'
 
+infixl 8 !, !?
 infixl 1 >*<
 
 
