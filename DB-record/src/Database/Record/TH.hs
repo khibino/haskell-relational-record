@@ -61,11 +61,15 @@ defineHasPrimaryKeyInstance :: TypeQ -> Int -> Q [Dec]
 defineHasPrimaryKeyInstance =
   defineHasKeyConstraintInstance [t| Primary |]
 
-defineHasPrimaryKeyInstanceDefault :: String -> Int -> Q [Dec]
+defineHasPrimaryKeyInstanceDefault :: String  -- ^ Table name
+                                   -> Int     -- ^ Primary key index
+                                   -> Q [Dec] -- ^ Declaration of primary key constraint
 defineHasPrimaryKeyInstanceDefault =
   defineHasPrimaryKeyInstance . recordTypeDefault
 
-defineHasNotNullKeyInstanceDefault :: String -> Int -> Q [Dec]
+defineHasNotNullKeyInstanceDefault :: String  -- ^ Table name
+                                   -> Int     -- ^ Not null key index
+                                   -> Q [Dec] -- ^ Declaration of not null key constraint
 defineHasNotNullKeyInstanceDefault =
   defineHasNotNullKeyInstance . recordTypeDefault
 
