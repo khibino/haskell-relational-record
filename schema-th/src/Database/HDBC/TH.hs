@@ -47,28 +47,24 @@ import Database.HDBC (IConnection, SqlValue)
 import Language.Haskell.TH.Name.CamelCase
   (ConName, VarName (varName),
    varCamelcaseName,
-   varNameWithPrefix,
-   toTypeCon)
+   varNameWithPrefix)
 import Language.Haskell.TH.Name.Extra
   (integralE, simpleValD, compileError)
 import Language.Haskell.TH
   (Q, runIO,
    TypeQ, Dec,
-   varE, listE, stringE,
+   listE, stringE,
    varP,
    sigD, valD,
    normalB)
 
 import Database.HDBC.Session (withConnectionIO)
-import Database.Record.Persistable
-  (persistableRecord, Persistable, persistable,
-   persistableRecordWidth, PersistableWidth, persistableWidth)
 import Database.Record.TH
-  (recordTypeNameDefault, recordTypeDefault,
+  (recordTypeDefault,
    defineHasPrimaryKeyInstanceDefault, defineHasNotNullKeyInstanceDefault,
-   defineRecordType, defineRecordConstructFunction, defineRecordDecomposeFunction)
-import Database.Record.FromSql (FromSql(recordFromSql), recordFromSql')
-import Database.Record.ToSql (ToSql(recordToSql), recordToSql')
+   defineRecordConstructFunction, defineRecordDecomposeFunction,
+   definePersistableInstance)
+import qualified Database.Record.TH as Record
 import Database.Relational.Query.Type (unsafeTypedQuery)
 import Database.Relational.Query (Query)
 import Database.HDBC.Record.Persistable ()
@@ -104,24 +100,6 @@ defineTableInfo tableVar' table fieldsVar' fields widthVar' width = do
   widthQ  <- simpleValD widthVar  [t| Int |]      [| $(integralE $ width) |]
   return $ concat [tableQ, fieldsQ, widthQ]
 
-definePersistableInstance :: VarName -> TypeQ -> VarName -> VarName -> Int -> Q [Dec]
-definePersistableInstance widthVar' typeCon consFunName' decompFunName' width = do
-  [d| instance PersistableWidth $typeCon where
-        persistableWidth = persistableRecordWidth $(varE $ varName widthVar')
-
-      instance Persistable SqlValue $typeCon where
-        persistable = persistableRecord
-                      persistableWidth
-                      $(varE $ varName consFunName')
-                      $(varE $ varName decompFunName')
-
-      instance FromSql SqlValue $typeCon where
-        recordFromSql = recordFromSql'
-
-      instance ToSql SqlValue $typeCon where
-        recordToSql = recordToSql'
-    |]
-
 defineRecord :: (VarName, VarName)
             -> (String, ConName)
             -> (VarName, VarName, VarName)
@@ -131,37 +109,29 @@ defineRecord :: (VarName, VarName)
 defineRecord
   (cF, dF) (tableSQL, tyC)
   (tableN, fldsN, widthN)
-  schemas' drvs = do
+  schemas drvs = do
 
-  let schemas = map fst schemas'
-  typ  <- defineRecordType tyC schemas drvs
-  let width = length schemas'
-      typeCon = toTypeCon tyC
-  fromSQL  <- defineRecordConstructFunction [t| SqlValue |] cF tyC width
-  toSQL    <- defineRecordDecomposeFunction [t| SqlValue |] dF typeCon (map fst schemas)
+  prec <- Record.defineRecord [t| SqlValue |] (cF, dF) tyC (map fst schemas) drvs
   tableI   <- defineTableInfo
               tableN tableSQL
-              fldsN (map snd schemas') widthN width
-  instSQL  <- definePersistableInstance widthN typeCon cF dF width
-  return $ typ : fromSQL ++ toSQL ++ tableI ++ instSQL
+              fldsN (map snd schemas) widthN (length schemas)
+  return $ prec ++ tableI
 
 defineRecordDefault :: String
                     -> String
                     -> [(String, TypeQ)]
                     -> [ConName]
                     -> Q [Dec]
-defineRecordDefault schema table fields drives = do
+defineRecordDefault schema table fields derives = do
+  prec <- Record.defineRecordDefault [t| SqlValue |] table fields derives
   let tableSQL = nameOfTableSQL schema table
-      fields' = map (uncurry fieldInfo) fields
-  defineRecord
-    (table `varNameWithPrefix` "fromSqlOf",
-     table `varNameWithPrefix` "toSqlOf")
-    (tableSQL, recordTypeNameDefault table)
-    (table `varNameWithPrefix` "tableOf",
-     table `varNameWithPrefix` "fieldsOf",
-     table `varNameWithPrefix` "widthOf")
-    fields'
-    drives
+  tableI   <- defineTableInfo
+              (table `varNameWithPrefix` "tableOf") tableSQL
+              (table `varNameWithPrefix` "fieldsOf")
+              (map fst fields)
+              (table `varNameWithPrefix` "widthOf")
+              (length fields)
+  return $ prec ++ tableI
 
 defineConstantSql :: VarName -> String -> Q [Dec]
 defineConstantSql name' sqlStr = do
