@@ -60,24 +60,26 @@ defineTable tableVar' relVar' recordType table columns = do
   let tableVar = varName tableVar'
   tableDs <- simpleValD tableVar [t| Table $(recordType) |]
             [| Table.table $(stringE table) $(listE $ map stringE (map fst columns)) |]
-  let defCol i (name, typ) = defineColumnDefault recordType name i typ
-  colsDs  <- fmap concat . sequence . zipWith defCol [0..] $ columns
   let relVar   = varName relVar'
   relDs   <- simpleValD relVar   [t| Relation $(recordType) |]
              [| fromTable $(varE tableVar) |]
-  return $ tableDs ++ colsDs ++ relDs
+  return $ tableDs ++ relDs
 
 defineTableDefault :: String            -- ^ Schema name
                    -> String            -- ^ Table name
                    -> [(String, TypeQ)] -- ^ Column names and types
                    -> Q [Dec]           -- ^ Result declarations
-defineTableDefault schema table columns =
-  defineTable
-  (table `varNameWithPrefix` "tableOf")
-  (varCamelcaseName table)
-  (recordTypeDefault table)
-  (tableSQL schema table)
-  columns
+defineTableDefault schema table columns = do
+  let recordType = recordTypeDefault table
+  tableDs <- defineTable
+             (table `varNameWithPrefix` "tableOf")
+             (varCamelcaseName table)
+             recordType
+             (tableSQL schema table)
+             columns
+  let defCol i (name, typ) = defineColumnDefault recordType name i typ
+  colsDs  <- fmap concat . sequence . zipWith defCol [0..] $ columns
+  return $ tableDs ++ colsDs
 
 defineRecordAndTableDefault :: TypeQ             -- ^ SQL value type
                             -> String            -- ^ Schema name
