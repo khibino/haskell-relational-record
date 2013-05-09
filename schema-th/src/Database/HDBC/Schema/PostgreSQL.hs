@@ -13,7 +13,7 @@ module Database.HDBC.Schema.PostgreSQL (
   driverPostgreSQL
   ) where
 
-import Language.Haskell.TH (Q, Type)
+import Language.Haskell.TH (TypeQ)
 import qualified Language.Haskell.TH.Name.Extra as TH
 
 import Data.Int (Int16, Int32, Int64)
@@ -42,7 +42,7 @@ import qualified Language.SQL.Keyword as SQL
 import Database.HDBC.Schema.Driver
   (TypeMap, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
 
-mapFromSqlDefault :: Map String (Q Type)
+mapFromSqlDefault :: Map String TypeQ
 mapFromSqlDefault =
   fromList [("bool",         [t| Bool |]),
             ("char",         [t| String |]),
@@ -82,7 +82,7 @@ type Column = (PgAttribute, PgType)
 notNull :: Column -> Bool
 notNull =  Attr.attnotnull . fst
 
-getType :: Map String (Q Type) -> Column -> (String, Q Type)
+getType :: Map String TypeQ -> Column -> (String, TypeQ)
 getType mapFromSql column@(pgAttr, pgType) =
   (normalizeField $ Attr.attname pgAttr,
    mayNull $ mapFromSql ! Type.typname pgType)
@@ -186,7 +186,7 @@ getFields' :: IConnection conn
           -> conn
           -> String
           -> String
-          -> IO ([(String, Q Type)], [Int])
+          -> IO ([(String, TypeQ)], [Int])
 getFields' tmap conn scm' tbl' = do
   let scm = map toLower scm'
       tbl = map toLower tbl'

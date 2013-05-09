@@ -22,7 +22,7 @@ import Data.Char (toUpper, toLower)
 import Data.Map (Map, fromList)
 import qualified Data.Map as Map
 import Data.Time (LocalTime, Day)
-import Language.Haskell.TH (Q, Type)
+import Language.Haskell.TH (TypeQ)
 import qualified Language.Haskell.TH.Name.Extra as TH
 
 import Database.HDBC (IConnection, SqlValue)
@@ -129,7 +129,7 @@ $(defineRecordAndTableDefault
   [derivingShow])
 
 
-mapFromSqlDefault :: Map String (Q Type)
+mapFromSqlDefault :: Map String TypeQ
 mapFromSqlDefault =
   fromList [("VARCHAR",   [t|String|]),
             ("CHAR",      [t|String|]),
@@ -148,7 +148,7 @@ normalizeField =  map toLower
 notNull :: Columns -> Bool
 notNull =  (== "N") . nulls
 
-getType :: Map String (Q Type) -> Columns -> (String, Q Type)
+getType :: Map String TypeQ -> Columns -> (String, TypeQ)
 getType mapFromSql rec =
   (normalizeField $ colname rec,
    mayNull $ mapFromSql Map.! typename rec)
@@ -217,7 +217,7 @@ getFields' :: IConnection conn
           -> conn
           -> String
           -> String
-          -> IO ([(String, Q Type)], [Int])
+          -> IO ([(String, TypeQ)], [Int])
 getFields' tmap conn scm' tbl' = do
   let tbl = map toUpper tbl'
       scm = map toUpper scm'
