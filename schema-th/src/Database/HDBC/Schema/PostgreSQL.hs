@@ -26,8 +26,6 @@ import Data.Time
 
 import Database.HDBC (IConnection)
 
-import Database.HDBC.SqlValueExtra ()
-
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Type (unsafeTypedQuery)
 import Database.Relational.Query (Query(untypeQuery))

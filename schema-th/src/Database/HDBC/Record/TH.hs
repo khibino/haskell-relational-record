@@ -14,6 +14,7 @@ import Language.Haskell.TH
    Info (ClassI), reify, runIO)
 import Data.Convertible (Convertible)
 import Database.HDBC (SqlValue)
+import Database.HDBC.SqlValueExtra ()
 import Database.Record.Persistable
   (Persistable(persistable), derivedPersistableRecord, PersistableWidth(persistableWidth))
 import Database.Record.FromSql (FromSql(recordFromSql), recordFromSql')

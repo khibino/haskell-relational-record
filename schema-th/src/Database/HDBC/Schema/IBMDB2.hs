@@ -27,7 +27,6 @@ import qualified Language.Haskell.TH.Name.Extra as TH
 
 import Database.HDBC (IConnection, SqlValue)
 
-import Database.HDBC.SqlValueExtra ()
 import Database.HDBC.Record.Query (runQuery', listToUnique)
 import Database.HDBC.Record.Persistable ()
 

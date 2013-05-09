@@ -15,7 +15,6 @@ import Data.Int (Int16, Int32)
 
 import Database.HDBC (SqlValue)
 
-import Database.HDBC.SqlValueExtra ()
 import Database.HDBC.Record.Persistable ()
 
 import Database.Record.TH (derivingShow)
