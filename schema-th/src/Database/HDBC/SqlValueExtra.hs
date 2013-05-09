@@ -9,8 +9,7 @@
 -- Maintainer  : ex8k.hibino@gmail.com
 -- Stability   : experimental
 -- Portability : unknown
-module Database.HDBC.SqlValueExtra (
-  ) where
+module Database.HDBC.SqlValueExtra () where
 
 import Data.Convertible (Convertible(safeConvert), ConvertResult)
 import Data.Int (Int16, Int32)

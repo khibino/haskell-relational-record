@@ -19,7 +19,7 @@ import Prelude hiding (length)
 import qualified Data.List as List
 import Data.Int (Int16, Int32, Int64)
 import Data.Char (toUpper, toLower)
-import Data.Map (Map, fromList, (!))
+import Data.Map (Map, fromList)
 import qualified Data.Map as Map
 import Data.Time (LocalTime, Day)
 import Language.Haskell.TH (Q, Type)
@@ -34,9 +34,11 @@ import Database.HDBC.Record.Persistable ()
 import Database.Record.TH (derivingShow)
 
 import qualified Database.Relational.Query.Table as Table
-import Database.Relational.Query.Type (unsafeTypedQuery)
+import Database.Relational.Query.Type (unsafeTypedQuery, fromRelation)
 import Database.Relational.Query.TH (defineRecordAndTableDefault)
-import Database.Relational.Query (Query)
+import Database.Relational.Query
+  (Query, Relation, inner, relation,
+   wheres, (.=.), (!), (!?), placeholder, asc)
 
 import Language.SQL.Keyword (Keyword(..))
 import qualified Language.SQL.Keyword as SQL
@@ -150,20 +152,22 @@ notNull =  (== "N") . nulls
 getType :: Map String (Q Type) -> Columns -> (String, Q Type)
 getType mapFromSql rec =
   (normalizeField $ colname rec,
-   mayNull $ mapFromSql ! typename rec)
+   mayNull $ mapFromSql Map.! typename rec)
   where mayNull typ = if notNull rec
                       then typ
                       else [t| Maybe $(typ) |]
 
+columnsRelationFromTable :: Relation Columns
+columnsRelationFromTable =  relation $ do
+  c <- inner columns
+  wheres $ c ! tabschema' .=. placeholder
+  wheres $ c ! tabname'   .=. placeholder
+  asc $ c ! colno'
+  return c
+
 columnsQuerySQL :: Query (String, String) Columns
-columnsQuerySQL =
-  unsafeTypedQuery .
-  SQL.unwordsSQL
-  $ [SELECT, fields `SQL.sepBy` ", ",
-     FROM, SQL.word (Table.name tableOfColumns),
-     WHERE, "tabschema = ?", AND, "tabname = ?",
-     ORDER, BY, "colno"]
-  where fields = map SQL.word (Table.columns tableOfColumns)
+columnsQuerySQL =  fromRelation columnsRelationFromTable
+
 
 primaryKeyQuerySQL :: Query (String, String) String
 primaryKeyQuerySQL =

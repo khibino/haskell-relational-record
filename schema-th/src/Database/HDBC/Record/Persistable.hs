@@ -17,6 +17,7 @@ import Database.Record.Persistable
    PersistableValue (persistableValue), derivedPersistableSingleton,
    Persistable (persistable))
 import qualified Database.Record.Persistable as Persistable
+import Database.HDBC.SqlValueExtra ()
 import Database.HDBC.Record.TH (derivePersistableInstancesFromConvertibleSqlValues)
 
 import Data.Convertible (Convertible)
