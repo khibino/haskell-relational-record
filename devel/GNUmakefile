@@ -4,6 +4,9 @@ all: clean
 	cabal build
 	cabal haddock --hyperlink-source
 
+wc:
+	find src -name '*.hs' | xargs wc
+
 clean:
 	cabal clean
 	[ ! -d .dWork ] || rm -r .dWork
