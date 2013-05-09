@@ -20,6 +20,7 @@ library
 
   exposed-modules:
                        Database.HDBC.Record.Persistable
+                       Database.HDBC.Record.Singleton
                        Database.HDBC.Record.TH
                        Database.HDBC.Record.Query
                        Database.HDBC.TH

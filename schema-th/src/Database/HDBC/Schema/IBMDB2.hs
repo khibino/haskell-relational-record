@@ -37,7 +37,7 @@ import Database.Relational.Query.Type (unsafeTypedQuery, fromRelation)
 import Database.Relational.Query.TH (defineRecordAndTableDefault)
 import Database.Relational.Query
   (Query, PrimeRelation, inner, relation,
-   wheres, (.=.), (!), (!?), placeholder, asc)
+   wheres, (.=.), (!), placeholder, asc)
 
 import Language.SQL.Keyword (Keyword(..))
 import qualified Language.SQL.Keyword as SQL

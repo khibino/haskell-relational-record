@@ -9,14 +9,9 @@ module Database.HDBC.Record.Persistable (
   persistableSqlValue
   ) where
 
-import Database.Record.Persistable
-  (Singleton,
-   persistableSqlTypeFromNull, PersistableType (..),
-   PersistableSqlValue,
-   PersistableWidth (),
-   PersistableValue (persistableValue), derivedPersistableSingleton,
-   Persistable (persistable))
-import qualified Database.Record.Persistable as Persistable
+import Database.Record (PersistableSqlValue, PersistableType (..), PersistableValue (..))
+import Database.Record.Persistable (persistableSqlTypeFromNull)
+import qualified Database.Record.Persistable as Record
 import Database.HDBC.Record.TH (derivePersistableInstancesFromConvertibleSqlValues)
 
 import Data.Convertible (Convertible)
@@ -27,14 +22,10 @@ instance PersistableType SqlValue  where
 
 persistableSqlValue :: (Convertible SqlValue a, Convertible a SqlValue)
                        => PersistableSqlValue SqlValue a
-persistableSqlValue =  Persistable.persistableSqlValue persistableType fromSql toSql
+persistableSqlValue =  Record.persistableSqlValue persistableType fromSql toSql
 
 instance (Convertible SqlValue a, Convertible a SqlValue)
          => PersistableValue SqlValue a  where
   persistableValue = persistableSqlValue
 
 $(derivePersistableInstancesFromConvertibleSqlValues)
-
-instance (Convertible SqlValue a, Convertible a SqlValue, PersistableWidth (Singleton a))
-         => Persistable SqlValue (Singleton a)  where
-  persistable = derivedPersistableSingleton

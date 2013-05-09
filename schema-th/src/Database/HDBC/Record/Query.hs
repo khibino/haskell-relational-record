@@ -28,8 +28,9 @@ import qualified Database.HDBC as HDBC
 
 import Database.Relational.Query (Query, untypeQuery)
 
-import Database.Record.ToSql (RecordToSql(fromRecord), ToSql(recordToSql))
-import Database.Record.FromSql (RecordFromSql, runToRecord, FromSql(recordFromSql))
+import Database.Record
+  (RecordToSql, ToSql(recordToSql), runFromRecord,
+   RecordFromSql, FromSql(recordFromSql), runToRecord)
 
 newtype PreparedQuery p a = PreparedQuery { prepared :: Statement }
 
@@ -49,7 +50,7 @@ prepare :: IConnection conn => conn -> Query p a -> IO (PreparedQuery p a)
 prepare conn = fmap PreparedQuery . HDBC.prepare conn . untypeQuery
 
 bindTo' :: RecordToSql SqlValue p -> p -> PreparedQuery p a -> BoundStatement a
-bindTo' toSql p q = BoundStatement { bound = prepared q, params = fromRecord toSql p }
+bindTo' toSql p q = BoundStatement { bound = prepared q, params = runFromRecord toSql p }
 
 bindTo :: ToSql SqlValue p => p -> PreparedQuery p a -> BoundStatement a
 bindTo =  bindTo' recordToSql

@@ -11,14 +11,15 @@ import Data.List (intersect)
 
 import Language.Haskell.TH
   (Q, Dec (InstanceD), Type(AppT, ConT),
-   Info (ClassI), reify, runIO)
+   Info (ClassI), reify)
+import Language.Haskell.TH.Name.Extra (compileError)
 import Data.Convertible (Convertible)
 import Database.HDBC (SqlValue)
 import Database.HDBC.SqlValueExtra ()
-import Database.Record.Persistable
-  (Persistable(persistable), derivedPersistableRecord, PersistableWidth(persistableWidth))
-import Database.Record.FromSql (FromSql(recordFromSql), recordFromSql')
-import Database.Record.ToSql (ToSql(recordToSql), recordToSql')
+import Database.Record
+  (Persistable(persistable), derivedPersistableValueRecord, PersistableWidth(persistableWidth),
+   FromSql(recordFromSql), recordFromSql',
+   ToSql(recordToSql), recordToSql')
 import qualified Database.Record.Persistable as Persistable
 
 
@@ -28,7 +29,7 @@ sqlValueType =  [t| SqlValue |]
 convertibleSqlValues' :: Q [(Type, Type)]
 convertibleSqlValues' =  cvInfo >>= d0  where
   cvInfo = reify ''Convertible
-  unknownDeclaration = runIO . ioError . userError
+  unknownDeclaration = compileError
                        . ("convertibleSqlValues: Unknown declaration pattern: " ++)
   d0 (ClassI _ is) = fmap catMaybes . sequence . map d1 $ is  where
     d1 (InstanceD _cxt (AppT (AppT (ConT _n) a) b) _ds)
@@ -57,7 +58,7 @@ derivePersistableInstanceFromValue typ =
         persistableWidth = Persistable.valueWidth
 
       instance Persistable SqlValue $(typ)  where
-        persistable = derivedPersistableRecord
+        persistable = derivedPersistableValueRecord
 
       instance FromSql SqlValue $(typ)  where
         recordFromSql = recordFromSql'
