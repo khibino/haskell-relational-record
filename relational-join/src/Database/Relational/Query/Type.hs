@@ -1,6 +1,6 @@
 
 module Database.Relational.Query.Type (
-  Query (untypeQuery), unsafeTypedQuery, toQuery
+  Query (untypeQuery), unsafeTypedQuery, fromRelation
   ) where
 
 import Database.Relational.Query.Relation (Relation)
@@ -15,5 +15,5 @@ instance Show (Query p a) where
   show = untypeQuery
 
 
-toQuery :: Relation r -> Query p r
-toQuery =  unsafeTypedQuery . Relation.toSQL
+fromRelation :: Relation r -> Query p r
+fromRelation =  unsafeTypedQuery . Relation.toSQL

@@ -1,6 +1,8 @@
+{-# LANGUAGE OverloadedStrings #-}
 
 module Database.Relational.Query.Relation (
 
+  Order (..),
   Relation,
 
   outer,
@@ -13,6 +15,7 @@ module Database.Relational.Query.Relation (
   ) where
 
 import Prelude hiding (product, and)
+import Data.List (foldl')
 
 import Database.Relational.Query.AliasId (asColumnN)
 
@@ -33,11 +36,14 @@ import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
 
 
+data Order = Asc | Desc
+
 data Relation r = Table (Table r)
                 | Relation
                   { projection  :: Projection r
                   , product     :: Product
                   , restriction :: Maybe (Expr Bool)
+                  , orderByRev  :: [(Order, String)]
                   }
 
 outer :: Relation r -> Relation (Maybe r)
@@ -53,17 +59,23 @@ width =  d  where
 fromTable :: Table r -> Relation r
 fromTable =  Table
 
-composedSQL :: Projection r -> Product -> Maybe (Expr Bool) -> String
-composedSQL pj pd re =
+composedSQL :: Projection r -> Product -> Maybe (Expr Bool) -> [(Order, String)] -> String
+composedSQL pj pd re odRev =
   unwordsSQL
-  $ [SELECT, columns' `SQL.sepBy` SQL.word ", ",
-     FROM, SQL.word . productSQL $ pd ]
+  $ [SELECT, columns' `SQL.sepBy` ", ",
+     FROM, SQL.word . productSQL $ pd]
   ++ wheres re
+  ++ orders
     where columns' = zipWith
                     (\f n -> SQL.word f `asColumnN` n)
                     (Projection.columns pj)
                     [(0 :: Int)..]
           wheres  = maybe [] (\e -> [WHERE, SQL.word . showExpr $ e])
+          order Asc  = ASC
+          order Desc = DESC
+          orderList = foldl' (\ r (o, e) -> [SQL.word e, order o] `SQL.sepBy` " "  : r) [] odRev
+          orders | null odRev = []
+                 | otherwise  = [ORDER, BY, orderList `SQL.sepBy` ", "]
 
 toSubQuery :: Relation r -> SubQuery
 toSubQuery =  d  where
@@ -72,10 +84,12 @@ toSubQuery =  d  where
                          (composedSQL
                           (projection rel)
                           (product rel)
-                          (restriction rel))
+                          (restriction rel)
+                          (orderByRev rel)
+                         )
                          (width rel)
 
-finalizeRelation :: Projection r -> Product -> Maybe (Expr Bool) -> Relation r
+finalizeRelation :: Projection r -> Product -> Maybe (Expr Bool) -> [(Order, String)] -> Relation r
 finalizeRelation =  Relation
 
 toSQL :: Relation r -> String

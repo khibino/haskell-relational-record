@@ -2,7 +2,7 @@
 module Database.Relational.Query.Join (
   QueryJoin,
 
-  on, wheres,
+  on, wheres, asc, desc,
   table,
 
   record, expr, compose, (>*<), (!), (!?), relation,
@@ -25,7 +25,7 @@ import qualified Database.Relational.Query.AliasId as AliasId
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Sub (SubQuery)
 
-import Database.Relational.Query.Expr (Expr)
+import Database.Relational.Query.Expr (Expr, showExpr)
 import qualified Database.Relational.Query.Expr as Expr
 
 import Database.Relational.Query.Product
@@ -37,17 +37,18 @@ import qualified Database.Relational.Query.Projection as Projection
 
 import Database.Relational.Query.Pi (Pi)
 
-import Database.Relational.Query.Relation (Relation, finalizeRelation)
+import Database.Relational.Query.Relation (Relation, finalizeRelation, Order(Asc, Desc))
 import qualified Database.Relational.Query.Relation as Relation
 
 data Context = Context
                { currentAliasId :: AliasId
                , product :: Maybe QueryProduct
                , restriction :: Maybe (Expr Bool)
+               , orderByRev :: [(Order, String)]
                }
 
 primContext :: Context
-primContext =  Context primAlias Nothing Nothing
+primContext =  Context primAlias Nothing Nothing []
 
 nextAliasContext :: Context -> Context
 nextAliasContext s = s { currentAliasId =  newAliasId (currentAliasId s) }
@@ -61,6 +62,10 @@ updateRestriction' e1 ctx =
   ctx { restriction = Just . uf . restriction $ ctx }
   where uf  Nothing = e1
         uf (Just e0) = e0 `Expr.and` e1
+
+updateOrderBy' :: Order -> Expr t -> Context -> Context
+updateOrderBy' order e ctx =
+  ctx { orderByRev = ((order, showExpr e) :) . orderByRev $ ctx  }
 
 
 newtype QueryJoin a =
@@ -89,12 +94,21 @@ updateJoinRestriction e = updateContext (updateProduct' d)  where
 updateRestriction :: Expr Bool -> QueryJoin ()
 updateRestriction e = updateContext (updateRestriction' e)
 
+updateOrderBy :: Order -> Expr t -> QueryJoin ()
+updateOrderBy order e = updateContext (updateOrderBy' order e)
+
 
 on :: Expr Bool -> QueryJoin ()
 on =  updateJoinRestriction
 
 wheres :: Expr Bool -> QueryJoin ()
 wheres =  updateRestriction
+
+asc  :: Expr t -> QueryJoin ()
+asc  =  updateOrderBy Asc
+
+desc :: Expr t -> QueryJoin ()
+desc =  updateOrderBy Desc
 
 
 table :: Table r -> Relation r
@@ -157,7 +171,7 @@ from :: Table r -> QueryJoin (Projection r)
 from =  inner . table
 
 relation :: QueryJoin (Projection r) -> Relation r
-relation q = finalizeRelation projection product' (restriction st)  where
+relation q = finalizeRelation projection product' (restriction st) (orderByRev st)  where
   (projection, st) = runQueryPrime q
   product' = maybe (error "relation: empty product!") Product.tree $ product st
 

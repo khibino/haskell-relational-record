@@ -21,4 +21,4 @@ import Database.Relational.Query.Projection
    value, valueTrue, valueFalse, valueNull, placeholder)
 import Database.Relational.Query.Relation (Relation)
 import Database.Relational.Query.Join
-import Database.Relational.Query.Type (Query, untypeQuery, toQuery)
+import Database.Relational.Query.Type (Query, untypeQuery, fromRelation)
