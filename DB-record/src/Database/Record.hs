@@ -16,5 +16,10 @@ import Database.Record.Persistable
    PersistableRecordWidth, PersistableWidth(..),
    PersistableRecord, Persistable(..),
    derivedPersistableValueRecord)
-import Database.Record.FromSql (RecordFromSql, FromSql(..), recordFromSql')
-import Database.Record.ToSql (RecordToSql, ToSql(..), recordToSql')
+import Database.Record.FromSql
+  (RecordFromSql, FromSql(..), recordFromSql',
+   runTakeRecord, takeRecord, runToRecord, toRecord)
+import Database.Record.ToSql
+  (RecordToSql, ToSql(..), recordToSql',
+   runFromRecord, fromRecord,
+   updateValuesByUnique, updateValuesByPrimary)

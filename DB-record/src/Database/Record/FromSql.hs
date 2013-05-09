@@ -103,4 +103,4 @@ takeRecord :: FromSql q a => [q] -> (a, [q])
 takeRecord =  runTakeRecord recordFromSql
 
 toRecord :: FromSql q a => [q] -> a
-toRecord = fst . takeRecord
+toRecord =  runToRecord recordFromSql
