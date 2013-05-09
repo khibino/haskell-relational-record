@@ -14,7 +14,8 @@ module Database.Record.Persistable (
 
   PersistableSqlType(runPersistableNullValue), persistableSqlTypeFromNull,
 
-  PersistableRecordWidth(runPersistableRecordWidth), valueWidth,
+  PersistableRecordWidth(runPersistableRecordWidth),
+  valueWidth, singletonWidth, (<&>), maybeWidth,
   PersistableSqlValue, persistableSqlValue,
 
   PersistableRecord, persistableRecord,
@@ -25,7 +26,7 @@ module Database.Record.Persistable (
   PersistableType(..), sqlNullValue,
   PersistableValue (..), fromSql, toSql,
   derivedPersistableRecord, derivedPersistableSingleton,
-  PersistableWidth (..), persistableRecordWidth, singletonWidth, (<&>),
+  PersistableWidth (..), persistableRecordWidth,
   Persistable (..), takeRecord
   ) where
 
@@ -73,6 +74,9 @@ singletonWidth =  persistableRecordWidth 1
 (<&>) :: PersistableRecordWidth a -> PersistableRecordWidth b -> PersistableRecordWidth (a, b)
 a <&> b = PersistableRecordWidth $ runPersistableRecordWidth a + runPersistableRecordWidth b
 
+maybeWidth :: PersistableRecordWidth a -> PersistableRecordWidth (Maybe a)
+maybeWidth =  PersistableRecordWidth . runPersistableRecordWidth
+
 
 data PersistableRecord q a =
   PersistableRecord
@@ -111,6 +115,9 @@ instance PersistableWidth (Singleton a) where
 
 instance (PersistableWidth a, PersistableWidth b) => PersistableWidth (a, b) where
   persistableWidth = persistableWidth <&> persistableWidth
+
+instance PersistableWidth a => PersistableWidth (Maybe a) where
+  persistableWidth = maybeWidth persistableWidth
 
 
 class PersistableType q => PersistableValue q a where
