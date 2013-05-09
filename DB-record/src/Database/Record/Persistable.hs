@@ -26,7 +26,7 @@ module Database.Record.Persistable (
 
   PersistableType(..), sqlNullValue,
   PersistableValue (..), fromSql, toSql,
-  derivedPersistableRecord, derivedPersistableSingleton,
+  derivedPersistableValueRecord, derivedPersistableSingleton,
   PersistableWidth (..), persistableRecordWidth,
   Persistable (..), takeRecord
   ) where
@@ -139,8 +139,8 @@ fromSql =  toValue persistableValue
 toSql :: PersistableValue q a => a -> q
 toSql =  fromValue persistableValue
 
-derivedPersistableRecord :: (PersistableWidth a, PersistableValue q a) => PersistableRecord q a
-derivedPersistableRecord =  persistableFromValue persistableWidth persistableValue
+derivedPersistableValueRecord :: (PersistableWidth a, PersistableValue q a) => PersistableRecord q a
+derivedPersistableValueRecord =  persistableFromValue persistableWidth persistableValue
 
 derivedPersistableSingleton :: (PersistableWidth (Singleton a), PersistableValue q a) => PersistableRecord q (Singleton a)
 derivedPersistableSingleton =  persistableSingletonFromValue persistableWidth persistableValue

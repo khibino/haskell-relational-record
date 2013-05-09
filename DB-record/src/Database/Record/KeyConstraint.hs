@@ -1,5 +1,6 @@
 {-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 -- |
@@ -20,7 +21,10 @@ module Database.Record.KeyConstraint (
   unique, notNull,
 
   leftKeyConstraint,
-  HasKeyConstraint (constraintKey)
+  HasKeyConstraint (constraintKey),
+
+  derivedUniqueConstraint,
+  derivedNotNullConstraint
   ) where
 
 newtype KeyConstraint c a = KeyConstraint { index :: Int }
@@ -51,3 +55,9 @@ class HasKeyConstraint c a where
 
 instance HasKeyConstraint c a => HasKeyConstraint c (a, b) where
   constraintKey = leftKeyConstraint constraintKey
+
+derivedUniqueConstraint :: HasKeyConstraint Primary a => UniqueConstraint a
+derivedUniqueConstraint =  unique constraintKey
+
+derivedNotNullConstraint :: HasKeyConstraint Primary a => NotNullConstraint a
+derivedNotNullConstraint =  notNull constraintKey

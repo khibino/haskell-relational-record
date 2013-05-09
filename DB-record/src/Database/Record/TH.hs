@@ -33,14 +33,17 @@ import Language.Haskell.TH
    normalB, recC,
    clause, cxt, varStrictType, strictType, isStrict)
 
+import Database.Record
+  (HasKeyConstraint(constraintKey), Primary, NotNull,
+   Persistable(persistable), PersistableWidth(persistableWidth),
+   fromSql, toSql,
+   FromSql(recordFromSql), recordFromSql',
+   ToSql(recordToSql), recordToSql')
+
 import Database.Record.KeyConstraint
-  (HasKeyConstraint(constraintKey), specifyKeyConstraint, Primary, NotNull)
+  (specifyKeyConstraint)
 import Database.Record.Persistable
-  (fromSql, toSql,
-   persistableRecord, Persistable, persistable,
-   persistableRecordWidth, PersistableWidth, persistableWidth)
-import Database.Record.FromSql (FromSql(recordFromSql), recordFromSql')
-import Database.Record.ToSql (ToSql(recordToSql), recordToSql')
+  (persistableRecord, persistableRecordWidth)
 
 defineHasKeyConstraintInstance :: TypeQ -> TypeQ -> Int -> Q [Dec]
 defineHasKeyConstraintInstance constraint typeCon index =
