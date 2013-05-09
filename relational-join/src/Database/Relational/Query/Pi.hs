@@ -9,9 +9,10 @@ module Database.Relational.Query.Pi (
   leafIndex,
   ) where
 
+import Database.Record
+  (PersistableWidth, persistableWidth, PersistableRecordWidth)
 import Database.Record.Persistable
-  (PersistableWidth, persistableWidth,
-   PersistableRecordWidth, runPersistableRecordWidth)
+  (runPersistableRecordWidth)
 
 import Database.Relational.Query.Pi.Unsafe
   (PiUnit, offset, Pi ((:*), Leaf), definePiUnit)

@@ -16,7 +16,7 @@ import Prelude hiding (product)
 import Control.Monad (liftM, ap)
 import Control.Applicative (Applicative (pure, (<*>)))
 
-import Database.Record.Persistable (PersistableWidth)
+import Database.Record (PersistableWidth)
 
 import Database.Relational.Query.AliasId.Unsafe (primAlias)
 import Database.Relational.Query.AliasId (AliasId, newAliasId, Qualified)

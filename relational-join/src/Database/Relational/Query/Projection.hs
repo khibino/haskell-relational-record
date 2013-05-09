@@ -25,9 +25,10 @@ import Data.Array (Array, listArray)
 import qualified Data.Array as Array
 import Data.List (intercalate)
 
+import Database.Record
+  (PersistableWidth, persistableWidth, PersistableRecordWidth)
 import Database.Record.Persistable
-  (PersistableRecordWidth, runPersistableRecordWidth,
-   PersistableWidth, persistableWidth)
+  (runPersistableRecordWidth)
 
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi as Pi
