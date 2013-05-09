@@ -7,9 +7,9 @@ module Database.Relational.Query.Join (
 
   record, expr, compose, (>*<), (!), (!?), relation,
 
-  inner, outer, from,
+  inner, outer, from
 
-  runQuery
+  -- runQuery
   ) where
 
 import Prelude hiding (product)
@@ -23,7 +23,7 @@ import Database.Relational.Query.AliasId (AliasId, newAliasId, Qualified)
 import qualified Database.Relational.Query.AliasId as AliasId
 
 import Database.Relational.Query.Table (Table)
-import Database.Relational.Query.Sub (SubQuery)
+-- import Database.Relational.Query.Sub (SubQuery)
 
 import Database.Relational.Query.Expr (Expr, showExpr)
 import qualified Database.Relational.Query.Expr as Expr
@@ -37,7 +37,7 @@ import qualified Database.Relational.Query.Projection as Projection
 
 import Database.Relational.Query.Pi (Pi)
 
-import Database.Relational.Query.Relation (Relation, finalizeRelation, Order(Asc, Desc))
+import Database.Relational.Query.Relation (Relation, PrimeRelation, finalizeRelation, Order(Asc, Desc))
 import qualified Database.Relational.Query.Relation as Relation
 
 data Context = Context
@@ -170,10 +170,10 @@ outer =  fmap (record . fmap Relation.outer) . query Outer
 from :: Table r -> QueryJoin (Projection r)
 from =  inner . table
 
-relation :: QueryJoin (Projection r) -> Relation r
+relation :: QueryJoin (Projection r) -> PrimeRelation a r
 relation q = finalizeRelation projection product' (restriction st) (orderByRev st)  where
   (projection, st) = runQueryPrime q
   product' = maybe (error "relation: empty product!") Product.tree $ product st
 
-runQuery :: QueryJoin (Relation r) -> SubQuery
-runQuery = Relation.toSubQuery . fst . runQueryPrime
+-- runQuery :: QueryJoin (Relation r) -> SubQuery
+-- runQuery =  Relation.toSubQuery . fst . runQueryPrime

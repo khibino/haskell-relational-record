@@ -19,6 +19,6 @@ import Database.Relational.Query.Sub (SubQuery, unitSQL, width, queryWidth)
 import Database.Relational.Query.Projection
   (Projectable (project), SqlProjectable (unsafeSqlValue),
    value, valueTrue, valueFalse, valueNull, placeholder)
-import Database.Relational.Query.Relation (Relation)
+import Database.Relational.Query.Relation (Relation, PrimeRelation)
 import Database.Relational.Query.Join
 import Database.Relational.Query.Type (Query, untypeQuery, fromRelation)

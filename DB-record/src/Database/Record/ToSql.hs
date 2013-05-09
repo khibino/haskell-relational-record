@@ -56,6 +56,8 @@ instance (ToSql q a, ToSql q b) => ToSql q (a, b) where
 recordToSql' :: Persistable q a => RecordToSql q a
 recordToSql' =  recordSerializer persistable
 
+instance ToSql q () where
+  recordToSql = recordToSql'
 
 updateValuesByUnique :: RecordToSql q ra
               -> KeyConstraint Unique ra

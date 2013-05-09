@@ -96,6 +96,9 @@ instance (HasKeyConstraint NotNull a, FromSql q a, PersistableType q)
          => FromSql q (Maybe a)  where
   recordFromSql = outer recordFromSql $ constraintKey
 
+instance FromSql q () where
+  recordFromSql = recordFromSql'
+
 takeRecord :: FromSql q a => [q] -> (a, [q])
 takeRecord =  runTakeRecord recordFromSql
 

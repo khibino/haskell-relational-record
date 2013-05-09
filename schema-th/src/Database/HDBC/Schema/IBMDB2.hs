@@ -37,7 +37,7 @@ import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Type (unsafeTypedQuery, fromRelation)
 import Database.Relational.Query.TH (defineRecordAndTableDefault)
 import Database.Relational.Query
-  (Query, Relation, inner, relation,
+  (Query, PrimeRelation, inner, relation,
    wheres, (.=.), (!), (!?), placeholder, asc)
 
 import Language.SQL.Keyword (Keyword(..))
@@ -157,7 +157,7 @@ getType mapFromSql rec =
                       then typ
                       else [t| Maybe $(typ) |]
 
-columnsRelationFromTable :: Relation Columns
+columnsRelationFromTable :: PrimeRelation (String, String) Columns
 columnsRelationFromTable =  relation $ do
   c <- inner columns
   wheres $ c ! tabschema' .=. placeholder

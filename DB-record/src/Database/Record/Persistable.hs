@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 -- |
@@ -77,6 +78,9 @@ a <&> b = PersistableRecordWidth $ runPersistableRecordWidth a + runPersistableR
 maybeWidth :: PersistableRecordWidth a -> PersistableRecordWidth (Maybe a)
 maybeWidth =  PersistableRecordWidth . runPersistableRecordWidth
 
+voidWidth :: PersistableRecordWidth ()
+voidWidth =  persistableRecordWidth 0
+
 
 data PersistableRecord q a =
   PersistableRecord
@@ -99,6 +103,9 @@ persistableSingletonFromValue :: PersistableRecordWidth (Singleton a) -> Persist
 persistableSingletonFromValue pw pv =
   persistableRecord pw (singleton . toValue pv . head) ((:[]) . fromValue pv . runSingleton)
 
+persistableVoid :: PersistableRecord q ()
+persistableVoid =  persistableRecord voidWidth (const ()) (const [])
+
 
 class Eq q => PersistableType q where
   persistableType :: PersistableSqlType q
@@ -119,6 +126,9 @@ instance (PersistableWidth a, PersistableWidth b) => PersistableWidth (a, b) whe
 instance PersistableWidth a => PersistableWidth (Maybe a) where
   persistableWidth = maybeWidth persistableWidth
 
+instance PersistableWidth () where
+  persistableWidth = voidWidth
+
 
 class PersistableType q => PersistableValue q a where
   persistableValue :: PersistableSqlValue q a
@@ -138,6 +148,9 @@ derivedPersistableSingleton =  persistableSingletonFromValue persistableWidth pe
 
 class PersistableWidth a => Persistable q a where
   persistable :: PersistableRecord q a
+
+instance Persistable q () where
+  persistable = persistableVoid
 
 
 takeRecord :: PersistableRecord q a -> [q] -> (a, [q])

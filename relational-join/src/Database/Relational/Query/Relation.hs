@@ -3,7 +3,7 @@
 module Database.Relational.Query.Relation (
 
   Order (..),
-  Relation,
+  PrimeRelation, Relation,
 
   outer,
   fromTable,
@@ -38,20 +38,22 @@ import qualified Language.SQL.Keyword as SQL
 
 data Order = Asc | Desc
 
-data Relation r = Table (Table r)
-                | Relation
-                  { projection  :: Projection r
-                  , product     :: Product
-                  , restriction :: Maybe (Expr Bool)
-                  , orderByRev  :: [(Order, String)]
-                  }
+data PrimeRelation a r = Table (Table r)
+                       | Relation
+                         { projection  :: Projection r
+                         , product     :: Product
+                         , restriction :: Maybe (Expr Bool)
+                         , orderByRev  :: [(Order, String)]
+                         }
 
-outer :: Relation r -> Relation (Maybe r)
+type Relation = PrimeRelation ()
+
+outer :: PrimeRelation a r -> Relation (Maybe r)
 outer =  d  where
   d (Table t)                       = Table $ Table.outer t
   d r@(Relation { projection = p }) = r { projection = Projection.outer p }
 
-width :: Relation r -> Int
+width :: PrimeRelation a r -> Int
 width =  d  where
   d (Table t)                      = Table.width t
   d (Relation { projection = p } ) = Projection.width p
@@ -77,7 +79,7 @@ composedSQL pj pd re odRev =
           orders | null odRev = []
                  | otherwise  = [ORDER, BY, orderList `SQL.sepBy` ", "]
 
-toSubQuery :: Relation r -> SubQuery
+toSubQuery :: PrimeRelation a r -> SubQuery
 toSubQuery =  d  where
   d (Table t)          = SubQuery.fromTable t
   d rel@(Relation { }) = subQuery
@@ -89,11 +91,11 @@ toSubQuery =  d  where
                          )
                          (width rel)
 
-finalizeRelation :: Projection r -> Product -> Maybe (Expr Bool) -> [(Order, String)] -> Relation r
+finalizeRelation :: Projection r -> Product -> Maybe (Expr Bool) -> [(Order, String)] -> PrimeRelation a r
 finalizeRelation =  Relation
 
-toSQL :: Relation r -> String
+toSQL :: PrimeRelation a r -> String
 toSQL =  SubQuery.toSQL . toSubQuery
 
-instance Show (Relation r) where
+instance Show (PrimeRelation a r) where
   show = show . toSubQuery
