@@ -15,9 +15,6 @@
 -- This module contains templates to generate Haskell record types
 -- and instances correspond to RDB table schema.
 module Database.HDBC.TH (
-  defineRecord,
-  defineRecordDefault,
-
   defineConstantSql,
   defineSqlPrimarySelect,
   defineSqlPrimaryUpdate,
@@ -42,11 +39,11 @@ import Language.Haskell.TH.Name.CamelCase
   (ConName, VarName (varName),
    varNameWithPrefix)
 import Language.Haskell.TH.Name.Extra
-  (integralE, simpleValD, maybeD, compileError)
+  (maybeD, compileError)
 import Language.Haskell.TH
   (Q, runIO,
    TypeQ, Dec,
-   listE, stringE,
+   stringE,
    varP,
    sigD, valD,
    normalB)
@@ -55,9 +52,9 @@ import Database.HDBC.Session (withConnectionIO)
 import Database.Record.TH
   (recordTypeDefault,
    defineHasPrimaryKeyInstanceDefault, defineHasNotNullKeyInstanceDefault)
-import qualified Database.Record.TH as Record
 import Database.Relational.Query.Type (unsafeTypedQuery)
 import Database.Relational.Query (Query)
+import Database.Relational.Query.TH (defineRecordAndTableDefault)
 import Database.HDBC.Record.Persistable ()
 import Language.SQL.Keyword (Keyword(..), (.=.))
 import qualified Language.SQL.Keyword as SQL
@@ -68,52 +65,6 @@ import Database.HDBC.Schema.Driver (Driver, getFields, getPrimaryKey)
 nameOfTableSQL :: String -> String -> String
 nameOfTableSQL schema table = map toUpper schema ++ '.' : map toLower table
 
-
-defineTableInfo :: VarName -> String
-                -> VarName -> [String]
-                -> VarName -> Int
-                -> Q [Dec]
-defineTableInfo tableVar' table fieldsVar' fields widthVar' width = do
-  let tableVar = varName tableVar'
-      fieldsVar = varName fieldsVar'
-      widthVar = varName widthVar'
-  tableQ  <- simpleValD tableVar  [t| String |]   [| $(stringE table) |]
-  fieldsQ <- simpleValD fieldsVar [t| [String] |] [| $(listE $ map stringE fields) |]
-  widthQ  <- simpleValD widthVar  [t| Int |]      [| $(integralE $ width) |]
-  return $ concat [tableQ, fieldsQ, widthQ]
-
-defineRecord :: (VarName, VarName)
-            -> (String, ConName)
-            -> (VarName, VarName, VarName)
-            -> [((VarName, TypeQ), String)]
-            -> [ConName]
-            -> Q [Dec]
-defineRecord
-  (cF, dF) (tableSQL, tyC)
-  (tableN, fldsN, widthN)
-  schemas drvs = do
-
-  prec <- Record.defineRecord [t| SqlValue |] (cF, dF) tyC (map fst schemas) drvs
-  tableI   <- defineTableInfo
-              tableN tableSQL
-              fldsN (map snd schemas) widthN (length schemas)
-  return $ prec ++ tableI
-
-defineRecordDefault :: String
-                    -> String
-                    -> [(String, TypeQ)]
-                    -> [ConName]
-                    -> Q [Dec]
-defineRecordDefault schema table fields derives = do
-  prec <- Record.defineRecordDefault [t| SqlValue |] table fields derives
-  let tableSQL = nameOfTableSQL schema table
-  tableI   <- defineTableInfo
-              (table `varNameWithPrefix` "tableOf") tableSQL
-              (table `varNameWithPrefix` "fieldsOf")
-              (map fst fields)
-              (table `varNameWithPrefix` "widthOf")
-              (length fields)
-  return $ prec ++ tableI
 
 defineConstantSql :: VarName -> String -> Q [Dec]
 defineConstantSql name' sqlStr = do
@@ -208,7 +159,7 @@ defineWithTableDefault' :: String
                         -> [ConName]
                         -> Q [Dec]
 defineWithTableDefault' schema table fields derives = do
-  recD <- defineRecordDefault schema table fields derives
+  recD <- defineRecordAndTableDefault [t| SqlValue |] schema table fields derives
   sqlD <- defineSqlsDefault schema table fields
   return $ recD ++ sqlD
 
