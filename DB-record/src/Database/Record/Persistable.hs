@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
@@ -11,31 +10,24 @@
 -- Stability   : experimental
 -- Portability : unknown
 module Database.Record.Persistable (
-  Singleton(runSingleton), singleton,
-
   PersistableSqlType(runPersistableNullValue), persistableSqlTypeFromNull,
 
   PersistableRecordWidth(runPersistableRecordWidth),
-  valueWidth, singletonWidth, (<&>), maybeWidth,
+  valueWidth, (<&>), maybeWidth,
   PersistableSqlValue, persistableSqlValue,
+  toValue, fromValue,
 
   PersistableRecord, persistableRecord,
   toRecord, fromRecord, width,
 
-  persistableFromValue, persistableSingletonFromValue,
+  persistableFromValue,
 
   PersistableType(..), sqlNullValue,
   PersistableValue (..), fromSql, toSql,
-  derivedPersistableValueRecord, derivedPersistableSingleton,
+  derivedPersistableValueRecord,
   PersistableWidth (..), persistableRecordWidth,
   Persistable (..), takeRecord
   ) where
-
--- | Singleton value record.
-newtype Singleton a = Singleton { runSingleton :: a }
-
-singleton :: a -> Singleton a
-singleton = Singleton
 
 
 -- | Proof object to specify 'q' is SQL type
@@ -69,9 +61,6 @@ persistableRecordWidth =  PersistableRecordWidth
 valueWidth :: PersistableRecordWidth a
 valueWidth =  persistableRecordWidth 1
 
-singletonWidth :: PersistableRecordWidth (Singleton a)
-singletonWidth =  persistableRecordWidth 1
-
 (<&>) :: PersistableRecordWidth a -> PersistableRecordWidth b -> PersistableRecordWidth (a, b)
 a <&> b = PersistableRecordWidth $ runPersistableRecordWidth a + runPersistableRecordWidth b
 
@@ -99,10 +88,6 @@ persistableFromValue :: PersistableRecordWidth a -> PersistableSqlValue q a -> P
 persistableFromValue pw pv =
   persistableRecord pw (toValue pv . head) ((:[]) . fromValue pv)
 
-persistableSingletonFromValue :: PersistableRecordWidth (Singleton a) -> PersistableSqlValue q a -> PersistableRecord q (Singleton a)
-persistableSingletonFromValue pw pv =
-  persistableRecord pw (singleton . toValue pv . head) ((:[]) . fromValue pv . runSingleton)
-
 persistableVoid :: PersistableRecord q ()
 persistableVoid =  persistableRecord voidWidth (const ()) (const [])
 
@@ -116,9 +101,6 @@ sqlNullValue =  runPersistableNullValue persistableType
 
 class PersistableWidth a where
   persistableWidth :: PersistableRecordWidth a
-
-instance PersistableWidth (Singleton a) where
-  persistableWidth = singletonWidth
 
 instance (PersistableWidth a, PersistableWidth b) => PersistableWidth (a, b) where
   persistableWidth = persistableWidth <&> persistableWidth
@@ -141,9 +123,6 @@ toSql =  fromValue persistableValue
 
 derivedPersistableValueRecord :: (PersistableWidth a, PersistableValue q a) => PersistableRecord q a
 derivedPersistableValueRecord =  persistableFromValue persistableWidth persistableValue
-
-derivedPersistableSingleton :: (PersistableWidth (Singleton a), PersistableValue q a) => PersistableRecord q (Singleton a)
-derivedPersistableSingleton =  persistableSingletonFromValue persistableWidth persistableValue
 
 
 class PersistableWidth a => Persistable q a where

@@ -19,6 +19,7 @@ library
                         Database.Record.ToSql
                         Database.Record.Persistable
                         Database.Record.KeyConstraint
+                        Database.Record.Singleton
                         Database.Record
                         Database.Record.TH
 

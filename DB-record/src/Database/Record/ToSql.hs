@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE UndecidableInstances #-}
 
 -- |
 -- Module      : Database.Record.ToSql
@@ -26,7 +25,7 @@ module Database.Record.ToSql (
   ) where
 
 import Database.Record.Persistable
-  (PersistableRecord, Persistable(persistable), Singleton)
+  (PersistableRecord, Persistable(persistable))
 import Database.Record.KeyConstraint
   (HasKeyConstraint(constraintKey), KeyConstraint, Primary, Unique, unique, index)
 import qualified Database.Record.Persistable as Persistable
@@ -45,9 +44,6 @@ class ToSql q a where
 
 recordSerializer :: PersistableRecord q a -> RecordToSql q a
 recordSerializer =  createRecordToSql . Persistable.fromRecord
-
-instance Persistable q (Singleton a) => ToSql q (Singleton a) where
-  recordToSql = recordSerializer persistable
 
 (<&>) :: RecordToSql q a -> RecordToSql q b -> RecordToSql q (a, b)
 ra <&> rb = RecordToSql (\(a, b) -> runFromRecord ra a ++ runFromRecord rb b)

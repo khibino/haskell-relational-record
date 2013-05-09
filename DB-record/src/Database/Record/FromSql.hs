@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE UndecidableInstances #-}
 
 -- |
 -- Module      : Database.Record.FromSql
@@ -26,7 +25,7 @@ module Database.Record.FromSql (
   ) where
 
 import Database.Record.Persistable
-  (PersistableRecord, Singleton,
+  (PersistableRecord,
    Persistable(persistable), PersistableType)
 import qualified Database.Record.Persistable as Persistable
 import Database.Record.KeyConstraint
@@ -85,9 +84,6 @@ class FromSql q a where
 
 recordFromSql' :: Persistable q a => RecordFromSql q a
 recordFromSql' =  recordDeSerializer persistable
-
-instance Persistable q (Singleton a) => FromSql q (Singleton a)  where
-  recordFromSql = recordFromSql'
 
 instance (FromSql q a, FromSql q b) => FromSql q (a, b)  where
   recordFromSql = recordFromSql <&> recordFromSql
