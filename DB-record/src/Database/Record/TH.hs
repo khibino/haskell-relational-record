@@ -4,6 +4,8 @@
 
 module Database.Record.TH (
   recordTypeNameDefault, recordTypeDefault,
+
+  defineHasKeyConstraintInstance,
   defineHasNotNullKeyInstance,
   defineHasPrimaryKeyInstance,
   defineHasPrimaryKeyInstanceDefault,
