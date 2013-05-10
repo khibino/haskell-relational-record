@@ -60,12 +60,14 @@ instance ToSql q () where
 fromRecord :: ToSql q a => a -> [q]
 fromRecord =  runFromRecord recordToSql
 
+-- | Expect update form like
+--   "UPDATE <table> SET c0 = ?, c1 = ?, ..., cn = ? WHERE key = ? "
 updateValuesByUnique' :: RecordToSql q ra
                       -> KeyConstraint Unique ra
                       -> ra
                       -> [q]
-updateValuesByUnique' pr uk a = hd ++ tl  where
-  (hd, _uk:tl) = splitAt (index uk) (runFromRecord pr a)
+updateValuesByUnique' pr uk a = hd ++ tl ++ [key]  where
+  (hd, key:tl) = splitAt (index uk) (runFromRecord pr a)
 
 updateValuesByUnique :: ToSql q ra
                      => KeyConstraint Unique ra
