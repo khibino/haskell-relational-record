@@ -27,7 +27,7 @@ module Database.Record.ToSql (
 import Database.Record.Persistable
   (PersistableRecord, Persistable(persistable))
 import Database.Record.KeyConstraint
-  (HasKeyConstraint(constraintKey), KeyConstraint, Primary, Unique, unique, index)
+  (HasKeyConstraint(keyConstraint), KeyConstraint, Primary, Unique, unique, index)
 import qualified Database.Record.Persistable as Persistable
 
 
@@ -75,4 +75,4 @@ updateValuesByUnique = updateValuesByUnique' recordToSql
 
 updateValuesByPrimary :: (HasKeyConstraint Primary a, ToSql q a) =>
                          a -> [q]
-updateValuesByPrimary =  updateValuesByUnique (unique constraintKey)
+updateValuesByPrimary =  updateValuesByUnique (unique keyConstraint)

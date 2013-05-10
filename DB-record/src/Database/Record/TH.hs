@@ -34,7 +34,7 @@ import Language.Haskell.TH
    clause, cxt, varStrictType, strictType, isStrict)
 
 import Database.Record
-  (HasKeyConstraint(constraintKey), Primary, NotNull,
+  (HasKeyConstraint(keyConstraint), Primary, NotNull,
    Persistable(persistable), PersistableWidth(persistableWidth),
    fromSql, toSql,
    FromSql(recordFromSql), recordFromSql',
@@ -48,7 +48,7 @@ import Database.Record.Persistable
 defineHasKeyConstraintInstance :: TypeQ -> TypeQ -> Int -> Q [Dec]
 defineHasKeyConstraintInstance constraint typeCon index =
   [d| instance HasKeyConstraint $constraint $typeCon where
-        constraintKey = specifyKeyConstraint $(integralE index) |]
+        keyConstraint = specifyKeyConstraint $(integralE index) |]
 
 recordTypeNameDefault :: String -> ConName
 recordTypeNameDefault =  conCamelcaseName

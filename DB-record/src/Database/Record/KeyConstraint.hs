@@ -21,13 +21,13 @@ module Database.Record.KeyConstraint (
   unique, notNull,
 
   leftKeyConstraint,
-  HasKeyConstraint (constraintKey),
+  HasKeyConstraint (keyConstraint),
 
   derivedUniqueConstraint,
   derivedNotNullConstraint
   ) where
 
-newtype KeyConstraint c a = KeyConstraint { index :: Int }
+newtype KeyConstraint c r = KeyConstraint { index :: Int }
 
 data Unique
 data NotNull
@@ -37,13 +37,13 @@ type UniqueConstraint  = KeyConstraint Unique
 type NotNullConstraint = KeyConstraint NotNull
 type PrimaryConstraint = KeyConstraint Primary
 
-specifyKeyConstraint :: Int -> KeyConstraint c a
+specifyKeyConstraint :: Int -> KeyConstraint c r
 specifyKeyConstraint =  KeyConstraint
 
-unique :: PrimaryConstraint a -> UniqueConstraint a
+unique :: PrimaryConstraint r -> UniqueConstraint r
 unique =  specifyKeyConstraint . index
 
-notNull :: PrimaryConstraint a -> NotNullConstraint a
+notNull :: PrimaryConstraint r -> NotNullConstraint r
 notNull =  specifyKeyConstraint . index
 
 
@@ -51,13 +51,13 @@ leftKeyConstraint :: KeyConstraint k a -> KeyConstraint k (a, b)
 leftKeyConstraint pa = KeyConstraint (index pa)
 
 class HasKeyConstraint c a where
-  constraintKey :: KeyConstraint c a
+  keyConstraint :: KeyConstraint c a
 
 instance HasKeyConstraint c a => HasKeyConstraint c (a, b) where
-  constraintKey = leftKeyConstraint constraintKey
+  keyConstraint = leftKeyConstraint keyConstraint
 
-derivedUniqueConstraint :: HasKeyConstraint Primary a => UniqueConstraint a
-derivedUniqueConstraint =  unique constraintKey
+derivedUniqueConstraint :: HasKeyConstraint Primary r => UniqueConstraint r
+derivedUniqueConstraint =  unique keyConstraint
 
-derivedNotNullConstraint :: HasKeyConstraint Primary a => NotNullConstraint a
-derivedNotNullConstraint =  notNull constraintKey
+derivedNotNullConstraint :: HasKeyConstraint Primary r => NotNullConstraint r
+derivedNotNullConstraint =  notNull keyConstraint

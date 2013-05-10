@@ -29,7 +29,7 @@ import Database.Record.Persistable
    Persistable(persistable), PersistableType)
 import qualified Database.Record.Persistable as Persistable
 import Database.Record.KeyConstraint
-  (HasKeyConstraint(constraintKey), KeyConstraint, NotNull, index)
+  (HasKeyConstraint(keyConstraint), KeyConstraint, NotNull, index)
 
 import Control.Monad (liftM, ap)
 import Control.Applicative ((<$>), Applicative(pure, (<*>)))
@@ -90,7 +90,7 @@ instance (FromSql q a, FromSql q b) => FromSql q (a, b)  where
 
 instance (HasKeyConstraint NotNull a, FromSql q a, PersistableType q)
          => FromSql q (Maybe a)  where
-  recordFromSql = outer recordFromSql $ constraintKey
+  recordFromSql = outer recordFromSql $ keyConstraint
 
 instance FromSql q () where
   recordFromSql = recordFromSql'
