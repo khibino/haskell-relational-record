@@ -6,6 +6,8 @@
 module Database.Relational.Query.Constraint (
   Key, defineConstraintKey, recordConstraint, projectionKey,
 
+  returnKey, appendConstraint,
+
   unique, notNull,
 
   HasConstraintKey (..),
@@ -13,47 +15,53 @@ module Database.Relational.Query.Constraint (
   Primary, Unique, NotNull
   ) where
 
-import Database.Relational.Query.Pi.Unsafe (Pi, defineColumn)
+import Database.Relational.Query.Pi (Pi, leafIndex)
+import Database.Relational.Query.Pi.Unsafe (defineColumn)
 import Database.Record.KeyConstraint
   (KeyConstraint, specifyKeyConstraint,
    Primary, Unique, NotNull)
 import qualified Database.Record.KeyConstraint as C
 
 
-newtype Key c r f = Key { index :: Int }
+newtype Key c r ct = Key { index :: Int }
 
-defineConstraintKey :: Int -> Key c r f
+defineConstraintKey :: Int -> Key c r ct
 defineConstraintKey =  Key
 
-recordConstraint :: Key c r ft -> KeyConstraint c r
+recordConstraint :: Key c r ct -> KeyConstraint c r
 recordConstraint =  specifyKeyConstraint . index
 
-projectionKey :: Key c r ft -> Pi r ft
+projectionKey :: Key c r ct -> Pi r ct
 projectionKey =  defineColumn . index
 
-returnKey :: KeyConstraint c r -> Key c r ft
+-- | Unsafe. Make constraint key to add column phantom type
+returnKey :: KeyConstraint c r -> Key c r ct
 returnKey =  defineConstraintKey . C.index
+
+-- | Unsafe. Make constraint key to add constraint phantom type
+appendConstraint :: Pi r ct -> Key c r ct
+appendConstraint =  defineConstraintKey . leafIndex
 
 
 mapConstraint :: (KeyConstraint c0 r -> KeyConstraint c1 r)
-              -> Key c0 r f
-              -> Key c1 r f
+              -> Key c0 r ct
+              -> Key c1 r ct
 mapConstraint f = returnKey . f . recordConstraint
 
-unique :: Key Primary r f -> Key Unique r f
+unique :: Key Primary r ct -> Key Unique r ct
 unique  = mapConstraint C.unique
 
-notNull :: Key Primary r f -> Key NotNull r f
+notNull :: Key Primary r ct -> Key NotNull r ct
 notNull = mapConstraint C.notNull
 
 
-class HasConstraintKey c r f  where
-  constraintKey :: Key c r f
+class HasConstraintKey c r ct  where
+  constraintKey :: Key c r ct
 
-instance HasConstraintKey Primary r f
-         => HasConstraintKey Unique r f  where
+instance HasConstraintKey Primary r ct
+         => HasConstraintKey Unique r ct  where
   constraintKey = unique constraintKey
 
-instance HasConstraintKey Primary r f
-         => HasConstraintKey NotNull r f  where
+instance HasConstraintKey Primary r ct
+         => HasConstraintKey NotNull r ct  where
   constraintKey = notNull constraintKey

@@ -1,4 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 module Database.Relational.Query.TH (
   defineColumn, defineColumnDefault,
@@ -17,58 +19,98 @@ import Language.Haskell.TH
    Dec, sigD, valD, varP, normalB, stringE, listE, varE)
 import Language.Haskell.TH.Name.CamelCase
   (VarName, varName, ConName, varNameWithPrefix, varCamelcaseName)
-import Language.Haskell.TH.Name.Extra (compileError, simpleValD, integralE)
+import Language.Haskell.TH.Name.Extra
+  (compileError, simpleValD, integralE, maybeD)
 
-import Database.Record.TH (recordTypeDefault, defineRecordDefault)
+import Database.Record.TH
+  (recordTypeDefault, defineRecordDefault, defineHasKeyConstraintInstance)
 
-import Database.Relational.Query.Table (Table)
+import Database.Relational.Query
+  (Table, Pi, Relation, fromTable, toSQL, Query,
+   HasConstraintKey(constraintKey), Primary, NotNull)
+
+import Database.Relational.Query.Constraint (defineConstraintKey, appendConstraint)
 import qualified Database.Relational.Query.Table as Table
-import Database.Relational.Query.Relation (Relation, toSQL, fromTable)
-import Database.Relational.Query.Type (Query, unsafeTypedQuery)
+import Database.Relational.Query.Type (unsafeTypedQuery)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
-import Database.Relational.Query.Pi (Pi)
 
 
-tableSQL :: String -> String -> String
-tableSQL schema table = map toUpper schema ++ '.' : map toLower table
+defineHasConstraintKeyInstance :: TypeQ -> TypeQ -> TypeQ -> Int -> Q [Dec]
+defineHasConstraintKeyInstance constraint recType colType index = do
+  kc <- defineHasKeyConstraintInstance constraint recType index
+  ck <- [d| instance HasConstraintKey $constraint $recType $colType  where
+              constraintKey = defineConstraintKey $(integralE index)
+          |]
+  return $ kc ++ ck
 
-defineColumn :: TypeQ   -- ^ Record type
-             -> VarName -- ^ Column declaration variable name
-             -> Int     -- ^ Column index in record (begin with 0)
-             -> TypeQ   -- ^ Column type
-             -> Q [Dec] -- ^ Column declaration
-defineColumn recType var' i colType = do
+defineHasPrimaryKeyInstance :: TypeQ -> TypeQ -> Int -> Q [Dec]
+defineHasPrimaryKeyInstance =
+  defineHasConstraintKeyInstance [t| Primary |]
+
+defineHasNotNullKeyInstance :: TypeQ -> TypeQ -> Int -> Q [Dec]
+defineHasNotNullKeyInstance =
+  defineHasConstraintKeyInstance [t| NotNull |]
+
+
+defineColumn' :: TypeQ   -- ^ Record type
+              -> VarName -- ^ Column declaration variable name
+              -> Int     -- ^ Column index in record (begin with 0)
+              -> TypeQ   -- ^ Column type
+              -> Q [Dec] -- ^ Column declaration
+defineColumn' recType var' i colType = do
   let var = varName var'
   simpleValD var [t| Pi $recType $colType |]
     [| UnsafePi.defineColumn $(integralE i) |]
 
-defineColumnDefault :: TypeQ   -- ^ Record type
-                    -> String  -- ^ Column name
-                    -> Int     -- ^ Column index in record (begin with 0)
-                    -> TypeQ   -- ^ Column type
-                    -> Q [Dec] -- ^ Column declaration
-defineColumnDefault recType name i colType =
-  defineColumn recType (varCamelcaseName (name ++ "'")) i colType
+defineColumn :: Maybe TypeQ -- ^ May Constraint type
+             -> TypeQ       -- ^ Record type
+             -> VarName     -- ^ Column declaration variable name
+             -> Int         -- ^ Column index in record (begin with 0)
+             -> TypeQ       -- ^ Column type
+             -> Q [Dec]     -- ^ Column declaration
+defineColumn mayConstraint recType var' i colType = do
+  col <- defineColumn' recType var' i colType
+  cs  <- maybeD
+         (\constraint -> do
+             kc <- defineHasKeyConstraintInstance constraint recType i
+             ck <- [d| instance HasConstraintKey $constraint $recType $colType  where
+                         constraintKey = appendConstraint $(varE $ varName var')
+                     |]
+             return $ kc ++ ck)
+         mayConstraint
+  return $ col ++ cs
 
-defineTable :: VarName           -- ^ Table declaration variable name
-            -> VarName           -- ^ Relation declaration variable name
-            -> TypeQ             -- ^ Record type
-            -> String            -- ^ Table name in SQL ex. FOO_SCHEMA.table0
-            -> [(String, TypeQ)] -- ^ Column names and types
-            -> Q [Dec]           -- ^ Table and Relation declaration
+defineColumnDefault :: Maybe TypeQ -- ^ May Constraint type
+                    -> TypeQ       -- ^ Record type
+                    -> String      -- ^ Column name
+                    -> Int         -- ^ Column index in record (begin with 0)
+                    -> TypeQ       -- ^ Column type
+                    -> Q [Dec]     -- ^ Column declaration
+defineColumnDefault mayConstraint recType name =
+  defineColumn mayConstraint recType (varCamelcaseName (name ++ "'"))
+
+defineTable :: VarName                          -- ^ Table declaration variable name
+            -> VarName                          -- ^ Relation declaration variable name
+            -> TypeQ                            -- ^ Record type
+            -> String                           -- ^ Table name in SQL ex. FOO_SCHEMA.table0
+            -> [((String, TypeQ), Maybe TypeQ)] -- ^ Column names and types and constraint type
+            -> Q [Dec]                          -- ^ Table and Relation declaration
 defineTable tableVar' relVar' recordType table columns = do
   let tableVar = varName tableVar'
   tableDs <- simpleValD tableVar [t| Table $(recordType) |]
-            [| Table.table $(stringE table) $(listE $ map stringE (map fst columns)) |]
+            [| Table.table $(stringE table) $(listE $ map stringE (map (fst . fst) columns)) |]
   let relVar   = varName relVar'
   relDs   <- simpleValD relVar   [t| Relation $(recordType) |]
              [| fromTable $(varE tableVar) |]
   return $ tableDs ++ relDs
 
-defineTableDefault :: String            -- ^ Schema name
-                   -> String            -- ^ Table name
-                   -> [(String, TypeQ)] -- ^ Column names and types
-                   -> Q [Dec]           -- ^ Result declarations
+tableSQL :: String -> String -> String
+tableSQL schema table = map toUpper schema ++ '.' : map toLower table
+
+defineTableDefault :: String                           -- ^ Schema name
+                   -> String                           -- ^ Table name
+                   -> [((String, TypeQ), Maybe TypeQ)] -- ^ Column names and types and constraint type
+                   -> Q [Dec]                          -- ^ Result declarations
 defineTableDefault schema table columns = do
   let recordType = recordTypeDefault table
   tableDs <- defineTable
@@ -77,7 +119,7 @@ defineTableDefault schema table columns = do
              recordType
              (tableSQL schema table)
              columns
-  let defCol i (name, typ) = defineColumnDefault recordType name i typ
+  let defCol i ((name, typ), constraint) = defineColumnDefault constraint recordType name i typ
   colsDs  <- fmap concat . sequence . zipWith defCol [0..] $ columns
   return $ tableDs ++ colsDs
 
@@ -89,8 +131,9 @@ defineRecordAndTableDefault :: TypeQ             -- ^ SQL value type
                             -> Q [Dec]           -- ^ Result declarations
 defineRecordAndTableDefault sqlValueType schema table columns drives = do
   recDs   <- defineRecordDefault sqlValueType table columns drives
-  tableDs <- defineTableDefault schema table columns
+  tableDs <- defineTableDefault schema table [(c, Nothing) | c <- columns ]
   return $ recDs ++ tableDs
+
 
 inlineQuery :: VarName -> Relation r -> VarName -> TypeQ -> Q [Dec]
 inlineQuery relVar' rel qVar' paramType =  do
