@@ -1,6 +1,6 @@
 
 module PgTestDataSource (
-  defineTable
+  connect, defineTable
   ) where
 
 import Language.Haskell.TH (Q, Dec, TypeQ)
