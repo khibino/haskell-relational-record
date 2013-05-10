@@ -60,8 +60,9 @@ instance ToSql q () where
 fromRecord :: ToSql q a => a -> [q]
 fromRecord =  runFromRecord recordToSql
 
--- | Expect update form like
---   "UPDATE <table> SET c0 = ?, c1 = ?, ..., cn = ? WHERE key = ? "
+-- | SQL values expected by update form like
+--
+-- /UPDATE <table> SET c0 = ?, c1 = ?, ..., cn = ? WHERE key = ?/
 updateValuesByUnique' :: RecordToSql q ra
                       -> KeyConstraint Unique ra
                       -> ra
