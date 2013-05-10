@@ -14,7 +14,7 @@ module Database.HDBC.Record.Query (
 
   ExecutedStatement, executed, result, execute,
 
-  fetchAll, fetchAll',
+  fetch, fetchAll, fetchAll',
   listToUnique, fetchUnique, fetchUnique',
 
   runStatement, runStatement',
@@ -61,13 +61,17 @@ execute bs = do
   n <- HDBC.execute stmt (params bs)
   return $ ExecutedStatement stmt n
 
-fetchRecordsExplicit :: (Statement -> IO [[SqlValue]])
+fetchRecordsExplicit :: Functor f
+                     => (Statement -> IO (f [SqlValue]) )
                      -> RecordFromSql SqlValue a
                      -> ExecutedStatement a
-                     -> IO [a]
-fetchRecordsExplicit fetch fromSql es = do
-  rows <- fetch (executed es)
-  return $ map (runToRecord fromSql) rows
+                     -> IO (f a)
+fetchRecordsExplicit fetchs fromSql es = do
+  rows <- fetchs (executed es)
+  return $ fmap (runToRecord fromSql) rows
+
+fetch :: FromSql SqlValue a => ExecutedStatement a -> IO (Maybe a)
+fetch =  fetchRecordsExplicit HDBC.fetchRow recordFromSql
 
 fetchAll :: FromSql SqlValue a => ExecutedStatement a -> IO [a]
 fetchAll =  fetchRecordsExplicit HDBC.fetchAllRows recordFromSql
