@@ -2,6 +2,7 @@
 module Database.Relational.Query (
   module Database.Relational.Query.Table,
   module Database.Relational.Query.Pi,
+  module Database.Relational.Query.Constraint,
   module Database.Relational.Query.AliasId,
   module Database.Relational.Query.Expr,
   module Database.Relational.Query.Sub,
@@ -13,6 +14,10 @@ module Database.Relational.Query (
 
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Pi
+import Database.Relational.Query.Constraint
+  (Key, recordConstraint, projectionKey,
+   unique, notNull, HasConstraintKey(constraintKey),
+   Primary, Unique, NotNull)
 import Database.Relational.Query.AliasId (Qualified)
 import Database.Relational.Query.Expr
 import Database.Relational.Query.Sub (SubQuery, unitSQL, width, queryWidth)
