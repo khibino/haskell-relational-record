@@ -16,7 +16,7 @@ import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Pi
 import Database.Relational.Query.Constraint
   (Key, recordConstraint, projectionKey,
-   unique, notNull, HasConstraintKey(constraintKey),
+   uniqueKey, notNullKey, HasConstraintKey(constraintKey),
    Primary, Unique, NotNull)
 import Database.Relational.Query.AliasId (Qualified)
 import Database.Relational.Query.Expr

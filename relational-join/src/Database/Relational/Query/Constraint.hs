@@ -8,7 +8,7 @@ module Database.Relational.Query.Constraint (
 
   returnKey, appendConstraint,
 
-  unique, notNull,
+  uniqueKey, notNullKey,
 
   HasConstraintKey (..),
 
@@ -48,11 +48,11 @@ mapConstraint :: (KeyConstraint c0 r -> KeyConstraint c1 r)
               -> Key c1 r ct
 mapConstraint f = returnKey . f . recordConstraint
 
-unique :: Key Primary r ct -> Key Unique r ct
-unique  = mapConstraint C.unique
+uniqueKey :: Key Primary r ct -> Key Unique r ct
+uniqueKey  = mapConstraint C.unique
 
-notNull :: Key Primary r ct -> Key NotNull r ct
-notNull = mapConstraint C.notNull
+notNullKey :: Key Primary r ct -> Key NotNull r ct
+notNullKey =  mapConstraint C.notNull
 
 
 class HasConstraintKey c r ct  where
@@ -60,8 +60,8 @@ class HasConstraintKey c r ct  where
 
 instance HasConstraintKey Primary r ct
          => HasConstraintKey Unique r ct  where
-  constraintKey = unique constraintKey
+  constraintKey = uniqueKey constraintKey
 
 instance HasConstraintKey Primary r ct
          => HasConstraintKey NotNull r ct  where
-  constraintKey = notNull constraintKey
+  constraintKey = notNullKey constraintKey
