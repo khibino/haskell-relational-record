@@ -143,10 +143,10 @@ inlineQuery relVar' rel qVar' =  do
   case relInfo of
     VarI _ (AppT (AppT (ConT prn) p) r) _ _
       | prn == ''PrimeRelation    -> do
-      sig <- sigD qVar [t| Query $(return p) $(return r) |]
-      var <- valD (varP qVar)
-             (normalB [| unsafeTypedQuery $(stringE . toSQL $ rel) |])
-             []
-      return [sig, var]
+        sig <- sigD qVar [t| Query $(return p) $(return r) |]
+        var <- valD (varP qVar)
+               (normalB [| unsafeTypedQuery $(stringE . toSQL $ rel) |])
+               []
+        return [sig, var]
     _                             ->
       compileError $ "expandRelation: Variable must have PrimeRelation type: " ++ show relVar
