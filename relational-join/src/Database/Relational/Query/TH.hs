@@ -26,7 +26,7 @@ import Database.Record.TH
   (recordTypeDefault, defineRecordDefault, defineHasKeyConstraintInstance)
 
 import Database.Relational.Query
-  (Table, Pi, Relation, fromTable, toSQL, Query,
+  (Table, Pi, Relation, PrimeRelation, fromTable, toSQL, Query,
    HasConstraintKey(constraintKey), Primary, NotNull)
 
 import Database.Relational.Query.Constraint (defineConstraintKey, appendConstraint)
@@ -135,17 +135,18 @@ defineRecordAndTableDefault sqlValueType schema table columns drives = do
   return $ recDs ++ tableDs
 
 
-inlineQuery :: VarName -> Relation r -> VarName -> TypeQ -> Q [Dec]
-inlineQuery relVar' rel qVar' paramType =  do
+inlineQuery :: VarName -> PrimeRelation p r -> VarName -> Q [Dec]
+inlineQuery relVar' rel qVar' =  do
   let relVar = varName relVar'
       qVar   = varName qVar'
   relInfo <- reify relVar
   case relInfo of
-    VarI _ (AppT (ConT rn) r) _ _ | rn == ''Relation ->  do
-      sig <- sigD qVar [t| Query $(paramType) $(return r) |]
+    VarI _ (AppT (AppT (ConT prn) p) r) _ _
+      | prn == ''PrimeRelation    -> do
+      sig <- sigD qVar [t| Query $(return p) $(return r) |]
       var <- valD (varP qVar)
              (normalB [| unsafeTypedQuery $(stringE . toSQL $ rel) |])
              []
       return [sig, var]
     _                             ->
-      compileError $ "expandRelation: Variable must have Relation type: " ++ show relVar
+      compileError $ "expandRelation: Variable must have PrimeRelation type: " ++ show relVar
