@@ -9,7 +9,8 @@ module Database.Relational.Query (
   module Database.Relational.Query.Projection,
   module Database.Relational.Query.Relation,
   module Database.Relational.Query.Join,
-  module Database.Relational.Query.Type
+  module Database.Relational.Query.Type,
+  module Database.Relational.Query.Derives
   ) where
 
 import Database.Relational.Query.Table (Table)
@@ -27,3 +28,4 @@ import Database.Relational.Query.Projection
 import Database.Relational.Query.Relation (Relation, PrimeRelation, toSQL, fromTable)
 import Database.Relational.Query.Join
 import Database.Relational.Query.Type (Query, untypeQuery, fromRelation)
+import Database.Relational.Query.Derives
