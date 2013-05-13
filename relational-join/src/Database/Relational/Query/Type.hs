@@ -2,12 +2,15 @@
 module Database.Relational.Query.Type (
   Query (untypeQuery), unsafeTypedQuery, fromRelation,
 
-  Update(untypeUpdate), unsafeTypedUpdate,
-  Insert(untypeInsert), unsafeTypedInsert
+  Update(untypeUpdate), unsafeTypedUpdate, typedPrimaryUpdate,
+  Insert(untypeInsert), unsafeTypedInsert, typedInsert
   ) where
 
 import Database.Relational.Query.Relation (PrimeRelation)
 import qualified Database.Relational.Query.Relation as Relation
+import Database.Relational.Query.Table (Table)
+import Database.Relational.Query.SQL (primaryUpdateSQL, insertSQL)
+
 
 newtype Query p a = Query { untypeQuery :: String }
 
@@ -26,7 +29,13 @@ newtype Update p a = Update { untypeUpdate :: String }
 unsafeTypedUpdate :: String -> Update p a
 unsafeTypedUpdate =  Update
 
+typedPrimaryUpdate :: Table r -> String -> Update p r
+typedPrimaryUpdate tbl =  unsafeTypedUpdate . primaryUpdateSQL tbl
+
 newtype Insert a   = Insert { untypeInsert :: String }
 
 unsafeTypedInsert :: String -> Insert a
 unsafeTypedInsert =  Insert
+
+typedInsert :: Table r -> Insert r
+typedInsert =  unsafeTypedInsert . insertSQL
