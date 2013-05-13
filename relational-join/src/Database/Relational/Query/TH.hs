@@ -15,8 +15,8 @@ module Database.Relational.Query.TH (
 import Data.Char (toUpper, toLower)
 
 import Language.Haskell.TH
-  (Q, reify, Info (VarI), TypeQ, Type (AppT, ConT),
-   Dec, sigD, valD, varP, normalB, stringE, listE, varE)
+  (Q, reify, Info (VarI), TypeQ, Type (AppT, ConT), ExpQ,
+   Dec, stringE, listE, varE)
 import Language.Haskell.TH.Name.CamelCase
   (VarName, varName, ConName, varNameWithPrefix, varCamelcaseName)
 import Language.Haskell.TH.Name.Extra
@@ -26,13 +26,15 @@ import Database.Record.TH
   (recordTypeDefault, defineRecordDefault, defineHasKeyConstraintInstance)
 
 import Database.Relational.Query
-  (Table, Pi, Relation, PrimeRelation, fromTable, toSQL, Query,
+  (Table, Pi, Relation, PrimeRelation, fromTable,
+   toSQL, Query, fromRelation, Update, Insert, typedInsert,
    HasConstraintKey(constraintKey), Primary, NotNull)
 
 import Database.Relational.Query.Constraint (defineConstraintKey, appendConstraint)
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Type (unsafeTypedQuery)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
+import Database.Relational.Query.Derives (primary, primaryUpdate)
 
 
 defineHasConstraintKeyInstance :: TypeQ -> TypeQ -> TypeQ -> Int -> Q [Dec]
@@ -135,6 +137,28 @@ defineRecordAndTableDefault sqlValueType schema table columns drives = do
   return $ recDs ++ tableDs
 
 
+definePrimaryQuery :: VarName -> TypeQ -> TypeQ -> ExpQ -> Q [Dec]
+definePrimaryQuery toDef' paramType recType relE = do
+  let toDef = varName toDef'
+  simpleValD toDef
+    [t| Query $paramType $recType |]
+    [|  fromRelation (primary $relE) |]
+
+definePrimaryUpdate :: VarName -> TypeQ -> TypeQ -> ExpQ -> Q [Dec]
+definePrimaryUpdate toDef' paramType recType tableE = do
+  let toDef = varName toDef'
+  simpleValD toDef
+    [t| Update $paramType $recType |]
+    [|  primaryUpdate $tableE |]
+
+
+defineInsert :: VarName -> TypeQ -> ExpQ -> Q [Dec]
+defineInsert toDef' recType tableE = do
+  let toDef = varName toDef'
+  simpleValD toDef
+    [t| Insert $recType |]
+    [|  typedInsert $tableE |]
+
 inlineQuery :: VarName -> PrimeRelation p r -> VarName -> Q [Dec]
 inlineQuery relVar' rel qVar' =  do
   let relVar = varName relVar'
@@ -143,10 +167,8 @@ inlineQuery relVar' rel qVar' =  do
   case relInfo of
     VarI _ (AppT (AppT (ConT prn) p) r) _ _
       | prn == ''PrimeRelation    -> do
-        sig <- sigD qVar [t| Query $(return p) $(return r) |]
-        var <- valD (varP qVar)
-               (normalB [| unsafeTypedQuery $(stringE . toSQL $ rel) |])
-               []
-        return [sig, var]
+        simpleValD qVar
+          [t| Query $(return p) $(return r) |]
+          [| unsafeTypedQuery $(stringE . toSQL $ rel) |]
     _                             ->
       compileError $ "expandRelation: Variable must have PrimeRelation type: " ++ show relVar
