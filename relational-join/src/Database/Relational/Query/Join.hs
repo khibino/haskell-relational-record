@@ -5,7 +5,7 @@ module Database.Relational.Query.Join (
   on, wheres, asc, desc,
   table,
 
-  record, expr, compose, (>*<), (!), (!?), relation,
+  record, expr, compose, (>*<), (!), (!?), flatten, relation,
 
   inner, outer, from
 
@@ -131,6 +131,9 @@ p ! pi' = project $ Projection.pi p pi'
 
 (!?) :: (PersistableWidth b, Projectable p) => Projection (Maybe a) -> Pi a b -> p (Maybe b)
 p !? pi' = project $ Projection.piMaybe p pi'
+
+flatten :: Projection (Maybe (Maybe a)) -> Projection (Maybe a)
+flatten =  Projection.flattenMaybe
 
 infixl 8 !, !?
 infixl 1 >*<

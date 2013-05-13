@@ -9,7 +9,7 @@ module Database.Relational.Query.Projection (
 
   toExpr,
 
-  pi, piMaybe, Projectable (project),
+  pi, piMaybe, flattenMaybe, Projectable (project),
 
   value,
 
@@ -105,6 +105,9 @@ unsafeProject pr p pi' =
 
 pi :: PersistableWidth b => Projection a -> Pi a b -> Projection b
 pi =  unsafeProject persistableWidth
+
+flattenMaybe :: Projection (Maybe (Maybe a)) -> Projection (Maybe a)
+flattenMaybe (Composed pus) = Composed pus
 
 piMaybe :: PersistableWidth b => Projection (Maybe a) -> Pi a b -> Projection (Maybe b)
 piMaybe =  unsafeProject persistableWidth
