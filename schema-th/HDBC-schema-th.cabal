@@ -43,32 +43,3 @@ library
                        , HDBC >=2
                        , HDBC-session
   hs-source-dirs:      src
-
-Executable sample1
-  default-language:    Haskell2010
-  build-depends:         base <5
-                       , template-haskell
-                       , names-th
-                       , DB-record
-                       , relational-join
-                       , HDBC-session
-                       , HDBC-postgresql
-                       , HDBC-schema-th
-  other-modules:
-                       User
-                       Group
-                       Membership
-  main-is:             querySample.hs
-  hs-source-dirs:      sample/1, pgTest
-
-Test-suite postgreSQL
-  build-depends:         HDBC-schema-th
-                       , Cabal
-                       , HDBC-postgresql
-                       , bytestring
-                       , text
-  other-modules:       PgTestDataSource
-
-  Type:                detailed-0.9
-  Test-module:         PgTest
-  hs-source-dirs:      pgTest

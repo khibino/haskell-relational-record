@@ -5,9 +5,9 @@ all: clean
 	cabal haddock --hyperlink-source
 
 wc:
-	find src -name '*.hs' | xargs wc
+	test ! -d src || find src -name '*.hs' | xargs wc
 
 clean:
 	cabal clean
 	[ ! -d .dWork ] || rm -r .dWork
-	find src \( -name '*.o' -o -name '*.hi' \) -exec rm {} \;
+	test ! -d src || find src \( -name '*.o' -o -name '*.hi' \) -exec rm {} \;
