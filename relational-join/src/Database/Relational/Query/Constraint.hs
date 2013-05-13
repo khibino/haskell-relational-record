@@ -4,7 +4,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 
 module Database.Relational.Query.Constraint (
-  Key, defineConstraintKey, recordConstraint, projectionKey,
+  Key, index, defineConstraintKey, recordConstraint, projectionKey,
 
   returnKey, appendConstraint,
 

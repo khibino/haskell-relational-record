@@ -1,7 +1,7 @@
 module Database.Relational.Query.Table (
   Untyped, name', width', columns', (!),
 
-  Table, unType, name, width, columns, table, outer,
+  Table, unType, name, width, columns, index, table, outer,
   ) where
 
 import Data.Array (Array, listArray, elems)
@@ -30,6 +30,9 @@ width  = width'  . unType
 
 columns :: Table r -> [String]
 columns =  columns' . unType
+
+index :: Table r -> Int -> String
+index =  (!) . unType
 
 outer :: Table r -> Table (Maybe r)
 outer (Table t) = (Table t)
