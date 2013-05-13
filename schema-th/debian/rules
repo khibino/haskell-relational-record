@@ -1,6 +1,7 @@
 #!/usr/bin/make -f
 
 DEB_CABAL_PACKAGE = hdbc-schema-th
+DEB_SETUP_GHC_CONFIGURE_ARGS = --disable-tests
 
 include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/hlibrary.mk
