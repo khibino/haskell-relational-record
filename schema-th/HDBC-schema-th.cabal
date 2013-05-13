@@ -54,6 +54,10 @@ Executable sample1
                        , HDBC-session
                        , HDBC-postgresql
                        , HDBC-schema-th
+  other-modules:
+                       User
+                       Group
+                       Membership
   main-is:             querySample.hs
   hs-source-dirs:      sample/1, pgTest
 
@@ -63,6 +67,7 @@ Test-suite postgreSQL
                        , HDBC-postgresql
                        , bytestring
                        , text
+  other-modules:       PgTestDataSource
 
   Type:                detailed-0.9
   Test-module:         PgTest
