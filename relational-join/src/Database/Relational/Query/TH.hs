@@ -9,6 +9,10 @@ module Database.Relational.Query.TH (
 
   defineRecordAndTableDefault,
 
+  definePrimaryQuery,
+  definePrimaryUpdate,
+  defineInsert,
+
   inlineQuery
   ) where
 
