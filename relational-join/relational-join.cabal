@@ -19,6 +19,7 @@ library
                        Database.Relational.Query.AliasId.Unsafe
                        Database.Relational.Query.Product
                        Database.Relational.Query.Table
+                       Database.Relational.Query.SQL
                        Database.Relational.Query.Pi
                        Database.Relational.Query.Pi.Unsafe
                        Database.Relational.Query.Constraint
