@@ -1,6 +1,7 @@
 
 module Database.Relational.Query (
   module Database.Relational.Query.Table,
+  module Database.Relational.Query.SQL,
   module Database.Relational.Query.Pi,
   module Database.Relational.Query.Constraint,
   module Database.Relational.Query.AliasId,
@@ -14,6 +15,7 @@ module Database.Relational.Query (
   ) where
 
 import Database.Relational.Query.Table (Table)
+import Database.Relational.Query.SQL (singleKeyUpdateSQL, insertSQL)
 import Database.Relational.Query.Pi
 import Database.Relational.Query.Constraint
   (Key, recordConstraint, projectionKey,
@@ -29,6 +31,6 @@ import Database.Relational.Query.Relation (Relation, PrimeRelation, toSQL, fromT
 import Database.Relational.Query.Join
 import Database.Relational.Query.Type
   (Query, untypeQuery, fromRelation,
-   Update, untypeUpdate, typedPrimaryUpdate,
+   Update, untypeUpdate, typedSingleKeyUpdate,
    Insert, untypeInsert, typedInsert)
 import Database.Relational.Query.Derives
