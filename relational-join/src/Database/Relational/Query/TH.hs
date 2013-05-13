@@ -13,6 +13,11 @@ module Database.Relational.Query.TH (
   definePrimaryUpdate,
   defineInsert,
 
+  defineSqlsWithPrimaryKey,
+  defineSqls,
+  defineSqlsWithPrimaryKeyDefault,
+  defineSqlsDefault,
+
   inlineQuery
   ) where
 
@@ -113,6 +118,12 @@ defineTable tableVar' relVar' recordType table columns = do
 tableSQL :: String -> String -> String
 tableSQL schema table = map toUpper schema ++ '.' : map toLower table
 
+tableVarNameDefault :: String -> VarName
+tableVarNameDefault =  (`varNameWithPrefix` "tableOf")
+
+tableVarDefault :: String -> ExpQ
+tableVarDefault =  varE . varName . tableVarNameDefault
+
 defineTableDefault :: String                           -- ^ Schema name
                    -> String                           -- ^ Table name
                    -> [((String, TypeQ), Maybe TypeQ)] -- ^ Column names and types and constraint type
@@ -120,7 +131,7 @@ defineTableDefault :: String                           -- ^ Schema name
 defineTableDefault schema table columns = do
   let recordType = recordTypeDefault table
   tableDs <- defineTable
-             (table `varNameWithPrefix` "tableOf")
+             (tableVarNameDefault table)
              (varCamelcaseName table)
              recordType
              (tableSQL schema table)
@@ -162,6 +173,39 @@ defineInsert toDef' recType tableE = do
   simpleValD toDef
     [t| Insert $recType |]
     [|  typedInsert $tableE |]
+
+defineSqlsWithPrimaryKey :: VarName
+                         -> VarName
+                         -> TypeQ
+                         -> TypeQ
+                         -> ExpQ
+                         -> ExpQ
+                         -> Q [Dec]
+defineSqlsWithPrimaryKey sel upd paramType recType relE tableE = do
+  selD <- definePrimaryQuery  sel paramType recType relE
+  updD <- definePrimaryUpdate upd paramType recType tableE
+  return $ selD ++ updD
+
+defineSqls :: VarName -> TypeQ -> ExpQ -> Q [Dec]
+defineSqls =  defineInsert
+
+defineSqlsWithPrimaryKeyDefault :: String
+                                -> TypeQ
+                                -> TypeQ
+                                -> ExpQ
+                                -> ExpQ
+                                -> Q [Dec]
+defineSqlsWithPrimaryKeyDefault table  =
+  defineSqlsWithPrimaryKey sel upd
+  where
+    sel = table `varNameWithPrefix` "select"
+    upd = table `varNameWithPrefix` "update"
+
+defineSqlsDefault :: String -> TypeQ -> ExpQ -> Q [Dec]
+defineSqlsDefault table =
+  defineSqls
+    (table `varNameWithPrefix` "insert")
+
 
 inlineQuery :: VarName -> PrimeRelation p r -> VarName -> Q [Dec]
 inlineQuery relVar' rel qVar' =  do
