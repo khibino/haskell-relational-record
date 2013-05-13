@@ -32,6 +32,10 @@ unsafeTypedUpdate =  Update
 typedSingleKeyUpdate :: Table r -> String -> Update p r
 typedSingleKeyUpdate tbl =  unsafeTypedUpdate . singleKeyUpdateSQL tbl
 
+instance Show (Update p a) where
+  show = untypeUpdate
+
+
 newtype Insert a   = Insert { untypeInsert :: String }
 
 unsafeTypedInsert :: String -> Insert a
@@ -39,3 +43,6 @@ unsafeTypedInsert =  Insert
 
 typedInsert :: Table r -> Insert r
 typedInsert =  unsafeTypedInsert . insertSQL
+
+instance Show (Insert a) where
+  show = untypeInsert
