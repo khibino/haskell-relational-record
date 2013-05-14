@@ -3,6 +3,11 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Database.Relational.Query.TH (
+  defineHasPrimaryKeyInstance,
+  defineHasPrimaryKeyInstanceDefault,
+  defineHasNotNullKeyInstance,
+  defineHasNotNullKeyInstanceDefault,
+
   defineColumn, defineColumnDefault,
 
   defineTable, defineTableDefault,
@@ -61,9 +66,23 @@ defineHasPrimaryKeyInstance :: TypeQ -> TypeQ -> Int -> Q [Dec]
 defineHasPrimaryKeyInstance =
   defineHasConstraintKeyInstance [t| Primary |]
 
+defineHasPrimaryKeyInstanceDefault :: String  -- ^ Table name
+                                   -> TypeQ   -- ^ Column type
+                                   -> Int     -- ^ Primary key index
+                                   -> Q [Dec] -- ^ Declaration of primary constraint key
+defineHasPrimaryKeyInstanceDefault =
+  defineHasPrimaryKeyInstance . recordTypeDefault
+
 defineHasNotNullKeyInstance :: TypeQ -> TypeQ -> Int -> Q [Dec]
 defineHasNotNullKeyInstance =
   defineHasConstraintKeyInstance [t| NotNull |]
+
+defineHasNotNullKeyInstanceDefault :: String  -- ^ Table name
+                                   -> TypeQ   -- ^ Column type
+                                   -> Int     -- ^ NotNull key index
+                                   -> Q [Dec] -- ^ Declaration of not-null constraint key
+defineHasNotNullKeyInstanceDefault =
+  defineHasNotNullKeyInstance . recordTypeDefault
 
 
 defineColumn' :: TypeQ   -- ^ Record type
