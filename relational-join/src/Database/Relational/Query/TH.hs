@@ -13,6 +13,8 @@ module Database.Relational.Query.TH (
   definePrimaryUpdate,
   defineInsert,
 
+  tableVarExpDefault,
+
   defineSqlsWithPrimaryKey,
   defineSqls,
   defineSqlsWithPrimaryKeyDefault,
@@ -37,9 +39,9 @@ import Database.Record.TH
 import Database.Relational.Query
   (Table, Pi, Relation, PrimeRelation, fromTable,
    toSQL, Query, fromRelation, Update, Insert, typedInsert,
-   HasConstraintKey(constraintKey), Primary, NotNull)
+   HasConstraintKey(constraintKey), projectionKey, Primary, NotNull)
 
-import Database.Relational.Query.Constraint (defineConstraintKey, appendConstraint)
+import Database.Relational.Query.Constraint (Key, defineConstraintKey)
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Type (unsafeTypedQuery)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
@@ -73,23 +75,24 @@ defineColumn' recType var' i colType = do
   simpleValD var [t| Pi $recType $colType |]
     [| UnsafePi.defineColumn $(integralE i) |]
 
-defineColumn :: Maybe TypeQ -- ^ May Constraint type
-             -> TypeQ       -- ^ Record type
-             -> VarName     -- ^ Column declaration variable name
-             -> Int         -- ^ Column index in record (begin with 0)
-             -> TypeQ       -- ^ Column type
-             -> Q [Dec]     -- ^ Column declaration
+defineColumn :: Maybe (TypeQ, VarName) -- ^ May Constraint type and constraint object name
+             -> TypeQ                  -- ^ Record type
+             -> VarName                -- ^ Column declaration variable name
+             -> Int                    -- ^ Column index in record (begin with 0)
+             -> TypeQ                  -- ^ Column type
+             -> Q [Dec]                -- ^ Column declaration
 defineColumn mayConstraint recType var' i colType = do
-  col <- defineColumn' recType var' i colType
-  cs  <- maybeD
-         (\constraint -> do
-             kc <- defineHasKeyConstraintInstance constraint recType i
-             ck <- [d| instance HasConstraintKey $constraint $recType $colType  where
-                         constraintKey = appendConstraint $(varE $ varName var')
-                     |]
-             return $ kc ++ ck)
-         mayConstraint
-  return $ col ++ cs
+  maybe
+    (defineColumn' recType var' i colType)
+    ( \(constraint, cname') -> do
+         let cname = varName cname'
+         ck  <- simpleValD cname [t| Key $constraint $recType $colType |]
+                [| defineConstraintKey $(integralE i) |]
+
+         col <- simpleValD (varName var') [t| Pi $recType $colType |]
+                [| projectionKey $(varE cname) |]
+         return $ ck ++ col)
+    mayConstraint
 
 defineColumnDefault :: Maybe TypeQ -- ^ May Constraint type
                     -> TypeQ       -- ^ Record type
@@ -98,7 +101,9 @@ defineColumnDefault :: Maybe TypeQ -- ^ May Constraint type
                     -> TypeQ       -- ^ Column type
                     -> Q [Dec]     -- ^ Column declaration
 defineColumnDefault mayConstraint recType name =
-  defineColumn mayConstraint recType (varCamelcaseName (name ++ "'"))
+  defineColumn (fmap withCName mayConstraint) recType varN
+  where varN        = varCamelcaseName (name ++ "'")
+        withCName t = (t, varCamelcaseName (name ++ "_constraint"))
 
 defineTable :: VarName                          -- ^ Table declaration variable name
             -> VarName                          -- ^ Relation declaration variable name
@@ -121,8 +126,8 @@ tableSQL schema table = map toUpper schema ++ '.' : map toLower table
 tableVarNameDefault :: String -> VarName
 tableVarNameDefault =  (`varNameWithPrefix` "tableOf")
 
-tableVarDefault :: String -> ExpQ
-tableVarDefault =  varE . varName . tableVarNameDefault
+tableVarExpDefault :: String -> ExpQ
+tableVarExpDefault =  varE . varName . tableVarNameDefault
 
 defineTableDefault :: String                           -- ^ Schema name
                    -> String                           -- ^ Table name
