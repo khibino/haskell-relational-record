@@ -23,23 +23,27 @@ module Database.Record.TH (
   defineRecordWithSqlType,
   defineRecordWithSqlTypeDefault,
 
+  defineRecordWithSqlTypeFromDefined,
+  defineRecordWithSqlTypeDefaultFromDefined,
+
   defineRecord,
   defineRecordDefault
   ) where
 
 import Language.Haskell.TH.Name.CamelCase
-  (ConName(conName), VarName(varName),
+  (ConName(conName), VarName(varName, VarName),
    conCamelcaseName, varCamelcaseName, varNameWithPrefix,
    toTypeCon, toVarExp)
-import Language.Haskell.TH.Name.Extra (integralE)
+import Language.Haskell.TH.Name.Extra (integralE, compileError)
 import Language.Haskell.TH
-  (Q, mkName,
-   TypeQ, conT,
-   Dec, DecQ, dataD, sigD, funD,
+  (Q, mkName, reify, Info(TyConI),
+   TypeQ, conT, Con (RecC),
+   Dec(DataD), DecQ, dataD, sigD, funD,
    appsE, conE, varE, listE, stringE,
    listP, varP, wildP,
-   normalB, recC,
-   clause, cxt, varStrictType, strictType, isStrict)
+   normalB, recC, clause, cxt,
+   varStrictType, strictType, isStrict)
+import Language.Haskell.TH.Syntax (VarStrictType)
 
 import Database.Record
   (HasKeyConstraint(keyConstraint), Primary, NotNull,
@@ -191,17 +195,47 @@ defineRecordWithSqlType
   instSQL  <- definePersistableInstance sqlValueType typeCon cF dF width
   return $ fromSQL ++ toSQL ++ instSQL
 
+fromSqlNameDefault :: String -> VarName
+fromSqlNameDefault =  (`varNameWithPrefix` "fromSqlOf")
+
+toSqlNameDefault :: String -> VarName
+toSqlNameDefault =  (`varNameWithPrefix` "toSqlOf")
+
 defineRecordWithSqlTypeDefault :: TypeQ             -- ^ SQL value type
-                               -> String            -- ^ Table name
+                               -> String            -- ^ Table name of database
                                -> [(String, TypeQ)] -- ^ Column names and types
                                -> Q [Dec]           -- ^ Result declarations
 defineRecordWithSqlTypeDefault sqlValueType table columns = do
   defineRecordWithSqlType
     sqlValueType
-    (table `varNameWithPrefix` "fromSqlOf",
-     table `varNameWithPrefix` "toSqlOf")
+    (fromSqlNameDefault table, toSqlNameDefault table)
     (recordTypeNameDefault table)
     [ columnDefault n t | (n, t) <- columns ]
+
+recordInfo :: Info -> Maybe [VarStrictType]
+recordInfo =  d  where
+  d (TyConI (DataD _cxt _n _bs [RecC _dn vs] _ds)) = Just vs
+  d _                                              = Nothing
+
+defineRecordWithSqlTypeFromDefined :: TypeQ              -- ^ SQL value type
+                                   -> (VarName, VarName) -- ^ Constructor function name and decompose function name
+                                   -> ConName            -- ^ Record type name
+                                   -> Q [Dec]            -- ^ Result declarations
+defineRecordWithSqlTypeFromDefined sqlValueType fnames recTypeName' = do
+  let recTypeName = conName recTypeName'
+  recInfo <- reify recTypeName
+  case recordInfo recInfo of
+    Nothing -> compileError $ "Defined record type not found: " ++ show recTypeName
+    Just vs -> defineRecordWithSqlType sqlValueType fnames recTypeName'
+               [ (VarName n, return ty) | (n, _s, ty)  <- vs ]
+
+defineRecordWithSqlTypeDefaultFromDefined :: TypeQ   -- ^ SQL value type
+                                          -> String  -- ^ Table name of database
+                                          -> Q [Dec] -- ^ Result declarations
+defineRecordWithSqlTypeDefaultFromDefined sqlValueType table =
+  defineRecordWithSqlTypeFromDefined sqlValueType
+  (fromSqlNameDefault table, toSqlNameDefault table)
+  (recordTypeNameDefault table)
 
 
 defineRecord :: TypeQ              -- ^ SQL value type
@@ -212,11 +246,11 @@ defineRecord :: TypeQ              -- ^ SQL value type
              -> Q [Dec]            -- ^ Result declarations
 defineRecord
   sqlValueType
-  funs tyC
+  fnames tyC
   columns drvs = do
 
   typ     <- defineRecordType tyC columns drvs
-  withSql <- defineRecordWithSqlType sqlValueType funs tyC columns
+  withSql <- defineRecordWithSqlType sqlValueType fnames tyC columns
   return $ typ : withSql
 
 defineRecordDefault :: TypeQ             -- ^ SQL value type
