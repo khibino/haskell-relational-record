@@ -15,143 +15,31 @@
 -- This module contains templates to generate Haskell record types
 -- and instances correspond to RDB table schema.
 module Database.HDBC.TH (
-  defineConstantSql,
-  defineSqlPrimarySelect,
-  defineSqlPrimaryUpdate,
-  defineSqlInsert,
-
-  defineSqls, defineSqlsDefault,
-
   defineWithTableDefault,
-  defineWithPrimaryKeyDefault,
-  defineWithNotNullKeyDefault,
 
   defineTableFromDB
   ) where
 
-import Data.Char (toUpper, toLower)
-import Data.Maybe (fromJust, listToMaybe)
+import Data.Maybe (listToMaybe)
 import Data.List (elemIndex)
 
 import Database.HDBC (IConnection, SqlValue)
 
-import Language.Haskell.TH.Name.CamelCase
-  (ConName, VarName (varName),
-   varNameWithPrefix)
-import Language.Haskell.TH.Name.Extra
-  (maybeD, compileError)
-import Language.Haskell.TH
-  (Q, runIO,
-   TypeQ, Dec,
-   stringE,
-   varP,
-   sigD, valD,
-   normalB)
+import Language.Haskell.TH.Name.CamelCase (ConName)
+import Language.Haskell.TH.Name.Extra (maybeD)
+import Language.Haskell.TH (Q, runIO, TypeQ, Dec)
 
 import Database.HDBC.Session (withConnectionIO)
-import Database.Record.TH
-  (recordTypeDefault,
-   defineHasPrimaryKeyInstanceDefault, defineHasNotNullKeyInstanceDefault)
-import Database.Relational.Query.Type (unsafeTypedQuery)
-import Database.Relational.Query (Query)
-import Database.Relational.Query.TH (defineRecordAndTableDefault)
+import Database.Record.TH (recordTypeDefault)
+import Database.Relational.Query.TH
+  (defineRecordAndTableDefault, defineSqlsDefault,
+   defineHasPrimaryKeyInstanceDefault, defineHasNotNullKeyInstanceDefault,
+   tableVarExpDefault, relationVarExpDefault)
+import qualified Database.Relational.Query.TH as Query
 import Database.HDBC.Record.Persistable ()
-import Language.SQL.Keyword (Keyword(..), (.=.))
-import qualified Language.SQL.Keyword as SQL
 
 import Database.HDBC.Schema.Driver (Driver, getFields, getPrimaryKey)
 
-
-nameOfTableSQL :: String -> String -> String
-nameOfTableSQL schema table = map toUpper schema ++ '.' : map toLower table
-
-
-defineConstantSql :: VarName -> String -> Q [Dec]
-defineConstantSql name' sqlStr = do
-  let name = varName name'
-  sig <- sigD name [t| String |]
-  var <- valD (varP name)
-         (normalB . stringE $ sqlStr)
-         []
-  return [sig, var]
-
-defineConstantSqlQuery :: TypeQ -> TypeQ -> VarName -> String -> Q [Dec]
-defineConstantSqlQuery pkeyType recordType name' sqlStr = do
-  let name = varName name'
-  sig <- sigD name [t| Query $pkeyType $recordType |]
-  var <- valD (varP name)
-         (normalB [| unsafeTypedQuery $(stringE $ sqlStr) |])
-         []
-  return [sig, var]
-
-defineSqlPrimarySelect :: VarName -> (String, TypeQ)-> [(String, TypeQ)] -> String -> Q [Dec]
-defineSqlPrimarySelect name' (table, recordType) fields pkey =
-  defineConstantSqlQuery pkeyType recordType name'
-  . SQL.unwordsSQL
-  $ [SELECT, fields' `SQL.sepBy` ", ",
-     FROM, SQL.word table, WHERE, SQL.word pkey .=. "?"]
-  where fields' = map (SQL.word . fst) fields
-        pkeyType = fromJust $ lookup pkey fields
-
-defineSqlPrimaryUpdate :: VarName -> String -> [String] -> String -> Q [Dec]
-defineSqlPrimaryUpdate name' table fields pkey =
-  defineConstantSql name'
-  . SQL.unwordsSQL
-  $ [UPDATE, SQL.word table, SET, assignments `SQL.sepBy` ", ",
-     WHERE, SQL.word pkey, "= ?"]
-  where assignments = map (\f -> SQL.word f .=. "?") . filter (/= pkey) $ fields
-
-defineSqlInsert :: VarName -> String -> [String] -> Q [Dec]
-defineSqlInsert name' table fields = do
-  defineConstantSql name'
-  . SQL.unwordsSQL
-  $ [INSERT, INTO, SQL.word table, fields' `SQL.parenSepBy` ", ",
-     VALUES, pfs `SQL.parenSepBy` ", "]
-    where fields' = map SQL.word fields
-          pfs     = replicate (length fields) "?"
-
-defineSqls :: VarName -- ^ SQL insert statement var name
-               -> (String, TypeQ)
-               -> [(String, TypeQ)]
-               -> Q [Dec] -- ^ SQL statement String declarations
-defineSqls ins (table, _recordType) fields =
-  defineSqlInsert ins table (map fst fields)
-
-defineSqlsWithPrimaryKey :: Int               -- ^ Primary key field index
-                         -> VarName           -- ^ SQL select statement var name
-                         -> VarName           -- ^ SQL update statement var name
-                         -> (String, TypeQ)   -- ^ Table name String in SQL and record type
-                         -> [(String, TypeQ)] -- ^ Field name strings
-                         -> Q [Dec]           -- ^ SQL statement String declarations
-defineSqlsWithPrimaryKey i sel upd (table, recordType) fields = do
-  let width = length fields
-      fields' = map fst fields
-      getPrimaryKeyName
-        | i < 0 || width <= i = compileError
-                                $  "defineSqls: Index out of bounds!: "
-                                ++ "fields count is " ++ show width ++ ", but index is " ++ show i
-        | otherwise           = return . fst $ fields !! i
-  keyName <- getPrimaryKeyName
-  selD <- defineSqlPrimarySelect sel (table, recordType) fields keyName
-  updD <- defineSqlPrimaryUpdate upd table fields' keyName
-  return $ selD ++ updD
-
-defineSqlsDefault :: String -> String -> [(String, TypeQ)] -> Q [Dec]
-defineSqlsDefault schema table fields =
-  defineSqls ins (tableSQL, recordType) fields
-  where
-    tableSQL = nameOfTableSQL schema table
-    recordType = recordTypeDefault table
-    ins = table `varNameWithPrefix` "insert"
-
-defineSqlsWithPrimaryKeyDefault :: String -> String -> [(String, TypeQ)] -> Int -> Q [Dec]
-defineSqlsWithPrimaryKeyDefault schema table fields idx =
-  defineSqlsWithPrimaryKey idx sel upd (tableSQL, recordType) fields
-  where
-    tableSQL = nameOfTableSQL schema table
-    recordType = recordTypeDefault table
-    sel = table `varNameWithPrefix` "select"
-    upd = table `varNameWithPrefix` "update"
 
 defineWithTableDefault' :: String
                         -> String
@@ -160,16 +48,22 @@ defineWithTableDefault' :: String
                         -> Q [Dec]
 defineWithTableDefault' schema table fields derives = do
   recD <- defineRecordAndTableDefault [t| SqlValue |] schema table fields derives
-  sqlD <- defineSqlsDefault schema table fields
+  let recType = recordTypeDefault table
+      tableE  = tableVarExpDefault table
+  sqlD <- defineSqlsDefault table recType tableE
   return $ recD ++ sqlD
 
-defineWithPrimaryKeyDefault :: String -> String -> [(String, TypeQ)] -> Int -> Q [Dec]
-defineWithPrimaryKeyDefault schema table fields idx = do
-  instD <- defineHasPrimaryKeyInstanceDefault table idx
-  sqlsD <- defineSqlsWithPrimaryKeyDefault schema table fields idx
+defineWithPrimaryKeyDefault :: String -> [(String, TypeQ)] -> Int -> Q [Dec]
+defineWithPrimaryKeyDefault table fields idx = do
+  let pkeyType = snd $ fields !! idx
+  instD <- defineHasPrimaryKeyInstanceDefault table pkeyType idx
+  let recType  = recordTypeDefault table
+      tableE   = tableVarExpDefault table
+      relE     = relationVarExpDefault table
+  sqlsD <- Query.defineSqlsWithPrimaryKeyDefault table pkeyType recType relE tableE
   return $ instD ++ sqlsD
 
-defineWithNotNullKeyDefault :: String -> Int -> Q [Dec]
+defineWithNotNullKeyDefault :: String -> TypeQ -> Int -> Q [Dec]
 defineWithNotNullKeyDefault =  defineHasNotNullKeyInstanceDefault
 
 defineWithTableDefault :: String
@@ -180,9 +74,10 @@ defineWithTableDefault :: String
                        -> Maybe Int
                        -> Q [Dec]
 defineWithTableDefault schema table fields derives mayPrimaryIdx mayNotNullIdx  = do
+  let keyType = snd . (fields !!)
   tblD  <- defineWithTableDefault' schema table fields derives
-  primD <- maybeD (defineWithPrimaryKeyDefault schema table fields) mayPrimaryIdx
-  nnD   <- maybeD (defineWithNotNullKeyDefault table) mayNotNullIdx
+  primD <- maybeD (defineWithPrimaryKeyDefault table fields) mayPrimaryIdx
+  nnD   <- maybeD (\i -> defineWithNotNullKeyDefault table (keyType i) i) mayNotNullIdx
   return $ tblD ++ primD ++ nnD
 
 putLog :: String -> IO ()
