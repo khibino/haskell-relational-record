@@ -43,7 +43,9 @@ import Language.Haskell.TH.Name.Extra
   (compileError, simpleValD, maybeD, integralE)
 
 import Database.Record.TH
-  (recordTypeDefault, defineRecordDefault, defineHasKeyConstraintInstance)
+  (recordTypeDefault,
+   defineRecordTypeDefault,
+   defineHasKeyConstraintInstance)
 
 import Database.Relational.Query
   (Table, Pi, Relation, PrimeRelation, fromTable,
@@ -174,17 +176,15 @@ defineTableTypesDefault schema table columns = do
   colsDs  <- fmap concat . sequence . zipWith defCol [0..] $ columns
   return $ tableDs ++ colsDs
 
-defineTableTypesAndRecordDefault :: TypeQ             -- ^ SQL value type
-                                 -> String            -- ^ Schema name
+defineTableTypesAndRecordDefault :: String            -- ^ Schema name
                                  -> String            -- ^ Table name
                                  -> [(String, TypeQ)] -- ^ Column names and types
                                  -> [ConName]         -- ^ Record derivings
                                  -> Q [Dec]           -- ^ Result declarations
-defineTableTypesAndRecordDefault sqlValueType schema table columns drives = do
-  recDs   <- defineRecordDefault sqlValueType table columns drives
+defineTableTypesAndRecordDefault schema table columns drives = do
+  recD    <- defineRecordTypeDefault table columns drives
   tableDs <- defineTableTypesDefault schema table [(c, Nothing) | c <- columns ]
-  return $ recDs ++ tableDs
-
+  return $ recD : tableDs
 
 definePrimaryQuery :: VarName -> TypeQ -> TypeQ -> ExpQ -> Q [Dec]
 definePrimaryQuery toDef' paramType recType relE = do
@@ -240,15 +240,13 @@ defineSqlsDefault table =
   defineSqls
     (table `varNameWithPrefix` "insert")
 
-
-defineTableDefault' :: TypeQ             -- ^ Type for SQL like HDBC 'SqlValue' type
-                    -> String            -- ^ Schema name of Database
+defineTableDefault' :: String            -- ^ Schema name of Database
                     -> String            -- ^ Table name of Database
                     -> [(String, TypeQ)] -- ^ Column names and types
                     -> [ConName]         -- ^ derivings for Record type
                     -> Q [Dec]           -- ^ Result declarations
-defineTableDefault' sqlType schema table fields derives = do
-  recD <- defineTableTypesAndRecordDefault sqlType schema table fields derives
+defineTableDefault' schema table fields derives = do
+  recD <- defineTableTypesAndRecordDefault schema table fields derives
   let recType = recordTypeDefault table
       tableE  = tableVarExpDefault table
   sqlD <- defineSqlsDefault table recType tableE
@@ -266,17 +264,16 @@ defineWithPrimaryKeyDefault table keyType idx = do
 defineWithNotNullKeyDefault :: String -> TypeQ -> Int -> Q [Dec]
 defineWithNotNullKeyDefault =  defineHasNotNullKeyInstanceDefault
 
-defineTableDefault :: TypeQ             -- ^ Type for SQL like HDBC 'SqlValue' type
-                   -> String            -- ^ Schema name of Database
+defineTableDefault :: String            -- ^ Schema name of Database
                    -> String            -- ^ Table name of Database
                    -> [(String, TypeQ)] -- ^ Column names and types
                    -> [ConName]         -- ^ derivings for Record type
                    -> Maybe Int         -- ^ Primary key index
                    -> Maybe Int         -- ^ Not null key index
                    -> Q [Dec]           -- ^ Result declarations
-defineTableDefault sqlType schema table fields derives mayPrimaryIdx mayNotNullIdx = do
+defineTableDefault schema table fields derives mayPrimaryIdx mayNotNullIdx = do
   let keyType = snd . (fields !!)
-  tblD  <- defineTableDefault' sqlType schema table fields derives
+  tblD  <- defineTableDefault' schema table fields derives
   primD <- maybeD (\i -> defineWithPrimaryKeyDefault table (keyType i) i) mayPrimaryIdx
   nnD   <- maybeD (\i -> defineWithNotNullKeyDefault table (keyType i) i) mayNotNullIdx
   return $ tblD ++ primD ++ nnD
