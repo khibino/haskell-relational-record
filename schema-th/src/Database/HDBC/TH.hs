@@ -32,51 +32,51 @@ import Language.Haskell.TH (Q, runIO, TypeQ, Dec)
 import Database.HDBC.Session (withConnectionIO)
 import Database.Record.TH (recordTypeDefault)
 import Database.Relational.Query.TH
-  (defineRecordAndTableDefault, defineSqlsDefault,
+  (defineRecordAndTableDefault, defineSqlsDefault, defineSqlsWithPrimaryKeyDefault,
    defineHasPrimaryKeyInstanceDefault, defineHasNotNullKeyInstanceDefault,
    tableVarExpDefault, relationVarExpDefault)
-import qualified Database.Relational.Query.TH as Query
 import Database.HDBC.Record.Persistable ()
 
 import Database.HDBC.Schema.Driver (Driver, getFields, getPrimaryKey)
 
 
-defineWithTableDefault' :: String
+defineWithTableDefault' :: TypeQ
+                        -> String
                         -> String
                         -> [(String, TypeQ)]
                         -> [ConName]
                         -> Q [Dec]
-defineWithTableDefault' schema table fields derives = do
-  recD <- defineRecordAndTableDefault [t| SqlValue |] schema table fields derives
+defineWithTableDefault' sqlType schema table fields derives = do
+  recD <- defineRecordAndTableDefault sqlType schema table fields derives
   let recType = recordTypeDefault table
       tableE  = tableVarExpDefault table
   sqlD <- defineSqlsDefault table recType tableE
   return $ recD ++ sqlD
 
-defineWithPrimaryKeyDefault :: String -> [(String, TypeQ)] -> Int -> Q [Dec]
-defineWithPrimaryKeyDefault table fields idx = do
-  let pkeyType = snd $ fields !! idx
-  instD <- defineHasPrimaryKeyInstanceDefault table pkeyType idx
+defineWithPrimaryKeyDefault :: String -> TypeQ -> Int -> Q [Dec]
+defineWithPrimaryKeyDefault table keyType idx = do
+  instD <- defineHasPrimaryKeyInstanceDefault table keyType idx
   let recType  = recordTypeDefault table
       tableE   = tableVarExpDefault table
       relE     = relationVarExpDefault table
-  sqlsD <- Query.defineSqlsWithPrimaryKeyDefault table pkeyType recType relE tableE
+  sqlsD <- defineSqlsWithPrimaryKeyDefault table keyType recType relE tableE
   return $ instD ++ sqlsD
 
 defineWithNotNullKeyDefault :: String -> TypeQ -> Int -> Q [Dec]
 defineWithNotNullKeyDefault =  defineHasNotNullKeyInstanceDefault
 
-defineWithTableDefault :: String
+defineWithTableDefault :: TypeQ
+                       -> String
                        -> String
                        -> [(String, TypeQ)]
                        -> [ConName]
                        -> Maybe Int
                        -> Maybe Int
                        -> Q [Dec]
-defineWithTableDefault schema table fields derives mayPrimaryIdx mayNotNullIdx  = do
+defineWithTableDefault sqlType schema table fields derives mayPrimaryIdx mayNotNullIdx = do
   let keyType = snd . (fields !!)
-  tblD  <- defineWithTableDefault' schema table fields derives
-  primD <- maybeD (defineWithPrimaryKeyDefault table fields) mayPrimaryIdx
+  tblD  <- defineWithTableDefault' sqlType schema table fields derives
+  primD <- maybeD (\i -> defineWithPrimaryKeyDefault table (keyType i) i) mayPrimaryIdx
   nnD   <- maybeD (\i -> defineWithNotNullKeyDefault table (keyType i) i) mayNotNullIdx
   return $ tblD ++ primD ++ nnD
 
@@ -84,12 +84,12 @@ putLog :: String -> IO ()
 putLog =  putStrLn
 
 defineTableFromDB :: IConnection conn
-                   => IO conn
-                   -> Driver conn
-                   -> String
-                   -> String 
-                   -> [ConName]
-                   -> Q [Dec]
+                  => IO conn
+                  -> Driver conn
+                  -> String
+                  -> String 
+                  -> [ConName]
+                  -> Q [Dec]
 defineTableFromDB connect drv scm tbl derives = do
   let getDBinfo =
         withConnectionIO connect
@@ -106,4 +106,4 @@ defineTableFromDB connect drv scm tbl derives = do
             return (cols, notNullIdxs, mayPrimaryIdx) )
 
   (cols, notNullIdxs, mayPrimaryIdx) <- runIO getDBinfo
-  defineWithTableDefault scm tbl cols derives mayPrimaryIdx (listToMaybe notNullIdxs)
+  defineWithTableDefault [t| SqlValue |] scm tbl cols derives mayPrimaryIdx (listToMaybe notNullIdxs)
