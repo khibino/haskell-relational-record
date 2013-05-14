@@ -14,6 +14,7 @@ module Database.Relational.Query.TH (
   defineInsert,
 
   tableVarExpDefault,
+  relationalVarExpDefault,
 
   defineSqlsWithPrimaryKey,
   defineSqls,
@@ -27,11 +28,11 @@ import Data.Char (toUpper, toLower)
 
 import Language.Haskell.TH
   (Q, reify, Info (VarI), TypeQ, Type (AppT, ConT), ExpQ,
-   Dec, stringE, listE, varE)
+   Dec, stringE, listE)
 import Language.Haskell.TH.Name.CamelCase
-  (VarName, varName, ConName, varNameWithPrefix, varCamelcaseName)
+  (VarName, varName, ConName, varNameWithPrefix, varCamelcaseName, toVarExp)
 import Language.Haskell.TH.Name.Extra
-  (compileError, simpleValD, integralE, maybeD)
+  (compileError, simpleValD, integralE)
 
 import Database.Record.TH
   (recordTypeDefault, defineRecordDefault, defineHasKeyConstraintInstance)
@@ -90,7 +91,7 @@ defineColumn mayConstraint recType var' i colType = do
                 [| defineConstraintKey $(integralE i) |]
 
          col <- simpleValD (varName var') [t| Pi $recType $colType |]
-                [| projectionKey $(varE cname) |]
+                [| projectionKey $(toVarExp cname') |]
          return $ ck ++ col)
     mayConstraint
 
@@ -117,7 +118,7 @@ defineTable tableVar' relVar' recordType table columns = do
             [| Table.table $(stringE table) $(listE $ map stringE (map (fst . fst) columns)) |]
   let relVar   = varName relVar'
   relDs   <- simpleValD relVar   [t| Relation $(recordType) |]
-             [| fromTable $(varE tableVar) |]
+             [| fromTable $(toVarExp tableVar') |]
   return $ tableDs ++ relDs
 
 tableSQL :: String -> String -> String
@@ -127,7 +128,13 @@ tableVarNameDefault :: String -> VarName
 tableVarNameDefault =  (`varNameWithPrefix` "tableOf")
 
 tableVarExpDefault :: String -> ExpQ
-tableVarExpDefault =  varE . varName . tableVarNameDefault
+tableVarExpDefault =  toVarExp . tableVarNameDefault
+
+relationVarNameDefault :: String -> VarName
+relationVarNameDefault =  varCamelcaseName
+
+relationalVarExpDefault :: String -> ExpQ
+relationalVarExpDefault =  toVarExp . relationVarNameDefault
 
 defineTableDefault :: String                           -- ^ Schema name
                    -> String                           -- ^ Table name
@@ -137,7 +144,7 @@ defineTableDefault schema table columns = do
   let recordType = recordTypeDefault table
   tableDs <- defineTable
              (tableVarNameDefault table)
-             (varCamelcaseName table)
+             (relationVarNameDefault table)
              recordType
              (tableSQL schema table)
              columns
