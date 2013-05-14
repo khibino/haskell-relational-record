@@ -26,6 +26,9 @@ module Database.Relational.Query.TH (
   defineSqlsWithPrimaryKeyDefault,
   defineSqlsDefault,
 
+  defineWithTableDefault',
+  defineWithTableDefault,
+
   inlineQuery
   ) where
 
@@ -37,7 +40,7 @@ import Language.Haskell.TH
 import Language.Haskell.TH.Name.CamelCase
   (VarName, varName, ConName, varNameWithPrefix, varCamelcaseName, toVarExp)
 import Language.Haskell.TH.Name.Extra
-  (compileError, simpleValD, integralE)
+  (compileError, simpleValD, maybeD, integralE)
 
 import Database.Record.TH
   (recordTypeDefault, defineRecordDefault, defineHasKeyConstraintInstance)
@@ -236,6 +239,47 @@ defineSqlsDefault :: String -> TypeQ -> ExpQ -> Q [Dec]
 defineSqlsDefault table =
   defineSqls
     (table `varNameWithPrefix` "insert")
+
+
+defineWithTableDefault' :: TypeQ
+                        -> String
+                        -> String
+                        -> [(String, TypeQ)]
+                        -> [ConName]
+                        -> Q [Dec]
+defineWithTableDefault' sqlType schema table fields derives = do
+  recD <- defineRecordAndTableDefault sqlType schema table fields derives
+  let recType = recordTypeDefault table
+      tableE  = tableVarExpDefault table
+  sqlD <- defineSqlsDefault table recType tableE
+  return $ recD ++ sqlD
+
+defineWithPrimaryKeyDefault :: String -> TypeQ -> Int -> Q [Dec]
+defineWithPrimaryKeyDefault table keyType idx = do
+  instD <- defineHasPrimaryKeyInstanceDefault table keyType idx
+  let recType  = recordTypeDefault table
+      tableE   = tableVarExpDefault table
+      relE     = relationVarExpDefault table
+  sqlsD <- defineSqlsWithPrimaryKeyDefault table keyType recType relE tableE
+  return $ instD ++ sqlsD
+
+defineWithNotNullKeyDefault :: String -> TypeQ -> Int -> Q [Dec]
+defineWithNotNullKeyDefault =  defineHasNotNullKeyInstanceDefault
+
+defineWithTableDefault :: TypeQ
+                       -> String
+                       -> String
+                       -> [(String, TypeQ)]
+                       -> [ConName]
+                       -> Maybe Int
+                       -> Maybe Int
+                       -> Q [Dec]
+defineWithTableDefault sqlType schema table fields derives mayPrimaryIdx mayNotNullIdx = do
+  let keyType = snd . (fields !!)
+  tblD  <- defineWithTableDefault' sqlType schema table fields derives
+  primD <- maybeD (\i -> defineWithPrimaryKeyDefault table (keyType i) i) mayPrimaryIdx
+  nnD   <- maybeD (\i -> defineWithNotNullKeyDefault table (keyType i) i) mayNotNullIdx
+  return $ tblD ++ primD ++ nnD
 
 
 inlineQuery :: VarName -> PrimeRelation p r -> VarName -> Q [Dec]
