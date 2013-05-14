@@ -15,8 +15,8 @@
 -- This module contains templates to generate Haskell record types
 -- and instances correspond to RDB table schema.
 module Database.HDBC.TH (
-  defineWithTableDefault',
-  defineWithTableDefault,
+  defineTableDefault',
+  defineTableDefault,
 
   defineTableFromDB
   ) where
@@ -36,11 +36,11 @@ import Database.HDBC.Record.Persistable ()
 import Database.HDBC.Schema.Driver (Driver, getFields, getPrimaryKey)
 
 
-defineWithTableDefault' :: String -> String -> [(String, TypeQ)] -> [ConName] -> Q [Dec]
-defineWithTableDefault' =  Relational.defineWithTableDefault' [t| SqlValue |]
+defineTableDefault' :: String -> String -> [(String, TypeQ)] -> [ConName] -> Q [Dec]
+defineTableDefault' =  Relational.defineTableDefault' [t| SqlValue |]
 
-defineWithTableDefault  :: String -> String -> [(String, TypeQ)] -> [ConName] -> Maybe Int -> Maybe Int -> Q [Dec]
-defineWithTableDefault  =  Relational.defineWithTableDefault  [t| SqlValue |]
+defineTableDefault  :: String -> String -> [(String, TypeQ)] -> [ConName] -> Maybe Int -> Maybe Int -> Q [Dec]
+defineTableDefault  =  Relational.defineTableDefault  [t| SqlValue |]
 
 putLog :: String -> IO ()
 putLog =  putStrLn
@@ -68,4 +68,4 @@ defineTableFromDB connect drv scm tbl derives = do
             return (cols, notNullIdxs, mayPrimaryIdx) )
 
   (cols, notNullIdxs, mayPrimaryIdx) <- runIO getDBinfo
-  defineWithTableDefault scm tbl cols derives mayPrimaryIdx (listToMaybe notNullIdxs)
+  defineTableDefault scm tbl cols derives mayPrimaryIdx (listToMaybe notNullIdxs)

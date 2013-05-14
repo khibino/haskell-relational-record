@@ -10,9 +10,9 @@ module Database.Relational.Query.TH (
 
   defineColumn, defineColumnDefault,
 
-  defineTable, defineTableDefault,
+  defineTableTypes, defineTableTypesDefault,
 
-  defineRecordAndTableDefault,
+  defineTableTypesAndRecordDefault,
 
   definePrimaryQuery,
   definePrimaryUpdate,
@@ -26,8 +26,8 @@ module Database.Relational.Query.TH (
   defineSqlsWithPrimaryKeyDefault,
   defineSqlsDefault,
 
-  defineWithTableDefault',
-  defineWithTableDefault,
+  defineTableDefault',
+  defineTableDefault,
 
   inlineQuery
   ) where
@@ -128,13 +128,13 @@ defineColumnDefault mayConstraint recType name =
   where varN        = varCamelcaseName (name ++ "'")
         withCName t = (t, varCamelcaseName (name ++ "_constraint"))
 
-defineTable :: VarName                          -- ^ Table declaration variable name
-            -> VarName                          -- ^ Relation declaration variable name
-            -> TypeQ                            -- ^ Record type
-            -> String                           -- ^ Table name in SQL ex. FOO_SCHEMA.table0
-            -> [((String, TypeQ), Maybe TypeQ)] -- ^ Column names and types and constraint type
-            -> Q [Dec]                          -- ^ Table and Relation declaration
-defineTable tableVar' relVar' recordType table columns = do
+defineTableTypes :: VarName                          -- ^ Table declaration variable name
+                 -> VarName                          -- ^ Relation declaration variable name
+                 -> TypeQ                            -- ^ Record type
+                 -> String                           -- ^ Table name in SQL ex. FOO_SCHEMA.table0
+                 -> [((String, TypeQ), Maybe TypeQ)] -- ^ Column names and types and constraint type
+                 -> Q [Dec]                          -- ^ Table and Relation declaration
+defineTableTypes tableVar' relVar' recordType table columns = do
   let tableVar = varName tableVar'
   tableDs <- simpleValD tableVar [t| Table $(recordType) |]
             [| Table.table $(stringE table) $(listE $ map stringE (map (fst . fst) columns)) |]
@@ -158,13 +158,13 @@ relationVarNameDefault =  varCamelcaseName
 relationVarExpDefault :: String -> ExpQ
 relationVarExpDefault =  toVarExp . relationVarNameDefault
 
-defineTableDefault :: String                           -- ^ Schema name
-                   -> String                           -- ^ Table name
-                   -> [((String, TypeQ), Maybe TypeQ)] -- ^ Column names and types and constraint type
-                   -> Q [Dec]                          -- ^ Result declarations
-defineTableDefault schema table columns = do
+defineTableTypesDefault :: String                           -- ^ Schema name
+                        -> String                           -- ^ Table name
+                        -> [((String, TypeQ), Maybe TypeQ)] -- ^ Column names and types and constraint type
+                        -> Q [Dec]                          -- ^ Result declarations
+defineTableTypesDefault schema table columns = do
   let recordType = recordTypeDefault table
-  tableDs <- defineTable
+  tableDs <- defineTableTypes
              (tableVarNameDefault table)
              (relationVarNameDefault table)
              recordType
@@ -174,15 +174,15 @@ defineTableDefault schema table columns = do
   colsDs  <- fmap concat . sequence . zipWith defCol [0..] $ columns
   return $ tableDs ++ colsDs
 
-defineRecordAndTableDefault :: TypeQ             -- ^ SQL value type
-                            -> String            -- ^ Schema name
-                            -> String            -- ^ Table name
-                            -> [(String, TypeQ)] -- ^ Column names and types
-                            -> [ConName]         -- ^ Record derivings
-                            -> Q [Dec]           -- ^ Result declarations
-defineRecordAndTableDefault sqlValueType schema table columns drives = do
+defineTableTypesAndRecordDefault :: TypeQ             -- ^ SQL value type
+                                 -> String            -- ^ Schema name
+                                 -> String            -- ^ Table name
+                                 -> [(String, TypeQ)] -- ^ Column names and types
+                                 -> [ConName]         -- ^ Record derivings
+                                 -> Q [Dec]           -- ^ Result declarations
+defineTableTypesAndRecordDefault sqlValueType schema table columns drives = do
   recDs   <- defineRecordDefault sqlValueType table columns drives
-  tableDs <- defineTableDefault schema table [(c, Nothing) | c <- columns ]
+  tableDs <- defineTableTypesDefault schema table [(c, Nothing) | c <- columns ]
   return $ recDs ++ tableDs
 
 
@@ -241,14 +241,14 @@ defineSqlsDefault table =
     (table `varNameWithPrefix` "insert")
 
 
-defineWithTableDefault' :: TypeQ
-                        -> String
-                        -> String
-                        -> [(String, TypeQ)]
-                        -> [ConName]
-                        -> Q [Dec]
-defineWithTableDefault' sqlType schema table fields derives = do
-  recD <- defineRecordAndTableDefault sqlType schema table fields derives
+defineTableDefault' :: TypeQ
+                    -> String
+                    -> String
+                    -> [(String, TypeQ)]
+                    -> [ConName]
+                    -> Q [Dec]
+defineTableDefault' sqlType schema table fields derives = do
+  recD <- defineTableTypesAndRecordDefault sqlType schema table fields derives
   let recType = recordTypeDefault table
       tableE  = tableVarExpDefault table
   sqlD <- defineSqlsDefault table recType tableE
@@ -266,17 +266,17 @@ defineWithPrimaryKeyDefault table keyType idx = do
 defineWithNotNullKeyDefault :: String -> TypeQ -> Int -> Q [Dec]
 defineWithNotNullKeyDefault =  defineHasNotNullKeyInstanceDefault
 
-defineWithTableDefault :: TypeQ
-                       -> String
-                       -> String
-                       -> [(String, TypeQ)]
-                       -> [ConName]
-                       -> Maybe Int
-                       -> Maybe Int
-                       -> Q [Dec]
-defineWithTableDefault sqlType schema table fields derives mayPrimaryIdx mayNotNullIdx = do
+defineTableDefault :: TypeQ
+                   -> String
+                   -> String
+                   -> [(String, TypeQ)]
+                   -> [ConName]
+                   -> Maybe Int
+                   -> Maybe Int
+                   -> Q [Dec]
+defineTableDefault sqlType schema table fields derives mayPrimaryIdx mayNotNullIdx = do
   let keyType = snd . (fields !!)
-  tblD  <- defineWithTableDefault' sqlType schema table fields derives
+  tblD  <- defineTableDefault' sqlType schema table fields derives
   primD <- maybeD (\i -> defineWithPrimaryKeyDefault table (keyType i) i) mayPrimaryIdx
   nnD   <- maybeD (\i -> defineWithNotNullKeyDefault table (keyType i) i) mayNotNullIdx
   return $ tblD ++ primD ++ nnD

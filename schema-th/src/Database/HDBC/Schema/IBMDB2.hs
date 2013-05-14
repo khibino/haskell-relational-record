@@ -34,7 +34,7 @@ import Database.Record.TH (derivingShow)
 
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Type (unsafeTypedQuery, fromRelation)
-import Database.Relational.Query.TH (defineRecordAndTableDefault)
+import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 import Database.Relational.Query
   (Query, PrimeRelation, inner, relation,
    wheres, (.=.), (!), placeholder, asc)
@@ -46,7 +46,7 @@ import Database.HDBC.Schema.Driver
   (TypeMap, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
 
 
-$(defineRecordAndTableDefault
+$(defineTableTypesAndRecordDefault
   [t| SqlValue |]
   "SYSCAT" "columns"
   [

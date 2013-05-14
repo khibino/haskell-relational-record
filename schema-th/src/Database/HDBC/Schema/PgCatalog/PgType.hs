@@ -19,9 +19,9 @@ import Database.HDBC.Record.Persistable ()
 
 import Database.Record.TH (derivingShow)
 
-import Database.Relational.Query.TH (defineRecordAndTableDefault)
+import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
-$(defineRecordAndTableDefault
+$(defineTableTypesAndRecordDefault
   [t| SqlValue |]
   "PG_CATALOG" "pg_type"
 
