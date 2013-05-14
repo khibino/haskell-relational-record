@@ -24,7 +24,8 @@ module Database.Record.TH (
 
 import Language.Haskell.TH.Name.CamelCase
   (ConName(conName), VarName(varName),
-   conCamelcaseName, varCamelcaseName, toTypeCon, varNameWithPrefix)
+   conCamelcaseName, varCamelcaseName, varNameWithPrefix,
+   toTypeCon, toVarExp)
 import Language.Haskell.TH.Name.Extra (integralE)
 import Language.Haskell.TH
   (Q, mkName,
@@ -128,11 +129,11 @@ defineRecordDecomposeFunction :: TypeQ     -- ^ SQL value type.
                               -> Q [Dec]   -- ^ Declaration of record construct function from SQL values.
 defineRecordDecomposeFunction sqlValType funName' typeCon fields = do
   let funName = varName funName'
-      accessors = map (varE . varName) fields
+      accessors = map toVarExp fields
       recVar = mkName "rec"
   sig <- sigD funName [t| $typeCon -> [$(sqlValType)] |]
   var <- funD funName [ clause [varP recVar]
-                        (normalB . listE $ map (\a -> [| toSql ($a $(varE recVar)) |]) accessors)
+                        (normalB . listE $ [ [| toSql ($a $(varE recVar)) |] | a <- accessors ])
                         [] ]
   return [sig, var]
 
@@ -149,8 +150,8 @@ definePersistableInstance sqlType typeCon consFunName' decompFunName' width = do
       instance Persistable $sqlType $typeCon where
         persistable = persistableRecord
                       persistableWidth
-                      $(varE $ varName consFunName')
-                      $(varE $ varName decompFunName')
+                      $(toVarExp consFunName')
+                      $(toVarExp decompFunName')
 
       instance FromSql $sqlType $typeCon where
         recordFromSql = recordFromSql'
