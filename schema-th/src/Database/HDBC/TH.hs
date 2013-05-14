@@ -29,18 +29,26 @@ import Database.HDBC (IConnection, SqlValue)
 import Language.Haskell.TH.Name.CamelCase (ConName)
 import Language.Haskell.TH (Q, runIO, TypeQ, Dec)
 
-import Database.HDBC.Session (withConnectionIO)
+import Database.Record.TH (defineRecordWithSqlTypeDefault)
 import qualified Database.Relational.Query.TH as Relational
+
+import Database.HDBC.Session (withConnectionIO)
 import Database.HDBC.Record.Persistable ()
 
 import Database.HDBC.Schema.Driver (Driver, getFields, getPrimaryKey)
 
 
 defineTableDefault' :: String -> String -> [(String, TypeQ)] -> [ConName] -> Q [Dec]
-defineTableDefault' =  Relational.defineTableDefault' [t| SqlValue |]
+defineTableDefault' schema table columns derives = do
+  modelD <- Relational.defineTableDefault' schema table columns derives
+  sqlvD  <- defineRecordWithSqlTypeDefault [t| SqlValue |] table columns
+  return $ modelD ++ sqlvD
 
 defineTableDefault  :: String -> String -> [(String, TypeQ)] -> [ConName] -> Maybe Int -> Maybe Int -> Q [Dec]
-defineTableDefault  =  Relational.defineTableDefault  [t| SqlValue |]
+defineTableDefault schema table columns derives primary notNull = do
+  modelD <- Relational.defineTableDefault schema table columns derives primary notNull
+  sqlvD  <- defineRecordWithSqlTypeDefault [t| SqlValue |] table columns
+  return $ modelD ++ sqlvD
 
 putLog :: String -> IO ()
 putLog =  putStrLn

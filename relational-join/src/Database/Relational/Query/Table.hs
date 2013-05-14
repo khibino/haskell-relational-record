@@ -1,15 +1,15 @@
 module Database.Relational.Query.Table (
   Untyped, name', width', columns', (!),
 
-  Table, unType, name, width, columns, index, table, outer,
+  Table, unType, name, shortName, width, columns, index, table, outer,
   ) where
 
 import Data.Array (Array, listArray, elems)
 import qualified Data.Array as Array
 
 data Untyped = Untyped
-               { name'      :: String
-               , width'     :: Int
+               { name'       :: String
+               , width'      :: Int
                , columnArray :: Array Int String
                }
 
@@ -24,6 +24,9 @@ newtype Table r = Table { unType :: Untyped }
 
 name :: Table r -> String
 name   = name'   . unType
+
+shortName :: Table r -> String
+shortName =  tail . dropWhile (/= '.') . name
 
 width :: Table r -> Int
 width  = width'  . unType

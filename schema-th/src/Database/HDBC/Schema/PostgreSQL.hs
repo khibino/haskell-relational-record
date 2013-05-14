@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 -- |
 -- Module      : Database.HDBC.Schema.PostgreSQL
@@ -14,6 +15,7 @@ module Database.HDBC.Schema.PostgreSQL (
   ) where
 
 import Language.Haskell.TH (TypeQ)
+import qualified Language.Haskell.TH.Name.CamelCase as TH
 import qualified Language.Haskell.TH.Name.Extra as TH
 
 import Data.Int (Int16, Int32, Int64)
@@ -24,23 +26,26 @@ import Data.Time
   (DiffTime, NominalDiffTime,
    LocalTime, ZonedTime, Day, TimeOfDay)
 
-import Database.HDBC (IConnection)
+import Database.HDBC (IConnection, SqlValue)
 
+import Database.Record.TH (defineRecordWithSqlTypeDefaultFromDefined)
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Type (unsafeTypedQuery)
 import Database.Relational.Query (Query(untypeQuery))
 import Database.HDBC.Record.Query (runQuery', listToUnique)
 
-import Database.HDBC.Schema.PgCatalog.PgAttribute (PgAttribute, tableOfPgAttribute)
-import qualified Database.HDBC.Schema.PgCatalog.PgAttribute as Attr
-import Database.HDBC.Schema.PgCatalog.PgType (PgType(..), tableOfPgType)
-import qualified Database.HDBC.Schema.PgCatalog.PgType as Type
+import Database.Relational.Schema.PgCatalog.PgAttribute (PgAttribute(PgAttribute), tableOfPgAttribute)
+import qualified Database.Relational.Schema.PgCatalog.PgAttribute as Attr
+import Database.Relational.Schema.PgCatalog.PgType (PgType(..), tableOfPgType)
+import qualified Database.Relational.Schema.PgCatalog.PgType as Type
 
 import Language.SQL.Keyword (Keyword(..), (<.>), (.=.))
 import qualified Language.SQL.Keyword as SQL
 
+import Database.HDBC.Record.Persistable ()
 import Database.HDBC.Schema.Driver
   (TypeMap, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
+
 
 mapFromSqlDefault :: Map String TypeQ
 mapFromSqlDefault =
@@ -159,6 +164,13 @@ primaryKeyQuerySQL =
      "attnotnull" .=. "TRUE",    AND,
      "contype" .=. "'p'",        AND,
      "array_length (conkey, 1)" .=. "1"]
+
+
+$(defineRecordWithSqlTypeDefaultFromDefined
+  [t| SqlValue |] (Table.shortName tableOfPgAttribute))
+
+$(defineRecordWithSqlTypeDefaultFromDefined
+  [t| SqlValue |] (Table.shortName tableOfPgType))
 
 logPrefix :: String -> String
 logPrefix =  ("PostgreSQL: " ++)

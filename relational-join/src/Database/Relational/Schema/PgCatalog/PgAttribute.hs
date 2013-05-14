@@ -1,5 +1,4 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 
 -- |
 -- Module      : Database.HDBC.Schema.PgCatalog.PgAttribute
@@ -9,20 +8,14 @@
 -- Maintainer  : ex8k.hibino@gmail.com
 -- Stability   : experimental
 -- Portability : unknown
-module Database.HDBC.Schema.PgCatalog.PgAttribute where
+module Database.Relational.Schema.PgCatalog.PgAttribute where
 
 import Data.Int (Int16, Int32)
 
-import Database.HDBC (SqlValue)
-
-import Database.HDBC.Record.Persistable ()
-
 import Database.Record.TH (derivingShow)
-
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
 $(defineTableTypesAndRecordDefault
-  [t| SqlValue |]
   "PG_CATALOG" "pg_attribute"
 
   [

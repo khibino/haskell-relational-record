@@ -32,6 +32,11 @@ library
                        Database.Relational.Query.Type
                        Database.Relational.Query.Derives
                        Database.Relational.Query.TH
+
+                       Database.Relational.Schema.DB2Syscat.Columns
+                       Database.Relational.Schema.PgCatalog.PgAttribute
+                       Database.Relational.Schema.PgCatalog.PgType
+
   -- other-modules:
   build-depends:         base <5
                        , array
