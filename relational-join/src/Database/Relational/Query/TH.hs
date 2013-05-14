@@ -14,7 +14,7 @@ module Database.Relational.Query.TH (
   defineInsert,
 
   tableVarExpDefault,
-  relationalVarExpDefault,
+  relationVarExpDefault,
 
   defineSqlsWithPrimaryKey,
   defineSqls,
@@ -133,8 +133,8 @@ tableVarExpDefault =  toVarExp . tableVarNameDefault
 relationVarNameDefault :: String -> VarName
 relationVarNameDefault =  varCamelcaseName
 
-relationalVarExpDefault :: String -> ExpQ
-relationalVarExpDefault =  toVarExp . relationVarNameDefault
+relationVarExpDefault :: String -> ExpQ
+relationVarExpDefault =  toVarExp . relationVarNameDefault
 
 defineTableDefault :: String                           -- ^ Schema name
                    -> String                           -- ^ Table name
