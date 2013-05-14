@@ -13,11 +13,16 @@ module Database.Record.TH (
 
   derivingEq, derivingShow, derivingRead, derivingData, derivingTypable,
 
-  defineRecordType,
+  defineRecordType, defineRecordTypeDefault,
+
   defineRecordConstructFunction,
   defineRecordDecomposeFunction,
 
   definePersistableInstance,
+
+  defineRecordWithSqlType,
+  defineRecordWithSqlTypeDefault,
+
   defineRecord,
   defineRecordDefault
   ) where
@@ -96,6 +101,16 @@ defineRecordType typeName' fields derives = do
   where
     fld (n, tq) = varStrictType (varName n) (strictType isStrict tq)
 
+columnDefault :: String -> TypeQ -> (VarName, TypeQ)
+columnDefault n t = (varCamelcaseName n, t)
+
+defineRecordTypeDefault :: String -> [(String, TypeQ)] -> [ConName] -> DecQ
+defineRecordTypeDefault table columns =
+  defineRecordType
+  (recordTypeNameDefault table)
+  [ columnDefault n t | (n, t) <- columns ]
+
+
 defineRecordConstructFunction :: TypeQ     -- ^ SQL value type.
                               -> VarName   -- ^ Name of record construct function.
                               -> ConName   -- ^ Name of record type.
@@ -160,6 +175,35 @@ definePersistableInstance sqlType typeCon consFunName' decompFunName' width = do
         recordToSql = recordToSql'
     |]
 
+defineRecordWithSqlType :: TypeQ              -- ^ SQL value type
+                        -> (VarName, VarName) -- ^ Constructor function name and decompose function name
+                        -> ConName            -- ^ Record type name
+                        -> [(VarName, TypeQ)] -- ^ Column schema
+                        -> Q [Dec]            -- ^ Result declarations
+defineRecordWithSqlType
+  sqlValueType
+  (cF, dF) tyC
+  columns = do
+  let width = length columns
+      typeCon = toTypeCon tyC
+  fromSQL  <- defineRecordConstructFunction sqlValueType cF tyC width
+  toSQL    <- defineRecordDecomposeFunction sqlValueType dF typeCon (map fst columns)
+  instSQL  <- definePersistableInstance sqlValueType typeCon cF dF width
+  return $ fromSQL ++ toSQL ++ instSQL
+
+defineRecordWithSqlTypeDefault :: TypeQ             -- ^ SQL value type
+                               -> String            -- ^ Table name
+                               -> [(String, TypeQ)] -- ^ Column names and types
+                               -> Q [Dec]           -- ^ Result declarations
+defineRecordWithSqlTypeDefault sqlValueType table columns = do
+  defineRecordWithSqlType
+    sqlValueType
+    (table `varNameWithPrefix` "fromSqlOf",
+     table `varNameWithPrefix` "toSqlOf")
+    (recordTypeNameDefault table)
+    [ columnDefault n t | (n, t) <- columns ]
+
+
 defineRecord :: TypeQ              -- ^ SQL value type
              -> (VarName, VarName) -- ^ Constructor function name and decompose function name
              -> ConName            -- ^ Record type name
@@ -168,27 +212,19 @@ defineRecord :: TypeQ              -- ^ SQL value type
              -> Q [Dec]            -- ^ Result declarations
 defineRecord
   sqlValueType
-  (cF, dF) tyC
+  funs tyC
   columns drvs = do
 
-  typ  <- defineRecordType tyC columns drvs
-  let width = length columns
-      typeCon = toTypeCon tyC
-  fromSQL  <- defineRecordConstructFunction sqlValueType cF tyC width
-  toSQL    <- defineRecordDecomposeFunction sqlValueType dF typeCon (map fst columns)
-  instSQL  <- definePersistableInstance sqlValueType typeCon cF dF width
-  return $ typ : fromSQL ++ toSQL ++ instSQL
+  typ     <- defineRecordType tyC columns drvs
+  withSql <- defineRecordWithSqlType sqlValueType funs tyC columns
+  return $ typ : withSql
 
 defineRecordDefault :: TypeQ             -- ^ SQL value type
                     -> String            -- ^ Table name
                     -> [(String, TypeQ)] -- ^ Column names and types
                     -> [ConName]         -- ^ Record derivings
                     -> Q [Dec]           -- ^ Result declarations
-defineRecordDefault sqlValueType table columns drives = do
-  defineRecord
-    sqlValueType
-    (table `varNameWithPrefix` "fromSqlOf",
-     table `varNameWithPrefix` "toSqlOf")
-    (recordTypeNameDefault table)
-    (map (\(n, t) -> (varCamelcaseName n, t)) columns)
-    drives
+defineRecordDefault sqlValueType table columns derives = do
+  typ     <- defineRecordTypeDefault table columns derives
+  withSql <- defineRecordWithSqlTypeDefault sqlValueType table columns
+  return $ typ : withSql
