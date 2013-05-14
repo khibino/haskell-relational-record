@@ -208,13 +208,13 @@ defineInsert toDef' recType tableE = do
     [t| Insert $recType |]
     [|  typedInsert $tableE |]
 
-defineSqlsWithPrimaryKey :: VarName
-                         -> VarName
-                         -> TypeQ
-                         -> TypeQ
-                         -> ExpQ
-                         -> ExpQ
-                         -> Q [Dec]
+defineSqlsWithPrimaryKey :: VarName -- ^ Variable name of select query definition from primary key
+                         -> VarName -- ^ Variable name of update statement definition from primary key
+                         -> TypeQ   -- ^ Primary key type
+                         -> TypeQ   -- ^ Record type
+                         -> ExpQ    -- ^ Relation expression
+                         -> ExpQ    -- ^ Table expression
+                         -> Q [Dec] -- ^ Result declarations
 defineSqlsWithPrimaryKey sel upd paramType recType relE tableE = do
   selD <- definePrimaryQuery  sel paramType recType relE
   updD <- definePrimaryUpdate upd paramType recType tableE
@@ -223,12 +223,12 @@ defineSqlsWithPrimaryKey sel upd paramType recType relE tableE = do
 defineSqls :: VarName -> TypeQ -> ExpQ -> Q [Dec]
 defineSqls =  defineInsert
 
-defineSqlsWithPrimaryKeyDefault :: String
-                                -> TypeQ
-                                -> TypeQ
-                                -> ExpQ
-                                -> ExpQ
-                                -> Q [Dec]
+defineSqlsWithPrimaryKeyDefault :: String  -- ^ Table name of Database
+                                -> TypeQ   -- ^ Primary key type
+                                -> TypeQ   -- ^ Record type
+                                -> ExpQ    -- ^ Relation expression
+                                -> ExpQ    -- ^ Table expression
+                                -> Q [Dec] -- ^ Result declarations
 defineSqlsWithPrimaryKeyDefault table  =
   defineSqlsWithPrimaryKey sel upd
   where
@@ -241,12 +241,12 @@ defineSqlsDefault table =
     (table `varNameWithPrefix` "insert")
 
 
-defineTableDefault' :: TypeQ
-                    -> String
-                    -> String
-                    -> [(String, TypeQ)]
-                    -> [ConName]
-                    -> Q [Dec]
+defineTableDefault' :: TypeQ             -- ^ Type for SQL like HDBC 'SqlValue' type
+                    -> String            -- ^ Schema name of Database
+                    -> String            -- ^ Table name of Database
+                    -> [(String, TypeQ)] -- ^ Column names and types
+                    -> [ConName]         -- ^ derivings for Record type
+                    -> Q [Dec]           -- ^ Result declarations
 defineTableDefault' sqlType schema table fields derives = do
   recD <- defineTableTypesAndRecordDefault sqlType schema table fields derives
   let recType = recordTypeDefault table
@@ -266,14 +266,14 @@ defineWithPrimaryKeyDefault table keyType idx = do
 defineWithNotNullKeyDefault :: String -> TypeQ -> Int -> Q [Dec]
 defineWithNotNullKeyDefault =  defineHasNotNullKeyInstanceDefault
 
-defineTableDefault :: TypeQ
-                   -> String
-                   -> String
-                   -> [(String, TypeQ)]
-                   -> [ConName]
-                   -> Maybe Int
-                   -> Maybe Int
-                   -> Q [Dec]
+defineTableDefault :: TypeQ             -- ^ Type for SQL like HDBC 'SqlValue' type
+                   -> String            -- ^ Schema name of Database
+                   -> String            -- ^ Table name of Database
+                   -> [(String, TypeQ)] -- ^ Column names and types
+                   -> [ConName]         -- ^ derivings for Record type
+                   -> Maybe Int         -- ^ Primary key index
+                   -> Maybe Int         -- ^ Not null key index
+                   -> Q [Dec]           -- ^ Result declarations
 defineTableDefault sqlType schema table fields derives mayPrimaryIdx mayNotNullIdx = do
   let keyType = snd . (fields !!)
   tblD  <- defineTableDefault' sqlType schema table fields derives
@@ -282,7 +282,10 @@ defineTableDefault sqlType schema table fields derives mayPrimaryIdx mayNotNullI
   return $ tblD ++ primD ++ nnD
 
 
-inlineQuery :: VarName -> PrimeRelation p r -> VarName -> Q [Dec]
+inlineQuery :: VarName           -- ^ Top-level variable name which has 'PrimeRelation' type
+            -> PrimeRelation p r -- ^ Object which has 'PrimeRelation' type
+            -> VarName           -- ^ Variable name for inlined query
+            -> Q [Dec]           -- ^ Result declarations
 inlineQuery relVar' rel qVar' =  do
   let relVar = varName relVar'
       qVar   = varName qVar'
