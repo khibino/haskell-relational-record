@@ -16,9 +16,9 @@ import Language.Haskell.TH.Name.Extra (compileError)
 import Data.Convertible (Convertible)
 import Database.HDBC (SqlValue)
 import Database.HDBC.SqlValueExtra ()
-import Database.Record (PersistableWidth(persistableWidth))
+import Database.Record (PersistableWidth)
+import Database.Record.TH (deriveNotNullValue)
 import Database.Record.Instances ()
-import qualified Database.Record.Persistable as Persistable
 
 import Database.HDBC.Record.TH (derivePersistableInstanceFromValue)
 
@@ -80,12 +80,6 @@ persistableWidthValues =  cvInfo >>= d0  where
     d1 decl                                    = unknownDeclaration $ show decl
   d0 cls           = unknownDeclaration $ show cls
 
-derivePersistableWidth :: Q Type -> Q [Dec]
-derivePersistableWidth typ =
-  [d| instance PersistableWidth $(typ)  where
-        persistableWidth = Persistable.valueWidth
-    |]
-
 mapInstanceD :: (Q Type -> Q [Dec]) -> [Type] -> Q [Dec]
 mapInstanceD fD = fmap concat . mapM (fD . return)
 
@@ -93,6 +87,6 @@ derivePersistableInstancesFromConvertibleSqlValues :: Q [Dec]
 derivePersistableInstancesFromConvertibleSqlValues =  do
   wds <- persistableWidthValues
   svs <- convertibleSqlValues
-  ws <- mapInstanceD derivePersistableWidth (toList $ Set.difference svs wds)
+  ws <- mapInstanceD deriveNotNullValue (toList $ Set.difference svs wds)
   ps <- mapInstanceD derivePersistableInstanceFromValue (toList svs)
   return $ ws ++ ps

@@ -27,7 +27,9 @@ module Database.Record.TH (
   defineRecordWithSqlTypeDefaultFromDefined,
 
   defineRecord,
-  defineRecordDefault
+  defineRecordDefault,
+
+  deriveNotNullValue
   ) where
 
 
@@ -54,9 +56,10 @@ import Database.Record
    ToSql(recordToSql), recordToSql')
 
 import Database.Record.KeyConstraint
-  (specifyKeyConstraint)
+  (specifyKeyConstraint, specifyNotNullValue)
 import Database.Record.Persistable
   (persistableRecord, persistableRecordWidth)
+import qualified Database.Record.Persistable as Persistable
 
 
 defineHasKeyConstraintInstance :: TypeQ -> TypeQ -> Int -> Q [Dec]
@@ -264,3 +267,13 @@ defineRecordDefault sqlValueType table columns derives = do
   typ     <- defineRecordTypeDefault table columns derives
   withSql <- defineRecordWithSqlTypeDefault sqlValueType table columns
   return $ typ : withSql
+
+
+deriveNotNullValue :: TypeQ -> Q [Dec]
+deriveNotNullValue typeCon =
+  [d| instance PersistableWidth $typeCon where
+        persistableWidth = Persistable.valueWidth
+
+      instance HasKeyConstraint NotNull $typeCon where
+        keyConstraint = specifyNotNullValue
+    |]

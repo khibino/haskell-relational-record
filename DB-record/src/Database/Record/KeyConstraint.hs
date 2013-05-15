@@ -24,7 +24,9 @@ module Database.Record.KeyConstraint (
   HasKeyConstraint (keyConstraint),
 
   derivedUniqueConstraint,
-  derivedNotNullConstraint
+  derivedNotNullConstraint,
+
+  specifyNotNullValue
   ) where
 
 newtype KeyConstraint c r = KeyConstraint { index :: Int }
@@ -61,3 +63,7 @@ derivedUniqueConstraint =  unique keyConstraint
 
 derivedNotNullConstraint :: HasKeyConstraint Primary r => NotNullConstraint r
 derivedNotNullConstraint =  notNull keyConstraint
+
+
+specifyNotNullValue :: KeyConstraint NotNull a
+specifyNotNullValue =  specifyKeyConstraint 0

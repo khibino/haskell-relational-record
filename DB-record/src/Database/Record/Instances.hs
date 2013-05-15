@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
 
 -- |
 -- Module      : Database.Record.Instances
@@ -14,21 +15,10 @@
 module Database.Record.Instances () where
 
 import Data.Int (Int16, Int32, Int64)
-import Database.Record.Persistable
-  (PersistableWidth(persistableWidth), valueWidth)
+import Database.Record.TH (deriveNotNullValue)
 
-
-instance PersistableWidth String  where
-  persistableWidth = valueWidth
-
-instance PersistableWidth Int  where
-  persistableWidth = valueWidth
-
-instance PersistableWidth Int16  where
-  persistableWidth = valueWidth
-
-instance PersistableWidth Int32  where
-  persistableWidth = valueWidth
-
-instance PersistableWidth Int64  where
-  persistableWidth = valueWidth
+$(deriveNotNullValue [t| String |])
+$(deriveNotNullValue [t| Int |])
+$(deriveNotNullValue [t| Int16 |])
+$(deriveNotNullValue [t| Int32 |])
+$(deriveNotNullValue [t| Int64 |])
