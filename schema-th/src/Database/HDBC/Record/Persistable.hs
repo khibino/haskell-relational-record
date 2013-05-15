@@ -12,7 +12,7 @@ module Database.HDBC.Record.Persistable (
 import Database.Record (PersistableSqlValue, PersistableType (..), PersistableValue (..))
 import Database.Record.Persistable (persistableSqlTypeFromNull)
 import qualified Database.Record.Persistable as Record
-import Database.HDBC.Record.TH (derivePersistableInstancesFromConvertibleSqlValues)
+import Database.HDBC.Record.InternalTH (derivePersistableInstancesFromConvertibleSqlValues)
 
 import Data.Convertible (Convertible)
 import Database.HDBC (SqlValue(SqlNull), fromSql, toSql)
