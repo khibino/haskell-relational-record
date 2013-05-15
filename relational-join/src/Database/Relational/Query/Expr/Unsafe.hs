@@ -2,7 +2,7 @@
 module Database.Relational.Query.Expr.Unsafe (
   Expr(Expr, showExpr),
 
-  compareBinOp, binOp
+  compareBinOp, numBinOp, binOp
   ) where
 
 import qualified Language.SQL.Keyword as SQL
@@ -24,3 +24,8 @@ binOp op a b = Expr . paren . SQL.wordShow
 compareBinOp :: (SQL.Keyword -> SQL.Keyword -> SQL.Keyword)
              -> Expr ft -> Expr ft -> Expr Bool
 compareBinOp =  binOp
+
+numBinOp :: Num a
+         => (SQL.Keyword -> SQL.Keyword -> SQL.Keyword)
+         -> Expr a -> Expr a -> Expr a
+numBinOp =  binOp

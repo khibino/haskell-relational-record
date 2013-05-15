@@ -30,8 +30,10 @@ import Database.Relational.Query.Product
   (QueryProduct, JoinAttr(Inner, Outer), growProduct, restrictProduct)
 import qualified Database.Relational.Query.Product as Product
 
-import Database.Relational.Query.Projection (Projection, Projectable(project))
+import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
+import Database.Relational.Query.Projectable (Projectable(project))
+import qualified Database.Relational.Query.Projectable as Projectable
 
 import Database.Relational.Query.Pi (Pi)
 
@@ -59,7 +61,7 @@ updateRestriction' :: Expr Bool -> Context -> Context
 updateRestriction' e1 ctx =
   ctx { restriction = Just . uf . restriction $ ctx }
   where uf  Nothing = e1
-        uf (Just e0) = e0 `Expr.and` e1
+        uf (Just e0) = e0 `Projectable.and` e1
 
 updateOrderBy' :: Order -> Expr t -> Context -> Context
 updateOrderBy' order e ctx =
@@ -123,7 +125,7 @@ record :: Qualified (Relation r) -> Projection r
 record =  snd . record'
 
 expr :: Projection ft -> Expr ft
-expr =  Projection.toExpr
+expr =  project
 
 compose :: Projection a -> Projection b -> Projection (c a b)
 compose =  Projection.compose

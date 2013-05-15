@@ -7,8 +7,8 @@ module Database.Relational.Query.Product (
   ) where
 
 import Prelude hiding (and)
-import Database.Relational.Query.Expr (Expr, showExpr, and)
-import Database.Relational.Query.Projection (valueTrue)
+import Database.Relational.Query.Expr (Expr, showExpr)
+import Database.Relational.Query.Projectable (valueTrue, and)
 import Database.Relational.Query.AliasId (Qualified)
 import Database.Relational.Query.Sub (SubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery

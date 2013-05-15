@@ -7,9 +7,7 @@ module Database.Relational.Query.Expr (
 
   valueExpr,
 
-  just, unsafeFromJust,
-
-  (.=.), (.<>.), (.>.), (.<.), and, or
+  just, unsafeFromJust
   ) where
 
 import Prelude hiding (and, or)
@@ -19,9 +17,7 @@ import qualified Data.ByteString.Char8 as BS
 import Data.Text (Text)
 import qualified Data.Text as T
 
-import qualified Language.SQL.Keyword as SQL
-
-import Database.Relational.Query.Expr.Unsafe (Expr(Expr, showExpr), compareBinOp)
+import Database.Relational.Query.Expr.Unsafe (Expr(Expr, showExpr))
 
 
 intExprSQL :: (Show a, Integral a) => a -> String
@@ -76,26 +72,3 @@ just =  Expr . showExpr
 
 unsafeFromJust :: Expr (Maybe ft) -> Expr ft
 unsafeFromJust =  Expr . showExpr
-
-
-(.=.) :: Expr ft -> Expr ft -> Expr Bool
-(.=.) =  compareBinOp (SQL..=.)
-
-(.<>.) :: Expr ft -> Expr ft -> Expr Bool
-(.<>.) =  compareBinOp (SQL..<>.)
-
-(.>.) :: Expr ft -> Expr ft -> Expr Bool
-(.>.) =  compareBinOp (SQL.defineBinOp (SQL.word ">"))
-
-(.<.) :: Expr ft -> Expr ft -> Expr Bool
-(.<.) =  compareBinOp (SQL.defineBinOp (SQL.word "<"))
-
-and :: Expr Bool ->  Expr Bool ->  Expr Bool
-and =  compareBinOp SQL.and
-
-or :: Expr Bool ->  Expr Bool ->  Expr Bool
-or =  compareBinOp SQL.or
-
-infixr 4 .=., .<>.
-infixr 3 `and`
-infixr 2 `or`

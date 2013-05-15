@@ -24,6 +24,7 @@ library
                        Database.Relational.Query.Pi.Unsafe
                        Database.Relational.Query.Constraint
                        Database.Relational.Query.Projection
+                       Database.Relational.Query.Projectable
                        Database.Relational.Query.Join
                        Database.Relational.Query.Expr
                        Database.Relational.Query.Expr.Unsafe
