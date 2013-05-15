@@ -40,7 +40,10 @@ library
                        Database.Relational.Schema.PgCatalog.PgType
                        Database.Relational.Schema.PostgreSQL
 
-  -- other-modules:
+  other-modules:
+                       Database.Relational.Schema.DB2Syscat.Tabconst
+                       Database.Relational.Schema.DB2Syscat.Keycoluse
+
   build-depends:         base <5
                        , array
                        , containers
