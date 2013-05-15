@@ -1,10 +1,12 @@
 
-name:                HDBC-schema-th
+name:                relational-query-HDBC
 version:             0.0.1.0
-synopsis:            Database access template for HDBC using database system catalogs
-description:         This package contains template haskell functions to generate codes
-                     correspond to Database table definitions and functions which read
-                     table and index definitions from Database system catalogs.
+synopsis:            HDBC instance of relational join and typed query for HDBC
+description:         This package contains HDBC instance of relational-join and 
+                     typed query for HDBC.
+                     Generating Database table definitions and functions for
+                     relational-join by reading table and index definitions
+                     from Database system catalogs.
 homepage:            http://twitter.com/khibino
 license:             BSD3
 license-file:        LICENSE
@@ -34,11 +36,9 @@ library
 
   build-depends:         base <5
                        , containers
-                       , time
                        , convertible
                        , template-haskell
                        , names-th
-                       , sql-words
                        , DB-record
                        , relational-join
                        , HDBC >=2

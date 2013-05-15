@@ -1,4 +1,4 @@
-Source: haskell-hdbc-schema-th
+Source: haskell-relational-query-hdbc
 Priority: extra
 Section: haskell
 Maintainer: Kei Hibino <ex8k.hibino@gmail.com>
@@ -19,10 +19,12 @@ Build-Depends: debhelper (>= 7.0)
                , libghc-containers-prof | ghc-prof
                , libghc-convertible-dev
                , libghc-convertible-prof
+               , libghc-names-th-dev
+               , libghc-names-th-prof
+               , libghc-relational-join-dev
+               , libghc-relational-join-prof
                , libghc-template-haskell-dev | ghc
                , libghc-template-haskell-prof | ghc-prof
-               , libghc-time-dev | ghc
-               , libghc-time-prof | ghc-prof
 Build-Depends-Indep: ghc-doc
                      , libghc-db-record-doc
                      , libghc-hdbc-doc (>= 2)
@@ -30,12 +32,13 @@ Build-Depends-Indep: ghc-doc
                      , libghc-base-doc (<< 5) | ghc-doc
                      , libghc-containers-doc | ghc-doc
                      , libghc-convertible-doc
+                     , libghc-names-th-doc
+                     , libghc-relational-join-doc
                      , libghc-template-haskell-doc | ghc-doc
-                     , libghc-time-doc | ghc-doc
 Standards-Version: 3.9.3
 Homepage: http://twitter.com/khibino
 
-Package: libghc-hdbc-schema-th-dev
+Package: libghc-relational-query-hdbc-dev
 Architecture: any
 Depends: ${shlibs:Depends}
          , ${haskell:Depends}
@@ -43,44 +46,50 @@ Depends: ${shlibs:Depends}
 Recommends: ${haskell:Recommends}
 Suggests: ${haskell:Suggests}
 Provides: ${haskell:Provides}
-Description: Database access template for HDBC using database system catalogs
- This package contains template haskell functions to generate codes
- correspond to Database table definitions and functions which read
- table and index definitions from Database system catalogs.
+Description: HDBC instance of relational join and typed query for HDBC
+ This package contains HDBC instance of relational-join and
+ typed query for HDBC.
+ Generating Database table definitions and functions for
+ relational-join by reading table and index definitions
+ from Database system catalogs.
  .
   Author: Kei Hibino
   Upstream-Maintainer: ex8k.hibino@gmail.com
  .
  This package contains the normal library files.
 
-Package: libghc-hdbc-schema-th-prof
+Package: libghc-relational-query-hdbc-prof
 Architecture: any
 Depends: ${haskell:Depends}
          , ${misc:Depends}
 Recommends: ${haskell:Recommends}
 Suggests: ${haskell:Suggests}
 Provides: ${haskell:Provides}
-Description: Database access template for HDBC using database system catalogs
- This package contains template haskell functions to generate codes
- correspond to Database table definitions and functions which read
- table and index definitions from Database system catalogs.
+Description: HDBC instance of relational join and typed query for HDBC
+ This package contains HDBC instance of relational-join and
+ typed query for HDBC.
+ Generating Database table definitions and functions for
+ relational-join by reading table and index definitions
+ from Database system catalogs.
  .
   Author: Kei Hibino
   Upstream-Maintainer: ex8k.hibino@gmail.com
  .
  This package contains the libraries compiled with profiling enabled.
 
-Package: libghc-hdbc-schema-th-doc
+Package: libghc-relational-query-hdbc-doc
 Architecture: all
 Section: doc
 Depends: ${haskell:Depends}
          , ${misc:Depends}
 Recommends: ${haskell:Recommends}
 Suggests: ${haskell:Suggests}
-Description: Database access template for HDBC using database system catalogs
- This package contains template haskell functions to generate codes
- correspond to Database table definitions and functions which read
- table and index definitions from Database system catalogs.
+Description: HDBC instance of relational join and typed query for HDBC
+ This package contains HDBC instance of relational-join and
+ typed query for HDBC.
+ Generating Database table definitions and functions for
+ relational-join by reading table and index definitions
+ from Database system catalogs.
  .
   Author: Kei Hibino
   Upstream-Maintainer: ex8k.hibino@gmail.com
