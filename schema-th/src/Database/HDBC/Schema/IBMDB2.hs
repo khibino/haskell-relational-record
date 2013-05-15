@@ -33,12 +33,11 @@ import qualified Database.Relational.Query.Table as Table
 
 import Database.Relational.Schema.IBMDB2
   (normalizeColumn, notNull, getType, columnsQuerySQL, primaryKeyQuerySQL)
+import Database.Relational.Schema.DB2Syscat.Columns (Columns(Columns), tableOfColumns)
+import qualified Database.Relational.Schema.DB2Syscat.Columns as Columns
 
 import Database.HDBC.Schema.Driver
   (TypeMap, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
-  
-import Database.Relational.Schema.DB2Syscat.Columns (Columns(Columns), tableOfColumns)
-import qualified Database.Relational.Schema.DB2Syscat.Columns as Columns
 
 
 -- Specify type constructor and data constructor from same table name.

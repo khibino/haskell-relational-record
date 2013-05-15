@@ -35,8 +35,10 @@ library
 
                        Database.Relational.Schema.DB2Syscat.Columns
                        Database.Relational.Schema.IBMDB2
+
                        Database.Relational.Schema.PgCatalog.PgAttribute
                        Database.Relational.Schema.PgCatalog.PgType
+                       Database.Relational.Schema.PostgreSQL
 
   -- other-modules:
   build-depends:         base <5
