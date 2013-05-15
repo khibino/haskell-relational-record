@@ -30,6 +30,7 @@ module Database.Record.TH (
   defineRecordDefault
   ) where
 
+
 import Language.Haskell.TH.Name.CamelCase
   (ConName(conName), VarName(varName, VarName),
    conCamelcaseName, varCamelcaseName, varNameWithPrefix,
@@ -56,6 +57,7 @@ import Database.Record.KeyConstraint
   (specifyKeyConstraint)
 import Database.Record.Persistable
   (persistableRecord, persistableRecordWidth)
+
 
 defineHasKeyConstraintInstance :: TypeQ -> TypeQ -> Int -> Q [Dec]
 defineHasKeyConstraintInstance constraint typeCon index =

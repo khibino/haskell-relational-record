@@ -18,6 +18,7 @@ library
                         Database.Record.FromSql
                         Database.Record.ToSql
                         Database.Record.Persistable
+                        Database.Record.Instances
                         Database.Record.KeyConstraint
                         Database.Record.Singleton
                         Database.Record
