@@ -23,7 +23,7 @@ Executable sample1
                        , relational-join
                        , HDBC-session
                        , HDBC-postgresql
-                       , HDBC-schema-th
+                       , relational-query-HDBC
   other-modules:
                        User
                        Group
@@ -32,7 +32,7 @@ Executable sample1
   hs-source-dirs:      sample/1, pgTest
 
 Test-suite postgreSQL
-  build-depends:         HDBC-schema-th
+  build-depends:         relational-query-HDBC
                        , Cabal
                        , HDBC-postgresql
                        , bytestring
