@@ -48,7 +48,7 @@ data PrimeRelation a r = Table (Table r)
 
 type Relation = PrimeRelation ()
 
-outer :: PrimeRelation a r -> Relation (Maybe r)
+outer :: PrimeRelation a r -> PrimeRelation a (Maybe r)
 outer =  d  where
   d (Table t)                       = Table $ Table.outer t
   d r@(Relation { projection = p }) = r { projection = Projection.outer p }

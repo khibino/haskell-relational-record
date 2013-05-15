@@ -1,15 +1,14 @@
 
 module Database.Relational.Query.Join (
-  QueryJoin,
+  QueryJoin, PlaceHolders,
 
   on, wheres, asc, desc,
   table,
 
-  record, expr, compose, (>*<), (!), (!?), flatten, relation,
+  record, record', expr, compose, (>*<), (!), (!?), flatten,
+  relation, relation',
 
-  inner, outer, from
-
-  -- runQuery
+  inner, inner', outer, outer', from
   ) where
 
 import Prelude hiding (product)
@@ -23,7 +22,6 @@ import Database.Relational.Query.AliasId (AliasId, newAliasId, Qualified)
 import qualified Database.Relational.Query.AliasId as AliasId
 
 import Database.Relational.Query.Table (Table)
--- import Database.Relational.Query.Sub (SubQuery)
 
 import Database.Relational.Query.Expr (Expr, showExpr)
 import qualified Database.Relational.Query.Expr as Expr
@@ -83,7 +81,7 @@ updateContext :: (Context -> Context) -> QueryJoin ()
 updateContext uf =
   QueryJoin $ \st -> ((), uf st)
 
-updateProduct :: JoinAttr -> Qualified (Relation r) -> QueryJoin ()
+updateProduct :: JoinAttr -> Qualified (PrimeRelation p r) -> QueryJoin ()
 updateProduct attr qrel = updateContext (updateProduct' (`growProduct` (attr, fmap Relation.toSubQuery qrel)))
 
 updateJoinRestriction :: Expr Bool -> QueryJoin ()
@@ -111,11 +109,18 @@ desc :: Expr t -> QueryJoin ()
 desc =  updateOrderBy Desc
 
 
+data PlaceHolders p = PlaceHolders
+
 table :: Table r -> Relation r
 table =  Relation.fromTable
 
+record' :: Qualified (PrimeRelation p r) -> (PlaceHolders p, Projection r)
+record' qrel =
+  (PlaceHolders,
+   Projection.fromQualifiedSubQuery (fmap Relation.toSubQuery qrel))
+
 record :: Qualified (Relation r) -> Projection r
-record =  Projection.fromQualifiedSubQuery  . fmap Relation.toSubQuery
+record =  snd . record'
 
 expr :: Projection ft -> Expr ft
 expr =  Projection.toExpr
@@ -158,7 +163,7 @@ qualify rel =
   do n <- newAlias
      return $ AliasId.qualify rel n
 
-query :: JoinAttr -> Relation r -> QueryJoin (Qualified (Relation r))
+query :: JoinAttr -> PrimeRelation p r -> QueryJoin (Qualified (PrimeRelation p r))
 query attr rel =
   do qrel <- qualify rel
      updateProduct attr qrel
@@ -167,8 +172,14 @@ query attr rel =
 inner :: Relation r -> QueryJoin (Projection r)
 inner =  fmap record . query Inner
 
+inner' :: PrimeRelation p r -> QueryJoin (PlaceHolders p, Projection r)
+inner' =  fmap record' . query Inner
+
 outer :: Relation r -> QueryJoin (Projection (Maybe r))
 outer =  fmap (record . fmap Relation.outer) . query Outer
+
+outer' :: PrimeRelation p r -> QueryJoin (PlaceHolders p, Projection (Maybe r))
+outer' =  fmap (record' . fmap Relation.outer) . query Outer
 
 from :: Table r -> QueryJoin (Projection r)
 from =  inner . table
@@ -178,5 +189,5 @@ relation q = finalizeRelation projection product' (restriction st) (orderByRev s
   (projection, st) = runQueryPrime q
   product' = maybe (error "relation: empty product!") Product.tree $ product st
 
--- runQuery :: QueryJoin (Relation r) -> SubQuery
--- runQuery =  Relation.toSubQuery . fst . runQueryPrime
+relation' :: QueryJoin (PlaceHolders p, Projection r) -> PrimeRelation p r
+relation' =  relation . fmap snd
