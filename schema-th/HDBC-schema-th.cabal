@@ -27,8 +27,6 @@ library
                        Database.HDBC.SqlValueExtra
                        Database.HDBC.Schema.Driver
                        Database.HDBC.Schema.IBMDB2
-                       -- Database.HDBC.Schema.PgCatalog.PgAttribute
-                       -- Database.HDBC.Schema.PgCatalog.PgType
                        Database.HDBC.Schema.PostgreSQL
 
   build-depends:         base <5

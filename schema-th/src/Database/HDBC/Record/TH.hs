@@ -7,7 +7,7 @@ module Database.HDBC.Record.TH (
   ) where
 
 import Data.Maybe (catMaybes)
-import Data.List (intersect)
+import Data.List (intersect, find)
 
 import Language.Haskell.TH
   (Q, Dec (InstanceD), Type(AppT, ConT),
@@ -20,6 +20,7 @@ import Database.Record
   (Persistable(persistable), derivedPersistableValueRecord, PersistableWidth(persistableWidth),
    FromSql(recordFromSql), recordFromSql',
    ToSql(recordToSql), recordToSql')
+import Database.Record.Instances ()
 import qualified Database.Record.Persistable as Persistable
 
 
@@ -52,12 +53,25 @@ convertibleSqlValues =  do
       to   = map fst . filter ((== qvt) . snd) $ vs
   return $ intersect from to
 
-derivePersistableInstanceFromValue :: Q Type -> Q [Dec]
-derivePersistableInstanceFromValue typ =
+persistableWidthValues :: Q [Type]
+persistableWidthValues =  cvInfo >>= d0  where
+  cvInfo = reify ''PersistableWidth
+  unknownDeclaration = compileError
+                       . ("persistableWidthValues: Unknown declaration pattern: " ++)
+  d0 (ClassI _ is) = sequence . map d1 $ is  where
+    d1 (InstanceD _cxt (AppT (ConT _n) a) _ds) = return a
+    d1 decl                                    = unknownDeclaration $ show decl
+  d0 cls           = unknownDeclaration $ show cls
+
+derivePersistableWidth :: Q Type -> Q [Dec]
+derivePersistableWidth typ =
   [d| instance PersistableWidth $(typ)  where
         persistableWidth = Persistable.valueWidth
+    |]
 
-      instance Persistable SqlValue $(typ)  where
+derivePersistableInstanceFromValue :: Q Type -> Q [Dec]
+derivePersistableInstanceFromValue typ =
+  [d| instance Persistable SqlValue $(typ)  where
         persistable = derivedPersistableValueRecord
 
       instance FromSql SqlValue $(typ)  where
@@ -67,7 +81,18 @@ derivePersistableInstanceFromValue typ =
         recordToSql = recordToSql'
     |]
 
+mapInstanceD :: (Q Type -> Q [Dec]) -> [Type] -> Q [Dec]
+mapInstanceD fD = fmap concat . mapM (fD . return)
+
 derivePersistableInstancesFromConvertibleSqlValues :: Q [Dec]
 derivePersistableInstancesFromConvertibleSqlValues =  do
+  ds <- persistableWidthValues
   ts <- convertibleSqlValues
-  concat `fmap` mapM (derivePersistableInstanceFromValue . return) ts
+  let defineNotDefined qt = do
+        t <- qt
+        case find (== t) ds of
+          Nothing -> derivePersistableWidth qt
+          Just _  -> return []
+  ws <- mapInstanceD defineNotDefined ts
+  ps <- mapInstanceD derivePersistableInstanceFromValue ts
+  return $ ws ++ ps

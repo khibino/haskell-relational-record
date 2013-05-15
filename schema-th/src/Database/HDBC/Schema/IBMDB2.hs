@@ -1,5 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 -- |
@@ -11,19 +11,15 @@
 -- Stability   : experimental
 -- Portability : unknown
 module Database.HDBC.Schema.IBMDB2 (
-  Columns, driverIBMDB2
+  driverIBMDB2
   ) where
 
 import Prelude hiding (length)
 
 import qualified Data.List as List
-import Data.Int (Int16, Int32, Int64)
-import Data.Char (toUpper, toLower)
-import Data.Map (Map, fromList)
-import qualified Data.Map as Map
-import Data.Time (LocalTime, Day)
+import Data.Char (toUpper)
+import Data.Map (fromList)
 import Language.Haskell.TH (TypeQ)
-import qualified Language.Haskell.TH.Name.CamelCase as TH
 import qualified Language.Haskell.TH.Name.Extra as TH
 
 import Database.HDBC (IConnection, SqlValue)
@@ -31,84 +27,21 @@ import Database.HDBC (IConnection, SqlValue)
 import Database.HDBC.Record.Query (runQuery', listToUnique)
 import Database.HDBC.Record.Persistable ()
 
-import Database.Record.TH (derivingShow)
 import Database.Record.TH (defineRecordWithSqlTypeDefaultFromDefined)
 
 import qualified Database.Relational.Query.Table as Table
-import Database.Relational.Query.Type (unsafeTypedQuery, fromRelation)
-import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
-import Database.Relational.Query
-  (Query, PrimeRelation, inner, relation,
-   wheres, (.=.), (!), placeholder, asc)
 
-import Language.SQL.Keyword (Keyword(..))
-import qualified Language.SQL.Keyword as SQL
+import Database.Relational.Schema.IBMDB2
+  (normalizeColumn, notNull, getType, columnsQuerySQL, primaryKeyQuerySQL)
 
 import Database.HDBC.Schema.Driver
   (TypeMap, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
   
-import Database.Relational.Schema.DB2Syscat.Columns
-
-mapFromSqlDefault :: Map String TypeQ
-mapFromSqlDefault =
-  fromList [("VARCHAR",   [t|String|]),
-            ("CHAR",      [t|String|]),
-            ("CHARACTER", [t|String|]),
-            ("TIMESTAMP", [t|LocalTime|]),
-            ("DATE",      [t|Day|]),
-            ("SMALLINT",  [t|Int16|]),
-            ("INTEGER",   [t|Int32|]),
-            ("BIGINT",    [t|Int64|]),
-            ("BLOB",      [t|String|]),
-            ("CLOB",      [t|String|])]
-
-normalizeField :: String -> String
-normalizeField =  map toLower
-
-notNull :: Columns -> Bool
-notNull =  (== "N") . nulls
-
-getType :: Map String TypeQ -> Columns -> (String, TypeQ)
-getType mapFromSql rec =
-  (normalizeField $ colname rec,
-   mayNull $ mapFromSql Map.! typename rec)
-  where mayNull typ = if notNull rec
-                      then typ
-                      else [t| Maybe $(typ) |]
-
-columnsRelationFromTable :: PrimeRelation (String, String) Columns
-columnsRelationFromTable =  relation $ do
-  c <- inner columns
-  wheres $ c ! tabschema' .=. placeholder
-  wheres $ c ! tabname'   .=. placeholder
-  asc $ c ! colno'
-  return c
-
-columnsQuerySQL :: Query (String, String) Columns
-columnsQuerySQL =  fromRelation columnsRelationFromTable
+import Database.Relational.Schema.DB2Syscat.Columns (Columns(Columns), tableOfColumns)
+import qualified Database.Relational.Schema.DB2Syscat.Columns as Columns
 
 
-primaryKeyQuerySQL :: Query (String, String) String
-primaryKeyQuerySQL =
-  unsafeTypedQuery .
-  SQL.unwordsSQL
-  $ [SELECT, "key.colname",
-     FROM,
-     "SYSCAT.tabconst", AS, "const", ",",
-     "SYSCAT.keycoluse", AS, "key", ",",
-     SQL.word (Table.name tableOfColumns), AS, "col",
-     WHERE,
-     "const.tabschema = col.tabschema", AND,
-     "const.tabname = col.tabname", AND,
-     "key.colname = col.colname", AND,
-     "const.constname = key.constname", AND,
-
-     "col.nulls = 'N'", AND,
-     "const.type = 'P'", AND, "const.enforced = 'Y'", AND,
-
-     "const.tabschema = ?", AND, "const.tabname = ?"]
-
-
+-- Specify type constructor and data constructor from same table name.
 $(defineRecordWithSqlTypeDefaultFromDefined
   [t| SqlValue |] (Table.shortName tableOfColumns))
 
@@ -131,7 +64,7 @@ getPrimaryKey' conn scm' tbl' = do
       scm = map toUpper scm'
   mayPrim <- runQuery' conn (scm, tbl) primaryKeyQuerySQL
              >>= listToUnique
-  let mayPrimaryKey = normalizeField `fmap` mayPrim
+  let mayPrimaryKey = normalizeColumn `fmap` mayPrim
   putLog $ "getPrimaryKey: primary key = " ++ show mayPrimaryKey
 
   return mayPrimaryKey
@@ -156,9 +89,13 @@ getFields' tmap conn scm' tbl' = do
   putLog
     $  "getFields: num of columns = " ++ show (List.length cols)
     ++ ", not null columns = " ++ show notNullIdxs
-  let mapFromSql = fromList tmap `Map.union` mapFromSqlDefault
+  let getType' col = case getType (fromList tmap) col of
+        Nothing -> compileErrorIO
+                   $ "Type mapping is not defined against DB2 type: " ++ Columns.typename col
+        Just p  -> return p
 
-  return $ (map (getType mapFromSql) cols, notNullIdxs)
+  types <- mapM getType' cols
+  return (types, notNullIdxs)
 
 driverIBMDB2 :: IConnection conn => Driver conn
 driverIBMDB2 =

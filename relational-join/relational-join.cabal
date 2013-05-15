@@ -34,12 +34,15 @@ library
                        Database.Relational.Query.TH
 
                        Database.Relational.Schema.DB2Syscat.Columns
+                       Database.Relational.Schema.IBMDB2
                        Database.Relational.Schema.PgCatalog.PgAttribute
                        Database.Relational.Schema.PgCatalog.PgType
 
   -- other-modules:
   build-depends:         base <5
                        , array
+                       , containers
+                       , time
                        , sql-words
                        , bytestring
                        , text
