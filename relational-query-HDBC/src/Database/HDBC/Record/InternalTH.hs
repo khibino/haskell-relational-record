@@ -17,7 +17,7 @@ import Data.Convertible (Convertible)
 import Database.HDBC (SqlValue)
 import Database.HDBC.SqlValueExtra ()
 import Database.Record (PersistableWidth)
-import Database.Record.TH (deriveNotNullValue)
+import Database.Record.TH (deriveNotNullType)
 import Database.Record.Instances ()
 
 import Database.HDBC.Record.TH (derivePersistableInstanceFromValue)
@@ -87,6 +87,6 @@ derivePersistableInstancesFromConvertibleSqlValues :: Q [Dec]
 derivePersistableInstancesFromConvertibleSqlValues =  do
   wds <- persistableWidthValues
   svs <- convertibleSqlValues
-  ws <- mapInstanceD deriveNotNullValue (toList $ Set.difference svs wds)
+  ws <- mapInstanceD deriveNotNullType (toList $ Set.difference svs wds)
   ps <- mapInstanceD derivePersistableInstanceFromValue (toList svs)
   return $ ws ++ ps
