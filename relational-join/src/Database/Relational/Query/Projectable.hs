@@ -120,17 +120,13 @@ numBinOp =  unsafeBinOp
        => p ft -> p ft -> p Bool
 (.<>.) =  compareBinOp (SQL..<>.)
 
-compareBinOp' :: (SqlProjectable p, ProjectableSqlTerm p)
-              => String -> p ft -> p ft -> p Bool
-compareBinOp' =  compareBinOp . sqlBinOp
-
 (.>.) :: (SqlProjectable p, ProjectableSqlTerm p)
       => p ft -> p ft -> p Bool
-(.>.) =  compareBinOp' ">"
+(.>.) =  compareBinOp (SQL..>.)
 
 (.<.) :: (SqlProjectable p, ProjectableSqlTerm p)
       => p ft -> p ft -> p Bool
-(.<.) =  compareBinOp' "<"
+(.<.) =  compareBinOp (SQL..<.)
 
 and :: (SqlProjectable p, ProjectableSqlTerm p)
     => p Bool ->  p Bool ->  p Bool
@@ -154,7 +150,7 @@ numBinOp' = numBinOp . sqlBinOp
 
 in' :: (SqlProjectable p, ProjectableSqlTerm p)
     => p t -> p [t] -> p Bool
-in' =  unsafeBinOp (sqlBinOp "IN")
+in' =  unsafeBinOp (SQL.in')
 
 isNull :: (SqlProjectable p, ProjectableSqlTerm p)
        => p (Maybe t) -> p Bool
