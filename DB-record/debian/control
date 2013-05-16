@@ -9,8 +9,14 @@ Build-Depends: debhelper (>= 7.0)
                , ghc-prof
                , libghc-base-dev (<< 5) | ghc
                , libghc-base-prof (<< 5) | ghc-prof
+               , libghc-names-th-dev
+               , libghc-names-th-prof
+               , libghc-template-haskell-dev | ghc
+               , libghc-template-haskell-prof | ghc-prof
 Build-Depends-Indep: ghc-doc
                      , libghc-base-doc (<< 5) | ghc-doc
+                     , libghc-names-th-doc
+                     , libghc-template-haskell-doc | ghc-doc
 Standards-Version: 3.9.3
 Homepage: http://twitter.com/khibino
 
@@ -22,9 +28,9 @@ Depends: ${shlibs:Depends}
 Recommends: ${haskell:Recommends}
 Suggests: ${haskell:Suggests}
 Provides: ${haskell:Provides}
-Description: Mapping between SQL database values and haskell records.
- This package contiains type constrains to map
- between SQL database values and haskell records.
+Description: Binding between SQL database values and haskell records.
+ This package contiains type constrains and generic instances
+ to bind between SQL database values and haskell records.
  .
   Author: Kei Hibino
   Upstream-Maintainer: ex8k.hibino@gmail.com
@@ -38,9 +44,9 @@ Depends: ${haskell:Depends}
 Recommends: ${haskell:Recommends}
 Suggests: ${haskell:Suggests}
 Provides: ${haskell:Provides}
-Description: Mapping between SQL database values and haskell records.
- This package contiains type constrains to map
- between SQL database values and haskell records.
+Description: Binding between SQL database values and haskell records.
+ This package contiains type constrains and generic instances
+ to bind between SQL database values and haskell records.
  .
   Author: Kei Hibino
   Upstream-Maintainer: ex8k.hibino@gmail.com
@@ -54,9 +60,9 @@ Depends: ${haskell:Depends}
          , ${misc:Depends}
 Recommends: ${haskell:Recommends}
 Suggests: ${haskell:Suggests}
-Description: Mapping between SQL database values and haskell records.
- This package contiains type constrains to map
- between SQL database values and haskell records.
+Description: Binding between SQL database values and haskell records.
+ This package contiains type constrains and generic instances
+ to bind between SQL database values and haskell records.
  .
   Author: Kei Hibino
   Upstream-Maintainer: ex8k.hibino@gmail.com

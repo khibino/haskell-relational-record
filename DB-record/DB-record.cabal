@@ -1,8 +1,8 @@
 name:                DB-record
 version:             0.0.1.0
-synopsis:            Mapping between SQL database values and haskell records.
-description:         This package contiains type constrains to map
-                     between SQL database values and haskell records.
+synopsis:            Binding between SQL database values and haskell records.
+description:         This package contiains type constrains and generic instances
+                     to bind between SQL database values and haskell records.
 homepage:            http://twitter.com/khibino
 license:             BSD3
 license-file:        LICENSE
