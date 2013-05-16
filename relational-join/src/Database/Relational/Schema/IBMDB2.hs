@@ -1,5 +1,4 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 module Database.Relational.Schema.IBMDB2 (
   normalizeColumn, notNull, getType,
