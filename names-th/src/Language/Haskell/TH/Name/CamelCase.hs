@@ -1,4 +1,13 @@
-
+-- |
+-- Module      : Language.Haskell.TH.Name.CamelCase
+-- Copyright   : 2013 Kei Hibino
+-- License     : BSD3
+--
+-- Maintainer  : ex8k.hibino@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
+--
+-- This module provides camelcased 'Name' for Template Haskell
 module Language.Haskell.TH.Name.CamelCase (
   ConName (ConName, conName), toConName,
   VarName (VarName, varName), toVarName,

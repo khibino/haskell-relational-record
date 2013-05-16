@@ -1,5 +1,15 @@
-
-module Language.Haskell.TH.Name.Extra (
+-- |
+-- Module      : Language.Haskell.TH.Lib.Extra
+-- Copyright   : 2013 Kei Hibino
+-- License     : BSD3
+--
+-- Maintainer  : ex8k.hibino@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
+--
+-- This module provides extra helper functions
+-- complementing "Language.Haskell.TH.Lib"
+module Language.Haskell.TH.Lib.Extra (
   pprQ,
 
   compileErrorIO, compileError,
