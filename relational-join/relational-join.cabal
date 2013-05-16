@@ -45,6 +45,10 @@ library
                        Database.Relational.Schema.DB2Syscat.Tabconst
                        Database.Relational.Schema.DB2Syscat.Keycoluse
 
+                       Database.Relational.Schema.PgCatalog.PgNamespace
+                       Database.Relational.Schema.PgCatalog.PgClass
+                       Database.Relational.Schema.PgCatalog.PgConstraint
+
   build-depends:         base <5
                        , array
                        , containers

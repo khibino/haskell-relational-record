@@ -34,15 +34,15 @@ $(defineTableTypesAndRecordDefault
 --  typbyval       | boolean      | not null
     ("typbyval", [t|Bool|]),
 --  typtype        | "char"       | not null
-    ("typtype", [t|String|]),
+    ("typtype", [t|Char|]),
 --  typcategory    | "char"       | not null
-    ("typcategory", [t|String|]),
+    ("typcategory", [t|Char|]),
 --  typispreferred | boolean      | not null
     ("typispreferred", [t|Bool|]),
 --  typisdefined   | boolean      | not null
     ("typisdefined", [t|Bool|]),
 --  typdelim       | "char"       | not null
-    ("typdelim", [t|String|]),
+    ("typdelim", [t|Char|]),
 --  typrelid       | oid          | not null
     ("typrelid", [t|Int32|]),
 --  typelem        | oid          | not null
@@ -64,9 +64,9 @@ $(defineTableTypesAndRecordDefault
 --  typanalyze     | regproc      | not null
     -- ("typanalyze", [t||]),
 --  typalign       | "char"       | not null
-    ("typalign", [t|String|]),
+    ("typalign", [t|Char|]),
 --  typstorage     | "char"       | not null
-    ("typstorage", [t|String|]),
+    ("typstorage", [t|Char|]),
 --  typnotnull     | boolean      | not null
     ("typnotnull", [t|Bool|]),
 --  typbasetype    | oid          | not null

@@ -43,9 +43,9 @@ $(defineTableTypesAndRecordDefault
 --  attbyval      | boolean   | not null
     ("attbyval"    , [t|Bool|]),
 --  attstorage    | "char"    | not null
-    ("attstorage"  , [t|String|]),
+    ("attstorage"  , [t|Char|]),
 --  attalign      | "char"    | not null
-    ("attalign"    , [t|String|]),
+    ("attalign"    , [t|Char|]),
 --  attnotnull    | boolean   | not null
     ("attnotnull"  , [t|Bool|]),
 --  atthasdef     | boolean   | not null
