@@ -53,6 +53,9 @@ instance ShowConstantSQL ByteString where
 instance ShowConstantSQL Text where
   showConstantSQL = stringExprSQL . T.unpack
 
+instance ShowConstantSQL Char where
+  showConstantSQL = stringExprSQL . (:"")
+
 instance ShowConstantSQL Bool where
   showConstantSQL = d  where
     d True  = "(0=0)"
