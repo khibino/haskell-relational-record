@@ -24,7 +24,6 @@ import qualified Database.Relational.Query.AliasId as AliasId
 import Database.Relational.Query.Table (Table)
 
 import Database.Relational.Query.Expr (Expr, showExpr)
-import qualified Database.Relational.Query.Expr as Expr
 
 import Database.Relational.Query.Product
   (QueryProduct, JoinAttr(Inner, Outer), growProduct, restrictProduct)
