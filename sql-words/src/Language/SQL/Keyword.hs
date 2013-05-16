@@ -8,6 +8,8 @@
 -- Maintainer  : ex8k.hibino@gmail.com
 -- Stability   : experimental
 -- Portability : unknown
+--
+-- SQL keyword representation using Haskell data constructors.
 module Language.SQL.Keyword (
   Keyword (..),
 
@@ -21,7 +23,7 @@ module Language.SQL.Keyword (
 
   (.||.),
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
-  and, or,
+  and, or, in',
 
   stringMap
   ) where
@@ -54,7 +56,7 @@ data Keyword = SELECT | ALL | DISTINCT | ON
              -- | (:+) | (:-) | (:*) | (:/)
              | AND | OR | NOT
 
-             | IS | NULL
+             | IS | NULL | IN
 
              -- | OPEN | CLOSE
 
@@ -137,6 +139,9 @@ and =  defineBinOp AND
 
 or :: Keyword -> Keyword -> Keyword
 or =  defineBinOp OR
+
+in' :: Keyword -> Keyword -> Keyword
+in' =  defineBinOp IN
 
 infixr 5 .||.
 infixr 4 .=., .<., .<=., .>., .>=., .<>.
