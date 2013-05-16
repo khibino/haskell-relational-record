@@ -1,7 +1,8 @@
 name:                relational-join
 version:             0.0.1.0
-synopsis:            Joining Relational types
-description:         This package contiains combinators to join relational types.
+synopsis:            Typeful relational algebraic join engine
+description:         This package contiains typeful relation structure
+                     and combinators for projection, product and join.
 homepage:            http://twitter.com/khibino
 license:             BSD3
 license-file:        LICENSE

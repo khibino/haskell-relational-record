@@ -7,22 +7,37 @@ Build-Depends: debhelper (>= 7.0)
                , cdbs
                , ghc
                , ghc-prof
+               , libghc-db-record-dev
+               , libghc-db-record-prof
                , libghc-array-dev | ghc
                , libghc-array-prof | ghc-prof
                , libghc-base-dev (<< 5) | ghc
                , libghc-base-prof (<< 5) | ghc-prof
                , libghc-bytestring-dev | ghc
                , libghc-bytestring-prof | ghc-prof
+               , libghc-containers-dev | ghc
+               , libghc-containers-prof | ghc-prof
+               , libghc-names-th-dev
+               , libghc-names-th-prof
                , libghc-sql-words-dev
                , libghc-sql-words-prof
+               , libghc-template-haskell-dev | ghc
+               , libghc-template-haskell-prof | ghc-prof
                , libghc-text-dev
                , libghc-text-prof
+               , libghc-time-dev | ghc
+               , libghc-time-prof | ghc-prof
 Build-Depends-Indep: ghc-doc
+                     , libghc-db-record-doc
                      , libghc-array-doc | ghc-doc
                      , libghc-base-doc (<< 5) | ghc-doc
                      , libghc-bytestring-doc | ghc-doc
+                     , libghc-containers-doc | ghc-doc
+                     , libghc-names-th-doc
                      , libghc-sql-words-doc
+                     , libghc-template-haskell-doc | ghc-doc
                      , libghc-text-doc
+                     , libghc-time-doc | ghc-doc
 Standards-Version: 3.9.3
 Homepage: http://twitter.com/khibino
 
@@ -34,8 +49,9 @@ Depends: ${shlibs:Depends}
 Recommends: ${haskell:Recommends}
 Suggests: ${haskell:Suggests}
 Provides: ${haskell:Provides}
-Description: Joining Relational types
- This package contiains combinators to join relational types.
+Description: Typeful relational algebraic join engine
+ This package contiains typeful relation structure
+ and combinators for projection, product and join.
  .
   Author: Kei Hibino
   Upstream-Maintainer: ex8k.hibino@gmail.com
@@ -49,8 +65,9 @@ Depends: ${haskell:Depends}
 Recommends: ${haskell:Recommends}
 Suggests: ${haskell:Suggests}
 Provides: ${haskell:Provides}
-Description: Joining Relational types
- This package contiains combinators to join relational types.
+Description: Typeful relational algebraic join engine
+ This package contiains typeful relation structure
+ and combinators for projection, product and join.
  .
   Author: Kei Hibino
   Upstream-Maintainer: ex8k.hibino@gmail.com
@@ -64,8 +81,9 @@ Depends: ${haskell:Depends}
          , ${misc:Depends}
 Recommends: ${haskell:Recommends}
 Suggests: ${haskell:Suggests}
-Description: Joining Relational types
- This package contiains combinators to join relational types.
+Description: Typeful relational algebraic join engine
+ This package contiains typeful relation structure
+ and combinators for projection, product and join.
  .
   Author: Kei Hibino
   Upstream-Maintainer: ex8k.hibino@gmail.com
