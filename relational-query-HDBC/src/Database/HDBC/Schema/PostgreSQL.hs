@@ -15,7 +15,7 @@ module Database.HDBC.Schema.PostgreSQL (
   ) where
 
 import Language.Haskell.TH (TypeQ)
-import qualified Language.Haskell.TH.Name.Extra as TH
+import qualified Language.Haskell.TH.Lib.Extra as TH
 
 import Data.Char (toLower)
 import Data.Map (fromList)

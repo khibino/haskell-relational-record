@@ -37,7 +37,7 @@ import Language.Haskell.TH.Name.CamelCase
   (ConName(conName), VarName(varName, VarName),
    conCamelcaseName, varCamelcaseName, varNameWithPrefix,
    toTypeCon, toVarExp)
-import Language.Haskell.TH.Name.Extra (integralE, compileError)
+import Language.Haskell.TH.Lib.Extra (integralE, compileError)
 import Language.Haskell.TH
   (Q, mkName, reify, Info(TyConI),
    TypeQ, conT, Con (RecC),

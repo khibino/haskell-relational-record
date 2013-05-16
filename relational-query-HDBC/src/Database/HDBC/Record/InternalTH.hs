@@ -12,7 +12,7 @@ import qualified Data.Set as Set
 import Language.Haskell.TH
   (Q, Dec (InstanceD), Type(AppT, ConT),
    Info (ClassI), reify)
-import Language.Haskell.TH.Name.Extra (compileError)
+import Language.Haskell.TH.Lib.Extra (compileError)
 import Data.Convertible (Convertible)
 import Database.HDBC (SqlValue)
 import Database.HDBC.SqlValueExtra ()

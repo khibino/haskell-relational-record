@@ -39,7 +39,7 @@ import Language.Haskell.TH
    Dec, stringE, listE)
 import Language.Haskell.TH.Name.CamelCase
   (VarName, varName, ConName, varNameWithPrefix, varCamelcaseName, toVarExp)
-import Language.Haskell.TH.Name.Extra
+import Language.Haskell.TH.Lib.Extra
   (compileError, simpleValD, maybeD, integralE)
 
 import Database.Record.TH

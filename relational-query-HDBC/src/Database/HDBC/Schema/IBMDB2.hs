@@ -20,7 +20,7 @@ import qualified Data.List as List
 import Data.Char (toUpper)
 import Data.Map (fromList)
 import Language.Haskell.TH (TypeQ)
-import qualified Language.Haskell.TH.Name.Extra as TH
+import qualified Language.Haskell.TH.Lib.Extra as TH
 
 import Database.HDBC (IConnection, SqlValue)
 
