@@ -15,10 +15,14 @@
 module Database.Record.Instances () where
 
 import Data.Int (Int16, Int32, Int64)
-import Database.Record.TH (deriveNotNullValue)
+import Database.Record.TH (deriveNotNullType)
 
-$(deriveNotNullValue [t| String |])
-$(deriveNotNullValue [t| Int |])
-$(deriveNotNullValue [t| Int16 |])
-$(deriveNotNullValue [t| Int32 |])
-$(deriveNotNullValue [t| Int64 |])
+$(fmap concat $ mapM deriveNotNullType
+  [ [t| Bool |]
+  , [t| Char |]
+  , [t| String |]
+  , [t| Int |]
+  , [t| Int16 |]
+  , [t| Int32 |]
+  , [t| Int64 |]
+  ])

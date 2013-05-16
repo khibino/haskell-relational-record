@@ -29,7 +29,7 @@ module Database.Record.TH (
   defineRecord,
   defineRecordDefault,
 
-  deriveNotNullValue
+  deriveNotNullType
   ) where
 
 
@@ -269,8 +269,8 @@ defineRecordDefault sqlValueType table columns derives = do
   return $ typ : withSql
 
 
-deriveNotNullValue :: TypeQ -> Q [Dec]
-deriveNotNullValue typeCon =
+deriveNotNullType :: TypeQ -> Q [Dec]
+deriveNotNullType typeCon =
   [d| instance PersistableWidth $typeCon where
         persistableWidth = Persistable.valueWidth
 
