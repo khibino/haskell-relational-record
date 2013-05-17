@@ -69,6 +69,7 @@ in'    =  defineBinOp IN
 
 infixr 5 .||.
 infixr 4 .=., .<., .<=., .>., .>=., .<>.
+infix  4 `in'`
 infixr 3 `and`
 infixr 2 `or`
 
