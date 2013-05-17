@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 -- |
--- Module      : Language.SQL.Keyword
+-- Module      : Language.SQL.Keyword.Concat
 -- Copyright   : 2013 Kei Hibino
 -- License     : BSD3
 --
@@ -10,13 +10,8 @@
 -- Portability : unknown
 --
 -- SQL keyword representation using Haskell data constructors.
-module Language.SQL.Keyword (
-  Keyword (..),
-
-  word,
-  wordShow, unwordsSQL,
-
-  string, integer,
+module Language.SQL.Keyword.Concat (
+  unwords',
 
   sepBy, parenSepBy, defineBinOp,
   as, (<.>),
@@ -29,68 +24,16 @@ module Language.SQL.Keyword (
   ) where
 
 import Prelude hiding (and, or)
-import Data.String (IsString(fromString))
-import Data.List (find, intersperse)
+import Data.List (intersperse)
 
+import Language.SQL.Keyword.Type (Keyword (..), word, wordShow, unwordsSQL)
 
-data Keyword = SELECT | ALL | DISTINCT | ON
-             | GROUP | COUNT | SUM | AVG | MAX | MIN
-             | ORDER | BY | ASC | DESC
-             | FETCH | FIRST | NEXT | ROW | ROWS | ONLY
-
-             | DELETE | USING | RETURNING
-
-             | FROM | AS | WITH
-             | JOIN | INNER | LEFT | RIGHT | FULL | NATURAL | OUTER
-
-             | UPDATE | SET | DEFAULT
-
-             | WHERE
-
-             | INSERT | INTO | VALUES
-
-             | CASE | END | WHEN | ELSE | THEN
-
-             | LIKE
-             -- | (:?)
-             -- | (:+) | (:-) | (:*) | (:/)
-             | AND | OR | NOT
-
-             | IS | NULL | IN
-
-             -- | OPEN | CLOSE
-
-             | Sequence String
-             deriving (Read, Show)
-
-
-instance IsString Keyword where
-  fromString s' = found (find ((== "") . snd) (reads s')) s'  where
-   found  Nothing      s = Sequence s
-   found (Just (w, _)) _ = w
-
-word :: String -> Keyword
-word =  Sequence
-
-wordShow :: Keyword -> String
-wordShow =  d  where
-  d (Sequence s)   = s
-  d w              = show w
 
 sepBy' :: [Keyword] -> Keyword -> [String]
 ws `sepBy'` d =  map wordShow . intersperse d $ ws
 
-unwordsSQL :: [Keyword] -> String
-unwordsSQL =  unwords . map wordShow
-
--- unwords' :: [Keyword] -> Keyword
--- unwords' =  word . unwordsSQL
-
-string :: String -> Keyword
-string =  Sequence . ('\'' :) . (++ "'")
-
-integer :: (Integral a, Show a) => a -> Keyword
-integer =  Sequence . show
+unwords' :: [Keyword] -> Keyword
+unwords' =  word . unwordsSQL
 
 concat' :: [String] -> Keyword
 concat' =  word . concat
