@@ -16,7 +16,7 @@ library
   exposed-modules:
                         Language.SQL.Keyword.Type
                         Language.SQL.Keyword.Concat
-                        -- Language.SQL.Keyword
+                        Language.SQL.Keyword
 
   build-depends:          base <5
   hs-source-dirs:       src
