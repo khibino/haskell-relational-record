@@ -15,7 +15,7 @@ module Database.Relational.Query.Relation (
   ) where
 
 import Prelude hiding (product, and)
-import Data.List (foldl')
+import Data.List (foldl', intercalate)
 
 import Database.Relational.Query.AliasId (asColumnN)
 
@@ -94,8 +94,16 @@ toSubQuery =  d  where
 finalizeRelation :: Projection r -> Product -> Maybe (Expr Bool) -> [(Order, String)] -> PrimeRelation a r
 finalizeRelation =  Relation
 
+fromTableToSql :: Table r -> String
+fromTableToSql t =
+  unwordsSQL
+  $ [SELECT, SQL.word $ ", " `intercalate` Table.columns t,
+     FROM, SQL.word $ Table.name t]
+
 toSQL :: PrimeRelation a r -> String
-toSQL =  SubQuery.toSQL . toSubQuery
+toSQL =  d  where
+  d (Table t)           = fromTableToSql t
+  d (rel@(Relation {})) = SubQuery.toSQL . toSubQuery $ rel
 
 instance Show (PrimeRelation a r) where
   show = show . toSubQuery
