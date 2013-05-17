@@ -14,7 +14,9 @@ module Language.SQL.Keyword.Type (
   word,
   wordShow, unwordsSQL,
 
-  string, integer
+  string, integer,
+
+  stringMap
   ) where
 
 import Prelude hiding (and, or)
@@ -74,3 +76,6 @@ string =  Sequence . ('\'' :) . (++ "'")
 
 integer :: (Integral a, Show a) => a -> Keyword
 integer =  Sequence . show
+
+stringMap :: (String -> String) -> Keyword -> Keyword
+stringMap f = word . f . wordShow

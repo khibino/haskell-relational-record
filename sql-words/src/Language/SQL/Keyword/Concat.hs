@@ -18,9 +18,7 @@ module Language.SQL.Keyword.Concat (
 
   (.||.),
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
-  and, or, in',
-
-  stringMap
+  and, or, in'
   ) where
 
 import Prelude hiding (and, or)
@@ -72,7 +70,3 @@ infixr 4 .=., .<., .<=., .>., .>=., .<>.
 infix  4 `in'`
 infixr 3 `and`
 infixr 2 `or`
-
-
-stringMap :: (String -> String) -> Keyword -> Keyword
-stringMap f = word . f . wordShow
