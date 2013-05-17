@@ -53,38 +53,21 @@ defineBinOp op a b = word . unwords $ [a, b] `sepBy'` op
 as :: Keyword -> Keyword -> Keyword
 as =  defineBinOp AS
 
-(<.>) :: Keyword -> Keyword -> Keyword
-(<.>) =  defineBinOp' "."
+(<.>)  =  defineBinOp' "."
 
-(.||.) :: Keyword -> Keyword -> Keyword
 (.||.) =  defineBinOp "||"
-
-(.=.) :: Keyword -> Keyword -> Keyword
-(.=.) =  defineBinOp "="
-
-(.<.) :: Keyword -> Keyword -> Keyword
-(.<.) =  defineBinOp "<"
-
-(.<=.) :: Keyword -> Keyword -> Keyword
+(.=.)  =  defineBinOp "="
+(.<.)  =  defineBinOp "<"
 (.<=.) =  defineBinOp "<="
-
-(.>.) :: Keyword -> Keyword -> Keyword
-(.>.) =  defineBinOp ">"
-
-(.>=.) :: Keyword -> Keyword -> Keyword
+(.>.)  =  defineBinOp ">"
 (.>=.) =  defineBinOp ">="
-
-(.<>.) :: Keyword -> Keyword -> Keyword
 (.<>.) =  defineBinOp "<>"
+and    =  defineBinOp AND
+or     =  defineBinOp OR
+in'    =  defineBinOp IN
 
-and :: Keyword -> Keyword -> Keyword
-and =  defineBinOp AND
-
-or :: Keyword -> Keyword -> Keyword
-or =  defineBinOp OR
-
-in' :: Keyword -> Keyword -> Keyword
-in' =  defineBinOp IN
+(<.>), (.||.), (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.), and, or, in'
+  :: Keyword -> Keyword -> Keyword
 
 infixr 5 .||.
 infixr 4 .=., .<., .<=., .>., .>=., .<>.
