@@ -5,10 +5,13 @@ module Database.Relational.Query.AliasId (
   columnN, aliasName, (<.>), columnFromId,
   asColumnN,
 
-  Qualified, unQualify, qualifyAlias, qualify
+  Qualified, unQualify, qualifyAlias, qualify,
+
+  qualifiedSQLas
   ) where
 
 import qualified Language.SQL.Keyword as SQL
+import qualified Language.SQL.Keyword.ConcatString as SQLs
 import Database.Relational.Query.AliasId.Unsafe (AliasId(AliasId))
 
 newAliasId :: AliasId -> AliasId
@@ -30,7 +33,7 @@ asColumnN :: SQL.Keyword -> Int -> SQL.Keyword
 f `asColumnN` n = f `SQL.as` SQL.word (columnN  n)
 
 
--- Qualified relaltion by alias id
+-- | Qualified relaltion by alias id
 data Qualified fr =
   Qualified
   { unQualify    :: fr
@@ -42,3 +45,9 @@ qualify =  Qualified
 
 instance Functor Qualified where
   fmap f (Qualified a i) = Qualified (f a) i
+
+qualifiedSQLas :: Qualified String -> String
+qualifiedSQLas q =
+  unQualify q
+  `SQLs.as`
+  (aliasName $ qualifyAlias q)

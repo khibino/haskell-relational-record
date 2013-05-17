@@ -81,7 +81,7 @@ showQueryProduct =  rec  where
   joinType Outer Outer = FULL
   urec p@(Leaf _ _)     = rec p
   urec p@(Join _ _ _ _) = showParen' (rec p)
-  rec (Leaf _ q)               = showWordSQL $ SubQuery.qualifiedForm q
+  rec (Leaf _ q)               = showString $ SubQuery.qualifiedForm q
   rec (Join _ left' right' rs) =
     showUnwords
     [urec left',

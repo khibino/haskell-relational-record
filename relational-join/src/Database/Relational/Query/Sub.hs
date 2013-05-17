@@ -11,11 +11,9 @@ import Database.Relational.Query.Table (Table, (!))
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.AliasId
   (aliasName, (<.>),
-   Qualified, unQualify, qualifyAlias)
+   Qualified, unQualify, qualifyAlias, qualifiedSQLas)
 import qualified Database.Relational.Query.AliasId as AliasId
 import Database.Relational.Query.Expr.Unsafe (Expr(Expr))
-
-import qualified Language.SQL.Keyword as SQL
 
 
 data SubQuery = Table Table.Untyped
@@ -58,10 +56,8 @@ column q =  d (unQualify q)  where
 columnExpr :: Qualified SubQuery -> Int -> Expr ft
 columnExpr q i =  Expr $ column q i
 
-qualifiedForm :: Qualified SubQuery -> SQL.Keyword
-qualifiedForm q = SQL.word (unitSQL (unQualify q))
-                  `SQL.as`
-                  SQL.word (aliasName . qualifyAlias $ q)
+qualifiedForm :: Qualified SubQuery -> String
+qualifiedForm =  qualifiedSQLas . fmap (unitSQL)
 
 instance Show SubQuery where
   show = toSQL
