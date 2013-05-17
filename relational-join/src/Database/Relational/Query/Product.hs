@@ -1,6 +1,6 @@
 module Database.Relational.Query.Product (
   QueryProduct, ProductTree, growProduct, restrictProduct,
-  JoinAttr (Inner, Outer),
+  NodeAttr (Just', Maybe),
   Product,
   tree,
   productSQL
@@ -21,12 +21,12 @@ import Data.Monoid ((<>))
 import Data.Foldable (Foldable (foldMap))
 
 
-data JoinAttr = Inner | Outer
+data NodeAttr = Just' | Maybe
 
-data ProductTree q = Leaf JoinAttr q
-                   | Join JoinAttr !(ProductTree q) !(ProductTree q) !(Maybe (Expr Bool))
+data ProductTree q = Leaf NodeAttr q
+                   | Join NodeAttr !(ProductTree q) !(ProductTree q) !(Maybe (Expr Bool))
 
-joinAttr :: ProductTree q -> JoinAttr
+joinAttr :: ProductTree q -> NodeAttr
 joinAttr =  d  where
   d (Leaf jt _)     = jt
   d (Join jt _ _ _) = jt
@@ -39,10 +39,10 @@ instance Foldable ProductTree where
 
 type QueryProduct = ProductTree (Qualified SubQuery)
 
-growProduct :: Maybe (ProductTree q) -> (JoinAttr, q) -> ProductTree q
+growProduct :: Maybe (ProductTree q) -> (NodeAttr, q) -> ProductTree q
 growProduct =  d  where
   d Nothing  (ja, q) = Leaf ja q
-  d (Just t) (ja, q) = Join Inner t (Leaf ja q) Nothing
+  d (Just t) (ja, q) = Join Just' t (Leaf ja q) Nothing
 
 restrictProduct :: ProductTree q -> Expr Bool -> ProductTree q
 restrictProduct =  d  where
@@ -75,10 +75,10 @@ showUnwords =  rec  where
 
 showQueryProduct :: QueryProduct -> ShowS
 showQueryProduct =  rec  where
-  joinType Inner Inner = INNER
-  joinType Inner Outer = LEFT
-  joinType Outer Inner = RIGHT
-  joinType Outer Outer = FULL
+  joinType Just' Just' = INNER
+  joinType Just' Maybe = LEFT
+  joinType Maybe Just' = RIGHT
+  joinType Maybe Maybe = FULL
   urec p@(Leaf _ _)     = rec p
   urec p@(Join _ _ _ _) = showParen' (rec p)
   rec (Leaf _ q)               = showString $ SubQuery.qualifiedForm q

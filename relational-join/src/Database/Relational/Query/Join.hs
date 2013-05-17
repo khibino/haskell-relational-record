@@ -26,7 +26,7 @@ import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Expr (Expr, showExpr)
 
 import Database.Relational.Query.Product
-  (QueryProduct, JoinAttr(Inner, Outer), growProduct, restrictProduct)
+  (QueryProduct, NodeAttr(Just', Maybe), growProduct, restrictProduct)
 import qualified Database.Relational.Query.Product as Product
 
 import Database.Relational.Query.Projection (Projection)
@@ -82,7 +82,7 @@ updateContext :: (Context -> Context) -> QueryJoin ()
 updateContext uf =
   QueryJoin $ \st -> ((), uf st)
 
-updateProduct :: JoinAttr -> Qualified (PrimeRelation p r) -> QueryJoin ()
+updateProduct :: NodeAttr -> Qualified (PrimeRelation p r) -> QueryJoin ()
 updateProduct attr qrel = updateContext (updateProduct' (`growProduct` (attr, fmap Relation.toSubQuery qrel)))
 
 updateJoinRestriction :: Expr Bool -> QueryJoin ()
@@ -164,23 +164,23 @@ qualify rel =
   do n <- newAlias
      return $ AliasId.qualify rel n
 
-query :: JoinAttr -> PrimeRelation p r -> QueryJoin (Qualified (PrimeRelation p r))
+query :: NodeAttr -> PrimeRelation p r -> QueryJoin (Qualified (PrimeRelation p r))
 query attr rel =
   do qrel <- qualify rel
      updateProduct attr qrel
      return qrel
 
 inner :: Relation r -> QueryJoin (Projection r)
-inner =  fmap record . query Inner
+inner =  fmap record . query Just'
 
 inner' :: PrimeRelation p r -> QueryJoin (PlaceHolders p, Projection r)
-inner' =  fmap record' . query Inner
+inner' =  fmap record' . query Just'
 
 outer :: Relation r -> QueryJoin (Projection (Maybe r))
-outer =  fmap (record . fmap Relation.outer) . query Outer
+outer =  fmap (record . fmap Relation.outer) . query Maybe
 
 outer' :: PrimeRelation p r -> QueryJoin (PlaceHolders p, Projection (Maybe r))
-outer' =  fmap (record' . fmap Relation.outer) . query Outer
+outer' =  fmap (record' . fmap Relation.outer) . query Maybe
 
 from :: Table r -> QueryJoin (Projection r)
 from =  inner . table
