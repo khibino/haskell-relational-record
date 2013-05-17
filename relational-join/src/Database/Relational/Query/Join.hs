@@ -8,7 +8,7 @@ module Database.Relational.Query.Join (
   record, record', expr, compose, (>*<), (!), (!?), flatten,
   relation, relation',
 
-  inner, inner', outer, outer', from
+  query, query', queryMaybe, queryMaybe', from
   ) where
 
 import Prelude hiding (product)
@@ -164,26 +164,26 @@ qualify rel =
   do n <- newAlias
      return $ AliasId.qualify rel n
 
-query :: NodeAttr -> PrimeRelation p r -> QueryJoin (Qualified (PrimeRelation p r))
-query attr rel =
+unsafeQuery :: NodeAttr -> PrimeRelation p r -> QueryJoin (Qualified (PrimeRelation p r))
+unsafeQuery attr rel =
   do qrel <- qualify rel
      updateProduct attr qrel
      return qrel
 
-inner :: Relation r -> QueryJoin (Projection r)
-inner =  fmap record . query Just'
+query :: Relation r -> QueryJoin (Projection r)
+query =  fmap record . unsafeQuery Just'
 
-inner' :: PrimeRelation p r -> QueryJoin (PlaceHolders p, Projection r)
-inner' =  fmap record' . query Just'
+query' :: PrimeRelation p r -> QueryJoin (PlaceHolders p, Projection r)
+query' =  fmap record' . unsafeQuery Just'
 
-outer :: Relation r -> QueryJoin (Projection (Maybe r))
-outer =  fmap (record . fmap Relation.toMaybe) . query Maybe
+queryMaybe :: Relation r -> QueryJoin (Projection (Maybe r))
+queryMaybe =  fmap (record . fmap Relation.toMaybe) . unsafeQuery Maybe
 
-outer' :: PrimeRelation p r -> QueryJoin (PlaceHolders p, Projection (Maybe r))
-outer' =  fmap (record' . fmap Relation.toMaybe) . query Maybe
+queryMaybe' :: PrimeRelation p r -> QueryJoin (PlaceHolders p, Projection (Maybe r))
+queryMaybe' =  fmap (record' . fmap Relation.toMaybe) . unsafeQuery Maybe
 
 from :: Table r -> QueryJoin (Projection r)
-from =  inner . table
+from =  query . table
 
 relation :: QueryJoin (Projection r) -> PrimeRelation a r
 relation q = finalizeRelation projection product' (restriction st) (orderByRev st)  where

@@ -24,7 +24,7 @@ import Database.Record.Instances ()
 
 import Database.Relational.Query.Type (fromRelation)
 import Database.Relational.Query
-  (Query, PrimeRelation, inner, relation, inner', relation', expr,
+  (Query, PrimeRelation, query, relation, query', relation', expr,
    wheres, (.=.), (.>.), in', values, (!),
    placeholder, asc, value, unsafeSqlValue, (>*<))
 
@@ -97,8 +97,8 @@ getType mapFromSql column@(pgAttr, pgTyp) = do
 
 relOidRelation :: PrimeRelation (String, String) Int32
 relOidRelation = relation $ do
-  nsp <- inner pgNamespace
-  cls <- inner pgClass
+  nsp <- query pgNamespace
+  cls <- query pgClass
 
   wheres $ cls ! Class.relnamespace' .=. nsp ! Namespace.oid'
   wheres $ nsp ! Namespace.nspname'  .=. placeholder
@@ -108,8 +108,8 @@ relOidRelation = relation $ do
 
 attributeRelation :: PrimeRelation (String, String) PgAttribute
 attributeRelation =  relation' $ do
-  (ph, reloid) <- inner' relOidRelation
-  att          <- inner  pgAttribute
+  (ph, reloid) <- query' relOidRelation
+  att          <- query  pgAttribute
 
   wheres $ att ! Attr.attrelid' .=. expr reloid
   wheres $ att ! Attr.attnum'   .>. value 0
@@ -118,8 +118,8 @@ attributeRelation =  relation' $ do
 
 columnRelation :: PrimeRelation (String, String) Column
 columnRelation = relation' $ do
-  (ph, att) <- inner' attributeRelation
-  typ       <- inner  pgType
+  (ph, att) <- query' attributeRelation
+  typ       <- query  pgType
 
   wheres $ att ! Attr.atttypid'    .=. typ ! Type.oid'
   wheres $ typ ! Type.typtype'     .=. value 'b'  -- 'b': base type only
@@ -140,8 +140,8 @@ columnQuerySQL =  fromRelation columnRelation
 
 primaryKeyRelation :: PrimeRelation (String, String) String
 primaryKeyRelation = relation' $ do
-  (ph, att) <- inner' attributeRelation
-  con       <- inner pgConstraint
+  (ph, att) <- query' attributeRelation
+  con       <- query pgConstraint
 
   wheres $ con ! Constraint.conrelid' .=. att ! Attr.attrelid'
   wheres $ unsafeSqlValue "conkey[1]" .=. att ! Attr.attnum'

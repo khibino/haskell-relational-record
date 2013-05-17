@@ -18,7 +18,7 @@ import Database.Record.Instances ()
 
 import Database.Relational.Query.Type (fromRelation)
 import Database.Relational.Query
-  (Query, PrimeRelation, inner, relation,
+  (Query, PrimeRelation, query, relation,
    wheres, (.=.), (!), placeholder, asc, value)
 
 import Control.Applicative ((<|>))
@@ -63,7 +63,7 @@ getType mapFromSql rec = do
 
 columnsRelationFromTable :: PrimeRelation (String, String) Columns
 columnsRelationFromTable =  relation $ do
-  c <- inner columns
+  c <- query columns
   wheres $ c ! Columns.tabschema' .=. placeholder
   wheres $ c ! Columns.tabname'   .=. placeholder
   asc $ c ! Columns.colno'
@@ -75,9 +75,9 @@ columnsQuerySQL =  fromRelation columnsRelationFromTable
 
 primaryKeyRelation :: PrimeRelation (String, String) String
 primaryKeyRelation =  relation $ do
-  cons  <- inner tabconst
-  key   <- inner keycoluse
-  col   <- inner columns
+  cons  <- query tabconst
+  key   <- query keycoluse
+  col   <- query columns
 
   wheres $ cons ! Tabconst.tabschema' .=. col ! Columns.tabschema'
   wheres $ cons ! Tabconst.tabname'   .=. col ! Columns.tabname'
