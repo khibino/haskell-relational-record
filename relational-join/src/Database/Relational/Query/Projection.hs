@@ -1,5 +1,5 @@
 module Database.Relational.Query.Projection (
-  Projection, outer,
+  Projection, toMaybe,
 
   width,
 
@@ -33,8 +33,8 @@ data ProjectionUnit = Columns (Array Int String)
 
 data Projection t = Composed [ProjectionUnit]
 
-outer :: Projection r -> Projection (Maybe r)
-outer =  d  where
+toMaybe :: Projection r -> Projection (Maybe r)
+toMaybe =  d  where
   d (Composed qs) = Composed qs
 
 widthOfUnit :: ProjectionUnit -> Int

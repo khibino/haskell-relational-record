@@ -177,10 +177,10 @@ inner' :: PrimeRelation p r -> QueryJoin (PlaceHolders p, Projection r)
 inner' =  fmap record' . query Just'
 
 outer :: Relation r -> QueryJoin (Projection (Maybe r))
-outer =  fmap (record . fmap Relation.outer) . query Maybe
+outer =  fmap (record . fmap Relation.toMaybe) . query Maybe
 
 outer' :: PrimeRelation p r -> QueryJoin (PlaceHolders p, Projection (Maybe r))
-outer' =  fmap (record' . fmap Relation.outer) . query Maybe
+outer' =  fmap (record' . fmap Relation.toMaybe) . query Maybe
 
 from :: Table r -> QueryJoin (Projection r)
 from =  inner . table

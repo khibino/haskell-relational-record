@@ -5,7 +5,7 @@ module Database.Relational.Query.Relation (
   Order (..),
   PrimeRelation, Relation,
 
-  outer,
+  toMaybe,
   fromTable,
 
   toSubQuery,
@@ -48,10 +48,10 @@ data PrimeRelation a r = Table (Table r)
 
 type Relation = PrimeRelation ()
 
-outer :: PrimeRelation a r -> PrimeRelation a (Maybe r)
-outer =  d  where
-  d (Table t)                       = Table $ Table.outer t
-  d r@(Relation { projection = p }) = r { projection = Projection.outer p }
+toMaybe :: PrimeRelation a r -> PrimeRelation a (Maybe r)
+toMaybe =  d  where
+  d (Table t)                       = Table $ Table.toMaybe t
+  d r@(Relation { projection = p }) = r { projection = Projection.toMaybe p }
 
 width :: PrimeRelation a r -> Int
 width =  d  where
@@ -72,7 +72,7 @@ composedSQL pj pd re odRev =
                     (\f n -> SQL.word f `asColumnN` n)
                     (Projection.columns pj)
                     [(0 :: Int)..]
-          wheres  = maybe [] (\e -> [WHERE, SQL.word . showExpr $ e])
+          wheres  = Prelude.maybe [] (\e -> [WHERE, SQL.word . showExpr $ e])
           order Asc  = ASC
           order Desc = DESC
           orderList = foldl' (\ r (o, e) -> [SQL.word e, order o] `SQL.sepBy` " "  : r) [] odRev
