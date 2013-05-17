@@ -17,6 +17,7 @@ library
                         Language.SQL.Keyword.Type
                         Language.SQL.Keyword.Concat
                         Language.SQL.Keyword
+                        Language.SQL.Keyword.ConcatString
 
   build-depends:          base <5
   hs-source-dirs:       src

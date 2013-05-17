@@ -9,7 +9,7 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- SQL keyword representation using Haskell data constructors.
+-- Concatinations on 'Keyword' types
 module Language.SQL.Keyword.Concat (
   unwords',
 
