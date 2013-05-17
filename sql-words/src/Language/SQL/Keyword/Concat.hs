@@ -50,9 +50,6 @@ defineBinOp' op a b = concat' $ [a, b] `sepBy'` op
 defineBinOp :: Keyword -> Keyword -> Keyword -> Keyword
 defineBinOp op a b = word . unwords $ [a, b] `sepBy'` op
 
-as :: Keyword -> Keyword -> Keyword
-as =  defineBinOp AS
-
 (<.>)  =  defineBinOp' "."
 
 (.||.) =  defineBinOp "||"
@@ -62,11 +59,12 @@ as =  defineBinOp AS
 (.>.)  =  defineBinOp ">"
 (.>=.) =  defineBinOp ">="
 (.<>.) =  defineBinOp "<>"
+as     =  defineBinOp AS
 and    =  defineBinOp AND
 or     =  defineBinOp OR
 in'    =  defineBinOp IN
 
-(<.>), (.||.), (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.), and, or, in'
+(<.>), (.||.), (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.), as, and, or, in'
   :: Keyword -> Keyword -> Keyword
 
 infixr 5 .||.
