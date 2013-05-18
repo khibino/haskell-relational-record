@@ -18,7 +18,7 @@ module Database.Record.FromSql (
 
   (<&>),
 
-  outer,
+  maybeRecord,
 
   FromSql (recordFromSql), recordFromSql',
   takeRecord, toRecord,
@@ -68,11 +68,11 @@ a <&> b = (,) <$> a <*> b
 infixl 4 <&>
 
 
-outer :: PersistableType q
-      => RecordFromSql q a
-      -> KeyConstraint NotNull a
-      -> RecordFromSql q (Maybe a)
-outer rec pkey = createRecordFromSql mayToRec where
+maybeRecord :: PersistableType q
+            => RecordFromSql q a
+            -> KeyConstraint NotNull a
+            -> RecordFromSql q (Maybe a)
+maybeRecord rec pkey = createRecordFromSql mayToRec where
   mayToRec vals
     | vals !! index pkey /= Persistable.sqlNullValue = (Just a,  vals')
     | otherwise                         = (Nothing, vals')  where
@@ -90,7 +90,7 @@ instance (FromSql q a, FromSql q b) => FromSql q (a, b)  where
 
 instance (HasKeyConstraint NotNull a, FromSql q a, PersistableType q)
          => FromSql q (Maybe a)  where
-  recordFromSql = outer recordFromSql $ keyConstraint
+  recordFromSql = maybeRecord recordFromSql keyConstraint
 
 instance FromSql q () where
   recordFromSql = recordFromSql'
