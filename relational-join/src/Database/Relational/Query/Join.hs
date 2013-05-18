@@ -164,23 +164,23 @@ qualify rel =
   do n <- newAlias
      return $ AliasId.qualify rel n
 
-unsafeQuery :: NodeAttr -> PrimeRelation p r -> QueryJoin (Qualified (PrimeRelation p r))
-unsafeQuery attr rel =
+queryWithAttr :: NodeAttr -> PrimeRelation p r -> QueryJoin (Qualified (PrimeRelation p r))
+queryWithAttr attr rel =
   do qrel <- qualify rel
      updateProduct attr qrel
      return qrel
 
 query :: Relation r -> QueryJoin (Projection r)
-query =  fmap record . unsafeQuery Just'
+query =  fmap record . queryWithAttr Just'
 
 query' :: PrimeRelation p r -> QueryJoin (PlaceHolders p, Projection r)
-query' =  fmap record' . unsafeQuery Just'
+query' =  fmap record' . queryWithAttr Just'
 
 queryMaybe :: Relation r -> QueryJoin (Projection (Maybe r))
-queryMaybe =  fmap (record . fmap Relation.toMaybe) . unsafeQuery Maybe
+queryMaybe =  fmap (record . fmap Relation.toMaybe) . queryWithAttr Maybe
 
 queryMaybe' :: PrimeRelation p r -> QueryJoin (PlaceHolders p, Projection (Maybe r))
-queryMaybe' =  fmap (record' . fmap Relation.toMaybe) . unsafeQuery Maybe
+queryMaybe' =  fmap (record' . fmap Relation.toMaybe) . queryWithAttr Maybe
 
 from :: Table r -> QueryJoin (Projection r)
 from =  query . table
