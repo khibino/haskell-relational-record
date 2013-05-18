@@ -15,16 +15,16 @@ import Database.HDBC.Session (withConnectionIO)
 um :: Relation (User, Maybe Membership)
 um =  relation $
       [ u >*< m
-      | u <- inner user
-      , m <- outer membership
+      | u <- query      user
+      , m <- queryMaybe membership
       , () <- on $ just (u ! User.id') .=. m !? userId'
       ]
 
 r0 :: Relation (Maybe User, Maybe Group)
 r0 =  relation $
       [ (um' !? fst') >*< g
-      | um' <- outer um
-      , g   <- outer group
+      | um' <- queryMaybe um
+      , g   <- queryMaybe group
       , ()  <- on $ flatten (um' !? snd') !? groupId' .=. g !? Group.id'
       ]
 
