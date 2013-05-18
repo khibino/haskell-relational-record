@@ -23,6 +23,7 @@ import Prelude hiding (and, or)
 import Data.List (intercalate)
 
 import qualified Language.SQL.Keyword as SQL
+import qualified Language.SQL.Keyword.ConcatString as SQLs
 
 import Database.Relational.Query.Expr (Expr, ShowConstantSQL (showConstantSQL))
 import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr
@@ -90,51 +91,44 @@ instance ProjectableSqlTerm Expr where
   unsafeSqlTerm = UnsafeExpr.showExpr
 
 
-sqlBinOp :: String -> SQL.Keyword -> SQL.Keyword -> SQL.Keyword
-sqlBinOp =  SQL.defineBinOp . SQL.word
+type SqlBinOp = String -> String -> String
+
+sqlBinOp :: String -> SqlBinOp
+sqlBinOp =  SQLs.defineBinOp . SQL.word
 
 unsafeBinOp :: (SqlProjectable p, ProjectableSqlTerm p)
-            => (SQL.Keyword -> SQL.Keyword -> SQL.Keyword)
+            => SqlBinOp
             -> p a -> p b -> p c
-unsafeBinOp op a b = unsafeSqlValue . paren . SQL.wordShow
-                     $ op (wordTerm a) (wordTerm b)
-  where wordTerm = SQL.word . unsafeSqlTerm
-        paren = ('(' :) . (++[')'])
+unsafeBinOp op a b = unsafeSqlValue . paren
+                     $ op (unsafeSqlTerm a) (unsafeSqlTerm b)
+  where paren = ('(' :) . (++[')'])
 
 compareBinOp :: (SqlProjectable p, ProjectableSqlTerm p)
-             => (SQL.Keyword -> SQL.Keyword -> SQL.Keyword)
+             => SqlBinOp
              -> p a -> p a -> p Bool
 compareBinOp =  unsafeBinOp
 
 numBinOp :: (SqlProjectable p, ProjectableSqlTerm p, Num a)
-         => (SQL.Keyword -> SQL.Keyword -> SQL.Keyword)
+         => SqlBinOp
          -> p a -> p a -> p a
 numBinOp =  unsafeBinOp
 
 
-(.=.) :: (SqlProjectable p, ProjectableSqlTerm p)
-      => p ft -> p ft -> p Bool
-(.=.) =  compareBinOp (SQL..=.)
+(.=.)  =  compareBinOp (SQLs..=.)
+(.<>.) =  compareBinOp (SQLs..<>.)
+(.>.)  =  compareBinOp (SQLs..>.)
+(.<.)  =  compareBinOp (SQLs..<.)
 
-(.<>.) :: (SqlProjectable p, ProjectableSqlTerm p)
-       => p ft -> p ft -> p Bool
-(.<>.) =  compareBinOp (SQL..<>.)
+(.=.), (.<>.), (.>.), (.<.)
+  :: (SqlProjectable p, ProjectableSqlTerm p)
+  => p ft -> p ft -> p Bool
 
-(.>.) :: (SqlProjectable p, ProjectableSqlTerm p)
-      => p ft -> p ft -> p Bool
-(.>.) =  compareBinOp (SQL..>.)
+and = compareBinOp SQLs.and
+or  = compareBinOp SQLs.or
 
-(.<.) :: (SqlProjectable p, ProjectableSqlTerm p)
-      => p ft -> p ft -> p Bool
-(.<.) =  compareBinOp (SQL..<.)
-
-and :: (SqlProjectable p, ProjectableSqlTerm p)
-    => p Bool ->  p Bool ->  p Bool
-and =  compareBinOp SQL.and
-
-or :: (SqlProjectable p, ProjectableSqlTerm p)
-   => p Bool ->  p Bool ->  p Bool
-or =  compareBinOp SQL.or
+and, or
+  :: (SqlProjectable p, ProjectableSqlTerm p)
+  => p Bool ->  p Bool ->  p Bool
 
 numBinOp' :: (SqlProjectable p, ProjectableSqlTerm p, Num a)
           => String -> p a -> p a -> p a
@@ -145,16 +139,17 @@ numBinOp' = numBinOp . sqlBinOp
 (./.) =  numBinOp' "/"
 (.*.) =  numBinOp' "*"
 
-(.+.), (.-.), (./.), (.*.) :: (SqlProjectable p, ProjectableSqlTerm p, Num a)
-                           => p a -> p a -> p a
+(.+.), (.-.), (./.), (.*.)
+  :: (SqlProjectable p, ProjectableSqlTerm p, Num a)
+  => p a -> p a -> p a
 
 in' :: (SqlProjectable p, ProjectableSqlTerm p)
     => p t -> p [t] -> p Bool
-in' =  unsafeBinOp (SQL.in')
+in' =  unsafeBinOp (SQLs.in')
 
 isNull :: (SqlProjectable p, ProjectableSqlTerm p)
        => p (Maybe t) -> p Bool
-isNull x = compareBinOp (SQL.defineBinOp SQL.IS) x valueNull
+isNull x = compareBinOp (SQLs.defineBinOp SQL.IS) x valueNull
 
 infixl 7 .*., ./.
 infixl 6 .+., .-.
