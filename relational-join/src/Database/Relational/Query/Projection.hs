@@ -9,7 +9,9 @@ module Database.Relational.Query.Projection (
 
   compose, fromQualifiedSubQuery,
 
-  pi, piMaybe, flattenMaybe
+  pi, piMaybe, flattenMaybe,
+
+  just
   ) where
 
 import Prelude hiding ((!!), pi)
@@ -94,3 +96,6 @@ flattenMaybe (Composed pus) = Composed pus
 
 piMaybe :: PersistableWidth b => Projection (Maybe a) -> Pi a b -> Projection (Maybe b)
 piMaybe =  unsafeProject persistableWidth
+
+just :: Projection r -> Projection (Maybe r)
+just (Composed us) = Composed us
