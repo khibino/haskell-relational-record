@@ -8,10 +8,13 @@ module Database.Relational.Query.Join (
   record, record', expr, compose, (>*<), (!), (!?), flatten,
   relation, relation',
 
-  query, query', queryMaybe, queryMaybe', from
+  query, query', queryMaybe, queryMaybe', from,
+
+  queryMerge, queryMergeMaybe
   ) where
 
 import Prelude hiding (product)
+import Data.Maybe (fromMaybe)
 import Control.Monad (liftM, ap)
 import Control.Applicative (Applicative (pure, (<*>)))
 
@@ -85,6 +88,15 @@ updateContext uf =
 updateProduct :: NodeAttr -> Qualified (PrimeRelation p r) -> QueryJoin ()
 updateProduct attr qrel = updateContext (updateProduct' (`growProduct` (attr, fmap Relation.toSubQuery qrel)))
 
+mergeProduct :: NodeAttr -> Maybe QueryProduct -> Maybe QueryProduct -> Maybe QueryProduct
+mergeProduct attr mpL mpR =
+  Just $
+  Product.product attr
+  (mayEmptyProduct "left"  mpL)
+  (mayEmptyProduct "right" mpR)
+  Nothing
+  where mayEmptyProduct s = fromMaybe (error $ "mergeAnother: Empty product: " ++ s)
+
 updateJoinRestriction :: Expr Bool -> QueryJoin ()
 updateJoinRestriction e = updateContext (updateProduct' d)  where
   d  Nothing  = error "addProductRestriction: product is empty!"
@@ -92,6 +104,12 @@ updateJoinRestriction e = updateContext (updateProduct' d)  where
 
 updateRestriction :: Expr Bool -> QueryJoin ()
 updateRestriction e = updateContext (updateRestriction' e)
+
+mergeRestriction :: Maybe (Expr Bool) -> Maybe (Expr Bool) -> Maybe (Expr Bool)
+mergeRestriction = d  where
+  d Nothing     e1        = e1
+  d e0@(Just _) Nothing   = e0
+  d (Just e0)   (Just e1) = Just $ e0 `Projectable.and` e1
 
 updateOrderBy :: Order -> Expr t -> QueryJoin ()
 updateOrderBy order e = updateContext (updateOrderBy' order e)
@@ -184,6 +202,26 @@ queryMaybe' =  fmap (record' . fmap Relation.toMaybe) . queryWithAttr Maybe
 
 from :: Table r -> QueryJoin (Projection r)
 from =  query . table
+
+unsafeMergeAnother :: NodeAttr -> QueryJoin a -> QueryJoin a
+unsafeMergeAnother attr q1 =
+  QueryJoin
+  $ \st0 -> let p0        = product st0
+                (pj, st1) = runQueryJoin q1 (st0 { product = Nothing})
+                p1        = fmap (Product.unsafeUpdateNodeAttr attr) $ product st1
+            in  (pj, st1 { product     = mergeProduct Just' p0 p1
+                         , restriction = mergeRestriction (restriction st0) (restriction st1)
+                         , orderByRev  = orderByRev st1 ++ orderByRev st0
+                         })
+
+queryMergeWithAttr :: NodeAttr -> QueryJoin (Projection r) -> QueryJoin (Projection r)
+queryMergeWithAttr =  unsafeMergeAnother
+
+queryMerge :: QueryJoin (Projection r) -> QueryJoin (Projection r)
+queryMerge =  queryMergeWithAttr Just'
+
+queryMergeMaybe :: QueryJoin (Projection a) -> QueryJoin (Projection (Maybe a))
+queryMergeMaybe =  fmap Projection.just . queryMergeWithAttr Maybe
 
 relation :: QueryJoin (Projection r) -> PrimeRelation a r
 relation q = finalizeRelation projection product' (restriction st) (orderByRev st)  where

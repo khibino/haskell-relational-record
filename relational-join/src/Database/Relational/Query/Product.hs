@@ -1,12 +1,12 @@
 module Database.Relational.Query.Product (
-  QueryProduct, ProductTree, growProduct, restrictProduct,
-  NodeAttr (Just', Maybe),
+  NodeAttr (Just', Maybe), unsafeUpdateNodeAttr,
+  QueryProduct, ProductTree, growProduct, product, restrictProduct,
   Product,
   tree,
   productSQL
   ) where
 
-import Prelude hiding (and)
+import Prelude hiding (and, product)
 import Database.Relational.Query.Expr (Expr, showExpr)
 import Database.Relational.Query.Projectable (valueTrue, and)
 import Database.Relational.Query.AliasId (Qualified)
@@ -31,6 +31,11 @@ joinAttr =  d  where
   d (Leaf jt _)     = jt
   d (Join jt _ _ _) = jt
 
+unsafeUpdateNodeAttr :: NodeAttr -> ProductTree q -> ProductTree q
+unsafeUpdateNodeAttr a = d  where
+  d (Leaf _ q)     = Leaf a q
+  d (Join _ l r c) = Join a l r c
+
 
 instance Foldable ProductTree where
   foldMap f pq = rec pq where
@@ -43,6 +48,9 @@ growProduct :: Maybe (ProductTree q) -> (NodeAttr, q) -> ProductTree q
 growProduct =  d  where
   d Nothing  (ja, q) = Leaf ja q
   d (Just t) (ja, q) = Join Just' t (Leaf ja q) Nothing
+
+product :: NodeAttr -> ProductTree q -> ProductTree q -> Maybe (Expr Bool) -> ProductTree q
+product =  Join
 
 restrictProduct :: ProductTree q -> Expr Bool -> ProductTree q
 restrictProduct =  d  where
