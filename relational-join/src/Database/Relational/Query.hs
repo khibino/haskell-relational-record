@@ -7,6 +7,7 @@ module Database.Relational.Query (
   module Database.Relational.Query.AliasId,
   module Database.Relational.Query.Expr,
   module Database.Relational.Query.Sub,
+  module Database.Relational.Query.Projection,
   module Database.Relational.Query.Projectable,
   module Database.Relational.Query.Relation,
   module Database.Relational.Query.Join,
@@ -24,6 +25,7 @@ import Database.Relational.Query.Constraint
 import Database.Relational.Query.AliasId (Qualified)
 import Database.Relational.Query.Expr
 import Database.Relational.Query.Sub (SubQuery, unitSQL, width, queryWidth)
+import Database.Relational.Query.Projection (Projection)
 import Database.Relational.Query.Projectable
 import Database.Relational.Query.Relation (Relation, PrimeRelation, toSQL, fromTable)
 import Database.Relational.Query.Join
