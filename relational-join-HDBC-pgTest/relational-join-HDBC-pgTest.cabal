@@ -21,6 +21,7 @@ Executable sample1
                        , names-th
                        , DB-record
                        , relational-join
+                       , HDBC
                        , HDBC-session
                        , HDBC-postgresql
                        , relational-query-HDBC
