@@ -1,6 +1,8 @@
 module Database.Relational.Query.Product (
   NodeAttr (Just', Maybe), unsafeUpdateNodeAttr,
-  QueryProduct, ProductTree, growProduct, product, restrictProduct,
+  ProductTree, Node, QueryProduct, QueryProductNode,
+  growProductRight, growProductLeft,
+  growProduct, product, restrictProduct,
   Product,
   tree,
   productSQL
@@ -24,9 +26,11 @@ import Data.Foldable (Foldable (foldMap))
 data NodeAttr = Just' | Maybe
 
 data ProductTree q = Leaf NodeAttr q
-                   | Join NodeAttr !(ProductTree q) !(ProductTree q) !(Maybe (Expr Bool))
+                   | Join NodeAttr !(Node q) !(Node q) !(Maybe (Expr Bool))
 
-nodeAttr :: ProductTree q -> NodeAttr
+type Node q = ProductTree q
+
+nodeAttr :: Node q -> NodeAttr
 nodeAttr =  d  where
   d (Leaf jt _)     = jt
   d (Join jt _ _ _) = jt
@@ -43,11 +47,28 @@ instance Foldable ProductTree where
     rec (Join _ lp rp _ ) = rec lp <> rec rp
 
 type QueryProduct = ProductTree (Qualified SubQuery)
+type QueryProductNode = Node (Qualified SubQuery)
+
+node :: NodeAttr -> ProductTree q -> Node q
+node a q = unsafeUpdateNodeAttr a q
+
+leaf :: NodeAttr -> q -> Node q
+leaf a q = node a (Leaf a q)
+
+growProductRight :: Maybe (ProductTree q) -> (NodeAttr, ProductTree q) -> ProductTree q
+growProductRight = d  where
+  d Nothing  (na, q) = node na q
+  d (Just l) (na, q) = Join Just' l (node na q) Nothing
+
+growProductLeft :: (NodeAttr, ProductTree q) -> Maybe (ProductTree q) -> ProductTree q
+growProductLeft =  d  where
+  d (na, q) Nothing  = node na q
+  d (na, q) (Just r) = Join Just' (node na q) r Nothing
 
 growProduct :: Maybe (ProductTree q) -> (NodeAttr, q) -> ProductTree q
-growProduct =  d  where
-  d Nothing  (ja, q) = Leaf ja q
-  d (Just t) (ja, q) = Join Just' t (Leaf ja q) Nothing
+growProduct =  match  where
+  match t (na, q) =  growProductRight t (na, leaf na q)
+
 
 product :: NodeAttr -> ProductTree q -> ProductTree q -> Maybe (Expr Bool) -> ProductTree q
 product =  Join
@@ -56,7 +77,7 @@ restrictProduct :: ProductTree q -> Expr Bool -> ProductTree q
 restrictProduct =  d  where
   d (Join ja lp rp Nothing)   rs' = Join ja lp rp (Just rs')
   d (Join ja lp rp (Just rs)) rs' = Join ja lp rp (Just $ rs `and` rs')
-  d leaf@(Leaf _ _)           _   = leaf -- or error on compile
+  d leaf'@(Leaf _ _)          _   = leaf' -- or error on compile
 
 
 newtype Product = Tree QueryProduct
