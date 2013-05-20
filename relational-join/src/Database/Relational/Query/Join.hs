@@ -209,10 +209,12 @@ unsafeMergeAnother attr q1 =
   $ \st0 -> let p0        = product st0
                 (pj, st1) = runQueryJoin q1 (st0 { product = Nothing})
                 p1        = fmap (Product.unsafeUpdateNodeAttr attr) $ product st1
-            in  (pj, st1 { product     = mergeProduct Just' p0 p1
+            in  (pj, st1 { product     = merge p0 p1
                          , restriction = mergeRestriction (restriction st0) (restriction st1)
                          , orderByRev  = orderByRev st1 ++ orderByRev st0
                          })
+  where merge Nothing     p1 = p1
+        merge p0@(Just _) p1 = mergeProduct Just' p0 p1
 
 queryMergeWithAttr :: NodeAttr -> QueryJoin (Projection r) -> QueryJoin (Projection r)
 queryMergeWithAttr =  unsafeMergeAnother
