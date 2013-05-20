@@ -1,10 +1,11 @@
 module Database.Relational.Query.Product (
   NodeAttr (Just', Maybe),
   ProductTree, Node, QueryProduct, QueryProductNode,
-  growRight, growLeft,
+  nodeTree, growRight, growLeft,
   growProduct, product, restrictProduct,
   Product,
   tree,
+  queryProductSQL,
   productSQL
   ) where
 
@@ -75,9 +76,9 @@ restrictProduct :: Node q -> Expr Bool -> Node q
 restrictProduct (Node a t) e = node a (restrictProduct' t e)
 
 
-newtype Product = Tree QueryProductNode
+newtype Product = Tree QueryProduct
 
-tree :: QueryProductNode -> Product
+tree :: QueryProduct -> Product
 tree =  Tree
 
 showParen' :: ShowS -> ShowS
@@ -114,6 +115,9 @@ showQueryProduct =  rec  where
      showWordSQL ON,
      showString . showExpr . fromMaybe valueTrue {- or error on compile -}  $ rs]
 
+queryProductSQL :: QueryProduct -> String
+queryProductSQL =  ($ "") . showQueryProduct
+
 productSQL :: Product -> String
 productSQL =  d  where
-  d (Tree (Node _ pt))     = ($ "") . showQueryProduct $ pt
+  d (Tree pt)     = queryProductSQL pt

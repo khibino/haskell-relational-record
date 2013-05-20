@@ -181,7 +181,7 @@ queryMergeMaybe =  fmap Projection.just . queryMergeWithAttr Maybe
 relation :: QueryJoin (Projection r) -> PrimeRelation a r
 relation q = finalizeRelation projection product' (restriction st) (orderByRev st)  where
   (projection, st) = runQueryPrime q
-  product' = maybe (error "relation: empty product!") Product.tree $ product st
+  product' = maybe (error "relation: empty product!") (Product.tree . Product.nodeTree) $ product st
 
 relation' :: QueryJoin (PlaceHolders p, Projection r) -> PrimeRelation p r
 relation' =  relation . fmap snd

@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Database.Relational.Query.Relation (
 
   Order (..),
@@ -15,11 +13,9 @@ module Database.Relational.Query.Relation (
   ) where
 
 import Prelude hiding (product, and)
-import Data.List (foldl', intercalate)
+import Data.List (intercalate)
 
-import Database.Relational.Query.AliasId (asColumnN)
-
-import Database.Relational.Query.Expr (Expr, showExpr)
+import Database.Relational.Query.Expr (Expr)
 
 import Database.Relational.Query.Table (Table)
 import qualified Database.Relational.Query.Table as Table
@@ -27,7 +23,7 @@ import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Sub (SubQuery, subQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
 
-import Database.Relational.Query.Product (Product, productSQL)
+import Database.Relational.Query.Product (Product)
 
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
@@ -35,8 +31,8 @@ import qualified Database.Relational.Query.Projection as Projection
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
 
+import Database.Relational.Query.Internal.Context (Order(..), composedSQL)
 
-data Order = Asc | Desc
 
 data PrimeRelation a r = Table (Table r)
                        | Relation
@@ -60,24 +56,6 @@ width =  d  where
 
 fromTable :: Table r -> Relation r
 fromTable =  Table
-
-composedSQL :: Projection r -> Product -> Maybe (Expr Bool) -> [(Order, String)] -> String
-composedSQL pj pd re odRev =
-  unwordsSQL
-  $ [SELECT, columns' `SQL.sepBy` ", ",
-     FROM, SQL.word . productSQL $ pd]
-  ++ wheres re
-  ++ orders
-    where columns' = zipWith
-                    (\f n -> SQL.word f `asColumnN` n)
-                    (Projection.columns pj)
-                    [(0 :: Int)..]
-          wheres  = Prelude.maybe [] (\e -> [WHERE, SQL.word . showExpr $ e])
-          order Asc  = ASC
-          order Desc = DESC
-          orderList = foldl' (\ r (o, e) -> [SQL.word e, order o] `SQL.sepBy` " "  : r) [] odRev
-          orders | null odRev = []
-                 | otherwise  = [ORDER, BY, orderList `SQL.sepBy` ", "]
 
 toSubQuery :: PrimeRelation a r -> SubQuery
 toSubQuery =  d  where
