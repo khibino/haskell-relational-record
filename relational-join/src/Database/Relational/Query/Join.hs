@@ -167,7 +167,7 @@ unsafeMergeAnother attr q1 =
   QueryJoin
   $ \st0 -> let mp0       = product st0
                 (pj, st1) = runQueryJoin q1 (st0 { product = Nothing})
-            in  (pj, maybe st1 (\p0 -> updateProduct' (Product.growLeft (Just', p0) attr) st1) mp0)
+            in  (pj, maybe st1 (\p0 -> updateProduct' (Product.growLeft p0 attr) st1) mp0)
 
 queryMergeWithAttr :: NodeAttr -> QueryJoin (Projection r) -> QueryJoin (Projection r)
 queryMergeWithAttr =  unsafeMergeAnother

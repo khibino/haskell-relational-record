@@ -1,7 +1,7 @@
 module Database.Relational.Query.Product (
-  NodeAttr (Just', Maybe), -- unsafeUpdateNodeAttr,
+  NodeAttr (Just', Maybe),
   ProductTree, Node, QueryProduct, QueryProductNode,
-  node, growRight, growLeft,
+  growRight, growLeft,
   growProduct, product, restrictProduct,
   Product,
   tree,
@@ -25,64 +25,59 @@ import Data.Foldable (Foldable (foldMap))
 
 data NodeAttr = Just' | Maybe
 
-data ProductTree q = Leaf NodeAttr q
-                   | Join NodeAttr !(Node q) !(Node q) !(Maybe (Expr Bool))
+data ProductTree q = Leaf q
+                   | Join !(Node q) !(Node q) !(Maybe (Expr Bool))
 
-type Node q = ProductTree q
+data Node q = Node !NodeAttr !(ProductTree q)
 
 nodeAttr :: Node q -> NodeAttr
-nodeAttr =  d  where
-  d (Leaf jt _)     = jt
-  d (Join jt _ _ _) = jt
+nodeAttr (Node a _) = a  where
 
-unsafeUpdateNodeAttr :: NodeAttr -> ProductTree q -> ProductTree q
-unsafeUpdateNodeAttr a = d  where
-  d (Leaf _ q)     = Leaf a q
-  d (Join _ l r c) = Join a l r c
-
+nodeTree :: Node q -> ProductTree q
+nodeTree (Node _ t) = t
 
 instance Foldable ProductTree where
   foldMap f pq = rec pq where
-    rec (Leaf _ q) = f q
-    rec (Join _ lp rp _ ) = rec lp <> rec rp
+    rec (Leaf q) = f q
+    rec (Join (Node _ lp) (Node _ rp) _ ) = rec lp <> rec rp
 
 type QueryProduct = ProductTree (Qualified SubQuery)
 type QueryProductNode = Node (Qualified SubQuery)
 
 node :: NodeAttr -> ProductTree q -> Node q
-node a q = unsafeUpdateNodeAttr a q
+node =  Node
 
-leaf :: NodeAttr -> q -> Node q
-leaf a q = node a (Leaf a q)
-
-growRight :: NodeAttr -> Maybe (ProductTree q) -> (NodeAttr, ProductTree q) -> ProductTree q
-growRight naL = d  where
+growRight :: Maybe (Node q) -> (NodeAttr, ProductTree q) -> Node q
+growRight = d  where
   d Nothing  (naR, q) = node naR q
-  d (Just l) (naR, q) = Join Just' (node naL l) (node naR q) Nothing
+  d (Just l) (naR, q) = node Just' $ Join l (node naR q) Nothing
 
-growLeft :: (NodeAttr, ProductTree q) -> NodeAttr -> Maybe (ProductTree q) -> ProductTree q
+growLeft :: Node q -> NodeAttr -> Maybe (Node q) -> Node q
 growLeft =  d  where
-  d (naL, q) _naR Nothing  = node naL q
-  d (naL, q) naR  (Just r) = Join Just' (node naL q) (node naR r) Nothing
+  d q _naR Nothing  = q -- error is better?
+  d q naR  (Just r) = node Just' $ Join q (node naR (nodeTree r)) Nothing
 
-growProduct :: Maybe (ProductTree q) -> (NodeAttr, q) -> ProductTree q
+growProduct :: Maybe (Node q) -> (NodeAttr, q) -> Node q
 growProduct =  match  where
-  match t (na, q) =  growRight Just' t (na, leaf na q)
+  match t (na, q) =  growRight t (na, Leaf q)
 
 
-product :: NodeAttr -> ProductTree q -> ProductTree q -> Maybe (Expr Bool) -> ProductTree q
+product :: Node q -> Node q -> Maybe (Expr Bool) -> ProductTree q
 product =  Join
 
-restrictProduct :: ProductTree q -> Expr Bool -> ProductTree q
-restrictProduct =  d  where
-  d (Join ja lp rp Nothing)   rs' = Join ja lp rp (Just rs')
-  d (Join ja lp rp (Just rs)) rs' = Join ja lp rp (Just $ rs `and` rs')
-  d leaf'@(Leaf _ _)          _   = leaf' -- or error on compile
+restrictProduct' :: ProductTree q -> Expr Bool -> ProductTree q
+restrictProduct' =  d  where
+  d (Join lp rp Nothing)   rs' = Join lp rp (Just rs')
+  d (Join lp rp (Just rs)) rs' = Join lp rp (Just $ rs `and` rs')
+  d leaf'@(Leaf _)         _   = leaf' -- or error on compile
+
+restrictProduct :: Node q -> Expr Bool -> Node q
+restrictProduct (Node a t) e = node a (restrictProduct' t e)
 
 
-newtype Product = Tree QueryProduct
+newtype Product = Tree QueryProductNode
 
-tree :: QueryProduct -> Product
+tree :: QueryProductNode -> Product
 tree =  Tree
 
 showParen' :: ShowS -> ShowS
@@ -108,10 +103,10 @@ showQueryProduct =  rec  where
   joinType Just' Maybe = LEFT
   joinType Maybe Just' = RIGHT
   joinType Maybe Maybe = FULL
-  urec p@(Leaf _ _)     = rec p
-  urec p@(Join _ _ _ _) = showParen' (rec p)
-  rec (Leaf _ q)               = showString $ SubQuery.qualifiedForm q
-  rec (Join _ left' right' rs) =
+  urec (Node _ p@(Leaf _))     = rec p
+  urec (Node _ p@(Join _ _ _)) = showParen' (rec p)
+  rec (Leaf q)               = showString $ SubQuery.qualifiedForm q
+  rec (Join left' right' rs) =
     showUnwords
     [urec left',
      showWordsSQL [joinType (nodeAttr left') (nodeAttr right'), JOIN],
@@ -121,4 +116,4 @@ showQueryProduct =  rec  where
 
 productSQL :: Product -> String
 productSQL =  d  where
-  d (Tree pt)     = ($ "") . showQueryProduct $ pt
+  d (Tree (Node _ pt))     = ($ "") . showQueryProduct $ pt

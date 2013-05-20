@@ -17,7 +17,7 @@ import Database.Relational.Query.AliasId (AliasId, newAliasId)
 
 import Database.Relational.Query.Expr (Expr, showExpr)
 
-import Database.Relational.Query.Product (QueryProduct)
+import Database.Relational.Query.Product (QueryProductNode)
 
 import qualified Database.Relational.Query.Projectable as Projectable
 
@@ -26,7 +26,7 @@ import Database.Relational.Query.Relation (Order)
 
 data Context = Context
                { currentAliasId :: AliasId
-               , product :: Maybe QueryProduct
+               , product :: Maybe QueryProductNode
                , restriction :: Maybe (Expr Bool)
                , orderByRev :: [(Order, String)]
                }
@@ -37,7 +37,7 @@ primContext =  Context primAlias Nothing Nothing []
 nextAliasContext :: Context -> Context
 nextAliasContext s = s { currentAliasId =  newAliasId (currentAliasId s) }
 
-updateProduct' :: (Maybe QueryProduct -> QueryProduct) -> Context -> Context
+updateProduct' :: (Maybe QueryProductNode -> QueryProductNode) -> Context -> Context
 updateProduct' uf ctx =
   ctx { product = Just . uf . product $ ctx }
 
