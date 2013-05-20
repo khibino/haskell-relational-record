@@ -14,7 +14,6 @@ module Database.Relational.Query.Join (
   ) where
 
 import Prelude hiding (product)
-import Data.Maybe (fromMaybe)
 import Control.Monad (liftM, ap)
 import Control.Applicative (Applicative (pure, (<*>)))
 
@@ -22,7 +21,7 @@ import Database.Record (PersistableWidth)
 
 import Database.Relational.Query.Internal.Context
   (Context, primContext, currentAliasId, product, restriction, orderByRev,
-   nextAliasContext, updateProduct', updateRestriction', updateOrderBy', mergeProduct)
+   nextAliasContext, updateProduct', updateRestriction', updateOrderBy')
 
 import Database.Relational.Query.AliasId (AliasId, Qualified)
 import qualified Database.Relational.Query.AliasId as AliasId
@@ -32,7 +31,7 @@ import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Expr (Expr)
 
 import Database.Relational.Query.Product
-  (QueryProduct, NodeAttr(Just', Maybe), growProduct, restrictProduct)
+  (NodeAttr(Just', Maybe), growProduct, restrictProduct)
 import qualified Database.Relational.Query.Product as Product
 
 import Database.Relational.Query.Projection (Projection)
@@ -163,17 +162,12 @@ queryMaybe' =  fmap (record' . fmap Relation.toMaybe) . queryWithAttr Maybe
 from :: Table r -> QueryJoin (Projection r)
 from =  query . table
 
-mayEmptyProduct :: String -> Maybe QueryProduct -> QueryProduct
-mayEmptyProduct s = fromMaybe (error $ s ++ ": Empty product")
-
 unsafeMergeAnother :: NodeAttr -> QueryJoin a -> QueryJoin a
 unsafeMergeAnother attr q1 =
   QueryJoin
-  $ \st0 -> let p0        = product st0
+  $ \st0 -> let mp0       = product st0
                 (pj, st1) = runQueryJoin q1 (st0 { product = Nothing})
-                p1        = Product.node attr
-                            . mayEmptyProduct "unsafeMergeAnother" $ product st1
-            in  (pj, updateProduct' (const $ mergeProduct p0 p1) st1)
+            in  (pj, maybe st1 (\p0 -> updateProduct' (Product.growLeft (Just', p0) attr) st1) mp0)
 
 queryMergeWithAttr :: NodeAttr -> QueryJoin (Projection r) -> QueryJoin (Projection r)
 queryMergeWithAttr =  unsafeMergeAnother

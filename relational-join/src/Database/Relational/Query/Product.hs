@@ -55,19 +55,19 @@ node a q = unsafeUpdateNodeAttr a q
 leaf :: NodeAttr -> q -> Node q
 leaf a q = node a (Leaf a q)
 
-growRight :: Maybe (ProductTree q) -> (NodeAttr, ProductTree q) -> ProductTree q
-growRight = d  where
-  d Nothing  (na, q) = node na q
-  d (Just l) (na, q) = Join Just' l (node na q) Nothing
+growRight :: NodeAttr -> Maybe (ProductTree q) -> (NodeAttr, ProductTree q) -> ProductTree q
+growRight naL = d  where
+  d Nothing  (naR, q) = node naR q
+  d (Just l) (naR, q) = Join Just' (node naL l) (node naR q) Nothing
 
-growLeft :: (NodeAttr, ProductTree q) -> Maybe (ProductTree q) -> ProductTree q
+growLeft :: (NodeAttr, ProductTree q) -> NodeAttr -> Maybe (ProductTree q) -> ProductTree q
 growLeft =  d  where
-  d (na, q) Nothing  = node na q
-  d (na, q) (Just r) = Join Just' (node na q) r Nothing
+  d (naL, q) _naR Nothing  = node naL q
+  d (naL, q) naR  (Just r) = Join Just' (node naL q) (node naR r) Nothing
 
 growProduct :: Maybe (ProductTree q) -> (NodeAttr, q) -> ProductTree q
 growProduct =  match  where
-  match t (na, q) =  growRight t (na, leaf na q)
+  match t (na, q) =  growRight Just' t (na, leaf na q)
 
 
 product :: NodeAttr -> ProductTree q -> ProductTree q -> Maybe (Expr Bool) -> ProductTree q

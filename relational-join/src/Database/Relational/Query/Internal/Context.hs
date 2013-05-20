@@ -7,8 +7,7 @@ module Database.Relational.Query.Internal.Context (
 
   updateProduct',
   updateRestriction',
-  updateOrderBy',
-  mergeProduct
+  updateOrderBy'
   ) where
 
 import Prelude hiding (product)
@@ -19,7 +18,6 @@ import Database.Relational.Query.AliasId (AliasId, newAliasId)
 import Database.Relational.Query.Expr (Expr, showExpr)
 
 import Database.Relational.Query.Product (QueryProduct)
-import qualified Database.Relational.Query.Product as Product
 
 import qualified Database.Relational.Query.Projectable as Projectable
 
@@ -52,9 +50,3 @@ updateRestriction' e1 ctx =
 updateOrderBy' :: Order -> Expr t -> Context -> Context
 updateOrderBy' order e ctx =
   ctx { orderByRev = ((order, showExpr e) :) . orderByRev $ ctx  }
-
-
-mergeProduct :: Maybe QueryProduct -> QueryProduct -> QueryProduct
-mergeProduct = d  where
-  d Nothing   p1 = p1
-  d (Just p0) p1 = Product.product Product.Just' p0 p1 Nothing
