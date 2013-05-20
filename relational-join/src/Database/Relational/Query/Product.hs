@@ -1,7 +1,7 @@
 module Database.Relational.Query.Product (
-  NodeAttr (Just', Maybe), unsafeUpdateNodeAttr,
+  NodeAttr (Just', Maybe), -- unsafeUpdateNodeAttr,
   ProductTree, Node, QueryProduct, QueryProductNode,
-  growProductRight, growProductLeft,
+  node, growRight, growLeft,
   growProduct, product, restrictProduct,
   Product,
   tree,
@@ -55,19 +55,19 @@ node a q = unsafeUpdateNodeAttr a q
 leaf :: NodeAttr -> q -> Node q
 leaf a q = node a (Leaf a q)
 
-growProductRight :: Maybe (ProductTree q) -> (NodeAttr, ProductTree q) -> ProductTree q
-growProductRight = d  where
+growRight :: Maybe (ProductTree q) -> (NodeAttr, ProductTree q) -> ProductTree q
+growRight = d  where
   d Nothing  (na, q) = node na q
   d (Just l) (na, q) = Join Just' l (node na q) Nothing
 
-growProductLeft :: (NodeAttr, ProductTree q) -> Maybe (ProductTree q) -> ProductTree q
-growProductLeft =  d  where
+growLeft :: (NodeAttr, ProductTree q) -> Maybe (ProductTree q) -> ProductTree q
+growLeft =  d  where
   d (na, q) Nothing  = node na q
   d (na, q) (Just r) = Join Just' (node na q) r Nothing
 
 growProduct :: Maybe (ProductTree q) -> (NodeAttr, q) -> ProductTree q
 growProduct =  match  where
-  match t (na, q) =  growProductRight t (na, leaf na q)
+  match t (na, q) =  growRight t (na, leaf na q)
 
 
 product :: NodeAttr -> ProductTree q -> ProductTree q -> Maybe (Expr Bool) -> ProductTree q

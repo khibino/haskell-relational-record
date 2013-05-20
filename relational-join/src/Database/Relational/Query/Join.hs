@@ -171,7 +171,7 @@ unsafeMergeAnother attr q1 =
   QueryJoin
   $ \st0 -> let p0        = product st0
                 (pj, st1) = runQueryJoin q1 (st0 { product = Nothing})
-                p1        = Product.unsafeUpdateNodeAttr attr
+                p1        = Product.node attr
                             . mayEmptyProduct "unsafeMergeAnother" $ product st1
             in  (pj, updateProduct' (const $ mergeProduct p0 p1) st1)
 
