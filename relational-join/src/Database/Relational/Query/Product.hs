@@ -26,8 +26,8 @@ data NodeAttr = Just' | Maybe
 data ProductTree q = Leaf NodeAttr q
                    | Join NodeAttr !(ProductTree q) !(ProductTree q) !(Maybe (Expr Bool))
 
-joinAttr :: ProductTree q -> NodeAttr
-joinAttr =  d  where
+nodeAttr :: ProductTree q -> NodeAttr
+nodeAttr =  d  where
   d (Leaf jt _)     = jt
   d (Join jt _ _ _) = jt
 
@@ -93,7 +93,7 @@ showQueryProduct =  rec  where
   rec (Join _ left' right' rs) =
     showUnwords
     [urec left',
-     showWordsSQL [joinType (joinAttr left') (joinAttr right'), JOIN],
+     showWordsSQL [joinType (nodeAttr left') (nodeAttr right'), JOIN],
      urec right',
      showWordSQL ON,
      showString . showExpr . fromMaybe valueTrue {- or error on compile -}  $ rs]
