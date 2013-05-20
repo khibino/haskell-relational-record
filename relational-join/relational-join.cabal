@@ -43,6 +43,8 @@ library
                        Database.Relational.Schema.PostgreSQL
 
   other-modules:
+                       Database.Relational.Query.Internal.Context
+
                        Database.Relational.Schema.DB2Syscat.Tabconst
                        Database.Relational.Schema.DB2Syscat.Keycoluse
 
