@@ -12,9 +12,8 @@ module Database.Relational.Query.Derives (
 import Database.Record (PersistableWidth)
 import Database.Relational.Query.Table (Table)
 import qualified Database.Relational.Query.Table as Table
-import Database.Relational.Query.Relation (Relation, PrimeRelation)
 import Database.Relational.Query.Projectable (placeholder, (.=.))
-import Database.Relational.Query.Join (relation, query, wheres, (!))
+import Database.Relational.Query.Join (Relation, PrimeRelation, relation, query, wheres, (!))
 import Database.Relational.Query.Constraint
    (Key, Primary, Unique, projectionKey, uniqueKey,
     HasConstraintKey(constraintKey))

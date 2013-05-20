@@ -48,9 +48,10 @@ import Database.Record.TH
    defineHasKeyConstraintInstance)
 
 import Database.Relational.Query
-  (Table, Pi, Relation, PrimeRelation, fromTable,
+  (Table, Pi, Relation, PrimeRelation,
    toSQL, Query, fromRelation, Update, Insert, typedInsert,
    HasConstraintKey(constraintKey), projectionKey, Primary, NotNull)
+import qualified Database.Relational.Query as Query
 
 import Database.Relational.Query.Constraint (Key, defineConstraintKey)
 import qualified Database.Relational.Query.Table as Table
@@ -142,7 +143,7 @@ defineTableTypes tableVar' relVar' recordType table columns = do
             [| Table.table $(stringE table) $(listE $ map stringE (map (fst . fst) columns)) |]
   let relVar   = varName relVar'
   relDs   <- simpleValD relVar   [t| Relation $(recordType) |]
-             [| fromTable $(toVarExp tableVar') |]
+             [| Query.table $(toVarExp tableVar') |]
   return $ tableDs ++ relDs
 
 tableSQL :: String -> String -> String

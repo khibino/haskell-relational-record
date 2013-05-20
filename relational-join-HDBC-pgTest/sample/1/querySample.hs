@@ -40,24 +40,24 @@ userGroup0 =
   , ()  <- asc $ u !? User.id'
   ]
 
-userGroup1 :: Relation (Maybe User, Maybe Group)
-userGroup1 =
-  relation $
-  [ u >*< mg !? snd'
-  | u  <- queryMaybe user
-  , mg <- queryMergeMaybe groupMemberShip
-          -- Directly merge another QueryJoin monad.
-          -- Complex implementation.
-          -- Simple SQL. Flat table form joins.
+-- userGroup1 :: Relation (Maybe User, Maybe Group)
+-- userGroup1 =
+--   relation $
+--   [ u >*< mg !? snd'
+--   | u  <- queryMaybe user
+--   , mg <- queryMergeMaybe groupMemberShip
+--           -- Directly merge another QueryJoin monad.
+--           -- Complex implementation.
+--           -- Simple SQL. Flat table form joins.
 
-  , () <- on $ u !? User.id' .=. flatten (mg !? fst') !? userId'
+--   , () <- on $ u !? User.id' .=. flatten (mg !? fst') !? userId'
 
-  , ()  <- asc $ u !? User.id'
-  ]
+--   , ()  <- asc $ u !? User.id'
+--   ]
 
 runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a) => conn -> Relation a -> IO ()
 runAndPrint conn rel = do
-  putStrLn $ "SQL: " ++ show rel
+  putStrLn $ "SQL: " ++ toSQL rel
   records  <- runQuery conn () (fromRelation rel)
   mapM_ print records
   putStrLn ""
@@ -66,7 +66,7 @@ run :: IO ()
 run =  withConnectionIO connect
        (\conn -> do
            runAndPrint conn userGroup0
-           runAndPrint conn userGroup1
+--           runAndPrint conn userGroup1
        )
 
 main :: IO ()

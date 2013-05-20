@@ -5,12 +5,19 @@ module Database.Relational.Query.Join (
   on, wheres, asc, desc,
   table,
 
-  record, record', expr, compose, (>*<), (!), (!?), flatten,
+  expr,
+  compose, (>*<), (!), (!?), flatten,
   relation, relation',
 
   query, query', queryMaybe, queryMaybe', from,
 
-  queryMerge, queryMergeMaybe
+  PrimeRelation, Relation,
+
+  toSQL,
+
+  toSubQuery,
+
+  nested, width
   ) where
 
 import Prelude hiding (product)
@@ -20,8 +27,8 @@ import Control.Applicative (Applicative (pure, (<*>)))
 import Database.Record (PersistableWidth)
 
 import Database.Relational.Query.Internal.Context
-  (Context, primContext, currentAliasId, product, restriction, orderByRev,
-   nextAliasContext, updateProduct', updateRestriction', updateOrderBy')
+  (Context, Order(Asc, Desc), primContext, currentAliasId, product, orderByRev,
+   nextAliasContext, updateProduct', updateRestriction', updateOrderBy', composeSQL)
 
 import Database.Relational.Query.AliasId (AliasId, Qualified)
 import qualified Database.Relational.Query.AliasId as AliasId
@@ -40,8 +47,8 @@ import Database.Relational.Query.Projectable (Projectable(project))
 
 import Database.Relational.Query.Pi (Pi)
 
-import Database.Relational.Query.Relation (Relation, PrimeRelation, finalizeRelation, Order(Asc, Desc))
-import qualified Database.Relational.Query.Relation as Relation
+import Database.Relational.Query.Sub (SubQuery)
+import qualified Database.Relational.Query.Sub as SubQuery
 
 
 newtype QueryJoin a =
@@ -58,9 +65,6 @@ newAlias =  QueryJoin
 updateContext :: (Context -> Context) -> QueryJoin ()
 updateContext uf =
   QueryJoin $ \st -> ((), uf st)
-
-updateProduct :: NodeAttr -> Qualified (PrimeRelation p r) -> QueryJoin ()
-updateProduct attr qrel = updateContext (updateProduct' (`growProduct` (attr, fmap Relation.toSubQuery qrel)))
 
 updateJoinRestriction :: Expr Bool -> QueryJoin ()
 updateJoinRestriction e = updateContext (updateProduct' d)  where
@@ -87,18 +91,15 @@ desc :: Expr t -> QueryJoin ()
 desc =  updateOrderBy Desc
 
 
+data PrimeRelation p r = SubQuery SubQuery
+                       | PrimeRelation (QueryJoin (Projection r))
+
+type Relation r = PrimeRelation () r
+
 data PlaceHolders p = PlaceHolders
 
 table :: Table r -> Relation r
-table =  Relation.fromTable
-
-record' :: Qualified (PrimeRelation p r) -> (PlaceHolders p, Projection r)
-record' qrel =
-  (PlaceHolders,
-   Projection.fromQualifiedSubQuery (fmap Relation.toSubQuery qrel))
-
-record :: Qualified (Relation r) -> Projection r
-record =  snd . record'
+table =  SubQuery . SubQuery.fromTable
 
 expr :: Projection ft -> Expr ft
 expr =  project
@@ -141,47 +142,70 @@ qualify rel =
   do n <- newAlias
      return $ AliasId.qualify rel n
 
-queryWithAttr :: NodeAttr -> PrimeRelation p r -> QueryJoin (Qualified (PrimeRelation p r))
-queryWithAttr attr rel =
-  do qrel <- qualify rel
-     updateProduct attr qrel
-     return qrel
-
-query :: Relation r -> QueryJoin (Projection r)
-query =  fmap record . queryWithAttr Just'
-
-query' :: PrimeRelation p r -> QueryJoin (PlaceHolders p, Projection r)
-query' =  fmap record' . queryWithAttr Just'
-
-queryMaybe :: Relation r -> QueryJoin (Projection (Maybe r))
-queryMaybe =  fmap (record . fmap Relation.toMaybe) . queryWithAttr Maybe
-
-queryMaybe' :: PrimeRelation p r -> QueryJoin (PlaceHolders p, Projection (Maybe r))
-queryMaybe' =  fmap (record' . fmap Relation.toMaybe) . queryWithAttr Maybe
-
-from :: Table r -> QueryJoin (Projection r)
-from =  query . table
-
 unsafeMergeAnother :: NodeAttr -> QueryJoin a -> QueryJoin a
 unsafeMergeAnother attr q1 =
   QueryJoin
   $ \st0 -> let mp0       = product st0
-                (pj, st1) = runQueryJoin q1 (st0 { product = Nothing})
-            in  (pj, maybe st1 (\p0 -> updateProduct' (Product.growLeft p0 attr) st1) mp0)
+                or0       = orderByRev st0
+                (pj, st1) = runQueryJoin q1 (st0 { product = Nothing, orderByRev = [] })
+            in  (pj,
+                 (maybe st1 (\p0 ->
+                              updateProduct' (Product.growLeft p0 attr)
+                              st1
+                            ) mp0) { orderByRev = or0 ++ orderByRev st1 }
+                )
 
 queryMergeWithAttr :: NodeAttr -> QueryJoin (Projection r) -> QueryJoin (Projection r)
 queryMergeWithAttr =  unsafeMergeAnother
 
-queryMerge :: QueryJoin (Projection r) -> QueryJoin (Projection r)
-queryMerge =  queryMergeWithAttr Just'
+queryWithAttr :: NodeAttr -> PrimeRelation p r -> QueryJoin (PlaceHolders p, Projection r)
+queryWithAttr attr = fmap ((,) PlaceHolders) . d where
+  d (SubQuery sub)    = do
+    qsub <- qualify sub
+    updateContext (updateProduct' (`growProduct` (attr, qsub)))
+    return $ Projection.fromQualifiedSubQuery qsub
+  d (PrimeRelation q) =
+    queryMergeWithAttr attr q
 
-queryMergeMaybe :: QueryJoin (Projection a) -> QueryJoin (Projection (Maybe a))
-queryMergeMaybe =  fmap Projection.just . queryMergeWithAttr Maybe
+query' :: PrimeRelation p r -> QueryJoin (PlaceHolders p, Projection r)
+query' =  queryWithAttr Just'
 
-relation :: QueryJoin (Projection r) -> PrimeRelation a r
-relation q = finalizeRelation projection product' (restriction st) (orderByRev st)  where
-  (projection, st) = runQueryPrime q
-  product' = maybe (error "relation: empty product!") (Product.tree . Product.nodeTree) $ product st
+query :: PrimeRelation p r -> QueryJoin (Projection r)
+query =  fmap snd . query'
+
+queryMaybe' :: PrimeRelation p r -> QueryJoin (PlaceHolders p, Projection (Maybe r))
+queryMaybe' pr =  do
+  (ph, pj) <- queryWithAttr Maybe pr
+  return (ph, Projection.just pj)
+
+queryMaybe :: PrimeRelation p r -> QueryJoin (Projection (Maybe r))
+queryMaybe =  fmap snd . queryMaybe'
+
+relation :: QueryJoin (Projection r) -> PrimeRelation p r
+relation =  PrimeRelation
 
 relation' :: QueryJoin (PlaceHolders p, Projection r) -> PrimeRelation p r
-relation' =  relation . fmap snd
+relation' =  PrimeRelation . fmap snd
+
+from :: Table r -> QueryJoin (Projection r)
+from =  query . table
+
+toSQL :: PrimeRelation p r -> String
+toSQL =  d  where
+  d (SubQuery sub)     = SubQuery.toSQL sub
+  d (PrimeRelation qp) = uncurry composeSQL (runQueryPrime qp)
+
+instance Show (PrimeRelation p r) where
+  show = toSQL
+
+toSubQuery :: PrimeRelation p r -> SubQuery
+toSubQuery =  d  where
+  d (SubQuery sub)     = sub
+  d (PrimeRelation qp) = SubQuery.subQuery (composeSQL pj c) (Projection.width pj) where
+    (pj, c) = runQueryPrime qp
+
+width :: PrimeRelation p r -> Int
+width =  SubQuery.width . toSubQuery
+
+nested :: PrimeRelation p r -> PrimeRelation p r
+nested =  SubQuery . toSubQuery

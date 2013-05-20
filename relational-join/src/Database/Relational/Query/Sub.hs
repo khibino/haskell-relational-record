@@ -35,7 +35,7 @@ width =  d  where
 
 toSQLs :: SubQuery -> (String, String)
 toSQLs =  d  where
-  d (Table u)               = let n = Table.name' u in (n, n)
+  d (Table u)               = (Table.name' u, Table.fromTableToSql u)
   d (SubQuery { sql' = q }) = ('(' : q ++ [')'], q)
 
 unitSQL :: SubQuery -> String
