@@ -7,7 +7,7 @@ module Database.Relational.Query.Expr (
 
   valueExpr,
 
-  just, unsafeFromJust
+  just, flattenMaybe
   ) where
 
 import Prelude hiding (and, or)
@@ -73,5 +73,5 @@ valueExpr =  Expr . showConstantSQL
 just :: Expr ft -> Expr (Maybe ft)
 just =  Expr . showExpr
 
-unsafeFromJust :: Expr (Maybe ft) -> Expr ft
-unsafeFromJust =  Expr . showExpr
+flattenMaybe :: Expr (Maybe (Maybe ft)) -> Expr (Maybe ft)
+flattenMaybe =  Expr . showExpr
