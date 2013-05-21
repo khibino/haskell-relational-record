@@ -10,7 +10,6 @@ module Database.Relational.Query.Internal.Context (
   updateRestriction,
   updateOrderBy,
 
-  composedSQL,
   composeSQL
   ) where
 
@@ -22,7 +21,7 @@ import Database.Relational.Query.AliasId (AliasId, newAliasId, asColumnN)
 
 import Database.Relational.Query.Expr (Expr, showExpr)
 
-import Database.Relational.Query.Product (QueryProductNode, Product, productSQL)
+import Database.Relational.Query.Product (QueryProductNode, QueryProduct, queryProductSQL)
 import qualified Database.Relational.Query.Product as Product
 
 import Database.Relational.Query.Projection (Projection)
@@ -62,11 +61,11 @@ updateOrderBy :: Order -> Expr t -> Context -> Context
 updateOrderBy order e ctx =
   ctx { orderByRev = ((order, showExpr e) :) . orderByRev $ ctx  }
 
-composedSQL :: Projection r -> Product -> Maybe (Expr Bool) -> [(Order, String)] -> String
-composedSQL pj pd re odRev =
+composeSQL' :: Projection r -> QueryProduct -> Maybe (Expr Bool) -> [(Order, String)] -> String
+composeSQL' pj pd re odRev =
   unwordsSQL
   $ [SELECT, columns' `SQL.sepBy` ", ",
-     FROM, SQL.word . productSQL $ pd]
+     FROM, SQL.word . queryProductSQL $ pd]
   ++ wheres re
   ++ orders
     where columns' = zipWith
@@ -81,7 +80,7 @@ composedSQL pj pd re odRev =
                  | otherwise  = [ORDER, BY, orderList `SQL.sepBy` ", "]
 
 composeSQL :: Projection r -> Context -> String
-composeSQL pj c = composedSQL pj
-                  (maybe (error "relation: empty product!") (Product.tree . Product.nodeTree) (product c))
+composeSQL pj c = composeSQL' pj
+                  (maybe (error "relation: empty product!") (Product.nodeTree) (product c))
                   (restriction c)
                   (orderByRev c)

@@ -3,10 +3,7 @@ module Database.Relational.Query.Product (
   ProductTree, Node, QueryProduct, QueryProductNode,
   nodeTree, growRight, growLeft,
   growProduct, product, restrictProduct,
-  Product,
-  tree,
-  queryProductSQL,
-  productSQL
+  queryProductSQL
   ) where
 
 import Prelude hiding (and, product)
@@ -76,11 +73,6 @@ restrictProduct :: Node q -> Expr Bool -> Node q
 restrictProduct (Node a t) e = node a (restrictProduct' t e)
 
 
-newtype Product = Tree QueryProduct
-
-tree :: QueryProduct -> Product
-tree =  Tree
-
 showParen' :: ShowS -> ShowS
 showParen' =  showParen True
 
@@ -117,7 +109,3 @@ showQueryProduct =  rec  where
 
 queryProductSQL :: QueryProduct -> String
 queryProductSQL =  ($ "") . showQueryProduct
-
-productSQL :: Product -> String
-productSQL =  d  where
-  d (Tree pt)     = queryProductSQL pt
