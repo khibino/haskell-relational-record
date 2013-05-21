@@ -6,9 +6,9 @@ module Database.Relational.Query.Internal.Context (
   primContext, currentAliasId, product, restriction, orderByRev,
   nextAliasContext,
 
-  updateProduct',
-  updateRestriction',
-  updateOrderBy',
+  updateProduct,
+  updateRestriction,
+  updateOrderBy,
 
   composedSQL,
   composeSQL
@@ -48,18 +48,18 @@ primContext =  Context primAlias Nothing Nothing []
 nextAliasContext :: Context -> Context
 nextAliasContext s = s { currentAliasId =  newAliasId (currentAliasId s) }
 
-updateProduct' :: (Maybe QueryProductNode -> QueryProductNode) -> Context -> Context
-updateProduct' uf ctx =
+updateProduct :: (Maybe QueryProductNode -> QueryProductNode) -> Context -> Context
+updateProduct uf ctx =
   ctx { product = Just . uf . product $ ctx }
 
-updateRestriction' :: Expr Bool -> Context -> Context
-updateRestriction' e1 ctx =
+updateRestriction :: Expr Bool -> Context -> Context
+updateRestriction e1 ctx =
   ctx { restriction = Just . uf . restriction $ ctx }
   where uf  Nothing = e1
         uf (Just e0) = e0 `Projectable.and` e1
 
-updateOrderBy' :: Order -> Expr t -> Context -> Context
-updateOrderBy' order e ctx =
+updateOrderBy :: Order -> Expr t -> Context -> Context
+updateOrderBy order e ctx =
   ctx { orderByRev = ((order, showExpr e) :) . orderByRev $ ctx  }
 
 composedSQL :: Projection r -> Product -> Maybe (Expr Bool) -> [(Order, String)] -> String

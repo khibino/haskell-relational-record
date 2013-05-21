@@ -1,5 +1,7 @@
 
-all: clean
+all: clean build
+
+build:
 	cabal configure
 	cabal build
 	cabal haddock --hyperlink-source

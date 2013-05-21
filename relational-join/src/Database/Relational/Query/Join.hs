@@ -28,7 +28,8 @@ import Database.Record (PersistableWidth)
 
 import Database.Relational.Query.Internal.Context
   (Context, Order(Asc, Desc), primContext, currentAliasId, product, orderByRev,
-   nextAliasContext, updateProduct', updateRestriction', updateOrderBy', composeSQL)
+   nextAliasContext, updateProduct, composeSQL)
+import qualified Database.Relational.Query.Internal.Context as Context
 
 import Database.Relational.Query.AliasId (AliasId, Qualified)
 import qualified Database.Relational.Query.AliasId as AliasId
@@ -67,15 +68,15 @@ updateContext uf =
   QueryJoin $ \st -> ((), uf st)
 
 updateJoinRestriction :: Expr Bool -> QueryJoin ()
-updateJoinRestriction e = updateContext (updateProduct' d)  where
+updateJoinRestriction e = updateContext (updateProduct d)  where
   d  Nothing  = error "addProductRestriction: product is empty!"
   d (Just pt) = restrictProduct pt e
 
 updateRestriction :: Expr Bool -> QueryJoin ()
-updateRestriction e = updateContext (updateRestriction' e)
+updateRestriction e = updateContext (Context.updateRestriction e)
 
 updateOrderBy :: Order -> Expr t -> QueryJoin ()
-updateOrderBy order e = updateContext (updateOrderBy' order e)
+updateOrderBy order e = updateContext (Context.updateOrderBy order e)
 
 
 on :: Expr Bool -> QueryJoin ()
@@ -150,7 +151,7 @@ unsafeMergeAnother attr q1 =
                 (pj, st1) = runQueryJoin q1 (st0 { product = Nothing, orderByRev = [] })
             in  (pj,
                  (maybe st1 (\p0 ->
-                              updateProduct' (Product.growLeft p0 attr)
+                              updateProduct (Product.growLeft p0 attr)
                               st1
                             ) mp0) { orderByRev = or0 ++ orderByRev st1 }
                 )
@@ -162,7 +163,7 @@ queryWithAttr :: NodeAttr -> PrimeRelation p r -> QueryJoin (PlaceHolders p, Pro
 queryWithAttr attr = fmap ((,) PlaceHolders) . d where
   d (SubQuery sub)    = do
     qsub <- qualify sub
-    updateContext (updateProduct' (`growProduct` (attr, qsub)))
+    updateContext (updateProduct (`growProduct` (attr, qsub)))
     return $ Projection.fromQualifiedSubQuery qsub
   d (PrimeRelation q) =
     queryMergeWithAttr attr q
