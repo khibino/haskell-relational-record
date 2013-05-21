@@ -20,7 +20,7 @@ import Database.HDBC.Session (withConnectionIO)
 groupMemberShip :: Relation (Maybe Membership, Group)
 groupMemberShip =
   relation $
-  [ m >*< g
+  [ m >< g
   | m  <- queryMaybe membership
   , g  <- query      group
   , () <- on $ m !? groupId' .=. just (g ! Group.id')
@@ -29,7 +29,7 @@ groupMemberShip =
 userGroup0 :: Relation (Maybe User, Maybe Group)
 userGroup0 =
   relation $
-  [ u   >*< mg !? snd'
+  [ u   >< mg !? snd'
   | u   <- queryMaybe user
   , mg  <- queryMaybe $ nested groupMemberShip
           -- Call one subquery via relation layer
@@ -44,7 +44,7 @@ userGroup0 =
 userGroup1 :: Relation (Maybe User, Maybe Group)
 userGroup1 =
   relation $
-  [ u >*< mg !? snd'
+  [ u >< mg !? snd'
   | u  <- queryMaybe user
   , mg <- queryMaybe groupMemberShip
           -- Directly merge another QueryJoin monad.
