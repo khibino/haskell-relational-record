@@ -3,12 +3,12 @@
 module Database.Relational.Query.Internal.Context (
   Context, Order (..),
 
-  primContext, currentAliasId, product, restriction, orderByRev,
-  nextAliasContext,
+  primContext,
+  nextAlias,
 
-  updateProduct,
+  updateProduct, takeProduct, restoreLeft,
   updateRestriction,
-  updateOrderBy,
+  updateOrderBy, takeOrderByRevs, restoreLowOrderByRevs,
 
   composeSQL
   ) where
@@ -44,12 +44,21 @@ data Context = Context
 primContext :: Context
 primContext =  Context primAlias Nothing Nothing []
 
-nextAliasContext :: Context -> Context
-nextAliasContext s = s { currentAliasId =  newAliasId (currentAliasId s) }
+nextAlias :: Context -> (AliasId, Context)
+nextAlias s = (cur, s { currentAliasId =  newAliasId cur })  where
+  cur = currentAliasId s
+
+updateProduct' :: (Maybe QueryProductNode -> Maybe QueryProductNode) -> Context -> Context
+updateProduct' uf ctx = ctx { product = uf . product $ ctx }
 
 updateProduct :: (Maybe QueryProductNode -> QueryProductNode) -> Context -> Context
-updateProduct uf ctx =
-  ctx { product = Just . uf . product $ ctx }
+updateProduct uf = updateProduct' (Just . uf)
+
+takeProduct :: Context -> (Maybe QueryProductNode, Context)
+takeProduct ctx = (product ctx, updateProduct' (const Nothing) ctx)
+
+restoreLeft :: QueryProductNode -> Product.NodeAttr -> Context -> Context
+restoreLeft pL naR ctx = updateProduct (Product.growLeft pL naR) ctx
 
 updateRestriction :: Expr Bool -> Context -> Context
 updateRestriction e1 ctx =
@@ -60,6 +69,12 @@ updateRestriction e1 ctx =
 updateOrderBy :: Order -> Expr t -> Context -> Context
 updateOrderBy order e ctx =
   ctx { orderByRev = ((order, showExpr e) :) . orderByRev $ ctx  }
+
+takeOrderByRevs :: Context -> ([(Order, String)], Context)
+takeOrderByRevs ctx = (orderByRev ctx , ctx { orderByRev = [] })
+
+restoreLowOrderByRevs :: [(Order, String)] -> Context -> Context
+restoreLowOrderByRevs ros ctx = ctx { orderByRev = ros ++ orderByRev ctx }
 
 composeSQL' :: Projection r -> QueryProduct -> Maybe (Expr Bool) -> [(Order, String)] -> String
 composeSQL' pj pd re odRev =

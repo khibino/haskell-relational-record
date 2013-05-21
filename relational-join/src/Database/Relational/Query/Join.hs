@@ -27,8 +27,7 @@ import Control.Applicative (Applicative (pure, (<*>)))
 import Database.Record (PersistableWidth)
 
 import Database.Relational.Query.Internal.Context
-  (Context, Order(Asc, Desc), primContext, currentAliasId, product, orderByRev,
-   nextAliasContext, updateProduct, composeSQL)
+  (Context, Order(Asc, Desc), primContext, nextAlias, updateProduct, composeSQL)
 import qualified Database.Relational.Query.Internal.Context as Context
 
 import Database.Relational.Query.AliasId (AliasId, Qualified)
@@ -39,8 +38,7 @@ import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Expr (Expr)
 
 import Database.Relational.Query.Product
-  (NodeAttr(Just', Maybe), growProduct, restrictProduct)
-import qualified Database.Relational.Query.Product as Product
+  (NodeAttr(Just', Maybe), QueryProductNode, growProduct, restrictProduct)
 
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
@@ -59,9 +57,7 @@ runQueryPrime :: QueryJoin a -> (a, Context)
 runQueryPrime q = runQueryJoin q $ primContext
 
 newAlias :: QueryJoin AliasId
-newAlias =  QueryJoin
-            $ \st -> let st' = nextAliasContext st
-                     in  (currentAliasId st, st')
+newAlias =  QueryJoin nextAlias
 
 updateContext :: (Context -> Context) -> QueryJoin ()
 updateContext uf =
@@ -75,9 +71,20 @@ updateJoinRestriction e = updateContext (updateProduct d)  where
 updateRestriction :: Expr Bool -> QueryJoin ()
 updateRestriction e = updateContext (Context.updateRestriction e)
 
+takeProduct :: QueryJoin (Maybe QueryProductNode)
+takeProduct =  QueryJoin Context.takeProduct
+
+restoreLeft :: QueryProductNode -> NodeAttr -> QueryJoin ()
+restoreLeft pL naR = updateContext $ Context.restoreLeft pL naR
+
 updateOrderBy :: Order -> Expr t -> QueryJoin ()
 updateOrderBy order e = updateContext (Context.updateOrderBy order e)
 
+takeOrderByRevs :: QueryJoin [(Order, String)]
+takeOrderByRevs =  QueryJoin Context.takeOrderByRevs
+
+restoreLowOrderByRevs :: [(Order, String)] -> QueryJoin ()
+restoreLowOrderByRevs ros = updateContext (Context.restoreLowOrderByRevs ros)
 
 on :: Expr Bool -> QueryJoin ()
 on =  updateJoinRestriction
@@ -144,17 +151,13 @@ qualify rel =
      return $ AliasId.qualify rel n
 
 unsafeMergeAnother :: NodeAttr -> QueryJoin a -> QueryJoin a
-unsafeMergeAnother attr q1 =
-  QueryJoin
-  $ \st0 -> let mp0       = product st0
-                or0       = orderByRev st0
-                (pj, st1) = runQueryJoin q1 (st0 { product = Nothing, orderByRev = [] })
-            in  (pj,
-                 (maybe st1 (\p0 ->
-                              updateProduct (Product.growLeft p0 attr)
-                              st1
-                            ) mp0) { orderByRev = or0 ++ orderByRev st1 }
-                )
+unsafeMergeAnother naR qR = do
+  ros   <- takeOrderByRevs
+  mayPL <- takeProduct
+  v     <- qR
+  maybe (return ()) (\pL -> restoreLeft pL naR) mayPL
+  restoreLowOrderByRevs ros
+  return v
 
 queryMergeWithAttr :: NodeAttr -> QueryJoin (Projection r) -> QueryJoin (Projection r)
 queryMergeWithAttr =  unsafeMergeAnother
