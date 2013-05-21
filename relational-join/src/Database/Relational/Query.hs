@@ -9,6 +9,7 @@ module Database.Relational.Query (
   module Database.Relational.Query.Sub,
   module Database.Relational.Query.Projection,
   module Database.Relational.Query.Projectable,
+  module Database.Relational.Query.ProjectableExtended,
   module Database.Relational.Query.Join,
   module Database.Relational.Query.Type,
   module Database.Relational.Query.Derives
@@ -22,10 +23,11 @@ import Database.Relational.Query.Constraint
    uniqueKey, notNullKey, HasConstraintKey(constraintKey),
    Primary, Unique, NotNull)
 import Database.Relational.Query.AliasId (Qualified)
-import Database.Relational.Query.Expr
+import Database.Relational.Query.Expr hiding (flattenMaybe, just)
 import Database.Relational.Query.Sub (SubQuery, unitSQL, queryWidth)
 import Database.Relational.Query.Projection (Projection)
 import Database.Relational.Query.Projectable
+import Database.Relational.Query.ProjectableExtended
 import Database.Relational.Query.Join
 import Database.Relational.Query.Type
   (Query, untypeQuery, fromRelation,

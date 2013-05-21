@@ -26,7 +26,7 @@ import Database.Relational.Query.Type (fromRelation)
 import Database.Relational.Query
   (Query, PrimeRelation, query, relation, query', relation', expr,
    wheres, (.=.), (.>.), in', values, (!),
-   placeholder, asc, value, unsafeSqlValue, (>*<))
+   placeholder, asc, value, unsafeSqlValue, (><))
 
 import Database.Relational.Schema.PgCatalog.PgNamespace (pgNamespace)
 import qualified Database.Relational.Schema.PgCatalog.PgNamespace as Namespace
@@ -133,7 +133,7 @@ columnRelation = relation' $ do
  
   asc $ att ! Attr.attnum'
 
-  return (ph, att >*< typ)
+  return (ph, att >< typ)
 
 columnQuerySQL :: Query (String, String) Column
 columnQuerySQL =  fromRelation columnRelation

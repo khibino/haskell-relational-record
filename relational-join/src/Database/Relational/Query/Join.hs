@@ -1,12 +1,11 @@
 
 module Database.Relational.Query.Join (
-  QueryJoin, PlaceHolders,
+  QueryJoin,
 
   on, wheres, asc, desc,
   table,
 
   expr,
-  compose, (>*<), (!), (!?), flatten,
   relation, relation',
 
   query, query', queryMaybe, queryMaybe', from,
@@ -24,8 +23,6 @@ import Prelude hiding (product)
 import Control.Monad (liftM, ap)
 import Control.Applicative (Applicative (pure, (<*>)))
 
-import Database.Record (PersistableWidth)
-
 import Database.Relational.Query.Internal.Context
   (Context, Order(Asc, Desc), primContext, nextAlias, updateProduct, composeSQL)
 import qualified Database.Relational.Query.Internal.Context as Context
@@ -42,9 +39,8 @@ import Database.Relational.Query.Product
 
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
-import Database.Relational.Query.Projectable (Projectable(project))
-
-import Database.Relational.Query.Pi (Pi)
+import Database.Relational.Query.Projectable
+  (Projectable(project), PlaceHolders, addPlaceHolders)
 
 import Database.Relational.Query.Sub (SubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
@@ -104,31 +100,12 @@ data PrimeRelation p r = SubQuery SubQuery
 
 type Relation r = PrimeRelation () r
 
-data PlaceHolders p = PlaceHolders
 
 table :: Table r -> Relation r
 table =  SubQuery . SubQuery.fromTable
 
 expr :: Projection ft -> Expr ft
 expr =  project
-
-compose :: Projection a -> Projection b -> Projection (c a b)
-compose =  Projection.compose
-
-(>*<) :: Projection a -> Projection b -> Projection (a, b)
-(>*<) =  compose
-
-(!) :: (PersistableWidth b, Projectable p) => Projection a -> Pi a b -> p b
-p ! pi' = project $ Projection.pi p pi'
-
-(!?) :: (PersistableWidth b, Projectable p) => Projection (Maybe a) -> Pi a b -> p (Maybe b)
-p !? pi' = project $ Projection.piMaybe p pi'
-
-flatten :: Projection (Maybe (Maybe a)) -> Projection (Maybe a)
-flatten =  Projection.flattenMaybe
-
-infixl 8 !, !?
-infixl 1 >*<
 
 
 instance Monad QueryJoin where
@@ -163,7 +140,7 @@ queryMergeWithAttr :: NodeAttr -> QueryJoin (Projection r) -> QueryJoin (Project
 queryMergeWithAttr =  unsafeMergeAnother
 
 queryWithAttr :: NodeAttr -> PrimeRelation p r -> QueryJoin (PlaceHolders p, Projection r)
-queryWithAttr attr = fmap ((,) PlaceHolders) . d where
+queryWithAttr attr = addPlaceHolders . d where
   d (SubQuery sub)    = do
     qsub <- qualify sub
     updateContext (updateProduct (`growProduct` (attr, qsub)))

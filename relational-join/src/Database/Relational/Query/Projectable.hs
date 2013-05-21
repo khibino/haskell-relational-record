@@ -15,7 +15,12 @@ module Database.Relational.Query.Projectable (
 
   (.=.), (.<>.), (.>.), (.<.), in', isNull, and, or,
 
-  (.+.), (.-.), (./.), (.*.)
+  (.+.), (.-.), (./.), (.*.),
+
+  PlaceHolders, addPlaceHolders,
+
+  ProjectableZip (projectZip), (><),
+  ProjectableMaybe (just, flattenMaybe)
   ) where
 
 import Prelude hiding (and, or)
@@ -26,9 +31,11 @@ import qualified Language.SQL.Keyword as SQL
 import qualified Language.SQL.Keyword.ConcatString as SQLs
 
 import Database.Relational.Query.Expr (Expr, ShowConstantSQL (showConstantSQL))
+import qualified Database.Relational.Query.Expr as Expr
 import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr
 
 import Database.Relational.Query.Projection (Projection, columns, unsafeFromColumns)
+import qualified Database.Relational.Query.Projection as Projection
 
 
 sqlString :: Projection r -> String
@@ -151,8 +158,48 @@ isNull :: (SqlProjectable p, ProjectableSqlTerm p)
        => p (Maybe t) -> p Bool
 isNull x = compareBinOp (SQLs.defineBinOp SQL.IS) x valueNull
 
+
+data PlaceHolders p = PlaceHolders
+
+addPlaceHolders :: Functor f => f a -> f (PlaceHolders p, a)
+addPlaceHolders =  fmap ((,) PlaceHolders)
+
+unsafeCastPlaceHolders :: PlaceHolders a -> PlaceHolders b
+unsafeCastPlaceHolders PlaceHolders = PlaceHolders
+
+
+class ProjectableZip p where
+  projectZip :: p a -> p b -> p (a, b)
+
+instance ProjectableZip PlaceHolders where
+  projectZip PlaceHolders PlaceHolders = PlaceHolders
+
+instance ProjectableZip Projection where
+  projectZip = Projection.compose
+
+(><) ::ProjectableZip p => p a -> p b -> p (a, b)
+(><) = projectZip
+
+class ProjectableMaybe p where
+  just :: p a -> p (Maybe a)
+  flattenMaybe :: p (Maybe (Maybe a)) -> p (Maybe a)
+
+instance ProjectableMaybe PlaceHolders where
+  just         = unsafeCastPlaceHolders
+  flattenMaybe = unsafeCastPlaceHolders
+
+instance ProjectableMaybe Projection where
+  just         = Projection.just
+  flattenMaybe = Projection.flattenMaybe
+
+instance ProjectableMaybe Expr where
+  just         = Expr.just
+  flattenMaybe = Expr.flattenMaybe
+
+
 infixl 7 .*., ./.
 infixl 6 .+., .-.
 infix  4 .=., .<>., .>., .<., `in'`
 infixr 3 `and`
 infixr 2 `or`
+infixl 1  ><
