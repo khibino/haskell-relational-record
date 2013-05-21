@@ -27,8 +27,8 @@ import Database.Relational.Query.Internal.Context
   (Context, Order(Asc, Desc), primContext, nextAlias, updateProduct, composeSQL)
 import qualified Database.Relational.Query.Internal.Context as Context
 
-import Database.Relational.Query.AliasId (AliasId, Qualified)
-import qualified Database.Relational.Query.AliasId as AliasId
+import Database.Relational.Query.Internal.AliasId (AliasId, Qualified)
+import qualified Database.Relational.Query.Internal.AliasId as AliasId
 
 import Database.Relational.Query.Table (Table)
 

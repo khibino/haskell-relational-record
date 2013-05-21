@@ -16,8 +16,7 @@ module Database.Relational.Query.Internal.Context (
 import Prelude hiding (product)
 import Data.List (foldl')
 
-import Database.Relational.Query.AliasId.Unsafe (primAlias)
-import Database.Relational.Query.AliasId (AliasId, newAliasId, asColumnN)
+import Database.Relational.Query.Internal.AliasId (primAlias, AliasId, newAliasId, asColumnN)
 
 import Database.Relational.Query.Expr (Expr, showExpr)
 

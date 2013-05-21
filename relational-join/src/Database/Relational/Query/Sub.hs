@@ -9,10 +9,10 @@ module Database.Relational.Query.Sub (
 
 import Database.Relational.Query.Table (Table, (!))
 import qualified Database.Relational.Query.Table as Table
-import Database.Relational.Query.AliasId
+import Database.Relational.Query.Internal.AliasId
   (aliasName, (<.>),
    Qualified, unQualify, qualifyAlias, qualifiedSQLas)
-import qualified Database.Relational.Query.AliasId as AliasId
+import qualified Database.Relational.Query.Internal.AliasId as AliasId
 import Database.Relational.Query.Expr.Unsafe (Expr(Expr))
 
 

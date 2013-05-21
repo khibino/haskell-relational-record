@@ -17,7 +17,6 @@ library
   exposed-modules:
                        Database.Relational.Query
                        Database.Relational.Query.AliasId
-                       Database.Relational.Query.AliasId.Unsafe
                        Database.Relational.Query.Table
                        Database.Relational.Query.SQL
                        Database.Relational.Query.Pi
@@ -42,6 +41,7 @@ library
                        Database.Relational.Schema.PostgreSQL
 
   other-modules:
+                       Database.Relational.Query.Internal.AliasId
                        Database.Relational.Query.Internal.Product
                        Database.Relational.Query.Internal.Context
 
