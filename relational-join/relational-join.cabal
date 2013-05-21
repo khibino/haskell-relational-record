@@ -56,10 +56,11 @@ library
                        , array
                        , containers
                        , time
-                       , sql-words
                        , bytestring
                        , text
+                       , dlist
                        , template-haskell
+                       , sql-words
                        , names-th
                        , DB-record
   hs-source-dirs:      src

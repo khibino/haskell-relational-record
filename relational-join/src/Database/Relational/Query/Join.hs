@@ -27,7 +27,7 @@ import Control.Monad (liftM, ap)
 import Control.Applicative (Applicative (pure, (<*>)))
 
 import Database.Relational.Query.Internal.Context
-  (Context, Order(Asc, Desc), primContext, nextAlias, updateProduct, composeSQL)
+  (Context, Order(Asc, Desc), OrderBys, primContext, nextAlias, updateProduct, composeSQL)
 import qualified Database.Relational.Query.Internal.Context as Context
 
 import Database.Relational.Query.Internal.AliasId (AliasId, Qualified)
@@ -81,11 +81,11 @@ restoreLeft pL naR = updateContext $ Context.restoreLeft pL naR
 updateOrderBy :: Order -> Expr t -> QueryJoin ()
 updateOrderBy order e = updateContext (Context.updateOrderBy order e)
 
-takeOrderByRevs :: QueryJoin [(Order, String)]
-takeOrderByRevs =  QueryJoin Context.takeOrderByRevs
+takeOrderBys :: QueryJoin OrderBys
+takeOrderBys =  QueryJoin Context.takeOrderBys
 
-restoreLowOrderByRevs :: [(Order, String)] -> QueryJoin ()
-restoreLowOrderByRevs ros = updateContext (Context.restoreLowOrderByRevs ros)
+restoreLowOrderBys :: OrderBys -> QueryJoin ()
+restoreLowOrderBys ros = updateContext (Context.restoreLowOrderBys ros)
 
 on :: Expr Bool -> QueryJoin ()
 on =  updateJoinRestriction
@@ -140,11 +140,11 @@ subQueryWithAttr attr sub = do
 
 unsafeMergeAnother :: NodeAttr -> QueryJoin a -> QueryJoin a
 unsafeMergeAnother naR qR = do
-  ros   <- takeOrderByRevs
+  ros   <- takeOrderBys
   mayPL <- takeProduct
   v     <- qR
   maybe (return ()) (\pL -> restoreLeft pL naR) mayPL
-  restoreLowOrderByRevs ros
+  restoreLowOrderBys ros
   return v
 
 queryMergeWithAttr :: NodeAttr -> QueryJoin (Projection r) -> QueryJoin (Projection r)
