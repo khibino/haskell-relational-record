@@ -53,8 +53,23 @@ userGroup1 =
 
   , () <- on $ u !? User.id' .=. flatten (mg !? fst') !? userId'
 
-  , ()  <- asc $ u !? User.id'
+  , () <- asc $ u !? User.id'
   ]
+
+-- userGroup2 :: Relation (Maybe User, Maybe Group)
+-- userGroup2 =
+--   relation $
+--   [ u >< g
+--   | umg <- query $ (user `left` membership) `full` group
+--   , let um = umg ! fst'
+--         u  = um !? fst'
+--         m  = flattenMaybe $ um !? snd'
+--         g  = umg ! snd'
+--   , ()  <- wheres $ u !? User.id' .=. m !? userId'
+--   , ()  <- wheres $ m !? groupId' .=. g !? Group.id'
+
+--   , ()  <- asc $ u !? User.id'
+--   ]
 
 runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a) => conn -> Relation a -> IO ()
 runAndPrint conn rel = do
@@ -68,6 +83,7 @@ run =  withConnectionIO connect
        (\conn -> do
            runAndPrint conn userGroup0
            runAndPrint conn userGroup1
+           -- runAndPrint conn userGroup2
        )
 
 main :: IO ()
