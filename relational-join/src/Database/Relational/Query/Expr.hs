@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 
 module Database.Relational.Query.Expr (
-  Expr(showExpr),
+  Expr, showExpr,
 
   ShowConstantSQL (showConstantSQL),
 
@@ -17,7 +17,7 @@ import qualified Data.ByteString.Char8 as BS
 import Data.Text (Text)
 import qualified Data.Text as T
 
-import Database.Relational.Query.Expr.Unsafe (Expr(Expr, showExpr))
+import Database.Relational.Query.Expr.Unsafe (Expr(Expr), showExpr)
 
 
 intExprSQL :: (Show a, Integral a) => a -> String
