@@ -1,4 +1,4 @@
-module Database.Relational.Query.Product (
+module Database.Relational.Query.Internal.Product (
   NodeAttr (Just', Maybe),
   ProductTree, Node, QueryProduct, QueryProductNode,
   nodeTree, growRight, growLeft,

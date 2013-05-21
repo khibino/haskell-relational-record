@@ -18,7 +18,6 @@ library
                        Database.Relational.Query
                        Database.Relational.Query.AliasId
                        Database.Relational.Query.AliasId.Unsafe
-                       Database.Relational.Query.Product
                        Database.Relational.Query.Table
                        Database.Relational.Query.SQL
                        Database.Relational.Query.Pi
@@ -43,6 +42,7 @@ library
                        Database.Relational.Schema.PostgreSQL
 
   other-modules:
+                       Database.Relational.Query.Internal.Product
                        Database.Relational.Query.Internal.Context
 
                        Database.Relational.Schema.DB2Syscat.Tabconst

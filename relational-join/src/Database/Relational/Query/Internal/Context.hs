@@ -21,8 +21,8 @@ import Database.Relational.Query.AliasId (AliasId, newAliasId, asColumnN)
 
 import Database.Relational.Query.Expr (Expr, showExpr)
 
-import Database.Relational.Query.Product (QueryProductNode, QueryProduct, queryProductSQL)
-import qualified Database.Relational.Query.Product as Product
+import Database.Relational.Query.Internal.Product (QueryProductNode, QueryProduct, queryProductSQL)
+import qualified Database.Relational.Query.Internal.Product as Product
 
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection

@@ -34,7 +34,7 @@ import Database.Relational.Query.Table (Table)
 
 import Database.Relational.Query.Expr (Expr)
 
-import Database.Relational.Query.Product
+import Database.Relational.Query.Internal.Product
   (NodeAttr(Just', Maybe), QueryProductNode, growProduct, restrictProduct)
 
 import Database.Relational.Query.Projection (Projection)
