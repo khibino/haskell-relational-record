@@ -24,6 +24,8 @@ module Database.Relational.Query.Join (
 
 import Prelude hiding (product)
 import Control.Monad (liftM, ap)
+import Data.Functor.Identity (Identity(Identity))
+import Control.Monad.Trans.State (State, StateT(StateT), runState, modify)
 import Control.Applicative (Applicative (pure, (<*>)))
 
 import Database.Relational.Query.Internal.Context
@@ -52,17 +54,22 @@ import qualified Database.Relational.Query.Sub as SubQuery
 
 
 newtype QueryJoin a =
-  QueryJoin { runQueryJoin :: Context -> (a, Context) }
+  QueryJoin { queryJoinState :: State Context a }
+
+runQueryJoin :: QueryJoin a -> Context -> (a, Context)
+runQueryJoin = runState . queryJoinState
+
+queryJoin :: (Context -> (a, Context)) -> QueryJoin a
+queryJoin =  QueryJoin . StateT . (Identity .)
 
 runQueryPrime :: QueryJoin a -> (a, Context)
 runQueryPrime q = runQueryJoin q $ primContext
 
 newAlias :: QueryJoin AliasId
-newAlias =  QueryJoin nextAlias
+newAlias =  queryJoin nextAlias
 
 updateContext :: (Context -> Context) -> QueryJoin ()
-updateContext uf =
-  QueryJoin $ \st -> ((), uf st)
+updateContext =  QueryJoin . modify
 
 updateJoinRestriction :: Expr Bool -> QueryJoin ()
 updateJoinRestriction e = updateContext (updateProduct d)  where
@@ -73,7 +80,7 @@ updateRestriction :: Expr Bool -> QueryJoin ()
 updateRestriction e = updateContext (Context.addRestriction e)
 
 takeProduct :: QueryJoin (Maybe QueryProductNode)
-takeProduct =  QueryJoin Context.takeProduct
+takeProduct =  queryJoin Context.takeProduct
 
 restoreLeft :: QueryProductNode -> NodeAttr -> QueryJoin ()
 restoreLeft pL naR = updateContext $ Context.restoreLeft pL naR
@@ -82,7 +89,7 @@ updateOrderBy :: Order -> Expr t -> QueryJoin ()
 updateOrderBy order e = updateContext (Context.updateOrderBy order e)
 
 takeOrderBys :: QueryJoin OrderBys
-takeOrderBys =  QueryJoin Context.takeOrderBys
+takeOrderBys =  queryJoin Context.takeOrderBys
 
 restoreLowOrderBys :: OrderBys -> QueryJoin ()
 restoreLowOrderBys ros = updateContext (Context.restoreLowOrderBys ros)
@@ -114,10 +121,8 @@ expr =  project
 
 
 instance Monad QueryJoin where
-  return rel  = QueryJoin $ \st  -> (rel, st)
-  q0 >>= f    = QueryJoin
-                $ \st0 -> let (rel0, st1) = runQueryJoin q0       st0
-                          in                runQueryJoin (f rel0) st1
+  return      = QueryJoin . return
+  q0 >>= f    = QueryJoin $ queryJoinState q0 >>= queryJoinState . f
 
 instance Functor QueryJoin where
   fmap = liftM
