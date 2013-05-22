@@ -7,7 +7,7 @@ module Database.Relational.Query.Internal.Context (
   nextAlias,
 
   updateProduct, takeProduct, restoreLeft,
-  updateRestriction,
+  addRestriction,
   updateOrderBy, takeOrderBys, restoreLowOrderBys,
 
   composeSQL
@@ -64,8 +64,8 @@ takeProduct ctx = (product ctx, updateProduct' (const Nothing) ctx)
 restoreLeft :: QueryProductNode -> Product.NodeAttr -> Context -> Context
 restoreLeft pL naR ctx = updateProduct (Product.growLeft pL naR) ctx
 
-updateRestriction :: Expr Bool -> Context -> Context
-updateRestriction e1 ctx =
+addRestriction :: Expr Bool -> Context -> Context
+addRestriction e1 ctx =
   ctx { restriction = Just . uf . restriction $ ctx }
   where uf  Nothing = e1
         uf (Just e0) = e0 `Projectable.and` e1

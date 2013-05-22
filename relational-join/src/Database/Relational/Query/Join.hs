@@ -66,11 +66,11 @@ updateContext uf =
 
 updateJoinRestriction :: Expr Bool -> QueryJoin ()
 updateJoinRestriction e = updateContext (updateProduct d)  where
-  d  Nothing  = error "addProductRestriction: product is empty!"
+  d  Nothing  = error "on: product is empty!"
   d (Just pt) = restrictProduct pt e
 
 updateRestriction :: Expr Bool -> QueryJoin ()
-updateRestriction e = updateContext (Context.updateRestriction e)
+updateRestriction e = updateContext (Context.addRestriction e)
 
 takeProduct :: QueryJoin (Maybe QueryProductNode)
 takeProduct =  QueryJoin Context.takeProduct
