@@ -56,7 +56,7 @@ newtype QueryJoin a =
   QueryJoin { queryJoinState :: State Context a }
 
 runQueryJoin :: QueryJoin a -> Context -> (a, Context)
-runQueryJoin = runState . queryJoinState
+runQueryJoin =  runState . queryJoinState
 
 queryJoin :: (Context -> (a, Context)) -> QueryJoin a
 queryJoin =  QueryJoin . state
@@ -180,7 +180,7 @@ relation' :: QueryJoin (PlaceHolders p, Projection r) -> PrimeRelation p r
 relation' =  PrimeRelation . fmap snd
 
 from :: Table r -> Relation r
-from =  relation . query . table
+from =  table
 
 
 join' :: ProjectableGeneralizedZip pa pb pc
