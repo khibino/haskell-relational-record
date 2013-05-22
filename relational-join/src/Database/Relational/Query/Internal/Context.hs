@@ -3,7 +3,7 @@
 module Database.Relational.Query.Internal.Context (
   Context, Order (..), OrderBys,
 
-  primContext,
+  primeContext,
   nextAlias,
 
   updateProduct, takeProduct, restoreLeft,
@@ -45,8 +45,8 @@ data Context = Context
                , orderBys :: OrderBys
                }
 
-primContext :: Context
-primContext =  Context primAlias Nothing Nothing DList.empty
+primeContext :: Context
+primeContext =  Context primAlias Nothing Nothing DList.empty
 
 nextAlias :: Context -> (AliasId, Context)
 nextAlias s = (cur, s { currentAliasId =  newAliasId cur })  where

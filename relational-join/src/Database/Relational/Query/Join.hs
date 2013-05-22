@@ -29,7 +29,7 @@ import Control.Monad.Trans.State (State, StateT(StateT), runState, modify)
 import Control.Applicative (Applicative (pure, (<*>)))
 
 import Database.Relational.Query.Internal.Context
-  (Context, Order(Asc, Desc), OrderBys, primContext, nextAlias, updateProduct, composeSQL)
+  (Context, Order(Asc, Desc), OrderBys, primeContext, nextAlias, updateProduct, composeSQL)
 import qualified Database.Relational.Query.Internal.Context as Context
 
 import Database.Relational.Query.Internal.AliasId (AliasId, Qualified)
@@ -63,7 +63,7 @@ queryJoin :: (Context -> (a, Context)) -> QueryJoin a
 queryJoin =  QueryJoin . StateT . (Identity .)
 
 runQueryPrime :: QueryJoin a -> (a, Context)
-runQueryPrime q = runQueryJoin q $ primContext
+runQueryPrime q = runQueryJoin q $ primeContext
 
 newAlias :: QueryJoin AliasId
 newAlias =  queryJoin nextAlias
