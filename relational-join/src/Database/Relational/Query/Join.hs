@@ -24,8 +24,7 @@ module Database.Relational.Query.Join (
 
 import Prelude hiding (product)
 import Control.Monad (liftM, ap)
-import Data.Functor.Identity (Identity(Identity))
-import Control.Monad.Trans.State (State, StateT(StateT), runState, modify)
+import Control.Monad.Trans.State (State, state, runState, modify)
 import Control.Applicative (Applicative (pure, (<*>)))
 
 import Database.Relational.Query.Internal.Context
@@ -60,7 +59,7 @@ runQueryJoin :: QueryJoin a -> Context -> (a, Context)
 runQueryJoin = runState . queryJoinState
 
 queryJoin :: (Context -> (a, Context)) -> QueryJoin a
-queryJoin =  QueryJoin . StateT . (Identity .)
+queryJoin =  QueryJoin . state
 
 runQueryPrime :: QueryJoin a -> (a, Context)
 runQueryPrime q = runQueryJoin q $ primeContext
