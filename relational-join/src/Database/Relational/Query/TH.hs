@@ -49,7 +49,7 @@ import Database.Record.TH
 
 import Database.Relational.Query
   (Table, Pi, Relation, PrimeRelation,
-   toSQL, Query, fromRelation, Update, Insert, typedInsert,
+   sqlFromRelation, Query, fromRelation, Update, Insert, typedInsert,
    HasConstraintKey(constraintKey), projectionKey, Primary, NotNull)
 import qualified Database.Relational.Query as Query
 
@@ -293,6 +293,6 @@ inlineQuery relVar' rel qVar' =  do
       | prn == ''PrimeRelation    -> do
         simpleValD qVar
           [t| Query $(return p) $(return r) |]
-          [| unsafeTypedQuery $(stringE . toSQL $ rel) |]
+          [|  unsafeTypedQuery $(stringE . sqlFromRelation $ rel) |]
     _                             ->
       compileError $ "expandRelation: Variable must have PrimeRelation type: " ++ show relVar

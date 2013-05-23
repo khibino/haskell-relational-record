@@ -15,9 +15,9 @@ module Database.Relational.Query.Join (
   inner', left', right', full',
   inner, left, right, full,
 
-  toSQL,
+  sqlFromRelation,
 
-  toSubQuery,
+  subQueryFromRelation,
 
   nested, width
   ) where
@@ -250,22 +250,22 @@ full  =  join queryMaybe queryMaybe
 
 infix 8 `inner'`, `left'`, `right'`, `full'`, `inner`, `left`, `right`, `full`
 
-toSQL :: PrimeRelation p r -> String
-toSQL =  d  where
+sqlFromRelation :: PrimeRelation p r -> String
+sqlFromRelation =  d  where
   d (SubQuery sub)     = SubQuery.toSQL sub
   d (PrimeRelation qp) = uncurry composeSQL (runQueryPrime qp)
 
 instance Show (PrimeRelation p r) where
-  show = toSQL
+  show = sqlFromRelation
 
-toSubQuery :: PrimeRelation p r -> SubQuery
-toSubQuery =  d  where
+subQueryFromRelation :: PrimeRelation p r -> SubQuery
+subQueryFromRelation =  d  where
   d (SubQuery sub)     = sub
   d (PrimeRelation qp) = SubQuery.subQuery (composeSQL pj c) (Projection.width pj) where
     (pj, c) = runQueryPrime qp
 
 width :: PrimeRelation p r -> Int
-width =  SubQuery.width . toSubQuery
+width =  SubQuery.width . subQueryFromRelation
 
 nested :: PrimeRelation p r -> PrimeRelation p r
-nested =  SubQuery . toSubQuery
+nested =  SubQuery . subQueryFromRelation

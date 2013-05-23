@@ -6,7 +6,7 @@ module Database.Relational.Query.Type (
   Insert(untypeInsert), unsafeTypedInsert, typedInsert
   ) where
 
-import Database.Relational.Query.Join (PrimeRelation, toSQL)
+import Database.Relational.Query.Join (PrimeRelation, sqlFromRelation)
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.SQL (singleKeyUpdateSQL, insertSQL)
 
@@ -20,7 +20,7 @@ instance Show (Query p a) where
   show = untypeQuery
 
 fromRelation :: PrimeRelation p r -> Query p r
-fromRelation =  unsafeTypedQuery . toSQL
+fromRelation =  unsafeTypedQuery . sqlFromRelation
 
 
 newtype Update p a = Update { untypeUpdate :: String }
