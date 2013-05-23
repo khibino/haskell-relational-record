@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances #-}
 
 module Database.Relational.Query.Join (
   QueryJoin,
@@ -14,6 +15,8 @@ module Database.Relational.Query.Join (
 
   inner', left', right', full',
   inner, left, right, full,
+
+  toSubQuery,
 
   sqlFromRelation,
 
@@ -250,6 +253,17 @@ full  =  join queryMaybe queryMaybe
 
 infix 8 `inner'`, `left'`, `right'`, `full'`, `inner`, `left`, `right`, `full`
 
+toSQL :: QueryJoin (Projection r) -> String
+toSQL =  uncurry composeSQL . runQueryPrime
+
+instance Show (QueryJoin (Projection r)) where
+  show = toSQL
+
+toSubQuery :: QueryJoin (Projection r) -> SubQuery
+toSubQuery qp = SubQuery.subQuery (composeSQL pj c) (Projection.width pj)  where
+  (pj, c) = runQueryPrime qp
+
+
 sqlFromRelation :: PrimeRelation p r -> String
 sqlFromRelation =  d  where
   d (SubQuery sub)     = SubQuery.toSQL sub
@@ -261,8 +275,7 @@ instance Show (PrimeRelation p r) where
 subQueryFromRelation :: PrimeRelation p r -> SubQuery
 subQueryFromRelation =  d  where
   d (SubQuery sub)     = sub
-  d (PrimeRelation qp) = SubQuery.subQuery (composeSQL pj c) (Projection.width pj) where
-    (pj, c) = runQueryPrime qp
+  d (PrimeRelation qp) = toSubQuery qp
 
 width :: PrimeRelation p r -> Int
 width =  SubQuery.width . subQueryFromRelation
