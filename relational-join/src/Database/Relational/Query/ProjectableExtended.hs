@@ -4,6 +4,8 @@
 
 module Database.Relational.Query.ProjectableExtended (
   ProjectableFlattenMaybe (flatten),
+  
+  piMaybeFlatten,
 
   (!), (!?), (!??),
 
@@ -36,10 +38,14 @@ p ! pi' = project $ Projection.pi p pi'
         => Projection (Maybe a) -> Pi a b -> p (Maybe b)
 p !? pi' = project $ Projection.piMaybe p pi'
 
-(!??) :: (PersistableWidth b, Projectable p, ProjectableMaybe p,
-         ProjectableFlattenMaybe c (Maybe a))
-        => Projection c -> Pi a b -> p (Maybe b)
-p !?? pi' = project $ Projection.piMaybe (flatten p) pi'
+piMaybeFlatten :: (PersistableWidth b, ProjectableFlattenMaybe c (Maybe a))
+               => Projection c -> Pi a b -> Projection (Maybe b)
+piMaybeFlatten = Projection.piMaybe . flatten
+
+(!??) :: (PersistableWidth b, ProjectableFlattenMaybe c (Maybe a),
+          Projectable p, ProjectableMaybe p)
+      => Projection c -> Pi a b -> p (Maybe b)
+p !?? pi' = project $ piMaybeFlatten p pi'
 
 class ProjectableGeneralizedZip a b c where
   generalizedZip :: ProjectableZip p => p a -> p b -> p c
