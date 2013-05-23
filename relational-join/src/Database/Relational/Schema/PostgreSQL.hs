@@ -26,7 +26,7 @@ import Database.Relational.Query.Type (fromRelation)
 import Database.Relational.Query
   (Query, PrimeRelation, query, relation, query', relation', expr,
    wheres, (.=.), (.>.), in', values, (!),
-   placeholder, asc, value, unsafeSqlValue, (><))
+   placeholder, asc, value, unsafeProjectSql, (><))
 
 import Database.Relational.Schema.PgCatalog.PgNamespace (pgNamespace)
 import qualified Database.Relational.Schema.PgCatalog.PgNamespace as Namespace
@@ -144,10 +144,10 @@ primaryKeyRelation = relation' $ do
   con       <- query pgConstraint
 
   wheres $ con ! Constraint.conrelid' .=. att ! Attr.attrelid'
-  wheres $ unsafeSqlValue "conkey[1]" .=. att ! Attr.attnum'
+  wheres $ unsafeProjectSql "conkey[1]" .=. att ! Attr.attnum'
   wheres $ att ! Attr.attnotnull'
   wheres $ con ! Constraint.contype'  .=. value 'p'  -- 'p': primary key constraint type
-  wheres $ unsafeSqlValue "array_length (conkey, 1)" .=. value (1 :: Int32)
+  wheres $ unsafeProjectSql "array_length (conkey, 1)" .=. value (1 :: Int32)
 
   return (ph, att ! Attr.attname')
 

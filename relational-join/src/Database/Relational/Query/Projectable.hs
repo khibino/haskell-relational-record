@@ -7,10 +7,10 @@ module Database.Relational.Query.Projectable (
 
   values,
 
-  SqlProjectable (unsafeSqlValue),
+  SqlProjectable (unsafeProjectSql),
   valueNull, placeholder,
 
-  ProjectableSqlTerm (unsafeSqlTerm),
+  ProjectableShowSql (unsafeShowSql),
   unsafeBinOp,
 
   (.=.), (.<>.), (.>.), (.<.), in', isNull, and, or,
@@ -61,22 +61,22 @@ unsafeSqlProjection =  unsafeFromColumns . (:[])
 
 
 class SqlProjectable p where
-  unsafeSqlValue :: String -> p t
+  unsafeProjectSql :: String -> p t
 
 instance SqlProjectable Projection where
-  unsafeSqlValue = unsafeSqlProjection
+  unsafeProjectSql = unsafeSqlProjection
 
 instance SqlProjectable Expr where
-  unsafeSqlValue = UnsafeExpr.Expr
+  unsafeProjectSql = UnsafeExpr.Expr
 
 valueNull :: SqlProjectable p => p (Maybe a)
-valueNull =  unsafeSqlValue "NULL"
+valueNull =  unsafeProjectSql "NULL"
 
 placeholder :: SqlProjectable p => p t
-placeholder =  unsafeSqlValue "?"
+placeholder =  unsafeProjectSql "?"
 
 value :: (ShowConstantSQL t, SqlProjectable p) => t -> p t
-value =  unsafeSqlValue . showConstantSQL
+value =  unsafeProjectSql . showConstantSQL
 
 valueTrue :: SqlProjectable p => p Bool
 valueTrue =  value True
@@ -88,14 +88,14 @@ values :: (Projectable p, ShowConstantSQL t) => [t] -> p [t]
 values =  project . unsafeFromColumns . map showConstantSQL
 
 
-class ProjectableSqlTerm p where
-  unsafeSqlTerm :: p a -> String
+class ProjectableShowSql p where
+  unsafeShowSql :: p a -> String
 
-instance ProjectableSqlTerm Projection where
-  unsafeSqlTerm = sqlString
+instance ProjectableShowSql Projection where
+  unsafeShowSql = sqlString
 
-instance ProjectableSqlTerm Expr where
-  unsafeSqlTerm = UnsafeExpr.showExpr
+instance ProjectableShowSql Expr where
+  unsafeShowSql = UnsafeExpr.showExpr
 
 
 type SqlBinOp = String -> String -> String
@@ -103,19 +103,19 @@ type SqlBinOp = String -> String -> String
 sqlBinOp :: String -> SqlBinOp
 sqlBinOp =  SQLs.defineBinOp . SQL.word
 
-unsafeBinOp :: (SqlProjectable p, ProjectableSqlTerm p)
+unsafeBinOp :: (SqlProjectable p, ProjectableShowSql p)
             => SqlBinOp
             -> p a -> p b -> p c
-unsafeBinOp op a b = unsafeSqlValue . paren
-                     $ op (unsafeSqlTerm a) (unsafeSqlTerm b)
+unsafeBinOp op a b = unsafeProjectSql . paren
+                     $ op (unsafeShowSql a) (unsafeShowSql b)
   where paren = ('(' :) . (++[')'])
 
-compareBinOp :: (SqlProjectable p, ProjectableSqlTerm p)
+compareBinOp :: (SqlProjectable p, ProjectableShowSql p)
              => SqlBinOp
              -> p a -> p a -> p Bool
 compareBinOp =  unsafeBinOp
 
-numBinOp :: (SqlProjectable p, ProjectableSqlTerm p, Num a)
+numBinOp :: (SqlProjectable p, ProjectableShowSql p, Num a)
          => SqlBinOp
          -> p a -> p a -> p a
 numBinOp =  unsafeBinOp
@@ -127,17 +127,17 @@ numBinOp =  unsafeBinOp
 (.<.)  =  compareBinOp (SQLs..<.)
 
 (.=.), (.<>.), (.>.), (.<.)
-  :: (SqlProjectable p, ProjectableSqlTerm p)
+  :: (SqlProjectable p, ProjectableShowSql p)
   => p ft -> p ft -> p Bool
 
 and = compareBinOp SQLs.and
 or  = compareBinOp SQLs.or
 
 and, or
-  :: (SqlProjectable p, ProjectableSqlTerm p)
+  :: (SqlProjectable p, ProjectableShowSql p)
   => p Bool ->  p Bool ->  p Bool
 
-numBinOp' :: (SqlProjectable p, ProjectableSqlTerm p, Num a)
+numBinOp' :: (SqlProjectable p, ProjectableShowSql p, Num a)
           => String -> p a -> p a -> p a
 numBinOp' = numBinOp . sqlBinOp
 
@@ -147,14 +147,14 @@ numBinOp' = numBinOp . sqlBinOp
 (.*.) =  numBinOp' "*"
 
 (.+.), (.-.), (./.), (.*.)
-  :: (SqlProjectable p, ProjectableSqlTerm p, Num a)
+  :: (SqlProjectable p, ProjectableShowSql p, Num a)
   => p a -> p a -> p a
 
-in' :: (SqlProjectable p, ProjectableSqlTerm p)
+in' :: (SqlProjectable p, ProjectableShowSql p)
     => p t -> p [t] -> p Bool
 in' =  unsafeBinOp (SQLs.in')
 
-isNull :: (SqlProjectable p, ProjectableSqlTerm p)
+isNull :: (SqlProjectable p, ProjectableShowSql p)
        => p (Maybe t) -> p Bool
 isNull x = compareBinOp (SQLs.defineBinOp SQL.IS) x valueNull
 
