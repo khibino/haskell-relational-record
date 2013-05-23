@@ -36,7 +36,7 @@ userGroup0 =
           -- Simple implementation.
           -- Nested SQL. Nested table form joins.
 
-  , ()  <- on $ u !? User.id' .=. flatten (mg !? fst') !? userId'
+  , ()  <- on $ u !? User.id' .=. mg !? fst' !?? userId'
 
   , ()  <- asc $ u !? User.id'
   ]
@@ -51,7 +51,7 @@ userGroup1 =
           -- Complex implementation.
           -- Flat SQL. Flat table form joins.
 
-  , () <- on $ u !? User.id' .=. flatten (mg !? fst') !? userId'
+  , () <- on $ u !? User.id' .=. mg !? fst' !?? userId'
 
   , () <- asc $ u !? User.id'
   ]
