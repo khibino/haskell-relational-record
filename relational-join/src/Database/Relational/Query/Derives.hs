@@ -14,7 +14,7 @@ import Database.Relational.Query.Table (Table)
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Projectable (placeholder, (.=.))
 import Database.Relational.Query.ProjectableExtended ((!))
-import Database.Relational.Query.Join (Relation, PrimeRelation, relation, query, wheres)
+import Database.Relational.Query.Monad.Core (Relation, PrimeRelation, relation, query, wheres)
 import Database.Relational.Query.Constraint
    (Key, Primary, Unique, projectionKey, uniqueKey,
     HasConstraintKey(constraintKey))

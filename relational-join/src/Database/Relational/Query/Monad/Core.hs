@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 
-module Database.Relational.Query.Join (
+module Database.Relational.Query.Monad.Core (
   QueryJoin,
 
   on, wheres, asc, desc,

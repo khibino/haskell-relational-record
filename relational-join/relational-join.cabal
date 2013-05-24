@@ -25,10 +25,10 @@ library
                        Database.Relational.Query.Projection
                        Database.Relational.Query.Projectable
                        Database.Relational.Query.ProjectableExtended
-                       Database.Relational.Query.Join
                        Database.Relational.Query.Expr
                        Database.Relational.Query.Expr.Unsafe
                        Database.Relational.Query.Sub
+                       Database.Relational.Query.Monad.Core
                        Database.Relational.Query.Type
                        Database.Relational.Query.Derives
                        Database.Relational.Query.TH
