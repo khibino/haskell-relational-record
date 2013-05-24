@@ -11,6 +11,7 @@ module Database.Relational.Query (
   module Database.Relational.Query.Projectable,
   module Database.Relational.Query.ProjectableExtended,
   module Database.Relational.Query.Monad.Core,
+  module Database.Relational.Query.Relation,
   module Database.Relational.Query.Type,
   module Database.Relational.Query.Derives
   ) where
@@ -29,6 +30,8 @@ import Database.Relational.Query.Projection (Projection)
 import Database.Relational.Query.Projectable
 import Database.Relational.Query.ProjectableExtended
 import Database.Relational.Query.Monad.Core
+  (QueryJoin, on, wheres, asc, desc, expr)
+import Database.Relational.Query.Relation
 import Database.Relational.Query.Type
   (Query, untypeQuery, fromRelation,
    Update, untypeUpdate, typedSingleKeyUpdate,

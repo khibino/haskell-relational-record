@@ -6,7 +6,7 @@ module Database.Relational.Query.Type (
   Insert(untypeInsert), unsafeTypedInsert, typedInsert
   ) where
 
-import Database.Relational.Query.Monad.Core (PrimeRelation, sqlFromRelation)
+import Database.Relational.Query.Relation (PrimeRelation, sqlFromRelation)
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.SQL (singleKeyUpdateSQL, insertSQL)
 

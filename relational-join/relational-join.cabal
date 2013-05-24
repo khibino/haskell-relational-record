@@ -29,6 +29,7 @@ library
                        Database.Relational.Query.Expr.Unsafe
                        Database.Relational.Query.Sub
                        Database.Relational.Query.Monad.Core
+                       Database.Relational.Query.Relation
                        Database.Relational.Query.Type
                        Database.Relational.Query.Derives
                        Database.Relational.Query.TH
