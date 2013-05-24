@@ -42,6 +42,7 @@ library
 
   other-modules:
                        Database.Relational.Query.Internal.AliasId
+                       Database.Relational.Query.Internal.ShowS
                        Database.Relational.Query.Internal.Product
                        Database.Relational.Query.Internal.Context
 

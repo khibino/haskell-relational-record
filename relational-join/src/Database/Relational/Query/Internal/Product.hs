@@ -13,8 +13,9 @@ import Database.Relational.Query.AliasId (Qualified)
 import Database.Relational.Query.Sub (SubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
 
-import Language.SQL.Keyword (Keyword(..), unwordsSQL)
-import qualified Language.SQL.Keyword as SQL
+import Database.Relational.Query.Internal.ShowS
+  (showWordsSQL, showWordSQL, showUnwords)
+import Language.SQL.Keyword (Keyword(..))
 
 import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
@@ -73,23 +74,6 @@ restrictProduct :: Node q -> Expr Bool -> Node q
 restrictProduct (Node a t) e = node a (restrictProduct' t e)
 
 
-showParen' :: ShowS -> ShowS
-showParen' =  showParen True
-
-showWordsSQL :: [SQL.Keyword] -> ShowS
-showWordsSQL =  showString . unwordsSQL
-
-showWordSQL :: SQL.Keyword -> ShowS
-showWordSQL =  showString . SQL.wordShow
-
-showSpace :: ShowS
-showSpace =  showChar ' '
-
-showUnwords :: [ShowS] -> ShowS
-showUnwords =  rec  where
-  rec []     = showString ""
-  rec (s:ss) = s . showSpace . rec ss
-
 showQueryProduct :: QueryProduct -> ShowS
 showQueryProduct =  rec  where
   joinType Just' Just' = INNER
@@ -97,7 +81,7 @@ showQueryProduct =  rec  where
   joinType Maybe Just' = RIGHT
   joinType Maybe Maybe = FULL
   urec (Node _ p@(Leaf _))     = rec p
-  urec (Node _ p@(Join _ _ _)) = showParen' (rec p)
+  urec (Node _ p@(Join _ _ _)) = showParen True (rec p)
   rec (Leaf q)               = showString $ SubQuery.qualifiedForm q
   rec (Join left' right' rs) =
     showUnwords
