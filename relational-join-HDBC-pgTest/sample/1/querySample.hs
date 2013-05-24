@@ -73,7 +73,7 @@ userGroup1 =
 
 runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a) => conn -> Relation a -> IO ()
 runAndPrint conn rel = do
-  putStrLn $ "SQL: " ++ toSQL rel
+  putStrLn $ "SQL: " ++ sqlFromRelation rel
   records  <- runQuery conn () (fromRelation rel)
   mapM_ print records
   putStrLn ""
