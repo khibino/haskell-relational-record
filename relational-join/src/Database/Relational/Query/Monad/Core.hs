@@ -36,7 +36,7 @@ import Database.Relational.Query.Sub (SubQuery)
 
 import Database.Relational.Query.Monad.Class (MonadQuery(on, wheres))
 import Database.Relational.Query.Monad.Unsafe
-  (UnsafeMonadQuery(unsafeSubQuery, unsafeMergeAnotherQuery))
+  (UnsafeMonadQuery(unsafeSubQuery))
 
 newtype QueryCore a =
   QueryCore { queryState :: State Context a }
@@ -113,7 +113,7 @@ unsafeQueryMergeWithAttr =  unsafeMergeAnother
 
 instance UnsafeMonadQuery QueryCore where
   unsafeSubQuery          = unsafeSubQueryWithAttr
-  unsafeMergeAnotherQuery = unsafeQueryMergeWithAttr
+  -- unsafeMergeAnotherQuery = unsafeQueryMergeWithAttr
 
 expandSQL :: QueryCore (Projection r, st) -> ((String, Projection r), st)
 expandSQL qp = ((composeSQL pj c, pj), st)  where

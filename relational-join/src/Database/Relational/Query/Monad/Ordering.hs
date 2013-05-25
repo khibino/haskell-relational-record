@@ -3,7 +3,7 @@
 module Database.Relational.Query.Monad.Ordering (
   Orderings, orderings, OrderedQuery,
 
-  unsafeMergeAnotherOrderBys,
+  -- unsafeMergeAnotherOrderBys,
 
   asc, desc,
 
@@ -19,13 +19,13 @@ import Control.Arrow (second)
 import Database.Relational.Query.Internal.Context
   (Order(Asc, Desc), OrderBys, OrderingContext, primeOrderingContext)
 import qualified Database.Relational.Query.Internal.Context as Context
-import Database.Relational.Query.Internal.Product (NodeAttr)
+-- import Database.Relational.Query.Internal.Product (NodeAttr)
 
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
 import Database.Relational.Query.Monad.Class (MonadQuery(on, wheres))
-import Database.Relational.Query.Monad.Unsafe (UnsafeMonadQuery(unsafeSubQuery, unsafeMergeAnotherQuery))
+import Database.Relational.Query.Monad.Unsafe (UnsafeMonadQuery(unsafeSubQuery))
 
 newtype Orderings (p :: * -> *) m a =
   Orderings { orderingState :: StateT OrderingContext m a }
@@ -78,6 +78,7 @@ takeOrderBys =  Orderings $ state Context.takeOrderBys
 restoreLowOrderBys :: Monad m => Context.OrderBys -> Orderings p m ()
 restoreLowOrderBys ros = updateOrderingContext $ Context.restoreLowOrderBys ros
 
+{-
 unsafeMergeAnotherOrderBys :: UnsafeMonadQuery m
                            => NodeAttr
                            -> Orderings p m (Projection r)
@@ -88,10 +89,11 @@ unsafeMergeAnotherOrderBys naR qR = do
   v     <- lift $ unsafeMergeAnotherQuery naR qR'
   restoreLowOrderBys ros
   return v
+-}
 
 instance UnsafeMonadQuery m => UnsafeMonadQuery (Orderings p m) where
   unsafeSubQuery na       = orderings . unsafeSubQuery na
-  unsafeMergeAnotherQuery = unsafeMergeAnotherOrderBys
+  -- unsafeMergeAnotherQuery = unsafeMergeAnotherOrderBys
 
 
 asc  :: (Monad m, OrderingTerms p) => p t -> Orderings p m ()

@@ -9,4 +9,4 @@ import Database.Relational.Query.Sub (SubQuery)
 
 class (Functor m, Monad m) => UnsafeMonadQuery m where
   unsafeSubQuery          :: NodeAttr -> SubQuery -> m (Projection t)
-  unsafeMergeAnotherQuery :: NodeAttr -> m (Projection r) -> m (Projection r)
+  -- unsafeMergeAnotherQuery :: NodeAttr -> m (Projection r) -> m (Projection r)

@@ -5,7 +5,7 @@ module Database.Relational.Query.Monad.Simple (
 
   simple,
 
-  unsafeMergeAnotherOrderBys,
+  -- unsafeMergeAnotherOrderBys,
 
   toSQL,
   toSubQuery
@@ -30,8 +30,8 @@ type SimpleQuery r = OrderedQuery Projection QueryCore r
 simple :: QueryCore a -> QuerySimple a
 simple =  orderings
 
-unsafeMergeAnotherOrderBys :: NodeAttr -> QuerySimple (Projection r) -> QuerySimple (Projection r)
-unsafeMergeAnotherOrderBys =  Ordering.unsafeMergeAnotherOrderBys
+-- unsafeMergeAnotherOrderBys :: NodeAttr -> QuerySimple (Projection r) -> QuerySimple (Projection r)
+-- unsafeMergeAnotherOrderBys =  Ordering.unsafeMergeAnotherOrderBys
 
 toSQL :: SimpleQuery r -> String
 toSQL q = append sql  where
