@@ -28,7 +28,10 @@ library
                        Database.Relational.Query.Expr
                        Database.Relational.Query.Expr.Unsafe
                        Database.Relational.Query.Sub
+                       Database.Relational.Query.Monad.Class
+                       Database.Relational.Query.Monad.Ordering
                        Database.Relational.Query.Monad.Core
+                       Database.Relational.Query.Monad.Simple
                        Database.Relational.Query.Relation
                        Database.Relational.Query.Type
                        Database.Relational.Query.Derives
@@ -46,6 +49,7 @@ library
                        Database.Relational.Query.Internal.ShowS
                        Database.Relational.Query.Internal.Product
                        Database.Relational.Query.Internal.Context
+                       Database.Relational.Query.Monad.Unsafe
 
                        Database.Relational.Schema.DB2Syscat.Tabconst
                        Database.Relational.Schema.DB2Syscat.Keycoluse

@@ -10,7 +10,10 @@ module Database.Relational.Query (
   module Database.Relational.Query.Projection,
   module Database.Relational.Query.Projectable,
   module Database.Relational.Query.ProjectableExtended,
+  module Database.Relational.Query.Monad.Class,
+  module Database.Relational.Query.Monad.Ordering,
   module Database.Relational.Query.Monad.Core,
+  module Database.Relational.Query.Monad.Simple,
   module Database.Relational.Query.Relation,
   module Database.Relational.Query.Type,
   module Database.Relational.Query.Derives
@@ -29,8 +32,10 @@ import Database.Relational.Query.Sub (SubQuery, unitSQL, queryWidth)
 import Database.Relational.Query.Projection (Projection)
 import Database.Relational.Query.Projectable
 import Database.Relational.Query.ProjectableExtended
-import Database.Relational.Query.Monad.Core
-  (QueryJoin, on, wheres, asc, desc, expr)
+import Database.Relational.Query.Monad.Class (on, wheres)
+import Database.Relational.Query.Monad.Ordering (asc, desc)
+import Database.Relational.Query.Monad.Core (QueryCore, expr)
+import Database.Relational.Query.Monad.Simple (QuerySimple)
 import Database.Relational.Query.Relation
 import Database.Relational.Query.Type
   (Query, untypeQuery, fromRelation,

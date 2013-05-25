@@ -1,16 +1,24 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Database.Relational.Query.Internal.Context (
-  Context, Order (..), OrderBys,
+  Context,
 
   primeContext,
   nextAlias,
 
   updateProduct, takeProduct, restoreLeft,
   addRestriction,
+
+  composeSQL,
+
+  Order (..), OrderBys,
+  OrderByContext,
+
+  primeOrderByContext,
+
   updateOrderBy, takeOrderBys, restoreLowOrderBys,
 
-  composeSQL
+  composeOrderBys
   ) where
 
 import Prelude hiding (product)
@@ -34,19 +42,14 @@ import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
 
 
-data Order = Asc | Desc
-
-type OrderBys = DList (Order, String)
-
 data Context = Context
                { currentAliasId :: AliasId
                , product :: Maybe QueryProductNode
                , restriction :: Maybe (Expr Bool)
-               , orderBys :: OrderBys
                }
 
 primeContext :: Context
-primeContext =  Context primAlias Nothing Nothing DList.empty
+primeContext =  Context primAlias Nothing Nothing
 
 nextAlias :: Context -> (AliasId, Context)
 nextAlias s = (cur, s { currentAliasId =  newAliasId cur })  where
@@ -70,36 +73,50 @@ addRestriction e1 ctx =
   where uf  Nothing = e1
         uf (Just e0) = e0 `Projectable.and` e1
 
-updateOrderBy :: Order -> Expr t -> Context -> Context
-updateOrderBy order e ctx =
-  ctx { orderBys = orderBys ctx <> pure (order, showExpr e)  }
-
-takeOrderBys :: Context -> (OrderBys, Context)
-takeOrderBys ctx = (orderBys ctx , ctx { orderBys = DList.empty })
-
-restoreLowOrderBys :: OrderBys -> Context -> Context
-restoreLowOrderBys ros ctx = ctx { orderBys = orderBys ctx <> ros }
-
-composeSQL' :: Projection r -> QueryProduct -> Maybe (Expr Bool) -> OrderBys -> String
-composeSQL' pj pd re odRev =
+composeSQL' :: Projection r -> QueryProduct -> Maybe (Expr Bool) -> String
+composeSQL' pj pd re =
   unwordsSQL
   $ [SELECT, columns' `SQL.sepBy` ", ",
      FROM, SQL.word . queryProductSQL $ pd]
   ++ wheres re
-  ++ orders
     where columns' = zipWith
                     (\f n -> SQL.word f `asColumnN` n)
                     (Projection.columns pj)
                     [(0 :: Int)..]
           wheres  = Prelude.maybe [] (\e -> [WHERE, SQL.word . showExpr $ e])
-          order Asc  = ASC
-          order Desc = DESC
-          orderList = DList.foldr (\ (o, e) r -> [SQL.word e, order o] `SQL.sepBy` " "  : r) [] odRev
-          orders | null orderList = []
-                 | otherwise      = [ORDER, BY, orderList `SQL.sepBy` ", "]
 
 composeSQL :: Projection r -> Context -> String
 composeSQL pj c = composeSQL' pj
                   (maybe (error "relation: empty product!") (Product.nodeTree) (product c))
                   (restriction c)
-                  (orderBys c)
+
+
+data Order = Asc | Desc
+
+type OrderBys = DList (Order, String)
+
+newtype OrderByContext = OrderByContext { orderBys :: OrderBys }
+
+primeOrderByContext :: OrderByContext
+primeOrderByContext =  OrderByContext DList.empty
+
+updateOrderBy :: Order -> String -> OrderByContext -> OrderByContext
+updateOrderBy order' term ctx =
+  ctx { orderBys = orderBys ctx <> pure (order', term)  }
+
+takeOrderBys :: OrderByContext -> (OrderBys, OrderByContext)
+takeOrderBys ctx = (orderBys ctx , ctx { orderBys = DList.empty })
+
+restoreLowOrderBys :: OrderBys -> OrderByContext -> OrderByContext
+restoreLowOrderBys ros ctx = ctx { orderBys = orderBys ctx <> ros }
+
+order :: Order -> Keyword
+order Asc  = ASC
+order Desc = DESC
+
+composeOrderBys :: OrderByContext -> String
+composeOrderBys obs = unwordsSQL orders  where
+  orderList = DList.foldr (\ (o, e) r -> [SQL.word e, order o] `SQL.sepBy` " "  : r) []
+              $ orderBys obs
+  orders | null orderList = []
+         | otherwise      = [ORDER, BY, orderList `SQL.sepBy` ", "]

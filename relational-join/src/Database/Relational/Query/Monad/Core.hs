@@ -1,19 +1,14 @@
 {-# LANGUAGE FlexibleInstances #-}
 
 module Database.Relational.Query.Monad.Core (
-  QueryJoin,
-
-  on, wheres, asc, desc,
+  QueryCore,
 
   expr,
 
   unsafeSubQueryWithAttr,
-
   unsafeQueryMergeWithAttr,
 
-  toSQL,
-
-  toSubQuery,
+  expandSQL
   ) where
 
 import Prelude hiding (product)
@@ -22,7 +17,7 @@ import Control.Monad.Trans.State (State, state, runState, modify)
 import Control.Applicative (Applicative (pure, (<*>)))
 
 import Database.Relational.Query.Internal.Context
-  (Context, Order(Asc, Desc), OrderBys, primeContext, nextAlias, updateProduct, composeSQL)
+  (Context, primeContext, nextAlias, updateProduct, composeSQL)
 import qualified Database.Relational.Query.Internal.Context as Context
 
 import Database.Relational.Query.Internal.AliasId (AliasId, Qualified)
@@ -38,108 +33,89 @@ import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable (Projectable(project))
 
 import Database.Relational.Query.Sub (SubQuery)
-import qualified Database.Relational.Query.Sub as SubQuery
+
+import Database.Relational.Query.Monad.Class (MonadQuery(on, wheres))
+import Database.Relational.Query.Monad.Unsafe (UnsafeMonadQuery(unsafeMergeAnotherQuery))
+
+newtype QueryCore a =
+  QueryCore { queryState :: State Context a }
+
+runQueryCore :: QueryCore a -> Context -> (a, Context)
+runQueryCore =  runState . queryState
+
+queryCore :: (Context -> (a, Context)) -> QueryCore a
+queryCore =  QueryCore . state
+
+runQueryPrime :: QueryCore a -> (a, Context)
+runQueryPrime q = runQueryCore q primeContext
+
+newAlias :: QueryCore AliasId
+newAlias =  queryCore nextAlias
+
+updateContext :: (Context -> Context) -> QueryCore ()
+updateContext =  QueryCore . modify
 
 
-newtype QueryJoin a =
-  QueryJoin { queryJoinState :: State Context a }
-
-runQueryJoin :: QueryJoin a -> Context -> (a, Context)
-runQueryJoin =  runState . queryJoinState
-
-queryJoin :: (Context -> (a, Context)) -> QueryJoin a
-queryJoin =  QueryJoin . state
-
-runQueryPrime :: QueryJoin a -> (a, Context)
-runQueryPrime q = runQueryJoin q $ primeContext
-
-newAlias :: QueryJoin AliasId
-newAlias =  queryJoin nextAlias
-
-updateContext :: (Context -> Context) -> QueryJoin ()
-updateContext =  QueryJoin . modify
-
-updateJoinRestriction :: Expr Bool -> QueryJoin ()
+updateJoinRestriction :: Expr Bool -> QueryCore ()
 updateJoinRestriction e = updateContext (updateProduct d)  where
   d  Nothing  = error "on: product is empty!"
   d (Just pt) = restrictProduct pt e
 
-updateRestriction :: Expr Bool -> QueryJoin ()
+updateRestriction :: Expr Bool -> QueryCore ()
 updateRestriction e = updateContext (Context.addRestriction e)
 
-takeProduct :: QueryJoin (Maybe QueryProductNode)
-takeProduct =  queryJoin Context.takeProduct
+takeProduct :: QueryCore (Maybe QueryProductNode)
+takeProduct =  queryCore Context.takeProduct
 
-restoreLeft :: QueryProductNode -> NodeAttr -> QueryJoin ()
+restoreLeft :: QueryProductNode -> NodeAttr -> QueryCore ()
 restoreLeft pL naR = updateContext $ Context.restoreLeft pL naR
-
-updateOrderBy :: Order -> Expr t -> QueryJoin ()
-updateOrderBy order e = updateContext (Context.updateOrderBy order e)
-
-takeOrderBys :: QueryJoin OrderBys
-takeOrderBys =  queryJoin Context.takeOrderBys
-
-restoreLowOrderBys :: OrderBys -> QueryJoin ()
-restoreLowOrderBys ros = updateContext (Context.restoreLowOrderBys ros)
-
-on :: Expr Bool -> QueryJoin ()
-on =  updateJoinRestriction
-
-wheres :: Expr Bool -> QueryJoin ()
-wheres =  updateRestriction
-
-asc  :: Expr t -> QueryJoin ()
-asc  =  updateOrderBy Asc
-
-desc :: Expr t -> QueryJoin ()
-desc =  updateOrderBy Desc
-
 
 expr :: Projection ft -> Expr ft
 expr =  project
 
 
-instance Monad QueryJoin where
-  return      = QueryJoin . return
-  q0 >>= f    = QueryJoin $ queryJoinState q0 >>= queryJoinState . f
+instance Monad QueryCore where
+  return      = QueryCore . return
+  q0 >>= f    = QueryCore $ queryState q0 >>= queryState . f
 
-instance Functor QueryJoin where
+instance Functor QueryCore where
   fmap = liftM
 
-instance Applicative QueryJoin where
+instance Applicative QueryCore where
   pure  = return
   (<*>) = ap
 
+instance MonadQuery QueryCore where
+  on =  updateJoinRestriction
+  wheres =  updateRestriction
 
-qualify :: rel -> QueryJoin (Qualified rel)
+qualify :: rel -> QueryCore (Qualified rel)
 qualify rel =
   do n <- newAlias
      return $ AliasId.qualify rel n
 
-unsafeSubQueryWithAttr :: NodeAttr -> SubQuery -> QueryJoin (Projection t)
+unsafeSubQueryWithAttr :: NodeAttr -> SubQuery -> QueryCore (Projection t)
 unsafeSubQueryWithAttr attr sub = do
   qsub <- qualify sub
   updateContext (updateProduct (`growProduct` (attr, qsub)))
   return $ Projection.fromQualifiedSubQuery qsub
 
-unsafeMergeAnother :: NodeAttr -> QueryJoin a -> QueryJoin a
+unsafeMergeAnother :: NodeAttr -> QueryCore a -> QueryCore a
 unsafeMergeAnother naR qR = do
-  ros   <- takeOrderBys
   mayPL <- takeProduct
   v     <- qR
   maybe (return ()) (\pL -> restoreLeft pL naR) mayPL
-  restoreLowOrderBys ros
   return v
 
-unsafeQueryMergeWithAttr :: NodeAttr -> QueryJoin (Projection r) -> QueryJoin (Projection r)
+unsafeQueryMergeWithAttr :: NodeAttr -> QueryCore (Projection r) -> QueryCore (Projection r)
 unsafeQueryMergeWithAttr =  unsafeMergeAnother
 
-toSQL :: QueryJoin (Projection r) -> String
-toSQL =  uncurry composeSQL . runQueryPrime
+instance UnsafeMonadQuery QueryCore where
+  unsafeMergeAnotherQuery = unsafeMergeAnother
 
-instance Show (QueryJoin (Projection r)) where
-  show = toSQL
+expandSQL :: QueryCore (Projection r, st) -> ((String, Projection r), st)
+expandSQL qp = ((composeSQL pj c, pj), st)  where
+  ((pj, st), c) = runQueryPrime qp
 
-toSubQuery :: QueryJoin (Projection r) -> SubQuery
-toSubQuery qp = SubQuery.subQuery (composeSQL pj c) (Projection.width pj)  where
-  (pj, c) = runQueryPrime qp
+instance Show (QueryCore (Projection r)) where
+  show = fst . fst . expandSQL . fmap (\x -> (,) x ())
