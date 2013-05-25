@@ -18,7 +18,6 @@ module Database.Relational.Query.Relation (
   ) where
 
 import Database.Relational.Query.Monad.Simple (QuerySimple)
-import qualified Database.Relational.Query.Monad.Ordering as QueryOrdering
 import qualified Database.Relational.Query.Monad.Simple as QuerySimple
 import qualified Database.Relational.Query.Monad.Core   as QueryCore
 
