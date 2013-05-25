@@ -42,6 +42,8 @@ import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
 
 
+-- Base contexts
+
 data Context = Context
                { currentAliasId :: AliasId
                , product :: Maybe QueryProductNode
@@ -90,6 +92,8 @@ composeSQL pj c = composeSQL' pj
                   (maybe (error "relation: empty product!") (Product.nodeTree) (product c))
                   (restriction c)
 
+
+-- Ordering contexts
 
 data Order = Asc | Desc
 
