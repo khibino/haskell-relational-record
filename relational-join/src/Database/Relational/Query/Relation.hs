@@ -17,9 +17,10 @@ module Database.Relational.Query.Relation (
   nested, width
   ) where
 
+import Database.Relational.Query.Monad.Class (MonadQuery)
+import qualified Database.Relational.Query.Monad.Unsafe as UnsafeMonadQuery
 import Database.Relational.Query.Monad.Simple (QuerySimple)
 import qualified Database.Relational.Query.Monad.Simple as QuerySimple
-import qualified Database.Relational.Query.Monad.Core   as QueryCore
 
 import Database.Relational.Query.Table (Table)
 
@@ -46,23 +47,28 @@ table :: Table r -> Relation r
 table =  SubQuery . SubQuery.fromTable
 
 
-queryWithAttr :: NodeAttr -> PrimeRelation p r -> QuerySimple (PlaceHolders p, Projection r)
-queryWithAttr attr = addPlaceHolders . d where
-  d (SubQuery sub)    = QuerySimple.simple $ QueryCore.unsafeSubQueryWithAttr attr sub
-  d (PrimeRelation q) = QuerySimple.unsafeMergeAnotherOrderBys attr q
+subQueryFromRelation :: PrimeRelation p r -> SubQuery
+subQueryFromRelation =  d  where
+  d (SubQuery sub)     = sub
+  d (PrimeRelation qp) = QuerySimple.toSubQuery qp
 
-query' :: PrimeRelation p r -> QuerySimple (PlaceHolders p, Projection r)
+queryWithAttr :: MonadQuery m => NodeAttr -> PrimeRelation p r -> m (PlaceHolders p, Projection r)
+queryWithAttr attr = addPlaceHolders . q where
+  q = UnsafeMonadQuery.unsafeSubQuery attr . subQueryFromRelation
+  -- d (PrimeRelation q) = UnsafeMonadQuery.unsafeMergeAnotherQuery attr q
+
+query' :: MonadQuery m => PrimeRelation p r -> m (PlaceHolders p, Projection r)
 query' =  queryWithAttr Just'
 
-query :: Relation r -> QuerySimple (Projection r)
+query :: MonadQuery m => Relation r -> m (Projection r)
 query =  fmap snd . query'
 
-queryMaybe' :: PrimeRelation p r -> QuerySimple (PlaceHolders p, Projection (Maybe r))
+queryMaybe' :: MonadQuery m => PrimeRelation p r -> m (PlaceHolders p, Projection (Maybe r))
 queryMaybe' pr =  do
   (ph, pj) <- queryWithAttr Maybe pr
   return (ph, Projection.just pj)
 
-queryMaybe :: PrimeRelation p r -> QuerySimple (Projection (Maybe r))
+queryMaybe :: MonadQuery m => PrimeRelation p r -> m (Projection (Maybe r))
 queryMaybe =  fmap snd . queryMaybe'
 
 relation :: QuerySimple (Projection r) -> PrimeRelation p r
@@ -150,11 +156,6 @@ sqlFromRelation =  d  where
 
 instance Show (PrimeRelation p r) where
   show = sqlFromRelation
-
-subQueryFromRelation :: PrimeRelation p r -> SubQuery
-subQueryFromRelation =  d  where
-  d (SubQuery sub)     = sub
-  d (PrimeRelation qp) = QuerySimple.toSubQuery qp
 
 width :: PrimeRelation p r -> Int
 width =  SubQuery.width . subQueryFromRelation

@@ -13,7 +13,7 @@ module Database.Relational.Query.Monad.Ordering (
 import Control.Monad (liftM, ap)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.State (StateT, runStateT, modify, state)
-import Control.Applicative (Applicative (pure, (<*>)))
+import Control.Applicative (Applicative (pure, (<*>)), (<$>))
 import Control.Arrow (second)
 
 import Database.Relational.Query.Internal.Context
@@ -84,7 +84,7 @@ unsafeMergeAnotherOrderBys :: UnsafeMonadQuery m
                            -> Orderings p m (Projection r)
 unsafeMergeAnotherOrderBys naR qR = do
   ros   <- takeOrderBys
-  let qR' = fst `liftM` runOrderingsPrime qR
+  let qR' = fst <$> runOrderingsPrime qR
   v     <- lift $ unsafeMergeAnotherQuery naR qR'
   restoreLowOrderBys ros
   return v
@@ -105,5 +105,5 @@ appendOrderBys' c = (++ d (Context.composeOrderBys c))  where
   d "" = ""
   d s  = ' ' : s
 
-appendOrderBys :: Monad m => Orderings p m a -> m (a, String -> String)
-appendOrderBys q = second appendOrderBys' `liftM` runOrderingsPrime q
+appendOrderBys :: MonadQuery m => Orderings p m a -> m (a, String -> String)
+appendOrderBys q = second appendOrderBys' <$> runOrderingsPrime q
