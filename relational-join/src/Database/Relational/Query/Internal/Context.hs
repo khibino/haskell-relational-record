@@ -115,8 +115,8 @@ order Asc  = ASC
 order Desc = DESC
 
 composeOrderBys :: OrderingContext -> String
-composeOrderBys obs = unwordsSQL orders  where
+composeOrderBys oc = unwordsSQL orders  where
   orderList = DList.foldr (\ (o, e) r -> [SQL.word e, order o] `SQL.sepBy` " "  : r) []
-              $ orderBys obs
+              $ orderBys oc
   orders | null orderList = []
          | otherwise      = [ORDER, BY, orderList `SQL.sepBy` ", "]
