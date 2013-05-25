@@ -12,9 +12,9 @@ module Database.Relational.Query.Internal.Context (
   composeSQL,
 
   Order (..), OrderBys,
-  OrderByContext,
+  OrderingContext,
 
-  primeOrderByContext,
+  primeOrderingContext,
 
   updateOrderBy, takeOrderBys, restoreLowOrderBys,
 
@@ -95,26 +95,26 @@ data Order = Asc | Desc
 
 type OrderBys = DList (Order, String)
 
-newtype OrderByContext = OrderByContext { orderBys :: OrderBys }
+newtype OrderingContext = OrderingContext { orderBys :: OrderBys }
 
-primeOrderByContext :: OrderByContext
-primeOrderByContext =  OrderByContext DList.empty
+primeOrderingContext :: OrderingContext
+primeOrderingContext =  OrderingContext DList.empty
 
-updateOrderBy :: Order -> String -> OrderByContext -> OrderByContext
+updateOrderBy :: Order -> String -> OrderingContext -> OrderingContext
 updateOrderBy order' term ctx =
   ctx { orderBys = orderBys ctx <> pure (order', term)  }
 
-takeOrderBys :: OrderByContext -> (OrderBys, OrderByContext)
+takeOrderBys :: OrderingContext -> (OrderBys, OrderingContext)
 takeOrderBys ctx = (orderBys ctx , ctx { orderBys = DList.empty })
 
-restoreLowOrderBys :: OrderBys -> OrderByContext -> OrderByContext
+restoreLowOrderBys :: OrderBys -> OrderingContext -> OrderingContext
 restoreLowOrderBys ros ctx = ctx { orderBys = orderBys ctx <> ros }
 
 order :: Order -> Keyword
 order Asc  = ASC
 order Desc = DESC
 
-composeOrderBys :: OrderByContext -> String
+composeOrderBys :: OrderingContext -> String
 composeOrderBys obs = unwordsSQL orders  where
   orderList = DList.foldr (\ (o, e) r -> [SQL.word e, order o] `SQL.sepBy` " "  : r) []
               $ orderBys obs

@@ -18,7 +18,7 @@ import Control.Applicative (Applicative (pure, (<*>)))
 import Control.Arrow (second)
 
 import Database.Relational.Query.Internal.Context
-  (Order(Asc, Desc), OrderBys, OrderByContext, primeOrderByContext)
+  (Order(Asc, Desc), OrderBys, OrderingContext, primeOrderingContext)
 import qualified Database.Relational.Query.Internal.Context as Context
 import Database.Relational.Query.Internal.Product (NodeAttr)
 
@@ -31,13 +31,13 @@ import Database.Relational.Query.Monad.Unsafe (UnsafeMonadQuery)
 import qualified Database.Relational.Query.Monad.Unsafe as UnsafeMonadQuery
 
 newtype Orderings (p :: * -> *) m a =
-  Orderings { orderingState :: StateT OrderByContext m a }
+  Orderings { orderingState :: StateT OrderingContext m a }
 
-runOrderings :: Orderings p m a -> OrderByContext -> m (a, OrderByContext)
+runOrderings :: Orderings p m a -> OrderingContext -> m (a, OrderingContext)
 runOrderings =  runStateT . orderingState
 
-runOrderingsPrime :: Orderings p m a -> m (a, OrderByContext)
-runOrderingsPrime q = runOrderings q $ primeOrderByContext
+runOrderingsPrime :: Orderings p m a -> m (a, OrderingContext)
+runOrderingsPrime q = runOrderings q $ primeOrderingContext
 
 instance MonadTrans (Orderings p) where
   lift = Orderings . lift
@@ -68,18 +68,18 @@ class OrderingTerms p where
 instance OrderingTerms Projection where
   orderTerms = Projection.columns
 
-updateOrderByContext :: Monad m => (OrderByContext -> OrderByContext) -> Orderings p m ()
-updateOrderByContext =  Orderings . modify
+updateOrderingContext :: Monad m => (OrderingContext -> OrderingContext) -> Orderings p m ()
+updateOrderingContext =  Orderings . modify
 
 updateOrderBys :: (Monad m, OrderingTerms p) => Order -> p t -> Orderings p m ()
-updateOrderBys order p = updateOrderByContext (\c -> foldl update c (orderTerms p))  where
+updateOrderBys order p = updateOrderingContext (\c -> foldl update c (orderTerms p))  where
   update = flip (Context.updateOrderBy order)
 
 takeOrderBys :: Monad m => Orderings p m OrderBys
 takeOrderBys =  Orderings $ state Context.takeOrderBys
 
 restoreLowOrderBys :: Monad m => Context.OrderBys -> Orderings p m ()
-restoreLowOrderBys ros = updateOrderByContext $ Context.restoreLowOrderBys ros
+restoreLowOrderBys ros = updateOrderingContext $ Context.restoreLowOrderBys ros
 
 unsafeMergeAnotherOrderBys :: UnsafeMonadQuery m => NodeAttr -> Orderings p m a -> Orderings p m a
 unsafeMergeAnotherOrderBys naR qR = do
@@ -95,7 +95,7 @@ asc  =  updateOrderBys Asc
 desc :: (Monad m, OrderingTerms p) => p t -> Orderings p m ()
 desc =  updateOrderBys Desc
 
-appendOrderBys' :: OrderByContext -> String -> String
+appendOrderBys' :: OrderingContext -> String -> String
 appendOrderBys' c = (++ d (Context.composeOrderBys c))  where
   d "" = ""
   d s  = ' ' : s
