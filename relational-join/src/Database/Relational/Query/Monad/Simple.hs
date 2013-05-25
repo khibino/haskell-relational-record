@@ -30,7 +30,7 @@ type SimpleQuery r = OrderedQuery Projection QueryCore r
 simple :: QueryCore a -> QuerySimple a
 simple =  orderings
 
-unsafeMergeAnotherOrderBys :: NodeAttr -> QuerySimple a -> QuerySimple a
+unsafeMergeAnotherOrderBys :: NodeAttr -> QuerySimple (Projection r) -> QuerySimple (Projection r)
 unsafeMergeAnotherOrderBys =  Ordering.unsafeMergeAnotherOrderBys
 
 toSQL :: SimpleQuery r -> String

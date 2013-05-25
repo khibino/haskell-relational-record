@@ -81,7 +81,10 @@ takeOrderBys =  Orderings $ state Context.takeOrderBys
 restoreLowOrderBys :: Monad m => Context.OrderBys -> Orderings p m ()
 restoreLowOrderBys ros = updateOrderingContext $ Context.restoreLowOrderBys ros
 
-unsafeMergeAnotherOrderBys :: UnsafeMonadQuery m => NodeAttr -> Orderings p m a -> Orderings p m a
+unsafeMergeAnotherOrderBys :: UnsafeMonadQuery m
+                           => NodeAttr
+                           -> Orderings p m (Projection r)
+                           -> Orderings p m (Projection r)
 unsafeMergeAnotherOrderBys naR qR = do
   ros   <- takeOrderBys
   let qR' = fst `liftM` runOrderingsPrime qR

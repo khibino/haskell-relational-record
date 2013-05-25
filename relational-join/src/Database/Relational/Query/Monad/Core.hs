@@ -111,7 +111,7 @@ unsafeQueryMergeWithAttr :: NodeAttr -> QueryCore (Projection r) -> QueryCore (P
 unsafeQueryMergeWithAttr =  unsafeMergeAnother
 
 instance UnsafeMonadQuery QueryCore where
-  unsafeMergeAnotherQuery = unsafeMergeAnother
+  unsafeMergeAnotherQuery = unsafeQueryMergeWithAttr
 
 expandSQL :: QueryCore (Projection r, st) -> ((String, Projection r), st)
 expandSQL qp = ((composeSQL pj c, pj), st)  where
