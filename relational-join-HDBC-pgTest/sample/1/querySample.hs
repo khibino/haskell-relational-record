@@ -31,30 +31,24 @@ userGroup0 =
   relation $
   [ u   >< mg !? snd'
   | u   <- queryMaybe user
-  , mg  <- queryMaybe $ nested groupMemberShip
-          -- Call one subquery via relation layer
-          -- Simple implementation.
-          -- Nested SQL. Nested table form joins.
+  , mg  <- queryMaybe groupMemberShip
 
   , ()  <- on $ u !? User.id' .=. mg !? fst' !?? userId'
 
   , ()  <- asc $ u !? User.id'
   ]
 
-userGroup1 :: Relation (Maybe User, Maybe Group)
-userGroup1 =
-  relation $
-  [ u >< mg !? snd'
-  | u  <- queryMaybe user
-  , mg <- queryMaybe groupMemberShip
-          -- Directly merge another QueryJoin monad.
-          -- Complex implementation.
-          -- Flat SQL. Flat table form joins.
+-- userGroup1 :: Relation (Maybe User, Maybe Group)
+-- userGroup1 =
+--   relation $
+--   [ u >< mg !? snd'
+--   | u  <- queryMaybe user
+--   , mg <- queryMaybe groupMemberShip
 
-  , () <- on $ u !? User.id' .=. mg !? fst' !?? userId'
+--   , () <- on $ u !? User.id' .=. mg !? fst' !?? userId'
 
-  , () <- asc $ u !? User.id'
-  ]
+--   , () <- asc $ u !? User.id'
+--   ]
 
 -- userGroup2 :: Relation (Maybe User, Maybe Group)
 -- userGroup2 =
@@ -82,7 +76,7 @@ run :: IO ()
 run =  withConnectionIO connect
        (\conn -> do
            runAndPrint conn userGroup0
-           runAndPrint conn userGroup1
+           -- runAndPrint conn userGroup1
            -- runAndPrint conn userGroup2
        )
 
