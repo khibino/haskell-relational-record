@@ -5,6 +5,8 @@ module Database.Relational.Query.Monad.Unsafe (
 
 import Database.Relational.Query.Internal.Product (NodeAttr)
 import Database.Relational.Query.Projection (Projection)
+import Database.Relational.Query.Sub (SubQuery)
 
 class Monad m => UnsafeMonadQuery m where
+  unsafeSubQuery          :: NodeAttr -> SubQuery -> m (Projection t)
   unsafeMergeAnotherQuery :: NodeAttr -> m (Projection r) -> m (Projection r)

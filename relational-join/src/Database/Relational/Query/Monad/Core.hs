@@ -35,7 +35,8 @@ import Database.Relational.Query.Projectable (Projectable(project))
 import Database.Relational.Query.Sub (SubQuery)
 
 import Database.Relational.Query.Monad.Class (MonadQuery(on, wheres))
-import Database.Relational.Query.Monad.Unsafe (UnsafeMonadQuery(unsafeMergeAnotherQuery))
+import Database.Relational.Query.Monad.Unsafe
+  (UnsafeMonadQuery(unsafeSubQuery, unsafeMergeAnotherQuery))
 
 newtype QueryCore a =
   QueryCore { queryState :: State Context a }
@@ -86,7 +87,7 @@ instance Applicative QueryCore where
   (<*>) = ap
 
 instance MonadQuery QueryCore where
-  on =  updateJoinRestriction
+  on     =  updateJoinRestriction
   wheres =  updateRestriction
 
 qualify :: rel -> QueryCore (Qualified rel)
@@ -111,6 +112,7 @@ unsafeQueryMergeWithAttr :: NodeAttr -> QueryCore (Projection r) -> QueryCore (P
 unsafeQueryMergeWithAttr =  unsafeMergeAnother
 
 instance UnsafeMonadQuery QueryCore where
+  unsafeSubQuery          = unsafeSubQueryWithAttr
   unsafeMergeAnotherQuery = unsafeQueryMergeWithAttr
 
 expandSQL :: QueryCore (Projection r, st) -> ((String, Projection r), st)

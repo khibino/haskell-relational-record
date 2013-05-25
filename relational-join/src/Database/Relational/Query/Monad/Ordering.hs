@@ -10,7 +10,6 @@ module Database.Relational.Query.Monad.Ordering (
   appendOrderBys
   ) where
 
-import Prelude hiding (Ordering)
 import Control.Monad (liftM, ap)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.State (StateT, runStateT, modify, state)
@@ -25,10 +24,8 @@ import Database.Relational.Query.Internal.Product (NodeAttr)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
-import Database.Relational.Query.Monad.Class (MonadQuery)
-import qualified Database.Relational.Query.Monad.Class as MonadQuery
-import Database.Relational.Query.Monad.Unsafe (UnsafeMonadQuery)
-import qualified Database.Relational.Query.Monad.Unsafe as UnsafeMonadQuery
+import Database.Relational.Query.Monad.Class (MonadQuery(on, wheres))
+import Database.Relational.Query.Monad.Unsafe (UnsafeMonadQuery(unsafeSubQuery, unsafeMergeAnotherQuery))
 
 newtype Orderings (p :: * -> *) m a =
   Orderings { orderingState :: StateT OrderingContext m a }
@@ -57,8 +54,8 @@ instance Monad m => Applicative (Orderings p m) where
   (<*>) = ap
 
 instance MonadQuery m => MonadQuery (Orderings p m) where
-  on     =  orderings . MonadQuery.on
-  wheres =  orderings . MonadQuery.wheres
+  on     =  orderings . on
+  wheres =  orderings . wheres
 
 type OrderedQuery p m r = Orderings p m (p r)
 
@@ -88,9 +85,14 @@ unsafeMergeAnotherOrderBys :: UnsafeMonadQuery m
 unsafeMergeAnotherOrderBys naR qR = do
   ros   <- takeOrderBys
   let qR' = fst `liftM` runOrderingsPrime qR
-  v     <- lift $ UnsafeMonadQuery.unsafeMergeAnotherQuery naR qR'
+  v     <- lift $ unsafeMergeAnotherQuery naR qR'
   restoreLowOrderBys ros
   return v
+
+instance UnsafeMonadQuery m => UnsafeMonadQuery (Orderings p m) where
+  unsafeSubQuery na       = orderings . unsafeSubQuery na
+  unsafeMergeAnotherQuery = unsafeMergeAnotherOrderBys
+
 
 asc  :: (Monad m, OrderingTerms p) => p t -> Orderings p m ()
 asc  =  updateOrderBys Asc
