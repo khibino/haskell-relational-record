@@ -12,12 +12,12 @@ module Database.Relational.Query.Monad.Ordering (
 
 import Control.Monad (liftM, ap)
 import Control.Monad.Trans.Class (MonadTrans (lift))
-import Control.Monad.Trans.State (StateT, runStateT, modify, state)
+import Control.Monad.Trans.State (StateT, runStateT, modify)
 import Control.Applicative (Applicative (pure, (<*>)), (<$>))
 import Control.Arrow (second)
 
 import Database.Relational.Query.Internal.Context
-  (Order(Asc, Desc), OrderBys, OrderingContext, primeOrderingContext)
+  (Order(Asc, Desc), OrderingContext, primeOrderingContext)
 import qualified Database.Relational.Query.Internal.Context as Context
 -- import Database.Relational.Query.Internal.Product (NodeAttr)
 
@@ -72,17 +72,17 @@ updateOrderBys :: (Monad m, OrderingTerms p) => Order -> p t -> Orderings p m ()
 updateOrderBys order p = updateOrderingContext (\c -> foldl update c (orderTerms p))  where
   update = flip (Context.updateOrderBy order)
 
+{-
 takeOrderBys :: Monad m => Orderings p m OrderBys
 takeOrderBys =  Orderings $ state Context.takeOrderBys
 
 restoreLowOrderBys :: Monad m => Context.OrderBys -> Orderings p m ()
 restoreLowOrderBys ros = updateOrderingContext $ Context.restoreLowOrderBys ros
-
-{-
 unsafeMergeAnotherOrderBys :: UnsafeMonadQuery m
                            => NodeAttr
                            -> Orderings p m (Projection r)
                            -> Orderings p m (Projection r)
+
 unsafeMergeAnotherOrderBys naR qR = do
   ros   <- takeOrderBys
   let qR' = fst <$> runOrderingsPrime qR
