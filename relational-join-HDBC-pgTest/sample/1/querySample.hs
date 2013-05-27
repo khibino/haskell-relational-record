@@ -39,11 +39,11 @@ userGroup0 =
   , ()  <- asc $ u !? User.id'
   ]
 
-userGroup1 :: Relation (Maybe String, Int32)
--- userGroup1 :: PrimeRelation p ((Maybe String, Int32), Maybe Bool)
+-- userGroup1 :: Relation (Maybe String, Int32)
+userGroup1 :: PrimeRelation p ((Maybe String, Int32), Maybe Bool)
 userGroup1 =
   aggregateRelation $
-  [ flattenMaybe g >< c --  >< just (every (uid .<. just (value 3)))   -- wrong typing bug case
+  [ flattenMaybe g >< c >< every (uid .<. just (value 3))
   | ug  <- query userGroup0
   , g   <- groupBy (ug ! snd' !?? Group.name')
   , let uid = ug ! fst' !? User.id'
