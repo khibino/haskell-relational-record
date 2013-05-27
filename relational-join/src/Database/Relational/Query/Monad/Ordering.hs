@@ -24,7 +24,7 @@ import qualified Database.Relational.Query.Internal.Context as Context
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
-import Database.Relational.Query.Monad.Class (MonadQuery(on, wheres))
+import Database.Relational.Query.Monad.Class (MonadQuery(on, wheres), MonadAggregate(groupBy, having))
 import Database.Relational.Query.Monad.Unsafe (UnsafeMonadQuery(unsafeSubQuery))
 
 newtype Orderings (p :: * -> *) m a =
@@ -56,6 +56,10 @@ instance Monad m => Applicative (Orderings p m) where
 instance MonadQuery m => MonadQuery (Orderings p m) where
   on     =  orderings . on
   wheres =  orderings . wheres
+
+instance MonadAggregate m => MonadAggregate (Orderings p m) where
+  groupBy = orderings . groupBy
+  having  = orderings . having
 
 type OrderedQuery p m r = Orderings p m (p r)
 
