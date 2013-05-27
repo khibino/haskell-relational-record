@@ -1,5 +1,5 @@
 module Database.Relational.Query.Monad.Aggregate (
-  aggregate,
+  Aggregatings, aggregate,
 
   appendGroupBys,
 

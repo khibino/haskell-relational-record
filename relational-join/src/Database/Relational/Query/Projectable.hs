@@ -16,6 +16,8 @@ module Database.Relational.Query.Projectable (
   count, sum', avg, max', min', every, any', some',
 
   ProjectableShowSql (unsafeShowSql),
+
+  SqlBinOp,
   unsafeBinOp,
 
   (.=.), (.<>.), (.>.), (.<.), in', isNull, and, or,
