@@ -23,6 +23,7 @@ library
                        Database.Relational.Query.Pi.Unsafe
                        Database.Relational.Query.Constraint
                        Database.Relational.Query.Projection
+                       Database.Relational.Query.Aggregation
                        Database.Relational.Query.Projectable
                        Database.Relational.Query.ProjectableExtended
                        Database.Relational.Query.Expr
@@ -32,6 +33,7 @@ library
                        Database.Relational.Query.Monad.Ordering
                        Database.Relational.Query.Monad.Core
                        Database.Relational.Query.Monad.Simple
+                       Database.Relational.Query.Monad.Aggregate
                        Database.Relational.Query.Relation
                        Database.Relational.Query.Type
                        Database.Relational.Query.Derives
@@ -49,6 +51,7 @@ library
                        Database.Relational.Query.Internal.ShowS
                        Database.Relational.Query.Internal.Product
                        Database.Relational.Query.Internal.Context
+                       Database.Relational.Query.Internal.AggregatingContext
                        Database.Relational.Query.Monad.Unsafe
 
                        Database.Relational.Schema.DB2Syscat.Tabconst
