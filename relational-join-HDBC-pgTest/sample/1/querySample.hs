@@ -62,6 +62,7 @@ userGroup0Aggregate =
   , let uid = ug ! fst' !? User.id'
   , let c = count uid
   , ()  <- having $ c .<. value 3
+  , ()  <- asc $ c
   ]
 
 runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a) => conn -> Relation a -> IO ()
