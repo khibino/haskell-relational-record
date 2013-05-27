@@ -25,8 +25,8 @@ import Data.List (find)
 
 
 data Keyword = SELECT | ALL | DISTINCT | ON
-             | GROUP | COUNT | SUM | AVG | MAX | MIN
-             | ORDER | BY | ASC | DESC
+             | GROUP | COUNT | SUM | AVG | MAX | MIN | EVERY | ANY | SOME
+             | ORDER | BY | ASC | DESC | HAVING
              | FETCH | FIRST | NEXT | ROW | ROWS | ONLY
 
              | DELETE | USING | RETURNING
