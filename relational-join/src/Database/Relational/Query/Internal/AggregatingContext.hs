@@ -43,7 +43,7 @@ addRestriction e1 ctx =
         uf (Just e0) = e0 `exprAnd` fromTriBool e1
 
 composeGroupBys :: AggregatingContext -> String
-composeGroupBys ac = unwords [unwordsSQL groupBys, unwordsSQL havings]
+composeGroupBys ac = unwordsSQL $ groupBys ++ havings
   where groupBys
           | null gs   = []
           | otherwise = [GROUP, BY, SQL.word . concat $ gs `SQLs.sepBy` ", "]
