@@ -3,7 +3,7 @@ all: clean build
 
 build:
 	cabal configure
-	cabal build
+	cabal build --ghc-option=-Wall
 	cabal haddock --hyperlink-source
 
 wc:
