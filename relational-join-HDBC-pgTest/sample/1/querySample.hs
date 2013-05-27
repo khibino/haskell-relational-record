@@ -39,9 +39,22 @@ userGroup0 =
   , ()  <- asc $ u !? User.id'
   ]
 
--- userGroup1 :: Relation (Maybe String, Int32)
-userGroup1 :: PrimeRelation p ((Maybe String, Int32), Maybe Bool)
+userGroup1 :: Relation (Maybe User, Maybe Group)
 userGroup1 =
+  relation $
+  [ u >< g
+  | umg <- query $
+           user `left` membership `on'` [\ u m -> just (u ! User.id') .=. m !? userId' ]
+           `full` group `on'` [ \ um g -> um !? snd' !?? groupId' .=. g !? Group.id' ]
+  , let um = umg ! fst'
+        u  = um !? fst'
+        g  = umg ! snd'
+
+  , ()  <- asc $ u !? User.id'
+  ]
+
+userGroup0Aggregate :: PrimeRelation p ((Maybe String, Int32), Maybe Bool)
+userGroup0Aggregate =
   aggregateRelation $
   [ flattenMaybe g >< c >< every (uid .<. just (value 3))
   | ug  <- query userGroup0
@@ -50,21 +63,6 @@ userGroup1 =
   , let c = count uid
   , ()  <- having $ c .<. value 3
   ]
-
--- userGroup2 :: Relation (Maybe User, Maybe Group)
--- userGroup2 =
---   relation $
---   [ u >< g
---   | umg <- query $ (user `left` membership) `full` group
---   , let um = umg ! fst'
---         u  = um !? fst'
---         m  = flattenMaybe $ um !? snd'
---         g  = umg ! snd'
---   , ()  <- wheres $ u !? User.id' .=. m !? userId'
---   , ()  <- wheres $ m !? groupId' .=. g !? Group.id'
-
---   , ()  <- asc $ u !? User.id'
---   ]
 
 runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a) => conn -> Relation a -> IO ()
 runAndPrint conn rel = do
@@ -78,8 +76,7 @@ run =  withConnectionIO connect
        (\conn -> do
            runAndPrint conn userGroup0
            runAndPrint conn userGroup1
-           -- runAndPrint conn userGroup1
-           -- runAndPrint conn userGroup2
+           runAndPrint conn userGroup0Aggregate
        )
 
 main :: IO ()
