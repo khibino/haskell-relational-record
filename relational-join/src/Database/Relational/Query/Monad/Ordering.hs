@@ -1,7 +1,7 @@
 {-# LANGUAGE KindSignatures #-}
 
 module Database.Relational.Query.Monad.Ordering (
-  Orderings, orderings, OrderedQuery,
+  Orderings, orderings, OrderedQuery, OrderingTerms,
 
   -- unsafeMergeAnotherOrderBys,
 
@@ -23,6 +23,8 @@ import qualified Database.Relational.Query.Internal.Context as Context
 
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
+import Database.Relational.Query.Aggregation (Aggregation)
+import qualified Database.Relational.Query.Aggregation as Aggregation
 
 import Database.Relational.Query.Monad.Class (MonadQuery(on, wheres), MonadAggregate(groupBy, having))
 import Database.Relational.Query.Monad.Unsafe (UnsafeMonadQuery(unsafeSubQuery))
@@ -68,6 +70,9 @@ class OrderingTerms p where
 
 instance OrderingTerms Projection where
   orderTerms = Projection.columns
+
+instance OrderingTerms Aggregation where
+  orderTerms = Projection.columns . Aggregation.projection
 
 updateOrderingContext :: Monad m => (OrderingContext -> OrderingContext) -> Orderings p m ()
 updateOrderingContext =  Orderings . modify
