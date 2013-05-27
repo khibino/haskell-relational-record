@@ -23,7 +23,7 @@ import qualified Database.Relational.Query.Internal.Context as Context
 import Database.Relational.Query.Internal.AliasId (AliasId, Qualified)
 import qualified Database.Relational.Query.Internal.AliasId as AliasId
 
-import Database.Relational.Query.Expr (Expr)
+import Database.Relational.Query.Expr (Expr, fromTriBool)
 
 import Database.Relational.Query.Internal.Product
   (NodeAttr, QueryProductNode, growProduct, restrictProduct)
@@ -57,12 +57,12 @@ updateContext :: (Context -> Context) -> QueryCore ()
 updateContext =  QueryCore . modify
 
 
-updateJoinRestriction :: Expr Bool -> QueryCore ()
+updateJoinRestriction :: Expr (Maybe Bool) -> QueryCore ()
 updateJoinRestriction e = updateContext (updateProduct d)  where
   d  Nothing  = error "on: product is empty!"
-  d (Just pt) = restrictProduct pt e
+  d (Just pt) = restrictProduct pt (fromTriBool e)
 
-updateRestriction :: Expr Bool -> QueryCore ()
+updateRestriction :: Expr (Maybe Bool) -> QueryCore ()
 updateRestriction e = updateContext (Context.addRestriction e)
 
 takeProduct :: QueryCore (Maybe QueryProductNode)

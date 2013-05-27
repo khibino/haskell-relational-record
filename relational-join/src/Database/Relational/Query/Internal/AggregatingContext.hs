@@ -15,8 +15,7 @@ import qualified Data.DList as DList
 import Data.Monoid ((<>))
 import Control.Applicative (pure)
 
-import Database.Relational.Query.Expr (Expr, showExpr)
-import qualified Database.Relational.Query.Projectable as Projectable
+import Database.Relational.Query.Expr (Expr, showExpr, fromTriBool, exprAnd)
 
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
@@ -37,11 +36,11 @@ primeAggregatingContext =  AggregatingContext DList.empty Nothing
 addGroupBy :: String -> AggregatingContext -> AggregatingContext
 addGroupBy t c =  c { groupByTerms = groupByTerms c <> pure t }
 
-addRestriction :: Expr Bool -> AggregatingContext -> AggregatingContext
+addRestriction :: Expr (Maybe Bool) -> AggregatingContext -> AggregatingContext
 addRestriction e1 ctx =
   ctx { restriction = Just . uf . restriction $ ctx }
-  where uf  Nothing = e1
-        uf (Just e0) = e0 `Projectable.and` e1
+  where uf  Nothing  = fromTriBool e1
+        uf (Just e0) = e0 `exprAnd` fromTriBool e1
 
 composeGroupBys :: AggregatingContext -> String
 composeGroupBys ac = unwords [unwordsSQL groupBys, unwordsSQL havings]

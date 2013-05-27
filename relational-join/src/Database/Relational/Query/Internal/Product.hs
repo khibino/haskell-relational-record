@@ -7,8 +7,8 @@ module Database.Relational.Query.Internal.Product (
   ) where
 
 import Prelude hiding (and, product)
-import Database.Relational.Query.Expr (Expr, showExpr)
-import Database.Relational.Query.Projectable (valueTrue, and)
+import Database.Relational.Query.Expr (Expr, showExpr, fromTriBool, exprAnd)
+import Database.Relational.Query.Projectable (valueTrue)
 import Database.Relational.Query.AliasId (Qualified)
 import Database.Relational.Query.Sub (SubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
@@ -67,7 +67,7 @@ product =  Join
 restrictProduct' :: ProductTree q -> Expr Bool -> ProductTree q
 restrictProduct' =  d  where
   d (Join lp rp Nothing)   rs' = Join lp rp (Just rs')
-  d (Join lp rp (Just rs)) rs' = Join lp rp (Just $ rs `and` rs')
+  d (Join lp rp (Just rs)) rs' = Join lp rp (Just $ rs `exprAnd` rs')
   d leaf'@(Leaf _)         _   = leaf' -- or error on compile
 
 restrictProduct :: Node q -> Expr Bool -> Node q
@@ -89,7 +89,8 @@ showQueryProduct =  rec  where
      showWordsSQL [joinType (nodeAttr left') (nodeAttr right'), JOIN],
      urec right',
      showWordSQL ON,
-     showString . showExpr . fromMaybe valueTrue {- or error on compile -}  $ rs]
+     showString . showExpr
+     . fromMaybe (fromTriBool valueTrue) {- or error on compile -}  $ rs]
 
 queryProductSQL :: QueryProduct -> String
 queryProductSQL =  ($ "") . showQueryProduct

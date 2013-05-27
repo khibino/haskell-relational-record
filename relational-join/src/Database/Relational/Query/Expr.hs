@@ -7,7 +7,9 @@ module Database.Relational.Query.Expr (
 
   valueExpr,
 
-  just, flattenMaybe
+  just, flattenMaybe,
+
+  fromTriBool, exprAnd
   ) where
 
 import Prelude hiding (and, or)
@@ -18,6 +20,9 @@ import Data.Text (Text)
 import qualified Data.Text as T
 
 import Database.Relational.Query.Expr.Unsafe (Expr(Expr), showExpr)
+
+import qualified Language.SQL.Keyword as SQL
+import qualified Language.SQL.Keyword.ConcatString as SQLs
 
 
 intExprSQL :: (Show a, Integral a) => a -> String
@@ -70,8 +75,17 @@ instance ShowConstantSQL a => ShowConstantSQL (Maybe a) where
 valueExpr :: ShowConstantSQL ft => ft -> Expr ft
 valueExpr =  Expr . showConstantSQL
 
+unsafeCastExpr :: Expr a -> Expr b
+unsafeCastExpr =  Expr . showExpr
+
 just :: Expr ft -> Expr (Maybe ft)
-just =  Expr . showExpr
+just =  unsafeCastExpr
 
 flattenMaybe :: Expr (Maybe (Maybe ft)) -> Expr (Maybe ft)
-flattenMaybe =  Expr . showExpr
+flattenMaybe =  unsafeCastExpr
+
+fromTriBool :: Expr (Maybe Bool) -> Expr Bool
+fromTriBool =  unsafeCastExpr
+
+exprAnd :: Expr Bool -> Expr Bool -> Expr Bool
+exprAnd a b = Expr $ '(' : SQLs.defineBinOp SQL.AND (showExpr a) (showExpr b) ++ [')']

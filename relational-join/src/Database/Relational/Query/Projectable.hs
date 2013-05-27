@@ -93,11 +93,11 @@ placeholder =  unsafeProjectSql "?"
 value :: (ShowConstantSQL t, SqlProjectable p) => t -> p t
 value =  unsafeProjectSql . showConstantSQL
 
-valueTrue :: SqlProjectable p => p Bool
-valueTrue =  value True
+valueTrue  :: (SqlProjectable p, ProjectableMaybe p) => p (Maybe Bool)
+valueTrue  =  just $ value True
 
-valueFalse :: SqlProjectable p => p Bool
-valueFalse =  value False
+valueFalse :: (SqlProjectable p, ProjectableMaybe p) => p (Maybe Bool)
+valueFalse =  just $ value False
 
 values :: (Projectable p, ShowConstantSQL t) => [t] -> p [t]
 values =  project . unsafeFromColumns . map showConstantSQL
@@ -147,7 +147,7 @@ every =  unsafeAggregateOp SQL.EVERY
 any'  =  unsafeAggregateOp SQL.ANY
 some' =  unsafeAggregateOp SQL.SOME
 
-every, any', some' :: Projection Bool -> Aggregation Bool
+every, any', some' :: Projection (Maybe Bool) -> Aggregation (Maybe Bool)
 
 
 type SqlBinOp = String -> String -> String
@@ -163,7 +163,7 @@ unsafeBinOp op a b = unsafeProjectSql . paren
 
 compareBinOp :: (SqlProjectable p, ProjectableShowSql p)
              => SqlBinOp
-             -> p a -> p a -> p Bool
+             -> p a -> p a -> p (Maybe Bool)
 compareBinOp =  unsafeBinOp
 
 numBinOp :: (SqlProjectable p, ProjectableShowSql p, Num a)
@@ -179,14 +179,14 @@ numBinOp =  unsafeBinOp
 
 (.=.), (.<>.), (.>.), (.<.)
   :: (SqlProjectable p, ProjectableShowSql p)
-  => p ft -> p ft -> p Bool
+  => p ft -> p ft -> p (Maybe Bool)
 
 and = compareBinOp SQLs.and
 or  = compareBinOp SQLs.or
 
 and, or
   :: (SqlProjectable p, ProjectableShowSql p)
-  => p Bool ->  p Bool ->  p Bool
+  => p (Maybe Bool) ->  p (Maybe Bool) ->  p (Maybe Bool)
 
 numBinOp' :: (SqlProjectable p, ProjectableShowSql p, Num a)
           => String -> p a -> p a -> p a
@@ -202,11 +202,11 @@ numBinOp' = numBinOp . sqlBinOp
   => p a -> p a -> p a
 
 in' :: (SqlProjectable p, ProjectableShowSql p)
-    => p t -> p [t] -> p Bool
+    => p t -> p [t] -> p (Maybe Bool)
 in' =  unsafeBinOp (SQLs.in')
 
 isNull :: (SqlProjectable p, ProjectableShowSql p)
-       => p (Maybe t) -> p Bool
+       => p (Maybe t) -> p (Maybe Bool)
 isNull x = compareBinOp (SQLs.defineBinOp SQL.IS) x valueNull
 
 

@@ -75,7 +75,7 @@ updateAggregatingContext =  Aggregatings . modify
 addGroupBys' :: Monad m => [String] -> Aggregatings m ()
 addGroupBys' gbs = updateAggregatingContext (\c -> foldl (flip Context.addGroupBy) c gbs)
 
-addRestriction' :: Monad m => Expr Bool -> Aggregatings m ()
+addRestriction' :: Monad m => Expr (Maybe Bool) -> Aggregatings m ()
 addRestriction' =  updateAggregatingContext . Context.addRestriction
 
 addGroupBys :: MonadQuery m => Projection r -> Aggregatings m (Aggregation r)
@@ -83,7 +83,7 @@ addGroupBys p = do
   addGroupBys' . Projection.columns $ p
   return $ Aggregation.unsafeFromProjection p
 
-addRestriction :: MonadQuery m => Aggregation Bool -> Aggregatings m ()
+addRestriction :: MonadQuery m => Aggregation (Maybe Bool) -> Aggregatings m ()
 addRestriction =  addRestriction' . projectAggregation
 
 instance MonadQuery m => MonadAggregate (Aggregatings m) where

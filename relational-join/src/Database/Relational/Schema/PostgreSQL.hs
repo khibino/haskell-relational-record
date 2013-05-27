@@ -25,7 +25,7 @@ import Database.Record.Instances ()
 import Database.Relational.Query.Type (fromRelation)
 import Database.Relational.Query
   (Query, PrimeRelation, query, relation, query', relation', expr,
-   wheres, (.=.), (.>.), in', values, (!),
+   wheres, (.=.), (.>.), in', values, (!), just,
    placeholder, asc, value, unsafeProjectSql, (><))
 
 import Database.Relational.Schema.PgCatalog.PgNamespace (pgNamespace)
@@ -145,7 +145,7 @@ primaryKeyRelation = relation' $ do
 
   wheres $ con ! Constraint.conrelid' .=. att ! Attr.attrelid'
   wheres $ unsafeProjectSql "conkey[1]" .=. att ! Attr.attnum'
-  wheres $ att ! Attr.attnotnull'
+  wheres $ just (att ! Attr.attnotnull')
   wheres $ con ! Constraint.contype'  .=. value 'p'  -- 'p': primary key constraint type
   wheres $ unsafeProjectSql "array_length (conkey, 1)" .=. value (1 :: Int32)
 

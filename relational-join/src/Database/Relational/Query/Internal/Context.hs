@@ -29,14 +29,13 @@ import Control.Applicative (pure)
 
 import Database.Relational.Query.Internal.AliasId (primAlias, AliasId, newAliasId, asColumnN)
 
-import Database.Relational.Query.Expr (Expr, showExpr)
+import Database.Relational.Query.Expr (Expr, showExpr, fromTriBool, exprAnd)
 
 import Database.Relational.Query.Internal.Product (QueryProductNode, QueryProduct, queryProductSQL)
 import qualified Database.Relational.Query.Internal.Product as Product
 
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
-import qualified Database.Relational.Query.Projectable as Projectable
 
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
@@ -69,11 +68,11 @@ takeProduct ctx = (product ctx, updateProduct' (const Nothing) ctx)
 restoreLeft :: QueryProductNode -> Product.NodeAttr -> Context -> Context
 restoreLeft pL naR ctx = updateProduct (Product.growLeft pL naR) ctx
 
-addRestriction :: Expr Bool -> Context -> Context
+addRestriction :: Expr (Maybe Bool) -> Context -> Context
 addRestriction e1 ctx =
   ctx { restriction = Just . uf . restriction $ ctx }
-  where uf  Nothing = e1
-        uf (Just e0) = e0 `Projectable.and` e1
+  where uf  Nothing  = fromTriBool e1
+        uf (Just e0) = e0 `exprAnd` fromTriBool e1
 
 composeSQL' :: Projection r -> QueryProduct -> Maybe (Expr Bool) -> String
 composeSQL' pj pd re =
