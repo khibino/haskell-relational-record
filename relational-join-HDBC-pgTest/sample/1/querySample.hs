@@ -5,6 +5,7 @@ import Database.Record
 
 import Database.Relational.Query
 import Database.HDBC (IConnection, SqlValue)
+import Data.Int (Int32)
 
 import qualified User
 import User (User, user)
@@ -38,17 +39,17 @@ userGroup0 =
   , ()  <- asc $ u !? User.id'
   ]
 
--- userGroup1 :: Relation (Maybe User, Maybe Group)
--- userGroup1 =
---   relation $
---   [ u >< mg !? snd'
---   | u  <- queryMaybe user
---   , mg <- queryMaybe groupMemberShip
-
---   , () <- on $ u !? User.id' .=. mg !? fst' !?? userId'
-
---   , () <- asc $ u !? User.id'
---   ]
+userGroup1 :: Relation (Maybe String, Int32)
+-- userGroup1 :: PrimeRelation p ((Maybe String, Int32), Maybe Bool)
+userGroup1 =
+  aggregateRelation $
+  [ flattenMaybe g >< c --  >< just (every (uid .<. just (value 3)))   -- wrong typing bug case
+  | ug  <- query userGroup0
+  , g   <- groupBy (ug ! snd' !?? Group.name')
+  , let uid = ug ! fst' !? User.id'
+  , let c = count uid
+  , ()  <- having $ c .<. value 3
+  ]
 
 -- userGroup2 :: Relation (Maybe User, Maybe Group)
 -- userGroup2 =
@@ -76,6 +77,7 @@ run :: IO ()
 run =  withConnectionIO connect
        (\conn -> do
            runAndPrint conn userGroup0
+           runAndPrint conn userGroup1
            -- runAndPrint conn userGroup1
            -- runAndPrint conn userGroup2
        )

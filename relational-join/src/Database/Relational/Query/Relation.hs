@@ -2,6 +2,7 @@
 module Database.Relational.Query.Relation (
   table,
   relation, relation',
+  aggregateRelation, aggregateRelation',
 
   query, query', queryMaybe, queryMaybe', from,
 
@@ -19,8 +20,10 @@ module Database.Relational.Query.Relation (
 
 import Database.Relational.Query.Monad.Class (MonadQuery)
 import qualified Database.Relational.Query.Monad.Unsafe as UnsafeMonadQuery
-import Database.Relational.Query.Monad.Simple (QuerySimple)
-import qualified Database.Relational.Query.Monad.Simple as QuerySimple
+import Database.Relational.Query.Monad.Simple (QuerySimple, SimpleQuery)
+import qualified Database.Relational.Query.Monad.Simple as Simple
+import Database.Relational.Query.Monad.Aggregate (QueryAggregate, AggregatedQuery)
+import qualified Database.Relational.Query.Monad.Aggregate as Aggregate
 
 import Database.Relational.Query.Table (Table)
 
@@ -28,6 +31,7 @@ import Database.Relational.Query.Internal.Product (NodeAttr(Just', Maybe))
 
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
+import Database.Relational.Query.Aggregation (Aggregation)
 import Database.Relational.Query.Projectable
   (PlaceHolders, addPlaceHolders, projectZip)
 import Database.Relational.Query.ProjectableExtended
@@ -38,7 +42,8 @@ import qualified Database.Relational.Query.Sub as SubQuery
 
 
 data PrimeRelation p r = SubQuery SubQuery
-                       | PrimeRelation (QuerySimple (Projection r))
+                       | SimpleRel (SimpleQuery r)
+                       | AggregateRel (AggregatedQuery r)
 
 type Relation r = PrimeRelation () r
 
@@ -46,11 +51,15 @@ type Relation r = PrimeRelation () r
 table :: Table r -> Relation r
 table =  SubQuery . SubQuery.fromTable
 
+from :: Table r -> Relation r
+from =  table
+
 
 subQueryFromRelation :: PrimeRelation p r -> SubQuery
 subQueryFromRelation =  d  where
-  d (SubQuery sub)     = sub
-  d (PrimeRelation qp) = QuerySimple.toSubQuery qp
+  d (SubQuery sub)    = sub
+  d (SimpleRel qp)    = Simple.toSubQuery qp
+  d (AggregateRel qp) = Aggregate.toSubQuery qp
 
 queryWithAttr :: MonadQuery m => NodeAttr -> PrimeRelation p r -> m (PlaceHolders p, Projection r)
 queryWithAttr attr = addPlaceHolders . q where
@@ -72,13 +81,16 @@ queryMaybe :: MonadQuery m => PrimeRelation p r -> m (Projection (Maybe r))
 queryMaybe =  fmap snd . queryMaybe'
 
 relation :: QuerySimple (Projection r) -> PrimeRelation p r
-relation =  PrimeRelation
+relation =  SimpleRel
 
 relation' :: QuerySimple (PlaceHolders p, Projection r) -> PrimeRelation p r
-relation' =  PrimeRelation . fmap snd
+relation' =  SimpleRel . fmap snd
 
-from :: Table r -> Relation r
-from =  table
+aggregateRelation :: QueryAggregate (Aggregation r) -> PrimeRelation p r
+aggregateRelation =  AggregateRel
+
+aggregateRelation' :: QueryAggregate (PlaceHolders p, Aggregation r) -> PrimeRelation p r
+aggregateRelation' =  AggregateRel . fmap snd
 
 
 join' :: ProjectableGeneralizedZip pa pb pc
@@ -151,8 +163,9 @@ infix 8 `inner'`, `left'`, `right'`, `full'`, `inner`, `left`, `right`, `full`
 
 sqlFromRelation :: PrimeRelation p r -> String
 sqlFromRelation =  d  where
-  d (SubQuery sub)     = SubQuery.toSQL sub
-  d (PrimeRelation qp) = QuerySimple.toSQL qp
+  d (SubQuery sub)    = SubQuery.toSQL sub
+  d (SimpleRel qp)    = Simple.toSQL qp
+  d (AggregateRel qp) = Aggregate.toSQL qp
 
 instance Show (PrimeRelation p r) where
   show = sqlFromRelation
