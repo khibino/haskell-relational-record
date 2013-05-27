@@ -17,6 +17,8 @@ Build-Depends: debhelper (>= 7.0)
                , libghc-bytestring-prof | ghc-prof
                , libghc-containers-dev | ghc
                , libghc-containers-prof | ghc-prof
+               , libghc-dlist-dev
+               , libghc-dlist-prof
                , libghc-names-th-dev
                , libghc-names-th-prof
                , libghc-sql-words-dev
@@ -27,17 +29,21 @@ Build-Depends: debhelper (>= 7.0)
                , libghc-text-prof
                , libghc-time-dev | ghc
                , libghc-time-prof | ghc-prof
+               , libghc-transformers-dev
+               , libghc-transformers-prof
 Build-Depends-Indep: ghc-doc
                      , libghc-db-record-doc
                      , libghc-array-doc | ghc-doc
                      , libghc-base-doc (<< 5) | ghc-doc
                      , libghc-bytestring-doc | ghc-doc
                      , libghc-containers-doc | ghc-doc
+                     , libghc-dlist-doc
                      , libghc-names-th-doc
                      , libghc-sql-words-doc
                      , libghc-template-haskell-doc | ghc-doc
                      , libghc-text-doc
                      , libghc-time-doc | ghc-doc
+                     , libghc-transformers-doc
 Standards-Version: 3.9.3
 Homepage: http://twitter.com/khibino
 
