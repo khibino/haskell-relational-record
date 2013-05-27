@@ -1,6 +1,8 @@
 module Database.Relational.Query.Projectable (
   Projectable (project),
 
+  projectAggregation,
+
   value,
 
   valueTrue, valueFalse,
@@ -9,6 +11,9 @@ module Database.Relational.Query.Projectable (
 
   SqlProjectable (unsafeProjectSql),
   valueNull, placeholder,
+
+  unsafeAggregateOp,
+  count, sum', avg, max', min', every, any', some',
 
   ProjectableShowSql (unsafeShowSql),
   unsafeBinOp,
@@ -25,6 +30,7 @@ module Database.Relational.Query.Projectable (
 
 import Prelude hiding (and, or)
 
+import Data.Int (Int32)
 import Data.List (intercalate)
 
 import qualified Language.SQL.Keyword as SQL
@@ -36,6 +42,9 @@ import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr
 
 import Database.Relational.Query.Projection (Projection, columns, unsafeFromColumns)
 import qualified Database.Relational.Query.Projection as Projection
+
+import Database.Relational.Query.Aggregation (Aggregation)
+import qualified Database.Relational.Query.Aggregation as Aggregation
 
 
 sqlString :: Projection r -> String
@@ -56,9 +65,12 @@ instance Projectable Projection where
 instance Projectable Expr where
   project = toExpr
 
+projectAggregation :: Projectable p => Aggregation a -> p a
+projectAggregation =  project . Aggregation.projection
+
+
 unsafeSqlProjection :: String -> Projection t
 unsafeSqlProjection =  unsafeFromColumns . (:[])
-
 
 class SqlProjectable p where
   unsafeProjectSql :: String -> p t
@@ -68,6 +80,9 @@ instance SqlProjectable Projection where
 
 instance SqlProjectable Expr where
   unsafeProjectSql = UnsafeExpr.Expr
+
+instance SqlProjectable Aggregation where
+  unsafeProjectSql = Aggregation.unsafeFromProjection . unsafeProjectSql
 
 valueNull :: SqlProjectable p => p (Maybe a)
 valueNull =  unsafeProjectSql "NULL"
@@ -97,6 +112,43 @@ instance ProjectableShowSql Projection where
 instance ProjectableShowSql Expr where
   unsafeShowSql = UnsafeExpr.showExpr
 
+instance ProjectableShowSql Aggregation where
+  unsafeShowSql = unsafeShowSql . Aggregation.projection
+
+
+paren :: String -> String
+paren =  ('(' :) . (++[')'])
+
+type SqlUniOp = String -> String
+
+sqlUniOp :: SQL.Keyword -> SqlUniOp
+sqlUniOp kw = (SQL.wordShow kw ++) . (' ' :) . paren
+
+unsafeAggregateOp :: SQL.Keyword
+                  -> Projection a -> Aggregation b
+unsafeAggregateOp op = unsafeProjectSql . sqlUniOp op . unsafeShowSql
+
+count :: Projection a -> Aggregation Int32
+count =  unsafeAggregateOp SQL.COUNT
+
+sum'  :: Num a => Projection a -> Aggregation a
+sum'  =  unsafeAggregateOp SQL.SUM
+
+avg   :: (Num a, Fractional b)=> Projection a -> Aggregation b
+avg   =  unsafeAggregateOp SQL.AVG
+
+max'  :: Ord a => Projection a -> Aggregation a
+max'  =  unsafeAggregateOp SQL.MAX
+
+min'  :: Ord a => Projection a -> Aggregation a
+min'  =  unsafeAggregateOp SQL.MIN
+
+every =  unsafeAggregateOp SQL.EVERY
+any'  =  unsafeAggregateOp SQL.ANY
+some' =  unsafeAggregateOp SQL.SOME
+
+every, any', some' :: Projection Bool -> Aggregation Bool
+
 
 type SqlBinOp = String -> String -> String
 
@@ -108,7 +160,6 @@ unsafeBinOp :: (SqlProjectable p, ProjectableShowSql p)
             -> p a -> p b -> p c
 unsafeBinOp op a b = unsafeProjectSql . paren
                      $ op (unsafeShowSql a) (unsafeShowSql b)
-  where paren = ('(' :) . (++[')'])
 
 compareBinOp :: (SqlProjectable p, ProjectableShowSql p)
              => SqlBinOp
@@ -177,6 +228,9 @@ instance ProjectableZip PlaceHolders where
 instance ProjectableZip Projection where
   projectZip = Projection.compose
 
+instance ProjectableZip Aggregation where
+  projectZip = Aggregation.compose
+
 (><) ::ProjectableZip p => p a -> p b -> p (a, b)
 (><) = projectZip
 
@@ -195,6 +249,10 @@ instance ProjectableMaybe Projection where
 instance ProjectableMaybe Expr where
   just         = Expr.just
   flattenMaybe = Expr.flattenMaybe
+
+instance ProjectableMaybe Aggregation where
+  just         = Aggregation.just
+  flattenMaybe = Aggregation.flattenMaybe
 
 
 infixl 7 .*., ./.
