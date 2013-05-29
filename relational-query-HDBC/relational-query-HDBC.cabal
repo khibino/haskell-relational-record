@@ -44,3 +44,4 @@ library
                        , HDBC >=2
                        , HDBC-session
   hs-source-dirs:      src
+  ghc-options:         -Wall

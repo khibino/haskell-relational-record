@@ -28,3 +28,4 @@ library
                         , template-haskell
                         , names-th
   hs-source-dirs:       src
+  ghc-options:          -Wall

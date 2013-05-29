@@ -74,3 +74,4 @@ library
                        , names-th
                        , DB-record
   hs-source-dirs:      src
+  ghc-options:         -Wall

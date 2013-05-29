@@ -31,6 +31,7 @@ Executable sample1
                        Membership
   main-is:             querySample.hs
   hs-source-dirs:      sample/1, pgTest
+  ghc-options:         -Wall
 
 Test-suite postgreSQL
   build-depends:         relational-query-HDBC
@@ -43,3 +44,4 @@ Test-suite postgreSQL
   Type:                detailed-0.9
   Test-module:         PgTest
   hs-source-dirs:      pgTest
+  ghc-options:         -Wall
