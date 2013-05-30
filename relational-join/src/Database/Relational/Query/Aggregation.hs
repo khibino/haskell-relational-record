@@ -8,7 +8,7 @@ module Database.Relational.Query.Aggregation (
 
   just, flattenMaybe,
 
-  pi, piMaybe,
+  pi, piMaybe, piMaybe',
 
   unsafeFromProjection
   ) where
@@ -50,3 +50,6 @@ pi =  definePi Projection.pi
 
 piMaybe :: PersistableWidth b => Aggregation (Maybe a) -> Pi a b -> Aggregation (Maybe b)
 piMaybe = definePi Projection.piMaybe
+
+piMaybe' :: PersistableWidth b => Aggregation (Maybe a) -> Pi a (Maybe b) -> Aggregation (Maybe b)
+piMaybe' =  definePi Projection.piMaybe'

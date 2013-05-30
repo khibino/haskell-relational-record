@@ -5,12 +5,12 @@
 module Database.Relational.Query.ProjectableExtended (
   ProjectableFlattenMaybe (flatten),
   
-  piMaybe',
+  piMaybeFlatten,
 
-  (!), (!?), (!??),
+  (!), (?!), (?!?), (??!),
 
   piMaybeAggregation',
-  (<!>), (<!?>), (<!??>),
+  (<!>), (<?!>), (<?!?>), (<??!>),
 
   ProjectableGeneralizedZip (generalizedZip), (>?<)
   )  where
@@ -40,18 +40,22 @@ instance ProjectableFlattenMaybe (Maybe a) (Maybe a) where
 (!) :: (PersistableWidth b, Projectable p) => Projection a -> Pi a b -> p b
 p ! pi' = project $ Projection.pi p pi'
 
-(!?) :: (PersistableWidth b, Projectable p)
+(?!) :: (PersistableWidth b, Projectable p)
         => Projection (Maybe a) -> Pi a b -> p (Maybe b)
-p !? pi' = project $ Projection.piMaybe p pi'
+p ?! pi' = project $ Projection.piMaybe p pi'
 
-piMaybe' :: (PersistableWidth b, ProjectableFlattenMaybe c (Maybe a))
+(?!?) :: (PersistableWidth b, Projectable p)
+        => Projection (Maybe a) -> Pi a (Maybe b) -> p (Maybe b)
+p ?!? pi' = project $ Projection.piMaybe' p pi'
+
+piMaybeFlatten :: (PersistableWidth b, ProjectableFlattenMaybe c (Maybe a))
                => Projection c -> Pi a b -> Projection (Maybe b)
-piMaybe' = Projection.piMaybe . flatten
+piMaybeFlatten = Projection.piMaybe . flatten
 
-(!??) :: (PersistableWidth b, ProjectableFlattenMaybe c (Maybe a),
+(??!) :: (PersistableWidth b, ProjectableFlattenMaybe c (Maybe a),
           Projectable p, ProjectableMaybe p)
       => Projection c -> Pi a b -> p (Maybe b)
-p !?? pi' = project $ piMaybe' p pi'
+p ??! pi' = project $ piMaybeFlatten p pi'
 
 
 piMaybeAggregation' :: (PersistableWidth b, ProjectableFlattenMaybe c (Maybe a))
@@ -64,17 +68,23 @@ piMaybeAggregation' = Aggregation.piMaybe . flatten
       -> p b
 (<!>) a = projectAggregation . Aggregation.pi a
 
-(<!?>) :: (PersistableWidth b, Projectable p)
+(<?!>) :: (PersistableWidth b, Projectable p)
        => Aggregation (Maybe a)
        -> Pi a b
        -> p (Maybe b)
-(<!?>) a = projectAggregation . Aggregation.piMaybe a
+(<?!>) a = projectAggregation . Aggregation.piMaybe a
 
-(<!??>) :: (PersistableWidth b, Projectable p, ProjectableFlattenMaybe c (Maybe a))
+(<?!?>) :: (PersistableWidth b, Projectable p)
+       => Aggregation (Maybe a)
+       -> Pi a (Maybe b)
+       -> p (Maybe b)
+(<?!?>) a = projectAggregation . Aggregation.piMaybe' a
+
+(<??!>) :: (PersistableWidth b, Projectable p, ProjectableFlattenMaybe c (Maybe a))
         => Aggregation c
         -> Pi a b
         -> p (Maybe b)
-(<!??>) a = projectAggregation . piMaybeAggregation' a
+(<??!>) a = projectAggregation . piMaybeAggregation' a
 
 
 class ProjectableGeneralizedZip a b c where
@@ -93,5 +103,5 @@ instance ProjectableGeneralizedZip a b (a, b) where
       => p a -> p b -> p c
 (>?<) =  generalizedZip
 
-infixl 8 !, !?, !??
+infixl 8 !, ?!, ?!?, ??!, <!>, <?!>, <?!?>, <??!>
 infixl 1 >?<

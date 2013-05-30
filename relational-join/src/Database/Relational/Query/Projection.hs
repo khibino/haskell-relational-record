@@ -9,7 +9,7 @@ module Database.Relational.Query.Projection (
 
   compose, fromQualifiedSubQuery,
 
-  pi, piMaybe,
+  pi, piMaybe, piMaybe',
 
   flattenMaybe, just
   ) where
@@ -93,6 +93,9 @@ pi =  unsafeProject persistableWidth
 
 piMaybe :: PersistableWidth b => Projection (Maybe a) -> Pi a b -> Projection (Maybe b)
 piMaybe =  unsafeProject persistableWidth
+
+piMaybe' :: PersistableWidth b => Projection (Maybe a) -> Pi a (Maybe b) -> Projection (Maybe b)
+piMaybe' =  unsafeProject persistableWidth
 
 flattenMaybe :: Projection (Maybe (Maybe a)) -> Projection (Maybe a)
 flattenMaybe (Composed pus) = Composed pus
