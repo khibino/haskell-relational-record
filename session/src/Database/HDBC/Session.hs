@@ -1,5 +1,16 @@
 {-# LANGUAGE Rank2Types #-}
 
+-- |
+-- Module      : Database.HDBC.Session
+-- Copyright   : 2013 Kei Hibino
+-- License     : BSD3
+--
+-- Maintainer  : ex8k.hibino@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
+--
+-- This module provides a base function  to call close correctly
+-- against opend DB connection.
 module Database.HDBC.Session (
   -- * Bracketed session
   -- $bracketedSession
@@ -17,8 +28,6 @@ import Control.Exception (bracket)
 
 
 {- $bracketedSession
-This module provides a base function to call close correctly against opend DB connection.
-
 Bracket function implementation is provided by several packages,
 so this package provides base implementation which requires
 bracket function and corresponding lift function.
