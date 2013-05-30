@@ -6,6 +6,9 @@ build:
 	cabal build --ghc-option=-Wall
 	cabal haddock --hyperlink-source
 
+check:
+	cabal check
+
 wc:
 	test ! -d src || find src -name '*.hs' | xargs wc
 
