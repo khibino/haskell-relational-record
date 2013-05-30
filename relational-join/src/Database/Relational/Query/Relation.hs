@@ -14,11 +14,12 @@ module Database.Relational.Query.Relation (
 
   sqlFromRelation,
 
-  subQueryFromRelation,
+  -- subQueryFromRelation,
 
   nested, width
   ) where
 
+import Database.Relational.Query.Monad.Qualify (Qualify, evalQualifyPrime)
 import Database.Relational.Query.Monad.Class (MonadQuery (on))
 import qualified Database.Relational.Query.Monad.Unsafe as UnsafeMonadQuery
 import Database.Relational.Query.Monad.Simple (QuerySimple, SimpleQuery)
@@ -57,15 +58,19 @@ from :: Table r -> Relation r
 from =  table
 
 
-subQueryFromRelation :: PrimeRelation p r -> SubQuery
-subQueryFromRelation =  d  where
-  d (SubQuery sub)    = sub
+subQueryQualifyFromRelation :: PrimeRelation p r -> Qualify SubQuery
+subQueryQualifyFromRelation =  d  where
+  d (SubQuery sub)    = return $ sub
   d (SimpleRel qp)    = Simple.toSubQuery qp
   d (AggregateRel qp) = Aggregate.toSubQuery qp
 
-queryWithAttr :: MonadQuery m => NodeAttr -> PrimeRelation p r -> m (PlaceHolders p, Projection r)
+subQueryFromRelation :: PrimeRelation p r -> SubQuery
+subQueryFromRelation =  evalQualifyPrime . subQueryQualifyFromRelation
+
+queryWithAttr :: MonadQuery m
+              => NodeAttr -> PrimeRelation p r -> m (PlaceHolders p, Projection r)
 queryWithAttr attr = addPlaceHolders . q where
-  q = UnsafeMonadQuery.unsafeSubQuery attr . subQueryFromRelation
+  q = UnsafeMonadQuery.unsafeSubQuery attr . subQueryQualifyFromRelation
   -- d (PrimeRelation q) = UnsafeMonadQuery.unsafeMergeAnotherQuery attr q
 
 query' :: MonadQuery m => PrimeRelation p r -> m (PlaceHolders p, Projection r)
@@ -182,11 +187,14 @@ on' =  ($)
 infixl 8 `inner'`, `left'`, `right'`, `full'`, `inner`, `left`, `right`, `full`, `on'`
 
 
-sqlFromRelation :: PrimeRelation p r -> String
-sqlFromRelation =  d  where
-  d (SubQuery sub)    = SubQuery.toSQL sub
+sqlQualifyFromRelation :: PrimeRelation p r -> Qualify String
+sqlQualifyFromRelation =  d  where
+  d (SubQuery sub)    = return $ SubQuery.toSQL sub
   d (SimpleRel qp)    = Simple.toSQL qp
   d (AggregateRel qp) = Aggregate.toSQL qp
+
+sqlFromRelation :: PrimeRelation p r -> String
+sqlFromRelation =  evalQualifyPrime . sqlQualifyFromRelation
 
 instance Show (PrimeRelation p r) where
   show = sqlFromRelation

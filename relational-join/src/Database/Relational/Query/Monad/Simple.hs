@@ -11,11 +11,10 @@ module Database.Relational.Query.Monad.Simple (
   toSubQuery
   ) where
 
--- import Database.Relational.Query.Internal.Product (NodeAttr)
-
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
+import Database.Relational.Query.Monad.Qualify (Qualify)
 import Database.Relational.Query.Monad.Ordering (Orderings, orderings, OrderedQuery)
 import qualified Database.Relational.Query.Monad.Ordering as Ordering
 import Database.Relational.Query.Monad.Core (QueryCore)
@@ -33,13 +32,15 @@ simple =  orderings
 -- unsafeMergeAnotherOrderBys :: NodeAttr -> QuerySimple (Projection r) -> QuerySimple (Projection r)
 -- unsafeMergeAnotherOrderBys =  Ordering.unsafeMergeAnotherOrderBys
 
-expandSQL :: SimpleQuery r -> ((String, Projection r), String -> String)
+expandSQL :: SimpleQuery r -> Qualify ((String, Projection r), String -> String)
 expandSQL =  Core.expandSQL . Ordering.appendOrderBys
 
-toSQL :: SimpleQuery r -> String
-toSQL q = append sql  where
-  ((sql, _), append)  = expandSQL q
+toSQL :: SimpleQuery r -> Qualify String
+toSQL q = do
+  ((sql, _), append) <- expandSQL q
+  return $ append sql  where
 
-toSubQuery :: SimpleQuery r -> SubQuery
-toSubQuery q = subQuery (append sql) (Projection.width pj)  where
-  ((sql, pj), append) = expandSQL q
+toSubQuery :: SimpleQuery r -> Qualify SubQuery
+toSubQuery q = do
+  ((sql, pj), append) <- expandSQL q
+  return $ subQuery (append sql) (Projection.width pj)

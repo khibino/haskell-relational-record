@@ -1,6 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Database.Relational.Query.Internal.Context (
+  AliasIdContext,
+
+  primeAliasIdContext,
+
   Context,
 
   primeContext,
@@ -43,16 +47,20 @@ import qualified Language.SQL.Keyword as SQL
 
 -- Base contexts
 
+newtype AliasIdContext = AliasIdContext { currentAliasId :: AliasId }
+
+primeAliasIdContext :: AliasIdContext
+primeAliasIdContext =  AliasIdContext primAlias
+
 data Context = Context
-               { currentAliasId :: AliasId
-               , product :: Maybe QueryProductNode
+               { product :: Maybe QueryProductNode
                , restriction :: Maybe (Expr Bool)
                }
 
 primeContext :: Context
-primeContext =  Context primAlias Nothing Nothing
+primeContext =  Context Nothing Nothing
 
-nextAlias :: Context -> (AliasId, Context)
+nextAlias :: AliasIdContext -> (AliasId, AliasIdContext)
 nextAlias s = (cur, s { currentAliasId =  newAliasId cur })  where
   cur = currentAliasId s
 

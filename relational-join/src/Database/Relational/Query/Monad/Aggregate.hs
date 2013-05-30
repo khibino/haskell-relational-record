@@ -28,6 +28,7 @@ import Database.Relational.Query.Sub (SubQuery, subQuery)
 import Database.Relational.Query.Internal.AggregatingContext (AggregatingContext, primeAggregatingContext)
 import qualified Database.Relational.Query.Internal.AggregatingContext as Context
 
+import Database.Relational.Query.Monad.Qualify (Qualify)
 import Database.Relational.Query.Monad.Unsafe (UnsafeMonadQuery(unsafeSubQuery))
 import Database.Relational.Query.Monad.Class (MonadQuery, MonadAggregate)
 import qualified Database.Relational.Query.Monad.Class as MonadQuery
@@ -103,14 +104,16 @@ appendGroupBys q = second appendGroupBys' `liftM` runAggregatingPrime q
 type QueryAggregate    = Orderings Aggregation (Aggregatings QueryCore)
 type AggregatedQuery r = OrderedQuery Aggregation (Aggregatings QueryCore) r
 
-expandSQL :: AggregatedQuery r -> ((String, Projection r), (String -> String, String -> String))
+expandSQL :: QueryAggregate (Aggregation r) -> Qualify ((String, Projection r), (String -> String, String -> String))
 expandSQL q = Core.expandSQL $ assoc <$> appendGroupBys (Ordering.appendOrderBys q)  where
   assoc ((a, b), c) = (Aggregation.projection a, (b, c))
 
-toSQL :: AggregatedQuery r -> String
-toSQL q =  appOrd $ appGrp sql  where
-  ((sql, _pj), (appOrd, appGrp)) = expandSQL q
+toSQL :: QueryAggregate (Aggregation r) -> Qualify String
+toSQL q = do
+  ((sql, _pj), (appOrd, appGrp)) <- expandSQL q
+  return . appOrd $ appGrp sql
 
-toSubQuery :: AggregatedQuery r -> SubQuery
-toSubQuery q = subQuery (appOrd $ appGrp sql) (Projection.width pj)  where
-  ((sql, pj), (appOrd, appGrp))  = expandSQL q
+toSubQuery :: QueryAggregate (Aggregation r) -> Qualify SubQuery
+toSubQuery q = do
+  ((sql, pj), (appOrd, appGrp)) <- expandSQL q
+  return $ subQuery (appOrd $ appGrp sql) (Projection.width pj)
