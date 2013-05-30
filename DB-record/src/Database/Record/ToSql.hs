@@ -10,6 +10,9 @@
 -- Maintainer  : ex8k.hibino@gmail.com
 -- Stability   : experimental
 -- Portability : unknown
+--
+-- This module includes interfaces
+-- from Haskell record into SQL value list.
 module Database.Record.ToSql (
   RecordToSql, runFromRecord,
   createRecordToSql,
@@ -31,10 +34,14 @@ import Database.Record.KeyConstraint
 import qualified Database.Record.Persistable as Persistable
 
 
-data RecordToSql q a =
-  RecordToSql
-  { runFromRecord :: a -> [q] }
+-- | Proof object type to convert from haskell type `a` into sql value type `q` list.
+data RecordToSql q a = RecordToSql (a -> [q])
 
+-- | Run 'RecordToSql' proof object.
+runFromRecord :: RecordToSql q a -> a -> [q]
+runFromRecord (RecordToSql f) = f
+
+-- | Construct function 'RecordToSql' proof object.
 createRecordToSql :: (a -> [q]) -> RecordToSql q a
 createRecordToSql =  RecordToSql
 
