@@ -11,9 +11,16 @@
 --
 -- Concatinations on 'Keyword' types
 module Language.SQL.Keyword.Concat (
+  -- * List concatination functions
+  -- $listConcatination
   unwords',
 
-  sepBy, parenSepBy, defineBinOp,
+  sepBy, parenSepBy,
+
+  -- * Binary operators
+  -- $binaryOperators
+  defineBinOp,
+
   as, (<.>),
 
   (.||.),
@@ -27,39 +34,78 @@ import Data.List (intersperse)
 import Language.SQL.Keyword.Type (Keyword (..), word, wordShow, unwordsSQL)
 
 
+{- $listConcatination
+Functions to concatinate 'Keyword' list.
+-}
+
+-- | Separate 'Keyword' list with delimiter 'Keyword' and map to 'String' list.
 sepBy' :: [Keyword] -> Keyword -> [String]
 ws `sepBy'` d =  map wordShow . intersperse d $ ws
 
+-- | Concatinate 'Keyword' list like unwords on 'String' list.
 unwords' :: [Keyword] -> Keyword
 unwords' =  word . unwordsSQL
 
+-- | Concatinate 'String' list into one 'Keyword'.
 concat' :: [String] -> Keyword
 concat' =  word . concat
 
+-- | Separate 'Keyword' list with delimiter 'Keyword' and concatinate into one 'Keyword'.
 sepBy :: [Keyword] -> Keyword -> Keyword
 ws `sepBy` d = concat' $ ws `sepBy'` d
 
+-- | Do 'sepBy' and enclose by paren
 parenSepBy :: [Keyword] -> Keyword -> Keyword
 ws `parenSepBy` d = concat' $ "(" : (ws `sepBy'` d) ++ [")"]
 
+{- $binaryOperators
+Binary operators on SQL. Result is concatinated into one 'Keyword'.
+-}
+
+-- | Define binary operator on keyword type.
+--   Result is not delimited by whitespace like concat on 'String' list.
 defineBinOp' :: Keyword -> Keyword -> Keyword -> Keyword
 defineBinOp' op a b = concat' $ [a, b] `sepBy'` op
 
+-- | Define binary operator on keyword type.
+--   Result is delimited by whitespace like unwords on 'String' list.
 defineBinOp :: Keyword -> Keyword -> Keyword -> Keyword
 defineBinOp op a b = word . unwords $ [a, b] `sepBy'` op
 
+-- | Binary operator to create qualified name on SQL.
 (<.>)  =  defineBinOp' "."
 
+-- | Binary operator for SQL string expression concatination.
 (.||.) =  defineBinOp "||"
+
+-- | Binary eq operator for SQL expression.
 (.=.)  =  defineBinOp "="
-(.<.)  =  defineBinOp "<"
-(.<=.) =  defineBinOp "<="
-(.>.)  =  defineBinOp ">"
-(.>=.) =  defineBinOp ">="
+
+-- | Binary not eq operator for SQL expression.
 (.<>.) =  defineBinOp "<>"
+
+-- | Binary lt operator for SQL expression.
+(.<.)  =  defineBinOp "<"
+
+-- | Binary le operator for SQL expression.
+(.<=.) =  defineBinOp "<="
+
+-- | Binary gt operator for SQL expression.
+(.>.)  =  defineBinOp ">"
+
+-- | Binary ge operator for SQL expression.
+(.>=.) =  defineBinOp ">="
+
+-- | Binary operator for SQL name alias.
 as     =  defineBinOp AS
+
+-- | Binary `AND` operator for SQL boolean expression.
 and    =  defineBinOp AND
+
+-- | Binary `OR` operator for SQL boolean expression.
 or     =  defineBinOp OR
+
+-- | Binary `IN` operator for SQL.
 in'    =  defineBinOp IN
 
 (<.>), (.||.), (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.), as, and, or, in'
