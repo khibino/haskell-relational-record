@@ -62,54 +62,63 @@ ws `parenSepBy` d = concat' $ "(" : (ws `sepBy'` d) ++ [")"]
 Binary operators on SQL. Result is concatinated into one 'Keyword'.
 -}
 
--- | Define binary operator on keyword type.
+-- | Define binary operator on 'Keyword' type.
 --   Result is not delimited by whitespace like concat on 'String' list.
 defineBinOp' :: Keyword -> Keyword -> Keyword -> Keyword
 defineBinOp' op a b = concat' $ [a, b] `sepBy'` op
 
--- | Define binary operator on keyword type.
+-- | Define binary operator on 'Keyword' type.
 --   Result is delimited by whitespace like unwords on 'String' list.
 defineBinOp :: Keyword -> Keyword -> Keyword -> Keyword
 defineBinOp op a b = word . unwords $ [a, b] `sepBy'` op
 
 -- | Binary operator to create qualified name on SQL.
+(<.>) :: Keyword -> Keyword -> Keyword
 (<.>)  =  defineBinOp' "."
 
 -- | Binary operator for SQL string expression concatination.
+(.||.) :: Keyword -> Keyword -> Keyword
 (.||.) =  defineBinOp "||"
 
 -- | Binary eq operator for SQL expression.
+(.=.) :: Keyword -> Keyword -> Keyword
 (.=.)  =  defineBinOp "="
 
 -- | Binary not eq operator for SQL expression.
+(.<>.) :: Keyword -> Keyword -> Keyword
 (.<>.) =  defineBinOp "<>"
 
 -- | Binary lt operator for SQL expression.
+(.<.) :: Keyword -> Keyword -> Keyword
 (.<.)  =  defineBinOp "<"
 
 -- | Binary le operator for SQL expression.
+(.<=.) :: Keyword -> Keyword -> Keyword
 (.<=.) =  defineBinOp "<="
 
 -- | Binary gt operator for SQL expression.
+(.>.) :: Keyword -> Keyword -> Keyword
 (.>.)  =  defineBinOp ">"
 
 -- | Binary ge operator for SQL expression.
+(.>=.) :: Keyword -> Keyword -> Keyword
 (.>=.) =  defineBinOp ">="
 
 -- | Binary operator for SQL name alias.
+as :: Keyword -> Keyword -> Keyword
 as     =  defineBinOp AS
 
 -- | Binary `AND` operator for SQL boolean expression.
+and :: Keyword -> Keyword -> Keyword
 and    =  defineBinOp AND
 
 -- | Binary `OR` operator for SQL boolean expression.
+or :: Keyword -> Keyword -> Keyword
 or     =  defineBinOp OR
 
 -- | Binary `IN` operator for SQL.
+in' :: Keyword -> Keyword -> Keyword
 in'    =  defineBinOp IN
-
-(<.>), (.||.), (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.), as, and, or, in'
-  :: Keyword -> Keyword -> Keyword
 
 infixr 5 .||.
 infixr 4 .=., .<., .<=., .>., .>=., .<>.
