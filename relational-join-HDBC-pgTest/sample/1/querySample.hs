@@ -24,19 +24,19 @@ groupMemberShip =
   [ m >< g
   | m  <- queryMaybe membership
   , g  <- query      group
-  , () <- on $ m !? groupId' .=. just (g ! Group.id')
+  , () <- on $ m ?! groupId' .=. just (g ! Group.id')
   ]
 
 userGroup0 :: Relation (Maybe User, Maybe Group)
 userGroup0 =
   relation $
-  [ u   >< mg !? snd'
+  [ u   >< mg ?! snd'
   | u   <- queryMaybe user
   , mg  <- queryMaybe groupMemberShip
 
-  , ()  <- on $ u !? User.id' .=. mg !? fst' !?? userId'
+  , ()  <- on $ u ?! User.id' .=. mg ?!? fst' ?! userId'
 
-  , ()  <- asc $ u !? User.id'
+  , ()  <- asc $ u ?! User.id'
   ]
 
 userGroup1 :: Relation (Maybe User, Maybe Group)
@@ -44,39 +44,39 @@ userGroup1 =
   relation $
   [ u >< g
   | umg <- query $
-           user `left` membership `on'` [\ u m -> just (u ! User.id') .=. m !? userId' ]
-           `full` group `on'` [ \ um g -> um !? snd' !?? groupId' .=. g !? Group.id' ]
+           user `left` membership `on'` [\ u m -> just (u ! User.id') .=. m ?! userId' ]
+           `full` group `on'` [ \ um g -> um ?!? snd' ?! groupId' .=. g ?! Group.id' ]
   , let um = umg ! fst'
-        u  = um !? fst'
+        u  = um ?! fst'
         g  = umg ! snd'
 
-  , ()  <- asc $ u !? User.id'
+  , ()  <- asc $ u ?! User.id'
   ]
 
 userGroup2 :: Relation (Maybe User, Maybe Group)
 userGroup2 =
   relation $
-  [ u   >< mg !? snd'
+  [ u   >< mg ?! snd'
   | u   <- queryMaybe user
   , mg  <- queryMaybe . relation $
            [ m >< g
            | m  <- queryMaybe membership
            , g  <- query      group
-           , () <- on $ m !? groupId' .=. just (g ! Group.id')
+           , () <- on $ m ?! groupId' .=. just (g ! Group.id')
            ]
 
-  , ()  <- on $ u !? User.id' .=. mg !? fst' !?? userId'
+  , ()  <- on $ u ?! User.id' .=. mg ?!? fst' ?! userId'
 
-  , ()  <- asc $ u !? User.id'
+  , ()  <- asc $ u ?! User.id'
   ]
 
-userGroup0Aggregate :: PrimeRelation p ((Maybe String, Int32), Maybe Bool)
+userGroup0Aggregate :: Relation ((Maybe String, Int32), Maybe Bool)
 userGroup0Aggregate =
   aggregateRelation $
-  [ flattenMaybe g >< c >< every (uid .<. just (value 3))
+  [ g >< c >< every (uid .<. just (value 3))
   | ug  <- query userGroup0
-  , g   <- groupBy (ug ! snd' !?? Group.name')
-  , let uid = ug ! fst' !? User.id'
+  , g   <- groupBy (ug ! snd' ?!? Group.name')
+  , let uid = ug ! fst' ?! User.id'
   , let c = count uid
   , ()  <- having $ c .<. value 3
   , ()  <- asc $ c
@@ -85,19 +85,19 @@ userGroup0Aggregate =
 userGroup2Fail :: Relation (Maybe User, Maybe Group)
 userGroup2Fail =
   relation $
-  [ u   >< mg !? snd'
+  [ u   >< mg ?! snd'
   | u   <- queryMaybe user
   , mg  <- queryMaybe . relation $
            [ m >< g
            | m  <- queryMaybe membership
            , g  <- query      group
-           , () <- on $ m !? groupId' .=. just (g ! Group.id')
-           , () <- wheres $ u !? User.id' .>. just (value 0)  -- bad line
+           , () <- on $ m ?! groupId' .=. just (g ! Group.id')
+           , () <- wheres $ u ?! User.id' .>. just (value 0)  -- bad line
            ]
 
-  , ()  <- on $ u !? User.id' .=. mg !? fst' !?? userId'
+  , ()  <- on $ u ?! User.id' .=. mg ?!? fst' ?! userId'
 
-  , ()  <- asc $ u !? User.id'
+  , ()  <- asc $ u ?! User.id'
   ]
 
 runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a) => conn -> Relation a -> IO ()
