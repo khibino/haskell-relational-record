@@ -10,11 +10,18 @@
 -- This module provides extra helper functions
 -- complementing "Language.Haskell.TH.Lib"
 module Language.Haskell.TH.Lib.Extra (
+  -- * Extra template functions
+  -- $extraTemplateFunctions
+  integralE, simpleValD, maybeD,
+
+  -- * Pretty printing for 'Q' monad
+  -- $prettyPrint
   pprQ,
 
+  -- * Functions to raise compile error
+  -- $compileError
   compileErrorIO, compileError,
 
-  integralE, simpleValD, maybeD
   ) where
 
 import Language.Haskell.TH
@@ -25,23 +32,42 @@ import Language.Haskell.TH.PprLib (Doc)
 import Language.Haskell.TH.Syntax (Quasi)
 
 
-pprQ :: (Functor m, Quasi m, Ppr a) => Q a -> m Doc
-pprQ =  fmap ppr . runQ
+{- $extraTemplateFunctions
+Extra functions to generate haskell templates.
+-}
 
-compileErrorIO :: String -> IO a
-compileErrorIO =  ioError . userError
-
-compileError :: String -> Q a
-compileError =  runIO . compileErrorIO
-
+-- | Integer literal template from 'Integral' types.
 integralE :: Integral a => a -> ExpQ
 integralE =  litE . integerL . toInteger
 
+-- | Generate declaration template from name, type and expression.
 simpleValD :: Name -> TypeQ -> ExpQ -> Q [Dec]
 simpleValD var typ expr =  do
   sig <- sigD var typ
   val <- valD (varP var) (normalB expr) []
   return [sig, val]
 
+-- | May generate declaration template.
 maybeD :: (a -> Q [Dec]) -> Maybe a -> Q [Dec]
 maybeD =  maybe (return [])
+
+{- $prettyPrint
+Pretty printing for haskell templates.
+-}
+
+-- | Helper function for pretty printing 'Q' Monad.
+pprQ :: (Functor m, Quasi m, Ppr a) => Q a -> m Doc
+pprQ =  fmap ppr . runQ
+
+{- $compileError
+Functions to raise compile error from codes
+which generating haskell templates.
+-}
+
+-- | Raise compile error from TH code.
+compileError :: String -> Q a
+compileError =  runIO . compileErrorIO
+
+-- | 'IO' version of 'compileError'.
+compileErrorIO :: String -> IO a
+compileErrorIO =  ioError . userError
