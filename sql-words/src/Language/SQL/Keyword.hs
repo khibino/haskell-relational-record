@@ -8,8 +8,11 @@
 -- Portability : unknown
 --
 -- SQL keyword representation using Haskell data constructors.
+-- Integrated module.
 module Language.SQL.Keyword (
+  -- * Module which includes keyword type definition
   module Language.SQL.Keyword.Type,
+  -- * Module which includes functions to concatinate keywords
   module Language.SQL.Keyword.Concat
   ) where
 
