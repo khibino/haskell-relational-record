@@ -14,7 +14,7 @@ module Language.SQL.Keyword.Type (
   word,
   wordShow, unwordsSQL,
 
-  string, integer,
+  unsafeString, integer,
 
   stringMap
   ) where
@@ -82,8 +82,8 @@ unwordsSQL :: [Keyword] -> String
 unwordsSQL =  unwords . map wordShow
 
 -- | Make SQL string expression. No escape logic, so this is unsafe function.
-string :: String -> Keyword
-string =  Sequence . ('\'' :) . (++ "'")
+unsafeString :: String -> Keyword
+unsafeString =  Sequence . ('\'' :) . (++ "'")
 
 -- | Make SQL integer expression
 integer :: (Integral a, Show a) => a -> Keyword
