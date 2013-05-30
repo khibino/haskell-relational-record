@@ -3,10 +3,15 @@
 module Database.HDBC.Session (
   -- * Bracketed session
   -- $bracketedSession
-  withConnection, withConnectionIO
+  withConnection, withConnectionIO,
+
+  -- * Show errors
+  -- $showErrors
+  showSqlError, handleSqlError'
   ) where
 
-import Database.HDBC (IConnection, handleSqlError)
+import Database.HDBC (IConnection, handleSql,
+                      SqlError(seState, seNativeError, seErrorMsg))
 import qualified Database.HDBC as HDBC
 import Control.Exception (bracket)
 
@@ -19,6 +24,22 @@ so this package provides base implementation which requires
 bracket function and corresponding lift function.
 -}
 
+{- $showErrors
+Functions to show 'SqlError' type not to show 'String' fields.
+-}
+
+-- | show 'SqlError' not to show 'String' fields.
+showSqlError :: SqlError -> String
+showSqlError se = unlines
+  ["seState: '" ++ seState se ++ "'",
+   "seNativeError: " ++ show (seNativeError se),
+   "seErrorMsg: '" ++ seErrorMsg se ++ "'"]
+
+-- | Like 'handleSqlError', but not to show 'String' fields of SqlError.
+handleSqlError' :: IO a -> IO a
+handleSqlError' =  handleSql (fail . reformat . showSqlError)  where
+  reformat = ("SQL error: \n" ++) . unlines . map ("  " ++) . lines
+
 -- | Run a transaction on a HDBC IConnection and close the connection.
 withConnection :: (Monad m, IConnection conn)
             => (m conn -> (conn -> m ()) -> (conn -> m a) -> m a) -- ^ bracket
@@ -28,9 +49,9 @@ withConnection :: (Monad m, IConnection conn)
             -> m a
 withConnection bracket' lift connect tbody =
   bracket'
-    (lift $ handleSqlError connect)
+    (lift $ handleSqlError' connect)
     (lift
-     . handleSqlError
+     . handleSqlError'
      . HDBC.disconnect)
     (\conn -> do
         x <- tbody conn
