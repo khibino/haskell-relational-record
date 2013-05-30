@@ -15,7 +15,7 @@ import Membership (Membership, groupId', userId', membership)
 
 import PgTestDataSource (connect)
 import Database.HDBC.Record.Query (runQuery)
-import Database.HDBC.Session (withConnectionIO)
+import Database.HDBC.Session (withConnectionIO, handleSqlError')
 
 
 groupMemberShip :: Relation (Maybe Membership, Group)
@@ -53,6 +53,23 @@ userGroup1 =
   , ()  <- asc $ u !? User.id'
   ]
 
+userGroup2 :: Relation (Maybe User, Maybe Group)
+userGroup2 =
+  relation $
+  [ u   >< mg !? snd'
+  | u   <- queryMaybe user
+  , mg  <- queryMaybe . relation $
+           [ m >< g
+           | m  <- queryMaybe membership
+           , g  <- query      group
+           , () <- on $ m !? groupId' .=. just (g ! Group.id')
+           ]
+
+  , ()  <- on $ u !? User.id' .=. mg !? fst' !?? userId'
+
+  , ()  <- asc $ u !? User.id'
+  ]
+
 userGroup0Aggregate :: PrimeRelation p ((Maybe String, Int32), Maybe Bool)
 userGroup0Aggregate =
   aggregateRelation $
@@ -65,6 +82,24 @@ userGroup0Aggregate =
   , ()  <- asc $ c
   ]
 
+userGroup2Fail :: Relation (Maybe User, Maybe Group)
+userGroup2Fail =
+  relation $
+  [ u   >< mg !? snd'
+  | u   <- queryMaybe user
+  , mg  <- queryMaybe . relation $
+           [ m >< g
+           | m  <- queryMaybe membership
+           , g  <- query      group
+           , () <- on $ m !? groupId' .=. just (g ! Group.id')
+           , () <- wheres $ u !? User.id' .>. just (value 0)  -- bad line
+           ]
+
+  , ()  <- on $ u !? User.id' .=. mg !? fst' !?? userId'
+
+  , ()  <- asc $ u !? User.id'
+  ]
+
 runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a) => conn -> Relation a -> IO ()
 runAndPrint conn rel = do
   putStrLn $ "SQL: " ++ sqlFromRelation rel
@@ -73,11 +108,15 @@ runAndPrint conn rel = do
   putStrLn ""
 
 run :: IO ()
-run =  withConnectionIO connect
+run =  handleSqlError' $ withConnectionIO connect
        (\conn -> do
-           runAndPrint conn userGroup0
-           runAndPrint conn userGroup1
-           runAndPrint conn userGroup0Aggregate
+           let run' :: (Show a, FromSql SqlValue a) => Relation a -> IO ()
+               run' = runAndPrint conn
+           run' userGroup0
+           run' userGroup1
+           run' userGroup2
+           run' userGroup0Aggregate
+           run' userGroup2Fail
        )
 
 main :: IO ()
