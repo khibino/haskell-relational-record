@@ -9,8 +9,8 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- This module provides a base function  to call close correctly
--- against opend DB connection.
+-- This module provides a base bracketed function
+-- to call close correctly against opend DB connection.
 module Database.HDBC.Session (
   -- * Bracketed session
   -- $bracketedSession
