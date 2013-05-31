@@ -14,14 +14,17 @@
 -- This module defines interfaces
 -- from Haskell type into SQL value list.
 module Database.Record.ToSql (
+  -- * Conversion from record type into list of SQL type
   RecordToSql, runFromRecord,
   createRecordToSql,
 
   recordSerializer,
 
+  -- * Inference rules of 'RecordToSql' conversion
   ToSql (recordToSql), recordToSql',
   fromRecord,
 
+  -- * Make parameter list for updating with key
   updateValuesByUnique',
   updateValuesByUnique,
   updateValuesByPrimary
