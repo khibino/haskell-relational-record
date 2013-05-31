@@ -78,7 +78,7 @@ valueWidth =  persistableRecordWidth 1
 (<&>) :: PersistableRecordWidth a -> PersistableRecordWidth b -> PersistableRecordWidth (a, b)
 a <&> b = PersistableRecordWidth $ runPersistableRecordWidth a + runPersistableRecordWidth b
 
--- | Derivation rule of 'PersistableRecordWidth' for Haskell 'Maybe' type.
+-- | Derivation rule of 'PersistableRecordWidth' from from Haskell type 'a' into for Haskell type 'Maybe' 'a'.
 maybeWidth :: PersistableRecordWidth a -> PersistableRecordWidth (Maybe a)
 maybeWidth =  PersistableRecordWidth . runPersistableRecordWidth
 
