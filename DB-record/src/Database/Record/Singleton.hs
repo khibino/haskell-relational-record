@@ -41,7 +41,10 @@ Singleton type constructor is useful to avoid overlapped instances.
 -}
 
 -- | General single field record.
-newtype Singleton a = Singleton { runSingleton :: a }
+newtype Singleton a = Singleton
+                      { -- | Unwrap from 'Singleton'.
+                        runSingleton :: a
+                      }
 
 -- | Wrap into 'Singleton'.
 singleton :: a -> Singleton a
