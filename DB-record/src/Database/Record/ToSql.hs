@@ -79,8 +79,8 @@ instance (ToSql q a, ToSql q b) => ToSql q (a, b) where
 instance ToSql q () where
   recordToSql = recordToSql'
 
--- | Run inferred 'RecordToSql' proof object which can convert
---   from haskell type 'a' into list of SQL type ['q'].
+-- | Run inferred 'RecordToSql' proof object.
+--   Convert from haskell type 'a' into list of SQL type ['q'].
 fromRecord :: ToSql q a => a -> [q]
 fromRecord =  runFromRecord recordToSql
 
