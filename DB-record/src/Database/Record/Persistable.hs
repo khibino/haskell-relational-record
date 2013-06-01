@@ -46,7 +46,7 @@ newtype PersistableSqlType q = PersistableSqlType q
 runPersistableNullValue :: PersistableSqlType q -> q
 runPersistableNullValue (PersistableSqlType q) = q
 
--- | Axiom of 'PersistableSqlType' which requires SQL null value
+-- | Unsafely generate 'PersistableSqlType' proof object from specified SQL null value which type is 'q'.
 persistableSqlTypeFromNull :: q -> PersistableSqlType q
 persistableSqlTypeFromNull =  PersistableSqlType
 
@@ -72,11 +72,11 @@ persistableSqlValue =  const PersistableSqlValue
 newtype PersistableRecordWidth a =
   PersistableRecordWidth { runPersistableRecordWidth :: Int }
 
--- | Axiom of 'PersistableRecordWidth' which requires width of Haskell type 'a'.
+-- | Unsafely generate 'PersistableRecordWidth' proof object from specified width of Haskell type 'a'.
 persistableRecordWidth :: Int -> PersistableRecordWidth a
 persistableRecordWidth =  PersistableRecordWidth
 
--- | 'PersistableRecordWidth' axiom for Haskell type 'a' which is single field type.
+-- | Unsafely generate 'PersistableRecordWidth' proof object for Haskell type 'a' which is single field type.
 valueWidth :: PersistableRecordWidth a
 valueWidth =  persistableRecordWidth 1
 
