@@ -11,7 +11,10 @@
 -- types to represent table constraints and
 -- interfaces to bind between SQL database values and Haskell records.
 module Database.Record (
-  -- * Binding between SQL database values and Haskell records
+  -- * Concepts
+  -- $concepts
+
+  -- * Binding between SQL values and Haskell records
   -- $bindSqlAndHaskellRecords
 
   -- * Constraints used for 'RecordFromSql' inference
@@ -46,6 +49,15 @@ import Database.Record.ToSql
   (RecordToSql, ToSql(..), recordToSql',
    runFromRecord, fromRecord,
    updateValuesByUnique, updateValuesByPrimary)
+
+{- $concepts
+On most drivers for SQL database,
+we need to write or read untyped SQL value sequence
+when accessing databases.
+
+This library maps between list of untyped SQL type
+and Haskell record type using type classes.
+-}
 
 {- $bindSqlAndHaskellRecords
 You will need to implement instances of 'Persistable' class
