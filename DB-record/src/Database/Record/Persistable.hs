@@ -138,7 +138,7 @@ persistableVoid =  persistableRecord voidWidth (const ()) (const [])
 class Eq q => PersistableType q where
   persistableType :: PersistableSqlType q
 
--- | Infered Null value of SQL type.
+-- | Inferred Null value of SQL type.
 sqlNullValue :: PersistableType q => q
 sqlNullValue =  runPersistableNullValue persistableType
 
@@ -164,15 +164,15 @@ instance PersistableWidth () where
 class PersistableType q => PersistableValue q a where
   persistableValue :: PersistableSqlValue q a
 
--- | Run infered 'PersistableSqlValue' proof object. Convert from SQL type 'q' into Haskell type 'a'.
+-- | Run inferred 'PersistableSqlValue' proof object. Convert from SQL type 'q' into Haskell type 'a'.
 fromSql :: PersistableValue q a => q -> a
 fromSql =  toValue persistableValue
 
--- | Run infered 'PersistableSqlValue' proof object. Convert from Haskell type 'a' into SQL type 'q'.
+-- | Run inferred 'PersistableSqlValue' proof object. Convert from Haskell type 'a' into SQL type 'q'.
 toSql :: PersistableValue q a => a -> q
 toSql =  fromValue persistableValue
 
--- | Infered 'PersistableRecord' when Haskell type 'a' is single field type.
+-- | Inferred 'PersistableRecord' when Haskell type 'a' is single field type.
 derivedPersistableValueRecord :: (PersistableWidth a, PersistableValue q a) => PersistableRecord q a
 derivedPersistableValueRecord =  persistableFromValue persistableWidth persistableValue
 

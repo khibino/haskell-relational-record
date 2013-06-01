@@ -54,7 +54,7 @@ createRecordToSql =  RecordToSql
 recordSerializer :: PersistableRecord q a -> RecordToSql q a
 recordSerializer =  createRecordToSql . Persistable.fromRecord
 
--- | Infered 'RecordToSql' proof object.
+-- | Inferred 'RecordToSql' proof object.
 recordToSql' :: Persistable q a => RecordToSql q a
 recordToSql' =  recordSerializer persistable
 
@@ -79,7 +79,7 @@ instance (ToSql q a, ToSql q b) => ToSql q (a, b) where
 instance ToSql q () where
   recordToSql = recordToSql'
 
--- | Run infered 'RecordToSql' proof object which can convert
+-- | Run inferred 'RecordToSql' proof object which can convert
 --   from haskell type 'a' into list of SQL type ['q'].
 fromRecord :: ToSql q a => a -> [q]
 fromRecord =  runFromRecord recordToSql
@@ -96,14 +96,14 @@ updateValuesByUnique' :: RecordToSql q ra
 updateValuesByUnique' pr uk a = hd ++ tl ++ [key]  where
   (hd, key:tl) = splitAt (index uk) (runFromRecord pr a)
 
--- | Convert like 'updateValuesByUnique'' using infered 'RecordToSql' proof object.
+-- | Convert like 'updateValuesByUnique'' using inferred 'RecordToSql' proof object.
 updateValuesByUnique :: ToSql q ra
                      => KeyConstraint Unique ra
                      -> ra
                      -> [q]
 updateValuesByUnique = updateValuesByUnique' recordToSql
 
--- | Convert like 'updateValuesByUnique'' using infered 'RecordToSql' and 'KeyConstraint' proof objects.
+-- | Convert like 'updateValuesByUnique'' using inferred 'RecordToSql' and 'KeyConstraint' proof objects.
 updateValuesByPrimary :: (HasKeyConstraint Primary a, ToSql q a) =>
                          a -> [q]
 updateValuesByPrimary =  updateValuesByUnique (unique keyConstraint)
