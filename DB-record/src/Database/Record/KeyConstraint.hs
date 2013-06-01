@@ -12,7 +12,7 @@
 -- Stability   : experimental
 -- Portability : unknown
 module Database.Record.KeyConstraint (
-  KeyConstraint (index), specifyKeyConstraint,
+  KeyConstraint, index, specifyKeyConstraint,
 
   Unique, UniqueConstraint,
   NotNull, NotNullConstraint,
@@ -29,7 +29,10 @@ module Database.Record.KeyConstraint (
   specifyNotNullValue
   ) where
 
-newtype KeyConstraint c r = KeyConstraint { index :: Int }
+newtype KeyConstraint c r = KeyConstraint Int
+
+index :: KeyConstraint c r -> Int
+index (KeyConstraint i) = i
 
 data Unique
 data NotNull
