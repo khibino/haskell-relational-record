@@ -54,11 +54,11 @@ persistableSqlTypeFromNull =  PersistableSqlType
 -- | Proof object to specify value type 'a' is convertible with SQL type 'q'
 data PersistableSqlValue q a = PersistableSqlValue (q -> a) (a -> q)
 
--- | Run 'PersistableSqlValue' proof to convert from SQL type 'q' into Haskell type 'a'.
+-- | Run 'PersistableSqlValue' proof object. Convert from SQL type 'q' into Haskell type 'a'.
 toValue   :: PersistableSqlValue q a -> q -> a
 toValue   (PersistableSqlValue f _) = f
 
--- | Run 'PersistableSqlValue' proof to convert from Haskell type 'a' into SQL type 'q'.
+-- | Run 'PersistableSqlValue' proof object. Convert from Haskell type 'a' into SQL type 'q'.
 fromValue :: PersistableSqlValue q a -> a -> q
 fromValue (PersistableSqlValue _ g) = g
 
@@ -102,11 +102,11 @@ data PersistableRecord q a =
 widthOfRecord :: PersistableRecord q a -> PersistableRecordWidth a
 widthOfRecord (PersistableRecord w _ _) = w
 
--- | Run 'PersistableRecord' 'q' 'a' proof to convert from list of SQL type ['q'] into Haskell type 'a'.
+-- | Run 'PersistableRecord' 'q' 'a' proof object. Convert from list of SQL type ['q'] into Haskell type 'a'.
 toRecord :: PersistableRecord q a -> [q] -> a
 toRecord      (PersistableRecord _ f _) = f
 
--- | Run 'PersistableRecord' 'q' 'a' proof to convert from Haskell type 'a' into list of SQL type ['q'].
+-- | Run 'PersistableRecord' 'q' 'a' proof object. Convert from Haskell type 'a' into list of SQL type ['q'].
 fromRecord :: PersistableRecord q a -> a -> [q]
 fromRecord    (PersistableRecord _ _ g) = g
 
@@ -114,8 +114,8 @@ fromRecord    (PersistableRecord _ _ g) = g
 width :: PersistableRecord q a -> Int
 width =  runPersistableRecordWidth . widthOfRecord
 
--- | Run 'PersistableRecord' proof to convert from list of SQL type ['q']
---   into Haskell type 'a' and rest list of SQL type ['q']
+-- | Run 'PersistableRecord' proof object.
+--   Convert from list of SQL type ['q'] into Haskell type 'a' and rest list of SQL type ['q']
 takeRecord :: PersistableRecord q a -> [q] -> (a, [q])
 takeRecord rec vals = (toRecord rec va, vr) where
   (va, vr) = splitAt (width rec) vals
@@ -164,11 +164,11 @@ instance PersistableWidth () where
 class PersistableType q => PersistableValue q a where
   persistableValue :: PersistableSqlValue q a
 
--- | Run infered 'PersistableSqlValue' proof to convert from SQL type 'q' into Haskell type 'a'.
+-- | Run infered 'PersistableSqlValue' proof object. Convert from SQL type 'q' into Haskell type 'a'.
 fromSql :: PersistableValue q a => q -> a
 fromSql =  toValue persistableValue
 
--- | Run infered 'PersistableSqlValue' proof to convert from Haskell type 'a' into SQL type 'q'.
+-- | Run infered 'PersistableSqlValue' proof object. Convert from Haskell type 'a' into SQL type 'q'.
 toSql :: PersistableValue q a => a -> q
 toSql =  fromValue persistableValue
 

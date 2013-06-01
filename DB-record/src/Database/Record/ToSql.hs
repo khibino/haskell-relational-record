@@ -20,6 +20,8 @@ module Database.Record.ToSql (
 
   recordSerializer,
 
+  (<&>),
+
   -- * Inference rules of 'RecordToSql' conversion
   ToSql (recordToSql), recordToSql',
   fromRecord,
@@ -37,41 +39,43 @@ import Database.Record.KeyConstraint
 import qualified Database.Record.Persistable as Persistable
 
 
--- | Proof object type to convert from Haskell type `a` into sql value type `q` list.
+-- | Proof object type to convert from Haskell type 'a' into list of SQL type ['q'].
 data RecordToSql q a = RecordToSql (a -> [q])
 
--- | Run 'RecordToSql' proof object. Convert from Haskell type `a` into sql value type `q` list.
+-- | Run 'RecordToSql' proof object. Convert from Haskell type 'a' into list of SQL type ['q'].
 runFromRecord :: RecordToSql q a -> a -> [q]
 runFromRecord (RecordToSql f) = f
 
--- | Construct function 'RecordToSql' proof object.
+-- | Axiom of 'RecordToSql' for SQL type 'q' and Haksell type 'a'.
 createRecordToSql :: (a -> [q]) -> RecordToSql q a
 createRecordToSql =  RecordToSql
+
+-- | Derive 'RecordToSql' proof object from 'PersistableRecord'.
+recordSerializer :: PersistableRecord q a -> RecordToSql q a
+recordSerializer =  createRecordToSql . Persistable.fromRecord
+
+-- | Infered 'RecordToSql' proof object.
+recordToSql' :: Persistable q a => RecordToSql q a
+recordToSql' =  recordSerializer persistable
+
+-- | Derivation rule of 'RecordToSql' proof object for Haskell tuple (,) type.
+(<&>) :: RecordToSql q a -> RecordToSql q b -> RecordToSql q (a, b)
+ra <&> rb = RecordToSql (\(a, b) -> runFromRecord ra a ++ runFromRecord rb b)
+
+infixl 4 <&>
 
 
 -- | Inference rule interface for 'RecordToSql' proof object.
 class ToSql q a where
   recordToSql :: RecordToSql q a
 
--- | Derive 'RecordToSql' proof object from 'PersistableRecord'.
-recordSerializer :: PersistableRecord q a -> RecordToSql q a
-recordSerializer =  createRecordToSql . Persistable.fromRecord
-
--- | Derivation rule of 'RecordToSql' proof object for Haskell tuple (,) type.
-(<&>) :: RecordToSql q a -> RecordToSql q b -> RecordToSql q (a, b)
-ra <&> rb = RecordToSql (\(a, b) -> runFromRecord ra a ++ runFromRecord rb b)
-
 -- | Inference rule of 'RecordToSql' proof object which can convert
 --   from Haskell tuple ('a', 'b') type into list of SQL type ['q'].
 instance (ToSql q a, ToSql q b) => ToSql q (a, b) where
   recordToSql = recordToSql <&> recordToSql
 
--- | Infered 'RecordToSql' proof object.
-recordToSql' :: Persistable q a => RecordToSql q a
-recordToSql' =  recordSerializer persistable
-
 -- | Inference rule of 'RecordToSql' proof object which can convert
---   from Haskell unit () type into sql value empty list.
+--   from Haskell unit () type into /empty/ list of SQL type ['q'].
 instance ToSql q () where
   recordToSql = recordToSql'
 
