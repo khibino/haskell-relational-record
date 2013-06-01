@@ -12,7 +12,7 @@
 -- Portability : unknown
 --
 -- This module defines interfaces
--- from Haskell type into SQL value list.
+-- from Haskell type into list of SQL type.
 module Database.Record.ToSql (
   -- * Conversion from record type into list of SQL type
   RecordToSql, runFromRecord,

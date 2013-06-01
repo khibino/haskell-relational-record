@@ -11,7 +11,7 @@
 -- Portability : unknown
 --
 -- This module defines interfaces
--- between haskell type and SQL type value list.
+-- between Haskell type and list of SQL type.
 module Database.Record.Persistable (
   -- * Specify SQL type
   PersistableSqlType, runPersistableNullValue, persistableSqlTypeFromNull,
