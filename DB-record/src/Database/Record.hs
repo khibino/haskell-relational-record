@@ -13,10 +13,12 @@
 module Database.Record (
   -- * Binding between SQL database values and Haskell records
   -- $bindSqlAndHaskellRecords
-  -- * Constraints used by derivation rules
-  -- $constraintsForDerivation
+
+  -- * Constraints used for 'RecordFromSql' inference
+  -- $constraintsForInference
+
   -- * Modules which provide proof objects
-  -- ** Table constraint
+  -- ** Table constraint specified by keys
   module Database.Record.KeyConstraint,
   -- ** Convert between Haskell type and list of SQL type
   module Database.Record.Persistable,
@@ -25,12 +27,6 @@ module Database.Record (
   -- ** Convert into list of SQL type
   module Database.Record.ToSql
   ) where
-
-{- $bindSqlAndHaskellRecords
--}
-
-{- $constraintsForDerivation
--}
 
 import Database.Record.KeyConstraint
   (KeyConstraint, HasKeyConstraint(..),
@@ -50,3 +46,20 @@ import Database.Record.ToSql
   (RecordToSql, ToSql(..), recordToSql',
    runFromRecord, fromRecord,
    updateValuesByUnique, updateValuesByPrimary)
+
+{- $bindSqlAndHaskellRecords
+You will need to implement instances of 'Persistable' class
+to bind between SQL database values and Haskell records.
+'Persistable' instance is source to derive 'FromSql' and 'ToSql'.
+
+You can use Database.Record.TH module in this package
+to generate instances from record field names and types.
+-}
+
+{- $constraintsForInference
+You will need to implement instances of
+'HasKeyConstraint' 'NotNull' which is a premise
+to infer 'RecordFromSql' proof object using 'ToSql' 'q' ('Maybe' a) instance.
+This proof object cat convert from SQL type into 'Maybe' typed record
+when dealing with outer joined query.
+-}
