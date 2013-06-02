@@ -62,16 +62,16 @@ import Database.Record.Persistable
 import qualified Database.Record.Persistable as Persistable
 
 
-defineHasKeyConstraintInstance :: TypeQ -> TypeQ -> Int -> Q [Dec]
-defineHasKeyConstraintInstance constraint typeCon index =
-  [d| instance HasKeyConstraint $constraint $typeCon where
-        keyConstraint = specifyKeyConstraint $(integralE index) |]
-
 recordTypeNameDefault :: String -> ConName
 recordTypeNameDefault =  conCamelcaseName
 
 recordTypeDefault :: String -> TypeQ
 recordTypeDefault =  toTypeCon . recordTypeNameDefault
+
+defineHasKeyConstraintInstance :: TypeQ -> TypeQ -> Int -> Q [Dec]
+defineHasKeyConstraintInstance constraint typeCon index =
+  [d| instance HasKeyConstraint $constraint $typeCon where
+        keyConstraint = specifyKeyConstraint $(integralE index) |]
 
 defineHasNotNullKeyInstance :: TypeQ -> Int -> Q [Dec]
 defineHasNotNullKeyInstance =
