@@ -56,7 +56,7 @@ import Database.Record
    ToSql(recordToSql), recordToSql')
 
 import Database.Record.KeyConstraint
-  (specifyKeyConstraint, specifyNotNullValue)
+  (unsafeSpecifyKeyConstraint, unsafeSpecifyNotNullValue)
 import Database.Record.Persistable
   (persistableRecord, persistableRecordWidth)
 import qualified Database.Record.Persistable as Persistable
@@ -75,7 +75,7 @@ recordTypeDefault =  toTypeCon . recordTypeNameDefault
 defineHasKeyConstraintInstance :: TypeQ -> TypeQ -> Int -> Q [Dec]
 defineHasKeyConstraintInstance constraint typeCon index =
   [d| instance HasKeyConstraint $constraint $typeCon where
-        keyConstraint = specifyKeyConstraint $(integralE index) |]
+        keyConstraint = unsafeSpecifyKeyConstraint $(integralE index) |]
 
 -- | Generate template of 'HasKeyConstraint' 'NotNull' instance.
 defineHasNotNullKeyInstance :: TypeQ -> Int -> Q [Dec]
@@ -302,5 +302,5 @@ deriveNotNullType typeCon =
         persistableWidth = Persistable.valueWidth
 
       instance HasKeyConstraint NotNull $typeCon where
-        keyConstraint = specifyNotNullValue
+        keyConstraint = unsafeSpecifyNotNullValue
     |]

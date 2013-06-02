@@ -18,7 +18,7 @@ module Database.Relational.Query.Constraint (
 import Database.Relational.Query.Pi (Pi, leafIndex)
 import Database.Relational.Query.Pi.Unsafe (defineColumn)
 import Database.Record.KeyConstraint
-  (KeyConstraint, specifyKeyConstraint,
+  (KeyConstraint, unsafeSpecifyKeyConstraint,
    Primary, Unique, NotNull)
 import qualified Database.Record.KeyConstraint as C
 
@@ -29,7 +29,7 @@ defineConstraintKey :: Int -> Key c r ct
 defineConstraintKey =  Key
 
 recordConstraint :: Key c r ct -> KeyConstraint c r
-recordConstraint =  specifyKeyConstraint . index
+recordConstraint =  unsafeSpecifyKeyConstraint . index
 
 projectionKey :: Key c r ct -> Pi r ct
 projectionKey =  defineColumn . index

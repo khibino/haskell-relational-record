@@ -16,7 +16,7 @@
 -- of table constraint specifiey by keys.
 module Database.Record.KeyConstraint (
   -- * Constraint specifiey by keys
-  KeyConstraint, index, specifyKeyConstraint,
+  KeyConstraint, index, unsafeSpecifyKeyConstraint,
 
   Unique, UniqueConstraint,
   NotNull, NotNullConstraint,
@@ -31,7 +31,7 @@ module Database.Record.KeyConstraint (
   derivedUniqueConstraint,
   derivedNotNullConstraint,
 
-  specifyNotNullValue
+  unsafeSpecifyNotNullValue
   ) where
 
 
@@ -62,16 +62,16 @@ type NotNullConstraint = KeyConstraint NotNull
 type PrimaryConstraint = KeyConstraint Primary
 
 -- | Unsafely generate 'KeyConstraint' proof object using specified key index.
-specifyKeyConstraint :: Int -> KeyConstraint c r
-specifyKeyConstraint =  KeyConstraint
+unsafeSpecifyKeyConstraint :: Int -> KeyConstraint c r
+unsafeSpecifyKeyConstraint =  KeyConstraint
 
 -- | Derivation rule for 'UniqueConstraint'.
 unique :: PrimaryConstraint r -> UniqueConstraint r
-unique =  specifyKeyConstraint . index
+unique =  unsafeSpecifyKeyConstraint . index
 
 -- | Derivation rule for 'NotNullConstraint'.
 notNull :: PrimaryConstraint r -> NotNullConstraint r
-notNull =  specifyKeyConstraint . index
+notNull =  unsafeSpecifyKeyConstraint . index
 
 
 -- | Derivation rule of 'KeyConstraint' for tuple (,) type.
@@ -98,5 +98,5 @@ derivedNotNullConstraint =  notNull keyConstraint
 
 
 -- | Unsafely generate 'NotNullConstraint' proof object of single column value.
-specifyNotNullValue :: NotNullConstraint a
-specifyNotNullValue =  specifyKeyConstraint 0
+unsafeSpecifyNotNullValue :: NotNullConstraint a
+unsafeSpecifyNotNullValue =  unsafeSpecifyKeyConstraint 0
