@@ -14,7 +14,7 @@ import Database.Relational.Query.Sub (SubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
 
 import Database.Relational.Query.Internal.ShowS
-  (showWordsSQL, showWordSQL, showUnwords)
+  (showUnwordsSQL, showWordSQL, showUnwords)
 import Language.SQL.Keyword (Keyword(..))
 
 import Data.Maybe (fromMaybe)
@@ -86,7 +86,7 @@ showQueryProduct =  rec  where
   rec (Join left' right' rs) =
     showUnwords
     [urec left',
-     showWordsSQL [joinType (nodeAttr left') (nodeAttr right'), JOIN],
+     showUnwordsSQL [joinType (nodeAttr left') (nodeAttr right'), JOIN],
      urec right',
      showWordSQL ON,
      showString . showExpr

@@ -10,15 +10,15 @@
 -- This module provides SQL string concatination functions
 -- which result is ShowS differential lists.
 module Database.Relational.Query.Internal.ShowS (
-  showWordsSQL, showWordSQL, showUnwords
+  showUnwordsSQL, showWordSQL, showUnwords
   ) where
 
 import Language.SQL.Keyword (unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
 
 -- | Unwords 'SQL.Keyword' list and resturns 'ShowS'.
-showWordsSQL :: [SQL.Keyword] -> ShowS
-showWordsSQL =  showString . unwordsSQL
+showUnwordsSQL :: [SQL.Keyword] -> ShowS
+showUnwordsSQL =  showString . unwordsSQL
 
 -- | From 'SQL.Keyword' into 'ShowS'.
 showWordSQL :: SQL.Keyword -> ShowS
