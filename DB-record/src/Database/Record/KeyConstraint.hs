@@ -61,7 +61,7 @@ type NotNullConstraint = KeyConstraint NotNull
 -- | Specialized primary constraint.
 type PrimaryConstraint = KeyConstraint Primary
 
--- | Unsafely generate proof object using specified key index.
+-- | Unsafely generate 'KeyConstraint' proof object using specified key index.
 specifyKeyConstraint :: Int -> KeyConstraint c r
 specifyKeyConstraint =  KeyConstraint
 
@@ -97,6 +97,6 @@ derivedNotNullConstraint :: HasKeyConstraint Primary r => NotNullConstraint r
 derivedNotNullConstraint =  notNull keyConstraint
 
 
--- | 'NotNullConstraint' proof object of single column value. This is unsafe.
+-- | Unsafely generate 'NotNullConstraint' proof object of single column value.
 specifyNotNullValue :: NotNullConstraint a
 specifyNotNullValue =  specifyKeyConstraint 0
