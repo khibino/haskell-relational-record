@@ -125,12 +125,12 @@ derivingTypable = conCamelcaseName "Typable"
 
 -- | Generate record type declaration template from constructor name and column name-type pairs, derivings.
 defineRecordType :: ConName            -- ^ Name of the data type of table record type.
-                 -> [(VarName, TypeQ)] -- ^ List of fields in the table. Must be legal, properly cased record fields.
+                 -> [(VarName, TypeQ)] -- ^ List of columns in the table. Must be legal, properly cased record columns.
                  -> [ConName]          -- ^ Deriving type class names.
                  -> DecQ               -- ^ The data type record declaration.
-defineRecordType typeName' fields derives = do
+defineRecordType typeName' columns derives = do
   let typeName = conName typeName'
-  dataD (cxt []) typeName [] [recC typeName (map fld fields)] (map conName derives)
+  dataD (cxt []) typeName [] [recC typeName (map fld columns)] (map conName derives)
   where
     fld (n, tq) = varStrictType (varName n) (strictType isStrict tq)
 
@@ -150,7 +150,7 @@ defineRecordTypeDefault table columns =
 defineRecordConstructFunction :: TypeQ     -- ^ SQL value type.
                               -> VarName   -- ^ Name of record construct function.
                               -> ConName   -- ^ Name of record type.
-                              -> Int       -- ^ Count of record fields.
+                              -> Int       -- ^ Count of record columns.
                               -> Q [Dec]   -- ^ Declaration of record construct function from SQL values.
 defineRecordConstructFunction sqlValType funName' typeName' width = do
   let funName = varName funName'
@@ -169,18 +169,18 @@ defineRecordConstructFunction sqlValType funName' typeName' width = do
                 $(stringE
                   $ "Generated code of 'defineRecordConstructFunction': Fail to pattern match in: "
                   ++ show funName
-                  ++ ", count of fields is " ++ show width) |])
+                  ++ ", count of columns is " ++ show width) |])
             [] ]
   return [sig, var]
 
 defineRecordDecomposeFunction :: TypeQ     -- ^ SQL value type.
                               -> VarName   -- ^ Name of record decompose function.
                               -> TypeQ     -- ^ Name of record type.
-                              -> [VarName] -- ^ List of field names of record.
+                              -> [VarName] -- ^ List of column names of record.
                               -> Q [Dec]   -- ^ Declaration of record construct function from SQL values.
-defineRecordDecomposeFunction sqlValType funName' typeCon fields = do
+defineRecordDecomposeFunction sqlValType funName' typeCon columns = do
   let funName = varName funName'
-      accessors = map toVarExp fields
+      accessors = map toVarExp columns
       recVar = mkName "rec"
   sig <- sigD funName [t| $typeCon -> [$(sqlValType)] |]
   var <- funD funName [ clause [varP recVar]
