@@ -26,7 +26,7 @@ module Database.Record.Singleton (
   ) where
 
 import Database.Record.Persistable
-  (PersistableRecordWidth, persistableRecordWidth,
+  (PersistableRecordWidth, unsafePersistableRecordWidth,
    PersistableSqlValue, toValue, fromValue,
    PersistableRecord, persistableRecord,
    PersistableWidth (persistableWidth),
@@ -52,7 +52,7 @@ singleton = Singleton
 
 -- | Axiom of 'PersistableRecordWidth' proof object. Single field recrod width is 1.
 singletonWidth :: PersistableRecordWidth (Singleton a)
-singletonWidth =  persistableRecordWidth 1
+singletonWidth =  unsafePersistableRecordWidth 1
 
 -- | Derived 'PersistableRecordWidth' proof object for 'Singleton'.
 instance PersistableWidth (Singleton a) where

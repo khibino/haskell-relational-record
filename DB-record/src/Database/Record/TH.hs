@@ -58,7 +58,7 @@ import Database.Record
 import Database.Record.KeyConstraint
   (unsafeSpecifyKeyConstraint, unsafeSpecifyNotNullValue)
 import Database.Record.Persistable
-  (persistableRecord, persistableRecordWidth)
+  (persistableRecord, unsafePersistableRecordWidth)
 import qualified Database.Record.Persistable as Persistable
 
 
@@ -196,7 +196,7 @@ definePersistableInstance :: TypeQ   -- ^ SQL value type
                           -> Q [Dec] -- ^ Instance declarations for 'Persistable'
 definePersistableInstance sqlType typeCon consFunName' decompFunName' width = do
   [d| instance PersistableWidth $typeCon where
-        persistableWidth = persistableRecordWidth $(integralE width)
+        persistableWidth = unsafePersistableRecordWidth $(integralE width)
 
       instance Persistable $sqlType $typeCon where
         persistable = persistableRecord
@@ -299,7 +299,7 @@ defineRecordDefault sqlValueType table columns derives = do
 deriveNotNullType :: TypeQ -> Q [Dec]
 deriveNotNullType typeCon =
   [d| instance PersistableWidth $typeCon where
-        persistableWidth = Persistable.valueWidth
+        persistableWidth = Persistable.unsafeValueWidth
 
       instance HasKeyConstraint NotNull $typeCon where
         keyConstraint = unsafeSpecifyNotNullValue

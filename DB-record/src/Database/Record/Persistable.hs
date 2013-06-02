@@ -14,11 +14,11 @@
 -- between Haskell type and list of SQL type.
 module Database.Record.Persistable (
   -- * Specify SQL type
-  PersistableSqlType, runPersistableNullValue, persistableSqlTypeFromNull,
+  PersistableSqlType, runPersistableNullValue, unsafePersistableSqlTypeFromNull,
 
   -- * Specify record width
   PersistableRecordWidth(runPersistableRecordWidth),
-  valueWidth, (<&>), maybeWidth,
+  unsafeValueWidth, (<&>), maybeWidth,
 
   -- * Bidirectional conversion between single column type and SQL type
   PersistableSqlValue, persistableSqlValue,
@@ -34,7 +34,7 @@ module Database.Record.Persistable (
   PersistableType(..), sqlNullValue,
   PersistableValue (..), fromSql, toSql,
   derivedPersistableValueRecord,
-  PersistableWidth (..), persistableRecordWidth,
+  PersistableWidth (..), unsafePersistableRecordWidth,
   Persistable (..)
   ) where
 
@@ -47,8 +47,8 @@ runPersistableNullValue :: PersistableSqlType q -> q
 runPersistableNullValue (PersistableSqlType q) = q
 
 -- | Unsafely generate 'PersistableSqlType' proof object from specified SQL null value which type is 'q'.
-persistableSqlTypeFromNull :: q -> PersistableSqlType q
-persistableSqlTypeFromNull =  PersistableSqlType
+unsafePersistableSqlTypeFromNull :: q -> PersistableSqlType q
+unsafePersistableSqlTypeFromNull =  PersistableSqlType
 
 
 -- | Proof object to specify value type 'a' is convertible with SQL type 'q'
@@ -73,12 +73,12 @@ newtype PersistableRecordWidth a =
   PersistableRecordWidth { runPersistableRecordWidth :: Int }
 
 -- | Unsafely generate 'PersistableRecordWidth' proof object from specified width of Haskell type 'a'.
-persistableRecordWidth :: Int -> PersistableRecordWidth a
-persistableRecordWidth =  PersistableRecordWidth
+unsafePersistableRecordWidth :: Int -> PersistableRecordWidth a
+unsafePersistableRecordWidth =  PersistableRecordWidth
 
 -- | Unsafely generate 'PersistableRecordWidth' proof object for Haskell type 'a' which is single column type.
-valueWidth :: PersistableRecordWidth a
-valueWidth =  persistableRecordWidth 1
+unsafeValueWidth :: PersistableRecordWidth a
+unsafeValueWidth =  unsafePersistableRecordWidth 1
 
 -- | Derivation rule of 'PersistableRecordWidth' for tuple (,) type.
 (<&>) :: PersistableRecordWidth a -> PersistableRecordWidth b -> PersistableRecordWidth (a, b)
@@ -90,7 +90,7 @@ maybeWidth =  PersistableRecordWidth . runPersistableRecordWidth
 
 -- | Axiom of 'PersistableRecordWidth' for Haskell unit () type.
 voidWidth :: PersistableRecordWidth ()
-voidWidth =  persistableRecordWidth 0
+voidWidth =  unsafePersistableRecordWidth 0
 
 
 -- | Proof object which can bidirectionally convert bewteen Haskell type 'a' and list of SQL type ['q'].
