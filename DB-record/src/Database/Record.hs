@@ -65,7 +65,7 @@ to bind between SQL database values and Haskell records.
 'Persistable' instance is source to derive 'FromSql' and 'ToSql'.
 
 You can use Database.Record.TH module in this package
-to generate instances from record field names and types.
+to generate instances from SQL database record column names and types.
 -}
 
 {- $constraintsForInference

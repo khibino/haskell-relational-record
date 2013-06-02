@@ -12,7 +12,7 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- Single field instances for example to load schema of system catalogs.
+-- Single column instances for example to load schema of system catalogs.
 module Database.Record.Instances () where
 
 import Data.Int (Int16, Int32, Int64)

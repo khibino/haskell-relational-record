@@ -97,6 +97,6 @@ derivedNotNullConstraint :: HasKeyConstraint Primary r => NotNullConstraint r
 derivedNotNullConstraint =  notNull keyConstraint
 
 
--- | 'NotNullConstraint' proof object of single field value. This is unsafe.
+-- | 'NotNullConstraint' proof object of single column value. This is unsafe.
 specifyNotNullValue :: NotNullConstraint a
 specifyNotNullValue =  specifyKeyConstraint 0

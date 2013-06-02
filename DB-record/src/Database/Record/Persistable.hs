@@ -20,7 +20,7 @@ module Database.Record.Persistable (
   PersistableRecordWidth(runPersistableRecordWidth),
   valueWidth, (<&>), maybeWidth,
 
-  -- * Bidirectional conversion between single field type and SQL type
+  -- * Bidirectional conversion between single column type and SQL type
   PersistableSqlValue, persistableSqlValue,
   toValue, fromValue,
 
@@ -76,7 +76,7 @@ newtype PersistableRecordWidth a =
 persistableRecordWidth :: Int -> PersistableRecordWidth a
 persistableRecordWidth =  PersistableRecordWidth
 
--- | Unsafely generate 'PersistableRecordWidth' proof object for Haskell type 'a' which is single field type.
+-- | Unsafely generate 'PersistableRecordWidth' proof object for Haskell type 'a' which is single column type.
 valueWidth :: PersistableRecordWidth a
 valueWidth =  persistableRecordWidth 1
 
@@ -124,7 +124,7 @@ takeRecord rec vals = (toRecord rec va, vr) where
 persistableRecord :: PersistableRecordWidth a -> ([q] -> a) -> (a -> [q]) -> PersistableRecord q a
 persistableRecord =  PersistableRecord
 
--- | Derivation rule of 'PersistableRecord' when Haskell type 'a' is single field type.
+-- | Derivation rule of 'PersistableRecord' when Haskell type 'a' is single column type.
 persistableFromValue :: PersistableRecordWidth a -> PersistableSqlValue q a -> PersistableRecord q a
 persistableFromValue pw pv =
   persistableRecord pw (toValue pv . head) ((:[]) . fromValue pv)
@@ -172,7 +172,7 @@ fromSql =  toValue persistableValue
 toSql :: PersistableValue q a => a -> q
 toSql =  fromValue persistableValue
 
--- | Inferred 'PersistableRecord' when Haskell type 'a' is single field type.
+-- | Inferred 'PersistableRecord' when Haskell type 'a' is single column type.
 derivedPersistableValueRecord :: (PersistableWidth a, PersistableValue q a) => PersistableRecord q a
 derivedPersistableValueRecord =  persistableFromValue persistableWidth persistableValue
 
