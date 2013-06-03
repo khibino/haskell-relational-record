@@ -1,5 +1,5 @@
 -- |
--- Module      : Database.Relational.Query.AliasId
+-- Module      : Database.Relational.Query.Internal.AliasId
 -- Copyright   : 2013 Kei Hibino
 -- License     : BSD3
 --
