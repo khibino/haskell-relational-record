@@ -62,7 +62,8 @@ type NotNullConstraint = KeyConstraint NotNull
 type PrimaryConstraint = KeyConstraint Primary
 
 -- | Unsafely generate 'KeyConstraint' proof object using specified key index.
-unsafeSpecifyKeyConstraint :: Int -> KeyConstraint c r
+unsafeSpecifyKeyConstraint :: Int               -- ^ Key index which specify this constraint
+                           -> KeyConstraint c r -- ^ Result constraint proof object
 unsafeSpecifyKeyConstraint =  KeyConstraint
 
 -- | Derivation rule for 'UniqueConstraint'.

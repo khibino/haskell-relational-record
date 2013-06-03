@@ -73,11 +73,14 @@ newtype RecordFromSql q a = RecordFromSql ([q] -> (a, [q]))
 
 -- | Run 'RecordFromSql' proof object.
 --   Convert from list of SQL type ['q'] into Haskell type 'a' and rest of list ['q'].
-runTakeRecord :: RecordFromSql q a -> [q] -> (a, [q])
+runTakeRecord :: RecordFromSql q a -- ^ Proof object which has capability to convert
+              -> [q]               -- ^ list of SQL type
+              -> (a, [q])          -- ^ Haskell type and rest of list
 runTakeRecord (RecordFromSql f) = f
 
 -- | Axiom of 'RecordFromSql' for SQL type 'q' and Haskell type 'a'
-createRecordFromSql :: ([q] -> (a, [q])) -> RecordFromSql q a
+createRecordFromSql :: ([q] -> (a, [q])) -- ^ Convert function body
+                    -> RecordFromSql q a -- ^ Result proof object
 createRecordFromSql =  RecordFromSql
 
 -- | Derive 'RecordFromSql' proof object from 'PersistableRecord'.
@@ -89,7 +92,9 @@ recordFromSql' :: Persistable q a => RecordFromSql q a
 recordFromSql' =  recordDeSerializer persistable
 
 -- | Run 'RecordFromSql' proof object. Convert from list of SQL type ['q'] into  Haskell type 'a'.
-runToRecord :: RecordFromSql q a -> [q] -> a
+runToRecord :: RecordFromSql q a -- ^ Proof object which has capability to convert
+            -> [q]               -- ^ list of SQL type
+            -> a                 -- ^ Haskell type
 runToRecord r = fst . runTakeRecord r
 
 -- | 'Monad' instance like parser 'Monad'.

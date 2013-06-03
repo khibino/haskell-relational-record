@@ -47,7 +47,8 @@ runPersistableNullValue :: PersistableSqlType q -> q
 runPersistableNullValue (PersistableSqlType q) = q
 
 -- | Unsafely generate 'PersistableSqlType' proof object from specified SQL null value which type is 'q'.
-unsafePersistableSqlTypeFromNull :: q -> PersistableSqlType q
+unsafePersistableSqlTypeFromNull :: q                    -- ^ SQL null value of SQL type 'q'
+                                 -> PersistableSqlType q -- ^ Result proof object
 unsafePersistableSqlTypeFromNull =  PersistableSqlType
 
 
@@ -55,11 +56,15 @@ unsafePersistableSqlTypeFromNull =  PersistableSqlType
 data PersistableSqlValue q a = PersistableSqlValue (q -> a) (a -> q)
 
 -- | Run 'PersistableSqlValue' proof object. Convert from SQL type 'q' into Haskell type 'a'.
-toValue   :: PersistableSqlValue q a -> q -> a
+toValue :: PersistableSqlValue q a -- ^ Proof object which has capability to convert
+        -> q                       -- ^ SQL type
+        -> a                       -- ^ Haskell type
 toValue   (PersistableSqlValue f _) = f
 
 -- | Run 'PersistableSqlValue' proof object. Convert from Haskell type 'a' into SQL type 'q'.
-fromValue :: PersistableSqlValue q a -> a -> q
+fromValue :: PersistableSqlValue q a -- ^ Proof object which has capability to convert
+          -> a                       -- ^ Haskell type
+          -> q                       -- ^ SQL type
 fromValue (PersistableSqlValue _ g) = g
 
 -- | Axiom of 'PersistableSqlValue' for SQL type 'q' and Haskell type 'a'.
@@ -73,7 +78,8 @@ newtype PersistableRecordWidth a =
   PersistableRecordWidth { runPersistableRecordWidth :: Int }
 
 -- | Unsafely generate 'PersistableRecordWidth' proof object from specified width of Haskell type 'a'.
-unsafePersistableRecordWidth :: Int -> PersistableRecordWidth a
+unsafePersistableRecordWidth :: Int                      -- ^ Specify width of Haskell type 'a'
+                             -> PersistableRecordWidth a -- ^ Result proof object
 unsafePersistableRecordWidth =  PersistableRecordWidth
 
 -- | Unsafely generate 'PersistableRecordWidth' proof object for Haskell type 'a' which is single column type.
@@ -99,18 +105,23 @@ data PersistableRecord q a =
 
 -- | Derivation rule of 'PersistableRecordWidth' for Haskell type 'a'.
 --   'PersistableRecord' 'q' 'a' has width of Haskell type 'a'.
-widthOfRecord :: PersistableRecord q a -> PersistableRecordWidth a
+widthOfRecord :: PersistableRecord q a    -- ^ Proof object which has capability to convert
+              -> PersistableRecordWidth a -- ^ Result proof object
 widthOfRecord (PersistableRecord w _ _) = w
 
 -- | Run 'PersistableRecord' 'q' 'a' proof object. Convert from list of SQL type ['q'] into Haskell type 'a'.
-toRecord :: PersistableRecord q a -> [q] -> a
+toRecord :: PersistableRecord q a -- ^ Proof object which has capability to convert
+         -> [q]                   -- ^ list of SQL type
+         -> a                     -- ^ Haskell type
 toRecord      (PersistableRecord _ f _) = f
 
 -- | Run 'PersistableRecord' 'q' 'a' proof object. Convert from Haskell type 'a' into list of SQL type ['q'].
-fromRecord :: PersistableRecord q a -> a -> [q]
+fromRecord :: PersistableRecord q a -- ^ Proof object which has capability to convert
+           -> a                     -- ^ Haskell type
+           -> [q]                   -- ^ list of SQL type
 fromRecord    (PersistableRecord _ _ g) = g
 
--- | Get direct width value from 'PersistableRecord' 'q' 'a' proof.
+-- | Get direct width value from 'PersistableRecord' 'q' 'a' proof object.
 width :: PersistableRecord q a -> Int
 width =  runPersistableRecordWidth . widthOfRecord
 
@@ -121,7 +132,10 @@ takeRecord rec vals = (toRecord rec va, vr) where
   (va, vr) = splitAt (width rec) vals
 
 -- | Axiom of 'PersistableRecord' for SQL type 'q' and Haksell type 'a'.
-persistableRecord :: PersistableRecordWidth a -> ([q] -> a) -> (a -> [q]) -> PersistableRecord q a
+persistableRecord :: PersistableRecordWidth a -- ^ Proof object which specify width of Haskell type 'a'
+                  -> ([q] -> a)               -- ^ Convert function body from SQL
+                  -> (a -> [q])               -- ^ Convert function body into SQL
+                  -> PersistableRecord q a    -- ^ Result proof object
 persistableRecord =  PersistableRecord
 
 -- | Derivation rule of 'PersistableRecord' when Haskell type 'a' is single column type.

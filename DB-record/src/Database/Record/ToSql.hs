@@ -43,11 +43,14 @@ import qualified Database.Record.Persistable as Persistable
 data RecordToSql q a = RecordToSql (a -> [q])
 
 -- | Run 'RecordToSql' proof object. Convert from Haskell type 'a' into list of SQL type ['q'].
-runFromRecord :: RecordToSql q a -> a -> [q]
+runFromRecord :: RecordToSql q a -- ^ Proof object which has capability to convert
+              -> a               -- ^ Haskell type
+              -> [q]             -- ^ list of SQL type
 runFromRecord (RecordToSql f) = f
 
 -- | Axiom of 'RecordToSql' for SQL type 'q' and Haksell type 'a'.
-createRecordToSql :: (a -> [q]) -> RecordToSql q a
+createRecordToSql :: (a -> [q])      -- ^ Convert function body
+                  -> RecordToSql q a -- ^ Result proof object
 createRecordToSql =  RecordToSql
 
 -- | Derive 'RecordToSql' proof object from 'PersistableRecord'.
@@ -90,7 +93,7 @@ fromRecord =  runFromRecord recordToSql
 --
 --   using 'RecordToSql' proof object.
 updateValuesByUnique' :: RecordToSql q ra
-                      -> KeyConstraint Unique ra
+                      -> KeyConstraint Unique ra -- ^ Unique key table constraint proof object.
                       -> ra
                       -> [q]
 updateValuesByUnique' pr uk a = hd ++ tl ++ [key]  where
@@ -98,12 +101,12 @@ updateValuesByUnique' pr uk a = hd ++ tl ++ [key]  where
 
 -- | Convert like 'updateValuesByUnique'' using inferred 'RecordToSql' proof object.
 updateValuesByUnique :: ToSql q ra
-                     => KeyConstraint Unique ra
+                     => KeyConstraint Unique ra -- ^ Unique key table constraint proof object.
                      -> ra
                      -> [q]
 updateValuesByUnique = updateValuesByUnique' recordToSql
 
 -- | Convert like 'updateValuesByUnique'' using inferred 'RecordToSql' and 'KeyConstraint' proof objects.
-updateValuesByPrimary :: (HasKeyConstraint Primary a, ToSql q a) =>
-                         a -> [q]
+updateValuesByPrimary :: (HasKeyConstraint Primary ra, ToSql q ra)
+                      => ra -> [q]
 updateValuesByPrimary =  updateValuesByUnique (unique keyConstraint)
