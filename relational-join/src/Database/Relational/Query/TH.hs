@@ -53,7 +53,7 @@ import Database.Relational.Query
    HasConstraintKey(constraintKey), projectionKey, Primary, NotNull)
 import qualified Database.Relational.Query as Query
 
-import Database.Relational.Query.Constraint (Key, defineConstraintKey)
+import Database.Relational.Query.Constraint (Key, unsafeDefineConstraintKey)
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Type (unsafeTypedQuery)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
@@ -64,7 +64,7 @@ defineHasConstraintKeyInstance :: TypeQ -> TypeQ -> TypeQ -> Int -> Q [Dec]
 defineHasConstraintKeyInstance constraint recType colType index = do
   kc <- defineHasKeyConstraintInstance constraint recType index
   ck <- [d| instance HasConstraintKey $constraint $recType $colType  where
-              constraintKey = defineConstraintKey $(integralE index)
+              constraintKey = unsafeDefineConstraintKey $(integralE index)
           |]
   return $ kc ++ ck
 
@@ -113,7 +113,7 @@ defineColumn mayConstraint recType var' i colType = do
     ( \(constraint, cname') -> do
          let cname = varName cname'
          ck  <- simpleValD cname [t| Key $constraint $recType $colType |]
-                [| defineConstraintKey $(integralE i) |]
+                [| unsafeDefineConstraintKey $(integralE i) |]
 
          col <- simpleValD (varName var') [t| Pi $recType $colType |]
                 [| projectionKey $(toVarExp cname') |]

@@ -25,7 +25,7 @@ import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.SQL (singleKeyUpdateSQL, insertSQL)
 import Database.Relational.Query.Pi
 import Database.Relational.Query.Constraint
-  (Key, recordConstraint, projectionKey,
+  (Key, tableConstraint, projectionKey,
    uniqueKey, notNullKey, HasConstraintKey(constraintKey),
    Primary, Unique, NotNull)
 import Database.Relational.Query.AliasId (Qualified)

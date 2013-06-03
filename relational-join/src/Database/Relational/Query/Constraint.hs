@@ -17,14 +17,18 @@
 -- typed constraint key column definition is included in this module.
 module Database.Relational.Query.Constraint (
   -- * Constraint Key proof object
-  Key, index, defineConstraintKey, recordConstraint, projectionKey,
+  Key, index, unsafeDefineConstraintKey,
+  tableConstraint, projectionKey,
 
-  returnKey, appendConstraint,
+  unsafeReturnKey, unsafeAppendConstraint,
 
+  -- * Derivation rules
   uniqueKey, notNullKey,
 
+  -- * Inference rules
   HasConstraintKey (..),
 
+  -- * Constraint types
   Primary, Unique, NotNull
   ) where
 
@@ -44,32 +48,32 @@ index :: Key c r ct -> Int
 index (Key i) = i
 
 -- | Unsafely generate constraint 'Key' proof object using specified key index.
-defineConstraintKey :: Int        -- ^ Key index which specify this constraint key
-                    -> Key c r ct -- ^ Result constraint key proof object
-defineConstraintKey =  Key
+unsafeDefineConstraintKey :: Int        -- ^ Key index which specify this constraint key
+                          -> Key c r ct -- ^ Result constraint key proof object
+unsafeDefineConstraintKey =  Key
 
 -- | Get table constraint 'KeyConstraint' proof object from constraint 'Key'.
-recordConstraint :: Key c r ct -> KeyConstraint c r
-recordConstraint =  unsafeSpecifyKeyConstraint . index
+tableConstraint :: Key c r ct -> KeyConstraint c r
+tableConstraint =  unsafeSpecifyKeyConstraint . index
 
 -- | Get projection path proof object from constraint 'Key'.
 projectionKey :: Key c r ct -> Pi r ct
 projectionKey =  defineColumn . index
 
 -- | Unsafe. Make constraint key to add column phantom type
-returnKey :: KeyConstraint c r -> Key c r ct
-returnKey =  defineConstraintKey . C.index
+unsafeReturnKey :: KeyConstraint c r -> Key c r ct
+unsafeReturnKey =  unsafeDefineConstraintKey . C.index
 
 -- | Unsafe. Make constraint key to add constraint phantom type
-appendConstraint :: Pi r ct -> Key c r ct
-appendConstraint =  defineConstraintKey . leafIndex
+unsafeAppendConstraint :: Pi r ct -> Key c r ct
+unsafeAppendConstraint =  unsafeDefineConstraintKey . leafIndex
 
 
 -- | Map from table constraint into constraint 'Key'.
 mapConstraint :: (KeyConstraint c0 r -> KeyConstraint c1 r)
               -> Key c0 r ct
               -> Key c1 r ct
-mapConstraint f = returnKey . f . recordConstraint
+mapConstraint f = unsafeReturnKey . f . tableConstraint
 
 -- | Derive 'Unique' constraint 'Key' from 'Primary' constraint 'Key'
 uniqueKey :: Key Primary r ct -> Key Unique r ct
