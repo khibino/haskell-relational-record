@@ -1,20 +1,32 @@
+-- |
+-- Module      : Database.Relational.Query.Projection
+-- Copyright   : 2013 Kei Hibino
+-- License     : BSD3
+--
+-- Maintainer  : ex8k.hibino@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
+--
+-- This module defines query projection type structure and interfaces.
 module Database.Relational.Query.Projection (
-  Projection, toMaybe,
+  -- * Projection data structure interface
+  Projection,
 
   width,
-
   columns,
 
   unsafeFromColumns,
+  fromQualifiedSubQuery,
 
-  compose, fromQualifiedSubQuery,
+  -- * Projections
+  compose,
 
   pi, piMaybe, piMaybe',
 
   flattenMaybe, just
   ) where
 
-import Prelude hiding ((!!), pi)
+import Prelude hiding (pi)
 
 import Data.Array (Array, listArray)
 import qualified Data.Array as Array
@@ -30,14 +42,12 @@ import Database.Relational.Query.Sub (SubQuery, queryWidth)
 import qualified Database.Relational.Query.Sub as SubQuery
 
 
+-- | Projection structure unit
 data ProjectionUnit = Columns (Array Int String)
                     | Sub (Qualified SubQuery)
 
+-- | Phantom typed projection. Projected into Haskell record type 't'.
 data Projection t = Composed [ProjectionUnit]
-
-toMaybe :: Projection r -> Projection (Maybe r)
-toMaybe =  d  where
-  d (Composed qs) = Composed qs
 
 widthOfUnit :: ProjectionUnit -> Int
 widthOfUnit =  d  where
@@ -75,11 +85,11 @@ unsafeFromUnit =  Composed . (:[])
 unsafeFromColumns :: [String] -> Projection t
 unsafeFromColumns fs = unsafeFromUnit . Columns $ listArray (0, length fs - 1) fs
 
-compose :: Projection a -> Projection b -> Projection (c a b)
-compose (Composed a) (Composed b) = Composed $ a ++ b
-
 fromQualifiedSubQuery :: Qualified SubQuery -> Projection t
 fromQualifiedSubQuery =  unsafeFromUnit . Sub
+
+compose :: Projection a -> Projection b -> Projection (c a b)
+compose (Composed a) (Composed b) = Composed $ a ++ b
 
 
 unsafeProject :: PersistableRecordWidth b -> Projection a' -> Pi a b -> Projection b'
@@ -100,5 +110,6 @@ piMaybe' =  unsafeProject persistableWidth
 flattenMaybe :: Projection (Maybe (Maybe a)) -> Projection (Maybe a)
 flattenMaybe (Composed pus) = Composed pus
 
+-- | Cast projection phantom type into 'Maybe' type.
 just :: Projection r -> Projection (Maybe r)
 just (Composed us) = Composed us
