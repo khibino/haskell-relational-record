@@ -49,11 +49,13 @@ data ProjectionUnit = Columns (Array Int String)
 -- | Phantom typed projection. Projected into Haskell record type 't'.
 data Projection t = Composed [ProjectionUnit]
 
+-- | 'ProjectionUnit' width.
 widthOfUnit :: ProjectionUnit -> Int
 widthOfUnit =  d  where
   d (Columns a) = mx - mn + 1 where (mn, mx) = Array.bounds a
   d (Sub sq)    = queryWidth sq
 
+-- | Get column of 'ProjectionUnit'.
 columnOfUnit :: ProjectionUnit -> Int -> String
 columnOfUnit =  d  where
   d (Columns a) i | mn <= i && i <= mx = a Array.! i
@@ -61,10 +63,12 @@ columnOfUnit =  d  where
     where (mn, mx) = Array.bounds a
   d (Sub sq) i = SubQuery.column sq i
 
+-- | Width of 'Projection'.
 width :: Projection r -> Int
 width =  d  where
   d (Composed prod) = sum . map widthOfUnit $ prod
 
+-- | Get column SQL string of 'Projection'.
 column :: Projection r -> Int -> String
 column =  d  where
   d (Composed us') i' = rec us' i'  where
@@ -74,39 +78,50 @@ column =  d  where
       | i < 0             = error $ "index out of bounds: " ++ show i
       | otherwise         = rec us (i - widthOfUnit u)
 
+-- | Get column SQL string list of projection.
 columns :: Projection r -> [String]
 columns p = map (\n -> column p n) . take w $ [0 .. ]
   where w = width p
 
 
+-- | Unsafely generate 'Projection' from 'ProjectionUnit'.
 unsafeFromUnit :: ProjectionUnit -> Projection t
 unsafeFromUnit =  Composed . (:[])
 
+-- | Unsafely generate 'Projection' from SQL string list.
 unsafeFromColumns :: [String] -> Projection t
 unsafeFromColumns fs = unsafeFromUnit . Columns $ listArray (0, length fs - 1) fs
 
+-- | Unsafely generate  'Projection' from qualified subquery.
 fromQualifiedSubQuery :: Qualified SubQuery -> Projection t
 fromQualifiedSubQuery =  unsafeFromUnit . Sub
 
+-- | Concatinate 'Projection'.
 compose :: Projection a -> Projection b -> Projection (c a b)
 compose (Composed a) (Composed b) = Composed $ a ++ b
 
 
+-- | Unsafely trace projection path.
 unsafeProject :: PersistableRecordWidth b -> Projection a' -> Pi a b -> Projection b'
 unsafeProject pr p pi' =
   unsafeFromColumns
   . take (runPersistableRecordWidth pr) . drop (Pi.leafIndex pi')
   . columns $ p
 
+-- | Trace projection path to get smaller 'Projection'.
 pi :: PersistableWidth b => Projection a -> Pi a b -> Projection b
 pi =  unsafeProject persistableWidth
 
+-- | Trace projection path to get smaller 'Projection'. From 'Maybe' type to 'Maybe' type.
 piMaybe :: PersistableWidth b => Projection (Maybe a) -> Pi a b -> Projection (Maybe b)
 piMaybe =  unsafeProject persistableWidth
 
+-- | Trace projection path to get smaller 'Projection'. From 'Maybe' type to 'Maybe' type.
+--   Projection path's leaf is 'Maybe' case.
 piMaybe' :: PersistableWidth b => Projection (Maybe a) -> Pi a (Maybe b) -> Projection (Maybe b)
 piMaybe' =  unsafeProject persistableWidth
 
+-- | Composite nested 'Maybe' on projection phantom type.
 flattenMaybe :: Projection (Maybe (Maybe a)) -> Projection (Maybe a)
 flattenMaybe (Composed pus) = Composed pus
 

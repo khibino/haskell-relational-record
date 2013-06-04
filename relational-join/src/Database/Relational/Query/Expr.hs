@@ -111,7 +111,7 @@ unsafeCastExpr =  Expr . showExpr
 just :: Expr ft -> Expr (Maybe ft)
 just =  unsafeCastExpr
 
--- | Join nested 'Maybe' phantom type.
+-- | Composite nested 'Maybe' phantom type.
 flattenMaybe :: Expr (Maybe (Maybe ft)) -> Expr (Maybe ft)
 flattenMaybe =  unsafeCastExpr
 
