@@ -11,16 +11,19 @@
 --
 -- This module defines aggregated query projection type structure and interfaces.
 module Database.Relational.Query.Aggregation (
-  Aggregation, projection,
+  -- * Projection definition for Aggregated query
+  Aggregation,
+  projection,
   mapAggregation,
 
-  compose,
+  unsafeFromProjection,
 
-  just, flattenMaybe,
+  -- * Aggregated Query Projections
+  compose,
 
   pi, piMaybe, piMaybe',
 
-  unsafeFromProjection
+  flattenMaybe, just
   ) where
 
 
@@ -40,29 +43,39 @@ newtype Aggregation r = Aggregation (Projection r)
 projection :: Aggregation r -> Projection r
 projection (Aggregation p) = p
 
+-- | Map from 'Projection' into 'Aggregation'.
 mapAggregation ::  (Projection a -> Projection b) -> Aggregation a -> Aggregation b
 mapAggregation f = Aggregation . f . projection
 
+-- | Unsafely make 'Aggregation' from 'Projection'.
 unsafeFromProjection :: Projection r -> Aggregation r
 unsafeFromProjection =  Aggregation
 
+-- | Concatenate 'Aggregation'.
 compose :: Aggregation a -> Aggregation b -> Aggregation (c a b)
 compose (Aggregation a) (Aggregation b) = Aggregation $ a `Projection.compose` b
 
-just :: Aggregation a -> Aggregation (Maybe a)
-just =  mapAggregation Projection.just
-
-flattenMaybe :: Aggregation (Maybe (Maybe a)) -> Aggregation (Maybe a)
-flattenMaybe =  mapAggregation Projection.flattenMaybe
-
+-- | Map Projection path into Aggregation.
 definePi :: (Projection a -> Pi a' b' -> Projection b) -> Aggregation a -> Pi a' b' -> Aggregation b
 definePi (!!!) p pi' = mapAggregation (!!! pi') p
 
+-- | Trace projection path to get smaller 'Aggregation'.
 pi :: PersistableWidth b => Aggregation a -> Pi a b -> Aggregation b
 pi =  definePi Projection.pi
 
+-- | Trace projection path to get smaller 'Aggregation'. From 'Maybe' type to 'Maybe' type.
 piMaybe :: PersistableWidth b => Aggregation (Maybe a) -> Pi a b -> Aggregation (Maybe b)
 piMaybe = definePi Projection.piMaybe
 
+-- | Trace projection path to get smaller 'Aggregation'. From 'Maybe' type to 'Maybe' type.
+--   Projection path's leaf is 'Maybe' case.
 piMaybe' :: PersistableWidth b => Aggregation (Maybe a) -> Pi a (Maybe b) -> Aggregation (Maybe b)
 piMaybe' =  definePi Projection.piMaybe'
+
+-- | Composite nested 'Maybe' on projection phantom type.
+flattenMaybe :: Aggregation (Maybe (Maybe a)) -> Aggregation (Maybe a)
+flattenMaybe =  mapAggregation Projection.flattenMaybe
+
+-- | Cast into 'Maybe' on projection phantom type.
+just :: Aggregation a -> Aggregation (Maybe a)
+just =  mapAggregation Projection.just

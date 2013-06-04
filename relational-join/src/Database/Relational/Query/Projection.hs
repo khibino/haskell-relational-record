@@ -9,7 +9,7 @@
 --
 -- This module defines query projection type structure and interfaces.
 module Database.Relational.Query.Projection (
-  -- * Projection data structure interface
+  -- * Projection data structure and interface
   Projection,
 
   width,
@@ -96,7 +96,7 @@ unsafeFromColumns fs = unsafeFromUnit . Columns $ listArray (0, length fs - 1) f
 fromQualifiedSubQuery :: Qualified SubQuery -> Projection t
 fromQualifiedSubQuery =  unsafeFromUnit . Sub
 
--- | Concatinate 'Projection'.
+-- | Concatenate 'Projection'.
 compose :: Projection a -> Projection b -> Projection (c a b)
 compose (Composed a) (Composed b) = Composed $ a ++ b
 
@@ -125,6 +125,6 @@ piMaybe' =  unsafeProject persistableWidth
 flattenMaybe :: Projection (Maybe (Maybe a)) -> Projection (Maybe a)
 flattenMaybe (Composed pus) = Composed pus
 
--- | Cast projection phantom type into 'Maybe' type.
+-- | Cast into 'Maybe' on projection phantom type.
 just :: Projection r -> Projection (Maybe r)
 just (Composed us) = Composed us
