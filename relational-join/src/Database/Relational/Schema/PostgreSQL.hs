@@ -100,14 +100,11 @@ relOidRelation = relation' $ do
   nsp <- query pgNamespace
   cls <- query pgClass
 
-  let (nspParam, nspPh) = placeholder
-      (relParam, relPh) = placeholder
-
   wheres $ cls ! Class.relnamespace' .=. nsp ! Namespace.oid'
-  wheres $ nsp ! Namespace.nspname'  .=. nspPh
-  wheres $ cls ! Class.relname'      .=. relPh
+  (nspP, ()) <- placeholder (\ph -> wheres $ nsp ! Namespace.nspname'  .=. ph)
+  (relP, ()) <- placeholder (\ph -> wheres $ cls ! Class.relname'      .=. ph)
 
-  return   (nspParam >< relParam, cls ! Class.oid')
+  return   (nspP >< relP, cls ! Class.oid')
 
 attributeRelation :: Relation (String, String) PgAttribute
 attributeRelation =  relation' $ do

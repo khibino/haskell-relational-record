@@ -64,12 +64,10 @@ getType mapFromSql rec = do
 columnsRelationFromTable :: Relation (String, String) Columns
 columnsRelationFromTable =  relation' $ do
   c <- query columns
-  let (schemaParam, schemaPh) = placeholder
-      (nameParam  , namePh)   = placeholder
-  wheres $ c ! Columns.tabschema' .=. schemaPh
-  wheres $ c ! Columns.tabname'   .=. namePh
+  (schemaP, ()) <- placeholder (\ph -> wheres $ c ! Columns.tabschema' .=. ph)
+  (nameP  , ()) <- placeholder (\ph -> wheres $ c ! Columns.tabname'   .=. ph)
   asc $ c ! Columns.colno'
-  return (schemaParam >< nameParam, c)
+  return (schemaP >< nameP, c)
 
 columnsQuerySQL :: Query (String, String) Columns
 columnsQuerySQL =  fromRelation columnsRelationFromTable
@@ -90,13 +88,10 @@ primaryKeyRelation =  relation' $ do
   wheres $ cons ! Tabconst.type'     .=. value "P"
   wheres $ cons ! Tabconst.enforced' .=. value "Y"
 
-  let (schemaParam, schemaPh) = placeholder
-      (nameParam  , namePh)   = placeholder
+  (schemaP, ()) <- placeholder (\ph -> wheres $ cons ! Tabconst.tabschema' .=. ph)
+  (nameP  , ()) <- placeholder (\ph -> wheres $ cons ! Tabconst.tabname'   .=. ph)
 
-  wheres $ cons ! Tabconst.tabschema' .=. schemaPh
-  wheres $ cons ! Tabconst.tabname'   .=. namePh
-
-  return   (schemaParam >< nameParam, key ! Keycoluse.colname')
+  return   (schemaP >< nameP, key ! Keycoluse.colname')
 
 primaryKeyQuerySQL :: Query (String, String) String
 primaryKeyQuerySQL =  fromRelation primaryKeyRelation

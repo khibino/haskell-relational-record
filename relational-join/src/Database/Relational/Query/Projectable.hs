@@ -10,7 +10,7 @@ module Database.Relational.Query.Projectable (
   values,
 
   SqlProjectable (unsafeProjectSql),
-  valueNull, placeholder,
+  valueNull, placeholder', placeholder,
 
   unsafeAggregateOp,
   count, sum', avg, max', min', every, any', some',
@@ -217,8 +217,14 @@ addPlaceHolders =  fmap ((,) PlaceHolders)
 unsafeCastPlaceHolders :: PlaceHolders a -> PlaceHolders b
 unsafeCastPlaceHolders PlaceHolders = PlaceHolders
 
-placeholder :: SqlProjectable p => (PlaceHolders t, p t)
-placeholder =  (PlaceHolders, unsafeProjectSql "?")
+placeholder' :: SqlProjectable p => (p t -> a) ->  (PlaceHolders t, a)
+placeholder' f = (PlaceHolders, f $ unsafeProjectSql "?")
+
+placeholder :: (SqlProjectable p, Monad m) => (p t -> m a) -> m (PlaceHolders t, a)
+placeholder f = do
+  let (ph, ma) = placeholder' f
+  a <- ma
+  return (ph, a)
 
 
 class ProjectableZip p where

@@ -28,8 +28,7 @@ unique :: PersistableWidth p
        -> Relation p a
 unique uk rel = relation' $ do
   q <- query rel
-  let (param, ph) = placeholder
-  wheres $ q ! projectionKey uk .=. ph
+  (param, ()) <- placeholder (\ph -> wheres $ q ! projectionKey uk .=. ph)
   return (param, q)
 
 primary' :: PersistableWidth p
