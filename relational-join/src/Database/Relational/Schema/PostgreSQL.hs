@@ -24,7 +24,7 @@ import Database.Record.Instances ()
 
 import Database.Relational.Query.Type (fromRelation)
 import Database.Relational.Query
-  (Query, Relation, query, relation, query', relation', expr,
+  (Query, Relation, query, query', relation', expr,
    wheres, (.=.), (.>.), in', values, (!), just,
    placeholder, asc, value, unsafeProjectSql, (><))
 
@@ -96,15 +96,18 @@ getType mapFromSql column@(pgAttr, pgTyp) = do
                       else [t| Maybe $typ |]
 
 relOidRelation :: Relation (String, String) Int32
-relOidRelation = relation $ do
+relOidRelation = relation' $ do
   nsp <- query pgNamespace
   cls <- query pgClass
 
-  wheres $ cls ! Class.relnamespace' .=. nsp ! Namespace.oid'
-  wheres $ nsp ! Namespace.nspname'  .=. placeholder
-  wheres $ cls ! Class.relname'      .=. placeholder
+  let (nspParam, nspPh) = placeholder
+      (relParam, relPh) = placeholder
 
-  return $ cls ! Class.oid'
+  wheres $ cls ! Class.relnamespace' .=. nsp ! Namespace.oid'
+  wheres $ nsp ! Namespace.nspname'  .=. nspPh
+  wheres $ cls ! Class.relname'      .=. relPh
+
+  return   (nspParam >< relParam, cls ! Class.oid')
 
 attributeRelation :: Relation (String, String) PgAttribute
 attributeRelation =  relation' $ do

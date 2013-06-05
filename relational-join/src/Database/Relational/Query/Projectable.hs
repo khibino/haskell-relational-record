@@ -89,9 +89,6 @@ instance SqlProjectable Aggregation where
 valueNull :: SqlProjectable p => p (Maybe a)
 valueNull =  unsafeProjectSql "NULL"
 
-placeholder :: SqlProjectable p => p t
-placeholder =  unsafeProjectSql "?"
-
 value :: (ShowConstantSQL t, SqlProjectable p) => t -> p t
 value =  unsafeProjectSql . showConstantSQL
 
@@ -219,6 +216,9 @@ addPlaceHolders =  fmap ((,) PlaceHolders)
 
 unsafeCastPlaceHolders :: PlaceHolders a -> PlaceHolders b
 unsafeCastPlaceHolders PlaceHolders = PlaceHolders
+
+placeholder :: SqlProjectable p => (PlaceHolders t, p t)
+placeholder =  (PlaceHolders, unsafeProjectSql "?")
 
 
 class ProjectableZip p where

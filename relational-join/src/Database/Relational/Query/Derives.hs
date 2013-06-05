@@ -15,7 +15,7 @@ import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Projectable (placeholder, (.=.))
 import Database.Relational.Query.ProjectableExtended ((!))
 import Database.Relational.Query.Monad.Class (wheres)
-import Database.Relational.Query.Relation (Relation, relation, query)
+import Database.Relational.Query.Relation (Relation, relation', query)
 import Database.Relational.Query.Constraint
    (Key, Primary, Unique, projectionKey, uniqueKey,
     HasConstraintKey(constraintKey))
@@ -26,10 +26,11 @@ unique :: PersistableWidth p
        => Key Unique a p
        -> Relation () a
        -> Relation p a
-unique uk rel = relation $ do
+unique uk rel = relation' $ do
   q <- query rel
-  wheres $ q ! projectionKey uk .=. placeholder
-  return q
+  let (param, ph) = placeholder
+  wheres $ q ! projectionKey uk .=. ph
+  return (param, q)
 
 primary' :: PersistableWidth p
          => Key Primary a p

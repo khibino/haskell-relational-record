@@ -18,8 +18,8 @@ import Database.Record.Instances ()
 
 import Database.Relational.Query.Type (fromRelation)
 import Database.Relational.Query
-  (Query, Relation, query, relation,
-   wheres, (.=.), (!), placeholder, asc, value)
+  (Query, Relation, query, relation',
+   wheres, (.=.), (!), (><), placeholder, asc, value)
 
 import Control.Applicative ((<|>))
 
@@ -62,19 +62,21 @@ getType mapFromSql rec = do
                       else [t| Maybe $(typ) |]
 
 columnsRelationFromTable :: Relation (String, String) Columns
-columnsRelationFromTable =  relation $ do
+columnsRelationFromTable =  relation' $ do
   c <- query columns
-  wheres $ c ! Columns.tabschema' .=. placeholder
-  wheres $ c ! Columns.tabname'   .=. placeholder
+  let (schemaParam, schemaPh) = placeholder
+      (nameParam  , namePh)   = placeholder
+  wheres $ c ! Columns.tabschema' .=. schemaPh
+  wheres $ c ! Columns.tabname'   .=. namePh
   asc $ c ! Columns.colno'
-  return c
+  return (schemaParam >< nameParam, c)
 
 columnsQuerySQL :: Query (String, String) Columns
 columnsQuerySQL =  fromRelation columnsRelationFromTable
 
 
 primaryKeyRelation :: Relation (String, String) String
-primaryKeyRelation =  relation $ do
+primaryKeyRelation =  relation' $ do
   cons  <- query tabconst
   key   <- query keycoluse
   col   <- query columns
@@ -88,10 +90,13 @@ primaryKeyRelation =  relation $ do
   wheres $ cons ! Tabconst.type'     .=. value "P"
   wheres $ cons ! Tabconst.enforced' .=. value "Y"
 
-  wheres $ cons ! Tabconst.tabschema' .=. placeholder
-  wheres $ cons ! Tabconst.tabname'   .=. placeholder
+  let (schemaParam, schemaPh) = placeholder
+      (nameParam  , namePh)   = placeholder
 
-  return $ key ! Keycoluse.colname'
+  wheres $ cons ! Tabconst.tabschema' .=. schemaPh
+  wheres $ cons ! Tabconst.tabname'   .=. namePh
+
+  return   (schemaParam >< nameParam, key ! Keycoluse.colname')
 
 primaryKeyQuerySQL :: Query (String, String) String
 primaryKeyQuerySQL =  fromRelation primaryKeyRelation

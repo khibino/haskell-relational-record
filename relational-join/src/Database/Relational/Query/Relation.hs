@@ -14,8 +14,6 @@ module Database.Relational.Query.Relation (
 
   sqlFromRelation,
 
-  -- subQueryFromRelation,
-
   nested, width
   ) where
 
@@ -45,8 +43,8 @@ import qualified Database.Relational.Query.Sub as SubQuery
 
 
 data Relation p r = SubQuery SubQuery
-                       | SimpleRel (SimpleQuery r)
-                       | AggregateRel (AggregatedQuery r)
+                  | SimpleRel (SimpleQuery r)
+                  | AggregateRel (AggregatedQuery r)
 
 
 table :: Table r -> Relation () r
@@ -85,13 +83,13 @@ queryMaybe' pr =  do
 queryMaybe :: MonadQuery m => Relation () r -> m (Projection (Maybe r))
 queryMaybe =  fmap snd . queryMaybe'
 
-relation :: QuerySimple (Projection r) -> Relation p r
+relation :: QuerySimple (Projection r) -> Relation () r
 relation =  SimpleRel
 
 relation' :: QuerySimple (PlaceHolders p, Projection r) -> Relation p r
 relation' =  SimpleRel . fmap snd
 
-aggregateRelation :: QueryAggregate (Aggregation r) -> Relation p r
+aggregateRelation :: QueryAggregate (Aggregation r) -> Relation () r
 aggregateRelation =  AggregateRel
 
 aggregateRelation' :: QueryAggregate (PlaceHolders p, Aggregation r) -> Relation p r
