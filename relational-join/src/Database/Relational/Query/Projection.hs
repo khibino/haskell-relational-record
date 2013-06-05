@@ -69,7 +69,9 @@ width =  d  where
   d (Composed prod) = sum . map widthOfUnit $ prod
 
 -- | Get column SQL string of 'Projection'.
-column :: Projection r -> Int -> String
+column :: Projection r -- ^ Source 'Projection'
+       -> Int          -- ^ Column index
+       -> String       -- ^ Result SQL string
 column =  d  where
   d (Composed us') i' = rec us' i'  where
     rec []       _       = error $ "index out of bounds: " ++ show i'
@@ -79,7 +81,8 @@ column =  d  where
       | otherwise         = rec us (i - widthOfUnit u)
 
 -- | Get column SQL string list of projection.
-columns :: Projection r -> [String]
+columns :: Projection r -- ^ Source 'Projection'
+        -> [String]     -- ^ Result SQL string list
 columns p = map (\n -> column p n) . take w $ [0 .. ]
   where w = width p
 
@@ -89,7 +92,8 @@ unsafeFromUnit :: ProjectionUnit -> Projection t
 unsafeFromUnit =  Composed . (:[])
 
 -- | Unsafely generate 'Projection' from SQL string list.
-unsafeFromColumns :: [String] -> Projection t
+unsafeFromColumns :: [String]     -- ^ SQL string list specifies columns
+                  -> Projection r -- ^ Result 'Projection'
 unsafeFromColumns fs = unsafeFromUnit . Columns $ listArray (0, length fs - 1) fs
 
 -- | Unsafely generate  'Projection' from qualified subquery.
@@ -108,17 +112,26 @@ unsafeProject pr p pi' =
   . take (runPersistableRecordWidth pr) . drop (Pi.leafIndex pi')
   . columns $ p
 
--- | Trace projection path to get smaller 'Projection'.
-pi :: PersistableWidth b => Projection a -> Pi a b -> Projection b
+-- | Trace projection path to get narrower 'Projection'.
+pi :: PersistableWidth b
+   => Projection a -- ^ Source 'Projection'
+   -> Pi a b       -- ^ Projection path
+   -> Projection b -- ^ Narrower 'Projection'
 pi =  unsafeProject persistableWidth
 
--- | Trace projection path to get smaller 'Projection'. From 'Maybe' type to 'Maybe' type.
-piMaybe :: PersistableWidth b => Projection (Maybe a) -> Pi a b -> Projection (Maybe b)
+-- | Trace projection path to get narrower 'Projection'. From 'Maybe' type to 'Maybe' type.
+piMaybe :: PersistableWidth b
+        => Projection (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
+        -> Pi a b               -- ^ Projection path
+        -> Projection (Maybe b) -- ^ Narrower 'Projection'. 'Maybe' type result
 piMaybe =  unsafeProject persistableWidth
 
--- | Trace projection path to get smaller 'Projection'. From 'Maybe' type to 'Maybe' type.
+-- | Trace projection path to get narrower 'Projection'. From 'Maybe' type to 'Maybe' type.
 --   Projection path's leaf is 'Maybe' case.
-piMaybe' :: PersistableWidth b => Projection (Maybe a) -> Pi a (Maybe b) -> Projection (Maybe b)
+piMaybe' :: PersistableWidth b
+         => Projection (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
+         -> Pi a (Maybe b)       -- ^ Projection path. 'Maybe' type leaf
+         -> Projection (Maybe b) -- ^ Narrower 'Projection'. 'Maybe' type result
 piMaybe' =  unsafeProject persistableWidth
 
 -- | Composite nested 'Maybe' on projection phantom type.

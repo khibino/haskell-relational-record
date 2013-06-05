@@ -36,11 +36,14 @@ data SubQuery = Table Table.Untyped
                 }
 
 -- | 'SubQuery' from 'Table'.
-fromTable :: Table r -> SubQuery
+fromTable :: Table r -- ^ Typed 'Table' metadata
+          -> SubQuery -- ^ Result 'SubQuery'
 fromTable =  Table . Table.unType
 
--- | 'SubQuery' from SQL.
-subQuery :: String -> Int -> SubQuery
+-- | Unsafely generate 'SubQuery' from SQL.
+subQuery :: String -- ^ SQL string
+            -> Int -- ^ Width of 'SubQuery'
+            -> SubQuery -- ^ Result 'SubQuery'
 subQuery =  SubQuery
 
 -- | Width of 'SubQuery'.
@@ -50,7 +53,8 @@ width =  d  where
   d (SubQuery { width' = w }) = w
 
 -- | SQL string for nested-query and toplevel-SQL.
-toSQLs :: SubQuery -> (String, String)
+toSQLs :: SubQuery
+       -> (String, String) -- ^ subquery SQL and top-level SQL
 toSQLs =  d  where
   d (Table u)               = (Table.name' u, Table.fromTableToSql u)
   d (SubQuery { sql' = q }) = ('(' : q ++ [')'], q)

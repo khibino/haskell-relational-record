@@ -60,16 +60,25 @@ definePi :: (Projection a -> Pi a' b' -> Projection b) -> Aggregation a -> Pi a'
 definePi (!!!) p pi' = mapAggregation (!!! pi') p
 
 -- | Trace projection path to get smaller 'Aggregation'.
-pi :: PersistableWidth b => Aggregation a -> Pi a b -> Aggregation b
+pi :: PersistableWidth b
+   => Aggregation a -- ^ Source projection. 'Maybe' type
+   -> Pi a b        -- ^ Projection path
+   -> Aggregation b -- ^ Narrower projection
 pi =  definePi Projection.pi
 
 -- | Trace projection path to get smaller 'Aggregation'. From 'Maybe' type to 'Maybe' type.
-piMaybe :: PersistableWidth b => Aggregation (Maybe a) -> Pi a b -> Aggregation (Maybe b)
+piMaybe :: PersistableWidth b
+        => Aggregation (Maybe a) -- ^ Source projection. 'Maybe' type
+        -> Pi a b                -- ^ Projection path
+        -> Aggregation (Maybe b) -- ^ Narrower projection. 'Maybe' type result
 piMaybe = definePi Projection.piMaybe
 
 -- | Trace projection path to get smaller 'Aggregation'. From 'Maybe' type to 'Maybe' type.
 --   Projection path's leaf is 'Maybe' case.
-piMaybe' :: PersistableWidth b => Aggregation (Maybe a) -> Pi a (Maybe b) -> Aggregation (Maybe b)
+piMaybe' :: PersistableWidth b
+         => Aggregation (Maybe a) -- ^ Source projection. 'Maybe' type
+         -> Pi a (Maybe b)        -- ^ Projection path. 'Maybe' type leaf
+         -> Aggregation (Maybe b) -- ^ Narrower projection. 'Maybe' type result
 piMaybe' =  definePi Projection.piMaybe'
 
 -- | Composite nested 'Maybe' on projection phantom type.
