@@ -1,22 +1,39 @@
+-- |
+-- Module      : Database.Relational.Query.Projectable
+-- Copyright   : 2013 Kei Hibino
+-- License     : BSD3
+--
+-- Maintainer  : ex8k.hibino@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
+--
+-- This module defines operators on various polymorphic projections.
 module Database.Relational.Query.Projectable (
+  -- * Projectable from Projections
   Projectable (project),
 
   projectAggregation,
 
-  value,
-
-  valueTrue, valueFalse,
-
-  values,
-
+  -- * Projectable from SQL strings
   SqlProjectable (unsafeProjectSql),
-  valueNull, placeholder', placeholder,
 
+  value,
+  valueTrue, valueFalse,
+  values,
+  valueNull,
+
+  -- * Placeholders
+  PlaceHolders, addPlaceHolders,
+  placeholder', placeholder,
+
+  -- * Aggregate functions
   unsafeAggregateOp,
   count, sum', avg, max', min', every, any', some',
 
+  -- * Projectable into SQL strings
   ProjectableShowSql (unsafeShowSql),
 
+  -- * Binary Operators
   SqlBinOp,
   unsafeBinOp,
 
@@ -24,8 +41,7 @@ module Database.Relational.Query.Projectable (
 
   (.+.), (.-.), (./.), (.*.),
 
-  PlaceHolders, addPlaceHolders,
-
+  -- * Manipulate phantom types
   ProjectableZip (projectZip), (><),
   ProjectableMaybe (just, flattenMaybe)
   ) where
