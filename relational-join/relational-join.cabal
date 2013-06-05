@@ -31,9 +31,9 @@ library
                        Database.Relational.Query.Sub
                        Database.Relational.Query.Monad.Class
                        Database.Relational.Query.Monad.Trans.Ordering
+                       Database.Relational.Query.Monad.Trans.Aggregate
                        Database.Relational.Query.Monad.Core
                        Database.Relational.Query.Monad.Simple
-                       Database.Relational.Query.Monad.Trans.Aggregate
                        Database.Relational.Query.Monad.Aggregate
                        Database.Relational.Query.Relation
                        Database.Relational.Query.Type
@@ -54,6 +54,7 @@ library
                        Database.Relational.Query.Internal.Context
                        Database.Relational.Query.Internal.AggregatingContext
                        Database.Relational.Query.Monad.Qualify
+                       Database.Relational.Query.Monad.Trans.Join
 
                        Database.Relational.Schema.DB2Syscat.Tabconst
                        Database.Relational.Schema.DB2Syscat.Keycoluse
