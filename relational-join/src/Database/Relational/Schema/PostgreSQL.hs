@@ -24,7 +24,7 @@ import Database.Record.Instances ()
 
 import Database.Relational.Query.Type (fromRelation)
 import Database.Relational.Query
-  (Query, PrimeRelation, query, relation, query', relation', expr,
+  (Query, Relation, query, relation, query', relation', expr,
    wheres, (.=.), (.>.), in', values, (!), just,
    placeholder, asc, value, unsafeProjectSql, (><))
 
@@ -95,7 +95,7 @@ getType mapFromSql column@(pgAttr, pgTyp) = do
                       then typ
                       else [t| Maybe $typ |]
 
-relOidRelation :: PrimeRelation (String, String) Int32
+relOidRelation :: Relation (String, String) Int32
 relOidRelation = relation $ do
   nsp <- query pgNamespace
   cls <- query pgClass
@@ -106,7 +106,7 @@ relOidRelation = relation $ do
 
   return $ cls ! Class.oid'
 
-attributeRelation :: PrimeRelation (String, String) PgAttribute
+attributeRelation :: Relation (String, String) PgAttribute
 attributeRelation =  relation' $ do
   (ph, reloid) <- query' relOidRelation
   att          <- query  pgAttribute
@@ -116,7 +116,7 @@ attributeRelation =  relation' $ do
 
   return   (ph, att)
 
-columnRelation :: PrimeRelation (String, String) Column
+columnRelation :: Relation (String, String) Column
 columnRelation = relation' $ do
   (ph, att) <- query' attributeRelation
   typ       <- query  pgType
@@ -138,7 +138,7 @@ columnRelation = relation' $ do
 columnQuerySQL :: Query (String, String) Column
 columnQuerySQL =  fromRelation columnRelation
 
-primaryKeyRelation :: PrimeRelation (String, String) String
+primaryKeyRelation :: Relation (String, String) String
 primaryKeyRelation = relation' $ do
   (ph, att) <- query' attributeRelation
   con       <- query pgConstraint

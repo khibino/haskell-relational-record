@@ -18,7 +18,7 @@ import Database.HDBC.Record.Query (runQuery)
 import Database.HDBC.Session (withConnectionIO, handleSqlError')
 
 
-groupMemberShip :: Relation (Maybe Membership, Group)
+groupMemberShip :: Relation () (Maybe Membership, Group)
 groupMemberShip =
   relation $
   [ m >< g
@@ -27,7 +27,7 @@ groupMemberShip =
   , () <- on $ m ?! groupId' .=. just (g ! Group.id')
   ]
 
-userGroup0 :: Relation (Maybe User, Maybe Group)
+userGroup0 :: Relation () (Maybe User, Maybe Group)
 userGroup0 =
   relation $
   [ u   >< mg ?! snd'
@@ -39,7 +39,7 @@ userGroup0 =
   , ()  <- asc $ u ?! User.id'
   ]
 
-userGroup1 :: Relation (Maybe User, Maybe Group)
+userGroup1 :: Relation () (Maybe User, Maybe Group)
 userGroup1 =
   relation $
   [ u >< g
@@ -53,7 +53,7 @@ userGroup1 =
   , ()  <- asc $ u ?! User.id'
   ]
 
-userGroup2 :: Relation (Maybe User, Maybe Group)
+userGroup2 :: Relation () (Maybe User, Maybe Group)
 userGroup2 =
   relation $
   [ u   >< mg ?! snd'
@@ -70,7 +70,7 @@ userGroup2 =
   , ()  <- asc $ u ?! User.id'
   ]
 
-userGroup0Aggregate :: Relation ((Maybe String, Int32), Maybe Bool)
+userGroup0Aggregate :: Relation () ((Maybe String, Int32), Maybe Bool)
 userGroup0Aggregate =
   aggregateRelation $
   [ g >< c >< every (uid .<. just (value 3))
@@ -82,7 +82,7 @@ userGroup0Aggregate =
   , ()  <- asc $ c
   ]
 
-userGroup2Fail :: Relation (Maybe User, Maybe Group)
+userGroup2Fail :: Relation () (Maybe User, Maybe Group)
 userGroup2Fail =
   relation $
   [ u   >< mg ?! snd'
@@ -100,7 +100,7 @@ userGroup2Fail =
   , ()  <- asc $ u ?! User.id'
   ]
 
-runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a) => conn -> Relation a -> IO ()
+runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a) => conn -> Relation () a -> IO ()
 runAndPrint conn rel = do
   putStrLn $ "SQL: " ++ sqlFromRelation rel
   records  <- runQuery conn () (fromRelation rel)
@@ -110,7 +110,7 @@ runAndPrint conn rel = do
 run :: IO ()
 run =  handleSqlError' $ withConnectionIO connect
        (\conn -> do
-           let run' :: (Show a, FromSql SqlValue a) => Relation a -> IO ()
+           let run' :: (Show a, FromSql SqlValue a) => Relation () a -> IO ()
                run' = runAndPrint conn
            run' userGroup0
            run' userGroup1

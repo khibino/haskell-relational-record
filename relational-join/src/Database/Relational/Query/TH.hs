@@ -48,7 +48,7 @@ import Database.Record.TH
    defineHasKeyConstraintInstance)
 
 import Database.Relational.Query
-  (Table, Pi, Relation, PrimeRelation,
+  (Table, Pi, Relation,
    sqlFromRelation, Query, fromRelation, Update, Insert, typedInsert,
    HasConstraintKey(constraintKey), projectionKey, Primary, NotNull)
 import qualified Database.Relational.Query as Query
@@ -142,7 +142,7 @@ defineTableTypes tableVar' relVar' recordType table columns = do
   tableDs <- simpleValD tableVar [t| Table $(recordType) |]
             [| Table.table $(stringE table) $(listE $ map stringE (map (fst . fst) columns)) |]
   let relVar   = varName relVar'
-  relDs   <- simpleValD relVar   [t| Relation $(recordType) |]
+  relDs   <- simpleValD relVar   [t| Relation () $(recordType) |]
              [| Query.table $(toVarExp tableVar') |]
   return $ tableDs ++ relDs
 
@@ -280,17 +280,17 @@ defineTableDefault schema table fields derives mayPrimaryIdx mayNotNullIdx = do
   return $ tblD ++ primD ++ nnD
 
 
-inlineQuery :: VarName           -- ^ Top-level variable name which has 'PrimeRelation' type
-            -> PrimeRelation p r -- ^ Object which has 'PrimeRelation' type
-            -> VarName           -- ^ Variable name for inlined query
-            -> Q [Dec]           -- ^ Result declarations
+inlineQuery :: VarName      -- ^ Top-level variable name which has 'PrimeRelation' type
+            -> Relation p r -- ^ Object which has 'PrimeRelation' type
+            -> VarName      -- ^ Variable name for inlined query
+            -> Q [Dec]      -- ^ Result declarations
 inlineQuery relVar' rel qVar' =  do
   let relVar = varName relVar'
       qVar   = varName qVar'
   relInfo <- reify relVar
   case relInfo of
     VarI _ (AppT (AppT (ConT prn) p) r) _ _
-      | prn == ''PrimeRelation    -> do
+      | prn == ''Relation    -> do
         simpleValD qVar
           [t| Query $(return p) $(return r) |]
           [|  unsafeTypedQuery $(stringE . sqlFromRelation $ rel) |]
