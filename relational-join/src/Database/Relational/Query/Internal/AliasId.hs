@@ -11,7 +11,7 @@
 -- Contains internal structure and unsafe interfaces.
 module Database.Relational.Query.Internal.AliasId (
   -- * Alias identifier definition
-  AliasId (AliasId), primAlias, newAliasId,
+  AliasId (AliasId), primeAlias, newAliasId,
 
   -- * Qualified SQL expression
   columnN, aliasName, (<.>), columnFromId,
@@ -31,8 +31,8 @@ import qualified Language.SQL.Keyword.ConcatString as SQLs
 newtype AliasId = AliasId Int deriving (Show, Eq)
 
 -- | Initial value of 'AliasId'
-primAlias :: AliasId
-primAlias =  AliasId 0
+primeAlias :: AliasId
+primeAlias =  AliasId 0
 
 
 -- | New unique 'AliasId'.

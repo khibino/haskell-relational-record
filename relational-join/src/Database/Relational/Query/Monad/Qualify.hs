@@ -22,7 +22,7 @@ import Control.Monad.Trans.State
   (State, state, runState)
 import Control.Applicative (Applicative (pure, (<*>)))
 
-import Database.Relational.Query.Internal.AliasId (primAlias, AliasId, newAliasId, Qualified)
+import Database.Relational.Query.Internal.AliasId (primeAlias, AliasId, newAliasId, Qualified)
 import qualified Database.Relational.Query.Internal.AliasId as AliasId
 
 
@@ -31,7 +31,7 @@ newtype AliasIdContext = AliasIdContext { currentAliasId :: AliasId }
 
 -- | Initial state.
 primeAliasIdContext :: AliasIdContext
-primeAliasIdContext =  AliasIdContext primAlias
+primeAliasIdContext =  AliasIdContext primeAlias
 
 -- | Update state function.
 nextAlias :: AliasIdContext -> (AliasId, AliasIdContext)
