@@ -8,6 +8,7 @@ module Database.Relational.Query.Relation (
 
   Relation,
 
+  JoinRestriction,
   inner', left', right', full',
   inner, left, right, full,
   on',

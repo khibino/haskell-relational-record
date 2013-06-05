@@ -14,7 +14,7 @@ module Database.Relational.Query.Monad.Qualify (
 
   -- * Qualify monad
   Qualify,
-  evalQualifyPrime, newAlias, qualifyQuery
+  evalQualifyPrime, qualifyQuery
   ) where
 
 import Control.Monad (liftM, ap)

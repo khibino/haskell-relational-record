@@ -49,13 +49,13 @@ data ProjectionUnit = Columns (Array Int String)
 -- | Phantom typed projection. Projected into Haskell record type 't'.
 data Projection t = Composed [ProjectionUnit]
 
--- | 'ProjectionUnit' width.
+-- | ProjectionUnit width.
 widthOfUnit :: ProjectionUnit -> Int
 widthOfUnit =  d  where
   d (Columns a) = mx - mn + 1 where (mn, mx) = Array.bounds a
   d (Sub sq)    = queryWidth sq
 
--- | Get column of 'ProjectionUnit'.
+-- | Get column of ProjectionUnit.
 columnOfUnit :: ProjectionUnit -> Int -> String
 columnOfUnit =  d  where
   d (Columns a) i | mn <= i && i <= mx = a Array.! i
@@ -84,7 +84,7 @@ columns p = map (\n -> column p n) . take w $ [0 .. ]
   where w = width p
 
 
--- | Unsafely generate 'Projection' from 'ProjectionUnit'.
+-- | Unsafely generate 'Projection' from ProjectionUnit.
 unsafeFromUnit :: ProjectionUnit -> Projection t
 unsafeFromUnit =  Composed . (:[])
 
