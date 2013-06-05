@@ -1,6 +1,6 @@
 {-# LANGUAGE KindSignatures #-}
 
-module Database.Relational.Query.Monad.Ordering (
+module Database.Relational.Query.Monad.Trans.Ordering (
   Orderings, orderings, OrderedQuery, OrderingTerms,
 
   -- unsafeMergeAnotherOrderBys,

@@ -30,7 +30,7 @@ library
                        Database.Relational.Query.Expr.Unsafe
                        Database.Relational.Query.Sub
                        Database.Relational.Query.Monad.Class
-                       Database.Relational.Query.Monad.Ordering
+                       Database.Relational.Query.Monad.Trans.Ordering
                        Database.Relational.Query.Monad.Core
                        Database.Relational.Query.Monad.Simple
                        Database.Relational.Query.Monad.Trans.Aggregate

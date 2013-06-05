@@ -15,8 +15,8 @@ import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
 import Database.Relational.Query.Monad.Qualify (Qualify)
-import Database.Relational.Query.Monad.Ordering (Orderings, orderings, OrderedQuery)
-import qualified Database.Relational.Query.Monad.Ordering as Ordering
+import Database.Relational.Query.Monad.Trans.Ordering (Orderings, orderings, OrderedQuery)
+import qualified Database.Relational.Query.Monad.Trans.Ordering as Ordering
 import Database.Relational.Query.Monad.Core (QueryCore)
 import qualified Database.Relational.Query.Monad.Core as Core
 
