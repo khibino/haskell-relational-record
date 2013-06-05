@@ -9,8 +9,7 @@ module Database.Relational.Query.Internal.Product (
 import Prelude hiding (and, product)
 import Database.Relational.Query.Expr (Expr, showExpr, fromTriBool, exprAnd)
 import Database.Relational.Query.Projectable (valueTrue)
-import Database.Relational.Query.Monad.Qualify (Qualified)
-import Database.Relational.Query.Sub (SubQuery)
+import Database.Relational.Query.Sub (SubQuery, Qualified)
 import qualified Database.Relational.Query.Sub as SubQuery
 
 import Database.Relational.Query.Internal.ShowS

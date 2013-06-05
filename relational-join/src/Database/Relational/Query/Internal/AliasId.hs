@@ -13,6 +13,8 @@ module Database.Relational.Query.Internal.AliasId (
   -- * Alias identifier definition
   AliasId (AliasId), primeAlias, newAliasId,
 
+  unsafeExtractAliasId,
+
   -- * Qualified SQL expression
   columnN, aliasName, (<.>), columnFromId,
   asColumnN,
@@ -29,6 +31,10 @@ import qualified Language.SQL.Keyword.ConcatString as SQLs
 
 -- | Alias id definition
 newtype AliasId = AliasId Int deriving (Show, Eq)
+
+-- | Unsafely get 'AliasId' internal 'Int' value.
+unsafeExtractAliasId :: AliasId -> Int
+unsafeExtractAliasId (AliasId i) = i
 
 -- | Initial value of 'AliasId'
 primeAlias :: AliasId

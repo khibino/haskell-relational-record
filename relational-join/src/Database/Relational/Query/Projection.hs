@@ -37,8 +37,7 @@ import Database.Record.Persistable (runPersistableRecordWidth)
 
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi as Pi
-import Database.Relational.Query.Monad.Qualify (Qualified)
-import Database.Relational.Query.Sub (SubQuery, queryWidth)
+import Database.Relational.Query.Sub (SubQuery, queryWidth, Qualified)
 import qualified Database.Relational.Query.Sub as SubQuery
 
 

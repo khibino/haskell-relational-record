@@ -9,21 +9,19 @@
 --
 -- This module defines monad structure to qualify uniquely SQL table forms.
 module Database.Relational.Query.Monad.Qualify (
-  -- * Qualifier type
-  Qualified,
-
   -- * Qualify monad
   Qualify,
   evalQualifyPrime, qualifyQuery
   ) where
 
 import Control.Monad (liftM, ap)
-import Control.Monad.Trans.State
-  (State, state, runState)
+import Control.Monad.Trans.State (State, state, runState)
 import Control.Applicative (Applicative (pure, (<*>)))
 
-import Database.Relational.Query.Internal.AliasId (primeAlias, AliasId, newAliasId, Qualified)
+import Database.Relational.Query.Internal.AliasId (primeAlias, AliasId, newAliasId)
 import qualified Database.Relational.Query.Internal.AliasId as AliasId
+import Database.Relational.Query.Sub (Qualified)
+import qualified Database.Relational.Query.Sub as SubQuery
 
 
 -- | Type for 'Qualify' monad state.
@@ -77,9 +75,12 @@ instance Applicative Qualify where
 newAlias :: Qualify AliasId
 newAlias =  qualifyState nextAlias
 
+unsafeQualifierFromAliasId :: AliasId -> SubQuery.Qualifier
+unsafeQualifierFromAliasId =  SubQuery.Qualifier . AliasId.unsafeExtractAliasId
+
 -- | Get qualifyed table form query.
 qualifyQuery :: query                     -- ^ Query to qualify
              -> Qualify (Qualified query) -- ^ Result with updated state
 qualifyQuery query =
   do n <- newAlias
-     return $ AliasId.qualify query n
+     return . SubQuery.qualify query $ unsafeQualifierFromAliasId n

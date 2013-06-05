@@ -13,6 +13,8 @@ module Database.Relational.Query.Sub (
   SubQuery, fromTable, subQuery, toSQL, unitSQL, width,
 
   -- * Qualified Sub-query
+  Qualifier (Qualifier),
+  Qualified, qualifier, unQualify, qualify,
   queryWidth, qualifiedForm,
 
   -- * Sub-query columns
@@ -21,11 +23,9 @@ module Database.Relational.Query.Sub (
 
 import Database.Relational.Query.Table (Table, (!))
 import qualified Database.Relational.Query.Table as Table
-import Database.Relational.Query.Internal.AliasId
-  (aliasName, (<.>),
-   Qualified, unQualify, qualifyAlias, qualifiedSQLas)
-import qualified Database.Relational.Query.Internal.AliasId as AliasId
 import Database.Relational.Query.Expr.Unsafe (Expr(Expr))
+
+import qualified Language.SQL.Keyword.ConcatString as SQLs
 
 
 -- | Sub-query type
@@ -67,16 +67,52 @@ unitSQL =  fst . toSQLs
 toSQL :: SubQuery -> String
 toSQL =  snd . toSQLs
 
+newtype Qualifier = Qualifier Int
+
+data Qualified a = Qualified a Qualifier
+
+-- | 'Functor' instance of 'Qualified'
+instance Functor Qualified where
+  fmap f (Qualified a i) = Qualified (f a) i
+
+qualifier :: Qualified a -> Qualifier
+qualifier (Qualified _ i) = i
+
+unQualify :: Qualified a -> a
+unQualify (Qualified a _) = a
+
+qualify :: a -> Qualifier -> Qualified a
+qualify =  Qualified
+
+columnN :: Int -> String
+columnN i = 'f' : show i
+
+showQualifier :: Qualifier -> String
+showQualifier (Qualifier i) = 'T' : show i
+
+(<.>) :: Qualifier -> String -> String
+i <.> n =  showQualifier i ++ '.' : n
+
+columnFromId :: Qualifier -> Int -> String
+columnFromId qi i = qi <.> columnN i
+
+-- | From 'Qualified' SQL string into 'String'.
+qualifiedSQLas :: Qualified String -> String
+qualifiedSQLas q =
+  unQualify q
+  `SQLs.as`
+  (showQualifier $ qualifier q)
+
 -- | Width of 'Qualified' 'SubQUery'.
 queryWidth :: Qualified SubQuery -> Int
 queryWidth =  width . unQualify
 
 -- | Get column SQL string of 'SubQuery'.
 column :: Qualified SubQuery -> Int -> String
-column q =  d (unQualify q)  where
-  a = qualifyAlias q
-  d (Table u)      i = (aliasName a <.> (u ! i))
-  d (SubQuery _ _) i = (a `AliasId.columnFromId` i)
+column qs =  d (unQualify qs)  where
+  q = qualifier qs
+  d (Table u)      i = (q <.> (u ! i))
+  d (SubQuery _ _) i = (q `columnFromId` i)
 
 -- | Get column SQL expression of 'SubQuery'.
 columnExpr :: Qualified SubQuery -> Int -> Expr ft
