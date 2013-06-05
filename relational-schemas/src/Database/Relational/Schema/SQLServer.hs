@@ -15,8 +15,8 @@ import Data.Int (Int32, Int64)
 import Data.Map (Map)
 import Data.Time (LocalTime, Day, TimeOfDay)
 import Database.Record.Instances ()
-import Database.Relational.Query (Expr, Query, Relation, (!), (.=.), (><), asc, fromRelation,
-                                  just, placeholder, query, relation, showExpr, unsafeProjectSql,
+import Database.Relational.Query (Expr, Query, Relation, PlaceHolders, (!), (.=.), (><), asc, fromRelation,
+                                  just, placeholder, query, relation', showExpr, unsafeProjectSql,
                                   wheres)
 import Database.Relational.Schema.SQLServerSyscat.Columns
 import Database.Relational.Schema.SQLServerSyscat.Indexes
@@ -84,15 +84,23 @@ sqlsrvObjectId :: Expr String -> Expr String -> Expr Int32
 sqlsrvObjectId s t = unsafeProjectSql $
     "OBJECT_ID(" ++ showExpr s ++ " + '.' + " ++ showExpr t ++ ")"
 
+sqlsrvOidPlaceHolder :: (PlaceHolders (String, String), Expr Int32)
+sqlsrvOidPlaceHolder =  (nsParam >< relParam, sqlsrvObjectId nsPh relPh)
+  where
+    (nsParam , nsPh)  = placeholder
+    (relParam, relPh) = placeholder
+
 columnTypeRelation :: Relation (String,String) ((Columns,Types),String)
-columnTypeRelation = relation $ do
+columnTypeRelation = relation' $ do
     cols <- query columns
     typs <- query types
+
     wheres $ cols ! Columns.userTypeId' .=. typs ! Types.userTypeId'
-    wheres $ cols ! Columns.objectId'   .=. sqlsrvObjectId placeholder placeholder
+    wheres $ cols ! Columns.objectId'   .=. oid
     asc $ cols ! Columns.columnId'
-    return (cols >< typs >< sqlsrvSchemaName (typs ! Types.schemaId'))
+    return   (params, cols >< typs >< sqlsrvSchemaName (typs ! Types.schemaId'))
   where
+    (params, oid) = sqlsrvOidPlaceHolder
     sqlsrvSchemaName i = unsafeProjectSql $
         "SCHEMA_NAME(" ++ showExpr i ++ ")"
 
@@ -100,7 +108,7 @@ columnTypeQuerySQL :: Query (String, String) ((Columns, Types), String)
 columnTypeQuerySQL = fromRelation columnTypeRelation
 
 primaryKeyRelation :: Relation (String,String) (Maybe String)
-primaryKeyRelation = relation $ do
+primaryKeyRelation = relation' $ do
     idxes  <- query indexes
     idxcol <- query indexColumns 
     cols   <- query columns
@@ -109,8 +117,9 @@ primaryKeyRelation = relation $ do
     wheres $ idxcol ! IndexColumns.objectId' .=. cols   ! Columns.objectId'
     wheres $ idxcol ! IndexColumns.columnId' .=. cols   ! Columns.columnId'
     wheres $ idxes  ! Indexes.isPrimaryKey'  .=. just sqlsrvTrue
-    wheres $ idxes  ! Indexes.objectId'      .=. sqlsrvObjectId placeholder placeholder
-    return $ cols   ! Columns.name'
+    let (params, oid) = sqlsrvOidPlaceHolder
+    wheres $ idxes  ! Indexes.objectId'      .=. oid
+    return   (params, cols   ! Columns.name')
 
 primaryKeyQuerySQL :: Query (String,String) (Maybe String)
 primaryKeyQuerySQL = fromRelation primaryKeyRelation
