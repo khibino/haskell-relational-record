@@ -16,7 +16,7 @@ import Data.Map (Map)
 import Data.Time (LocalTime, Day, TimeOfDay)
 import Database.Record.Instances ()
 import Database.Relational.Query (Expr, Query, Relation, PlaceHolders, (!), (.=.), (><), asc, fromRelation,
-                                  just, placeholder, query, relation', showExpr, unsafeProjectSql,
+                                  just, placeholder', query, relation', showExpr, unsafeProjectSql,
                                   wheres)
 import Database.Relational.Schema.SQLServerSyscat.Columns
 import Database.Relational.Schema.SQLServerSyscat.Indexes
@@ -85,10 +85,12 @@ sqlsrvObjectId s t = unsafeProjectSql $
     "OBJECT_ID(" ++ showExpr s ++ " + '.' + " ++ showExpr t ++ ")"
 
 sqlsrvOidPlaceHolder :: (PlaceHolders (String, String), Expr Int32)
-sqlsrvOidPlaceHolder =  (nsParam >< relParam, sqlsrvObjectId nsPh relPh)
+sqlsrvOidPlaceHolder =  (nsParam >< relParam, oid)
   where
-    (nsParam , nsPh)  = placeholder
-    (relParam, relPh) = placeholder
+    (nsParam, (relParam, oid)) =
+      placeholder' (\nsPh ->
+                     placeholder' (\relPh ->
+                                    sqlsrvObjectId nsPh relPh))
 
 columnTypeRelation :: Relation (String,String) ((Columns,Types),String)
 columnTypeRelation = relation' $ do
