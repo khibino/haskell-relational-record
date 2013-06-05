@@ -33,6 +33,7 @@ library
                        Database.Relational.Query.Monad.Ordering
                        Database.Relational.Query.Monad.Core
                        Database.Relational.Query.Monad.Simple
+                       Database.Relational.Query.Monad.Trans.Aggregate
                        Database.Relational.Query.Monad.Aggregate
                        Database.Relational.Query.Relation
                        Database.Relational.Query.Type
