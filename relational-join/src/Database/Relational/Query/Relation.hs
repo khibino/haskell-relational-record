@@ -18,8 +18,7 @@ module Database.Relational.Query.Relation (
   ) where
 
 import Database.Relational.Query.Monad.Qualify (Qualify, evalQualifyPrime)
-import Database.Relational.Query.Monad.Class (MonadQuery (on))
-import qualified Database.Relational.Query.Monad.Unsafe as UnsafeMonadQuery
+import Database.Relational.Query.Monad.Class (MonadQuery (on, unsafeSubQuery))
 import Database.Relational.Query.Monad.Simple (QuerySimple, SimpleQuery)
 import qualified Database.Relational.Query.Monad.Simple as Simple
 import Database.Relational.Query.Monad.Aggregate (QueryAggregate, AggregatedQuery)
@@ -66,8 +65,8 @@ subQueryFromRelation =  evalQualifyPrime . subQueryQualifyFromRelation
 queryWithAttr :: MonadQuery m
               => NodeAttr -> Relation p r -> m (PlaceHolders p, Projection r)
 queryWithAttr attr = addPlaceHolders . q where
-  q = UnsafeMonadQuery.unsafeSubQuery attr . subQueryQualifyFromRelation
-  -- d (Relation q) = UnsafeMonadQuery.unsafeMergeAnotherQuery attr q
+  q = unsafeSubQuery attr . subQueryQualifyFromRelation
+  -- d (Relation q) = unsafeMergeAnotherQuery attr q
 
 query' :: MonadQuery m => Relation p r -> m (PlaceHolders p, Projection r)
 query' =  queryWithAttr Just'

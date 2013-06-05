@@ -35,8 +35,7 @@ import Database.Relational.Query.Projectable (Projectable(project))
 import Database.Relational.Query.Sub (SubQuery)
 
 import Database.Relational.Query.Monad.Qualify (Qualify, evalQualifyPrime, qualifyQuery)
-import Database.Relational.Query.Monad.Class (MonadQuery(on, wheres))
-import Database.Relational.Query.Monad.Unsafe (UnsafeMonadQuery(unsafeSubQuery))
+import Database.Relational.Query.Monad.Class (MonadQuery(on, wheres, unsafeSubQuery))
 
 
 newtype QueryJoin m a =
@@ -90,6 +89,8 @@ instance Monad m => Applicative (QueryJoin m) where
 instance MonadQuery (QueryJoin Qualify) where
   on     =  updateJoinRestriction
   wheres =  updateRestriction
+  unsafeSubQuery          = unsafeSubQueryWithAttr
+  -- unsafeMergeAnotherQuery = unsafeQueryMergeWithAttr
 
 type QueryCore = QueryJoin Qualify
 
@@ -108,10 +109,6 @@ unsafeSubQueryWithAttr attr qualSub = do
 
 -- unsafeQueryMergeWithAttr :: NodeAttr -> QueryJoin (Projection r) -> QueryJoin (Projection r)
 -- unsafeQueryMergeWithAttr =  unsafeMergeAnother
-
-instance UnsafeMonadQuery (QueryJoin Qualify) where
-  unsafeSubQuery          = unsafeSubQueryWithAttr
-  -- unsafeMergeAnotherQuery = unsafeQueryMergeWithAttr
 
 expandSQL :: Monad m => QueryJoin m (Projection r, t) -> m ((String, Projection r), t)
 expandSQL qp = do

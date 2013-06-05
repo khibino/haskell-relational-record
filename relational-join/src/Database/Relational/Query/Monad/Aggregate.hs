@@ -29,9 +29,8 @@ import Database.Relational.Query.Internal.AggregatingContext (AggregatingContext
 import qualified Database.Relational.Query.Internal.AggregatingContext as Context
 
 import Database.Relational.Query.Monad.Qualify (Qualify)
-import Database.Relational.Query.Monad.Unsafe (UnsafeMonadQuery(unsafeSubQuery))
-import Database.Relational.Query.Monad.Class (MonadQuery, MonadAggregate)
-import qualified Database.Relational.Query.Monad.Class as MonadQuery
+import Database.Relational.Query.Monad.Class
+  (MonadQuery(on, wheres, unsafeSubQuery), MonadAggregate(groupBy, having))
 import Database.Relational.Query.Monad.Ordering (Orderings, OrderedQuery)
 import qualified Database.Relational.Query.Monad.Ordering as Ordering
 import Database.Relational.Query.Monad.Core (QueryCore)
@@ -63,12 +62,10 @@ instance Monad m => Applicative (Aggregatings m) where
   pure  = return
   (<*>) = ap
 
-instance UnsafeMonadQuery m => UnsafeMonadQuery (Aggregatings m) where
-  unsafeSubQuery na = aggregate . unsafeSubQuery na
-
 instance MonadQuery m => MonadQuery (Aggregatings m) where
-  on     =  aggregate . MonadQuery.on
-  wheres =  aggregate . MonadQuery.wheres
+  on     =  aggregate . on
+  wheres =  aggregate . wheres
+  unsafeSubQuery na = aggregate . unsafeSubQuery na
 
 updateAggregatingContext :: Monad m => (AggregatingContext -> AggregatingContext) -> Aggregatings m ()
 updateAggregatingContext =  Aggregatings . modify

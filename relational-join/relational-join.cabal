@@ -53,7 +53,6 @@ library
                        Database.Relational.Query.Internal.Context
                        Database.Relational.Query.Internal.AggregatingContext
                        Database.Relational.Query.Monad.Qualify
-                       Database.Relational.Query.Monad.Unsafe
 
                        Database.Relational.Schema.DB2Syscat.Tabconst
                        Database.Relational.Schema.DB2Syscat.Keycoluse
