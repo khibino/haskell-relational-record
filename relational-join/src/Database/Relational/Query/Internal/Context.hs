@@ -1,14 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Database.Relational.Query.Internal.Context (
-  AliasIdContext,
-
-  primeAliasIdContext,
-
   Context,
 
   primeContext,
-  nextAlias,
 
   updateProduct, takeProduct, restoreLeft,
   addRestriction,
@@ -31,10 +26,9 @@ import qualified Data.DList as DList
 import Data.Monoid ((<>))
 import Control.Applicative (pure)
 
-import Database.Relational.Query.Internal.AliasId (primAlias, AliasId, newAliasId, asColumnN)
-
 import Database.Relational.Query.Expr (Expr, showExpr, fromTriBool, exprAnd)
 
+import Database.Relational.Query.Internal.AliasId (asColumnN)
 import Database.Relational.Query.Internal.Product (QueryProductNode, QueryProduct, queryProductSQL)
 import qualified Database.Relational.Query.Internal.Product as Product
 
@@ -47,11 +41,6 @@ import qualified Language.SQL.Keyword as SQL
 
 -- Base contexts
 
-newtype AliasIdContext = AliasIdContext { currentAliasId :: AliasId }
-
-primeAliasIdContext :: AliasIdContext
-primeAliasIdContext =  AliasIdContext primAlias
-
 data Context = Context
                { product :: Maybe QueryProductNode
                , restriction :: Maybe (Expr Bool)
@@ -59,10 +48,6 @@ data Context = Context
 
 primeContext :: Context
 primeContext =  Context Nothing Nothing
-
-nextAlias :: AliasIdContext -> (AliasId, AliasIdContext)
-nextAlias s = (cur, s { currentAliasId =  newAliasId cur })  where
-  cur = currentAliasId s
 
 updateProduct' :: (Maybe QueryProductNode -> Maybe QueryProductNode) -> Context -> Context
 updateProduct' uf ctx = ctx { product = uf . product $ ctx }

@@ -1,7 +1,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Database.Relational.Query.Monad.Qualify (
-  Qualify, evalQualifyPrime, newAlias, qualifyQuery
+  Qualified, Qualify, evalQualifyPrime, newAlias, qualifyQuery
   ) where
 
 import Control.Monad (liftM, ap)
@@ -9,10 +9,18 @@ import Control.Monad.Trans.State
   (State, state, runState)
 import Control.Applicative (Applicative (pure, (<*>)))
 
-import Database.Relational.Query.Internal.AliasId (AliasId, Qualified)
+import Database.Relational.Query.Internal.AliasId (primAlias, AliasId, newAliasId, Qualified)
 import qualified Database.Relational.Query.Internal.AliasId as AliasId
-import Database.Relational.Query.Internal.Context
-  (AliasIdContext, primeAliasIdContext, nextAlias)
+
+
+newtype AliasIdContext = AliasIdContext { currentAliasId :: AliasId }
+
+primeAliasIdContext :: AliasIdContext
+primeAliasIdContext =  AliasIdContext primAlias
+
+nextAlias :: AliasIdContext -> (AliasId, AliasIdContext)
+nextAlias s = (cur, s { currentAliasId =  newAliasId cur })  where
+  cur = currentAliasId s
 
 
 newtype Qualify a =
@@ -48,8 +56,3 @@ qualifyQuery :: query -> Qualify (Qualified query)
 qualifyQuery query =
   do n <- newAlias
      return $ AliasId.qualify query n
-
--- qualifyQuery :: Qualify query -> Qualify (Qualified query)
--- qualifyQuery qualSub = do
---   sub  <- qualSub
---   qualifyQuery' sub
