@@ -15,7 +15,7 @@ import Data.Int (Int32, Int64)
 import Data.Map (Map)
 import Data.Time (LocalTime, Day, TimeOfDay)
 import Database.Record.Instances ()
-import Database.Relational.Query (Expr, Query, PrimeRelation, (!), (.=.), (><), asc, fromRelation,
+import Database.Relational.Query (Expr, Query, Relation, (!), (.=.), (><), asc, fromRelation,
                                   just, placeholder, query, relation, showExpr, unsafeProjectSql,
                                   wheres)
 import Database.Relational.Schema.SQLServerSyscat.Columns
@@ -84,7 +84,7 @@ sqlsrvObjectId :: Expr String -> Expr String -> Expr Int32
 sqlsrvObjectId s t = unsafeProjectSql $
     "OBJECT_ID(" ++ showExpr s ++ " + '.' + " ++ showExpr t ++ ")"
 
-columnTypeRelation :: PrimeRelation (String,String) ((Columns,Types),String)
+columnTypeRelation :: Relation (String,String) ((Columns,Types),String)
 columnTypeRelation = relation $ do
     cols <- query columns
     typs <- query types
@@ -99,7 +99,7 @@ columnTypeRelation = relation $ do
 columnTypeQuerySQL :: Query (String, String) ((Columns, Types), String)
 columnTypeQuerySQL = fromRelation columnTypeRelation
 
-primaryKeyRelation :: PrimeRelation (String,String) (Maybe String)
+primaryKeyRelation :: Relation (String,String) (Maybe String)
 primaryKeyRelation = relation $ do
     idxes  <- query indexes
     idxcol <- query indexColumns 
