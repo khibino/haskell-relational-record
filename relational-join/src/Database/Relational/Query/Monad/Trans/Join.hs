@@ -1,7 +1,6 @@
 module Database.Relational.Query.Monad.Trans.Join (
-  QueryJoin, join',
+  QueryJoin, join', expandSQL,
 
-  runQueryPrime,
   updateContext,
 
   updateJoinRestriction, updateRestriction
@@ -16,6 +15,7 @@ import Control.Applicative (Applicative (pure, (<*>)))
 import Database.Relational.Query.Internal.Context
   (Context, primeContext, updateProduct)
 import qualified Database.Relational.Query.Internal.Context as Context
+import Database.Relational.Query.Projection (Projection)
 
 import Database.Relational.Query.Expr (Expr, fromTriBool)
 
@@ -65,3 +65,8 @@ instance Monad m => Functor (QueryJoin m) where
 instance Monad m => Applicative (QueryJoin m) where
   pure  = return
   (<*>) = ap
+
+expandSQL :: Monad m => QueryJoin m (Projection r, t) -> m ((String, Projection r), t)
+expandSQL qp = do
+  ((pj, st), c) <- runQueryPrime qp
+  return ((Context.composeSQL pj c, pj), st)

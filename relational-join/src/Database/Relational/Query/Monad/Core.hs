@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
 
 module Database.Relational.Query.Monad.Core (
@@ -13,7 +14,7 @@ module Database.Relational.Query.Monad.Core (
 
 import Prelude hiding (product)
 
-import Database.Relational.Query.Internal.Context (updateProduct, composeSQL)
+import Database.Relational.Query.Internal.Context (updateProduct)
 import Database.Relational.Query.Internal.Product (NodeAttr, growProduct)
 
 import Database.Relational.Query.Expr (Expr)
@@ -27,7 +28,7 @@ import Database.Relational.Query.Sub (SubQuery)
 import Database.Relational.Query.Monad.Qualify (Qualify, evalQualifyPrime, qualifyQuery)
 import Database.Relational.Query.Monad.Class (MonadQuery(on, wheres, unsafeSubQuery))
 import Database.Relational.Query.Monad.Trans.Join
-  (QueryJoin, join', runQueryPrime, updateContext, updateJoinRestriction, updateRestriction)
+  (QueryJoin, join', expandSQL, updateContext, updateJoinRestriction, updateRestriction)
 
 
 expr :: Projection ft -> Expr ft
@@ -56,11 +57,6 @@ unsafeSubQueryWithAttr attr qualSub = do
 
 -- unsafeQueryMergeWithAttr :: NodeAttr -> QueryJoin (Projection r) -> QueryJoin (Projection r)
 -- unsafeQueryMergeWithAttr =  unsafeMergeAnother
-
-expandSQL :: Monad m => QueryJoin m (Projection r, t) -> m ((String, Projection r), t)
-expandSQL qp = do
-  ((pj, st), c) <- runQueryPrime qp
-  return ((composeSQL pj c, pj), st)
 
 instance Show (QueryJoin Qualify (Projection r)) where
   show = fst . fst . doExpand
