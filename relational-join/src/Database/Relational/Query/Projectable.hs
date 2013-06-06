@@ -66,75 +66,97 @@ import Database.Relational.Query.Aggregation (Aggregation)
 import qualified Database.Relational.Query.Aggregation as Aggregation
 
 
+-- | SQL expression strings which represent projection.
 sqlString :: Projection r -> String
 sqlString =  d . columns  where
   d ([])  = error $ "Projection: no columns."
   d ([c]) = c
   d (cs) = '(' : intercalate ", " cs ++ [')']
 
+-- | 'Expr' from 'Projection'
 toExpr :: Projection r -> Expr r
 toExpr =  UnsafeExpr.Expr . sqlString  where
 
+-- | Projection interface.
 class Projectable p where
   project :: Projection a -> p a
 
+-- | Project into 'Projection' type.
 instance Projectable Projection where
   project = id
 
+-- | Project into 'Expr' type.
 instance Projectable Expr where
   project = toExpr
 
+-- | Project from 'Aggregation' like 'Projection'.
 projectAggregation :: Projectable p => Aggregation a -> p a
 projectAggregation =  project . Aggregation.projection
 
+-- | 'Expr' from 'Projection'
 expr :: Projection ft -> Expr ft
 expr =  toExpr
 
 
+-- | Unsafely make 'Projection' from single SQL term.
 unsafeSqlProjection :: String -> Projection t
 unsafeSqlProjection =  unsafeFromColumns . (:[])
 
+-- | Interface to project single SQL term unsafely.
 class SqlProjectable p where
   unsafeProjectSql :: String -> p t
 
+-- | Unsafely make 'Projection' from single SQL term.
 instance SqlProjectable Projection where
   unsafeProjectSql = unsafeSqlProjection
 
+-- | Unsafely make 'Expr' from single SQL term.
 instance SqlProjectable Expr where
   unsafeProjectSql = UnsafeExpr.Expr
 
+-- | Unsafely make 'Aggregation' from single SQL term.
 instance SqlProjectable Aggregation where
   unsafeProjectSql = Aggregation.unsafeFromProjection . unsafeProjectSql
 
+-- | Polymorphic projection of SQL null value.
 valueNull :: SqlProjectable p => p (Maybe a)
 valueNull =  unsafeProjectSql "NULL"
 
+-- | Generate polymorphic projection of SQL constant values from Haskell value.
 value :: (ShowConstantSQL t, SqlProjectable p) => t -> p t
 value =  unsafeProjectSql . showConstantSQL
 
+-- | Polymorphic proejction of SQL true value.
 valueTrue  :: (SqlProjectable p, ProjectableMaybe p) => p (Maybe Bool)
 valueTrue  =  just $ value True
 
+-- | Polymorphic proejction of SQL false value.
 valueFalse :: (SqlProjectable p, ProjectableMaybe p) => p (Maybe Bool)
 valueFalse =  just $ value False
 
+-- | Polymorphic proejction of SQL set value from Haskell list.
 values :: (Projectable p, ShowConstantSQL t) => [t] -> p [t]
 values =  project . unsafeFromColumns . map showConstantSQL
 
 
+-- | Interface to get SQL term from projections.
 class ProjectableShowSql p where
   unsafeShowSql :: p a -> String
 
+-- | Unsafely get SQL term from 'Proejction'.
 instance ProjectableShowSql Projection where
   unsafeShowSql = sqlString
 
+-- | Unsafely get SQL term from 'Expr'.
 instance ProjectableShowSql Expr where
   unsafeShowSql = UnsafeExpr.showExpr
 
+-- | Unsafely get SQL term from 'Aggregation.unsafeFromProjection'.
 instance ProjectableShowSql Aggregation where
   unsafeShowSql = unsafeShowSql . Aggregation.projection
 
 
+-- | Parened String.
 paren :: String -> String
 paren =  ('(' :) . (++[')'])
 
