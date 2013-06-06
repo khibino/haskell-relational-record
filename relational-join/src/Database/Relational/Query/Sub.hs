@@ -17,6 +17,8 @@ module Database.Relational.Query.Sub (
   Qualified, qualifier, unQualify, qualify,
   queryWidth, qualifiedForm,
 
+  asColumnN,
+
   -- * Sub-query columns
   column, columnExpr
   ) where
@@ -25,6 +27,7 @@ import Database.Relational.Query.Table (Table, (!))
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Expr.Unsafe (Expr(Expr))
 
+import qualified Language.SQL.Keyword as SQL
 import qualified Language.SQL.Keyword.ConcatString as SQLs
 
 
@@ -89,8 +92,13 @@ unQualify (Qualified a _) = a
 qualify :: a -> Qualifier -> Qualified a
 qualify =  Qualified
 
+-- | Column name of projection index.
 columnN :: Int -> String
 columnN i = 'f' : show i
+
+-- | Renamed column in SQL expression.
+asColumnN :: SQL.Keyword -> Int -> SQL.Keyword
+f `asColumnN` n = f `SQL.as` SQL.word (columnN  n)
 
 -- | Alias string from qualifier
 showQualifier :: Qualifier -> String

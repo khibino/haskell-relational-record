@@ -27,8 +27,8 @@ import Data.Monoid ((<>))
 import Control.Applicative (pure)
 
 import Database.Relational.Query.Expr (Expr, showExpr, fromTriBool, exprAnd)
+import Database.Relational.Query.Sub (asColumnN)
 
-import Database.Relational.Query.Internal.AliasId (asColumnN)
 import Database.Relational.Query.Internal.Product (QueryProductNode, QueryProduct, queryProductSQL)
 import qualified Database.Relational.Query.Internal.Product as Product
 

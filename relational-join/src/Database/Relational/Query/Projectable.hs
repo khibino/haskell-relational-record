@@ -13,6 +13,7 @@ module Database.Relational.Query.Projectable (
   Projectable (project),
 
   projectAggregation,
+  expr,
 
   -- * Projectable from SQL strings
   SqlProjectable (unsafeProjectSql),
@@ -85,6 +86,9 @@ instance Projectable Expr where
 
 projectAggregation :: Projectable p => Aggregation a -> p a
 projectAggregation =  project . Aggregation.projection
+
+expr :: Projection ft -> Expr ft
+expr =  toExpr
 
 
 unsafeSqlProjection :: String -> Projection t
