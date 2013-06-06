@@ -1,22 +1,36 @@
 {-# LANGUAGE FlexibleContexts #-}
 
+-- |
+-- Module      : Database.Relational.Query.Relation
+-- Copyright   : 2013 Kei Hibino
+-- License     : BSD3
+--
+-- Maintainer  : ex8k.hibino@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
+--
+-- This module defines re-usable Relation type
+-- to compose complex query.
 module Database.Relational.Query.Relation (
+  -- * Relation type
+  Relation,
+
   table,
   relation, relation',
   aggregateRelation, aggregateRelation',
 
+  nested, width,
+
+  sqlFromRelation,
+
+  -- * Query using relation
   query, query', queryMaybe, queryMaybe', from,
 
-  Relation,
-
+  -- * Direct style join
   JoinRestriction,
   inner', left', right', full',
   inner, left, right, full,
   on',
-
-  sqlFromRelation,
-
-  nested, width
   ) where
 
 import Database.Relational.Query.Monad.Qualify (Qualify, evalQualifyPrime, qualifyQuery)
