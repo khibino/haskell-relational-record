@@ -67,32 +67,40 @@ unitSQL =  fst . toSQLs
 toSQL :: SubQuery -> String
 toSQL =  snd . toSQLs
 
+-- | Qualifier type.
 newtype Qualifier = Qualifier Int
 
+-- | Qualified query.
 data Qualified a = Qualified a Qualifier
 
 -- | 'Functor' instance of 'Qualified'
 instance Functor Qualified where
   fmap f (Qualified a i) = Qualified (f a) i
 
+-- | Get qualifier
 qualifier :: Qualified a -> Qualifier
 qualifier (Qualified _ i) = i
 
+-- | Unqualify.
 unQualify :: Qualified a -> a
 unQualify (Qualified a _) = a
 
+-- | Add qualifier
 qualify :: a -> Qualifier -> Qualified a
 qualify =  Qualified
 
 columnN :: Int -> String
 columnN i = 'f' : show i
 
+-- | Alias string from qualifier
 showQualifier :: Qualifier -> String
 showQualifier (Qualifier i) = 'T' : show i
 
+-- | Binary operator to qualify.
 (<.>) :: Qualifier -> String -> String
 i <.> n =  showQualifier i ++ '.' : n
 
+-- | Qualified expression from qualifier and projection index.
 columnFromId :: Qualifier -> Int -> String
 columnFromId qi i = qi <.> columnN i
 
