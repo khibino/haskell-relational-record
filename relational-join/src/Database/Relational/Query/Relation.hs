@@ -58,24 +58,29 @@ import Database.Relational.Query.Sub (SubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
 
 
+-- | Relation type with place-holder parameter 'p' and query result type 'r'.
 data Relation p r = SubQuery SubQuery
                   | SimpleRel (SimpleQuery r)
                   | AggregateRel (AggregatedQuery r)
 
 
+-- | Simple 'Relation' from 'Table'.
 table :: Table r -> Relation () r
 table =  SubQuery . SubQuery.fromTable
 
+-- | Same as 'table'. Simple 'Relation' from 'Table'.
 from :: Table r -> Relation () r
 from =  table
 
 
+-- | Sub-query Qualify monad from relation.
 subQueryQualifyFromRelation :: Relation p r -> Qualify SubQuery
 subQueryQualifyFromRelation =  d  where
   d (SubQuery sub)    = return $ sub
   d (SimpleRel qp)    = Simple.toSubQuery qp
   d (AggregateRel qp) = Aggregate.toSubQuery qp
 
+-- | Sub-query from relation.
 subQueryFromRelation :: Relation p r -> SubQuery
 subQueryFromRelation =  evalQualifyPrime . subQueryQualifyFromRelation
 
