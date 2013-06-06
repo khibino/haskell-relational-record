@@ -34,17 +34,17 @@ import Data.Monoid ((<>))
 import Data.Foldable (Foldable (foldMap))
 
 
--- | Node type for product.
+-- | node attribute for product.
 data NodeAttr = Just' | Maybe
 
 -- | Product tree type. Product tree is constructed by left node and right node.
 data ProductTree q = Leaf q
                    | Join !(Node q) !(Node q) !(Maybe (Expr Bool))
 
--- | Product node. Node type and product tree.
+-- | Product node. node attribute and product tree.
 data Node q = Node !NodeAttr !(ProductTree q)
 
--- | Get node type.
+-- | Get node attribute.
 nodeAttr :: Node q -> NodeAttr
 nodeAttr (Node a _) = a  where
 
@@ -63,40 +63,56 @@ type QueryProduct = ProductTree (Qualified SubQuery)
 -- | Product node specialized by 'SubQuery'.
 type QueryProductNode = Node (Qualified SubQuery)
 
--- | Make product node from node type and product tree.
-node :: NodeAttr -> ProductTree q -> Node q
+-- | Make product node from node attribute and product tree.
+node :: NodeAttr      -- ^ Node attribute
+     -> ProductTree q -- ^ Product tree
+     -> Node q        -- ^ Result node
 node =  Node
 
 -- | Push new tree into product right term.
-growRight :: Maybe (Node q) -> (NodeAttr, ProductTree q) -> Node q
+growRight :: Maybe (Node q)            -- ^ Current tree
+          -> (NodeAttr, ProductTree q) -- ^ New tree to push into right
+          -> Node q                    -- ^ Result node
 growRight = d  where
   d Nothing  (naR, q) = node naR q
   d (Just l) (naR, q) = node Just' $ Join l (node naR q) Nothing
 
 -- | Push new tree node into product left term.
-growLeft :: Node q -> NodeAttr -> Maybe (Node q) -> Node q
+growLeft :: Node q         -- ^ New node to push into left
+         -> NodeAttr       -- ^ Node attribute to replace rigth node attribute.
+         -> Maybe (Node q) -- ^ Current tree
+         -> Node q         -- ^ Result node
 growLeft =  d  where
   d q _naR Nothing  = q -- error is better?
   d q naR  (Just r) = node Just' $ Join q (node naR (nodeTree r)) Nothing
 
--- | Push new leaf node into product left term.
-growProduct :: Maybe (Node q) -> (NodeAttr, q) -> Node q
+-- | Push new leaf node into product right term.
+growProduct :: Maybe (Node q) -- ^ Current tree
+            -> (NodeAttr, q)  -- ^ New leaf to push into right
+            -> Node q         -- ^ Result node
 growProduct =  match  where
   match t (na, q) =  growRight t (na, Leaf q)
 
 -- | Just make product of two node.
-product :: Node q -> Node q -> Maybe (Expr Bool) -> ProductTree q
+product :: Node q            -- ^ Left node
+        -> Node q            -- ^ Right node
+        -> Maybe (Expr Bool) -- ^ Join restriction
+        -> ProductTree q     -- ^ Result tree
 product =  Join
 
 -- | Add restriction into top product of product tree.
-restrictProduct' :: ProductTree q -> Expr Bool -> ProductTree q
+restrictProduct' :: ProductTree q -- ^ Product to restrict
+                 -> Expr Bool     -- ^ Restriction to add
+                 -> ProductTree q -- ^ Result product
 restrictProduct' =  d  where
   d (Join lp rp Nothing)   rs' = Join lp rp (Just rs')
   d (Join lp rp (Just rs)) rs' = Join lp rp (Just $ rs `exprAnd` rs')
   d leaf'@(Leaf _)         _   = leaf' -- or error on compile
 
 -- | Add restriction into top product of product tree node.
-restrictProduct :: Node q -> Expr Bool -> Node q
+restrictProduct :: Node q    -- ^ Target node which has product to restrict
+                -> Expr Bool -- ^ Restriction to add
+                -> Node q    -- ^ Result node
 restrictProduct (Node a t) e = node a (restrictProduct' t e)
 
 
