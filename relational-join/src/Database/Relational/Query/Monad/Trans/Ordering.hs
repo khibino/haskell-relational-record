@@ -3,8 +3,6 @@
 module Database.Relational.Query.Monad.Trans.Ordering (
   Orderings, orderings, OrderedQuery, OrderingTerms,
 
-  -- unsafeMergeAnotherOrderBys,
-
   asc, desc,
 
   appendOrderBys
@@ -27,6 +25,7 @@ import qualified Database.Relational.Query.Aggregation as Aggregation
 
 import Database.Relational.Query.Monad.Class
   (MonadQuery(on, wheres, unsafeSubQuery), MonadAggregate(groupBy, having))
+
 
 newtype Orderings (p :: * -> *) m a =
   Orderings { orderingState :: StateT OrderingContext m a }

@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 
 module Database.Relational.Query.Relation (
   table,
@@ -18,8 +19,9 @@ module Database.Relational.Query.Relation (
   nested, width
   ) where
 
-import Database.Relational.Query.Monad.Qualify (Qualify, evalQualifyPrime)
-import Database.Relational.Query.Monad.Class (MonadQuery (on, unsafeSubQuery))
+import Database.Relational.Query.Monad.Qualify (Qualify, evalQualifyPrime, qualifyQuery)
+import Database.Relational.Query.Monad.Class
+  (MonadQualify (liftQualify), MonadQuery (on, unsafeSubQuery))
 import Database.Relational.Query.Monad.Simple (QuerySimple, SimpleQuery)
 import qualified Database.Relational.Query.Monad.Simple as Simple
 import Database.Relational.Query.Monad.Aggregate (QueryAggregate, AggregatedQuery)
@@ -63,24 +65,28 @@ subQueryQualifyFromRelation =  d  where
 subQueryFromRelation :: Relation p r -> SubQuery
 subQueryFromRelation =  evalQualifyPrime . subQueryQualifyFromRelation
 
-queryWithAttr :: MonadQuery m
+queryWithAttr :: MonadQualify Qualify m
               => NodeAttr -> Relation p r -> m (PlaceHolders p, Projection r)
-queryWithAttr attr = addPlaceHolders . q where
-  q = unsafeSubQuery attr . subQueryQualifyFromRelation
+queryWithAttr attr = addPlaceHolders . run where
+  run rel = do
+    q <- liftQualify $ do
+      sq <- subQueryQualifyFromRelation rel
+      qualifyQuery sq
+    unsafeSubQuery attr q
   -- d (Relation q) = unsafeMergeAnotherQuery attr q
 
-query' :: MonadQuery m => Relation p r -> m (PlaceHolders p, Projection r)
+query' :: MonadQualify Qualify m => Relation p r -> m (PlaceHolders p, Projection r)
 query' =  queryWithAttr Just'
 
-query :: MonadQuery m => Relation () r -> m (Projection r)
+query :: MonadQualify Qualify m => Relation () r -> m (Projection r)
 query =  fmap snd . query'
 
-queryMaybe' :: MonadQuery m => Relation p r -> m (PlaceHolders p, Projection (Maybe r))
+queryMaybe' :: MonadQualify Qualify m => Relation p r -> m (PlaceHolders p, Projection (Maybe r))
 queryMaybe' pr =  do
   (ph, pj) <- queryWithAttr Maybe pr
   return (ph, Projection.just pj)
 
-queryMaybe :: MonadQuery m => Relation () r -> m (Projection (Maybe r))
+queryMaybe :: MonadQualify Qualify m => Relation () r -> m (Projection (Maybe r))
 queryMaybe =  fmap snd . queryMaybe'
 
 relation :: QuerySimple (Projection r) -> Relation () r

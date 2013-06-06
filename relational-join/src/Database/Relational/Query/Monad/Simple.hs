@@ -1,11 +1,11 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 module Database.Relational.Query.Monad.Simple (
   QuerySimple, SimpleQuery,
 
   simple,
-
-  -- unsafeMergeAnotherOrderBys,
 
   toSQL,
   toSubQuery
@@ -15,10 +15,12 @@ import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
 import Database.Relational.Query.Monad.Qualify (Qualify)
+import Database.Relational.Query.Monad.Class (MonadQualify(..))
+import Database.Relational.Query.Monad.Trans.Join (join')
+import qualified Database.Relational.Query.Monad.Trans.Join as Join
 import Database.Relational.Query.Monad.Trans.Ordering (Orderings, orderings, OrderedQuery)
 import qualified Database.Relational.Query.Monad.Trans.Ordering as Ordering
 import Database.Relational.Query.Monad.Core (QueryCore)
-import qualified Database.Relational.Query.Monad.Core as Core
 
 import Database.Relational.Query.Sub (SubQuery, subQuery)
 
@@ -26,14 +28,14 @@ import Database.Relational.Query.Sub (SubQuery, subQuery)
 type QuerySimple = Orderings Projection QueryCore
 type SimpleQuery r = OrderedQuery Projection QueryCore r
 
-simple :: QueryCore a -> QuerySimple a
-simple =  orderings
+simple :: Qualify a -> QuerySimple a
+simple =  orderings . join'
 
--- unsafeMergeAnotherOrderBys :: NodeAttr -> QuerySimple (Projection r) -> QuerySimple (Projection r)
--- unsafeMergeAnotherOrderBys =  Ordering.unsafeMergeAnotherOrderBys
+instance MonadQualify Qualify (Orderings Projection QueryCore) where
+  liftQualify = simple
 
 expandSQL :: SimpleQuery r -> Qualify ((String, Projection r), String -> String)
-expandSQL =  Core.expandSQL . Ordering.appendOrderBys
+expandSQL =  Join.expandSQL . Ordering.appendOrderBys
 
 toSQL :: SimpleQuery r -> Qualify String
 toSQL q = do

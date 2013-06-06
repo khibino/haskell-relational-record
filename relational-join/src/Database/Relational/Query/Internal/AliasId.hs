@@ -18,15 +18,9 @@ module Database.Relational.Query.Internal.AliasId (
   -- * Qualified SQL expression
   columnN, aliasName, (<.>), columnFromId,
   asColumnN,
-
-  -- * Qualified type
-  Qualified, unQualify, qualifyAlias, qualify,
-
-  qualifiedSQLas
   ) where
 
 import qualified Language.SQL.Keyword as SQL
-import qualified Language.SQL.Keyword.ConcatString as SQLs
 
 
 -- | Alias id definition
@@ -64,30 +58,3 @@ columnFromId a i = aliasName a <.> columnN i
 -- | Renamed column in SQL expression.
 asColumnN :: SQL.Keyword -> Int -> SQL.Keyword
 f `asColumnN` n = f `SQL.as` SQL.word (columnN  n)
-
-
--- | Qualified query by AliasId
-data Qualified q = Qualified  q !AliasId
-
--- | Unqualify.
-unQualify :: Qualified q -> q
-unQualify (Qualified fr _)   = fr
-
--- | Get 'AliasId' qualifier
-qualifyAlias :: Qualified q -> AliasId
-qualifyAlias (Qualified _ i) = i
-
--- | Add AliasId as qualifier.
-qualify :: fr -> AliasId -> Qualified fr
-qualify =  Qualified
-
--- | 'Functor' instance of 'Qualified'
-instance Functor Qualified where
-  fmap f (Qualified a i) = Qualified (f a) i
-
--- | From 'Qualified' SQL string into 'String'.
-qualifiedSQLas :: Qualified String -> String
-qualifiedSQLas q =
-  unQualify q
-  `SQLs.as`
-  (aliasName $ qualifyAlias q)

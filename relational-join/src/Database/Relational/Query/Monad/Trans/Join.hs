@@ -1,9 +1,5 @@
 module Database.Relational.Query.Monad.Trans.Join (
   QueryJoin, join', expandSQL,
-
-  updateContext,
-
-  updateJoinRestriction, updateRestriction
   ) where
 
 import Prelude hiding (product)
@@ -15,11 +11,13 @@ import Control.Applicative (Applicative (pure, (<*>)))
 import Database.Relational.Query.Internal.Context
   (Context, primeContext, updateProduct)
 import qualified Database.Relational.Query.Internal.Context as Context
+import Database.Relational.Query.Internal.Product (NodeAttr, restrictProduct, growProduct)
 import Database.Relational.Query.Projection (Projection)
-
+import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Expr (Expr, fromTriBool)
+import Database.Relational.Query.Sub (SubQuery, Qualified)
 
-import Database.Relational.Query.Internal.Product (restrictProduct)
+import Database.Relational.Query.Monad.Class (MonadQuery (..))
 
 
 newtype QueryJoin m a =
@@ -65,6 +63,27 @@ instance Monad m => Functor (QueryJoin m) where
 instance Monad m => Applicative (QueryJoin m) where
   pure  = return
   (<*>) = ap
+
+instance Monad q => MonadQuery (QueryJoin q) where
+  on     =  updateJoinRestriction
+  wheres =  updateRestriction
+  unsafeSubQuery          = unsafeSubQueryWithAttr
+  -- unsafeMergeAnotherQuery = unsafeQueryMergeWithAttr
+
+unsafeSubQueryWithAttr :: Monad q => NodeAttr -> Qualified SubQuery -> QueryJoin q (Projection r)
+unsafeSubQueryWithAttr attr qsub = do
+  updateContext (updateProduct (`growProduct` (attr, qsub)))
+  return $ Projection.fromQualifiedSubQuery qsub
+
+-- unsafeMergeAnother :: NodeAttr -> QueryJoin a -> QueryJoin a
+-- unsafeMergeAnother naR qR = do
+--   mayPL <- takeProduct
+--   v     <- qR
+--   maybe (return ()) (\pL -> restoreLeft pL naR) mayPL
+--   return v
+
+-- unsafeQueryMergeWithAttr :: NodeAttr -> QueryJoin (Projection r) -> QueryJoin (Projection r)
+-- unsafeQueryMergeWithAttr =  unsafeMergeAnother
 
 expandSQL :: Monad m => QueryJoin m (Projection r, t) -> m ((String, Projection r), t)
 expandSQL qp = do
