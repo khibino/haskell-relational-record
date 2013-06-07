@@ -38,7 +38,9 @@ module Database.Relational.Query.Projectable (
   SqlBinOp,
   unsafeBinOp,
 
-  (.=.), (.<>.), (.>.), (.<.), in', isNull, and, or,
+  (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
+
+  in', isNull, and, or,
 
   (.+.), (.-.), (./.), (.*.),
 
@@ -160,74 +162,115 @@ instance ProjectableShowSql Aggregation where
 paren :: String -> String
 paren =  ('(' :) . (++[')'])
 
+-- | Uni-operator type for SQL String
 type SqlUniOp = String -> String
 
+-- | Uni-operator from SQL keyword.
 sqlUniOp :: SQL.Keyword -> SqlUniOp
 sqlUniOp kw = (SQL.wordShow kw ++) . (' ' :) . paren
 
+-- | Unsafely make aggregation uni-operator from SQL keyword.
 unsafeAggregateOp :: SQL.Keyword
                   -> Projection a -> Aggregation b
 unsafeAggregateOp op = unsafeProjectSql . sqlUniOp op . unsafeShowSql
 
+-- | Aggregation function COUNT.
 count :: Projection a -> Aggregation Int32
 count =  unsafeAggregateOp SQL.COUNT
 
+-- | Aggregation function SUM.
 sum'  :: Num a => Projection a -> Aggregation a
 sum'  =  unsafeAggregateOp SQL.SUM
 
+-- | Aggregation function AVG.
 avg   :: (Num a, Fractional b)=> Projection a -> Aggregation b
 avg   =  unsafeAggregateOp SQL.AVG
 
+-- | Aggregation function MAX.
 max'  :: Ord a => Projection a -> Aggregation a
 max'  =  unsafeAggregateOp SQL.MAX
 
+-- | Aggregation function MIN.
 min'  :: Ord a => Projection a -> Aggregation a
 min'  =  unsafeAggregateOp SQL.MIN
 
+-- | Aggregation function EVERY.
+every :: Projection (Maybe Bool) -> Aggregation (Maybe Bool)
 every =  unsafeAggregateOp SQL.EVERY
+
+-- | Aggregation function ANY.
+any'  :: Projection (Maybe Bool) -> Aggregation (Maybe Bool)
 any'  =  unsafeAggregateOp SQL.ANY
+
+-- | Aggregation function SOME.
+some' :: Projection (Maybe Bool) -> Aggregation (Maybe Bool)
 some' =  unsafeAggregateOp SQL.SOME
 
-every, any', some' :: Projection (Maybe Bool) -> Aggregation (Maybe Bool)
 
-
+-- | Binary operator type for SQL String.
 type SqlBinOp = String -> String -> String
 
+-- | Binary operator from SQL operator string.
 sqlBinOp :: String -> SqlBinOp
 sqlBinOp =  SQLs.defineBinOp . SQL.word
 
+-- | Unsafely make projection binary operator from SQL operator string.
 unsafeBinOp :: (SqlProjectable p, ProjectableShowSql p)
             => SqlBinOp
             -> p a -> p b -> p c
 unsafeBinOp op a b = unsafeProjectSql . paren
                      $ op (unsafeShowSql a) (unsafeShowSql b)
 
+-- | Unsafely make projection compare binary operator from SQL operator string.
 compareBinOp :: (SqlProjectable p, ProjectableShowSql p)
              => SqlBinOp
              -> p a -> p a -> p (Maybe Bool)
 compareBinOp =  unsafeBinOp
 
+-- | Unsafely make projection number binary operator from SQL operator string.
 numBinOp :: (SqlProjectable p, ProjectableShowSql p, Num a)
          => SqlBinOp
          -> p a -> p a -> p a
 numBinOp =  unsafeBinOp
 
 
+-- | Compare operator corresponding SQL @=@.
+(.=.)  :: (SqlProjectable p, ProjectableShowSql p)
+  => p ft -> p ft -> p (Maybe Bool)
 (.=.)  =  compareBinOp (SQLs..=.)
-(.<>.) =  compareBinOp (SQLs..<>.)
-(.>.)  =  compareBinOp (SQLs..>.)
+
+-- | Compare operator corresponding SQL @<@.
+(.<.)  :: (SqlProjectable p, ProjectableShowSql p)
+  => p ft -> p ft -> p (Maybe Bool)
 (.<.)  =  compareBinOp (SQLs..<.)
 
-(.=.), (.<>.), (.>.), (.<.)
-  :: (SqlProjectable p, ProjectableShowSql p)
+-- | Compare operator corresponding SQL @<=@.
+(.<=.)  :: (SqlProjectable p, ProjectableShowSql p)
   => p ft -> p ft -> p (Maybe Bool)
+(.<=.)  =  compareBinOp (SQLs..<=.)
 
-and = compareBinOp SQLs.and
-or  = compareBinOp SQLs.or
+-- | Compare operator corresponding SQL @>@.
+(.>.)  :: (SqlProjectable p, ProjectableShowSql p)
+  => p ft -> p ft -> p (Maybe Bool)
+(.>.)  =  compareBinOp (SQLs..>.)
 
-and, or
-  :: (SqlProjectable p, ProjectableShowSql p)
-  => p (Maybe Bool) ->  p (Maybe Bool) ->  p (Maybe Bool)
+-- | Compare operator corresponding SQL @>=@.
+(.>=.)  :: (SqlProjectable p, ProjectableShowSql p)
+  => p ft -> p ft -> p (Maybe Bool)
+(.>=.)  =  compareBinOp (SQLs..>=.)
+
+-- | Compare operator corresponding SQL @<>@.
+(.<>.) :: (SqlProjectable p, ProjectableShowSql p)
+  => p ft -> p ft -> p (Maybe Bool)
+(.<>.) =  compareBinOp (SQLs..<>.)
+
+and :: (SqlProjectable p, ProjectableShowSql p)
+  => p ft -> p ft -> p (Maybe Bool)
+and =  compareBinOp SQLs.and
+
+or  :: (SqlProjectable p, ProjectableShowSql p)
+  => p ft -> p ft -> p (Maybe Bool)
+or  =  compareBinOp SQLs.or
 
 numBinOp' :: (SqlProjectable p, ProjectableShowSql p, Num a)
           => String -> p a -> p a -> p a
