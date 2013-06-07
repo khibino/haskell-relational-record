@@ -5,7 +5,7 @@ module Database.Relational.Query.Internal.Context (
 
   primeContext,
 
-  updateProduct, takeProduct, restoreLeft,
+  updateProduct, -- takeProduct, restoreLeft,
   addRestriction,
 
   composeSQL,
@@ -55,11 +55,11 @@ updateProduct' uf ctx = ctx { product = uf . product $ ctx }
 updateProduct :: (Maybe QueryProductNode -> QueryProductNode) -> Context -> Context
 updateProduct uf = updateProduct' (Just . uf)
 
-takeProduct :: Context -> (Maybe QueryProductNode, Context)
-takeProduct ctx = (product ctx, updateProduct' (const Nothing) ctx)
+-- takeProduct :: Context -> (Maybe QueryProductNode, Context)
+-- takeProduct ctx = (product ctx, updateProduct' (const Nothing) ctx)
 
-restoreLeft :: QueryProductNode -> Product.NodeAttr -> Context -> Context
-restoreLeft pL naR ctx = updateProduct (Product.growLeft pL naR) ctx
+-- restoreLeft :: QueryProductNode -> Product.NodeAttr -> Context -> Context
+-- restoreLeft pL naR ctx = updateProduct (Product.growLeft pL naR) ctx
 
 addRestriction :: Expr (Maybe Bool) -> Context -> Context
 addRestriction e1 ctx =

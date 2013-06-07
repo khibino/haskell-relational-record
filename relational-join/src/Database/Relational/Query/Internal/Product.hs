@@ -12,7 +12,7 @@ module Database.Relational.Query.Internal.Product (
   -- * Product tree type
   NodeAttr (Just', Maybe),
   ProductTree, Node, QueryProduct, QueryProductNode,
-  nodeTree, growRight, growLeft,
+  nodeTree, growRight, -- growLeft,
   growProduct, product, restrictProduct,
 
   -- * Compose joined SQL
@@ -77,14 +77,14 @@ growRight = d  where
   d Nothing  (naR, q) = node naR q
   d (Just l) (naR, q) = node Just' $ Join l (node naR q) Nothing
 
--- | Push new tree node into product left term.
-growLeft :: Node q         -- ^ New node to push into left
-         -> NodeAttr       -- ^ Node attribute to replace rigth node attribute.
-         -> Maybe (Node q) -- ^ Current tree
-         -> Node q         -- ^ Result node
-growLeft =  d  where
-  d q _naR Nothing  = q -- error is better?
-  d q naR  (Just r) = node Just' $ Join q (node naR (nodeTree r)) Nothing
+-- -- | Push new tree node into product left term.
+-- growLeft :: Node q         -- ^ New node to push into left
+--          -> NodeAttr       -- ^ Node attribute to replace rigth node attribute.
+--          -> Maybe (Node q) -- ^ Current tree
+--          -> Node q         -- ^ Result node
+-- growLeft =  d  where
+--   d q _naR Nothing  = q -- error is better?
+--   d q naR  (Just r) = node Just' $ Join q (node naR (nodeTree r)) Nothing
 
 -- | Push new leaf node into product right term.
 growProduct :: Maybe (Node q) -- ^ Current tree
