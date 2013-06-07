@@ -221,90 +221,111 @@ unsafeBinOp :: (SqlProjectable p, ProjectableShowSql p)
 unsafeBinOp op a b = unsafeProjectSql . paren
                      $ op (unsafeShowSql a) (unsafeShowSql b)
 
--- | Unsafely make projection compare binary operator from SQL operator string.
+-- | Unsafely make compare projection binary operator from string binary operator.
 compareBinOp :: (SqlProjectable p, ProjectableShowSql p)
              => SqlBinOp
              -> p a -> p a -> p (Maybe Bool)
 compareBinOp =  unsafeBinOp
 
--- | Unsafely make projection number binary operator from SQL operator string.
+-- | Unsafely make number projection binary operator from string binary operator.
 numBinOp :: (SqlProjectable p, ProjectableShowSql p, Num a)
          => SqlBinOp
          -> p a -> p a -> p a
 numBinOp =  unsafeBinOp
 
 
--- | Compare operator corresponding SQL @=@.
+-- | Compare operator corresponding SQL /=/ .
 (.=.)  :: (SqlProjectable p, ProjectableShowSql p)
   => p ft -> p ft -> p (Maybe Bool)
 (.=.)  =  compareBinOp (SQLs..=.)
 
--- | Compare operator corresponding SQL @<@.
+-- | Compare operator corresponding SQL /</ .
 (.<.)  :: (SqlProjectable p, ProjectableShowSql p)
   => p ft -> p ft -> p (Maybe Bool)
 (.<.)  =  compareBinOp (SQLs..<.)
 
--- | Compare operator corresponding SQL @<=@.
+-- | Compare operator corresponding SQL /<=/ .
 (.<=.)  :: (SqlProjectable p, ProjectableShowSql p)
   => p ft -> p ft -> p (Maybe Bool)
 (.<=.)  =  compareBinOp (SQLs..<=.)
 
--- | Compare operator corresponding SQL @>@.
+-- | Compare operator corresponding SQL />/ .
 (.>.)  :: (SqlProjectable p, ProjectableShowSql p)
   => p ft -> p ft -> p (Maybe Bool)
 (.>.)  =  compareBinOp (SQLs..>.)
 
--- | Compare operator corresponding SQL @>=@.
+-- | Compare operator corresponding SQL />=/ .
 (.>=.)  :: (SqlProjectable p, ProjectableShowSql p)
   => p ft -> p ft -> p (Maybe Bool)
 (.>=.)  =  compareBinOp (SQLs..>=.)
 
--- | Compare operator corresponding SQL @<>@.
+-- | Compare operator corresponding SQL /<>/ .
 (.<>.) :: (SqlProjectable p, ProjectableShowSql p)
   => p ft -> p ft -> p (Maybe Bool)
 (.<>.) =  compareBinOp (SQLs..<>.)
 
+-- | Logical operator corresponding SQL /AND/ .
 and :: (SqlProjectable p, ProjectableShowSql p)
   => p ft -> p ft -> p (Maybe Bool)
 and =  compareBinOp SQLs.and
 
+-- | Logical operator corresponding SQL /OR/ .
 or  :: (SqlProjectable p, ProjectableShowSql p)
   => p ft -> p ft -> p (Maybe Bool)
 or  =  compareBinOp SQLs.or
 
+-- | Unsafely make number projection binary operator from SQL operator string.
 numBinOp' :: (SqlProjectable p, ProjectableShowSql p, Num a)
           => String -> p a -> p a -> p a
 numBinOp' = numBinOp . sqlBinOp
 
+-- | Number operator corresponding SQL /+/ .
+(.+.) :: (SqlProjectable p, ProjectableShowSql p, Num a)
+  => p a -> p a -> p a
 (.+.) =  numBinOp' "+"
+
+-- | Number operator corresponding SQL /-/ .
+(.-.) :: (SqlProjectable p, ProjectableShowSql p, Num a)
+  => p a -> p a -> p a
 (.-.) =  numBinOp' "-"
+
+-- | Number operator corresponding SQL /// .
+(./.) :: (SqlProjectable p, ProjectableShowSql p, Num a)
+  => p a -> p a -> p a
 (./.) =  numBinOp' "/"
+
+-- | Number operator corresponding SQL /*/ .
+(.*.) :: (SqlProjectable p, ProjectableShowSql p, Num a)
+  => p a -> p a -> p a
 (.*.) =  numBinOp' "*"
 
-(.+.), (.-.), (./.), (.*.)
-  :: (SqlProjectable p, ProjectableShowSql p, Num a)
-  => p a -> p a -> p a
-
+-- | Binary operator corresponding SQL /IN/ .
 in' :: (SqlProjectable p, ProjectableShowSql p)
     => p t -> p [t] -> p (Maybe Bool)
 in' =  unsafeBinOp (SQLs.in')
 
+-- | Operator corresponding SQL /IS NULL/ .
 isNull :: (SqlProjectable p, ProjectableShowSql p)
        => p (Maybe t) -> p (Maybe Bool)
 isNull x = compareBinOp (SQLs.defineBinOp SQL.IS) x valueNull
 
 
+-- | Placeholder parameter type which has real parameter type arguemnt 'p'.
 data PlaceHolders p = PlaceHolders
 
+-- | Unsafely add placeholder parameter to queries.
 addPlaceHolders :: Functor f => f a -> f (PlaceHolders p, a)
 addPlaceHolders =  fmap ((,) PlaceHolders)
 
+-- | Unsafely cast placeholder parameter type.
 unsafeCastPlaceHolders :: PlaceHolders a -> PlaceHolders b
 unsafeCastPlaceHolders PlaceHolders = PlaceHolders
 
+-- | Provide scoped placeholder and return its parameter object.
 placeholder' :: SqlProjectable p => (p t -> a) ->  (PlaceHolders t, a)
 placeholder' f = (PlaceHolders, f $ unsafeProjectSql "?")
 
+-- | Provide scoped placeholder and return its parameter object. Monadic version.
 placeholder :: (SqlProjectable p, Monad m) => (p t -> m a) -> m (PlaceHolders t, a)
 placeholder f = do
   let (ph, ma) = placeholder' f
@@ -312,37 +333,47 @@ placeholder f = do
   return (ph, a)
 
 
+-- | Interface to zip projections.
 class ProjectableZip p where
   projectZip :: p a -> p b -> p (a, b)
 
+-- | Zip placeholder parameters.
 instance ProjectableZip PlaceHolders where
   projectZip PlaceHolders PlaceHolders = PlaceHolders
 
+-- | Zip 'Projection'.
 instance ProjectableZip Projection where
   projectZip = Projection.compose
 
+-- | Zip 'Aggregation'
 instance ProjectableZip Aggregation where
   projectZip = Aggregation.compose
 
+-- | Binary operator the same as 'projectZip'.
 (><) ::ProjectableZip p => p a -> p b -> p (a, b)
 (><) = projectZip
 
+-- | Interface to control 'Maybe' of phantom type in projections.
 class ProjectableMaybe p where
   just :: p a -> p (Maybe a)
   flattenMaybe :: p (Maybe (Maybe a)) -> p (Maybe a)
 
+-- | Control phantom 'Maybe' type in placeholder parameters.
 instance ProjectableMaybe PlaceHolders where
   just         = unsafeCastPlaceHolders
   flattenMaybe = unsafeCastPlaceHolders
 
+-- | Control phantom 'Maybe' type in projection type 'Projection'.
 instance ProjectableMaybe Projection where
   just         = Projection.just
   flattenMaybe = Projection.flattenMaybe
 
+-- | Control phantom 'Maybe' type in SQL expression type 'Expr'.
 instance ProjectableMaybe Expr where
   just         = Expr.just
   flattenMaybe = Expr.flattenMaybe
 
+-- | Control phantom 'Maybe' type in aggregate projection type 'Projection'.
 instance ProjectableMaybe Aggregation where
   just         = Aggregation.just
   flattenMaybe = Aggregation.flattenMaybe
