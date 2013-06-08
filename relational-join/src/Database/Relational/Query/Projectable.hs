@@ -16,7 +16,7 @@ module Database.Relational.Query.Projectable (
   expr,
 
   -- * Projectable from SQL strings
-  SqlProjectable (unsafeProjectSql),
+  SqlProjectable (unsafeProjectSqlTerms), unsafeProjectSql,
 
   value,
   valueTrue, valueFalse,
@@ -53,9 +53,12 @@ import Prelude hiding (and, or)
 
 import Data.Int (Int32)
 import Data.List (intercalate)
+import Control.Applicative ((<$>))
 
 import qualified Language.SQL.Keyword as SQL
 import qualified Language.SQL.Keyword.ConcatString as SQLs
+
+import Database.Record (PersistableWidth, PersistableRecordWidth, derivedWidth)
 
 import Database.Relational.Query.Expr (Expr, ShowConstantSQL (showConstantSQL))
 import qualified Database.Relational.Query.Expr as Expr
@@ -68,12 +71,20 @@ import Database.Relational.Query.Aggregation (Aggregation)
 import qualified Database.Relational.Query.Aggregation as Aggregation
 
 
--- | SQL expression strings which represent projection.
-sqlString :: Projection r -> String
-sqlString =  d . columns  where
+-- | Parened String.
+paren :: String -> String
+paren =  ('(' :) . (++[')'])
+
+-- | String of SQL terms.
+sqlTermsString :: [String] -> String
+sqlTermsString = d  where
   d ([])  = error $ "Projection: no columns."
   d ([c]) = c
-  d (cs) = '(' : intercalate ", " cs ++ [')']
+  d (cs) =  paren $ intercalate ", " cs
+
+-- | SQL expression strings which represent projection.
+sqlString :: Projection r -> String
+sqlString =  sqlTermsString . columns  where
 
 -- | 'Expr' from 'Projection'
 toExpr :: Projection r -> Expr r
@@ -100,25 +111,28 @@ expr :: Projection ft -> Expr ft
 expr =  toExpr
 
 
--- | Unsafely make 'Projection' from single SQL term.
-unsafeSqlProjection :: String -> Projection t
-unsafeSqlProjection =  unsafeFromColumns . (:[])
+unsafeSqlTermsProjection :: [String] -> Projection t
+unsafeSqlTermsProjection =  unsafeFromColumns
 
--- | Interface to project single SQL term unsafely.
+-- | Interface to project SQL terms unsafely.
 class SqlProjectable p where
-  unsafeProjectSql :: String -> p t
+  unsafeProjectSqlTerms :: [String] -> p t
 
--- | Unsafely make 'Projection' from single SQL term.
+-- | Unsafely make 'Projection' from SQL terms.
 instance SqlProjectable Projection where
-  unsafeProjectSql = unsafeSqlProjection
+  unsafeProjectSqlTerms = unsafeSqlTermsProjection
 
--- | Unsafely make 'Expr' from single SQL term.
+-- | Unsafely make 'Expr' from SQL terms.
 instance SqlProjectable Expr where
-  unsafeProjectSql = UnsafeExpr.Expr
+  unsafeProjectSqlTerms = UnsafeExpr.Expr . sqlTermsString
 
--- | Unsafely make 'Aggregation' from single SQL term.
+-- | Unsafely make 'Aggregation' from SQL terms.
 instance SqlProjectable Aggregation where
-  unsafeProjectSql = Aggregation.unsafeFromProjection . unsafeProjectSql
+  unsafeProjectSqlTerms = Aggregation.unsafeFromProjection . unsafeProjectSqlTerms
+
+-- | Unsafely Project single SQL term.
+unsafeProjectSql :: SqlProjectable p => String -> p t
+unsafeProjectSql =  unsafeProjectSqlTerms . (:[])
 
 -- | Polymorphic projection of SQL null value.
 valueNull :: SqlProjectable p => p (Maybe a)
@@ -157,10 +171,6 @@ instance ProjectableShowSql Expr where
 instance ProjectableShowSql Aggregation where
   unsafeShowSql = unsafeShowSql . Aggregation.projection
 
-
--- | Parened String.
-paren :: String -> String
-paren =  ('(' :) . (++[')'])
 
 -- | Uni-operator type for SQL String
 type SqlUniOp = String -> String
@@ -321,12 +331,20 @@ addPlaceHolders =  fmap ((,) PlaceHolders)
 unsafeCastPlaceHolders :: PlaceHolders a -> PlaceHolders b
 unsafeCastPlaceHolders PlaceHolders = PlaceHolders
 
+unsafeProjectPlaceHolder' :: (PersistableWidth r, SqlProjectable p)
+                               => (PersistableRecordWidth r, p r)
+unsafeProjectPlaceHolder' =  unsafeProjectSqlTerms . (`replicate` "?") <$> derivedWidth
+
+unsafeProjectPlaceHolder :: (PersistableWidth r, SqlProjectable p)
+                               => p r
+unsafeProjectPlaceHolder =  snd unsafeProjectPlaceHolder'
+
 -- | Provide scoped placeholder and return its parameter object.
-placeholder' :: SqlProjectable p => (p t -> a) ->  (PlaceHolders t, a)
-placeholder' f = (PlaceHolders, f $ unsafeProjectSql "?")
+placeholder' :: (PersistableWidth t, SqlProjectable p) => (p t -> a) ->  (PlaceHolders t, a)
+placeholder' f = (PlaceHolders, f $ unsafeProjectPlaceHolder)
 
 -- | Provide scoped placeholder and return its parameter object. Monadic version.
-placeholder :: (SqlProjectable p, Monad m) => (p t -> m a) -> m (PlaceHolders t, a)
+placeholder :: (PersistableWidth t, SqlProjectable p, Monad m) => (p t -> m a) -> m (PlaceHolders t, a)
 placeholder f = do
   let (ph, ma) = placeholder' f
   a <- ma
