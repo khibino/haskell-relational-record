@@ -17,8 +17,8 @@ module Database.Record.Persistable (
   PersistableSqlType, runPersistableNullValue, unsafePersistableSqlTypeFromNull,
 
   -- * Specify record width
-  PersistableRecordWidth(runPersistableRecordWidth),
-  unsafeValueWidth, (<&>), maybeWidth,
+  PersistableRecordWidth, runPersistableRecordWidth,
+  unsafePersistableRecordWidth, unsafeValueWidth, (<&>), maybeWidth,
 
   -- * Bidirectional conversion between single column type and SQL type
   PersistableSqlValue, persistableSqlValue,
@@ -34,7 +34,7 @@ module Database.Record.Persistable (
   PersistableType(..), sqlNullValue,
   PersistableValue (..), fromSql, toSql,
   derivedPersistableValueRecord,
-  PersistableWidth (..), unsafePersistableRecordWidth,
+  PersistableWidth (..), derivedWidth,
   Persistable (..)
   ) where
 
@@ -75,7 +75,11 @@ persistableSqlValue =  const PersistableSqlValue
 -- | Proof object to specify width of Haskell type 'a'
 --   when converting to SQL type list.
 newtype PersistableRecordWidth a =
-  PersistableRecordWidth { runPersistableRecordWidth :: Int }
+  PersistableRecordWidth Int
+
+-- | Get width 'Int' value of record type 'a'.
+runPersistableRecordWidth :: PersistableRecordWidth a -> Int
+runPersistableRecordWidth (PersistableRecordWidth w) = w
 
 -- | Unsafely generate 'PersistableRecordWidth' proof object from specified width of Haskell type 'a'.
 unsafePersistableRecordWidth :: Int                      -- ^ Specify width of Haskell type 'a'
@@ -172,6 +176,11 @@ instance PersistableWidth a => PersistableWidth (Maybe a) where
 -- | Inference rule of 'PersistableRecordWidth' for Haskell unit () type. Derive from axiom.
 instance PersistableWidth () where
   persistableWidth = voidWidth
+
+-- | Pass type parameter and inferred width value.
+derivedWidth :: PersistableWidth a => (PersistableRecordWidth a, Int)
+derivedWidth =  (pw, runPersistableRecordWidth pw) where
+  pw = persistableWidth
 
 
 -- | Interface of inference rule for 'PersistableSqlValue' proof object
