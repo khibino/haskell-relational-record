@@ -18,6 +18,7 @@ module Database.Relational.Query.Projectable (
   -- * Projectable from SQL strings
   SqlProjectable (unsafeProjectSqlTerms), unsafeProjectSql,
 
+  -- * Projections of values
   value,
   valueTrue, valueFalse,
   values,
@@ -44,8 +45,10 @@ module Database.Relational.Query.Projectable (
 
   (.+.), (.-.), (./.), (.*.),
 
-  -- * Manipulate phantom types
+  -- * Zipping projections
   ProjectableZip (projectZip), (><),
+
+  -- * 'Maybe' type projecitoins
   ProjectableMaybe (just, flattenMaybe)
   ) where
 
