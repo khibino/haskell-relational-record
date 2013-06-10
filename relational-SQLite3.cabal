@@ -1,0 +1,63 @@
+name:                relational-SQLite3
+version:             0.0.1.0
+synopsis:            SQL Server driver for haskell-relational-record
+description:         This package contiains a diriver of haskell-relational-record
+                     to connect SQLite3.
+homepage:            http://twitter.com/yuga
+license:             BSD3
+license-file:        LICENSE
+author:              Shohei Murayama
+maintainer:          shohei.murayama@gmail.com
+copyright:           Copyright (c) 2013 Shohei Murayama
+category:            Database
+build-type:          Simple
+cabal-version:       >=1.10
+
+source-repository    head
+  type:              git
+  location:          https://github.com/yuga/haskell-relational-record-driver-sqlite3
+
+library
+  default-language:    Haskell2010
+
+  exposed-modules:
+                       Database.HDBC.Schema.SQLite3
+                       Database.Relational.Schema.SQLite3
+
+  other-modules:
+                       Database.Relational.Schema.SQLite3Syscat.TableInfo
+
+  build-depends:         base <5
+                       , array
+                       , containers
+                       , time
+                       , sql-words
+                       , bytestring
+                       , text
+                       , convertible
+                       , template-haskell
+                       , names-th
+                       , relational-join
+                       , relational-query-HDBC
+                       , DB-record
+                       , HDBC >=2
+                       , HDBC-sqlite3
+                       , HDBC-session
+  hs-source-dirs:      src
+
+test-Suite sqlite3
+  default-language:    Haskell2010
+  build-depends:         base <5
+                       , template-haskell
+                       , HDBC-sqlite3
+                       , names-th
+                       , DB-record
+                       , relational-query-HDBC
+                       , relational-SQLite3
+                       , Cabal
+                       , bytestring
+                       , time
+  other-modules:         SQLite3TestDataSource
+  type:                  detailed-0.9
+  test-module:           SQLite3Test
+  hs-source-dirs:        test
