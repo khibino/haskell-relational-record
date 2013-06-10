@@ -143,7 +143,7 @@ instance ProjectableGeneralizedZip () a a where
 instance ProjectableGeneralizedZip a b (a, b) where
   generalizedZip = projectZip
 
--- | Binary operator version of generalizedZip.
+-- | Binary operator the same as 'generalizedZip'.
 (>?<) :: (ProjectableGeneralizedZip a b c, ProjectableZip p)
       => p a -> p b -> p c
 (>?<) =  generalizedZip
