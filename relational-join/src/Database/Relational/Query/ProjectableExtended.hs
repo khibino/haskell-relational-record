@@ -36,7 +36,7 @@ import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Aggregation (Aggregation)
 import qualified Database.Relational.Query.Aggregation as Aggregation
 import Database.Relational.Query.Projectable
-  (Projectable(project), projectAggregation,
+  (Projectable(project), AggregateProjectable(projectAggregation),
    ProjectableMaybe (flattenMaybe), ProjectableZip(projectZip))
 import Database.Relational.Query.Pi (Pi)
 
@@ -100,7 +100,7 @@ p !?? pi' = project $ flattenPiMaybe p pi'
 
 -- | Get narrower aggregated projection along with projection path
 --   and project into result projection type.
-(<!>) :: (PersistableWidth b, Projectable p)
+(<!>) :: (PersistableWidth b, AggregateProjectable p)
       => Aggregation a -- ^ Source 'Aggregation'
       -> Pi a b        -- ^ Projection path
       -> p b           -- ^ Narrower projected object
@@ -109,7 +109,7 @@ p !?? pi' = project $ flattenPiMaybe p pi'
 -- | Get narrower aggregated projection along with projection path
 --   and project into result projection type.
 --   'Maybe' phantom type is propagated.
-(<?!>) :: (PersistableWidth b, Projectable p)
+(<?!>) :: (PersistableWidth b, AggregateProjectable p)
        => Aggregation (Maybe a) -- ^ Source 'Aggregation'. 'Maybe' phantom type
        -> Pi a b                -- ^ Projection path
        -> p (Maybe b)           -- ^ Narrower projected object. 'Maybe' phantom type result
@@ -118,7 +118,7 @@ p !?? pi' = project $ flattenPiMaybe p pi'
 -- | Get narrower aggregated projection along with projection path
 --   and project into result projection type.
 --   'Maybe' phantom type is propagated. Projection path leaf is 'Maybe' case.
-(<?!?>) :: (PersistableWidth b, Projectable p)
+(<?!?>) :: (PersistableWidth b, AggregateProjectable p)
         => Aggregation (Maybe a) -- ^ Source 'Aggregation'. 'Maybe' phantom type
         -> Pi a (Maybe b)        -- ^ Projection path. 'Maybe' type leaf
         -> p (Maybe b)           -- ^ Narrower projected object. 'Maybe' phantom type result
@@ -134,7 +134,7 @@ flattenPiMaybe' a = flatten . Aggregation.piMaybe a
 -- | Get narrower aggregated projection with flatten leaf phantom type along with projection path
 --   and project into result projection type.
 (<!??>) :: (PersistableWidth b, ProjectableFlattenMaybe (Maybe b) c,
-            Projectable p, ProjectableMaybe p)
+            AggregateProjectable p, ProjectableMaybe p)
         => Aggregation (Maybe a) -- ^ Source 'Aggregation'. 'Maybe' phantom type
         -> Pi a b                -- ^ Projection path
         -> p c                   -- ^ Narrower flatten and projected object.

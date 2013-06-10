@@ -12,7 +12,7 @@ module Database.Relational.Query.Projectable (
   -- * Projectable from Projections
   Projectable (project),
 
-  projectAggregation,
+  AggregateProjectable (projectAggregation),
   expr,
 
   -- * Projectable from SQL strings
@@ -105,9 +105,21 @@ instance Projectable Projection where
 instance Projectable Expr where
   project = toExpr
 
--- | Project from 'Aggregation' like 'Projection'.
-projectAggregation :: Projectable p => Aggregation a -> p a
-projectAggregation =  project . Aggregation.projection
+-- | Projection interface for 'Aggregation'.
+class AggregateProjectable p where
+  projectAggregation :: Aggregation a -> p a
+
+-- | Project from 'Aggregation' into 'Aggregation'.
+instance AggregateProjectable Aggregation where
+  projectAggregation = id
+
+-- | Project from 'Aggregation' into 'Projection'.
+instance AggregateProjectable Projection where
+  projectAggregation = project . Aggregation.projection
+
+-- | Project from 'Aggregation' into 'Expr'.
+instance AggregateProjectable Expr where
+  projectAggregation = project . Aggregation.projection
 
 -- | 'Expr' from 'Projection'
 expr :: Projection ft -> Expr ft
