@@ -56,6 +56,7 @@ stringExprSQL =  ('\'':) . (++ "'") . escapeStringToSqlExpr
 
 -- | Interface for constant SQL expression.
 class ShowConstantSQL a where
+  -- | Make constant SQL expression 'String' from Haskell type 'a'.
   showConstantSQL :: a -> String
 
 -- | Constant SQL expression of 'Int16'.
