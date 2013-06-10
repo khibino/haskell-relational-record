@@ -16,13 +16,14 @@
 module Database.Relational.Query.ProjectableExtended (
   -- * Projection for nested 'Maybe's
   ProjectableFlattenMaybe (flatten),
-  
-  piMaybeFlatten,
 
-  (!), (?!), (?!?), (??!),
+  flattenPiMaybe,
+  flattenPiMaybe',
 
-  piMaybeAggregation',
-  (<!>), (<?!>), (<?!?>), (<??!>),
+  -- * Get narrower projections
+  (!), (?!), (?!?), (!??),
+
+  (<!>), (<?!>), (<?!?>), (<!??>),
 
   -- * Zipping projection type trick
   ProjectableGeneralizedZip (generalizedZip), (>?<)
@@ -64,7 +65,7 @@ p ! pi' = project $ Projection.pi p pi'
 
 -- | Get narrower projection along with projection path
 --   and project into result projection type.
---   Phantom 'Maybe' type is propagated.
+--   'Maybe' phantom type is propagated.
 (?!) :: (PersistableWidth b, Projectable p)
      => Projection (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
      -> Pi a b               -- ^ Projection path
@@ -73,26 +74,29 @@ p ?! pi' = project $ Projection.piMaybe p pi'
 
 -- | Get narrower projection along with projection path
 --   and project into result projection type.
---   Phantom 'Maybe' type is propagated. Projection path leaf is 'Maybe' case.
+--   'Maybe' phantom type is propagated. Projection path leaf is 'Maybe' case.
 (?!?) :: (PersistableWidth b, Projectable p)
-      => Projection (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
+      => Projection (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
       -> Pi a (Maybe b)       -- ^ Projection path. 'Maybe' type leaf
-      -> p (Maybe b)          -- ^ Narrower projected object. 'Maybe' type result
+      -> p (Maybe b)          -- ^ Narrower projected object. 'Maybe' phantom type result
 p ?!? pi' = project $ Projection.piMaybe' p pi'
 
-piMaybeFlatten :: (PersistableWidth b, ProjectableFlattenMaybe c (Maybe a))
-               => Projection c -> Pi a b -> Projection (Maybe b)
-piMaybeFlatten = Projection.piMaybe . flatten
+-- | Get narrower projection with flatten leaf phantom type along with projection path.
+flattenPiMaybe :: (PersistableWidth b, ProjectableFlattenMaybe (Maybe b) c)
+               => Projection (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
+               -> Pi a b               -- ^ Projection path
+               -> Projection c         -- ^ Narrower 'Projection'. Flatten 'Maybe' phantom type
+flattenPiMaybe p = flatten . Projection.piMaybe p
 
-(??!) :: (PersistableWidth b, ProjectableFlattenMaybe c (Maybe a),
+-- | Get narrower projection with flatten leaf phantom type along with projection path
+--   and project into result projection type.
+(!??) :: (PersistableWidth b, ProjectableFlattenMaybe (Maybe b) c,
           Projectable p, ProjectableMaybe p)
-      => Projection c -> Pi a b -> p (Maybe b)
-p ??! pi' = project $ piMaybeFlatten p pi'
+       => Projection (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
+       -> Pi a b               -- ^ Projection path.
+       -> p c                  -- ^ Narrower flatten and projected object.
+p !?? pi' = project $ flattenPiMaybe p pi'
 
-
-piMaybeAggregation' :: (PersistableWidth b, ProjectableFlattenMaybe c (Maybe a))
-                    => Aggregation c -> Pi a b -> Aggregation (Maybe b)
-piMaybeAggregation' = Aggregation.piMaybe . flatten
 
 -- | Get narrower aggregated projection along with projection path
 --   and project into result projection type.
@@ -104,27 +108,37 @@ piMaybeAggregation' = Aggregation.piMaybe . flatten
 
 -- | Get narrower aggregated projection along with projection path
 --   and project into result projection type.
---   Phantom 'Maybe' type is propagated.
+--   'Maybe' phantom type is propagated.
 (<?!>) :: (PersistableWidth b, Projectable p)
-       => Aggregation (Maybe a) -- ^ Source 'Aggregation'. 'Maybe' type
+       => Aggregation (Maybe a) -- ^ Source 'Aggregation'. 'Maybe' phantom type
        -> Pi a b                -- ^ Projection path
-       -> p (Maybe b)           -- ^ Narrower projected object. 'Maybe' type result
+       -> p (Maybe b)           -- ^ Narrower projected object. 'Maybe' phantom type result
 (<?!>) a = projectAggregation . Aggregation.piMaybe a
 
 -- | Get narrower aggregated projection along with projection path
 --   and project into result projection type.
---   Phantom 'Maybe' type is propagated. Projection path leaf is 'Maybe' case.
+--   'Maybe' phantom type is propagated. Projection path leaf is 'Maybe' case.
 (<?!?>) :: (PersistableWidth b, Projectable p)
-        => Aggregation (Maybe a) -- ^ Source 'Aggregation'. 'Maybe' type
+        => Aggregation (Maybe a) -- ^ Source 'Aggregation'. 'Maybe' phantom type
         -> Pi a (Maybe b)        -- ^ Projection path. 'Maybe' type leaf
-        -> p (Maybe b)           -- ^ Narrower projected object. 'Maybe' type result
+        -> p (Maybe b)           -- ^ Narrower projected object. 'Maybe' phantom type result
 (<?!?>) a = projectAggregation . Aggregation.piMaybe' a
 
-(<??!>) :: (PersistableWidth b, Projectable p, ProjectableFlattenMaybe c (Maybe a))
-        => Aggregation c
-        -> Pi a b
-        -> p (Maybe b)
-(<??!>) a = projectAggregation . piMaybeAggregation' a
+-- | Get narrower aggregated projection with flatten leaf phantom type along with projection path.
+flattenPiMaybe' :: (PersistableWidth b, ProjectableFlattenMaybe (Maybe b) c)
+                => Aggregation (Maybe a) -- ^ Source 'Aggregation'. 'Maybe' phantom type
+                -> Pi a b                -- ^ Projection path
+                -> Aggregation c         -- ^ Narrower 'Aggregation'. Flatten 'Maybe' phantom type
+flattenPiMaybe' a = flatten . Aggregation.piMaybe a
+
+-- | Get narrower aggregated projection with flatten leaf phantom type along with projection path
+--   and project into result projection type.
+(<!??>) :: (PersistableWidth b, ProjectableFlattenMaybe (Maybe b) c,
+            Projectable p, ProjectableMaybe p)
+        => Aggregation (Maybe a) -- ^ Source 'Aggregation'. 'Maybe' phantom type
+        -> Pi a b                -- ^ Projection path
+        -> p c                   -- ^ Narrower flatten and projected object.
+a <!??> pi' = projectAggregation $ flattenPiMaybe' a pi'
 
 
 -- | Interface for Zipping type trick.
@@ -148,5 +162,5 @@ instance ProjectableGeneralizedZip a b (a, b) where
       => p a -> p b -> p c
 (>?<) =  generalizedZip
 
-infixl 8 !, ?!, ?!?, ??!, <!>, <?!>, <?!?>, <??!>
+infixl 8 !, ?!, ?!?, !??, <!>, <?!>, <?!?>, <!??>
 infixl 1 >?<
