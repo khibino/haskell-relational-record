@@ -1,8 +1,20 @@
+-- |
+-- Module      : Database.Relational.Query.Monad.Trans.Aggregate
+-- Copyright   : 2013 Kei Hibino
+-- License     : BSD3
+--
+-- Maintainer  : ex8k.hibino@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
+--
+-- This module defines monad transformer which lift
+-- from 'MonadQuery' into Aggregated query.
 module Database.Relational.Query.Monad.Trans.Aggregate (
+  -- * Transformer into aggregated query
   Aggregatings, aggregate,
 
-  appendGroupBys,
-
+  -- * Result group by SQLs
+  appendGroupBys
   ) where
 
 import Control.Monad (liftM, ap)
@@ -25,12 +37,15 @@ import Database.Relational.Query.Monad.Class
   (MonadQuery(on, wheres, unsafeSubQuery), MonadAggregate(groupBy, having))
 
 
+-- | State type to accumulate aggregating context.
 newtype Aggregatings m a =
   Aggregatings { aggregatingState :: StateT AggregatingContext m a }
 
+-- | Expand aggregating context state.
 runAggregating :: Aggregatings m a -> AggregatingContext -> m (a, AggregatingContext)
 runAggregating =  runStateT . aggregatingState
 
+-- | Expand aggregating context state with initial context.
 runAggregatingPrime :: Aggregatings m a -> m (a, AggregatingContext)
 runAggregatingPrime =  (`runAggregating` primeAggregatingContext)
 
