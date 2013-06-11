@@ -105,7 +105,7 @@ unsafeQueryMergeWithAttr :: NodeAttr -> QueryJoin (Projection r) -> QueryJoin (P
 unsafeQueryMergeWithAttr =  unsafeMergeAnother
 -}
 
--- | Run 'QueryJoin' to get query result SQL.
+-- | Run 'QueryJoin' to get SQL string.
 expandSQL :: Monad m => QueryJoin m (Projection r, t) -> m ((String, Projection r), t)
 expandSQL qp = do
   ((pj, st), c) <- runQueryPrime qp
