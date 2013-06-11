@@ -43,48 +43,67 @@ newtype Aggregatings m a =
   Aggregatings { aggregatingState :: StateT AggregatingContext m a }
   deriving (MonadTrans, Monad, Functor, Applicative)
 
--- | Expand aggregating context state.
-runAggregating :: Aggregatings m a -> AggregatingContext -> m (a, AggregatingContext)
+-- | Run aggregatings to expand context state.
+runAggregating :: Aggregatings m a          -- ^ Context to expand
+               -> AggregatingContext        -- ^ Initial context
+               -> m (a, AggregatingContext) -- ^ Expanded result
 runAggregating =  runStateT . aggregatingState
 
--- | Expand aggregating context state with initial context.
-runAggregatingPrime :: Aggregatings m a -> m (a, AggregatingContext)
+-- | Run aggregatings with primary empty context to expand context state.
+runAggregatingPrime :: Aggregatings m a          -- ^ Context to expand
+                    -> m (a, AggregatingContext) -- ^ Expanded result
 runAggregatingPrime =  (`runAggregating` primeAggregatingContext)
 
+-- | Lift to 'Aggregatings'.
 aggregate :: Monad m => m a -> Aggregatings m a
 aggregate =  lift
 
+-- | Aggregated 'MonadQuery'.
 instance MonadQuery m => MonadQuery (Aggregatings m) where
   on     =  aggregate . on
   wheres =  aggregate . wheres
   unsafeSubQuery na = aggregate . unsafeSubQuery na
 
+-- | Just update Aggregating context.
 updateAggregatingContext :: Monad m => (AggregatingContext -> AggregatingContext) -> Aggregatings m ()
 updateAggregatingContext =  Aggregatings . modify
 
+-- | Unsafely add not-typeful group-by terms.
 addGroupBys' :: Monad m => [String] -> Aggregatings m ()
 addGroupBys' gbs = updateAggregatingContext (\c -> foldl (flip Context.addGroupBy) c gbs)
 
+-- | Unsafely add not-typeful restrictions for aggregated query.
 addRestriction' :: Monad m => Expr (Maybe Bool) -> Aggregatings m ()
 addRestriction' =  updateAggregatingContext . Context.addRestriction
 
-addGroupBys :: MonadQuery m => Projection r -> Aggregatings m (Aggregation r)
+-- | Add group-by terms.
+addGroupBys :: MonadQuery m
+            => Projection r                   -- ^ Group-by term to add
+            -> Aggregatings m (Aggregation r) -- ^ Result aggregated context
 addGroupBys p = do
   addGroupBys' . Projection.columns $ p
   return $ Aggregation.unsafeFromProjection p
 
-addRestriction :: MonadQuery m => Aggregation (Maybe Bool) -> Aggregatings m ()
+-- | Add restrictions for aggregated query.
+addRestriction :: MonadQuery m
+               => Aggregation (Maybe Bool) -- ^ Restriction to add
+               -> Aggregatings m ()        -- ^  Result restricted context
 addRestriction =  addRestriction' . projectAggregation
 
+-- | Aggregated query instance.
 instance MonadQuery m => MonadAggregate (Aggregatings m) where
   groupBy = addGroupBys
   having  = addRestriction
 
 
+-- | Get group-by appending function from 'AggregatingContext'.
 appendGroupBys' :: AggregatingContext -> String -> String
 appendGroupBys' c = (++ d (Context.composeGroupBys c))  where
   d "" = ""
   d s  = ' ' : s
 
-appendGroupBys :: MonadQuery m => Aggregatings m a -> m (a, String -> String)
+-- | Run 'Aggregatings' to get query result and group-by appending function.
+appendGroupBys :: MonadQuery m
+               => Aggregatings m a        -- ^ 'Aggregatings' to run
+               -> m (a, String -> String) -- ^ Query result and group-by appending function.
 appendGroupBys q = second appendGroupBys' <$> runAggregatingPrime q
