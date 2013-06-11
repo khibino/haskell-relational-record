@@ -1,7 +1,21 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
+-- |
+-- Module      : Database.Relational.Query.Monad.Trans.Join
+-- Copyright   : 2013 Kei Hibino
+-- License     : BSD3
+--
+-- Maintainer  : ex8k.hibino@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
+--
+-- This module defines monad transformer which lift to basic 'MonadQuery'.
 module Database.Relational.Query.Monad.Trans.Join (
-  QueryJoin, join', expandSQL,
+  -- * Transformer into join query
+  QueryJoin, join',
+
+  -- * Result SQL
+  expandSQL
   ) where
 
 import Prelude hiding (product)
@@ -21,28 +35,37 @@ import Database.Relational.Query.Sub (SubQuery, Qualified)
 import Database.Relational.Query.Monad.Class (MonadQuery (..))
 
 
+-- | 'StateT' type to accumulate join product context.
 newtype QueryJoin m a =
   QueryJoin { queryState :: StateT Context m a }
   deriving (MonadTrans, Monad, Functor, Applicative)
 
-runQueryJoin :: QueryJoin m a -> Context -> m (a, Context)
+-- | Run 'QueryJoin' to expand context state.
+runQueryJoin :: QueryJoin m a  -- ^ Context to expand
+             -> Context        -- ^ Initial context
+             -> m (a, Context) -- ^ Expanded result
 runQueryJoin =  runStateT . queryState
 
-runQueryPrime :: QueryJoin m a -> m (a, Context)
+-- | Run 'QueryJoin' with primary empty context to expand context state.
+runQueryPrime :: QueryJoin m a  -- ^ Context to expand
+              -> m (a, Context) -- ^ Expanded result
 runQueryPrime q = runQueryJoin q primeContext
 
+-- | Lift to 'QueryJoin'
 join' :: Monad m => m a -> QueryJoin m a
 join' =  lift
 
+-- | Unsafely update join product context.
 updateContext :: Monad m => (Context -> Context) -> QueryJoin m ()
 updateContext =  QueryJoin . modify
 
-
+-- | Add last join product restriction.
 updateJoinRestriction :: Monad m => Expr (Maybe Bool) -> QueryJoin m ()
 updateJoinRestriction e = updateContext (updateProduct d)  where
   d  Nothing  = error "on: product is empty!"
   d (Just pt) = restrictProduct pt (fromTriBool e)
 
+-- | Add whole query restriction.
 updateRestriction :: Monad m => Expr (Maybe Bool) -> QueryJoin m ()
 updateRestriction e = updateContext (Context.addRestriction e)
 
@@ -54,13 +77,18 @@ restoreLeft :: QueryProductNode -> NodeAttr -> QueryJoin ()
 restoreLeft pL naR = updateContext $ Context.restoreLeft pL naR
 -}
 
+-- | Basic query instance.
 instance (Monad q, Functor q) => MonadQuery (QueryJoin q) where
   on     =  updateJoinRestriction
   wheres =  updateRestriction
   unsafeSubQuery          = unsafeSubQueryWithAttr
   -- unsafeMergeAnotherQuery = unsafeQueryMergeWithAttr
 
-unsafeSubQueryWithAttr :: Monad q => NodeAttr -> Qualified SubQuery -> QueryJoin q (Projection r)
+-- | Unsafely join subquery with this query.
+unsafeSubQueryWithAttr :: Monad q
+                       => NodeAttr                   -- ^ Attribute maybe or just
+                       -> Qualified SubQuery         -- ^ 'SubQuery' to join
+                       -> QueryJoin q (Projection r) -- ^ Result joined context and 'SubQuery' result projection.
 unsafeSubQueryWithAttr attr qsub = do
   updateContext (updateProduct (`growProduct` (attr, qsub)))
   return $ Projection.fromQualifiedSubQuery qsub
@@ -77,6 +105,7 @@ unsafeQueryMergeWithAttr :: NodeAttr -> QueryJoin (Projection r) -> QueryJoin (P
 unsafeQueryMergeWithAttr =  unsafeMergeAnother
 -}
 
+-- | Run 'QueryJoin' to get query result SQL.
 expandSQL :: Monad m => QueryJoin m (Projection r, t) -> m ((String, Projection r), t)
 expandSQL qp = do
   ((pj, st), c) <- runQueryPrime qp
