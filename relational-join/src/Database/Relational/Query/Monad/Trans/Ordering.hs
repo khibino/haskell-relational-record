@@ -14,9 +14,9 @@ import Control.Monad.Trans.State (StateT, runStateT, modify)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second)
 
-import Database.Relational.Query.Internal.Context
+import Database.Relational.Query.Internal.OrderingContext
   (Order(Asc, Desc), OrderingContext, primeOrderingContext)
-import qualified Database.Relational.Query.Internal.Context as Context
+import qualified Database.Relational.Query.Internal.OrderingContext as Context
 
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection

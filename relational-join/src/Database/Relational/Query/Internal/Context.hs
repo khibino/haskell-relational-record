@@ -21,24 +21,10 @@ module Database.Relational.Query.Internal.Context (
   updateProduct, -- takeProduct, restoreLeft,
   addRestriction,
 
-  composeSQL,
-
-  -- * Ordering context
-  Order (..), OrderBys,
-  OrderingContext,
-
-  primeOrderingContext,
-
-  updateOrderBy, -- takeOrderBys, restoreLowOrderBys,
-
-  composeOrderBys
+  composeSQL
   ) where
 
 import Prelude hiding (product)
-import Data.DList (DList)
-import qualified Data.DList as DList
-import Data.Monoid ((<>))
-import Control.Applicative (pure)
 
 import Database.Relational.Query.Expr (Expr, showExpr, fromTriBool, exprAnd)
 import Database.Relational.Query.Sub (asColumnN)
@@ -102,43 +88,3 @@ composeSQL :: Projection r -> Context -> String
 composeSQL pj c = composeSQL' pj
                   (maybe (error "relation: empty product!") (Product.nodeTree) (product c))
                   (restriction c)
-
-
--- | Order attribute.
-data Order = Asc | Desc
-
--- | Order-by terms.
-type OrderBys = DList (Order, String)
-
--- | Context type for Orderings.
-newtype OrderingContext = OrderingContext { orderBys :: OrderBys }
-
--- | Initial 'OrderingContext'
-primeOrderingContext :: OrderingContext
-primeOrderingContext =  OrderingContext DList.empty
-
--- | Add order-by term.
-updateOrderBy :: Order -> String -> OrderingContext -> OrderingContext
-updateOrderBy order' term ctx =
-  ctx { orderBys = orderBys ctx <> pure (order', term)  }
-
-{-
-takeOrderBys :: OrderingContext -> (OrderBys, OrderingContext)
-takeOrderBys ctx = (orderBys ctx , ctx { orderBys = DList.empty })
-
-restoreLowOrderBys :: OrderBys -> OrderingContext -> OrderingContext
-restoreLowOrderBys ros ctx = ctx { orderBys = orderBys ctx <> ros }
--}
-
--- | Get SQL keyword from order attribute.
-order :: Order -> Keyword
-order Asc  = ASC
-order Desc = DESC
-
--- | Concatinate order-by terms into SQL string.
-composeOrderBys :: OrderingContext -> String
-composeOrderBys oc = unwordsSQL orders  where
-  orderList = DList.foldr (\ (o, e) r -> [SQL.word e, order o] `SQL.sepBy` " "  : r) []
-              $ orderBys oc
-  orders | null orderList = []
-         | otherwise      = [ORDER, BY, orderList `SQL.sepBy` ", "]
