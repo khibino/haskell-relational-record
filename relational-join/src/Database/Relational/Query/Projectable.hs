@@ -95,6 +95,7 @@ toExpr =  UnsafeExpr.Expr . sqlString  where
 
 -- | Projection interface.
 class Projectable p where
+  -- | Project from 'Projection' into weaken projection types.
   project :: Projection a -> p a
 
 -- | Project into 'Projection' type.
@@ -107,6 +108,7 @@ instance Projectable Expr where
 
 -- | Projection interface for 'Aggregation'.
 class AggregateProjectable p where
+  -- | Project from 'Aggregation' into weaken projection types.
   projectAggregation :: Aggregation a -> p a
 
 -- | Project from 'Aggregation' into 'Aggregation'.
@@ -126,12 +128,15 @@ expr :: Projection ft -> Expr ft
 expr =  toExpr
 
 
+-- | Unsafely generate 'Projection' from SQL expression strings.
 unsafeSqlTermsProjection :: [String] -> Projection t
 unsafeSqlTermsProjection =  unsafeFromColumns
 
 -- | Interface to project SQL terms unsafely.
 class SqlProjectable p where
-  unsafeProjectSqlTerms :: [String] -> p t
+  -- | Unsafely project from SQL expression strings.
+  unsafeProjectSqlTerms :: [String] -- ^ SQL expression strings
+                        -> p t      -- ^ Result projection object
 
 -- | Unsafely make 'Projection' from SQL terms.
 instance SqlProjectable Projection where
@@ -172,7 +177,9 @@ values =  project . unsafeFromColumns . map showConstantSQL
 
 -- | Interface to get SQL term from projections.
 class ProjectableShowSql p where
-  unsafeShowSql :: p a -> String
+  -- | Unsafely generate SQL expression string from projection object.
+  unsafeShowSql :: p a    -- ^ Source projection object
+                -> String -- ^ Result SQL expression string.
 
 -- | Unsafely get SQL term from 'Proejction'.
 instance ProjectableShowSql Projection where
@@ -368,6 +375,7 @@ placeholder f = do
 
 -- | Interface to zip projections.
 class ProjectableZip p where
+  -- | Zip projections.
   projectZip :: p a -> p b -> p (a, b)
 
 -- | Zip placeholder parameters.
@@ -388,7 +396,9 @@ instance ProjectableZip Aggregation where
 
 -- | Interface to control 'Maybe' of phantom type in projections.
 class ProjectableMaybe p where
+  -- | Cast projection phantom type into 'Maybe'.
   just :: p a -> p (Maybe a)
+  -- | Compose nested 'Maybe' phantom type on projection.
   flattenMaybe :: p (Maybe (Maybe a)) -> p (Maybe a)
 
 -- | Control phantom 'Maybe' type in placeholder parameters.

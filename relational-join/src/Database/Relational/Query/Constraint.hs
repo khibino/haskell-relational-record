@@ -86,6 +86,7 @@ notNullKey =  mapConstraint C.notNull
 
 -- | Constraint 'Key' inference interface.
 class HasConstraintKey c r ct  where
+  -- | Infer constraint key.
   constraintKey :: Key c r ct
 
 -- | Inference rule of 'Unique' constraint 'Key'.
