@@ -1,3 +1,5 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 -- |
 -- Module      : Database.Relational.Query.Monad.Trans.Aggregate
 -- Copyright   : 2013 Kei Hibino
@@ -17,10 +19,9 @@ module Database.Relational.Query.Monad.Trans.Aggregate (
   appendGroupBys
   ) where
 
-import Control.Monad (liftM, ap)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.State (StateT, runStateT, modify)
-import Control.Applicative (Applicative (pure, (<*>)))
+import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second)
 
 import Database.Relational.Query.Expr (Expr)
@@ -40,6 +41,7 @@ import Database.Relational.Query.Monad.Class
 -- | State type to accumulate aggregating context.
 newtype Aggregatings m a =
   Aggregatings { aggregatingState :: StateT AggregatingContext m a }
+  deriving (MonadTrans, Monad, Functor, Applicative)
 
 -- | Expand aggregating context state.
 runAggregating :: Aggregatings m a -> AggregatingContext -> m (a, AggregatingContext)
@@ -49,22 +51,8 @@ runAggregating =  runStateT . aggregatingState
 runAggregatingPrime :: Aggregatings m a -> m (a, AggregatingContext)
 runAggregatingPrime =  (`runAggregating` primeAggregatingContext)
 
-instance MonadTrans Aggregatings where
-  lift = Aggregatings . lift
-
 aggregate :: Monad m => m a -> Aggregatings m a
 aggregate =  lift
-
-instance Monad m => Monad (Aggregatings m) where
-  return     = Aggregatings . return
-  q0 >>= f   = Aggregatings $ aggregatingState q0 >>= aggregatingState . f
-
-instance Monad m => Functor (Aggregatings m) where
-  fmap = liftM
-
-instance Monad m => Applicative (Aggregatings m) where
-  pure  = return
-  (<*>) = ap
 
 instance MonadQuery m => MonadQuery (Aggregatings m) where
   on     =  aggregate . on
@@ -99,4 +87,4 @@ appendGroupBys' c = (++ d (Context.composeGroupBys c))  where
   d s  = ' ' : s
 
 appendGroupBys :: MonadQuery m => Aggregatings m a -> m (a, String -> String)
-appendGroupBys q = second appendGroupBys' `liftM` runAggregatingPrime q
+appendGroupBys q = second appendGroupBys' <$> runAggregatingPrime q

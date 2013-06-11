@@ -1,4 +1,5 @@
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Database.Relational.Query.Monad.Trans.Ordering (
   Orderings, orderings, OrderedQuery, OrderingTerms,
@@ -8,10 +9,9 @@ module Database.Relational.Query.Monad.Trans.Ordering (
   appendOrderBys
   ) where
 
-import Control.Monad (liftM, ap)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.State (StateT, runStateT, modify)
-import Control.Applicative (Applicative (pure, (<*>)), (<$>))
+import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second)
 
 import Database.Relational.Query.Internal.Context
@@ -29,6 +29,7 @@ import Database.Relational.Query.Monad.Class
 
 newtype Orderings (p :: * -> *) m a =
   Orderings { orderingState :: StateT OrderingContext m a }
+  deriving (MonadTrans, Monad, Functor, Applicative)
 
 runOrderings :: Orderings p m a -> OrderingContext -> m (a, OrderingContext)
 runOrderings =  runStateT . orderingState
@@ -36,22 +37,8 @@ runOrderings =  runStateT . orderingState
 runOrderingsPrime :: Orderings p m a -> m (a, OrderingContext)
 runOrderingsPrime q = runOrderings q $ primeOrderingContext
 
-instance MonadTrans (Orderings p) where
-  lift = Orderings . lift
-
 orderings :: Monad m => m a -> Orderings p m a
 orderings =  lift
-
-instance Monad m => Monad (Orderings p m) where
-  return      = Orderings . return
-  q0 >>= f    = Orderings $ orderingState q0 >>= orderingState . f
-
-instance Monad m => Functor (Orderings p m) where
-  fmap = liftM
-
-instance Monad m => Applicative (Orderings p m) where
-  pure  = return
-  (<*>) = ap
 
 instance MonadQuery m => MonadQuery (Orderings p m) where
   on     =  orderings . on

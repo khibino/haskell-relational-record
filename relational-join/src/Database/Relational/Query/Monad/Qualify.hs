@@ -1,3 +1,5 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 -- |
 -- Module      : Database.Relational.Query.Monad.Qualify
 -- Copyright   : 2013 Kei Hibino
@@ -14,9 +16,8 @@ module Database.Relational.Query.Monad.Qualify (
   evalQualifyPrime, qualifyQuery
   ) where
 
-import Control.Monad (liftM, ap)
 import Control.Monad.Trans.State (State, state, runState)
-import Control.Applicative (Applicative (pure, (<*>)))
+import Control.Applicative (Applicative)
 
 import Database.Relational.Query.Internal.AliasId (primeAlias, AliasId, newAliasId)
 import qualified Database.Relational.Query.Internal.AliasId as AliasId
@@ -40,6 +41,7 @@ nextAlias s = (cur, s { currentAliasId =  newAliasId cur })  where
 -- | Monad type to qualify SQL table forms.
 newtype Qualify a =
   Qualify { runQualify' :: State AliasIdContext a }
+  deriving (Monad, Functor, Applicative)
 
 -- | Run qualify monad.
 runQualify :: Qualify a -> AliasIdContext -> (a, AliasIdContext)
@@ -56,20 +58,6 @@ evalQualifyPrime =  fst . runQualifyPrime
 -- | Make qualify monad from update state function.
 qualifyState :: (AliasIdContext -> (a, AliasIdContext)) -> Qualify a
 qualifyState =  Qualify . state
-
--- | 'Monad' instance to qualify uniquely SQL table form queries.
-instance Monad Qualify where
-  return      = Qualify . return
-  q0 >>= f    = Qualify $ runQualify' q0 >>= runQualify' . f
-
--- | Define 'Functor' instance using 'Monad' methods
-instance Functor Qualify where
-  fmap = liftM
-
--- | Define 'Applicative' instance using 'Monad' methods
-instance Applicative Qualify where
-  pure  = return
-  (<*>) = ap
 
 -- | Generated new qualifier on internal state.
 newAlias :: Qualify AliasId
