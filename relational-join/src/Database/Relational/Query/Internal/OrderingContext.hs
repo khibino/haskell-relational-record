@@ -32,10 +32,10 @@ import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
 
 
--- | Order attribute.
+-- | Order direction. Ascendant or Descendant.
 data Order = Asc | Desc
 
--- | Order-by terms.
+-- | Ordering terms.
 type OrderBys = DList (Order, String)
 
 -- | Context type for Orderings.

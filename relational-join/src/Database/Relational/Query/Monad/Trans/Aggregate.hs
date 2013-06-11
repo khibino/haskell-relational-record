@@ -38,18 +38,18 @@ import Database.Relational.Query.Monad.Class
   (MonadQuery(on, wheres, unsafeSubQuery), MonadAggregate(groupBy, having))
 
 
--- | State type to accumulate aggregating context.
+-- | 'StateT' type to accumulate aggregating context.
 newtype Aggregatings m a =
   Aggregatings { aggregatingState :: StateT AggregatingContext m a }
   deriving (MonadTrans, Monad, Functor, Applicative)
 
--- | Run aggregatings to expand context state.
+-- | Run 'Aggregatings' to expand context state.
 runAggregating :: Aggregatings m a          -- ^ Context to expand
                -> AggregatingContext        -- ^ Initial context
                -> m (a, AggregatingContext) -- ^ Expanded result
 runAggregating =  runStateT . aggregatingState
 
--- | Run aggregatings with primary empty context to expand context state.
+-- | Run 'Aggregatings' with primary empty context to expand context state.
 runAggregatingPrime :: Aggregatings m a          -- ^ Context to expand
                     -> m (a, AggregatingContext) -- ^ Expanded result
 runAggregatingPrime =  (`runAggregating` primeAggregatingContext)
@@ -64,11 +64,11 @@ instance MonadQuery m => MonadQuery (Aggregatings m) where
   wheres =  aggregate . wheres
   unsafeSubQuery na = aggregate . unsafeSubQuery na
 
--- | Just update Aggregating context.
+-- | Unsafely update aggregating context.
 updateAggregatingContext :: Monad m => (AggregatingContext -> AggregatingContext) -> Aggregatings m ()
 updateAggregatingContext =  Aggregatings . modify
 
--- | Unsafely add not-typeful group-by terms.
+-- | Unsafely add not-typeful aggregating terms.
 addGroupBys' :: Monad m => [String] -> Aggregatings m ()
 addGroupBys' gbs = updateAggregatingContext (\c -> foldl (flip Context.addGroupBy) c gbs)
 
@@ -76,7 +76,7 @@ addGroupBys' gbs = updateAggregatingContext (\c -> foldl (flip Context.addGroupB
 addRestriction' :: Monad m => Expr (Maybe Bool) -> Aggregatings m ()
 addRestriction' =  updateAggregatingContext . Context.addRestriction
 
--- | Add group-by terms.
+-- | Add aggregating terms.
 addGroupBys :: MonadQuery m
             => Projection r                   -- ^ Group-by term to add
             -> Aggregatings m (Aggregation r) -- ^ Result aggregated context
