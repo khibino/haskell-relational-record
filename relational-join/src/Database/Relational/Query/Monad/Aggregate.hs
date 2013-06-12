@@ -2,7 +2,18 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
+-- |
+-- Module      : Database.Relational.Query.Monad.Aggregate
+-- Copyright   : 2013 Kei Hibino
+-- License     : BSD3
+--
+-- Maintainer  : ex8k.hibino@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
+--
+-- This module defines definitions about aggregated query type.
 module Database.Relational.Query.Monad.Aggregate (
+  -- * Aggregated Query
   QueryAggregate,
   AggregatedQuery,
 
@@ -29,25 +40,35 @@ import Database.Relational.Query.Monad.Core (QueryCore)
 import Database.Relational.Query.Monad.Trans.Aggregate (Aggregatings, aggregate, appendGroupBys)
 
 
+-- | Aggregated query monad type.
 type QueryAggregate    = Orderings Aggregation (Aggregatings QueryCore)
+
+-- | Aggregated query type. AggregatedQuery r == QueryAggregate (Aggregation r).
 type AggregatedQuery r = OrderedQuery Aggregation (Aggregatings QueryCore) r
 
+-- | Lift from qualified table forms into 'QueryAggregate'.
 aggregatedQuery :: Qualify a -> QueryAggregate a
 aggregatedQuery =  orderings . aggregate . join'
 
+-- | Instance to lift from qualified table forms into 'QueryAggregate'.
 instance MonadQualify Qualify (Orderings Aggregation (Aggregatings (QueryJoin Qualify))) where
   liftQualify = aggregatedQuery
 
-expandSQL :: QueryAggregate (Aggregation r) -> Qualify ((String, Projection r), (String -> String, String -> String))
+-- | Run 'AggregatedQuery' to get SQL string.
+expandSQL :: AggregatedQuery r -> Qualify ((String, Projection r), (String -> String, String -> String))
 expandSQL q = Join.expandSQL $ assoc <$> appendGroupBys (Ordering.appendOrderBys q)  where
   assoc ((a, b), c) = (Aggregation.projection a, (b, c))
 
-toSQL :: QueryAggregate (Aggregation r) -> Qualify String
+-- | Run 'AggregatedQuery' to get SQL with 'Qualify' computation.
+toSQL :: AggregatedQuery r -- ^ 'AggregatedQuery' to run
+      -> Qualify String    -- ^ Result SQL string with 'Qualify' computation
 toSQL q = do
   ((sql, _pj), (appOrd, appGrp)) <- expandSQL q
   return . appOrd $ appGrp sql
 
-toSubQuery :: QueryAggregate (Aggregation r) -> Qualify SubQuery
+-- | Run 'AggregatedQuery' to get 'SubQuery' with 'Qualify' computation.
+toSubQuery :: AggregatedQuery r -- ^ 'AggregatedQuery' to run
+           -> Qualify SubQuery  -- ^ Result 'SubQuery' with 'Qualify' computation
 toSubQuery q = do
   ((sql, pj), (appOrd, appGrp)) <- expandSQL q
   return $ subQuery (appOrd $ appGrp sql) (Projection.width pj)

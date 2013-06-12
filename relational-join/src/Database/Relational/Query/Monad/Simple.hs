@@ -36,17 +36,17 @@ import Database.Relational.Query.Monad.Core (QueryCore)
 import Database.Relational.Query.Sub (SubQuery, subQuery)
 
 
--- | Simple query (not-aggregated) monad
+-- | Simple query (not-aggregated) monad type.
 type QuerySimple = Orderings Projection QueryCore
 
--- | Simple query (not-aggregated) query type
+-- | Simple query (not-aggregated) query type. SimpleQuery r == QuerySimple (Projection r).
 type SimpleQuery r = OrderedQuery Projection QueryCore r
 
--- | Lift from qualified table forms into 'QuerySimple'
+-- | Lift from qualified table forms into 'QuerySimple'.
 simple :: Qualify a -> QuerySimple a
 simple =  orderings . join'
 
--- | Instance to lift from qualified table forms into 'QuerySimple'
+-- | Instance to lift from qualified table forms into 'QuerySimple'.
 instance MonadQualify Qualify (Orderings Projection QueryCore) where
   liftQualify = simple
 
