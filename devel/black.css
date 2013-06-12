@@ -11,7 +11,7 @@ html {
 
 body {
   background: black;
-  /* color: while; */
+  color: white;
   text-align: left;
   min-height: 100%;
   position: relative;
@@ -165,8 +165,8 @@ pre {
 }
 
 .src {
-  background: #515151;
-  color: white;
+  /* background: #f0f0f0; */
+  background: rgb(41,56,69);
   padding: 0.2em 0.5em;
 }
 
@@ -377,7 +377,7 @@ div#style-menu-holder {
   color: #f0f0f0;
   border-left: 1px solid #919191;
   /* background: #f0f0f0; */
-  background: #919191
+  background: rgb(41,56,69);
   padding: 0 0.5em 0.2em;
   margin: 0 -0.5em 0 0.5em;
 }
