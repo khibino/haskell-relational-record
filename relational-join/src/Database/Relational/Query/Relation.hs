@@ -19,7 +19,7 @@ module Database.Relational.Query.Relation (
   relation, relation',
   aggregateRelation, aggregateRelation',
 
-  nested, width,
+  -- nested, width,
 
   sqlFromRelation,
 
@@ -80,10 +80,13 @@ subQueryQualifyFromRelation =  d  where
   d (SimpleRel qp)    = Simple.toSubQuery qp
   d (AggregateRel qp) = Aggregate.toSubQuery qp
 
+{-
 -- | Sub-query from relation.
 subQueryFromRelation :: Relation p r -> SubQuery
 subQueryFromRelation =  evalQualifyPrime . subQueryQualifyFromRelation
+-}
 
+-- | Basic monadic join operation using 'MonadQuery'.
 queryWithAttr :: MonadQualify Qualify m
               => NodeAttr -> Relation p r -> m (PlaceHolders p, Projection r)
 queryWithAttr attr = addPlaceHolders . run where
@@ -94,35 +97,45 @@ queryWithAttr attr = addPlaceHolders . run where
     unsafeSubQuery attr q
   -- d (Relation q) = unsafeMergeAnotherQuery attr q
 
+-- | Join subquery with place-holder parameter 'p'. query result is not 'Maybe'.
 query' :: MonadQualify Qualify m => Relation p r -> m (PlaceHolders p, Projection r)
 query' =  queryWithAttr Just'
 
+-- | Join subquery. Query result is not 'Maybe'.
 query :: MonadQualify Qualify m => Relation () r -> m (Projection r)
 query =  fmap snd . query'
 
+-- | Join subquery with place-holder parameter 'p'. Query result is 'Maybe'.
 queryMaybe' :: MonadQualify Qualify m => Relation p r -> m (PlaceHolders p, Projection (Maybe r))
 queryMaybe' pr =  do
   (ph, pj) <- queryWithAttr Maybe pr
   return (ph, Projection.just pj)
 
+-- | Join subquery. Query result is 'Maybe'.
 queryMaybe :: MonadQualify Qualify m => Relation () r -> m (Projection (Maybe r))
 queryMaybe =  fmap snd . queryMaybe'
 
+-- | Finalize 'QuerySimple' monad and generate 'Relation'.
 relation :: QuerySimple (Projection r) -> Relation () r
 relation =  SimpleRel
 
+-- | Finalize 'QuerySimple' monad and generate 'Relation' with place-holder parameter 'p'.
 relation' :: QuerySimple (PlaceHolders p, Projection r) -> Relation p r
 relation' =  SimpleRel . fmap snd
 
+-- | Finalize 'QueryAggregate' monad and geneate 'Relation'.
 aggregateRelation :: QueryAggregate (Aggregation r) -> Relation () r
 aggregateRelation =  AggregateRel
 
+-- | Finalize 'QueryAggregate' monad and geneate 'Relation' with place-holder parameter 'p'.
 aggregateRelation' :: QueryAggregate (PlaceHolders p, Aggregation r) -> Relation p r
 aggregateRelation' =  AggregateRel . fmap snd
 
 
-type JoinRestriction a b = (Projection a -> Projection b -> Expr (Maybe Bool))
+-- | Restriction function type for direct style join operator.
+type JoinRestriction a b = Projection a -> Projection b -> Expr (Maybe Bool)
 
+-- | Basic direct join operation with place-holder parameters.
 join' :: ProjectableGeneralizedZip pa pb pc
       => (qa -> QuerySimple (PlaceHolders pa, Projection a))
       -> (qb -> QuerySimple (PlaceHolders pb, Projection b))
@@ -136,34 +149,39 @@ join' qL qR r0 r1 ons = relation' $ do
   sequence_ $ zipWith3 (\f a b -> on $ f a b) ons (repeat pj0) (repeat pj1)
   return $ (ph0 `generalizedZip` ph1, pj0 `projectZip` pj1)
 
+-- | Direct inner join with place-holder parameters.
 inner' :: ProjectableGeneralizedZip pa pb pc
-       => Relation pa a
-       -> Relation pb b
-       -> [JoinRestriction a b]
-       -> Relation pc (a, b)
+       => Relation pa a         -- ^ Left query to join
+       -> Relation pb b         -- ^ Right query to join
+       -> [JoinRestriction a b] -- ^ Join restrictions
+       -> Relation pc (a, b)    -- ^ Result joined relation
 inner' =  join' query' query'
 
-left'  :: ProjectableGeneralizedZip pa pb pc
-       => Relation pa a
-       -> Relation pb b
-       -> [JoinRestriction a (Maybe b)]
-       -> Relation pc (a, Maybe b)
+-- | Direct left outer join with place-holder parameters.
+left' :: ProjectableGeneralizedZip pa pb pc
+      => Relation pa a                 -- ^ Left query to join
+      -> Relation pb b                 -- ^ Right query to join
+      -> [JoinRestriction a (Maybe b)] -- ^ Join restrictions
+      -> Relation pc (a, Maybe b)      -- ^ Result joined relation
 left'  =  join' query' queryMaybe'
 
+-- | Direct right outer join with place-holder parameters.
 right' :: ProjectableGeneralizedZip pa pb pc
-       => Relation pa a
-       -> Relation pb b
-       -> [JoinRestriction (Maybe a) b]
-       -> Relation pc(Maybe a, b)
+       => Relation pa a                 -- ^ Left query to join
+       -> Relation pb b                 -- ^ Right query to join
+       -> [JoinRestriction (Maybe a) b] -- ^ Join restrictions
+       -> Relation pc(Maybe a, b)       -- ^ Result joined relation
 right' =  join' queryMaybe' query'
 
-full'  :: ProjectableGeneralizedZip pa pb pc
-       => Relation pa a
-       -> Relation pb b
-       -> [JoinRestriction (Maybe a) (Maybe b)]
-       -> Relation pc (Maybe a, Maybe b)
+-- | Direct full outer join with place-holder parameters.
+full' :: ProjectableGeneralizedZip pa pb pc
+      => Relation pa a                         -- ^ Left query to join
+      -> Relation pb b                         -- ^ Right query to join
+      -> [JoinRestriction (Maybe a) (Maybe b)] -- ^ Join restrictions
+      -> Relation pc (Maybe a, Maybe b)        -- ^ Result joined relation
 full'  =  join' queryMaybe' queryMaybe'
 
+-- | Basic direct join operation.
 join :: (qa -> QuerySimple (Projection a))
      -> (qb -> QuerySimple (Projection b))
      -> qa
@@ -176,30 +194,35 @@ join qL qR r0 r1 ons = relation $ do
   sequence_ $ zipWith3 (\f a b -> on $ f a b) ons (repeat pj0) (repeat pj1)
   return $ pj0 `projectZip` pj1
 
-inner :: Relation () a
-      -> Relation () b
-      -> [JoinRestriction a b]
-      -> Relation () (a, b)
+-- | Direct inner join.
+inner :: Relation () a         -- ^ Left query to join
+      -> Relation () b         -- ^ Right query to join
+      -> [JoinRestriction a b] -- ^ Join restrictions
+      -> Relation () (a, b)    -- ^ Result joined relation
 inner =  join query query
 
-left  :: Relation () a
-      -> Relation () b
-      -> [JoinRestriction a (Maybe b)]
-      -> Relation () (a, Maybe b)
+-- | Direct left outer join.
+left :: Relation () a                 -- ^ Left query to join
+     -> Relation () b                 -- ^ Right query to join
+     -> [JoinRestriction a (Maybe b)] -- ^ Join restrictions
+     -> Relation () (a, Maybe b)      -- ^ Result joined relation
 left  =  join query queryMaybe
 
-right :: Relation () a
-      -> Relation () b
-      -> [JoinRestriction (Maybe a) b]
-      -> Relation () (Maybe a, b)
+-- | Direct right outer join.
+right :: Relation () a                 -- ^ Left query to join
+      -> Relation () b                 -- ^ Right query to join
+      -> [JoinRestriction (Maybe a) b] -- ^ Join restrictions
+      -> Relation () (Maybe a, b)      -- ^ Result joined relation
 right =  join queryMaybe query
 
-full  :: Relation () a
-      -> Relation () b
-      -> [JoinRestriction (Maybe a) (Maybe b)]
-      -> Relation () (Maybe a, Maybe b)
+-- | Direct full outer join.
+full :: Relation () a                         -- ^ Left query to join
+     -> Relation () b                         -- ^ Right query to join
+     -> [JoinRestriction (Maybe a) (Maybe b)] -- ^ Join restrictions
+     -> Relation () (Maybe a, Maybe b)        -- ^ Result joined relation
 full  =  join queryMaybe queryMaybe
 
+-- | Apply restriction for direct join style.
 on' :: ([JoinRestriction a b] -> Relation pc (a, b))
     -> [JoinRestriction a b]
     -> Relation pc (a, b)
@@ -208,20 +231,26 @@ on' =  ($)
 infixl 8 `inner'`, `left'`, `right'`, `full'`, `inner`, `left`, `right`, `full`, `on'`
 
 
+-- | SQL string with qualify computation from 'Relation'.
 sqlQualifyFromRelation :: Relation p r -> Qualify String
 sqlQualifyFromRelation =  d  where
   d (SubQuery sub)    = return $ SubQuery.toSQL sub
   d (SimpleRel qp)    = Simple.toSQL qp
   d (AggregateRel qp) = Aggregate.toSQL qp
 
+-- | SQL string from 'Relation'.
 sqlFromRelation :: Relation p r -> String
 sqlFromRelation =  evalQualifyPrime . sqlQualifyFromRelation
 
 instance Show (Relation p r) where
   show = sqlFromRelation
 
+{-
+-- | Get projection width from 'Relation'.
 width :: Relation p r -> Int
 width =  SubQuery.width . subQueryFromRelation
 
+-- | Finalize internal Query monad.
 nested :: Relation p r -> Relation p r
 nested =  SubQuery . subQueryFromRelation
+-}
