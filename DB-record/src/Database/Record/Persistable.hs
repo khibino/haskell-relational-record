@@ -185,6 +185,7 @@ derivedWidth =  (pw, runPersistableRecordWidth pw) where
 
 -- | Interface of inference rule for 'PersistableSqlValue' proof object
 class PersistableType q => PersistableValue q a where
+  -- | Infer 'PersistableSqlValue' proof object.
   persistableValue :: PersistableSqlValue q a
 
 -- | Run inferred 'PersistableSqlValue' proof object. Convert from SQL type 'q' into Haskell type 'a'.
@@ -202,6 +203,7 @@ derivedPersistableValueRecord =  persistableFromValue persistableWidth persistab
 
 -- | Interface of inference rule for 'PersistableRecord' proof object
 class PersistableWidth a => Persistable q a where
+  -- | Infer 'PersistableRecord' proof object.
   persistable :: PersistableRecord q a
 
 -- | Axiom of 'PersistableRecord' for Haskell unit () type.

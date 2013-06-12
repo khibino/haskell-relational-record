@@ -81,6 +81,7 @@ leftKeyConstraint pa = KeyConstraint (index pa)
 
 -- | Interface of inference rule for 'KeyConstraint' proof object.
 class HasKeyConstraint c a where
+  -- | Infer 'KeyConstraint' proof object.
   keyConstraint :: KeyConstraint c a
 
 -- | Inference rule of 'KeyConstraint' for tuple (,) type.

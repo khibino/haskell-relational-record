@@ -135,6 +135,7 @@ maybeRecord rec pkey = createRecordFromSql mayToRec where
 
 -- | Inference rule interface for 'RecordFromSql' proof object.
 class FromSql q a where
+  -- | 'RecordFromSql' proof object.
   recordFromSql :: RecordFromSql q a
 
 -- | Inference rule of 'RecordFromSql' proof object which can convert

@@ -70,6 +70,7 @@ infixl 4 <&>
 
 -- | Inference rule interface for 'RecordToSql' proof object.
 class ToSql q a where
+  -- | Infer 'RecordToSql' proof object.
   recordToSql :: RecordToSql q a
 
 -- | Inference rule of 'RecordToSql' proof object which can convert
