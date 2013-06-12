@@ -1,4 +1,13 @@
-
+-- |
+-- Module      : Database.Relational.Query
+-- Copyright   : 2013 Kei Hibino
+-- License     : BSD3
+--
+-- Maintainer  : ex8k.hibino@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
+--
+-- This module is integrated module of Query.
 module Database.Relational.Query (
   module Database.Relational.Query.Table,
   module Database.Relational.Query.SQL,
