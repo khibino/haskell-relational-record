@@ -11,16 +11,9 @@
 -- Contains normal interfaces.
 module Database.Relational.Query.Pi (
   -- * Projection path
-  Pi((:*)),
-  leafIndex,
+  Pi, (<.>), (<?.>), (<??.>),
 
-  fst', snd',
-
-  -- * Projection path unit
-  PiUnit, offset,
-  pairPiFstUnit, pairPiSndUnit,
-
-  fst'', snd''
+  fst', snd'
   ) where
 
 import Database.Record
@@ -29,43 +22,15 @@ import Database.Record.Persistable
   (runPersistableRecordWidth)
 
 import Database.Relational.Query.Pi.Unsafe
-  (PiUnit, offset, Pi ((:*), Leaf), definePiUnit)
-
-
--- | Get index of flat SQL value list from typed projection path.
-leafIndex :: Pi r f -- ^ Projection path
-          -> Int    -- ^ Leftest value index specified by Projection path
-leafIndex =  rec  where
-  rec :: Pi r f -> Int
-  rec (Leaf pi0) = offset pi0
-  rec (pi0 :* x) = offset pi0 + rec x
-
--- | Projection path unit like fst of tuple.
-pairPiFstUnit :: PiUnit (c a b) a -- ^ Projection path unit of fst.
-pairPiFstUnit =  definePiUnit 0
-
--- | Devivation rule of projection path unit like snd of tuple.
-pairPiSndUnit' :: PersistableRecordWidth a -- ^ Width of fst
-               -> PiUnit (c a b) b         -- ^ Result Projection path unit of snd.
-pairPiSndUnit' pw = definePiUnit (runPersistableRecordWidth pw)
-
--- | Devivated projection path unit like snd of tuple.
-pairPiSndUnit :: PersistableWidth a => PiUnit (c a b) b -- ^ Projection path unit of snd.
-pairPiSndUnit =  pairPiSndUnit' persistableWidth
-
-
--- | Projection path unit for fst of tuple.
-fst'' :: PiUnit (a, b) a
-fst'' =  pairPiFstUnit
-
--- | Projection path unit for snd of tuple.
-snd'' :: PersistableWidth a =>  PiUnit (a, b) b
-snd'' =  pairPiSndUnit
+  (Pi, (<.>), (<?.>), (<??.>), definePi)
 
 -- | Projection path for fst of tuple.
-fst' :: Pi (a, b) a -- ^ Projection path of fst.
-fst' =  Leaf fst''
+fst' :: PersistableWidth a => Pi (a, b) a -- ^ Projection path of fst.
+fst' =  definePi 0
+
+snd'' :: PersistableWidth b => PersistableRecordWidth a -> Pi (a, b) b
+snd'' wa = definePi (runPersistableRecordWidth wa)
 
 -- | Projection path for snd of tuple.
-snd' :: PersistableWidth a =>  Pi (a, b) b -- ^ Projection path of snd.
-snd' =  Leaf snd''
+snd' :: (PersistableWidth a, PersistableWidth b) =>  Pi (a, b) b -- ^ Projection path of snd.
+snd' =  snd'' persistableWidth

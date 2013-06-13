@@ -121,7 +121,7 @@ defineColumn' :: TypeQ   -- ^ Record type
 defineColumn' recType var' i colType = do
   let var = varName var'
   simpleValD var [t| Pi $recType $colType |]
-    [| UnsafePi.defineColumn $(integralE i) |]
+    [| UnsafePi.definePi $(integralE i) |]
 
 defineColumn :: Maybe (TypeQ, VarName) -- ^ May Constraint type and constraint object name
              -> TypeQ                  -- ^ Record type

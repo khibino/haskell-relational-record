@@ -12,39 +12,92 @@
 -- This module defines typed projection path objects.
 -- Contains internal structure and unsafe interfaces.
 module Database.Relational.Query.Pi.Unsafe (
-  -- * Projection path unit
-  PiUnit, offset, definePiUnit,
-
   -- * Projection path
-  Pi ((:*), Leaf),
+  Pi,
 
-  defineColumn
+  width',
+
+  (<.>), (<?.>), (<??.>),
+
+  pi,
+
+  definePi, defineDirectPi
   ) where
 
--- | Projection path unit from record type 'r' into column type 'ct'.
-newtype PiUnit r ct = PiUnit Int
--- data PiUnit r ct = PiUnit
---                { offset  :: Int
---                , column  :: Column r ct
---                }
+import Prelude hiding (pi)
+import Data.Array (listArray, (!))
 
--- | Get index of flat SQL value list from typed projection path unit.
-offset :: PiUnit r ct -> Int
-offset (PiUnit off) = off
+import Database.Record.Persistable
+  (PersistableRecordWidth, runPersistableRecordWidth,
+   PersistableWidth (persistableWidth), maybeWidth)
 
--- | Projection path from record type 'r' into column type 'ct'.
-data Pi r ct = forall r' . PiUnit r r' :* Pi r' ct
-             |             Leaf (PiUnit r ct)
+-- | Projection path primary structure type.
+data Pi' r0 r1 = Leftest Int
+               | Map [Int]
 
-infixr 9 :*
+unsafePiAppend' :: Pi' a b' -> Pi' b c' -> Pi' a c
+unsafePiAppend' = d  where
+  d (Leftest i) (Leftest j) = Leftest $ i + j
+  d (Leftest i) (Map js)    = Map $ map (i +) js
+  d (Map is)    (Leftest j) = Map $ drop j is
+  d (Map is)    (Map js)    = Map   [ is' ! j | j <- js ]  where
+    is' = listArray (0, length is) is
 
+-- | Projection path from type 'r0' into type 'r1'.
+data Pi r0 r1 = Pi (Pi' r0 r1) (PersistableRecordWidth r1)
 
--- | Unsafely define projection path from record type 'r' into column type 'ct'.
-defineColumn :: Int     -- ^ Index of flat SQL value list
-             -> Pi r ct -- ^ Result projection path
-defineColumn =  Leaf . PiUnit
+unsafePiAppend :: (PersistableRecordWidth c' -> PersistableRecordWidth c)
+                  -> Pi a b' -> Pi b c' -> Pi a c
+unsafePiAppend f (Pi p0 _) (Pi p1 w) =
+  Pi (p0 `unsafePiAppend'` p1) (f w)
 
--- | Unsafely define projection path unit from record type 'r' into column type 'ct'.
-definePiUnit :: Int         -- ^ Index of flat SQL value list
-             -> PiUnit r ct -- ^ Result projection path
-definePiUnit =  PiUnit
+-- | Get record width proof object.
+width' :: Pi r ct -> PersistableRecordWidth ct
+width' (Pi _ w) = w
+
+-- | Compose projection path.
+(<.>) :: Pi a b -> Pi b c -> Pi a c
+(<.>) = unsafePiAppend id
+
+-- | Compose projection path.
+(<?.>) :: Pi a (Maybe b) -> Pi b c -> Pi a (Maybe c)
+(<?.>) = unsafePiAppend maybeWidth
+
+-- | Compose projection path.
+(<??.>) :: Pi a (Maybe b) -> Pi b (Maybe c) -> Pi a (Maybe c)
+(<??.>) = unsafePiAppend id
+
+infixl 8 <.>, <?.>, <??.>
+
+-- | Unsafely project untyped value list.
+pi :: [a] -> Pi r0 r1 -> [a]
+pi cs (Pi p' w) = d p'  where
+  d (Leftest i) = take (runPersistableRecordWidth w) . drop i $ cs
+  d (Map is)    = [cs' ! i | i <- is]
+  cs' = listArray (0, length cs) cs
+
+-- | Unsafely define projection path from type 'r0' into type 'r1'.
+definePi' :: PersistableRecordWidth r1
+          -> Int      -- ^ Index of flat SQL value list
+          -> Pi r0 r1 -- ^ Result projection path
+definePi' pw i = Pi (Leftest i) pw
+
+-- | Unsafely define projection path from type 'r0' into type 'r1'.
+--   Use infered 'PersistableRecordWidth'.
+definePi :: PersistableWidth r1
+         => Int      -- ^ Index of flat SQL value list
+         -> Pi r0 r1 -- ^ Result projection path
+definePi = definePi' persistableWidth
+
+-- | Unsafely define projection path from type 'r0' into type 'r1'.
+defineDirectPi' :: PersistableRecordWidth r1
+                -> [Int]      -- ^ Indexes of flat SQL value list
+                -> Pi r0 r1 -- ^ Result projection path
+defineDirectPi' pw is = Pi (Map is) pw
+
+-- | Unsafely define projection path from type 'r0' into type 'r1'.
+--   Use infered 'PersistableRecordWidth'.
+defineDirectPi :: PersistableWidth r1
+               => [Int]    -- ^ Indexes of flat SQL value list
+               -> Pi r0 r1 -- ^ Result projection path
+defineDirectPi = defineDirectPi' persistableWidth

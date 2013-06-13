@@ -31,12 +31,8 @@ import Prelude hiding (pi)
 import Data.Array (Array, listArray)
 import qualified Data.Array as Array
 
-import Database.Record
-  (PersistableWidth, persistableWidth, PersistableRecordWidth)
-import Database.Record.Persistable (runPersistableRecordWidth)
-
 import Database.Relational.Query.Pi (Pi)
-import qualified Database.Relational.Query.Pi as Pi
+import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Relational.Query.Sub (SubQuery, queryWidth, Qualified)
 import qualified Database.Relational.Query.Sub as SubQuery
 
@@ -105,33 +101,30 @@ compose (Composed a) (Composed b) = Composed $ a ++ b
 
 
 -- | Unsafely trace projection path.
-unsafeProject :: PersistableRecordWidth b -> Projection a' -> Pi a b -> Projection b'
-unsafeProject pr p pi' =
+unsafeProject :: Projection a' -> Pi a b -> Projection b'
+unsafeProject p pi' =
   unsafeFromColumns
-  . take (runPersistableRecordWidth pr) . drop (Pi.leafIndex pi')
+  . (`UnsafePi.pi` pi')
   . columns $ p
 
 -- | Trace projection path to get narrower 'Projection'.
-pi :: PersistableWidth b
-   => Projection a -- ^ Source 'Projection'
+pi :: Projection a -- ^ Source 'Projection'
    -> Pi a b       -- ^ Projection path
    -> Projection b -- ^ Narrower 'Projection'
-pi =  unsafeProject persistableWidth
+pi =  unsafeProject
 
 -- | Trace projection path to get narrower 'Projection'. From 'Maybe' type to 'Maybe' type.
-piMaybe :: PersistableWidth b
-        => Projection (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
+piMaybe :: Projection (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
         -> Pi a b               -- ^ Projection path
         -> Projection (Maybe b) -- ^ Narrower 'Projection'. 'Maybe' type result
-piMaybe =  unsafeProject persistableWidth
+piMaybe =  unsafeProject
 
 -- | Trace projection path to get narrower 'Projection'. From 'Maybe' type to 'Maybe' type.
 --   Projection path's leaf is 'Maybe' case.
-piMaybe' :: PersistableWidth b
-         => Projection (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
+piMaybe' :: Projection (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
          -> Pi a (Maybe b)       -- ^ Projection path. 'Maybe' type leaf
          -> Projection (Maybe b) -- ^ Narrower 'Projection'. 'Maybe' type result
-piMaybe' =  unsafeProject persistableWidth
+piMaybe' =  unsafeProject
 
 -- | Composite nested 'Maybe' on projection phantom type.
 flattenMaybe :: Projection (Maybe (Maybe a)) -> Projection (Maybe a)

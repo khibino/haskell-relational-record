@@ -20,7 +20,7 @@ module Database.Relational.Query.Constraint (
   Key, index, unsafeDefineConstraintKey,
   tableConstraint, projectionKey,
 
-  unsafeReturnKey, unsafeAppendConstraint,
+  unsafeReturnKey, -- unsafeAppendConstraint,
 
   -- * Derivation rules
   uniqueKey, notNullKey,
@@ -32,12 +32,15 @@ module Database.Relational.Query.Constraint (
   Primary, Unique, NotNull
   ) where
 
-import Database.Relational.Query.Pi (Pi, leafIndex)
-import Database.Relational.Query.Pi.Unsafe (defineColumn)
+
+import Database.Relational.Query.Pi (Pi)
+import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Record.KeyConstraint
   (KeyConstraint, unsafeSpecifyKeyConstraint,
    Primary, Unique, NotNull)
+
 import qualified Database.Record.KeyConstraint as C
+import Database.Record (PersistableWidth)
 
 
 -- | Constraint Key proof object. Constraint type 'c', record type 'r' and column type 'ft'.
@@ -57,16 +60,16 @@ tableConstraint :: Key c r ct -> KeyConstraint c r
 tableConstraint =  unsafeSpecifyKeyConstraint . index
 
 -- | Get projection path proof object from constraint 'Key'.
-projectionKey :: Key c r ct -> Pi r ct
-projectionKey =  defineColumn . index
+projectionKey :: PersistableWidth ct => Key c r ct -> Pi r ct
+projectionKey =  UnsafePi.definePi . index
 
 -- | Unsafe. Make constraint key to add column phantom type
 unsafeReturnKey :: KeyConstraint c r -> Key c r ct
 unsafeReturnKey =  unsafeDefineConstraintKey . C.index
 
--- | Unsafe. Make constraint key to add constraint phantom type
-unsafeAppendConstraint :: Pi r ct -> Key c r ct
-unsafeAppendConstraint =  unsafeDefineConstraintKey . leafIndex
+-- -- | Unsafe. Make constraint key to add constraint phantom type
+-- unsafeAppendConstraint :: Pi r ct -> Key c r ct
+-- unsafeAppendConstraint =  unsafeDefineConstraintKey . leafIndex
 
 
 -- | Map from table constraint into constraint 'Key'.
