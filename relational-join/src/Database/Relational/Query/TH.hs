@@ -67,7 +67,7 @@ import Language.Haskell.TH.Lib.Extra
 import Database.Record.TH
   (recordTypeDefault,
    defineRecordTypeDefault,
-   defineHasKeyConstraintInstance)
+   defineHasSingleKeyConstraintInstance)
 
 import Database.Relational.Query
   (Table, Pi, Relation,
@@ -84,7 +84,7 @@ import Database.Relational.Query.Derives (primary, primaryUpdate)
 
 defineHasConstraintKeyInstance :: TypeQ -> TypeQ -> TypeQ -> Int -> Q [Dec]
 defineHasConstraintKeyInstance constraint recType colType index = do
-  kc <- defineHasKeyConstraintInstance constraint recType index
+  kc <- defineHasSingleKeyConstraintInstance constraint recType index
   ck <- [d| instance HasConstraintKey $constraint $recType $colType  where
               constraintKey = unsafeDefineConstraintKey $(integralE index)
           |]

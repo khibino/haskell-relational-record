@@ -32,7 +32,7 @@ module Database.Record (
   ) where
 
 import Database.Record.KeyConstraint
-  (KeyConstraint, HasKeyConstraint(..),
+  (SingleKeyConstraint, HasSingleKeyConstraint(..),
    Primary, PrimaryConstraint,
    Unique, UniqueConstraint, unique, derivedUniqueConstraint,
    NotNull, NotNullConstraint, notNull, derivedNotNullConstraint)
@@ -70,7 +70,7 @@ to generate instances from SQL database record column names and types.
 
 {- $constraintsForInference
 You will need to implement instances of
-'HasKeyConstraint' 'NotNull' which is a premise
+'HasSingleKeyConstraint' 'NotNull' which is a premise
 to infer 'RecordFromSql' proof object using 'ToSql' 'q' ('Maybe' a) instance.
 This proof object cat convert from SQL type into 'Maybe' typed record
 when dealing with outer joined query.

@@ -35,7 +35,7 @@ module Database.Record.ToSql (
 import Database.Record.Persistable
   (PersistableRecord, Persistable(persistable))
 import Database.Record.KeyConstraint
-  (HasKeyConstraint(keyConstraint), KeyConstraint, Primary, Unique, unique, index)
+  (HasSingleKeyConstraint(keyConstraint), SingleKeyConstraint, Primary, Unique, unique, index)
 import qualified Database.Record.Persistable as Persistable
 
 
@@ -94,7 +94,7 @@ fromRecord =  runFromRecord recordToSql
 --
 --   using 'RecordToSql' proof object.
 updateValuesByUnique' :: RecordToSql q ra
-                      -> KeyConstraint Unique ra -- ^ Unique key table constraint proof object.
+                      -> SingleKeyConstraint Unique ra -- ^ Unique key table constraint proof object.
                       -> ra
                       -> [q]
 updateValuesByUnique' pr uk a = hd ++ tl ++ [key]  where
@@ -102,12 +102,12 @@ updateValuesByUnique' pr uk a = hd ++ tl ++ [key]  where
 
 -- | Convert like 'updateValuesByUnique'' using inferred 'RecordToSql' proof object.
 updateValuesByUnique :: ToSql q ra
-                     => KeyConstraint Unique ra -- ^ Unique key table constraint proof object.
+                     => SingleKeyConstraint Unique ra -- ^ Unique key table constraint proof object.
                      -> ra
                      -> [q]
 updateValuesByUnique = updateValuesByUnique' recordToSql
 
--- | Convert like 'updateValuesByUnique'' using inferred 'RecordToSql' and 'KeyConstraint' proof objects.
-updateValuesByPrimary :: (HasKeyConstraint Primary ra, ToSql q ra)
+-- | Convert like 'updateValuesByUnique'' using inferred 'RecordToSql' and 'SingleKeyConstraint' proof objects.
+updateValuesByPrimary :: (HasSingleKeyConstraint Primary ra, ToSql q ra)
                       => ra -> [q]
 updateValuesByPrimary =  updateValuesByUnique (unique keyConstraint)

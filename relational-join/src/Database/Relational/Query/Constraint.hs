@@ -36,7 +36,7 @@ module Database.Relational.Query.Constraint (
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Record.KeyConstraint
-  (KeyConstraint, unsafeSpecifyKeyConstraint,
+  (SingleKeyConstraint, unsafeSpecifySingleKeyConstraint,
    Primary, Unique, NotNull)
 
 import qualified Database.Record.KeyConstraint as C
@@ -56,15 +56,15 @@ unsafeDefineConstraintKey :: Int        -- ^ Key index which specify this constr
 unsafeDefineConstraintKey =  Key
 
 -- | Get table constraint 'KeyConstraint' proof object from constraint 'Key'.
-tableConstraint :: Key c r ct -> KeyConstraint c r
-tableConstraint =  unsafeSpecifyKeyConstraint . index
+tableConstraint :: Key c r ct -> SingleKeyConstraint c r
+tableConstraint =  unsafeSpecifySingleKeyConstraint . index
 
 -- | Get projection path proof object from constraint 'Key'.
 projectionKey :: PersistableWidth ct => Key c r ct -> Pi r ct
 projectionKey =  UnsafePi.definePi . index
 
 -- | Unsafe. Make constraint key to add column phantom type
-unsafeReturnKey :: KeyConstraint c r -> Key c r ct
+unsafeReturnKey :: SingleKeyConstraint c r -> Key c r ct
 unsafeReturnKey =  unsafeDefineConstraintKey . C.index
 
 -- -- | Unsafe. Make constraint key to add constraint phantom type
@@ -73,7 +73,7 @@ unsafeReturnKey =  unsafeDefineConstraintKey . C.index
 
 
 -- | Map from table constraint into constraint 'Key'.
-mapConstraint :: (KeyConstraint c0 r -> KeyConstraint c1 r)
+mapConstraint :: (SingleKeyConstraint c0 r -> SingleKeyConstraint c1 r)
               -> Key c0 r ct
               -> Key c1 r ct
 mapConstraint f = unsafeReturnKey . f . tableConstraint
