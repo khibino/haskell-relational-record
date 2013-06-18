@@ -34,8 +34,8 @@ module Database.Record (
 import Database.Record.KeyConstraint
   (ColumnConstraint, HasColumnConstraint(..),
    Primary, PrimaryColumnConstraint,
-   Unique, UniqueColumnConstraint, unique, derivedUniqueColumnConstraint,
-   NotNull, NotNullColumnConstraint, notNull, derivedNotNullColumnConstraint)
+   Unique, UniqueColumnConstraint, uniqueColumn, derivedUniqueColumnConstraint,
+   NotNull, NotNullColumnConstraint, notNullColumn, derivedNotNullColumnConstraint)
 import Database.Record.Persistable
   (PersistableSqlType, PersistableType(..), sqlNullValue,
    PersistableSqlValue, PersistableValue(..), fromSql, toSql,

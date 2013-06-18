@@ -80,11 +80,11 @@ mapConstraint f = unsafeReturnKey . f . tableConstraint
 
 -- | Derive 'Unique' constraint 'Key' from 'Primary' constraint 'Key'
 uniqueKey :: Key Primary r ct -> Key Unique r ct
-uniqueKey  = mapConstraint C.unique
+uniqueKey  = mapConstraint C.uniqueColumn
 
 -- | Derive 'NotNull' constraint 'Key' from 'Primary' constraint 'Key'
 notNullKey :: Key Primary r ct -> Key NotNull r ct
-notNullKey =  mapConstraint C.notNull
+notNullKey =  mapConstraint C.notNullColumn
 
 
 -- | Constraint 'Key' inference interface.
