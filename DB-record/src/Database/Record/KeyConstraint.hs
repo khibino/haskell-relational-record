@@ -15,8 +15,8 @@
 -- This module provides proof object definitions
 -- of table constraint specifiey by keys.
 module Database.Record.KeyConstraint (
-  -- * Constraint specifiey by keys
-  SingleKeyConstraint, index, unsafeSpecifySingleKeyConstraint,
+  -- * Constraint specified by keys
+  ColumnConstraint, index, unsafeSpecifyColumnConstraint,
 
   Unique, UniqueColumnConstraint,
   NotNull, NotNullColumnConstraint,
@@ -25,8 +25,8 @@ module Database.Record.KeyConstraint (
   unique, notNull,
 
   -- * Deriviations
-  leftSingleKeyConstraint,
-  HasSingleKeyConstraint (keyConstraint),
+  leftColumnConstraint,
+  HasColumnConstraint (keyConstraint),
 
   derivedUniqueColumnConstraint,
   derivedNotNullColumnConstraint,
@@ -36,12 +36,13 @@ module Database.Record.KeyConstraint (
 
 
 -- | Proof object to specify table constraint
---   for table record type 'r' and constraint 'c'.
-newtype SingleKeyConstraint c r = SingleKeyConstraint Int
+--   for table record type 'r' and constraint 'c'
+--   specified by a single column.
+newtype ColumnConstraint c r = ColumnConstraint Int
 
 -- | Index of key which specifies table constraint.
-index :: SingleKeyConstraint c r -> Int
-index (SingleKeyConstraint i) = i
+index :: ColumnConstraint c r -> Int
+index (ColumnConstraint i) = i
 
 -- | Constraint type. Unique key.
 data Unique
@@ -53,52 +54,52 @@ data NotNull
 data Primary
 
 -- | Specialized unique constraint.
-type UniqueColumnConstraint  = SingleKeyConstraint Unique
+type UniqueColumnConstraint  = ColumnConstraint Unique
 
 -- | Specialized not-null constraint.
-type NotNullColumnConstraint = SingleKeyConstraint NotNull
+type NotNullColumnConstraint = ColumnConstraint NotNull
 
 -- | Specialized primary constraint.
-type PrimaryColumnConstraint = SingleKeyConstraint Primary
+type PrimaryColumnConstraint = ColumnConstraint Primary
 
--- | Unsafely generate 'SingleKeyConstraint' proof object using specified key index.
-unsafeSpecifySingleKeyConstraint :: Int               -- ^ Key index which specify this constraint
-                           -> SingleKeyConstraint c r -- ^ Result constraint proof object
-unsafeSpecifySingleKeyConstraint =  SingleKeyConstraint
+-- | Unsafely generate 'ColumnConstraint' proof object using specified key index.
+unsafeSpecifyColumnConstraint :: Int               -- ^ Key index which specify this constraint
+                           -> ColumnConstraint c r -- ^ Result constraint proof object
+unsafeSpecifyColumnConstraint =  ColumnConstraint
 
 -- | Derivation rule for 'UniqueColumnConstraint'.
 unique :: PrimaryColumnConstraint r -> UniqueColumnConstraint r
-unique =  unsafeSpecifySingleKeyConstraint . index
+unique =  unsafeSpecifyColumnConstraint . index
 
 -- | Derivation rule for 'NotNullColumnConstraint'.
 notNull :: PrimaryColumnConstraint r -> NotNullColumnConstraint r
-notNull =  unsafeSpecifySingleKeyConstraint . index
+notNull =  unsafeSpecifyColumnConstraint . index
 
 
--- | Derivation rule of 'SingleKeyConstraint' for tuple (,) type.
-leftSingleKeyConstraint :: SingleKeyConstraint k a -> SingleKeyConstraint k (a, b)
-leftSingleKeyConstraint pa = SingleKeyConstraint (index pa)
+-- | Derivation rule of 'ColumnConstraint' for tuple (,) type.
+leftColumnConstraint :: ColumnConstraint k a -> ColumnConstraint k (a, b)
+leftColumnConstraint pa = ColumnConstraint (index pa)
 
--- | Interface of inference rule for 'SingleKeyConstraint' proof object.
-class HasSingleKeyConstraint c a where
-  -- | Infer 'SingleKeyConstraint' proof object.
-  keyConstraint :: SingleKeyConstraint c a
+-- | Interface of inference rule for 'ColumnConstraint' proof object.
+class HasColumnConstraint c a where
+  -- | Infer 'ColumnConstraint' proof object.
+  keyConstraint :: ColumnConstraint c a
 
--- | Inference rule of 'SingleKeyConstraint' for tuple (,) type.
-instance HasSingleKeyConstraint c a => HasSingleKeyConstraint c (a, b) where
-  keyConstraint = leftSingleKeyConstraint keyConstraint
+-- | Inference rule of 'ColumnConstraint' for tuple (,) type.
+instance HasColumnConstraint c a => HasColumnConstraint c (a, b) where
+  keyConstraint = leftColumnConstraint keyConstraint
 
 -- | Inferred 'UniqueColumnConstraint' proof object.
 --   Record type 'r' has unique key which is derived 'r' has primary key.
-derivedUniqueColumnConstraint :: HasSingleKeyConstraint Primary r => UniqueColumnConstraint r
+derivedUniqueColumnConstraint :: HasColumnConstraint Primary r => UniqueColumnConstraint r
 derivedUniqueColumnConstraint =  unique keyConstraint
 
 -- | Inferred 'NotNullColumnConstraint' proof object.
 --   Record type 'r' has not-null key which is derived 'r' has primary key.
-derivedNotNullColumnConstraint :: HasSingleKeyConstraint Primary r => NotNullColumnConstraint r
+derivedNotNullColumnConstraint :: HasColumnConstraint Primary r => NotNullColumnConstraint r
 derivedNotNullColumnConstraint =  notNull keyConstraint
 
 
 -- | Unsafely generate 'NotNullColumnConstraint' proof object of single column value.
 unsafeSpecifyNotNullValue :: NotNullColumnConstraint a
-unsafeSpecifyNotNullValue =  unsafeSpecifySingleKeyConstraint 0
+unsafeSpecifyNotNullValue =  unsafeSpecifyColumnConstraint 0

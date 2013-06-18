@@ -22,7 +22,7 @@ module Database.Record.TH (
   derivingEq, derivingShow, derivingRead, derivingData, derivingTypable,
 
   -- * Table constraint specified by key
-  defineHasSingleKeyConstraintInstance,
+  defineHasColumnConstraintInstance,
   defineHasNotNullKeyInstance,
   defineHasPrimaryKeyInstance,
   defineHasPrimaryKeyInstanceDefault,
@@ -67,14 +67,14 @@ import Language.Haskell.TH
 import Language.Haskell.TH.Syntax (VarStrictType)
 
 import Database.Record
-  (HasSingleKeyConstraint(keyConstraint), Primary, NotNull,
+  (HasColumnConstraint(keyConstraint), Primary, NotNull,
    Persistable(persistable), PersistableWidth(persistableWidth),
    fromSql, toSql,
    FromSql(recordFromSql), recordFromSql',
    ToSql(recordToSql), recordToSql')
 
 import Database.Record.KeyConstraint
-  (unsafeSpecifySingleKeyConstraint, unsafeSpecifyNotNullValue)
+  (unsafeSpecifyColumnConstraint, unsafeSpecifyNotNullValue)
 import Database.Record.Persistable
   (persistableRecord, unsafePersistableRecordWidth)
 import qualified Database.Record.Persistable as Persistable
@@ -91,30 +91,30 @@ recordTypeDefault :: String -- ^ Table name in SQL
                   -> TypeQ  -- ^ Result type template
 recordTypeDefault =  toTypeCon . recordTypeNameDefault
 
--- | Template of 'HasSingleKeyConstraint' instance.
-defineHasSingleKeyConstraintInstance :: TypeQ   -- ^ Type which represent constraint type
+-- | Template of 'HasColumnConstraint' instance.
+defineHasColumnConstraintInstance :: TypeQ   -- ^ Type which represent constraint type
                                -> TypeQ   -- ^ Type constructor of record
                                -> Int     -- ^ Key index which specifies this constraint
                                -> Q [Dec] -- ^ Result declaration template
-defineHasSingleKeyConstraintInstance constraint typeCon index =
-  [d| instance HasSingleKeyConstraint $constraint $typeCon where
-        keyConstraint = unsafeSpecifySingleKeyConstraint $(integralE index) |]
+defineHasColumnConstraintInstance constraint typeCon index =
+  [d| instance HasColumnConstraint $constraint $typeCon where
+        keyConstraint = unsafeSpecifyColumnConstraint $(integralE index) |]
 
--- | Template of 'HasSingleKeyConstraint' 'Primary' instance.
+-- | Template of 'HasColumnConstraint' 'Primary' instance.
 defineHasPrimaryKeyInstance :: TypeQ   -- ^ Type constructor of record
                             -> Int     -- ^ Key index which specifies this constraint
                             -> Q [Dec] -- ^ Declaration of primary key constraint instance
 defineHasPrimaryKeyInstance =
-  defineHasSingleKeyConstraintInstance [t| Primary |]
+  defineHasColumnConstraintInstance [t| Primary |]
 
--- | Template of 'HasSingleKeyConstraint' 'NotNull' instance.
+-- | Template of 'HasColumnConstraint' 'NotNull' instance.
 defineHasNotNullKeyInstance :: TypeQ   -- ^ Type constructor of record
                             -> Int     -- ^ Key index which specifies this constraint
                             -> Q [Dec] -- ^ Declaration of not null key constraint instance
 defineHasNotNullKeyInstance =
-  defineHasSingleKeyConstraintInstance [t| NotNull |]
+  defineHasColumnConstraintInstance [t| NotNull |]
 
--- | Template of 'HasSingleKeyConstraint' 'Primary' instance
+-- | Template of 'HasColumnConstraint' 'Primary' instance
 --   from SQL table name 'String' and key index.
 defineHasPrimaryKeyInstanceDefault :: String  -- ^ Table name
                                    -> Int     -- ^ Key index which specifies this constraint
@@ -122,7 +122,7 @@ defineHasPrimaryKeyInstanceDefault :: String  -- ^ Table name
 defineHasPrimaryKeyInstanceDefault =
   defineHasPrimaryKeyInstance . recordTypeDefault
 
--- | Template of 'HasSingleKeyConstraint' 'NotNull' instance
+-- | Template of 'HasColumnConstraint' 'NotNull' instance
 --   from SQL table name 'String' and key index.
 defineHasNotNullKeyInstanceDefault :: String  -- ^ Table name
                                    -> Int     -- ^ Key index which specifies this constraint
@@ -340,6 +340,6 @@ deriveNotNullType typeCon =
   [d| instance PersistableWidth $typeCon where
         persistableWidth = Persistable.unsafeValueWidth
 
-      instance HasSingleKeyConstraint NotNull $typeCon where
+      instance HasColumnConstraint NotNull $typeCon where
         keyConstraint = unsafeSpecifyNotNullValue
     |]
