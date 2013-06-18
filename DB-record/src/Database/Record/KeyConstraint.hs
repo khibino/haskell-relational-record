@@ -22,16 +22,23 @@ module Database.Record.KeyConstraint (
   NotNull, NotNullColumnConstraint,
 
   Primary, PrimaryColumnConstraint,
-  uniqueColumn, notNullColumn,
+
+  KeyConstraint, indexes, unsafeSpecifyKeyConstraint,
 
   -- * Deriviations
+  uniqueColumn, notNullColumn,
+
   leftColumnConstraint,
   HasColumnConstraint (keyConstraint),
 
   derivedUniqueColumnConstraint,
   derivedNotNullColumnConstraint,
 
-  unsafeSpecifyNotNullValue
+  unsafeSpecifyNotNullValue,
+
+  deriveComposite,
+
+  unique
   ) where
 
 
@@ -67,11 +74,11 @@ unsafeSpecifyColumnConstraint :: Int               -- ^ Key index which specify 
                            -> ColumnConstraint c r -- ^ Result constraint proof object
 unsafeSpecifyColumnConstraint =  ColumnConstraint
 
--- | Derivation rule for 'UniqueColumnConstraint'.
+-- | Derivation rule for 'UniqueColumnConstraint'. Derive Unique from Primary.
 uniqueColumn :: PrimaryColumnConstraint r -> UniqueColumnConstraint r
 uniqueColumn =  unsafeSpecifyColumnConstraint . index
 
--- | Derivation rule for 'NotNullColumnConstraint'.
+-- | Derivation rule for 'NotNullColumnConstraint'. Derive NotNull from Primary.
 notNullColumn :: PrimaryColumnConstraint r -> NotNullColumnConstraint r
 notNullColumn =  unsafeSpecifyColumnConstraint . index
 
@@ -103,3 +110,32 @@ derivedNotNullColumnConstraint =  notNullColumn keyConstraint
 -- | Unsafely generate 'NotNullColumnConstraint' proof object of single column value.
 unsafeSpecifyNotNullValue :: NotNullColumnConstraint a
 unsafeSpecifyNotNullValue =  unsafeSpecifyColumnConstraint 0
+
+
+-- | Proof object to specify table constraint
+--   for table record type 'r' and constraint 'c'.
+--   Constraint is specified by composite key.
+newtype KeyConstraint c r = KeyConstraint [Int]
+
+-- | Index of key which specifies table constraint.
+indexes :: KeyConstraint c r -> [Int]
+indexes (KeyConstraint is) = is
+
+-- | Unsafely generate 'KeyConstraint' proof object using specified key indexes.
+unsafeSpecifyKeyConstraint :: [Int]             -- ^ Key index which specify this constraint
+                           -> KeyConstraint c r -- ^ Result constraint proof object
+unsafeSpecifyKeyConstraint =  KeyConstraint
+
+-- | Derivation rule for 'KeyConstraint'. Derive from 'ColumnConstraint'.
+deriveComposite :: ColumnConstraint c r -> KeyConstraint c r
+deriveComposite =  unsafeSpecifyKeyConstraint . (:[]) . index
+
+-- | Specialized unique constraint.
+type UniqueConstraint  = KeyConstraint Unique
+
+-- | Specialized primary constraint.
+type PrimaryConstraint = KeyConstraint Primary
+
+-- | Derivation rule for 'UniqueConstraint'.
+unique :: PrimaryConstraint r -> UniqueConstraint r
+unique =  unsafeSpecifyKeyConstraint . indexes
