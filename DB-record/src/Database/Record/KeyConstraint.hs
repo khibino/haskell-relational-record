@@ -76,8 +76,8 @@ notNull :: PrimaryColumnConstraint r -> NotNullColumnConstraint r
 notNull =  unsafeSpecifyColumnConstraint . index
 
 
--- | Derivation rule of 'ColumnConstraint' for tuple (,) type.
-leftColumnConstraint :: ColumnConstraint k a -> ColumnConstraint k (a, b)
+-- | Derivation rule of 'ColumnConstraint' 'NotNull' for tuple (,) type.
+leftColumnConstraint :: ColumnConstraint NotNull a -> ColumnConstraint NotNull (a, b)
 leftColumnConstraint pa = ColumnConstraint (index pa)
 
 -- | Interface of inference rule for 'ColumnConstraint' proof object.
@@ -85,8 +85,8 @@ class HasColumnConstraint c a where
   -- | Infer 'ColumnConstraint' proof object.
   keyConstraint :: ColumnConstraint c a
 
--- | Inference rule of 'ColumnConstraint' for tuple (,) type.
-instance HasColumnConstraint c a => HasColumnConstraint c (a, b) where
+-- | Inference rule of 'ColumnConstraint' 'NotNull' for tuple (,) type.
+instance HasColumnConstraint NotNull a => HasColumnConstraint NotNull (a, b) where
   keyConstraint = leftColumnConstraint keyConstraint
 
 -- | Inferred 'UniqueColumnConstraint' proof object.
