@@ -32,10 +32,13 @@ module Database.Record.ToSql (
   updateValuesByPrimary
   ) where
 
+import Data.Array (listArray, (!))
+import Data.Set (toList, fromList, (\\))
+
 import Database.Record.Persistable
   (PersistableRecord, Persistable(persistable))
 import Database.Record.KeyConstraint
-  (HasColumnConstraint(columnConstraint), ColumnConstraint, Primary, Unique, uniqueColumn, index)
+  (Primary, Unique, KeyConstraint, HasKeyConstraint(keyConstraint), unique, indexes)
 import qualified Database.Record.Persistable as Persistable
 
 
@@ -88,26 +91,42 @@ instance ToSql q () where
 fromRecord :: ToSql q a => a -> [q]
 fromRecord =  runFromRecord recordToSql
 
+-- | Unsafely specify key index to convert from Haskell type `ra`
+--   into SQL value `q` list expected by update form like
+--
+-- /UPDATE <table> SET c0 = ?, c1 = ?, ..., cn = ? WHERE key0 = ? AND key1 = ? AND key2 = ? ... /
+--
+--   using 'RecordToSql' proof object.
+unsafeUpdateValuesWithIndexes :: RecordToSql q ra
+                              -> [Int]
+                              -> ra
+                              -> [q]
+unsafeUpdateValuesWithIndexes pr key a =
+  [ valsA ! i | i <- otherThanKey ++ key ]  where
+    vals = runFromRecord pr a
+    maxIx = length vals - 1
+    valsA = listArray (0, maxIx) vals
+    otherThanKey = toList $ fromList [0 .. maxIx] \\ fromList key
+
 -- | Convert from Haskell type `ra` into SQL value `q` list expected by update form like
 --
 -- /UPDATE <table> SET c0 = ?, c1 = ?, ..., cn = ? WHERE key = ?/
 --
 --   using 'RecordToSql' proof object.
 updateValuesByUnique' :: RecordToSql q ra
-                      -> ColumnConstraint Unique ra -- ^ Unique key table constraint proof object.
+                      -> KeyConstraint Unique ra -- ^ Unique key table constraint proof object.
                       -> ra
                       -> [q]
-updateValuesByUnique' pr uk a = hd ++ tl ++ [key]  where
-  (hd, key:tl) = splitAt (index uk) (runFromRecord pr a)
+updateValuesByUnique' pr uk = unsafeUpdateValuesWithIndexes pr (indexes uk)
 
 -- | Convert like 'updateValuesByUnique'' using inferred 'RecordToSql' proof object.
 updateValuesByUnique :: ToSql q ra
-                     => ColumnConstraint Unique ra -- ^ Unique key table constraint proof object.
+                     => KeyConstraint Unique ra -- ^ Unique key table constraint proof object.
                      -> ra
                      -> [q]
 updateValuesByUnique = updateValuesByUnique' recordToSql
 
 -- | Convert like 'updateValuesByUnique'' using inferred 'RecordToSql' and 'ColumnConstraint' proof objects.
-updateValuesByPrimary :: (HasColumnConstraint Primary ra, ToSql q ra)
+updateValuesByPrimary :: (HasKeyConstraint Primary ra, ToSql q ra)
                       => ra -> [q]
-updateValuesByPrimary =  updateValuesByUnique (uniqueColumn columnConstraint)
+updateValuesByPrimary =  updateValuesByUnique (unique keyConstraint)

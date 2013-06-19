@@ -26,6 +26,8 @@ library
 
   build-depends:          base <5
                         , template-haskell
+                        , array
+                        , containers
                         , names-th
   hs-source-dirs:       src
   ghc-options:          -Wall
