@@ -27,6 +27,7 @@ module Database.Relational.Query.Constraint (
 
   -- * Inference rules
   HasConstraintKey (..),
+  derivedUniqueKey, derivedNotNullKey,
 
   -- * Constraint types
   Primary, Unique, NotNull
@@ -92,12 +93,12 @@ class HasConstraintKey c r ct  where
   -- | Infer constraint key.
   constraintKey :: Key c r ct
 
--- | Inference rule of 'Unique' constraint 'Key'.
-instance HasConstraintKey Primary r ct
-         => HasConstraintKey Unique r ct  where
-  constraintKey = uniqueKey constraintKey
+-- | Infered 'Unique' constraint 'Key'.
+--   Record type 'r' has unique key which type is 'ct' derived from primay key.
+derivedUniqueKey :: HasConstraintKey Primary r ct => Key Unique r ct
+derivedUniqueKey =  uniqueKey constraintKey
 
--- | Inference rule of 'NotNull' constraint 'Key'.
-instance HasConstraintKey Primary r ct
-         => HasConstraintKey NotNull r ct  where
-  constraintKey = notNullKey constraintKey
+-- | Infered 'NotNull' constraint 'Key'.
+--   Record type 'r' has not-null key which type is 'ct' derived from primay key.
+derivedNotNullKey :: HasConstraintKey Primary r ct => Key NotNull r ct
+derivedNotNullKey =  notNullKey constraintKey

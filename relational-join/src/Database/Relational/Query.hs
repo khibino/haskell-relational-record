@@ -35,6 +35,7 @@ import Database.Relational.Query.Pi
 import Database.Relational.Query.Constraint
   (Key, tableConstraint, projectionKey,
    uniqueKey, notNullKey, HasConstraintKey(constraintKey),
+   derivedUniqueKey, derivedNotNullKey,
    Primary, Unique, NotNull)
 import Database.Relational.Query.Expr hiding (flattenMaybe, just)
 import Database.Relational.Query.Sub (SubQuery, unitSQL, queryWidth)
