@@ -23,6 +23,7 @@ module Database.Record.TH (
 
   -- * Table constraint specified by key
   defineHasColumnConstraintInstance,
+  defineHasPrimaryConstraintInstanceDerived,
   defineHasNotNullKeyInstance,
   defineHasPrimaryKeyInstance,
   defineHasPrimaryKeyInstanceDefault,
@@ -68,6 +69,7 @@ import Language.Haskell.TH.Syntax (VarStrictType)
 
 import Database.Record
   (HasColumnConstraint(columnConstraint), Primary, NotNull,
+   HasKeyConstraint(keyConstraint), derivedCompositePrimary,
    Persistable(persistable), PersistableWidth(persistableWidth),
    fromSql, toSql,
    FromSql(recordFromSql), recordFromSql',
@@ -93,19 +95,28 @@ recordTypeDefault =  toTypeCon . recordTypeNameDefault
 
 -- | Template of 'HasColumnConstraint' instance.
 defineHasColumnConstraintInstance :: TypeQ   -- ^ Type which represent constraint type
-                               -> TypeQ   -- ^ Type constructor of record
-                               -> Int     -- ^ Key index which specifies this constraint
-                               -> Q [Dec] -- ^ Result declaration template
+                                  -> TypeQ   -- ^ Type constructor of record
+                                  -> Int     -- ^ Key index which specifies this constraint
+                                  -> Q [Dec] -- ^ Result declaration template
 defineHasColumnConstraintInstance constraint typeCon index =
   [d| instance HasColumnConstraint $constraint $typeCon where
         columnConstraint = unsafeSpecifyColumnConstraint $(integralE index) |]
+
+-- | Template of 'HasKeyConstraint' instance.
+defineHasPrimaryConstraintInstanceDerived ::TypeQ    -- ^ Type constructor of record
+                                          -> Q [Dec] -- ^ Result declaration template
+defineHasPrimaryConstraintInstanceDerived typeCon =
+  [d| instance HasKeyConstraint Primary $typeCon where
+        keyConstraint = derivedCompositePrimary |]
 
 -- | Template of 'HasColumnConstraint' 'Primary' instance.
 defineHasPrimaryKeyInstance :: TypeQ   -- ^ Type constructor of record
                             -> Int     -- ^ Key index which specifies this constraint
                             -> Q [Dec] -- ^ Declaration of primary key constraint instance
-defineHasPrimaryKeyInstance =
-  defineHasColumnConstraintInstance [t| Primary |]
+defineHasPrimaryKeyInstance typeCon ix = do
+  col  <- defineHasColumnConstraintInstance [t| Primary |] typeCon ix
+  comp <- defineHasPrimaryConstraintInstanceDerived typeCon
+  return $ col ++ comp
 
 -- | Template of 'HasColumnConstraint' 'NotNull' instance.
 defineHasNotNullKeyInstance :: TypeQ   -- ^ Type constructor of record
