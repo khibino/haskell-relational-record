@@ -34,7 +34,7 @@ import Database.Record.Persistable
    Persistable(persistable), PersistableType)
 import qualified Database.Record.Persistable as Persistable
 import Database.Record.KeyConstraint
-  (HasColumnConstraint(keyConstraint), ColumnConstraint, NotNull, index)
+  (HasColumnConstraint(columnConstraint), ColumnConstraint, NotNull, index)
 
 import Control.Monad (liftM, ap)
 import Control.Applicative ((<$>), Applicative(pure, (<*>)))
@@ -147,7 +147,7 @@ instance (FromSql q a, FromSql q b) => FromSql q (a, b)  where
 --   from list of SQL type ['q'] into Haskell 'Maybe' type.
 instance (HasColumnConstraint NotNull a, FromSql q a, PersistableType q)
          => FromSql q (Maybe a)  where
-  recordFromSql = maybeRecord recordFromSql keyConstraint
+  recordFromSql = maybeRecord recordFromSql columnConstraint
 
 -- | Inference rule of 'RecordFromSql' proof object which can convert
 --   from /empty/ list of SQL type ['q'] into Haskell unit () type.

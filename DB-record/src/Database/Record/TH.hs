@@ -67,7 +67,7 @@ import Language.Haskell.TH
 import Language.Haskell.TH.Syntax (VarStrictType)
 
 import Database.Record
-  (HasColumnConstraint(keyConstraint), Primary, NotNull,
+  (HasColumnConstraint(columnConstraint), Primary, NotNull,
    Persistable(persistable), PersistableWidth(persistableWidth),
    fromSql, toSql,
    FromSql(recordFromSql), recordFromSql',
@@ -98,7 +98,7 @@ defineHasColumnConstraintInstance :: TypeQ   -- ^ Type which represent constrain
                                -> Q [Dec] -- ^ Result declaration template
 defineHasColumnConstraintInstance constraint typeCon index =
   [d| instance HasColumnConstraint $constraint $typeCon where
-        keyConstraint = unsafeSpecifyColumnConstraint $(integralE index) |]
+        columnConstraint = unsafeSpecifyColumnConstraint $(integralE index) |]
 
 -- | Template of 'HasColumnConstraint' 'Primary' instance.
 defineHasPrimaryKeyInstance :: TypeQ   -- ^ Type constructor of record
@@ -341,5 +341,5 @@ deriveNotNullType typeCon =
         persistableWidth = Persistable.unsafeValueWidth
 
       instance HasColumnConstraint NotNull $typeCon where
-        keyConstraint = unsafeSpecifyNotNullValue
+        columnConstraint = unsafeSpecifyNotNullValue
     |]

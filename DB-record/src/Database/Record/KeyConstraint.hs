@@ -25,11 +25,13 @@ module Database.Record.KeyConstraint (
 
   KeyConstraint, indexes, unsafeSpecifyKeyConstraint,
 
+  UniqueConstraint, PrimaryConstraint,
+
   -- * Deriviations
   uniqueColumn, notNullColumn,
 
   leftColumnConstraint,
-  HasColumnConstraint (keyConstraint),
+  HasColumnConstraint (columnConstraint),
 
   derivedUniqueColumnConstraint,
   derivedNotNullColumnConstraint,
@@ -90,21 +92,21 @@ leftColumnConstraint pa = ColumnConstraint (index pa)
 -- | Interface of inference rule for 'ColumnConstraint' proof object.
 class HasColumnConstraint c a where
   -- | Infer 'ColumnConstraint' proof object.
-  keyConstraint :: ColumnConstraint c a
+  columnConstraint :: ColumnConstraint c a
 
 -- | Inference rule of 'ColumnConstraint' 'NotNull' for tuple (,) type.
 instance HasColumnConstraint NotNull a => HasColumnConstraint NotNull (a, b) where
-  keyConstraint = leftColumnConstraint keyConstraint
+  columnConstraint = leftColumnConstraint columnConstraint
 
 -- | Inferred 'UniqueColumnConstraint' proof object.
 --   Record type 'r' has unique key which is derived 'r' has primary key.
 derivedUniqueColumnConstraint :: HasColumnConstraint Primary r => UniqueColumnConstraint r
-derivedUniqueColumnConstraint =  uniqueColumn keyConstraint
+derivedUniqueColumnConstraint =  uniqueColumn columnConstraint
 
 -- | Inferred 'NotNullColumnConstraint' proof object.
 --   Record type 'r' has not-null key which is derived 'r' has primary key.
 derivedNotNullColumnConstraint :: HasColumnConstraint Primary r => NotNullColumnConstraint r
-derivedNotNullColumnConstraint =  notNullColumn keyConstraint
+derivedNotNullColumnConstraint =  notNullColumn columnConstraint
 
 
 -- | Unsafely generate 'NotNullColumnConstraint' proof object of single column value.

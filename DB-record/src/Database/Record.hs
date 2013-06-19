@@ -35,7 +35,9 @@ import Database.Record.KeyConstraint
   (ColumnConstraint, HasColumnConstraint(..),
    Primary, PrimaryColumnConstraint,
    Unique, UniqueColumnConstraint, uniqueColumn, derivedUniqueColumnConstraint,
-   NotNull, NotNullColumnConstraint, notNullColumn, derivedNotNullColumnConstraint)
+   NotNull, NotNullColumnConstraint, notNullColumn, derivedNotNullColumnConstraint,
+   KeyConstraint, PrimaryConstraint, UniqueConstraint,
+   deriveComposite, unique)
 import Database.Record.Persistable
   (PersistableSqlType, PersistableType(..), sqlNullValue,
    PersistableSqlValue, PersistableValue(..), fromSql, toSql,
