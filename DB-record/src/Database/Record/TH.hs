@@ -76,7 +76,7 @@ import Database.Record
    ToSql(recordToSql), recordToSql')
 
 import Database.Record.KeyConstraint
-  (unsafeSpecifyColumnConstraint, unsafeSpecifyNotNullValue)
+  (unsafeSpecifyColumnConstraint, unsafeSpecifyNotNullValue, unsafeSpecifyKeyConstraint)
 import Database.Record.Persistable
   (persistableRecord, unsafePersistableRecordWidth)
 import qualified Database.Record.Persistable as Persistable
@@ -111,12 +111,19 @@ defineHasPrimaryConstraintInstanceDerived typeCon =
 
 -- | Template of 'HasColumnConstraint' 'Primary' instance.
 defineHasPrimaryKeyInstance :: TypeQ   -- ^ Type constructor of record
-                            -> Int     -- ^ Key index which specifies this constraint
+                            -> [Int]   -- ^ Key index which specifies this constraint
                             -> Q [Dec] -- ^ Declaration of primary key constraint instance
-defineHasPrimaryKeyInstance typeCon ix = do
-  col  <- defineHasColumnConstraintInstance [t| Primary |] typeCon ix
-  comp <- defineHasPrimaryConstraintInstanceDerived typeCon
-  return $ col ++ comp
+defineHasPrimaryKeyInstance typeCon = d  where
+  d []   = return []
+  d [ix] = do
+    col  <- defineHasColumnConstraintInstance [t| Primary |] typeCon ix
+    comp <- defineHasPrimaryConstraintInstanceDerived typeCon
+    return $ col ++ comp
+  d ixs  =
+    [d| instance HasKeyConstraint Primary $typeCon where
+          keyConstraint = unsafeSpecifyKeyConstraint
+                          $(listE [integralE ix | ix <- ixs ])
+      |]
 
 -- | Template of 'HasColumnConstraint' 'NotNull' instance.
 defineHasNotNullKeyInstance :: TypeQ   -- ^ Type constructor of record
@@ -128,7 +135,7 @@ defineHasNotNullKeyInstance =
 -- | Template of 'HasColumnConstraint' 'Primary' instance
 --   from SQL table name 'String' and key index.
 defineHasPrimaryKeyInstanceDefault :: String  -- ^ Table name
-                                   -> Int     -- ^ Key index which specifies this constraint
+                                   -> [Int]   -- ^ Key index which specifies this constraint
                                    -> Q [Dec] -- ^ Declaration of primary key constraint instance
 defineHasPrimaryKeyInstanceDefault =
   defineHasPrimaryKeyInstance . recordTypeDefault
