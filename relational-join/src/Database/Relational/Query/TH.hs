@@ -68,6 +68,7 @@ import Database.Record.TH
   (recordTypeDefault,
    defineRecordTypeDefault,
    defineHasColumnConstraintInstance)
+import qualified Database.Record.TH as Record
 
 import Database.Relational.Query
   (Table, Pi, Relation,
@@ -82,31 +83,32 @@ import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Relational.Query.Derives (primary, primaryUpdate)
 
 
-defineHasConstraintKeyInstance :: TypeQ -> TypeQ -> TypeQ -> Int -> Q [Dec]
-defineHasConstraintKeyInstance constraint recType colType index = do
-  kc <- defineHasColumnConstraintInstance constraint recType index
+defineHasConstraintKeyInstance :: TypeQ -> TypeQ -> TypeQ -> [Int] -> Q [Dec]
+defineHasConstraintKeyInstance constraint recType colType indexes = do
+  -- kc <- defineHasColumnConstraintInstance constraint recType index
   ck <- [d| instance HasConstraintKey $constraint $recType $colType  where
-              constraintKey = unsafeDefineConstraintKey $(integralE index)
+              constraintKey = unsafeDefineConstraintKey $(listE [integralE ix | ix <- indexes])
           |]
-  return $ kc ++ ck
+  return ck
 
-defineHasPrimaryKeyInstance :: TypeQ -> TypeQ -> Int -> Q [Dec]
-defineHasPrimaryKeyInstance =
-  defineHasConstraintKeyInstance [t| Primary |]
+defineHasPrimaryKeyInstance :: TypeQ -> TypeQ -> [Int] -> Q [Dec]
+defineHasPrimaryKeyInstance recType colType indexes = do
+  kc <- Record.defineHasPrimaryKeyInstance recType indexes
+  ck <- defineHasConstraintKeyInstance [t| Primary |] recType colType indexes
+  return $ kc ++ ck
 
 defineHasPrimaryKeyInstanceDefault :: String  -- ^ Table name
                                    -> TypeQ   -- ^ Column type
-                                   -> Int     -- ^ Primary key index
+                                   -> [Int]   -- ^ Primary key index
                                    -> Q [Dec] -- ^ Declaration of primary constraint key
 defineHasPrimaryKeyInstanceDefault =
   defineHasPrimaryKeyInstance . recordTypeDefault
 
-defineHasNotNullKeyInstance :: TypeQ -> TypeQ -> Int -> Q [Dec]
+defineHasNotNullKeyInstance :: TypeQ -> Int -> Q [Dec]
 defineHasNotNullKeyInstance =
-  defineHasConstraintKeyInstance [t| NotNull |]
+  defineHasColumnConstraintInstance [t| NotNull |]
 
 defineHasNotNullKeyInstanceDefault :: String  -- ^ Table name
-                                   -> TypeQ   -- ^ Column type
                                    -> Int     -- ^ NotNull key index
                                    -> Q [Dec] -- ^ Declaration of not-null constraint key
 defineHasNotNullKeyInstanceDefault =
@@ -277,14 +279,14 @@ defineTableDefault' schema table fields derives = do
 
 defineWithPrimaryKeyDefault :: String -> TypeQ -> Int -> Q [Dec]
 defineWithPrimaryKeyDefault table keyType idx = do
-  instD <- defineHasPrimaryKeyInstanceDefault table keyType idx
+  instD <- defineHasPrimaryKeyInstanceDefault table keyType [idx]
   let recType  = recordTypeDefault table
       tableE   = tableVarExpDefault table
       relE     = relationVarExpDefault table
   sqlsD <- defineSqlsWithPrimaryKeyDefault table keyType recType relE tableE
   return $ instD ++ sqlsD
 
-defineWithNotNullKeyDefault :: String -> TypeQ -> Int -> Q [Dec]
+defineWithNotNullKeyDefault :: String -> Int -> Q [Dec]
 defineWithNotNullKeyDefault =  defineHasNotNullKeyInstanceDefault
 
 defineTableDefault :: String            -- ^ Schema name of Database
@@ -298,7 +300,7 @@ defineTableDefault schema table fields derives mayPrimaryIdx mayNotNullIdx = do
   let keyType = snd . (fields !!)
   tblD  <- defineTableDefault' schema table fields derives
   primD <- maybeD (\i -> defineWithPrimaryKeyDefault table (keyType i) i) mayPrimaryIdx
-  nnD   <- maybeD (\i -> defineWithNotNullKeyDefault table (keyType i) i) mayNotNullIdx
+  nnD   <- maybeD (\i -> defineWithNotNullKeyDefault table i) mayNotNullIdx
   return $ tblD ++ primD ++ nnD
 
 

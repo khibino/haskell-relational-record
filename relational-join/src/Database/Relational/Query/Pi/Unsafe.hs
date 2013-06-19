@@ -21,7 +21,7 @@ module Database.Relational.Query.Pi.Unsafe (
 
   pi,
 
-  definePi, defineDirectPi
+  definePi, defineDirectPi', defineDirectPi
   ) where
 
 import Prelude hiding (pi)
@@ -91,7 +91,7 @@ definePi = definePi' persistableWidth
 
 -- | Unsafely define projection path from type 'r0' into type 'r1'.
 defineDirectPi' :: PersistableRecordWidth r1
-                -> [Int]      -- ^ Indexes of flat SQL value list
+                -> [Int]    -- ^ Indexes of flat SQL value list
                 -> Pi r0 r1 -- ^ Result projection path
 defineDirectPi' pw is = Pi (Map is) pw
 

@@ -51,22 +51,25 @@ primary' :: PersistableWidth p
 primary' pc = unique $ Constraint.uniqueKey pc
 
 -- | Query restricted with infered primary key.
-primary :: (PersistableWidth p, HasConstraintKey Primary a p)
+primary :: HasConstraintKey Primary a p
         => Relation () a -- ^ 'Relation' to add restriction.
         -> Relation p a  -- ^ Result restricted 'Relation'
 primary = primary' constraintKey
 
 
 -- | Typed 'Update' using specified key.
-updateByConstraintKey :: PersistableWidth p
-                      => Table r    -- ^ 'Table' to update
+updateByConstraintKey :: Table r    -- ^ 'Table' to update
                       -> Key c r p  -- ^ Key with constraint 'c', record type 'r' and column type 'p'
                       -> Update p r -- ^ Result typed 'Update'
-updateByConstraintKey table key =
-  typedSingleKeyUpdate table (table `Table.index` Constraint.index key)
+updateByConstraintKey table key
+  | width == 1 = typedSingleKeyUpdate table (table `Table.index` (head ixs))
+  | otherwise  = undefined
+    where ixs = Constraint.indexes key
+          width = length (ixs)
+  -- typedSingleKeyUpdate table (table `Table.index` Constraint.indexes key)
 
 -- | Typed 'Update' using infered primary key.
-primaryUpdate :: (PersistableWidth p, HasConstraintKey Primary r p)
-              => Table r   -- ^ 'Table' to update
-                 -> Update p r -- ^ Result typed 'Update'
+primaryUpdate :: (HasConstraintKey Primary r p)
+              => Table r            -- ^ 'Table' to update
+              -> Update p r -- ^ Result typed 'Update'
 primaryUpdate table = updateByConstraintKey table (uniqueKey constraintKey)

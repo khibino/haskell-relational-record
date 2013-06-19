@@ -17,17 +17,17 @@
 -- typed constraint key column definition is included in this module.
 module Database.Relational.Query.Constraint (
   -- * Constraint Key proof object
-  Key, index, unsafeDefineConstraintKey,
+  Key, indexes, unsafeDefineConstraintKey,
   tableConstraint, projectionKey,
 
-  unsafeReturnKey, -- unsafeAppendConstraint,
+  -- unsafeReturnKey, -- unsafeAppendConstraint,
 
   -- * Derivation rules
-  uniqueKey, notNullKey,
+  uniqueKey, -- notNullKey,
 
   -- * Inference rules
   HasConstraintKey (..),
-  derivedUniqueKey, derivedNotNullKey,
+  derivedUniqueKey, -- derivedNotNullKey,
 
   -- * Constraint types
   Primary, Unique, NotNull
@@ -37,36 +37,44 @@ module Database.Relational.Query.Constraint (
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Record.KeyConstraint
-  (ColumnConstraint, unsafeSpecifyColumnConstraint,
+  (KeyConstraint, unsafeSpecifyKeyConstraint,
    Primary, Unique, NotNull)
 
 import qualified Database.Record.KeyConstraint as C
-import Database.Record (PersistableWidth)
+import Database.Record (PersistableRecordWidth, PersistableWidth (persistableWidth))
 
 
--- | Constraint Key proof object. Constraint type 'c', record type 'r' and column type 'ft'.
-newtype Key c r ct = Key Int
+-- | Constraint Key proof object. Constraint type 'c', record type 'r' and column type 'ct'.
+data Key c r ct = Key [Int] (PersistableRecordWidth ct)
 
 -- | Index of key which specifies constraint key.
-index :: Key c r ct -> Int
-index (Key i) = i
+indexes :: Key c r ct -> [Int]
+indexes (Key is _) = is
+
+-- | Width of key.
+width :: Key c r ct -> PersistableRecordWidth ct
+width (Key _ w) = w
 
 -- | Unsafely generate constraint 'Key' proof object using specified key index.
-unsafeDefineConstraintKey :: Int        -- ^ Key index which specify this constraint key
+unsafeDefineConstraintKey :: PersistableWidth ct
+                          => [Int]      -- ^ Key indexes which specify this constraint key
                           -> Key c r ct -- ^ Result constraint key proof object
-unsafeDefineConstraintKey =  Key
+unsafeDefineConstraintKey ixs = Key ixs persistableWidth
 
 -- | Get table constraint 'KeyConstraint' proof object from constraint 'Key'.
-tableConstraint :: Key c r ct -> ColumnConstraint c r
-tableConstraint =  unsafeSpecifyColumnConstraint . index
+tableConstraint :: Key c r ct -> KeyConstraint c r
+tableConstraint =  unsafeSpecifyKeyConstraint . indexes
 
 -- | Get projection path proof object from constraint 'Key'.
-projectionKey :: PersistableWidth ct => Key c r ct -> Pi r ct
-projectionKey =  UnsafePi.definePi . index
+projectionKey :: Key c r ct -> Pi r ct
+projectionKey k =  UnsafePi.defineDirectPi' w ixs  where
+  ixs = indexes k
+  w   = width k
 
 -- | Unsafe. Make constraint key to add column phantom type
-unsafeReturnKey :: ColumnConstraint c r -> Key c r ct
-unsafeReturnKey =  unsafeDefineConstraintKey . C.index
+unsafeReturnKey :: PersistableWidth ct
+                => KeyConstraint c r -> Key c r ct
+unsafeReturnKey =  unsafeDefineConstraintKey . C.indexes
 
 -- -- | Unsafe. Make constraint key to add constraint phantom type
 -- unsafeAppendConstraint :: Pi r ct -> Key c r ct
@@ -74,31 +82,33 @@ unsafeReturnKey =  unsafeDefineConstraintKey . C.index
 
 
 -- | Map from table constraint into constraint 'Key'.
-mapConstraint :: (ColumnConstraint c0 r -> ColumnConstraint c1 r)
+mapConstraint :: PersistableWidth ct
+              => (KeyConstraint c0 r -> KeyConstraint c1 r)
               -> Key c0 r ct
               -> Key c1 r ct
 mapConstraint f = unsafeReturnKey . f . tableConstraint
 
 -- | Derive 'Unique' constraint 'Key' from 'Primary' constraint 'Key'
-uniqueKey :: Key Primary r ct -> Key Unique r ct
-uniqueKey  = mapConstraint C.uniqueColumn
+uniqueKey :: PersistableWidth ct
+          => Key Primary r ct -> Key Unique r ct
+uniqueKey  = mapConstraint C.unique
 
--- | Derive 'NotNull' constraint 'Key' from 'Primary' constraint 'Key'
-notNullKey :: Key Primary r ct -> Key NotNull r ct
-notNullKey =  mapConstraint C.notNullColumn
+-- -- | Derive 'NotNull' constraint 'Key' from 'Primary' constraint 'Key'
+-- notNullKey :: Key Primary r ct -> Key NotNull r ct
+-- notNullKey =  mapConstraint C.notNull
 
 
 -- | Constraint 'Key' inference interface.
-class HasConstraintKey c r ct  where
+class PersistableWidth ct => HasConstraintKey c r ct  where
   -- | Infer constraint key.
   constraintKey :: Key c r ct
 
 -- | Infered 'Unique' constraint 'Key'.
 --   Record type 'r' has unique key which type is 'ct' derived from primay key.
-derivedUniqueKey :: HasConstraintKey Primary r ct => Key Unique r ct
+derivedUniqueKey :: (HasConstraintKey Primary r ct) => Key Unique r ct
 derivedUniqueKey =  uniqueKey constraintKey
 
--- | Infered 'NotNull' constraint 'Key'.
---   Record type 'r' has not-null key which type is 'ct' derived from primay key.
-derivedNotNullKey :: HasConstraintKey Primary r ct => Key NotNull r ct
-derivedNotNullKey =  notNullKey constraintKey
+-- -- | Infered 'NotNull' constraint 'Key'.
+-- --   Record type 'r' has not-null key which type is 'ct' derived from primay key.
+-- derivedNotNullKey :: HasConstraintKey Primary r ct => Key NotNull r ct
+-- derivedNotNullKey =  notNullKey constraintKey
