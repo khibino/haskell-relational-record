@@ -31,16 +31,23 @@ module Database.Record.KeyConstraint (
   uniqueColumn, notNullColumn,
 
   leftColumnConstraint,
-  HasColumnConstraint (columnConstraint),
-
-  derivedUniqueColumnConstraint,
-  derivedNotNullColumnConstraint,
 
   unsafeSpecifyNotNullValue,
 
   deriveComposite,
 
-  unique
+  unique,
+
+  -- * Inferences
+  HasColumnConstraint (columnConstraint),
+
+  derivedUniqueColumnConstraint,
+  derivedNotNullColumnConstraint,
+
+  HasKeyConstraint (keyConstraint),
+
+  derivedCompositePrimary,
+  derivedUniqueConstraint
   ) where
 
 
@@ -141,3 +148,23 @@ type PrimaryConstraint = KeyConstraint Primary
 -- | Derivation rule for 'UniqueConstraint'.
 unique :: PrimaryConstraint r -> UniqueConstraint r
 unique =  unsafeSpecifyKeyConstraint . indexes
+
+-- | Interface of inference rule for 'KeyConstraint' proof object.
+class HasKeyConstraint c a where
+  -- | Infer 'ColumnConstraint' proof object.
+  keyConstraint :: KeyConstraint c a
+
+-- | Inferred 'KeyConstraint' proof object.
+--   Record type 'r' has composite key which is derived 'r' has single column key.
+derivedCompositeConstraint :: HasColumnConstraint c r => KeyConstraint c r
+derivedCompositeConstraint =  deriveComposite columnConstraint
+
+-- | Inferred 'PrimaryConstraint' proof object.
+--   Record type 'r' has composite primary key which is derived 'r' has single column primary key.
+derivedCompositePrimary :: HasColumnConstraint Primary r => PrimaryConstraint r
+derivedCompositePrimary =  derivedCompositeConstraint
+
+-- | Inferred 'UniqueConstraint' proof object.
+--   Record type 'r' has unique key which is derived 'r' has primary key.
+derivedUniqueConstraint :: HasKeyConstraint Primary r => UniqueConstraint r
+derivedUniqueConstraint =  unique keyConstraint
