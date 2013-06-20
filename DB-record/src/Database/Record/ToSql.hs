@@ -29,7 +29,10 @@ module Database.Record.ToSql (
   -- * Make parameter list for updating with key
   updateValuesByUnique',
   updateValuesByUnique,
-  updateValuesByPrimary
+  updateValuesByPrimary,
+
+  untypedUpdateValuesIndex,
+  unsafeUpdateValuesWithIndexes
   ) where
 
 import Data.Array (listArray, (!))
@@ -91,7 +94,18 @@ instance ToSql q () where
 fromRecord :: ToSql q a => a -> [q]
 fromRecord =  runFromRecord recordToSql
 
--- | Unsafely specify key index to convert from Haskell type `ra`
+-- | Make untyped indexes to update column from key indexes and record width.
+--   Expected by update form like
+--
+-- /UPDATE <table> SET c0 = ?, c1 = ?, ..., cn = ? WHERE key0 = ? AND key1 = ? AND key2 = ? ... /
+untypedUpdateValuesIndex :: [Int] -- ^ Key indexes
+                         -> Int   -- ^ Record width
+                         -> [Int] -- ^ Indexes to update other than key
+untypedUpdateValuesIndex key width = otherThanKey  where
+    maxIx = width - 1
+    otherThanKey = toList $ fromList [0 .. maxIx] \\ fromList key
+
+-- | Unsafely specify key indexes to convert from Haskell type `ra`
 --   into SQL value `q` list expected by update form like
 --
 -- /UPDATE <table> SET c0 = ?, c1 = ?, ..., cn = ? WHERE key0 = ? AND key1 = ? AND key2 = ? ... /
@@ -104,9 +118,9 @@ unsafeUpdateValuesWithIndexes :: RecordToSql q ra
 unsafeUpdateValuesWithIndexes pr key a =
   [ valsA ! i | i <- otherThanKey ++ key ]  where
     vals = runFromRecord pr a
-    maxIx = length vals - 1
-    valsA = listArray (0, maxIx) vals
-    otherThanKey = toList $ fromList [0 .. maxIx] \\ fromList key
+    width = length vals
+    valsA = listArray (0, width - 1) vals
+    otherThanKey = untypedUpdateValuesIndex key width
 
 -- | Convert from Haskell type `ra` into SQL value `q` list expected by update form like
 --
