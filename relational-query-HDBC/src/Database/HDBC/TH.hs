@@ -21,7 +21,7 @@ module Database.HDBC.TH (
   defineTableFromDB
   ) where
 
-import Data.Maybe (listToMaybe)
+import Data.Maybe (listToMaybe, maybeToList)
 import Data.List (elemIndex)
 
 import Database.HDBC (IConnection, SqlValue)
@@ -44,7 +44,7 @@ defineTableDefault' schema table columns derives = do
   sqlvD  <- defineRecordWithSqlTypeDefault [t| SqlValue |] table columns
   return $ modelD ++ sqlvD
 
-defineTableDefault  :: String -> String -> [(String, TypeQ)] -> [ConName] -> Maybe Int -> Maybe Int -> Q [Dec]
+defineTableDefault  :: String -> String -> [(String, TypeQ)] -> [ConName] -> [Int] -> Maybe Int -> Q [Dec]
 defineTableDefault schema table columns derives primary notNull = do
   modelD <- Relational.defineTableDefault schema table columns derives primary notNull
   sqlvD  <- defineRecordWithSqlTypeDefault [t| SqlValue |] table columns
@@ -76,4 +76,4 @@ defineTableFromDB connect drv scm tbl derives = do
             return (cols, notNullIdxs, mayPrimaryIdx) )
 
   (cols, notNullIdxs, mayPrimaryIdx) <- runIO getDBinfo
-  defineTableDefault scm tbl cols derives mayPrimaryIdx (listToMaybe notNullIdxs)
+  defineTableDefault scm tbl cols derives (maybeToList mayPrimaryIdx) (listToMaybe notNullIdxs)

@@ -55,10 +55,11 @@ module Database.Relational.Query.TH (
   ) where
 
 import Data.Char (toUpper, toLower)
+import Data.List (foldl1')
 
 import Language.Haskell.TH
   (Q, reify, Info (VarI), TypeQ, Type (AppT, ConT), ExpQ,
-   Dec, stringE, listE)
+   tupleT, appT, Dec, stringE, listE)
 import Language.Haskell.TH.Name.CamelCase
   (VarName, varName, ConName, varNameWithPrefix, varCamelcaseName, toVarExp)
 import Language.Haskell.TH.Lib.Extra
@@ -278,9 +279,9 @@ defineTableDefault' schema table fields derives = do
   sqlD <- defineSqlsDefault table recType tableE
   return $ recD ++ sqlD
 
-defineWithPrimaryKeyDefault :: String -> TypeQ -> Int -> Q [Dec]
-defineWithPrimaryKeyDefault table keyType idx = do
-  instD <- defineHasPrimaryKeyInstanceDefault table keyType [idx]
+defineWithPrimaryKeyDefault :: String -> TypeQ -> [Int] -> Q [Dec]
+defineWithPrimaryKeyDefault table keyType ixs = do
+  instD <- defineHasPrimaryKeyInstanceDefault table keyType ixs
   let recType  = recordTypeDefault table
       tableE   = tableVarExpDefault table
       relE     = relationVarExpDefault table
@@ -294,13 +295,16 @@ defineTableDefault :: String            -- ^ Schema name of Database
                    -> String            -- ^ Table name of Database
                    -> [(String, TypeQ)] -- ^ Column names and types
                    -> [ConName]         -- ^ derivings for Record type
-                   -> Maybe Int         -- ^ Primary key index
+                   -> [Int]             -- ^ Primary key index
                    -> Maybe Int         -- ^ Not null key index
                    -> Q [Dec]           -- ^ Result declarations
-defineTableDefault schema table fields derives mayPrimaryIdx mayNotNullIdx = do
-  let keyType = snd . (fields !!)
+defineTableDefault schema table fields derives primaryIxs mayNotNullIdx = do
   tblD  <- defineTableDefault' schema table fields derives
-  primD <- maybeD (\i -> defineWithPrimaryKeyDefault table (keyType i) i) mayPrimaryIdx
+  let pairT x y = appT (appT (tupleT 2) x) y
+      keyType   = foldl1' pairT . map (snd . (fields !!)) $ primaryIxs
+  primD <- case primaryIxs of
+    []  -> return []
+    ixs -> defineWithPrimaryKeyDefault table keyType ixs
   nnD   <- maybeD (\i -> defineWithNotNullKeyDefault table i) mayNotNullIdx
   return $ tblD ++ primD ++ nnD
 
