@@ -27,6 +27,7 @@ groupMemberShip =
   , () <- on $ m ?! groupId' .=. just (g ! Group.id')
   ]
 
+-- Monadic join style
 userGroup0 :: Relation () (Maybe User, Maybe Group)
 userGroup0 =
   relation $
@@ -39,6 +40,7 @@ userGroup0 =
   , ()  <- asc $ u ?! User.id'
   ]
 
+-- Direct join style
 userGroup1 :: Relation () (Maybe User, Maybe Group)
 userGroup1 =
   relation $
@@ -53,6 +55,7 @@ userGroup1 =
   , ()  <- asc $ u ?! User.id'
   ]
 
+-- Nested monad
 userGroup2 :: Relation () (Maybe User, Maybe Group)
 userGroup2 =
   relation $
@@ -70,6 +73,7 @@ userGroup2 =
   , ()  <- asc $ u ?! User.id'
   ]
 
+-- Aggregation
 userGroup0Aggregate :: Relation () ((Maybe String, Int32), Maybe Bool)
 userGroup0Aggregate =
   aggregateRelation $
@@ -82,6 +86,7 @@ userGroup0Aggregate =
   , ()  <- asc $ c
   ]
 
+-- Type check is imcomplete when nested case
 userGroup2Fail :: Relation () (Maybe User, Maybe Group)
 userGroup2Fail =
   relation $

@@ -48,7 +48,7 @@ insertMembership() {
 
 insertUser 1 'Kei Hibino'
 insertUser 2 'Kazu Yamamoto'
-insertUser 3 'New-comer'
+insertUser 3 '<New-comer>'
 
 insertGroup 1 'Haskell'
 insertGroup 2 'C++'
