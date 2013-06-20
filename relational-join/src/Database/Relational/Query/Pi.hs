@@ -11,7 +11,7 @@
 -- Contains normal interfaces.
 module Database.Relational.Query.Pi (
   -- * Projection path
-  Pi, (<.>), (<?.>), (<??.>),
+  Pi, piZip, (<.>), (<?.>), (<??.>),
 
   fst', snd'
   ) where
@@ -22,7 +22,7 @@ import Database.Record.Persistable
   (runPersistableRecordWidth)
 
 import Database.Relational.Query.Pi.Unsafe
-  (Pi, (<.>), (<?.>), (<??.>), definePi)
+  (Pi, piZip, (<.>), (<?.>), (<??.>), definePi)
 
 -- | Projection path for fst of tuple.
 fst' :: PersistableWidth a => Pi (a, b) a -- ^ Projection path of fst.

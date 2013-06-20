@@ -15,6 +15,8 @@ module Database.Relational.Query.Pi.Unsafe (
   -- * Projection path
   Pi,
 
+  piZip,
+
   width',
 
   (<.>), (<?.>), (<??.>),
@@ -28,7 +30,7 @@ import Prelude hiding (pi)
 import Data.Array (listArray, (!))
 
 import Database.Record.Persistable
-  (PersistableRecordWidth, runPersistableRecordWidth,
+  (PersistableRecordWidth, runPersistableRecordWidth, (<&>),
    PersistableWidth (persistableWidth), maybeWidth)
 
 -- | Projection path primary structure type.
@@ -50,6 +52,19 @@ unsafePiAppend :: (PersistableRecordWidth c' -> PersistableRecordWidth c)
                   -> Pi a b' -> Pi b c' -> Pi a c
 unsafePiAppend f (Pi p0 _) (Pi p1 w) =
   Pi (p0 `unsafePiAppend'` p1) (f w)
+
+unsafeExpandIndexes :: Pi a b -> [Int]
+unsafeExpandIndexes = d  where
+  d (Pi (Map is) _)    = is
+  d (Pi (Leftest i) w) = [ i .. i + width - 1 ]  where
+    width = runPersistableRecordWidth w
+
+-- | Zipping two projection path.
+piZip :: Pi a b -> Pi a c -> Pi a (b, c)
+piZip b@(Pi _ wb) c@(Pi _ wc) =
+   Pi
+   (Map $ unsafeExpandIndexes b ++ unsafeExpandIndexes c)
+   (wb <&> wc)
 
 -- | Get record width proof object.
 width' :: Pi r ct -> PersistableRecordWidth ct

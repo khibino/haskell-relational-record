@@ -67,6 +67,8 @@ import Database.Relational.Query.Expr (Expr, ShowConstantSQL (showConstantSQL))
 import qualified Database.Relational.Query.Expr as Expr
 import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr
 
+import Database.Relational.Query.Pi (Pi, piZip)
+
 import Database.Relational.Query.Projection (Projection, columns, unsafeFromColumns)
 import qualified Database.Relational.Query.Projection as Projection
 
@@ -389,6 +391,10 @@ instance ProjectableZip Projection where
 -- | Zip 'Aggregation'
 instance ProjectableZip Aggregation where
   projectZip = Aggregation.compose
+
+-- | Zip 'Pi'
+instance ProjectableZip (Pi a) where
+  projectZip = piZip
 
 -- | Binary operator the same as 'projectZip'.
 (><) ::ProjectableZip p => p a -> p b -> p (a, b)
