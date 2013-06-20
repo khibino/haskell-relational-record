@@ -20,8 +20,6 @@ import Data.Time
   (DiffTime, NominalDiffTime,
    LocalTime, ZonedTime, Day, TimeOfDay)
 
-import Database.Record.Instances ()
-
 import Database.Relational.Query.Type (fromRelation)
 import Database.Relational.Query
   (Query, Relation, query, query', relation', expr,

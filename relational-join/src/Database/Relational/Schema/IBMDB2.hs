@@ -14,8 +14,6 @@ import qualified Data.Map as Map
 import Data.Time (LocalTime, Day)
 import Language.Haskell.TH (TypeQ)
 
-import Database.Record.Instances ()
-
 import Database.Relational.Query.Type (fromRelation)
 import Database.Relational.Query
   (Query, Relation, query, relation',

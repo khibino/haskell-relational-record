@@ -69,6 +69,7 @@ import Database.Record.TH
    defineRecordTypeDefault,
    defineHasColumnConstraintInstance)
 import qualified Database.Record.TH as Record
+import Database.Record.Instances ()
 
 import Database.Relational.Query
   (Table, Pi, Relation,
