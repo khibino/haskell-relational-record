@@ -430,7 +430,7 @@ instance ProjectableMaybe Aggregation where
 
 infixl 7 .*., ./.
 infixl 6 .+., .-.
-infix  4 .=., .<>., .>., .<., `in'`
+infix  4 .=., .<>., .>., .>=., .<., .<=., `in'`
 infixr 3 `and`
 infixr 2 `or`
 infixl 1  ><
