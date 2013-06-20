@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 -- |
--- Module      : Database.Relational.Query.Type
+-- Module      : Database.Relational.Query.Derives
 -- Copyright   : 2013 Kei Hibino
 -- License     : BSD3
 --
@@ -11,10 +11,14 @@
 --
 -- This module defines typed SQLs derived from type informations.
 module Database.Relational.Query.Derives (
+  -- * Query derivation
+  specifiedKey,
+
   unique,
 
   primary', primary,
 
+  -- * Update derivation
   updateByConstraintKey,
   primaryUpdate
   ) where
@@ -22,6 +26,7 @@ module Database.Relational.Query.Derives (
 import Database.Record (PersistableWidth)
 import Database.Relational.Query.Table (Table)
 import qualified Database.Relational.Query.Table as Table
+import Database.Relational.Query.Pi (Pi)
 import Database.Relational.Query.Projectable (placeholder, (.=.))
 import Database.Relational.Query.ProjectableExtended ((!))
 import Database.Relational.Query.Monad.Class (wheres)
@@ -33,28 +38,35 @@ import qualified Database.Relational.Query.Constraint as Constraint
 import Database.Relational.Query.Type (Update, typedSingleKeyUpdate)
 
 
+-- | Query restricted with specified key.
+specifiedKey :: PersistableWidth p
+      => Pi a p        -- ^ Unique key proof object which record type is 'a' and key type is 'p'.
+      -> Relation () a -- ^ 'Relation' to add restriction.
+      -> Relation p a  -- ^ Result restricted 'Relation'
+specifiedKey key rel = relation' $ do
+  q <- query rel
+  (param, ()) <- placeholder (\ph -> wheres $ q ! key .=. ph)
+  return (param, q)
+
 -- | Query restricted with specified unique key.
 unique :: PersistableWidth p
        => Key Unique a p -- ^ Unique key proof object which record type is 'a' and key type is 'p'.
        -> Relation () a  -- ^ 'Relation' to add restriction.
        -> Relation p a   -- ^ Result restricted 'Relation'
-unique uk rel = relation' $ do
-  q <- query rel
-  (param, ()) <- placeholder (\ph -> wheres $ q ! projectionKey uk .=. ph)
-  return (param, q)
+unique =  specifiedKey . projectionKey
 
 -- | Query restricted with specified primary key.
 primary' :: PersistableWidth p
          => Key Primary a p -- ^ Primary key proof object which record type is 'a' and key type is 'p'.
          -> Relation () a   -- ^ 'Relation' to add restriction.
          -> Relation p a    -- ^ Result restricted 'Relation'
-primary' pc = unique $ Constraint.uniqueKey pc
+primary' =  specifiedKey . projectionKey
 
 -- | Query restricted with infered primary key.
 primary :: HasConstraintKey Primary a p
         => Relation () a -- ^ 'Relation' to add restriction.
         -> Relation p a  -- ^ Result restricted 'Relation'
-primary = primary' constraintKey
+primary =  primary' constraintKey
 
 
 -- | Typed 'Update' using specified key.
