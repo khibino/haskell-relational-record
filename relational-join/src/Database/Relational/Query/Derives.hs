@@ -25,7 +25,6 @@ module Database.Relational.Query.Derives (
 
 import Database.Record (PersistableWidth)
 import Database.Relational.Query.Table (Table)
-import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Pi (Pi)
 import Database.Relational.Query.Projectable (placeholder, (.=.))
 import Database.Relational.Query.ProjectableExtended ((!))
@@ -35,7 +34,7 @@ import Database.Relational.Query.Constraint
    (Key, Primary, Unique, projectionKey, uniqueKey,
     HasConstraintKey(constraintKey))
 import qualified Database.Relational.Query.Constraint as Constraint
-import Database.Relational.Query.Type (Update, typedSingleKeyUpdate)
+import Database.Relational.Query.Type (Update, typedUpdate)
 
 
 -- | Query restricted with specified key.
@@ -73,12 +72,7 @@ primary =  primary' constraintKey
 updateByConstraintKey :: Table r    -- ^ 'Table' to update
                       -> Key c r p  -- ^ Key with constraint 'c', record type 'r' and column type 'p'
                       -> Update p r -- ^ Result typed 'Update'
-updateByConstraintKey table key
-  | width == 1 = typedSingleKeyUpdate table (table `Table.index` (head ixs))
-  | otherwise  = undefined
-    where ixs = Constraint.indexes key
-          width = length (ixs)
-  -- typedSingleKeyUpdate table (table `Table.index` Constraint.indexes key)
+updateByConstraintKey table key = typedUpdate table (Constraint.indexes key)
 
 -- | Typed 'Update' using infered primary key.
 primaryUpdate :: (HasConstraintKey Primary r p)

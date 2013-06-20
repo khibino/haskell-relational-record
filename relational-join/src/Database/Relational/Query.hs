@@ -30,7 +30,7 @@ module Database.Relational.Query (
   ) where
 
 import Database.Relational.Query.Table (Table)
-import Database.Relational.Query.SQL (singleKeyUpdateSQL, insertSQL)
+import Database.Relational.Query.SQL (updateSQL, insertSQL)
 import Database.Relational.Query.Pi
 import Database.Relational.Query.Constraint
   (Key, tableConstraint, projectionKey,
@@ -52,6 +52,6 @@ import Database.Relational.Query.Monad.Aggregate (QueryAggregate, AggregatedQuer
 import Database.Relational.Query.Relation
 import Database.Relational.Query.Type
   (Query, untypeQuery, fromRelation,
-   Update, untypeUpdate, typedSingleKeyUpdate,
+   Update, untypeUpdate, typedUpdate,
    Insert, untypeInsert, typedInsert)
 import Database.Relational.Query.Derives

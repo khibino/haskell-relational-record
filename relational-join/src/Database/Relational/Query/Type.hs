@@ -12,13 +12,13 @@
 module Database.Relational.Query.Type (
   Query (untypeQuery), unsafeTypedQuery, fromRelation,
 
-  Update(untypeUpdate), unsafeTypedUpdate, typedSingleKeyUpdate,
+  Update(untypeUpdate), unsafeTypedUpdate, typedUpdate,
   Insert(untypeInsert), unsafeTypedInsert, typedInsert
   ) where
 
 import Database.Relational.Query.Relation (Relation, sqlFromRelation)
 import Database.Relational.Query.Table (Table)
-import Database.Relational.Query.SQL (singleKeyUpdateSQL, insertSQL)
+import Database.Relational.Query.SQL (updateSQL, insertSQL)
 
 
 -- | Query type with place-holder parameter 'p' and query result type 'a'.
@@ -45,9 +45,9 @@ newtype Update p a = Update { untypeUpdate :: String }
 unsafeTypedUpdate :: String -> Update p a
 unsafeTypedUpdate =  Update
 
--- | Make typed 'Update' from 'Table' and key name.
-typedSingleKeyUpdate :: Table r -> String -> Update p r
-typedSingleKeyUpdate tbl =  unsafeTypedUpdate . singleKeyUpdateSQL tbl
+-- | Make typed 'Update' from 'Table' and key indexes.
+typedUpdate :: Table r -> [Int] -> Update p r
+typedUpdate tbl = unsafeTypedUpdate . updateSQL tbl
 
 -- | Show update SQL string
 instance Show (Update p a) where

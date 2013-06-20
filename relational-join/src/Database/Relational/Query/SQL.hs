@@ -12,33 +12,42 @@
 -- This module defines functions to generate simple SQL strings.
 module Database.Relational.Query.SQL (
   -- * Update SQL
-  singleKeyUpdateSQL', singleKeyUpdateSQL,
+  updateSQL', updateSQL,
 
   -- * Insert SQL
   insertSQL', insertSQL
   ) where
 
+import Data.Array (listArray, (!))
+
 import Language.SQL.Keyword (Keyword(..), (.=.))
 import qualified Language.SQL.Keyword as SQL
+import Database.Record.ToSql (untypedUpdateValuesIndex)
 import Database.Relational.Query.Table (Table, name, columns)
 
 
--- | Generate update SQL specified by single key.
-singleKeyUpdateSQL' :: String   -- ^ Table name
-                    -> [String] -- ^ Column name list
-                    -> String   -- ^ Key column name
-                    -> String   -- ^ Result SQL
-singleKeyUpdateSQL' table cols key =
+-- | Generate update SQL by specified key and table.
+updateSQL' :: String   -- ^ Table name
+           -> [String] -- ^ Column name list
+           -> [Int]    -- ^ Key column indexes
+           -> String   -- ^ Result SQL
+updateSQL' table cols ixs =
   SQL.unwordsSQL
-  $ [UPDATE, SQL.word table, SET, assignments `SQL.sepBy` ", ",
-     WHERE, SQL.word key, "= ?"]
-  where assignments = map (\f -> SQL.word f .=. "?") . filter (/= key) $ cols
+  $ [UPDATE, SQL.word table, SET, updAssigns `SQL.sepBy` ", ",
+     WHERE, keyAssigns `SQL.sepBy` " AND " ]
+  where
+    width = length cols
+    cols' = listArray (0, width -1) cols
+    otherThanKey = untypedUpdateValuesIndex ixs width
+    assigns is = [ SQL.word (cols' ! i) .=. "?" | i <- is ]
+    updAssigns = assigns otherThanKey
+    keyAssigns = assigns ixs
 
 -- | Generate update SQL specified by single key.
-singleKeyUpdateSQL :: Table r -- ^ Table metadata
-                   -> String  -- ^ Key column name
-                   -> String  -- ^ Result SQL
-singleKeyUpdateSQL tbl = singleKeyUpdateSQL' (name tbl) (columns tbl)
+updateSQL :: Table r -- ^ Table metadata
+          -> [Int]   -- ^ Key column indexes
+          -> String  -- ^ Result SQL
+updateSQL tbl = updateSQL' (name tbl) (columns tbl)
 
 
 -- | Generate insert SQL.
