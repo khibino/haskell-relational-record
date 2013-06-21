@@ -1,5 +1,17 @@
 {-# LANGUAGE TemplateHaskell #-}
 
+-- |
+-- Module      : Database.Relational.Schema.PostgreSQL
+-- Copyright   : 2013 Kei Hibino
+-- License     : BSD3
+--
+-- Maintainer  : ex8k.hibino@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
+--
+-- This module implements queries to get
+-- table schema and table constraint informations
+-- from system catalog of PostgreSQL.
 module Database.Relational.Schema.PostgreSQL (
   Column,
 
@@ -41,6 +53,7 @@ import qualified Database.Relational.Schema.PgCatalog.PgType as Type
 import Control.Applicative ((<|>))
 
 
+-- | Mapping between type in PostgreSQL and Haskell type.
 mapFromSqlDefault :: Map String TypeQ
 mapFromSqlDefault =
   fromList [("bool",         [t| Bool |]),
@@ -73,15 +86,21 @@ mapFromSqlDefault =
             -- ("numeric", [t| Decimal |])
            ]
 
+-- | Normalize column name string to query PostgreSQL system catalog.
 normalizeColumn :: String -> String
 normalizeColumn =  map toLower
 
+-- | Type to represent Column information.
 type Column = (PgAttribute, PgType)
 
+-- | Not-null attribute information of column.
 notNull :: Column -> Bool
 notNull =  Attr.attnotnull . fst
 
-getType :: Map String TypeQ -> Column -> Maybe (String, TypeQ)
+-- | Get column normalized name and column Haskell type.
+getType :: Map String TypeQ      -- ^ Type mapping specified by user
+        -> Column                -- ^ Column info in system catalog
+        -> Maybe (String, TypeQ) -- ^ Result normalized name and mapped Haskell type
 getType mapFromSql column@(pgAttr, pgTyp) = do
   typ <- (Map.lookup key mapFromSql
           <|>
@@ -93,6 +112,7 @@ getType mapFromSql column@(pgAttr, pgTyp) = do
                       then typ
                       else [t| Maybe $typ |]
 
+-- | 'Relation' to query PostgreSQL relation oid from schema name and table name.
 relOidRelation :: Relation (String, String) Int32
 relOidRelation = relation' $ do
   nsp <- query pgNamespace
@@ -104,6 +124,7 @@ relOidRelation = relation' $ do
 
   return   (nspP >< relP, cls ! Class.oid')
 
+-- | 'Relation' to query column attribute from schema name and table name.
 attributeRelation :: Relation (String, String) PgAttribute
 attributeRelation =  relation' $ do
   (ph, reloid) <- query' relOidRelation
@@ -114,6 +135,7 @@ attributeRelation =  relation' $ do
 
   return   (ph, att)
 
+-- | 'Relation' to query 'Column' from schema name and table name.
 columnRelation :: Relation (String, String) Column
 columnRelation = relation' $ do
   (ph, att) <- query' attributeRelation
@@ -133,9 +155,11 @@ columnRelation = relation' $ do
 
   return (ph, att >< typ)
 
+-- | Phantom typed 'Query' to get 'Column' from schema name and table name.
 columnQuerySQL :: Query (String, String) Column
 columnQuerySQL =  fromRelation columnRelation
 
+-- | 'Relation' to query primary key name from schema name and table name.
 primaryKeyRelation :: Relation (String, String) String
 primaryKeyRelation = relation' $ do
   (ph, att) <- query' attributeRelation
@@ -149,5 +173,6 @@ primaryKeyRelation = relation' $ do
 
   return (ph, att ! Attr.attname')
 
+-- | Phantom typed 'Query' to get primary key name from schema name and table name.
 primaryKeyQuerySQL :: Query (String, String) String
 primaryKeyQuerySQL =  fromRelation primaryKeyRelation

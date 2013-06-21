@@ -8,6 +8,8 @@
 -- Maintainer  : ex8k.hibino@gmail.com
 -- Stability   : experimental
 -- Portability : unknown
+--
+-- Generate template of SYSCAT.columns system catalog table.
 module Database.Relational.Schema.DB2Syscat.Columns where
 
 import Data.Int (Int16, Int32, Int64)
