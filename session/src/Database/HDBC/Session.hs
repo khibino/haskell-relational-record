@@ -51,27 +51,28 @@ handleSqlError' =  handleSql (fail . reformat . showSqlError)  where
 
 -- | Run a transaction on a HDBC IConnection and close the connection.
 withConnection :: (Monad m, IConnection conn)
-            => (m conn -> (conn -> m ()) -> (conn -> m a) -> m a) -- ^ bracket
-            -> (forall b. IO b -> m b)                            -- ^ lift
-            -> IO conn                                            -- ^ Connect action
-            -> (conn -> m a)                                      -- ^ Transaction body
-            -> m a
+               => (forall c. m c -> (c -> m ()) -> (c -> m a) -> m a) -- ^ bracket
+               -> (forall b. IO b -> m b)                             -- ^ lift
+               -> IO conn                                             -- ^ Connect action
+               -> (conn -> m a)                                       -- ^ Transaction body
+               -> m a
 withConnection bracket' lift connect tbody =
-  bracket'
-    (lift $ handleSqlError' connect)
-    (lift
-     . handleSqlError'
-     . HDBC.disconnect)
-    (\conn -> do
-        x <- tbody conn
-        -- Do rollback independent from driver default behavior when disconnect.
-        lift $ HDBC.rollback conn
-        return x)
+  bracket' (lift open') (lift . close') bodyWithRollback
+  where
+    open'  = handleSqlError' connect
+    close' :: IConnection conn => conn -> IO ()
+    close' =  handleSqlError' . HDBC.disconnect
+    bodyWithRollback conn =
+      bracket'
+      (return ())
+      -- Do rollback independent from driver default behavior when disconnect.
+      (const . lift . handleSqlError' $ HDBC.rollback conn)
+      (const $ tbody conn)
 
 -- | Run a transaction on a HDBC 'IConnection' and close the connection.
 --   Simple 'IO' version.
 withConnectionIO :: IConnection conn
-          => IO conn        -- ^ Connect action
-          -> (conn -> IO a) -- ^ Transaction body
-          -> IO a
+                 => IO conn        -- ^ Connect action
+                 -> (conn -> IO a) -- ^ Transaction body
+                 -> IO a           -- ^ Result transaction action
 withConnectionIO =  withConnection bracket id
