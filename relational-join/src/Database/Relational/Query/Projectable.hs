@@ -428,11 +428,12 @@ instance ProjectableMaybe Aggregation where
   just         = Aggregation.just
   flattenMaybe = Aggregation.flattenMaybe
 
-
+-- | Zipping except for identity element laws.
 class ProjectableZip p => ProjectableIdZip p where
   leftId  :: p ((), a) -> p a
   rightId :: p (a, ()) -> p a
 
+-- | Zipping except for identity element laws against placeholder parameter type.
 instance ProjectableIdZip PlaceHolders where
   leftId  = unsafeCastPlaceHolders
   rightId = unsafeCastPlaceHolders
