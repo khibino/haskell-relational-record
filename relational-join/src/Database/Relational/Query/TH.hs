@@ -380,4 +380,4 @@ inlineQuery relVar' rel qVar' =  do
           [t| Query $(return p) $(return r) |]
           [|  unsafeTypedQuery $(stringE . sqlFromRelation $ rel) |]
     _                             ->
-      compileError $ "expandRelation: Variable must have PrimeRelation type: " ++ show relVar
+      compileError $ "expandRelation: Variable must have Relation type: " ++ show relVar
