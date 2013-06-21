@@ -1,7 +1,5 @@
 #! /bin/sh
 
-PATH='/usr/bin:/bin'
-
 create_user_table='
 CREATE TABLE SAMPLE1.user (
  id integer NOT NULL,

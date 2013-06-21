@@ -1,7 +1,5 @@
 #! /bin/sh
 
-PATH='/usr/bin:/bin'
-
 set -x
 
 psql -c "DROP TABLE SAMPLE1.membership" testdb
