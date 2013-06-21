@@ -1,5 +1,17 @@
 {-# LANGUAGE TemplateHaskell #-}
 
+-- |
+-- Module      : Database.Relational.Schema.IBMDB2
+-- Copyright   : 2013 Kei Hibino
+-- License     : BSD3
+--
+-- Maintainer  : ex8k.hibino@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
+--
+-- This module implements queries to get
+-- table schema and table constraint informations
+-- from system catalog of IBM DB2.
 module Database.Relational.Schema.IBMDB2 (
   normalizeColumn, notNull, getType,
 
@@ -29,6 +41,7 @@ import Database.Relational.Schema.DB2Syscat.Keycoluse (keycoluse)
 import qualified Database.Relational.Schema.DB2Syscat.Keycoluse as Keycoluse
 
 
+-- | Mapping between type in DB2 and Haskell type.
 mapFromSqlDefault :: Map String TypeQ
 mapFromSqlDefault =
   fromList [("VARCHAR",   [t|String|]),
@@ -42,13 +55,18 @@ mapFromSqlDefault =
             ("BLOB",      [t|String|]),
             ("CLOB",      [t|String|])]
 
+-- | Normalize column name string to query DB2 system catalog
 normalizeColumn :: String -> String
 normalizeColumn =  map toLower
 
+-- | Not-null attribute information of column.
 notNull :: Columns -> Bool
 notNull =  (== "N") . Columns.nulls
 
-getType :: Map String TypeQ -> Columns -> Maybe (String, TypeQ)
+-- | Get column normalized name and column Haskell type.
+getType :: Map String TypeQ      -- ^ Type mapping specified by user
+        -> Columns               -- ^ Column info in system catalog
+        -> Maybe (String, TypeQ) -- ^ Result normalized name and mapped Haskell type
 getType mapFromSql rec = do
   typ <- (Map.lookup key mapFromSql
           <|>
@@ -59,6 +77,7 @@ getType mapFromSql rec = do
                       then typ
                       else [t| Maybe $(typ) |]
 
+-- | 'Relation' to query 'Columns' from schema name and table name.
 columnsRelationFromTable :: Relation (String, String) Columns
 columnsRelationFromTable =  relation' $ do
   c <- query columns
@@ -67,10 +86,12 @@ columnsRelationFromTable =  relation' $ do
   asc $ c ! Columns.colno'
   return (schemaP >< nameP, c)
 
+-- | Phantom typed 'Query' to get 'Columns' from schema name and table name.
 columnsQuerySQL :: Query (String, String) Columns
 columnsQuerySQL =  fromRelation columnsRelationFromTable
 
 
+-- | 'Relation' to query primary key name from schema name and table name.
 primaryKeyRelation :: Relation (String, String) String
 primaryKeyRelation =  relation' $ do
   cons  <- query tabconst
@@ -91,5 +112,6 @@ primaryKeyRelation =  relation' $ do
 
   return   (schemaP >< nameP, key ! Keycoluse.colname')
 
+-- | Phantom typed 'Query' to get primary key name from schema name and table name.
 primaryKeyQuerySQL :: Query (String, String) String
 primaryKeyQuerySQL =  fromRelation primaryKeyRelation
