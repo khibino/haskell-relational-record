@@ -105,23 +105,48 @@ userGroup2Fail =
   , ()  <- asc $ u ?! User.id'
   ]
 
-runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a) => conn -> Relation () a -> IO ()
-runAndPrint conn rel = do
+-- Relation making placeholder
+specifiedGroup :: Relation String Group
+specifiedGroup =  relation' $ do
+  g <- query group
+  (ph', ()) <- placeholder (\ph -> wheres $ g ! Group.name' .=. just ph)
+  return (ph', g)
+
+-- Placeholder propagation
+userGroup3 :: Relation String (User, Group)
+userGroup3 =
+  relation' $
+  [ (ph, u >< g)
+  | (ph, umg) <- query' . rightPh
+                 $ user `inner` membership `on'` [\ u m -> u ! User.id' .=. m ! userId' ]
+                 `inner'` specifiedGroup `on'` [ \ um g -> um ! snd' ! groupId' .=. g ! Group.id' ]
+  , let um = umg ! fst'
+        u  = um  ! fst'
+        g  = umg ! snd'
+
+  , ()  <- asc $ u ! User.id'
+  ]
+
+runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a, ToSql SqlValue p)
+            => conn -> Relation p a -> p -> IO ()
+runAndPrint conn rel param = do
   putStrLn $ "SQL: " ++ sqlFromRelation rel
-  records  <- runQuery conn () (fromRelation rel)
+  records  <- runQuery conn param (fromRelation rel)
   mapM_ print records
   putStrLn ""
 
 run :: IO ()
 run =  handleSqlError' $ withConnectionIO connect
        (\conn -> do
-           let run' :: (Show a, FromSql SqlValue a) => Relation () a -> IO ()
+           let run' :: (Show a, FromSql SqlValue a, ToSql SqlValue p)
+                    => Relation p a -> p -> IO ()
                run' = runAndPrint conn
-           run' userGroup0
-           run' userGroup1
-           run' userGroup2
-           run' userGroup0Aggregate
-           run' userGroup2Fail
+           run' userGroup0 ()
+           run' userGroup1 ()
+           run' userGroup2 ()
+           run' userGroup0Aggregate ()
+           run' userGroup3 "Haskell"
+           run' userGroup2Fail ()
        )
 
 main :: IO ()

@@ -24,10 +24,11 @@ module Database.Relational.Query.Relation (
   sqlFromRelation,
 
   -- * Query using relation
-  query, query', queryMaybe, queryMaybe', from,
+  query, query', queryMaybe, queryMaybe',
 
   -- * Direct style join
   JoinRestriction,
+  rightPh, leftPh,
   inner', left', right', full',
   inner, left, right, full,
   on',
@@ -51,8 +52,6 @@ import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Aggregation (Aggregation)
 import Database.Relational.Query.Projectable
   (PlaceHolders, addPlaceHolders, projectZip)
-import Database.Relational.Query.ProjectableExtended
-  (ProjectableGeneralizedZip (generalizedZip))
 
 import Database.Relational.Query.Sub (SubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
@@ -67,10 +66,6 @@ data Relation p r = SubQuery SubQuery
 -- | Simple 'Relation' from 'Table'.
 table :: Table r -> Relation () r
 table =  SubQuery . SubQuery.fromTable
-
--- | Same as 'table'. Simple 'Relation' from 'Table'.
-from :: Table r -> Relation () r
-from =  table
 
 
 -- | Sub-query Qualify monad from relation.
@@ -135,50 +130,59 @@ aggregateRelation' =  AggregateRel . fmap snd
 -- | Restriction function type for direct style join operator.
 type JoinRestriction a b = Projection a -> Projection b -> Expr (Maybe Bool)
 
+unsafeCastPlaceHolder :: Relation a r -> Relation b r
+unsafeCastPlaceHolder =  d  where
+  d (SubQuery q)      = SubQuery q
+  d (SimpleRel qm)    = SimpleRel qm
+  d (AggregateRel qm) = AggregateRel qm
+
+-- | Simplify placeholder type applying left identity element.
+rightPh :: Relation ((), p) r -> Relation p r
+rightPh =  unsafeCastPlaceHolder
+
+-- | Simplify placeholder type applying right identity element.
+leftPh :: Relation (p, ()) r -> Relation p r
+leftPh =  unsafeCastPlaceHolder
+
 -- | Basic direct join operation with place-holder parameters.
-join' :: ProjectableGeneralizedZip pa pb pc
-      => (qa -> QuerySimple (PlaceHolders pa, Projection a))
+join' :: (qa -> QuerySimple (PlaceHolders pa, Projection a))
       -> (qb -> QuerySimple (PlaceHolders pb, Projection b))
       -> qa
       -> qb
       -> [JoinRestriction a b]
-      -> Relation pc (a, b)
+      -> Relation (pa, pb) (a, b)
 join' qL qR r0 r1 ons = relation' $ do
   (ph0, pj0) <- qL r0
   (ph1, pj1) <- qR r1
   sequence_ $ zipWith3 (\f a b -> on $ f a b) ons (repeat pj0) (repeat pj1)
-  return $ (ph0 `generalizedZip` ph1, pj0 `projectZip` pj1)
+  return $ (ph0 `projectZip` ph1, pj0 `projectZip` pj1)
 
 -- | Direct inner join with place-holder parameters.
-inner' :: ProjectableGeneralizedZip pa pb pc
-       => Relation pa a         -- ^ Left query to join
-       -> Relation pb b         -- ^ Right query to join
-       -> [JoinRestriction a b] -- ^ Join restrictions
-       -> Relation pc (a, b)    -- ^ Result joined relation
+inner' :: Relation pa a            -- ^ Left query to join
+       -> Relation pb b            -- ^ Right query to join
+       -> [JoinRestriction a b]    -- ^ Join restrictions
+       -> Relation (pa, pb) (a, b) -- ^ Result joined relation
 inner' =  join' query' query'
 
 -- | Direct left outer join with place-holder parameters.
-left' :: ProjectableGeneralizedZip pa pb pc
-      => Relation pa a                 -- ^ Left query to join
-      -> Relation pb b                 -- ^ Right query to join
-      -> [JoinRestriction a (Maybe b)] -- ^ Join restrictions
-      -> Relation pc (a, Maybe b)      -- ^ Result joined relation
+left' :: Relation pa a                  -- ^ Left query to join
+      -> Relation pb b                  -- ^ Right query to join
+      -> [JoinRestriction a (Maybe b)]  -- ^ Join restrictions
+      -> Relation (pa, pb) (a, Maybe b) -- ^ Result joined relation
 left'  =  join' query' queryMaybe'
 
 -- | Direct right outer join with place-holder parameters.
-right' :: ProjectableGeneralizedZip pa pb pc
-       => Relation pa a                 -- ^ Left query to join
+right' :: Relation pa a                 -- ^ Left query to join
        -> Relation pb b                 -- ^ Right query to join
        -> [JoinRestriction (Maybe a) b] -- ^ Join restrictions
-       -> Relation pc(Maybe a, b)       -- ^ Result joined relation
+       -> Relation (pa, pb)(Maybe a, b) -- ^ Result joined relation
 right' =  join' queryMaybe' query'
 
 -- | Direct full outer join with place-holder parameters.
-full' :: ProjectableGeneralizedZip pa pb pc
-      => Relation pa a                         -- ^ Left query to join
+full' :: Relation pa a                         -- ^ Left query to join
       -> Relation pb b                         -- ^ Right query to join
       -> [JoinRestriction (Maybe a) (Maybe b)] -- ^ Join restrictions
-      -> Relation pc (Maybe a, Maybe b)        -- ^ Result joined relation
+      -> Relation (pa, pb) (Maybe a, Maybe b)  -- ^ Result joined relation
 full'  =  join' queryMaybe' queryMaybe'
 
 -- | Basic direct join operation.

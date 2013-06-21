@@ -26,7 +26,9 @@ module Database.Relational.Query.ProjectableExtended (
   (<!>), (<?!>), (<?!?>), (<!??>),
 
   -- * Zipping projection type trick
-  ProjectableGeneralizedZip (generalizedZip), (>?<)
+  ProjectableIdZip (leftId, rightId),
+  ProjectableRunIdsZip (runIds), flattenPh
+  -- generalizedZip', (>?<)
   )  where
 
 import Database.Relational.Query.Projection (Projection)
@@ -34,8 +36,8 @@ import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Aggregation (Aggregation)
 import qualified Database.Relational.Query.Aggregation as Aggregation
 import Database.Relational.Query.Projectable
-  (Projectable(project), AggregateProjectable(projectAggregation),
-   ProjectableMaybe (flattenMaybe), ProjectableZip(projectZip))
+  (Projectable(project), AggregateProjectable(projectAggregation), PlaceHolders,
+   ProjectableMaybe (flattenMaybe), ProjectableIdZip (leftId, rightId))
 import Database.Relational.Query.Pi (Pi)
 
 
@@ -139,26 +141,30 @@ flattenPiMaybe' a = flatten . Aggregation.piMaybe a
 a <!??> pi' = projectAggregation $ flattenPiMaybe' a pi'
 
 
--- | Interface for Zipping type trick.
-class ProjectableGeneralizedZip a b c where
-  generalizedZip :: ProjectableZip p => p a -> p b -> p c
+-- | Interface to run recursively identity element laws.
+class ProjectableRunIdsZip a b where
+  runIds :: ProjectableIdZip p => p a -> p b
 
--- | Zip right unit as zero width.
-instance ProjectableGeneralizedZip a () a where
-  generalizedZip = const
+-- | Run left identity element law.
+instance ProjectableRunIdsZip a b => ProjectableRunIdsZip ((), a) b where
+  runIds = runIds . leftId
 
--- | Zip left unit as zero width.
-instance ProjectableGeneralizedZip () a a where
-  generalizedZip = const id
+-- | Run right identity element law.
+instance ProjectableRunIdsZip a b => ProjectableRunIdsZip (a, ()) b where
+  runIds = runIds . rightId
 
--- | Ordinary Zipping into tuple.
-instance ProjectableGeneralizedZip a b (a, b) where
-  generalizedZip = projectZip
+-- | Base case definition to run recursively identity element laws.
+instance ProjectableRunIdsZip a a where
+  runIds = id
 
--- | Binary operator the same as 'generalizedZip'.
-(>?<) :: (ProjectableGeneralizedZip a b c, ProjectableZip p)
-      => p a -> p b -> p c
-(>?<) =  generalizedZip
+-- | Specialize 'runIds' for 'PlaceHolders' type.
+flattenPh :: ProjectableRunIdsZip a b => PlaceHolders a -> PlaceHolders b
+flattenPh =  runIds
+
+-- -- | Binary operator the same as 'generalizedZip'.
+-- (>?<) :: (ProjectableIdZip p, ProjectableRunIdsZip (a, b) c)
+--       => p a -> p b -> p c
+-- (>?<) =  generalizedZip'
 
 infixl 8 !, ?!, ?!?, !??, <!>, <?!>, <?!?>, <!??>
-infixl 1 >?<
+-- infixl 1 >?<

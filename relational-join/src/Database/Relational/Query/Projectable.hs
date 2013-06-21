@@ -47,6 +47,7 @@ module Database.Relational.Query.Projectable (
 
   -- * Zipping projections
   ProjectableZip (projectZip), (><),
+  ProjectableIdZip (..),
 
   -- * 'Maybe' type projecitoins
   ProjectableMaybe (just, flattenMaybe)
@@ -426,6 +427,15 @@ instance ProjectableMaybe Expr where
 instance ProjectableMaybe Aggregation where
   just         = Aggregation.just
   flattenMaybe = Aggregation.flattenMaybe
+
+
+class ProjectableZip p => ProjectableIdZip p where
+  leftId  :: p ((), a) -> p a
+  rightId :: p (a, ()) -> p a
+
+instance ProjectableIdZip PlaceHolders where
+  leftId  = unsafeCastPlaceHolders
+  rightId = unsafeCastPlaceHolders
 
 
 infixl 7 .*., ./.
