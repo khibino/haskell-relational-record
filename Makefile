@@ -4,7 +4,7 @@ lib_list = \
 	sql-words \
 	DB-record \
 	relational-join \
-	session \
+	HDBC-session \
 	relational-query-HDBC
 
 all:
