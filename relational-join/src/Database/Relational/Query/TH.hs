@@ -321,8 +321,8 @@ defineTableDefault' :: String            -- ^ Schema name of Database
                     -> [(String, TypeQ)] -- ^ Column names and types
                     -> [ConName]         -- ^ derivings for Record type
                     -> Q [Dec]           -- ^ Result declarations
-defineTableDefault' schema table fields derives = do
-  recD <- defineTableTypesAndRecordDefault schema table fields derives
+defineTableDefault' schema table columns derives = do
+  recD <- defineTableTypesAndRecordDefault schema table columns derives
   let recType = recordTypeDefault table
       tableE  = tableVarExpDefault table
   sqlD <- defineSqlsDefault table recType tableE
@@ -353,10 +353,10 @@ defineTableDefault :: String            -- ^ Schema name string of Database
                    -> [Int]             -- ^ Primary key index
                    -> Maybe Int         -- ^ Not null key index
                    -> Q [Dec]           -- ^ Result declarations
-defineTableDefault schema table fields derives primaryIxs mayNotNullIdx = do
-  tblD  <- defineTableDefault' schema table fields derives
+defineTableDefault schema table columns derives primaryIxs mayNotNullIdx = do
+  tblD  <- defineTableDefault' schema table columns derives
   let pairT x y = appT (appT (tupleT 2) x) y
-      keyType   = foldl1' pairT . map (snd . (fields !!)) $ primaryIxs
+      keyType   = foldl1' pairT . map (snd . (columns !!)) $ primaryIxs
   primD <- case primaryIxs of
     []  -> return []
     ixs -> defineWithPrimaryKeyDefault table keyType ixs
