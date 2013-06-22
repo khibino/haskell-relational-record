@@ -1,4 +1,4 @@
-This sample requires user access to PostgreSQL database
+This example requires user access to PostgreSQL database
 which is named 'testdb' over UNIX domain socket.
 
 ## Creating 'testdb'
