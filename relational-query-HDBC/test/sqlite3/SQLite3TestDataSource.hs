@@ -3,10 +3,10 @@ module SQLite3TestDataSource (
     defineTable
     ) where
 
+import Database.HDBC.Query.TH (defineTableFromDB)
 import Database.HDBC.Schema.Driver (typeMap)
 import Database.HDBC.Schema.SQLite3 (driverSQLite3)
 import Database.HDBC.Sqlite3 (Connection, connectSqlite3)
-import Database.HDBC.TH (defineTableFromDB)
 import Language.Haskell.TH (Q, Dec, TypeQ)
 import Language.Haskell.TH.Name.CamelCase (ConName)
 
