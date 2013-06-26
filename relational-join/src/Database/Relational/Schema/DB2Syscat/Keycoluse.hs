@@ -14,6 +14,7 @@
 -- Minimum implementation required to generate table constraints.
 module Database.Relational.Schema.DB2Syscat.Keycoluse where
 
+import Data.Int (Int16)
 import Database.Record.TH (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
@@ -22,5 +23,6 @@ import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 $(defineTableTypesAndRecordDefault
   "SYSCAT" "keycoluse"
   [("constname", [t| String |]),
-   ("colname"  , [t| String |])]
+   ("colname"  , [t| String |]),
+   ("colseq"   , [t| Int16 |])]
   [derivingShow])

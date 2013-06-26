@@ -110,6 +110,8 @@ primaryKeyRelation =  relation' $ do
   (schemaP, ()) <- placeholder (\ph -> wheres $ cons ! Tabconst.tabschema' .=. ph)
   (nameP  , ()) <- placeholder (\ph -> wheres $ cons ! Tabconst.tabname'   .=. ph)
 
+  asc  $ key ! Keycoluse.colseq'
+
   return   (schemaP >< nameP, key ! Keycoluse.colname')
 
 -- | Phantom typed 'Query' to get primary key name from schema name and table name.
