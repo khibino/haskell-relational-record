@@ -29,7 +29,7 @@ Executable example1
                        User
                        Group
                        Membership
-  main-is:             querySample.hs
+  main-is:             queryExample.hs
   hs-source-dirs:      example/1, pgTest
   ghc-options:         -Wall
 
