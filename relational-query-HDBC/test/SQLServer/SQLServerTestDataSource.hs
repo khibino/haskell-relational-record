@@ -4,9 +4,9 @@ module SQLServerTestDataSource (
     ) where
 
 import Database.HDBC.ODBC (Connection, connectODBC)
+import Database.HDBC.Query.TH (defineTableFromDB)
 import Database.HDBC.Schema.Driver (typeMap)
 import Database.HDBC.Schema.SQLServer (driverSQLServer)
-import Database.HDBC.TH (defineTableFromDB)
 import Language.Haskell.TH (Q, Dec, TypeQ)
 import Language.Haskell.TH.Name.CamelCase (ConName)
 
