@@ -146,30 +146,30 @@ runStatement' =  (>>= fetchAll') . execute
 
 -- | Bind parameters, execute statement and lazily fetch all records.
 runPreparedQuery :: (ToSql SqlValue p, FromSql SqlValue a)
-                 => p
-                 -> PreparedQuery p a
-                 -> IO [a]
+                 => p                 -- ^ Parameter type
+                 -> PreparedQuery p a -- ^ Statement to bind to
+                 -> IO [a]            -- ^ Action to get records
 runPreparedQuery p = runStatement . (p `bindTo`)
 
 -- | Strict version of 'runPreparedQuery'.
 runPreparedQuery' :: (ToSql SqlValue p, FromSql SqlValue a)
-                  => p
-                  -> PreparedQuery p a
-                  -> IO [a]
+                  => p                 -- ^ Parameter type
+                  -> PreparedQuery p a -- ^ Statement to bind to
+                  -> IO [a]            -- ^ Action to get records
 runPreparedQuery' p = runStatement' . (p `bindTo`)
 
 -- | Prepare SQL, bind parameters, execute statement and lazily fetch all records.
 runQuery :: (IConnection conn, ToSql SqlValue p, FromSql SqlValue a)
-         => conn
-         -> p
-         -> Query p a
-         -> IO [a]
+         => conn      -- ^ Database connection
+         -> p         -- ^ Parameter type
+         -> Query p a -- ^ Query to get record type 'a' requires parameter 'p'
+         -> IO [a]    -- ^ Action to get records
 runQuery conn p = (>>= runPreparedQuery p) . prepare conn
 
 -- | Strict version of 'runQuery'.
 runQuery' :: (IConnection conn, ToSql SqlValue p, FromSql SqlValue a)
-          => conn
-          -> p
-          -> Query p a
-          -> IO [a]
+          => conn      -- ^ Database connection
+          -> p         -- ^ Parameter type
+          -> Query p a -- ^ Query to get record type 'a' requires parameter 'p'
+          -> IO [a]    -- ^ Action to get records
 runQuery' conn p = (>>= runPreparedQuery' p) . prepare conn
