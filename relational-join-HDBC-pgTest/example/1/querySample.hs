@@ -14,7 +14,9 @@ import Group (Group, group)
 import Membership (Membership, groupId', userId', membership)
 
 import PgTestDataSource (connect)
-import Database.HDBC.Record.Query (runQuery)
+import Database.HDBC.Record.Query
+  (ExecutedStatement,
+   runQuery, prepare, bindTo, execute, fetchUnique, fetchUnique')
 import Database.HDBC.Session (withConnectionIO, handleSqlError')
 
 
@@ -127,6 +129,25 @@ userGroup3 =
   , ()  <- asc $ u ! User.id'
   ]
 
+specifiedUser :: Relation String User
+specifiedUser =  relation' $ do
+  u <- query user
+  (ph', ()) <- placeholder (\ph -> wheres $ u ! User.name' .=. just ph)
+  return (ph', u)
+
+userGroupU :: Relation (String, String) (User, Group)
+userGroupU =
+  relation' $
+  [ (ph, u >< g)
+  | (ph, umg) <- query'
+                 $ leftPh (specifiedUser
+                           `inner'` membership `on'` [\ u m -> u ! User.id' .=. m ! userId' ])
+                 `inner'` specifiedGroup `on'` [ \ um g -> um ! snd' ! groupId' .=. g ! Group.id' ]
+  , let um = umg ! fst'
+        u  = um  ! fst'
+        g  = umg ! snd'
+  ]
+
 runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a, ToSql SqlValue p)
             => conn -> Relation p a -> p -> IO ()
 runAndPrint conn rel param = do
@@ -146,8 +167,25 @@ run =  handleSqlError' $ withConnectionIO connect
            run' userGroup2 ()
            run' userGroup0Aggregate ()
            run' userGroup3 "Haskell"
+           run' userGroupU ("Kei Hibino", "Haskell")
            run' userGroup2Fail ()
        )
 
+runU :: Show a => (ExecutedStatement (User, Group) -> IO a) -> IO ()
+runU f = handleSqlError' $ withConnectionIO connect
+        (\conn -> do
+            pq <- prepare conn (fromRelation userGroupU)
+            let bs = ("Kei Hibino", "Haskell") `bindTo` pq
+            es <- execute bs
+            r  <- f es
+            print r
+        )
+
+runAll :: IO ()
+runAll = do
+  runU fetchUnique
+  runU fetchUnique'
+  run
+
 main :: IO ()
-main =  run
+main =  runAll
