@@ -25,7 +25,7 @@ library
                        Database.HDBC.Record.Singleton
                        Database.HDBC.Record.TH
                        Database.HDBC.Record.Query
-                       Database.HDBC.TH
+                       Database.HDBC.Query.TH
                        Database.HDBC.SqlValueExtra
                        Database.HDBC.Schema.Driver
                        Database.HDBC.Schema.IBMDB2

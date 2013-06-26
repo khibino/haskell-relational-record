@@ -8,7 +8,7 @@ import Database.HDBC.PostgreSQL (connectPostgreSQL, Connection)
 import Database.HDBC.Schema.PostgreSQL (driverPostgreSQL)
 import Database.HDBC.Schema.Driver (typeMap)
 import Language.Haskell.TH.Name.CamelCase (ConName)
-import Database.HDBC.TH (defineTableFromDB)
+import Database.HDBC.Query.TH (defineTableFromDB)
 
 connect :: IO Connection
 connect = connectPostgreSQL "dbname=testdb"

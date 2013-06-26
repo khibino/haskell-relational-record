@@ -4,7 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 -- |
--- Module      : Database.HDBC.TH
+-- Module      : Database.HDBC.Query.TH
 -- Copyright   : 2013 Kei Hibino
 -- License     : BSD3
 --
@@ -14,7 +14,7 @@
 --
 -- This module contains templates to generate Haskell record types
 -- and HDBC instances correspond to RDB table schema.
-module Database.HDBC.TH (
+module Database.HDBC.Query.TH (
   defineTableDefault',
   defineTableDefault,
 
