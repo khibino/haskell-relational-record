@@ -10,6 +10,9 @@
 -- Maintainer  : ex8k.hibino@gmail.com
 -- Stability   : experimental
 -- Portability : unknown
+--
+-- This module provides driver implementation
+-- to load PostgreSQL system catalog via HDBC.
 module Database.HDBC.Schema.PostgreSQL (
   driverPostgreSQL
   ) where
@@ -92,6 +95,7 @@ getFields' tmap conn scm' tbl' = do
   types <- mapM getType' cols
   return (types, notNullIdxs)
 
+-- | Driver implementation
 driverPostgreSQL :: IConnection conn => Driver conn
 driverPostgreSQL =
   emptyDriver { getFieldsWithMap = getFields' }

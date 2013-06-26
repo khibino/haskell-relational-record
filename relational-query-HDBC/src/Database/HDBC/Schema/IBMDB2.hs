@@ -10,6 +10,9 @@
 -- Maintainer  : ex8k.hibino@gmail.com
 -- Stability   : experimental
 -- Portability : unknown
+--
+-- This module provides driver implementation
+-- to load IBM-DB2 system catalog via HDBC.
 module Database.HDBC.Schema.IBMDB2 (
   driverIBMDB2
   ) where
@@ -96,6 +99,7 @@ getFields' tmap conn scm' tbl' = do
   types <- mapM getType' cols
   return (types, notNullIdxs)
 
+-- | Driver implementation
 driverIBMDB2 :: IConnection conn => Driver conn
 driverIBMDB2 =
   emptyDriver { getFieldsWithMap = getFields' }
