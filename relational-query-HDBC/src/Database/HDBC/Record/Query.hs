@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+
 -- |
 -- Module      : Database.HDBC.Record.Query
 -- Copyright   : 2013 Kei Hibino

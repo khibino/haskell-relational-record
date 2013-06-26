@@ -1,6 +1,16 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
 
+-- |
+-- Module      : Database.HDBC.Record.TH
+-- Copyright   : 2013 Kei Hibino
+-- License     : BSD3
+--
+-- Maintainer  : ex8k.hibino@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
+--
+-- This module provides DB-record templates depends on HDBC.
 module Database.HDBC.Record.TH (
   derivePersistableInstanceFromValue,
   ) where
@@ -13,7 +23,9 @@ import Database.Record
    FromSql(recordFromSql), recordFromSql', ToSql(recordToSql), recordToSql')
 
 
-derivePersistableInstanceFromValue :: Q Type -> Q [Dec]
+-- | Template to declare HDBC instances of DB-record against single value type.
+derivePersistableInstanceFromValue :: Q Type  -- ^ Type to implement instances
+                                   -> Q [Dec] -- ^ Result declarations
 derivePersistableInstanceFromValue typ =
   [d| instance Persistable SqlValue $(typ)  where
         persistable = derivedPersistableValueRecord
