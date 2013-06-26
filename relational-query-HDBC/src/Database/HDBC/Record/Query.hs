@@ -37,28 +37,43 @@ import Database.Record
 
 
 -- | Typed prepared statement type.
-newtype PreparedQuery p a = PreparedQuery { prepared :: Statement }
+newtype PreparedQuery p a =
+  PreparedQuery {
+    -- | Untyped prepared statement before executed.
+    prepared :: Statement
+    }
 
 -- | Typed prepared statement which has bound placeholder parameters.
 data BoundStatement a =
   BoundStatement
-  { bound  :: Statement
+  {
+    -- | Untyped prepared statement before executed.
+    bound  :: Statement
+    -- | Bound parameters.
   , params :: [SqlValue]
   }
 
 -- | Typed executed statement.
 data ExecutedStatement a =
   ExecutedStatement
-  { executed :: Statement
+  { -- | Untyped executed statement.
+    executed :: Statement
+    -- | Result of HDBC execute.
   , result   :: Integer
   }
 
 -- | Typed prepare operation.
-prepare :: IConnection conn => conn -> Query p a -> IO (PreparedQuery p a)
+prepare :: IConnection conn
+        => conn                   -- ^ Database connection
+        -> Query p a              -- ^ Typed query
+        -> IO (PreparedQuery p a) -- ^ Result typed prepared query with parameter type 'p' and result type 'a'
 prepare conn = fmap PreparedQuery . HDBC.prepare conn . untypeQuery
 
 -- | Typed operation to bind parameters.
-bindTo' :: RecordToSql SqlValue p -> p -> PreparedQuery p a -> BoundStatement a
+bindTo' :: RecordToSql SqlValue p -- ^ Proof object to convert from parameter type 'p' into 'SqlValue' list.
+        -> p                      -- ^ Parameter to bind
+        -> PreparedQuery p a      -- ^ Prepared query to bind to
+        -> BoundStatement a       -- ^ Result parameter bound statement
 bindTo' toSql p q = BoundStatement { bound = prepared q, params = runFromRecord toSql p }
 
 -- | Typed operation to bind parameters. Infered 'RecordToSql' is used.
@@ -72,7 +87,7 @@ execute bs = do
   n <- HDBC.execute stmt (params bs)
   return $ ExecutedStatement stmt n
 
--- | Polymorphic fetch operation
+-- | Polymorphic fetch operation.
 fetchRecordsExplicit :: Functor f
                      => (Statement -> IO (f [SqlValue]) )
                      -> RecordFromSql SqlValue a
@@ -86,47 +101,64 @@ fetchRecordsExplicit fetchs fromSql es = do
 fetch :: FromSql SqlValue a => ExecutedStatement a -> IO (Maybe a)
 fetch =  fetchRecordsExplicit HDBC.fetchRow recordFromSql
 
--- | Fetch all records. Lazy read version.
+-- | Lazily Fetch all records.
 fetchAll :: FromSql SqlValue a => ExecutedStatement a -> IO [a]
 fetchAll =  fetchRecordsExplicit HDBC.fetchAllRows recordFromSql
 
--- | Fetch all records. Strict version.
+-- | Strict version of 'fetchAll'.
 fetchAll' :: FromSql SqlValue a => ExecutedStatement a -> IO [a]
 fetchAll' =  fetchRecordsExplicit HDBC.fetchAllRows' recordFromSql
 
--- | Fetch expecting result records is unique.
+-- | Fetch all records but get only first record.
+--   Expecting result records is unique.
 fetchUnique :: FromSql SqlValue a => ExecutedStatement a -> IO (Maybe a)
-fetchUnique =  fmap listToMaybe . fetchAll
+fetchUnique es = do
+  recs <- fetchAll es
+  let z' = listToMaybe recs
+  z <- z' `seq` return z'
+  HDBC.finish $ executed es
+  return z
 
 -- | Fetch expecting result records is unique.
 listToUnique :: [a] -> IO (Maybe a)
 listToUnique =  d  where
   d []      = return Nothing
   d [r]     = return $ Just r
-  d (_:_:_) = fail "listToUnique': more than one record found."
+  d (_:_:_) = fail "fetchUnique': more than one record found."
 
+-- | Fetch all records but get only first record.
+--   Expecting result records is unique.
+--   Error when records count is more than one.
 fetchUnique' :: FromSql SqlValue a => ExecutedStatement a -> IO (Maybe a)
 fetchUnique' es = do
-  fetchAll es >>= listToUnique
+  recs <- fetchAll es
+  z <- listToUnique recs
+  HDBC.finish $ executed es
+  return z
 
+-- | Execute statement and lazily fetch all records.
 runStatement :: FromSql SqlValue a => BoundStatement a -> IO [a]
 runStatement =  (>>= fetchAll) . execute
 
+-- | Strict version of 'runStatement'.
 runStatement' :: FromSql SqlValue a => BoundStatement a -> IO [a]
 runStatement' =  (>>= fetchAll') . execute
 
+-- | Bind parameters, execute statement and lazily fetch all records.
 runPreparedQuery :: (ToSql SqlValue p, FromSql SqlValue a)
                  => p
                  -> PreparedQuery p a
                  -> IO [a]
 runPreparedQuery p = runStatement . (p `bindTo`)
 
+-- | Strict version of 'runPreparedQuery'.
 runPreparedQuery' :: (ToSql SqlValue p, FromSql SqlValue a)
                   => p
                   -> PreparedQuery p a
                   -> IO [a]
 runPreparedQuery' p = runStatement' . (p `bindTo`)
 
+-- | Prepare SQL, bind parameters, execute statement and lazily fetch all records.
 runQuery :: (IConnection conn, ToSql SqlValue p, FromSql SqlValue a)
          => conn
          -> p
@@ -134,6 +166,7 @@ runQuery :: (IConnection conn, ToSql SqlValue p, FromSql SqlValue a)
          -> IO [a]
 runQuery conn p = (>>= runPreparedQuery p) . prepare conn
 
+-- | Strict version of 'runQuery'.
 runQuery' :: (IConnection conn, ToSql SqlValue p, FromSql SqlValue a)
           => conn
           -> p
