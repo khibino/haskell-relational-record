@@ -315,7 +315,7 @@ defineSqlsDefault table =
   defineSqls
     (table `varNameWithPrefix` "insert")
 
--- | All templates about table except for constraint keys.
+-- | Generate all templates about table except for constraint keys using default naming rule.
 defineTableDefault' :: String            -- ^ Schema name of Database
                     -> String            -- ^ Table name of Database
                     -> [(String, TypeQ)] -- ^ Column names and types
@@ -328,7 +328,7 @@ defineTableDefault' schema table columns derives = do
   sqlD <- defineSqlsDefault table recType tableE
   return $ recD ++ sqlD
 
--- | All templates aboult primary key.
+-- | All templates about primary key.
 defineWithPrimaryKeyDefault :: String  -- ^ Table name string
                             -> TypeQ   -- ^ Type of primary key
                             -> [Int]   -- ^ Indexes specifies primary key

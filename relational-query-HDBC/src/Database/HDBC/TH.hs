@@ -13,7 +13,7 @@
 -- Portability : unknown
 --
 -- This module contains templates to generate Haskell record types
--- and instances correspond to RDB table schema.
+-- and HDBC instances correspond to RDB table schema.
 module Database.HDBC.TH (
   defineTableDefault',
   defineTableDefault,
@@ -38,13 +38,25 @@ import Database.HDBC.Record.Persistable ()
 import Database.HDBC.Schema.Driver (Driver, getFields, getPrimaryKey)
 
 
-defineTableDefault' :: String -> String -> [(String, TypeQ)] -> [ConName] -> Q [Dec]
+-- | Generate all DHBC templates about table except for constraint keys using default naming rule.
+defineTableDefault' :: String            -- ^ Schema name
+                    -> String            -- ^ Table name
+                    -> [(String, TypeQ)] -- ^ List of column name and type
+                    -> [ConName]         -- ^ Derivings
+                    -> Q [Dec]           -- ^ Result declaration
 defineTableDefault' schema table columns derives = do
   modelD <- Relational.defineTableDefault' schema table columns derives
   sqlvD  <- defineRecordWithSqlTypeDefault [t| SqlValue |] table columns
   return $ modelD ++ sqlvD
 
-defineTableDefault  :: String -> String -> [(String, TypeQ)] -> [ConName] -> [Int] -> Maybe Int -> Q [Dec]
+-- | Generate all DHBC templates about table using default naming rule.
+defineTableDefault :: String            -- ^ Schema name
+                   -> String            -- ^ Table name
+                   -> [(String, TypeQ)] -- ^ List of column name and type
+                   -> [ConName]         -- ^ Derivings
+                   -> [Int]             -- ^ Indexes to represent primary key
+                   -> Maybe Int         -- ^ Index of not-null key
+                   -> Q [Dec]           -- ^ Result declaration
 defineTableDefault schema table columns derives primary notNull = do
   modelD <- Relational.defineTableDefault schema table columns derives primary notNull
   sqlvD  <- defineRecordWithSqlTypeDefault [t| SqlValue |] table columns
@@ -53,13 +65,14 @@ defineTableDefault schema table columns derives primary notNull = do
 putLog :: String -> IO ()
 putLog =  putStrLn
 
+-- | Generate all DHBC templates using system catalog informations.
 defineTableFromDB :: IConnection conn
-                  => IO conn
-                  -> Driver conn
-                  -> String
-                  -> String 
-                  -> [ConName]
-                  -> Q [Dec]
+                  => IO conn     -- ^ Connect action to system catalog database
+                  -> Driver conn -- ^ Driver definition
+                  -> String      -- ^ Schema name
+                  -> String      -- ^ Table name
+                  -> [ConName]   -- ^ Derivings
+                  -> Q [Dec]     -- ^ Result declaration
 defineTableFromDB connect drv scm tbl derives = do
   let getDBinfo =
         withConnectionIO connect
