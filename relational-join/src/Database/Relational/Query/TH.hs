@@ -235,7 +235,7 @@ defineTableTypesAndRecordDefault :: String            -- ^ Schema name
 defineTableTypesAndRecordDefault schema table columns drives = do
   recD    <- defineRecordTypeDefault table columns drives
   tableDs <- defineTableTypesDefault schema table [(c, Nothing) | c <- columns ]
-  return $ recD : tableDs
+  return $ recD ++ tableDs
 
 -- | Template of derived primary 'Query'.
 definePrimaryQuery :: VarName -- ^ Variable name of result declaration

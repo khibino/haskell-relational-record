@@ -60,7 +60,7 @@ import Language.Haskell.TH.Lib.Extra (integralE, compileError)
 import Language.Haskell.TH
   (Q, mkName, reify, Info(TyConI),
    TypeQ, conT, Con (RecC),
-   Dec(DataD), DecQ, dataD, sigD, funD,
+   Dec(DataD), dataD, sigD, funD,
    appsE, conE, varE, listE, stringE,
    listP, varP, wildP,
    normalB, recC, clause, cxt,
@@ -172,12 +172,17 @@ derivingTypable = conCamelcaseName "Typable"
 defineRecordType :: ConName            -- ^ Name of the data type of table record type.
                  -> [(VarName, TypeQ)] -- ^ List of columns in the table. Must be legal, properly cased record columns.
                  -> [ConName]          -- ^ Deriving type class names.
-                 -> DecQ               -- ^ The data type record declaration.
+                 -> Q [Dec]            -- ^ The data type record declaration.
 defineRecordType typeName' columns derives = do
   let typeName = conName typeName'
-  dataD (cxt []) typeName [] [recC typeName (map fld columns)] (map conName derives)
-  where
-    fld (n, tq) = varStrictType (varName n) (strictType isStrict tq)
+      fld (n, tq) = varStrictType (varName n) (strictType isStrict tq)
+  rec <- dataD (cxt []) typeName [] [recC typeName (map fld columns)] (map conName derives)
+  let typeCon = toTypeCon typeName'
+  ins <- [d| instance PersistableWidth $typeCon where
+               persistableWidth = unsafePersistableRecordWidth $(integralE $ length columns)
+
+           |]
+  return $ rec : ins
 
 -- | Generate column name from 'String'.
 columnDefault :: String -> TypeQ -> (VarName, TypeQ)
@@ -185,7 +190,7 @@ columnDefault n t = (varCamelcaseName n, t)
 
 -- | Record type declaration template from SQL table name 'String'
 --   and column name 'String' - type pairs, derivings.
-defineRecordTypeDefault :: String -> [(String, TypeQ)] -> [ConName] -> DecQ
+defineRecordTypeDefault :: String -> [(String, TypeQ)] -> [ConName] -> Q [Dec]
 defineRecordTypeDefault table columns =
   defineRecordType
   (recordTypeNameDefault table)
@@ -243,10 +248,7 @@ definePersistableInstance :: TypeQ   -- ^ SQL value type
                           -> Int     -- ^ Record width
                           -> Q [Dec] -- ^ Instance declarations for 'Persistable'
 definePersistableInstance sqlType typeCon consFunName' decompFunName' width = do
-  [d| instance PersistableWidth $typeCon where
-        persistableWidth = unsafePersistableRecordWidth $(integralE width)
-
-      instance Persistable $sqlType $typeCon where
+  [d| instance Persistable $sqlType $typeCon where
         persistable = persistableRecord
                       persistableWidth
                       $(toVarExp consFunName')
@@ -338,7 +340,7 @@ defineRecord
 
   typ     <- defineRecordType tyC columns drvs
   withSql <- defineRecordWithSqlType sqlValueType fnames tyC columns
-  return $ typ : withSql
+  return $ typ ++ withSql
 
 -- | All templates for record type with default names.
 defineRecordDefault :: TypeQ             -- ^ SQL value type
@@ -349,7 +351,7 @@ defineRecordDefault :: TypeQ             -- ^ SQL value type
 defineRecordDefault sqlValueType table columns derives = do
   typ     <- defineRecordTypeDefault table columns derives
   withSql <- defineRecordWithSqlTypeDefault sqlValueType table columns
-  return $ typ : withSql
+  return $ typ ++ withSql
 
 
 -- | Templates for single column value type.
