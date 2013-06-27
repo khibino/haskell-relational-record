@@ -27,7 +27,7 @@ import qualified Language.Haskell.TH.Lib.Extra as TH
 
 import Database.HDBC (IConnection, SqlValue)
 
-import Database.HDBC.Record.Query (runQuery', listToUnique)
+import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
 
 import Database.Record.TH (defineRecordWithSqlTypeDefaultFromDefined)
@@ -60,16 +60,15 @@ getPrimaryKey' :: IConnection conn
               => conn
               -> String
               -> String
-              -> IO (Maybe String)
+              -> IO [String]
 getPrimaryKey' conn scm' tbl' = do
   let tbl = map toUpper tbl'
       scm = map toUpper scm'
-  mayPrim <- runQuery' conn (scm, tbl) primaryKeyQuerySQL
-             >>= listToUnique
-  let mayPrimaryKey = normalizeColumn `fmap` mayPrim
-  putLog $ "getPrimaryKey: primary key = " ++ show mayPrimaryKey
+  primCols <- runQuery' conn (scm, tbl) primaryKeyQuerySQL
+  let primaryKeyCols = normalizeColumn `fmap` primCols
+  putLog $ "getPrimaryKey: primary key = " ++ show primaryKeyCols
 
-  return mayPrimaryKey
+  return primaryKeyCols
 
 getFields' :: IConnection conn
           => TypeMap

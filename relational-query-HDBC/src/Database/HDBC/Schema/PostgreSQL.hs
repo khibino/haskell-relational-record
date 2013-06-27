@@ -28,7 +28,7 @@ import Database.HDBC (IConnection, SqlValue)
 import Database.Record.TH (defineRecordWithSqlTypeDefaultFromDefined)
 import qualified Database.Relational.Query.Table as Table
 
-import Database.HDBC.Record.Query (runQuery', listToUnique)
+import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
 
 import Database.Relational.Schema.PostgreSQL
@@ -60,13 +60,15 @@ getPrimaryKey' :: IConnection conn
               => conn
               -> String
               -> String
-              -> IO (Maybe String)
+              -> IO [String]
 getPrimaryKey' conn scm' tbl' = do
   let scm = map toLower scm'
       tbl = map toLower tbl'
-  mayPrim <- runQuery' conn (scm, tbl) primaryKeyQuerySQL
-             >>= listToUnique
-  return $ normalizeColumn `fmap` mayPrim
+  primCols <- runQuery' conn (scm, tbl) primaryKeyQuerySQL
+  let primaryKeyCols = normalizeColumn `fmap` primCols
+  putLog $ "getPrimaryKey: primary key = " ++ show primaryKeyCols
+
+  return primaryKeyCols
 
 getFields' :: IConnection conn
           => TypeMap

@@ -21,8 +21,8 @@ module Database.HDBC.Query.TH (
   defineTableFromDB
   ) where
 
-import Data.Maybe (listToMaybe, maybeToList)
-import Data.List (elemIndex)
+import Data.Maybe (listToMaybe, isJust, catMaybes)
+import qualified Data.Map as Map
 
 import Database.HDBC (IConnection, SqlValue)
 
@@ -78,15 +78,24 @@ defineTableFromDB connect drv scm tbl derives = do
         withConnectionIO connect
         (\conn ->  do
             (cols, notNullIdxs) <- getFields drv conn scm tbl
-            mayPrimaryKey       <- getPrimaryKey drv conn scm tbl
+            primCols            <- getPrimaryKey drv conn scm tbl
 
-            mayPrimaryIdx <- case mayPrimaryKey of
-              Just key -> case elemIndex key $ map fst cols of
-                Nothing -> do putLog $ "defineTableFromDB: fail to find index of pkey - " ++ key ++ ". Something wrong!!"
-                              return   Nothing
-                Just ix ->    return $ Just ix
-              Nothing  ->     return   Nothing
-            return (cols, notNullIdxs, mayPrimaryIdx) )
+            let colIxMap = Map.fromList $ zip [c | (c, _) <- cols] [(0 :: Int) .. ]
+                lookup' k = do
+                  case Map.lookup k colIxMap of
+                    Just i  -> return $ Just i
+                    Nothing -> do
+                      putLog $ "defineTableFromDB: fail to find index of pkey - " ++ k ++ ". Something wrong!!"
+                      return Nothing
 
-  (cols, notNullIdxs, mayPrimaryIdx) <- runIO getDBinfo
-  defineTableDefault scm tbl cols derives (maybeToList mayPrimaryIdx) (listToMaybe notNullIdxs)
+            primaryIxs <- case primCols of
+              _:_ -> do
+                founds <- mapM lookup' primCols
+                if all isJust founds
+                  then return $ catMaybes founds
+                  else return []
+              []  ->   return []
+            return (cols, notNullIdxs, primaryIxs) )
+
+  (cols, notNullIdxs, primaryIxs) <- runIO getDBinfo
+  defineTableDefault scm tbl cols derives primaryIxs (listToMaybe notNullIdxs)

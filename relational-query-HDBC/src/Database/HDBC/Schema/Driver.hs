@@ -38,15 +38,15 @@ data Driver conn =
                      -> IO ([(String, TypeQ)], [Int]) --  Action to get column name and Haskell type pairs and not-null columns index.
 
     -- | Get primary key column name.
-  , getPrimaryKey :: conn              --  Connection to query system catalog
-                  -> String            --  Schema name string
-                  -> String            --  Table name string
-                  -> IO (Maybe String) --  Action to get primary key column name
+  , getPrimaryKey :: conn          --  Connection to query system catalog
+                  -> String        --  Schema name string
+                  -> String        --  Table name string
+                  -> IO ([String]) --  Action to get column names of primary key
   }
 
 -- | Empty definition of 'Driver'
 emptyDriver :: IConnection conn => Driver conn
-emptyDriver =  Driver [] (\_ _ _ _ -> return ([],[])) (\_ _ _ -> return Nothing)
+emptyDriver =  Driver [] (\_ _ _ _ -> return ([],[])) (\_ _ _ -> return [])
 
 -- | Helper function to call 'getFieldsWithMap' using 'typeMap' of 'Driver'.
 getFields :: IConnection conn => Driver conn -> conn -> String -> String -> IO ([(String, TypeQ)], [Int])
