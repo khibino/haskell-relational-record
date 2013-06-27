@@ -87,7 +87,7 @@ addGroupBys p = do
 -- | Add restrictions for aggregated query.
 addRestriction :: MonadQuery m
                => Aggregation (Maybe Bool) -- ^ Restriction to add
-               -> Aggregatings m ()        -- ^  Result restricted context
+               -> Aggregatings m ()        -- ^ Result restricted context
 addRestriction =  addRestriction' . projectAggregation
 
 -- | Aggregated query instance.
