@@ -1,7 +1,7 @@
 #! /bin/sh
 
 create_user_table='
-CREATE TABLE SAMPLE1.user (
+CREATE TABLE EXAMPLE1.user (
  id integer NOT NULL,
  name VARCHAR(128),
 
@@ -10,7 +10,7 @@ CREATE TABLE SAMPLE1.user (
 '
 
 create_group_table='
-CREATE TABLE SAMPLE1.group (
+CREATE TABLE EXAMPLE1.group (
  id integer NOT NULL,
  name VARCHAR(128),
 
@@ -19,7 +19,7 @@ CREATE TABLE SAMPLE1.group (
 '
 
 create_membership_table='
-CREATE TABLE SAMPLE1.membership (
+CREATE TABLE EXAMPLE1.membership (
  user_id integer NOT NULL,
  group_id integer NOT NULL
 )
@@ -27,21 +27,21 @@ CREATE TABLE SAMPLE1.membership (
 
 set -x
 
-psql -c "CREATE SCHEMA SAMPLE1" testdb
+psql -c "CREATE SCHEMA EXAMPLE1" testdb
 psql -c "$create_user_table" testdb
 psql -c "$create_group_table" testdb
 psql -c "$create_membership_table" testdb
 
 insertUser () {
-	psql -c "INSERT INTO SAMPLE1.user (id, name) VALUES ($1, '$2')" testdb
+	psql -c "INSERT INTO EXAMPLE1.user (id, name) VALUES ($1, '$2')" testdb
 }
 
 insertGroup () {
-	psql -c "INSERT INTO SAMPLE1.group (id, name) VALUES ($1, '$2')" testdb
+	psql -c "INSERT INTO EXAMPLE1.group (id, name) VALUES ($1, '$2')" testdb
 }
 
 insertMembership() {
-	psql -c "INSERT INTO SAMPLE1.membership (user_id, group_id) VALUES ($1, $2)" testdb
+	psql -c "INSERT INTO EXAMPLE1.membership (user_id, group_id) VALUES ($1, $2)" testdb
 }
 
 insertUser 1 'Kei Hibino'

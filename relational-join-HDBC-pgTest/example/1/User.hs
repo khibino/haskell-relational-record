@@ -7,4 +7,4 @@ import PgTestDataSource (defineTable)
 import Database.Record.TH (derivingShow)
 
 $(defineTable []
-  "SAMPLE1" "user" [derivingShow])
+  "EXAMPLE1" "user" [derivingShow])

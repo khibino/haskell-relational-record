@@ -5,5 +5,5 @@ module Membership where
 import PgTestDataSource (defineTable)
 
 $(defineTable []
-  "SAMPLE1" "membership" [])
+  "EXAMPLE1" "membership" [])
 
