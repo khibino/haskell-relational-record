@@ -32,7 +32,8 @@ import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
 
 import Database.Relational.Schema.PostgreSQL
-  (normalizeColumn, notNull, getType, columnQuerySQL, primaryKeyQuerySQL)
+  (normalizeColumn, notNull, getType, columnQuerySQL,
+   primaryKeyLengthQuerySQL, primaryKeyQuerySQL)
 import Database.Relational.Schema.PgCatalog.PgAttribute (PgAttribute(PgAttribute), tableOfPgAttribute)
 import Database.Relational.Schema.PgCatalog.PgType (PgType(..), tableOfPgType)
 import qualified Database.Relational.Schema.PgCatalog.PgType as Type
@@ -64,11 +65,19 @@ getPrimaryKey' :: IConnection conn
 getPrimaryKey' conn scm' tbl' = do
   let scm = map toLower scm'
       tbl = map toLower tbl'
-  primCols <- runQuery' conn (scm, tbl) primaryKeyQuerySQL
-  let primaryKeyCols = normalizeColumn `fmap` primCols
-  putLog $ "getPrimaryKey: primary key = " ++ show primaryKeyCols
-
-  return primaryKeyCols
+  mayKeyLen <- runQuery' conn (scm, tbl) primaryKeyLengthQuerySQL
+  case mayKeyLen of
+    []        -> do
+      putLog $ "getPrimaryKey: Primary key not found."
+      return []
+    [keyLen]  -> do
+      primCols <- runQuery' conn (scm, tbl) (primaryKeyQuerySQL keyLen)
+      let primaryKeyCols = normalizeColumn `fmap` primCols
+      putLog $ "getPrimaryKey: primary key = " ++ show primaryKeyCols
+      return primaryKeyCols
+    _:_:_     -> do
+      putLog $ "getPrimaryKey: Fail to detect primary key. Something wrong."
+      return []
 
 getFields' :: IConnection conn
           => TypeMap

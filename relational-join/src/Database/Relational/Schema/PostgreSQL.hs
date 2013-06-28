@@ -17,7 +17,8 @@ module Database.Relational.Schema.PostgreSQL (
 
   normalizeColumn, notNull, getType,
 
-  columnQuerySQL, primaryKeyQuerySQL
+  columnQuerySQL,
+  primaryKeyLengthQuerySQL, primaryKeyQuerySQL
   ) where
 
 import Prelude hiding (or)
@@ -26,6 +27,7 @@ import Language.Haskell.TH (TypeQ)
 
 import Data.Int (Int16, Int32, Int64)
 import Data.Char (toLower)
+import Data.List (foldl1')
 import Data.Map (Map, fromList)
 import qualified Data.Map as Map
 import Data.Time
@@ -34,15 +36,15 @@ import Data.Time
 
 import Database.Relational.Query.Type (fromRelation)
 import Database.Relational.Query
-  (Query, Relation, query, query', relation', expr,
-   wheres, (.=.), (.>.), in', values, (!), just,
+  (Query, Relation, query, query', relation', relation, union,
+   wheres, (.=.), (.>.), in', values, (!), expr, fst', snd',
    placeholder, asc, value, unsafeProjectSql, (><))
 
 import Database.Relational.Schema.PgCatalog.PgNamespace (pgNamespace)
 import qualified Database.Relational.Schema.PgCatalog.PgNamespace as Namespace
 import Database.Relational.Schema.PgCatalog.PgClass (pgClass)
 import qualified Database.Relational.Schema.PgCatalog.PgClass as Class
-import Database.Relational.Schema.PgCatalog.PgConstraint (pgConstraint)
+import Database.Relational.Schema.PgCatalog.PgConstraint (PgConstraint, pgConstraint)
 import qualified Database.Relational.Schema.PgCatalog.PgConstraint as Constraint
 
 import Database.Relational.Schema.PgCatalog.PgAttribute (PgAttribute, pgAttribute)
@@ -159,20 +161,52 @@ columnRelation = relation' $ do
 columnQuerySQL :: Query (String, String) Column
 columnQuerySQL =  fromRelation columnRelation
 
+-- | 'Relation' to query primary key length from schema name and table name.
+primaryKeyLengthRelation :: Relation (String, String) Int32
+primaryKeyLengthRelation =  relation' $ do
+  (ph, reloid) <- query' relOidRelation
+  con       <- query  pgConstraint
+
+  wheres $ con ! Constraint.conrelid' .=. expr reloid
+  wheres $ con ! Constraint.contype'  .=. value 'p'  -- 'p': primary key constraint type
+
+  return (ph, unsafeProjectSql "array_length (conkey, 1)")
+
+-- | Phantom typed 'Query' to get primary key length from schema name and table name.
+primaryKeyLengthQuerySQL :: Query (String, String) Int32
+primaryKeyLengthQuerySQL =  fromRelation primaryKeyLengthRelation
+
+-- | One column which is nth column of composite primary key.
+constraintColRelation :: Int32 -> Relation () (PgConstraint, (Int16, Int32))
+constraintColRelation i = relation $ do
+  con <- query pgConstraint
+
+  return $ con >< (unsafeProjectSql ("conkey[" ++ show i ++ "]") >< value i)
+
+-- | Make composite primary key relation from primary key length.
+constraintColExpandRelation :: Int32 -> Relation () (PgConstraint, (Int16, Int32))
+constraintColExpandRelation n =
+  foldl1' union [constraintColRelation i | i <- [1..n] ]
+
 -- | 'Relation' to query primary key name from schema name and table name.
-primaryKeyRelation :: Relation (String, String) String
-primaryKeyRelation = relation' $ do
+primaryKeyRelation :: Int32 -> Relation (String, String) String
+primaryKeyRelation n = relation' $ do
   (ph, att) <- query' attributeRelation
-  con       <- query pgConstraint
+  conEx     <- query  (constraintColExpandRelation n)
+
+  let con = conEx ! fst'
+      col' = conEx ! snd'
+      keyIx = col' ! fst'
+      keyN  = col' ! snd'
 
   wheres $ con ! Constraint.conrelid' .=. att ! Attr.attrelid'
-  wheres $ unsafeProjectSql "conkey[1]" .=. att ! Attr.attnum'
-  wheres $ just (att ! Attr.attnotnull')
+  wheres $ keyIx .=. att ! Attr.attnum'
   wheres $ con ! Constraint.contype'  .=. value 'p'  -- 'p': primary key constraint type
-  wheres $ unsafeProjectSql "array_length (conkey, 1)" .=. value (1 :: Int32)
+
+  asc  $ keyN
 
   return (ph, att ! Attr.attname')
 
 -- | Phantom typed 'Query' to get primary key name from schema name and table name.
-primaryKeyQuerySQL :: Query (String, String) String
-primaryKeyQuerySQL =  fromRelation primaryKeyRelation
+primaryKeyQuerySQL :: Int32 -> Query (String, String) String
+primaryKeyQuerySQL =  fromRelation . primaryKeyRelation
