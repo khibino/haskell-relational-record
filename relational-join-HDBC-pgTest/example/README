@@ -4,3 +4,17 @@ which is named 'testdb' over UNIX domain socket.
 ## Creating 'testdb'
 
     % createdb testdb
+
+
+## Example 1 case
+
+    % ./1/create.sh
+    % runghc -i1 ./1/queryExample.hs
+
+...
+
+
+## Example 3 case
+
+    % ./3/create.sh
+    % runghc -i3 ./3/query.hs
