@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 -- |
 -- Module      : Database.Relational.Query.Sub
 -- Copyright   : 2013 Kei Hibino
@@ -10,7 +12,8 @@
 -- This module defines sub-query structure used in query products.
 module Database.Relational.Query.Sub (
   -- * Sub-query
-  SubQuery, fromTable, subQuery, toSQL, unitSQL, width,
+  SubQuery, fromTable, subQuery, union, except, intersect,
+  toSQL, unitSQL, width,
 
   -- * Qualified Sub-query
   Qualifier (Qualifier),
@@ -27,9 +30,18 @@ import Database.Relational.Query.Table (Table, (!))
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Expr.Unsafe (Expr(Expr))
 
+import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
 import qualified Language.SQL.Keyword.ConcatString as SQLs
 
+
+data BinOp = Union | Except | Intersect
+
+keywordBinOp :: BinOp -> Keyword
+keywordBinOp = d  where
+  d Union     = UNION
+  d Except    = EXCEPT
+  d Intersect = INTERSECT
 
 -- | Sub-query type
 data SubQuery = Table Table.Untyped
@@ -37,6 +49,7 @@ data SubQuery = Table Table.Untyped
                 { sql'   :: String
                 , width' :: !Int
                 }
+              | Bin BinOp SubQuery SubQuery
 
 -- | 'SubQuery' from 'Table'.
 fromTable :: Table r -- ^ Typed 'Table' metadata
@@ -49,11 +62,43 @@ subQuery :: String -- ^ SQL string
             -> SubQuery -- ^ Result 'SubQuery'
 subQuery =  SubQuery
 
+-- | Binary operator on 'SubQuery'
+binSubQuery :: BinOp -> SubQuery -> SubQuery -> SubQuery
+binSubQuery op a b = Bin op (hideTable a) (hideTable b)
+
+-- | Union binary operator on 'SubQuery'
+union     :: SubQuery -> SubQuery -> SubQuery
+union     =  binSubQuery Union
+
+-- | Except binary operator on 'SubQuery'
+except    :: SubQuery -> SubQuery -> SubQuery
+except    =  binSubQuery Except
+
+-- | Intersect binary operator on 'SubQuery'
+intersect :: SubQuery -> SubQuery -> SubQuery
+intersect =  binSubQuery Intersect
+
+-- | Unify projection field name.
+hideTable :: SubQuery -> SubQuery
+hideTable = d  where
+  d (Table t)          = subQuery sql (Table.width' t)  where
+    columns' = zipWith
+               (\f n -> SQL.word f `asColumnN` n)
+               (Table.columns' t)
+               [(0 :: Int)..]
+    sql = unwordsSQL
+          $ [SELECT, columns' `SQL.sepBy` ", ",
+             FROM, SQL.word . Table.name' $ t]
+
+  d sub@(SubQuery _ _) = sub
+  d sub@(Bin _ _ _)    = sub
+
 -- | Width of 'SubQuery'.
 width :: SubQuery -> Int
 width =  d  where
   d (Table u)                 = Table.width' u
   d (SubQuery { width' = w }) = w
+  d (Bin _ l _)               = width l
 
 -- | SQL string for nested-query and toplevel-SQL.
 toSQLs :: SubQuery
@@ -61,6 +106,8 @@ toSQLs :: SubQuery
 toSQLs =  d  where
   d (Table u)               = (Table.name' u, Table.fromTableToSql u)
   d (SubQuery { sql' = q }) = ('(' : q ++ [')'], q)
+  d (Bin op l r)            = ('(' : q ++ [')'], q)  where
+    q = unwords [unitSQL l, SQL.wordShow $ keywordBinOp op, unitSQL r]
 
 -- | SQL string for nested-qeury.
 unitSQL :: SubQuery -> String
@@ -129,6 +176,7 @@ column qs =  d (unQualify qs)  where
   q = qualifier qs
   d (Table u)      i = (q <.> (u ! i))
   d (SubQuery _ _) i = (q `columnFromId` i)
+  d (Bin _ _ _)    i = (q `columnFromId` i)
 
 -- | Get column SQL expression of 'SubQuery'.
 columnExpr :: Qualified SubQuery -> Int -> Expr ft

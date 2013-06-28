@@ -32,6 +32,10 @@ module Database.Relational.Query.Relation (
   inner', left', right', full',
   inner, left, right, full,
   on',
+
+  -- * Relation append
+  union, except, intersect,
+  union', except', intersect'
   ) where
 
 import Database.Relational.Query.Monad.Qualify (Qualify, evalQualifyPrime, qualifyQuery)
@@ -75,11 +79,9 @@ subQueryQualifyFromRelation =  d  where
   d (SimpleRel qp)    = Simple.toSubQuery qp
   d (AggregateRel qp) = Aggregate.toSubQuery qp
 
-{-
 -- | Sub-query from relation.
 subQueryFromRelation :: Relation p r -> SubQuery
 subQueryFromRelation =  evalQualifyPrime . subQueryQualifyFromRelation
--}
 
 -- | Basic monadic join operation using 'MonadQuery'.
 queryWithAttr :: MonadQualify Qualify m
@@ -234,6 +236,51 @@ on' =  ($)
 
 infixl 8 `inner'`, `left'`, `right'`, `full'`, `inner`, `left`, `right`, `full`, `on'`
 
+unsafeLiftAppend :: (SubQuery -> SubQuery -> SubQuery)
+           -> Relation p a
+           -> Relation q a
+           -> Relation r a
+unsafeLiftAppend op a0 a1 = SubQuery $ s0 `op` s1  where
+  s0 = subQueryFromRelation a0
+  s1 = subQueryFromRelation a1
+
+liftAppend :: (SubQuery -> SubQuery -> SubQuery)
+           -> Relation () a
+           -> Relation () a
+           -> Relation () a
+liftAppend = unsafeLiftAppend
+
+-- | Union of two relations.
+union     :: Relation () a -> Relation () a -> Relation () a
+union     =  liftAppend SubQuery.union
+
+-- | Subtraction of two relations.
+except    :: Relation () a -> Relation () a -> Relation () a
+except    =  liftAppend SubQuery.except
+
+-- | Intersection of two relations.
+intersect :: Relation () a -> Relation () a -> Relation () a
+intersect =  liftAppend SubQuery.intersect
+
+liftAppend' :: (SubQuery -> SubQuery -> SubQuery)
+            -> Relation p a
+            -> Relation q a
+            -> Relation (p, q) a
+liftAppend' = unsafeLiftAppend
+
+-- | Union of two relations with place-holder parameters.
+union'     :: Relation p a -> Relation q a -> Relation (p, q) a
+union'     =  liftAppend' SubQuery.union
+
+-- | Subtraction of two relations with place-holder parameters.
+except'    :: Relation p a -> Relation q a -> Relation (p, q) a
+except'    =  liftAppend' SubQuery.except
+
+-- | Intersection of two relations with place-holder parameters.
+intersect' :: Relation p a -> Relation q a -> Relation (p, q) a
+intersect' =  liftAppend' SubQuery.intersect
+
+infixl 7 `union`, `except`, `intersect`, `union'`, `except'`, `intersect'`
 
 -- | SQL string with qualify computation from 'Relation'.
 sqlQualifyFromRelation :: Relation p r -> Qualify String
