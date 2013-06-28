@@ -29,6 +29,8 @@ data Keyword = SELECT | ALL | DISTINCT | ON
              | ORDER | BY | ASC | DESC | HAVING
              | FETCH | FIRST | NEXT | ROW | ROWS | ONLY
 
+             | UNION | EXCEPT | INTERSECT
+
              | DELETE | USING | RETURNING
 
              | FROM | AS | WITH
