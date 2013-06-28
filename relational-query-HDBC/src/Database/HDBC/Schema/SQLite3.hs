@@ -70,8 +70,8 @@ getPrimaryKey' conn scm tbl = do
                        . map IndexList.name
                        . filter ((1 ==) . IndexList.unique) $ idxlist
         idxInfos <- mapM (runQuery' conn () . indexInfoQuerySQL scm) idxNames
-        let primColumns' = sort primColumns
-        let idxInfo = concat . take 1 . filter ((primColumns' ==) . sort . map IndexInfo.name) $ idxInfos
+        let isPrimaryKey = (sort primColumns ==) . sort . map (normalizeColumn . IndexInfo.name)
+        let idxInfo = concat . take 1 . filter isPrimaryKey $ idxInfos
         let comp x y = compare (IndexInfo.seqno x) (IndexInfo.seqno y)
         let primColumns'' = map IndexInfo.name . sortBy comp $ idxInfo
         putLog $ "getPrimaryKey: keys=" ++ show primColumns''
