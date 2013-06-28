@@ -16,21 +16,32 @@ module Database.HDBC.Schema.SQLite3 (
 
 import qualified Database.Relational.Query.Table as Table
 import qualified Language.Haskell.TH.Lib.Extra as TH
+import qualified Database.Relational.Schema.SQLite3Syscat.IndexInfo as IndexInfo
+import qualified Database.Relational.Schema.SQLite3Syscat.IndexList as IndexList
 import qualified Database.Relational.Schema.SQLite3Syscat.TableInfo as TableInfo
 
+import Data.List (isPrefixOf, sort, sortBy)
 import Data.Map (fromList)
 import Database.HDBC (IConnection, SqlValue)
-import Database.HDBC.Record.Query (runQuery', listToUnique)
+import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
 import Database.HDBC.Schema.Driver (TypeMap, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
 import Database.Record.TH (defineRecordWithSqlTypeDefaultFromDefined)
-import Database.Relational.Schema.SQLite3 (getType, normalizeColumn, normalizeType,
-                                           notNull, tableInfoQuerySQL)
+import Database.Relational.Schema.SQLite3 (getType, indexInfoQuerySQL, indexListQuerySQL, normalizeColumn,
+                                           normalizeType, notNull, tableInfoQuerySQL)
+import Database.Relational.Schema.SQLite3Syscat.IndexInfo (IndexInfo(IndexInfo))
+import Database.Relational.Schema.SQLite3Syscat.IndexList (IndexList(IndexList))
 import Database.Relational.Schema.SQLite3Syscat.TableInfo (TableInfo(TableInfo))
 import Language.Haskell.TH (TypeQ)
 
 $(defineRecordWithSqlTypeDefaultFromDefined
   [t| SqlValue |] (Table.shortName TableInfo.tableOfTableInfo))
+
+$(defineRecordWithSqlTypeDefaultFromDefined
+  [t| SqlValue |] (Table.shortName IndexList.tableOfIndexList))
+
+$(defineRecordWithSqlTypeDefaultFromDefined
+  [t| SqlValue |] (Table.shortName IndexInfo.tableOfIndexInfo))
 
 logPrefix :: String -> String
 logPrefix = ("SQLite3: " ++)
@@ -45,11 +56,26 @@ getPrimaryKey' :: IConnection conn
                => conn
                -> String
                -> String
-               -> IO (Maybe String)
+               -> IO [String]
 getPrimaryKey' conn scm tbl = do
-    ti <- runQuery' conn () (tableInfoQuerySQL scm tbl)
-    mayPrim <- listToUnique . map  TableInfo.name . filter ((1 ==) . TableInfo.pk) $ ti
-    return $ normalizeColumn `fmap` mayPrim 
+    tblinfo <- runQuery' conn () (tableInfoQuerySQL scm tbl)
+    let primColumns = map (normalizeColumn . TableInfo.name)
+                      . filter ((1 ==) . TableInfo.pk) $ tblinfo
+    if length primColumns <= 1 then do
+        putLog $ "getPrimaryKey: key=" ++ show primColumns
+        return primColumns
+     else do
+        idxlist <- runQuery' conn () (indexListQuerySQL scm tbl)
+        let idxNames = filter (isPrefixOf "sqlite_autoindex_")
+                       . map IndexList.name
+                       . filter ((1 ==) . IndexList.unique) $ idxlist
+        idxInfos <- mapM (runQuery' conn () . indexInfoQuerySQL scm) idxNames
+        let primColumns' = sort primColumns
+        let idxInfo = concat . take 1 . filter ((primColumns' ==) . sort . map IndexInfo.name) $ idxInfos
+        let comp x y = compare (IndexInfo.seqno x) (IndexInfo.seqno y)
+        let primColumns'' = map IndexInfo.name . sortBy comp $ idxInfo
+        putLog $ "getPrimaryKey: keys=" ++ show primColumns''
+        return primColumns''
 
 getFields' :: IConnection conn
            => TypeMap

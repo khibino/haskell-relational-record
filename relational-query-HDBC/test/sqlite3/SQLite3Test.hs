@@ -4,7 +4,6 @@
 
 module SQLite3Test where
 
-import Data.ByteString (ByteString)
 import Data.Time (UTCTime)
 import Distribution.TestSuite (Test)
 import SQLite3TestDataSource (defineTable)

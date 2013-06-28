@@ -13,6 +13,8 @@ import Data.Map (Map)
 import Database.Record.Instances ()
 import Database.Relational.Query (Query)
 import Database.Relational.Query.Type (unsafeTypedQuery)
+import Database.Relational.Schema.SQLite3Syscat.IndexInfo
+import Database.Relational.Schema.SQLite3Syscat.IndexList
 import Database.Relational.Schema.SQLite3Syscat.TableInfo
 import Language.Haskell.TH (TypeQ)
 
@@ -30,7 +32,7 @@ normalizeColumn :: String -> String
 normalizeColumn = map toLower
 
 normalizeType :: String -> String
-normalizeType = normalizeColumn . takeWhile ('('/=)
+normalizeType = normalizeColumn . takeWhile (not . flip elem " (")
 
 notNull :: TableInfo -> Bool
 notNull info = isTrue . TableInfo.notnull $ info
@@ -50,5 +52,11 @@ getType mapFromSql info = do
                     then typ
                     else [t|Maybe $(typ)|]
 
-tableInfoQuerySQL :: String -> String -> Query () TableInfo 
+tableInfoQuerySQL :: String -> String -> Query () TableInfo
 tableInfoQuerySQL db tbl = unsafeTypedQuery $ "pragma " ++ db ++ ".table_info(" ++ tbl ++ ");"
+
+indexListQuerySQL :: String -> String -> Query () IndexList
+indexListQuerySQL db tbl = unsafeTypedQuery $ "pragma " ++ db ++ ".index_list(" ++ tbl ++ ");"
+
+indexInfoQuerySQL :: String -> String -> Query () IndexInfo
+indexInfoQuerySQL db idx = unsafeTypedQuery $ "pragma " ++ db ++ ".index_info(" ++ idx ++ ");"
