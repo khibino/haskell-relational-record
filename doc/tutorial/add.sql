@@ -522,7 +522,7 @@ from customer c cross join
   from branch b inner join employee e on e.assigned_branch_id = b.branch_id
   where b.city = 'Salem' limit 1) e
   cross join
- (select 'CHK' prod_cd, '2004-01-27' open_date, '2005-01-05' last_date,
+ (select 'CHK' prod_cd, '2004-01-27'::varchar open_date, '2005-01-05'::varchar last_date,
     2237.97 avail, 2897.97 pend) a
 where c.fed_id = '555-55-5555';
 insert into account (product_cd, cust_id, open_date,
@@ -550,7 +550,7 @@ from customer c cross join
   from branch b inner join employee e on e.assigned_branch_id = b.branch_id
   where b.city = 'Woburn' limit 1) e
   cross join
- (select 'CD' prod_cd, '2004-01-12' open_date, '2004-01-12' last_date,
+ (select 'CD' prod_cd, '2004-01-12'::varchar open_date, '2004-01-12'::varchar last_date,
     5000.00 avail, 5000.00 pend) a
 where c.fed_id = '777-77-7777';
 insert into account (product_cd, cust_id, open_date,
@@ -612,7 +612,7 @@ from customer c cross join
   from branch b inner join employee e on e.assigned_branch_id = b.branch_id
   where b.city = 'Woburn' limit 1) e
   cross join
- (select 'BUS' prod_cd, '2004-03-22' open_date, '2004-11-14' last_date,
+ (select 'BUS' prod_cd, '2004-03-22'::varchar open_date, '2004-11-14'::varchar last_date,
     9345.55 avail, 9345.55 pend) a
 where c.fed_id = '04-2222222';
 insert into account (product_cd, cust_id, open_date,
@@ -625,7 +625,7 @@ from customer c cross join
   from branch b inner join employee e on e.assigned_branch_id = b.branch_id
   where b.city = 'Salem' limit 1) e
   cross join
- (select 'CHK' prod_cd, '2003-07-30' open_date, '2004-12-15' last_date,
+ (select 'CHK' prod_cd, '2003-07-30'::varchar open_date, '2004-12-15'::varchar last_date,
     38552.05 avail, 38552.05 pend) a
 where c.fed_id = '04-3333333';
 insert into account (product_cd, cust_id, open_date,
@@ -638,7 +638,7 @@ from customer c cross join
   from branch b inner join employee e on e.assigned_branch_id = b.branch_id
   where b.city = 'Quincy' limit 1) e
   cross join
- (select 'SBL' prod_cd, '2004-02-22' open_date, '2004-12-17' last_date,
+ (select 'SBL' prod_cd, '2004-02-22'::varchar open_date, '2004-12-17'::varchar last_date,
     50000.00 avail, 50000.00 pend) a
 where c.fed_id = '04-4444444';
 
