@@ -43,7 +43,6 @@ library
                        , relational-query-HDBC
                        , DB-record
                        , HDBC >=2
-                       , HDBC-sqlite3
                        , HDBC-session
   hs-source-dirs:      src
   ghc-options:         -Wall
