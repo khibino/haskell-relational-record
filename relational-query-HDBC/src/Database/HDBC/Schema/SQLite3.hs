@@ -73,9 +73,9 @@ getPrimaryKey' conn scm tbl = do
         let isPrimaryKey = (sort primColumns ==) . sort . map (normalizeColumn . IndexInfo.name)
         let idxInfo = concat . take 1 . filter isPrimaryKey $ idxInfos
         let comp x y = compare (IndexInfo.seqno x) (IndexInfo.seqno y)
-        let primColumns'' = map IndexInfo.name . sortBy comp $ idxInfo
-        putLog $ "getPrimaryKey: keys=" ++ show primColumns''
-        return primColumns''
+        let primColumns' = map IndexInfo.name . sortBy comp $ idxInfo
+        putLog $ "getPrimaryKey: keys=" ++ show primColumns'
+        return primColumns'
 
 getFields' :: IConnection conn
            => TypeMap
