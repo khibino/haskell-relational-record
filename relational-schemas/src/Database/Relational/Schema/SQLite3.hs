@@ -1,6 +1,9 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Database.Relational.Schema.SQLite3 where
+module Database.Relational.Schema.SQLite3 (
+  getType, normalizeColumn, normalizeType, notNull,
+  tableInfoQuerySQL, indexListQuerySQL, indexInfoQuerySQL
+  ) where
 
 import qualified Data.Map as Map
 import qualified Database.Relational.Schema.SQLite3Syscat.TableInfo as TableInfo
