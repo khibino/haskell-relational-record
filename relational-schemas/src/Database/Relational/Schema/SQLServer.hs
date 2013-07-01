@@ -1,6 +1,9 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Database.Relational.Schema.SQLServer where
+module Database.Relational.Schema.SQLServer (
+  getType, normalizeColumn, notNull,
+  columnTypeQuerySQL, primaryKeyQuerySQL
+  ) where
 
 import qualified Data.Map as Map
 import qualified Database.Relational.Schema.SQLServerSyscat.Columns as Columns

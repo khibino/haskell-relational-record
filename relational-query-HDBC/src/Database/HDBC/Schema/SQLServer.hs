@@ -12,13 +12,12 @@
 -- Portability : unknown
 module Database.HDBC.Schema.SQLServer (
   driverSQLServer,
-  getPrimaryKey'
   ) where
 
 import qualified Database.Relational.Query.Table as Table
-import qualified Language.Haskell.TH.Lib.Extra as TH
 import qualified Database.Relational.Schema.SQLServerSyscat.Columns as Columns
 import qualified Database.Relational.Schema.SQLServerSyscat.Types as Types
+import qualified Language.Haskell.TH.Lib.Extra as TH
 
 import Data.Map (fromList)
 import Data.Maybe (catMaybes)
