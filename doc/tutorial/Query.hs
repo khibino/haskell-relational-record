@@ -1,8 +1,8 @@
 {-# LANGUAGE MonadComprehensions #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-import Database.Relational.Query
 import Data.Int (Int32)
+import Database.Relational.Query
 
 import qualified User
 import User (User, user)
