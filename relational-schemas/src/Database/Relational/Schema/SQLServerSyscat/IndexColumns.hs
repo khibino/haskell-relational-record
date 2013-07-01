@@ -18,7 +18,7 @@ $(defineTableTypesAndRecordDefault
   -- index_column_id       sys     int                        4 No
     ("column_id", [t|Int32|]),
   -- key_ordinal           sys     tinyint                    1 No
-    --("key_ordinal", [t|Int32|]),
+    ("key_ordinal", [t|Int32|]),
   -- partition_ordinal     sys     tinyint                    1 No
     --("partition_ordinal", [t|Int32|]),
   -- is_descending_key     sys     bit                        1 No

@@ -21,8 +21,9 @@ import qualified Database.Relational.Schema.SQLServerSyscat.Columns as Columns
 import qualified Database.Relational.Schema.SQLServerSyscat.Types as Types
 
 import Data.Map (fromList)
+import Data.Maybe (catMaybes)
 import Database.HDBC (IConnection, SqlValue)
-import Database.HDBC.Record.Query (runQuery', listToUnique)
+import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
 import Database.HDBC.Schema.Driver (TypeMap, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
 import Database.Record.TH (defineRecordWithSqlTypeDefaultFromDefined)
@@ -47,20 +48,16 @@ putLog = putStrLn . logPrefix
 compileErrorIO :: String -> IO a
 compileErrorIO = TH.compileErrorIO . logPrefix
 
-mayMayToMay :: Maybe (Maybe a) -> IO (Maybe a)
-mayMayToMay = d where
-  d Nothing  = return Nothing
-  d (Just r) = return r
-
 getPrimaryKey' :: IConnection conn
                => conn
                -> String
                -> String
-               -> IO (Maybe String)
+               -> IO [String]
 getPrimaryKey' conn scm tbl = do
-    mayPrim <- runQuery' conn (scm,tbl) primaryKeyQuerySQL
-               >>= listToUnique >>= mayMayToMay
-    return $ normalizeColumn `fmap` mayPrim 
+    prims <- catMaybes `fmap` runQuery' conn (scm,tbl) primaryKeyQuerySQL
+    let primColumns = map normalizeColumn prims
+    putLog $ "getPrimaryKey: keys=" ++ show primColumns
+    return primColumns
 
 getFields' :: IConnection conn
            => TypeMap

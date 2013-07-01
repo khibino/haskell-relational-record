@@ -121,6 +121,7 @@ primaryKeyRelation = relation' $ do
     wheres $ idxes  ! Indexes.isPrimaryKey'  .=. just sqlsrvTrue
     let (params, oid) = sqlsrvOidPlaceHolder
     wheres $ idxes  ! Indexes.objectId'      .=. oid
+    asc    $ idxcol ! IndexColumns.keyOrdinal'
     return   (params, cols   ! Columns.name')
 
 primaryKeyQuerySQL :: Query (String,String) (Maybe String)
