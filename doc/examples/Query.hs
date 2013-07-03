@@ -43,12 +43,13 @@ allAccount =
   | a  <- query account
   ]
 
+join1 :: Relation () (Employee, Department)
 join1 =
   relation $
   [ e >< d
   | e <- query employee
   , d <- query department
-  , () <- on $ e ! Employee.deptId' .=. d ! Department.deptId'
+  , () <- on $ e ! Employee.deptId' .=. just (d ! Department.deptId')
   ]
 
 main :: IO ()
