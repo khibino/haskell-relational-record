@@ -31,10 +31,10 @@ create table LEARNINGSQL.employee
   lname varchar(20) not null,
   start_date date not null,
   end_date date,
-  superior_emp_id smallint,
-  dept_id smallint,
+  superior_emp_id integer,
+  dept_id integer,
   title varchar(20),
-  assigned_branch_id smallint,
+  assigned_branch_id integer,
   constraint fk_e_emp_id 
     foreign key (superior_emp_id) references LEARNINGSQL.employee (emp_id),
   constraint fk_dept_id
@@ -117,8 +117,8 @@ create table LEARNINGSQL.account
   close_date date,
   last_activity_date date,
   status status_t,
-  open_branch_id smallint,
-  open_emp_id smallint,
+  open_branch_id integer,
+  open_emp_id integer,
   avail_balance float,
   pending_balance float,
   constraint fk_product_cd foreign key (product_cd)
@@ -140,8 +140,8 @@ create table LEARNINGSQL.transaction
   account_id integer not null,
   txn_type_cd txn_type_cd_t,
   amount float(53) not null,
-  teller_emp_id smallint,
-  execution_branch_id smallint,
+  teller_emp_id integer,
+  execution_branch_id integer,
   funds_avail_date date,
   constraint fk_t_account_id foreign key (account_id)
     references LEARNINGSQL.account (account_id),
