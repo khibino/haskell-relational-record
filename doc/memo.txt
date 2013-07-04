@@ -1,1 +1,35 @@
-A memorandum for HRR.
+A memorandum for HRR
+======================
+
+Type Casts
+-----------
+
+### PostgreSQL
+http://www.postgresql.org/docs/9.2/static/sql-expressions.html#SQL-SYNTAX-TYPE-CASTS
+
+> A type cast specifies a conversion from one data type to another.
+> PostgreSQL accepts two equivalent syntaxes for type casts:
+> 
+>     CAST ( <expression> AS <type> )
+>     <expression>::<type>
+> 
+> The CAST syntax conforms to SQL; the syntax with :: is historical PostgreSQL usage.
+
+### SQL Server 2012
+http://msdn.microsoft.com/en-US/library/ms187928(v=sql.110).aspx
+
+> Syntax for CAST:
+> 
+>     CAST ( <expression> AS <data_type> [ ( <length> ) ] )
+
+### SQLite3
+http://www.sqlite.org/syntaxdiagrams.html#expr
+
+> expr: (excerption)
+> 
+>     CAST ( <expr> AS <type-name> )
+> 
+> type-name:
+> 
+>     <name> [ ...n ] [ ( <signed-number> ) | ( <signed-number> , <signed-number> ) ]
+
