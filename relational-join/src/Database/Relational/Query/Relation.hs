@@ -130,7 +130,7 @@ aggregateRelation' =  AggregateRel . fmap snd
 
 
 -- | Restriction function type for direct style join operator.
-type JoinRestriction a b = Projection a -> Projection b -> Expr (Maybe Bool)
+type JoinRestriction a b = Projection a -> Projection b -> Expr Projection (Maybe Bool)
 
 unsafeCastPlaceHolder :: Relation a r -> Relation b r
 unsafeCastPlaceHolder =  d  where

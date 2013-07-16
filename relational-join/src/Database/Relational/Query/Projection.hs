@@ -120,7 +120,7 @@ piMaybe :: Projection (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
 piMaybe =  unsafeProject
 
 -- | Trace projection path to get narrower 'Projection'. From 'Maybe' type to 'Maybe' type.
---   Projection path's leaf is 'Maybe' case.
+--   Leaf type of projection path is 'Maybe'.
 piMaybe' :: Projection (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
          -> Pi a (Maybe b)       -- ^ Projection path. 'Maybe' type leaf
          -> Projection (Maybe b) -- ^ Narrower 'Projection'. 'Maybe' type result

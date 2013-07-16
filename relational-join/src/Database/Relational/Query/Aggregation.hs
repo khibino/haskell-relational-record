@@ -13,7 +13,7 @@
 module Database.Relational.Query.Aggregation (
   -- * Projection definition for Aggregated query
   Aggregation,
-  projection,
+  unsafeProjection,
   mapAggregation,
 
   unsafeFromProjection,
@@ -38,12 +38,12 @@ import Database.Relational.Query.Pi (Pi)
 newtype Aggregation r = Aggregation (Projection r)
 
 -- | Get projection of normal query.
-projection :: Aggregation r -> Projection r
-projection (Aggregation p) = p
+unsafeProjection :: Aggregation r -> Projection r
+unsafeProjection (Aggregation p) = p
 
 -- | Map from 'Projection' into 'Aggregation'.
 mapAggregation ::  (Projection a -> Projection b) -> Aggregation a -> Aggregation b
-mapAggregation f = Aggregation . f . projection
+mapAggregation f = Aggregation . f . unsafeProjection
 
 -- | Unsafely make 'Aggregation' from 'Projection'.
 unsafeFromProjection :: Projection r -> Aggregation r

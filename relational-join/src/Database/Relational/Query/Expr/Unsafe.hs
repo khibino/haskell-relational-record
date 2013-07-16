@@ -1,3 +1,5 @@
+{-# LANGUAGE KindSignatures #-}
+
 -- |
 -- Module      : Database.Relational.Query.Expr.Unsafe
 -- Copyright   : 2013 Kei Hibino
@@ -14,13 +16,13 @@ module Database.Relational.Query.Expr.Unsafe (
   Expr(Expr), showExpr
   ) where
 
--- | Phantom typed SQL expression object.
-newtype Expr a = Expr (String)
+-- | Phantom typed SQL expression object. Project from projection type 'p'.
+newtype Expr (p :: * -> *) a = Expr (String)
 
 -- | Get SQL expression from typed object.
-showExpr :: Expr t -> String
+showExpr :: Expr p t -> String
 showExpr (Expr s) = s
 
 -- | Show expression.
-instance Show (Expr a) where
+instance Show (Expr p a) where
   show = showExpr

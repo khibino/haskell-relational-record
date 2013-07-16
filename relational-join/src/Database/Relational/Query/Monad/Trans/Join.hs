@@ -60,13 +60,13 @@ updateContext :: Monad m => (Context -> Context) -> QueryJoin m ()
 updateContext =  QueryJoin . modify
 
 -- | Add last join product restriction.
-updateJoinRestriction :: Monad m => Expr (Maybe Bool) -> QueryJoin m ()
+updateJoinRestriction :: Monad m => Expr Projection (Maybe Bool) -> QueryJoin m ()
 updateJoinRestriction e = updateContext (updateProduct d)  where
   d  Nothing  = error "on: product is empty!"
   d (Just pt) = restrictProduct pt (fromTriBool e)
 
 -- | Add whole query restriction.
-updateRestriction :: Monad m => Expr (Maybe Bool) -> QueryJoin m ()
+updateRestriction :: Monad m => Expr Projection (Maybe Bool) -> QueryJoin m ()
 updateRestriction e = updateContext (Context.addRestriction e)
 
 {-

@@ -26,10 +26,10 @@ import Database.Relational.Query.Internal.Product (NodeAttr)
 -- | Query building interface.
 class (Functor m, Monad m) => MonadQuery m where
   -- | Add restriction to last join.
-  on :: Expr (Maybe Bool) -- ^ 'Expr' which represent restriction
-     -> m ()              -- ^ Restricted query context
+  on :: Expr Projection (Maybe Bool) -- ^ 'Expr' 'Projection' which represent restriction
+     -> m ()                         -- ^ Restricted query context
   -- | Add restriction to this query.
-  wheres :: Expr (Maybe Bool) -- ^ 'Expr' which represent restriction
+  wheres :: Expr Projection (Maybe Bool) -- ^ 'Expr' 'Projection' which represent restriction
          -> m ()              -- ^ Restricted query context
   -- | Unsafely join subquery with this query.
   unsafeSubQuery :: NodeAttr           -- ^ Attribute maybe or just
@@ -49,5 +49,5 @@ class MonadQuery m => MonadAggregate m where
   groupBy :: Projection r      -- ^ Projection to add into group by
           -> m (Aggregation r) -- ^ Result context and aggregated projection
   -- | Add restriction to this aggregated query.
-  having :: Aggregation (Maybe Bool) -- ^ 'Aggregation' which represent restriction
-         -> m ()                     -- ^ Restricted query context
+  having :: Expr Aggregation (Maybe Bool) -- ^ 'Expr' 'Aggregation' which represent restriction
+         -> m ()                          -- ^ Restricted query context

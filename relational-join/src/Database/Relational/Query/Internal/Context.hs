@@ -42,7 +42,7 @@ import qualified Language.SQL.Keyword as SQL
 -- | Context type for QueryJoin.
 data Context = Context
                { product :: Maybe QueryProductNode
-               , restriction :: Maybe (Expr Bool)
+               , restriction :: Maybe (Expr Projection Bool)
                }
 
 -- | Initial 'Context'.
@@ -64,14 +64,14 @@ updateProduct uf = updateProduct' (Just . uf)
 -- restoreLeft pL naR ctx = updateProduct (Product.growLeft pL naR) ctx
 
 -- | Add restriction of 'Context'.
-addRestriction :: Expr (Maybe Bool) -> Context -> Context
+addRestriction :: Expr Projection (Maybe Bool) -> Context -> Context
 addRestriction e1 ctx =
   ctx { restriction = Just . uf . restriction $ ctx }
   where uf  Nothing  = fromTriBool e1
         uf (Just e0) = e0 `exprAnd` fromTriBool e1
 
 -- | Compose SQL String from QueryJoin monad object.
-composeSQL' :: Projection r -> QueryProduct -> Maybe (Expr Bool) -> String
+composeSQL' :: Projection r -> QueryProduct -> Maybe (Expr Projection Bool) -> String
 composeSQL' pj pd re =
   unwordsSQL
   $ [SELECT, columns' `SQL.sepBy` ", ",

@@ -38,7 +38,7 @@ import Database.Relational.Query.Constraint
    HasConstraintKey(constraintKey),
    derivedUniqueKey, -- derivedNotNullKey,
    Primary, Unique, NotNull)
-import Database.Relational.Query.Expr hiding (flattenMaybe, just)
+import Database.Relational.Query.Expr hiding (fromJust, just)
 import Database.Relational.Query.Sub (SubQuery, unitSQL, queryWidth)
 import Database.Relational.Query.Projection (Projection)
 import Database.Relational.Query.Aggregation (Aggregation)

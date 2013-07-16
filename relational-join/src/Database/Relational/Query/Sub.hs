@@ -23,12 +23,11 @@ module Database.Relational.Query.Sub (
   asColumnN,
 
   -- * Sub-query columns
-  column, columnExpr
+  column
   ) where
 
 import Database.Relational.Query.Table (Table, (!))
 import qualified Database.Relational.Query.Table as Table
-import Database.Relational.Query.Expr.Unsafe (Expr(Expr))
 
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
@@ -177,10 +176,6 @@ column qs =  d (unQualify qs)  where
   d (Table u)      i = (q <.> (u ! i))
   d (SubQuery _ _) i = (q `columnFromId` i)
   d (Bin _ _ _)    i = (q `columnFromId` i)
-
--- | Get column SQL expression of 'SubQuery'.
-columnExpr :: Qualified SubQuery -> Int -> Expr ft
-columnExpr q i =  Expr $ column q i
 
 -- | Get qualified SQL string, like (SELECT ...) AS T0
 qualifiedForm :: Qualified SubQuery -> String

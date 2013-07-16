@@ -27,7 +27,6 @@ import Control.Arrow (second)
 import Database.Relational.Query.Expr (Expr)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
-import Database.Relational.Query.Projectable (projectAggregation)
 import Database.Relational.Query.Aggregation (Aggregation)
 import qualified Database.Relational.Query.Aggregation as Aggregation
 
@@ -72,9 +71,11 @@ updateAggregatingContext =  Aggregatings . modify
 addGroupBys' :: Monad m => [String] -> Aggregatings m ()
 addGroupBys' gbs = updateAggregatingContext (\c -> foldl (flip Context.addGroupBy) c gbs)
 
--- | Unsafely add not-typeful restrictions for aggregated query.
-addRestriction' :: Monad m => Expr (Maybe Bool) -> Aggregatings m ()
-addRestriction' =  updateAggregatingContext . Context.addRestriction
+-- | Add restrictions for aggregated query.
+addRestriction :: MonadQuery m
+               => Expr Aggregation (Maybe Bool) -- ^ Restriction to add
+               -> Aggregatings m ()             -- ^ Result restricted context
+addRestriction =  updateAggregatingContext . Context.addRestriction
 
 -- | Add aggregating terms.
 addGroupBys :: MonadQuery m
@@ -83,12 +84,6 @@ addGroupBys :: MonadQuery m
 addGroupBys p = do
   addGroupBys' . Projection.columns $ p
   return $ Aggregation.unsafeFromProjection p
-
--- | Add restrictions for aggregated query.
-addRestriction :: MonadQuery m
-               => Aggregation (Maybe Bool) -- ^ Restriction to add
-               -> Aggregatings m ()        -- ^ Result restricted context
-addRestriction =  addRestriction' . projectAggregation
 
 -- | Aggregated query instance.
 instance MonadQuery m => MonadAggregate (Aggregatings m) where

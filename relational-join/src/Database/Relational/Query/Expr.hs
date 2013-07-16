@@ -21,7 +21,7 @@ module Database.Relational.Query.Expr (
   valueExpr,
 
   -- * Type conversion
-  just, flattenMaybe,
+  just, fromJust,
 
   fromTriBool, exprAnd
   ) where
@@ -101,25 +101,25 @@ instance ShowConstantSQL a => ShowConstantSQL (Maybe a) where
 
 
 -- | Typed constant SQL expression from Haskell value.
-valueExpr :: ShowConstantSQL ft => ft -> Expr ft
+valueExpr :: ShowConstantSQL ft => ft -> Expr p ft
 valueExpr =  Expr . showConstantSQL
 
 -- | Unsafely cast phantom type.
-unsafeCastExpr :: Expr a -> Expr b
+unsafeCastExpr :: Expr p a -> Expr p b
 unsafeCastExpr =  Expr . showExpr
 
 -- | Convert phantom type into 'Maybe'.
-just :: Expr ft -> Expr (Maybe ft)
+just :: Expr p ft -> Expr p (Maybe ft)
 just =  unsafeCastExpr
 
--- | Composite nested 'Maybe' phantom type.
-flattenMaybe :: Expr (Maybe (Maybe ft)) -> Expr (Maybe ft)
-flattenMaybe =  unsafeCastExpr
+-- | Safe from just is allowed only for having or where 'Expr'.
+fromJust :: Expr p (Maybe ft) -> Expr p ft
+fromJust =  unsafeCastExpr
 
 -- | Unsafely fromJust of phantom typed 'Maybe' 'Bool'.
-fromTriBool :: Expr (Maybe Bool) -> Expr Bool
+fromTriBool :: Expr p (Maybe Bool) -> Expr p Bool
 fromTriBool =  unsafeCastExpr
 
 -- | AND operator for 'Expr'.
-exprAnd :: Expr Bool -> Expr Bool -> Expr Bool
+exprAnd :: Expr p Bool -> Expr p Bool -> Expr p Bool
 exprAnd a b = Expr $ '(' : SQLs.defineBinOp SQL.AND (showExpr a) (showExpr b) ++ [')']

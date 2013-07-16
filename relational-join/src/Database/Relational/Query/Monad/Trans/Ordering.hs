@@ -87,7 +87,7 @@ instance OrderingTerms Projection where
 
 -- | 'Aggregation' is ordering term.
 instance OrderingTerms Aggregation where
-  orderTerms = Projection.columns . Aggregation.projection
+  orderTerms = Projection.columns . Aggregation.unsafeProjection
 
 -- | Unsafely update ordering context.
 updateOrderingContext :: Monad m => (OrderingContext -> OrderingContext) -> Orderings p m ()

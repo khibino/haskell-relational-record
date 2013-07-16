@@ -27,6 +27,7 @@ import Data.Monoid ((<>))
 import Control.Applicative (pure)
 
 import Database.Relational.Query.Expr (Expr, showExpr, fromTriBool, exprAnd)
+import Database.Relational.Query.Aggregation (Aggregation)
 
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
@@ -43,7 +44,7 @@ type GroupBys = DList GroupByTerm
 data AggregatingContext =
   AggregatingContext
   { groupByTerms :: GroupBys
-  , restriction  :: Maybe (Expr Bool)
+  , restriction  :: Maybe (Expr Aggregation Bool)
   }
 
 -- | Initial value of 'AggregatingContext'.
@@ -55,7 +56,7 @@ addGroupBy :: String -> AggregatingContext -> AggregatingContext
 addGroupBy t c =  c { groupByTerms = groupByTerms c <> pure t }
 
 -- | Add having restriction into 'AggregatingContext'.
-addRestriction :: Expr (Maybe Bool) -> AggregatingContext -> AggregatingContext
+addRestriction :: Expr Aggregation (Maybe Bool) -> AggregatingContext -> AggregatingContext
 addRestriction e1 ctx =
   ctx { restriction = Just . uf . restriction $ ctx }
   where uf  Nothing  = fromTriBool e1

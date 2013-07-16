@@ -20,7 +20,9 @@ module Database.Relational.Query.Internal.Product (
   ) where
 
 import Prelude hiding (and, product)
-import Database.Relational.Query.Expr (Expr, showExpr, fromTriBool, exprAnd)
+import Database.Relational.Query.Expr (showExpr, fromTriBool, exprAnd)
+import qualified Database.Relational.Query.Expr as Expr
+import Database.Relational.Query.Projection (Projection)
 import Database.Relational.Query.Projectable (valueTrue)
 import Database.Relational.Query.Sub (SubQuery, Qualified)
 import qualified Database.Relational.Query.Sub as SubQuery
@@ -33,6 +35,8 @@ import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 import Data.Foldable (Foldable (foldMap))
 
+
+type Expr = Expr.Expr Projection
 
 -- | node attribute for product.
 data NodeAttr = Just' | Maybe

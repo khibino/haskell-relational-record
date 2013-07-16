@@ -57,7 +57,7 @@ instance MonadQualify Qualify (Orderings Aggregation (Aggregatings (QueryJoin Qu
 -- | Run 'AggregatedQuery' to get SQL string.
 expandSQL :: AggregatedQuery r -> Qualify ((String, Projection r), (String -> String, String -> String))
 expandSQL q = Join.expandSQL $ assoc <$> appendGroupBys (Ordering.appendOrderBys q)  where
-  assoc ((a, b), c) = (Aggregation.projection a, (b, c))
+  assoc ((a, b), c) = (Aggregation.unsafeProjection a, (b, c))
 
 -- | Run 'AggregatedQuery' to get SQL with 'Qualify' computation.
 toSQL :: AggregatedQuery r -- ^ 'AggregatedQuery' to run
