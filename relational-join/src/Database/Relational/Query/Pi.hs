@@ -13,7 +13,7 @@ module Database.Relational.Query.Pi (
   -- * Projection path
   Pi, piZip, (<.>), (<?.>), (<??.>),
 
-  fst', snd'
+  id', fst', snd'
   ) where
 
 import Database.Record
@@ -23,6 +23,10 @@ import Database.Record.Persistable
 
 import Database.Relational.Query.Pi.Unsafe
   (Pi, piZip, (<.>), (<?.>), (<??.>), definePi)
+
+-- | Identity projection path.
+id' :: PersistableWidth a => Pi a a
+id' =  definePi 0
 
 -- | Projection path for fst of tuple.
 fst' :: PersistableWidth a => Pi (a, b) a -- ^ Projection path of fst.
