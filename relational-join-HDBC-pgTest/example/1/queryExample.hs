@@ -84,7 +84,7 @@ userGroup0Aggregate =
   , g   <- groupBy (ug ! snd' ?!? Group.name')
   , let uid = ug ! fst' ?! User.id'
   , let c  = count uid
-  , ()  <- having $ count uid .<. value 3
+  , ()  <- havingP $ c .<. value 3
   , ()  <- asc $ c
   ]
 
