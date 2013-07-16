@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 -- |
@@ -15,7 +16,7 @@ module Database.Relational.Query.Monad.Class (
   MonadQualify (..),
   MonadQuery (..), MonadAggregate (..),
 
-  on', wheres', having'
+  onP, wheresP, havingP
   ) where
 
 import Database.Relational.Query.Expr (Expr)
@@ -55,11 +56,14 @@ class MonadQuery m => MonadAggregate m where
   having :: Expr Aggregation (Maybe Bool) -- ^ 'Expr' 'Aggregation' which represent restriction
          -> m ()                          -- ^ Restricted query context
 
-on' :: MonadQuery m => Projection (Maybe Bool) -> m ()
-on' =  on . expr
+-- | Add restriction to last join. Projection type version.
+onP :: MonadQuery m => Projection (Maybe Bool) -> m ()
+onP =  on . expr
 
-wheres' :: MonadQuery m => Projection (Maybe Bool) -> m ()
-wheres' =  wheres . expr
+-- | Add restriction to this query. Projection type version.
+wheresP :: MonadQuery m => Projection (Maybe Bool) -> m ()
+wheresP =  wheres . expr
 
-having' :: MonadAggregate m => Aggregation (Maybe Bool) -> m ()
-having' =  having . expr
+-- | Add restriction to this aggregated query. Aggregation type version.
+havingP :: MonadAggregate m => Aggregation (Maybe Bool) -> m ()
+havingP =  having . expr

@@ -24,6 +24,9 @@ module Database.Relational.Query.ProjectableExtended (
 
   (<!>), (<?!>), (<?!?>), (<!??>),
 
+  -- -- * Get weaken projection type
+  -- Projectable (project),
+
   -- * Aggregate functions
   unsafeAggregateOp,
   count, sum', avg, max', min', every, any', some',
