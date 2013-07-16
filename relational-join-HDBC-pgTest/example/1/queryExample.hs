@@ -83,8 +83,8 @@ userGroup0Aggregate =
   | ug  <- query userGroup0
   , g   <- groupBy (ug ! snd' ?!? Group.name')
   , let uid = ug ! fst' ?! User.id'
-  , let c = count uid
-  , ()  <- having $ c .<. value 3
+  , let c  = count uid
+  , ()  <- having $ count uid .<. value 3
   , ()  <- asc $ c
   ]
 
