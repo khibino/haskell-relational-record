@@ -13,12 +13,15 @@
 module Database.Relational.Query.Monad.Class (
   -- * Query interface classes
   MonadQualify (..),
-  MonadQuery (..), MonadAggregate (..)
+  MonadQuery (..), MonadAggregate (..),
+
+  on', wheres', having'
   ) where
 
 import Database.Relational.Query.Expr (Expr)
 import Database.Relational.Query.Projection (Projection)
 import Database.Relational.Query.Aggregation (Aggregation)
+import Database.Relational.Query.Projectable (expr)
 import Database.Relational.Query.Sub (SubQuery, Qualified)
 
 import Database.Relational.Query.Internal.Product (NodeAttr)
@@ -51,3 +54,12 @@ class MonadQuery m => MonadAggregate m where
   -- | Add restriction to this aggregated query.
   having :: Expr Aggregation (Maybe Bool) -- ^ 'Expr' 'Aggregation' which represent restriction
          -> m ()                          -- ^ Restricted query context
+
+on' :: MonadQuery m => Projection (Maybe Bool) -> m ()
+on' =  on . expr
+
+wheres' :: MonadQuery m => Projection (Maybe Bool) -> m ()
+wheres' =  wheres . expr
+
+having' :: MonadAggregate m => Aggregation (Maybe Bool) -> m ()
+having' =  having . expr
