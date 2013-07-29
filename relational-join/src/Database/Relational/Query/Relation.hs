@@ -50,7 +50,6 @@ import Database.Relational.Query.Table (Table)
 
 import Database.Relational.Query.Internal.Product (NodeAttr(Just', Maybe))
 
-import Database.Relational.Query.Expr (Expr)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Aggregation (Aggregation)
@@ -130,7 +129,7 @@ aggregateRelation' =  AggregateRel . fmap snd
 
 
 -- | Restriction function type for direct style join operator.
-type JoinRestriction a b = Projection a -> Projection b -> Expr Projection (Maybe Bool)
+type JoinRestriction a b = Projection a -> Projection b -> Projection (Maybe Bool)
 
 unsafeCastPlaceHolder :: Relation a r -> Relation b r
 unsafeCastPlaceHolder =  d  where

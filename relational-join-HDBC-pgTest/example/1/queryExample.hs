@@ -35,7 +35,7 @@ groupMemberShipE =
   [ m >< g
   | m  <- queryMaybe membership
   , g  <- query      group
-  , () <- on $ m .! groupId' .=. g ! Group.id'
+  , () <- onE $ m .! groupId' .=. g ! Group.id'
   ]
 
 -- Monadic join style
@@ -58,7 +58,7 @@ userGroup0E =
   | u   <- queryMaybe user
   , mg  <- queryMaybe groupMemberShipE
 
-  , ()  <- on  $ u .! User.id' .=. mg ?!? fst' .! userId'
+  , ()  <- onE $ u .! User.id' .=. mg ?!? fst' .! userId'
 
   , ()  <- asc $ u ?! User.id'
   ]
@@ -78,6 +78,7 @@ userGroup1 =
   , ()  <- asc $ u ?! User.id'
   ]
 
+{-
 userGroup1E :: Relation () (Maybe User, Maybe Group)
 userGroup1E =
   relation $
@@ -91,6 +92,7 @@ userGroup1E =
 
   , ()  <- asc $ u ?! User.id'
   ]
+-}
 
 -- Nested monad
 userGroup2 :: Relation () (Maybe User, Maybe Group)
@@ -119,10 +121,10 @@ userGroup2E =
            [ m >< g
            | m  <- queryMaybe membership
            , g  <- query      group
-           , () <- on $ m .! groupId' .=. g ! Group.id'
+           , () <- onE $ m .! groupId' .=. g ! Group.id'
            ]
 
-  , ()  <- on $ u .! User.id' .=. mg ?!? fst' .! userId'
+  , ()  <- onE $ u .! User.id' .=. mg ?!? fst' .! userId'
 
   , ()  <- asc $ u ?! User.id'
   ]
@@ -136,7 +138,7 @@ userGroup0Aggregate =
   , g   <- groupBy (ug ! snd' ?!? Group.name')
   , let uid = ug ! fst' ?! User.id'
   , let c  = count uid
-  , ()  <- havingP $ c .<. value 3
+  , ()  <- having $ c .<. value 3
   , ()  <- asc $ c
   ]
 
@@ -217,7 +219,7 @@ run =  handleSqlError' $ withConnectionIO connect
            run' userGroup0 ()
            run' userGroup0E ()
            run' userGroup1 ()
-           run' userGroup1E ()
+           -- run' userGroup1E ()
            run' userGroup2 ()
            run' userGroup2E ()
            run' userGroup0Aggregate ()

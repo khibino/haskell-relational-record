@@ -16,8 +16,8 @@ module Database.Relational.Query.Monad.Class (
   MonadQualify (..),
   MonadQuery (..), MonadAggregate (..),
 
-  on, onP, wheres, wheresP,
-  groupBy, having, havingP
+  onE, on, wheresE, wheres,
+  groupBy, havingE, having
   ) where
 
 import Database.Relational.Query.Expr (Expr)
@@ -58,20 +58,20 @@ class MonadQuery m => MonadAggregate m where
                           -> m ()                          -- ^ Restricted query context
 
 -- | Add restriction to last join.
-on :: MonadQuery m => Expr Projection (Maybe Bool) -> m ()
-on =  restrictJoin
+onE :: MonadQuery m => Expr Projection (Maybe Bool) -> m ()
+onE =  restrictJoin
 
 -- | Add restriction to last join. Projection type version.
-onP :: MonadQuery m => Projection (Maybe Bool) -> m ()
-onP =  on . expr
+on :: MonadQuery m => Projection (Maybe Bool) -> m ()
+on =  restrictJoin . expr
 
 -- | Add restriction to this query.
-wheres :: MonadQuery m => Expr Projection (Maybe Bool) -> m ()
-wheres =  restrictQuery
+wheresE :: MonadQuery m => Expr Projection (Maybe Bool) -> m ()
+wheresE =  restrictQuery
 
 -- | Add restriction to this query. Projection type version.
-wheresP :: MonadQuery m => Projection (Maybe Bool) -> m ()
-wheresP =  wheres . expr
+wheres :: MonadQuery m => Projection (Maybe Bool) -> m ()
+wheres =  restrictQuery . expr
 
 -- | Add /group by/ term into context and get aggregated projection.
 groupBy :: MonadAggregate m
@@ -80,9 +80,9 @@ groupBy :: MonadAggregate m
 groupBy =  aggregateKey
 
 -- | Add restriction to this aggregated query.
-having :: MonadAggregate m => Expr Aggregation (Maybe Bool) -> m ()
-having =  restrictAggregatedQuery
+havingE :: MonadAggregate m => Expr Aggregation (Maybe Bool) -> m ()
+havingE =  restrictAggregatedQuery
 
 -- | Add restriction to this aggregated query. Aggregation type version.
-havingP :: MonadAggregate m => Aggregation (Maybe Bool) -> m ()
-havingP =  having . expr
+having :: MonadAggregate m => Aggregation (Maybe Bool) -> m ()
+having =  restrictAggregatedQuery . expr

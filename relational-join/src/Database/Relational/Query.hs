@@ -45,7 +45,7 @@ import Database.Relational.Query.Aggregation (Aggregation)
 import Database.Relational.Query.Projectable
 import Database.Relational.Query.ProjectableExtended
 import Database.Relational.Query.Monad.Class
-  (on, wheres, groupBy, having, onP, wheresP, havingP)
+  (on, wheres, groupBy, having, onE, wheresE, havingE)
 import Database.Relational.Query.Monad.Trans.Ordering (asc, desc)
 import Database.Relational.Query.Monad.Core (QueryCore)
 import Database.Relational.Query.Monad.Simple (QuerySimple, SimpleQuery)

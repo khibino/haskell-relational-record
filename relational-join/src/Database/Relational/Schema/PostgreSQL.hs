@@ -37,7 +37,7 @@ import Data.Time
 import Database.Relational.Query.Type (fromRelation)
 import Database.Relational.Query
   (Query, Relation, query, query', relation', relation, union,
-   wheres, (.=.), (.>.), in', values, (!), expr, fst', snd',
+   wheres, (.=.), (.>.), in', values, (!), fst', snd',
    placeholder, asc, value, unsafeProjectSql, (><))
 
 import Database.Relational.Schema.PgCatalog.PgNamespace (pgNamespace)
@@ -132,7 +132,7 @@ attributeRelation =  relation' $ do
   (ph, reloid) <- query' relOidRelation
   att          <- query  pgAttribute
 
-  wheres $ att ! Attr.attrelid' .=. expr reloid
+  wheres $ att ! Attr.attrelid' .=. reloid
   wheres $ att ! Attr.attnum'   .>. value 0
 
   return   (ph, att)
@@ -167,7 +167,7 @@ primaryKeyLengthRelation =  relation' $ do
   (ph, reloid) <- query' relOidRelation
   con       <- query  pgConstraint
 
-  wheres $ con ! Constraint.conrelid' .=. expr reloid
+  wheres $ con ! Constraint.conrelid' .=. reloid
   wheres $ con ! Constraint.contype'  .=. value 'p'  -- 'p': primary key constraint type
 
   return (ph, unsafeProjectSql "array_length (conkey, 1)")
