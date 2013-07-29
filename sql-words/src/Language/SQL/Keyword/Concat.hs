@@ -25,10 +25,10 @@ module Language.SQL.Keyword.Concat (
 
   (.||.),
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
-  and, or, in'
+  and, or, not, in',
   ) where
 
-import Prelude hiding (and, or)
+import Prelude hiding (and, or, not)
 import Data.List (intersperse)
 
 import Language.SQL.Keyword.Type (Keyword (..), word, wordShow, unwordsSQL)
@@ -115,6 +115,10 @@ and    =  defineBinOp AND
 -- | Binary `OR` operator for SQL boolean expression.
 or :: Keyword -> Keyword -> Keyword
 or     =  defineBinOp OR
+
+-- | Uni `NOT` operator for SQL boolean expression.
+not :: Keyword -> Keyword
+not e = unwords' [NOT, e]
 
 -- | Binary `IN` operator for SQL.
 in' :: Keyword -> Keyword -> Keyword

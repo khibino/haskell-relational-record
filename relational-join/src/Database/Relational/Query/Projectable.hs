@@ -20,7 +20,7 @@ module Database.Relational.Query.Projectable (
   value,
   valueTrue, valueFalse,
   values,
-  valueNull,
+  unsafeValueNull,
 
   -- * Placeholders
   PlaceHolders, addPlaceHolders,
@@ -35,7 +35,7 @@ module Database.Relational.Query.Projectable (
 
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
 
-  in', isNull, and, or,
+  in', isNull, isNotNull, and, or, not,
 
   (.+.), (.-.), (./.), (.*.),
 
@@ -47,7 +47,7 @@ module Database.Relational.Query.Projectable (
   ProjectableMaybe (just, flattenMaybe)
   ) where
 
-import Prelude hiding (and, or, pi)
+import Prelude hiding (and, or, not, pi)
 
 import Data.List (intercalate)
 import Control.Applicative ((<$>))
@@ -148,8 +148,8 @@ unsafeProjectSql :: SqlProjectable p => String -> p t
 unsafeProjectSql =  unsafeProjectSqlTerms . (:[])
 
 -- | Polymorphic projection of SQL null value.
-valueNull :: SqlProjectable p => p (Maybe a)
-valueNull =  unsafeProjectSql "NULL"
+unsafeValueNull :: SqlProjectable p => p (Maybe a)
+unsafeValueNull =  unsafeProjectSql "NULL"
 
 -- | Generate polymorphic projection of SQL constant values from Haskell value.
 value :: (ShowConstantSQL t, SqlProjectable p) => t -> p t
@@ -193,6 +193,12 @@ type SqlBinOp = String -> String -> String
 -- | Binary operator from SQL operator string.
 sqlBinOp :: String -> SqlBinOp
 sqlBinOp =  SQLs.defineBinOp . SQL.word
+
+-- | Unsafely make projection unary operator from SQL operator string.
+unsafeUniOp :: (SqlProjectable p, ProjectableShowSql p)
+            => (String -> String)
+            -> p a -> p b
+unsafeUniOp op = unsafeProjectSql . paren . op . unsafeShowSql
 
 -- | Unsafely make projection binary operator from SQL operator string.
 unsafeBinOp :: (SqlProjectable p, ProjectableShowSql p)
@@ -254,6 +260,11 @@ or  :: (SqlProjectable p, ProjectableShowSql p)
   => p ft -> p ft -> p (Maybe Bool)
 or  =  compareBinOp SQLs.or
 
+-- | Logical operator corresponding SQL /NOT/ .
+not :: (SqlProjectable p, ProjectableShowSql p)
+    => p (Maybe Bool) -> p (Maybe Bool)
+not =  unsafeUniOp SQLs.not
+
 -- | Unsafely make number projection binary operator from SQL operator string.
 numBinOp' :: (SqlProjectable p, ProjectableShowSql p, Num a)
           => String -> p a -> p a -> p a
@@ -287,8 +298,12 @@ in' =  unsafeBinOp (SQLs.in')
 -- | Operator corresponding SQL /IS NULL/ .
 isNull :: (SqlProjectable p, ProjectableShowSql p)
        => p (Maybe t) -> p (Maybe Bool)
-isNull x = compareBinOp (SQLs.defineBinOp SQL.IS) x valueNull
+isNull x = compareBinOp (SQLs.defineBinOp SQL.IS) x unsafeValueNull
 
+-- | Operator corresponding SQL /NOT (... IS NULL)/ .
+isNotNull :: (SqlProjectable p, ProjectableShowSql p)
+          => p (Maybe t) -> p (Maybe Bool)
+isNotNull =  not . isNull
 
 -- | Placeholder parameter type which has real parameter type arguemnt 'p'.
 data PlaceHolders p = PlaceHolders
