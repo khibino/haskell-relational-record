@@ -34,7 +34,7 @@ import Database.Relational.Query.Internal.AggregatingContext (AggregatingContext
 import qualified Database.Relational.Query.Internal.AggregatingContext as Context
 
 import Database.Relational.Query.Monad.Class
-  (MonadQuery(on, wheres, unsafeSubQuery), MonadAggregate(groupBy, having))
+  (MonadQuery(..), MonadAggregate(..))
 
 
 -- | 'StateT' type to accumulate aggregating context.
@@ -59,8 +59,8 @@ aggregate =  lift
 
 -- | Aggregated 'MonadQuery'.
 instance MonadQuery m => MonadQuery (Aggregatings m) where
-  on     =  aggregate . on
-  wheres =  aggregate . wheres
+  restrictJoin  =  aggregate . restrictJoin
+  restrictQuery =  aggregate . restrictQuery
   unsafeSubQuery na = aggregate . unsafeSubQuery na
 
 -- | Unsafely update aggregating context.
@@ -87,8 +87,8 @@ addGroupBys p = do
 
 -- | Aggregated query instance.
 instance MonadQuery m => MonadAggregate (Aggregatings m) where
-  groupBy = addGroupBys
-  having  = addRestriction
+  aggregateKey = addGroupBys
+  restrictAggregatedQuery = addRestriction
 
 
 -- | Get group-by appending function from 'AggregatingContext'.

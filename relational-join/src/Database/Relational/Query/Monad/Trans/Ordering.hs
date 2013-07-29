@@ -38,7 +38,7 @@ import Database.Relational.Query.Aggregation (Aggregation)
 import qualified Database.Relational.Query.Aggregation as Aggregation
 
 import Database.Relational.Query.Monad.Class
-  (MonadQuery(on, wheres, unsafeSubQuery), MonadAggregate(groupBy, having))
+  (MonadQuery(..), MonadAggregate(..))
 
 
 -- | 'StateT' type to accumulate ordering context.
@@ -64,15 +64,15 @@ orderings =  lift
 
 -- | 'MonadQuery' with ordering.
 instance MonadQuery m => MonadQuery (Orderings p m) where
-  on     =  orderings . on
-  wheres =  orderings . wheres
+  restrictJoin  =  orderings . restrictJoin
+  restrictQuery =  orderings . restrictQuery
   unsafeSubQuery na       = orderings . unsafeSubQuery na
   -- unsafeMergeAnotherQuery = unsafeMergeAnotherOrderBys
 
 -- | 'MonadAggregate' with ordering.
 instance MonadAggregate m => MonadAggregate (Orderings p m) where
-  groupBy = orderings . groupBy
-  having  = orderings . having
+  aggregateKey = orderings . aggregateKey
+  restrictAggregatedQuery = orderings . restrictAggregatedQuery
 
 -- | OrderedQuery type synonym. Projection must be the same as 'Orderings' type parameter 'p'
 type OrderedQuery p m r = Orderings p m (p r)

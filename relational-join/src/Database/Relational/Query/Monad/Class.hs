@@ -16,7 +16,8 @@ module Database.Relational.Query.Monad.Class (
   MonadQualify (..),
   MonadQuery (..), MonadAggregate (..),
 
-  onP, wheresP, havingP
+  on, onP, wheres, wheresP,
+  groupBy, having, havingP
   ) where
 
 import Database.Relational.Query.Expr (Expr)
@@ -30,11 +31,11 @@ import Database.Relational.Query.Internal.Product (NodeAttr)
 -- | Query building interface.
 class (Functor m, Monad m) => MonadQuery m where
   -- | Add restriction to last join.
-  on :: Expr Projection (Maybe Bool) -- ^ 'Expr' 'Projection' which represent restriction
-     -> m ()                         -- ^ Restricted query context
+  restrictJoin :: Expr Projection (Maybe Bool) -- ^ 'Expr' 'Projection' which represent restriction
+               -> m ()                         -- ^ Restricted query context
   -- | Add restriction to this query.
-  wheres :: Expr Projection (Maybe Bool) -- ^ 'Expr' 'Projection' which represent restriction
-         -> m ()              -- ^ Restricted query context
+  restrictQuery :: Expr Projection (Maybe Bool) -- ^ 'Expr' 'Projection' which represent restriction
+                -> m ()                         -- ^ Restricted query context
   -- | Unsafely join subquery with this query.
   unsafeSubQuery :: NodeAttr           -- ^ Attribute maybe or just
                  -> Qualified SubQuery -- ^ 'SubQuery' to join
@@ -50,19 +51,37 @@ class (Functor q, Monad q, MonadQuery m) => MonadQualify q m where
 -- | Aggregated query building interface extends 'MonadQuery'.
 class MonadQuery m => MonadAggregate m where
   -- | Add /group by/ term into context and get aggregated projection.
-  groupBy :: Projection r      -- ^ Projection to add into group by
-          -> m (Aggregation r) -- ^ Result context and aggregated projection
+  aggregateKey :: Projection r      -- ^ Projection to add into group by
+               -> m (Aggregation r) -- ^ Result context and aggregated projection
   -- | Add restriction to this aggregated query.
-  having :: Expr Aggregation (Maybe Bool) -- ^ 'Expr' 'Aggregation' which represent restriction
-         -> m ()                          -- ^ Restricted query context
+  restrictAggregatedQuery :: Expr Aggregation (Maybe Bool) -- ^ 'Expr' 'Aggregation' which represent restriction
+                          -> m ()                          -- ^ Restricted query context
+
+-- | Add restriction to last join.
+on :: MonadQuery m => Expr Projection (Maybe Bool) -> m ()
+on =  restrictJoin
 
 -- | Add restriction to last join. Projection type version.
 onP :: MonadQuery m => Projection (Maybe Bool) -> m ()
 onP =  on . expr
 
+-- | Add restriction to this query.
+wheres :: MonadQuery m => Expr Projection (Maybe Bool) -> m ()
+wheres =  restrictQuery
+
 -- | Add restriction to this query. Projection type version.
 wheresP :: MonadQuery m => Projection (Maybe Bool) -> m ()
 wheresP =  wheres . expr
+
+-- | Add /group by/ term into context and get aggregated projection.
+groupBy :: MonadAggregate m
+        => Projection r      -- ^ Projection to add into group by
+        -> m (Aggregation r) -- ^ Result context and aggregated projection
+groupBy =  aggregateKey
+
+-- | Add restriction to this aggregated query.
+having :: MonadAggregate m => Expr Aggregation (Maybe Bool) -> m ()
+having =  restrictAggregatedQuery
 
 -- | Add restriction to this aggregated query. Aggregation type version.
 havingP :: MonadAggregate m => Aggregation (Maybe Bool) -> m ()

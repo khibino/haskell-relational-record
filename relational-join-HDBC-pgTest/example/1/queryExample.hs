@@ -56,7 +56,7 @@ userGroup0E =
   relation $
   [ u   >< mg ?! snd'
   | u   <- queryMaybe user
-  , mg  <- queryMaybe groupMemberShip
+  , mg  <- queryMaybe groupMemberShipE
 
   , ()  <- on  $ u .! User.id' .=. mg ?!? fst' .! userId'
 

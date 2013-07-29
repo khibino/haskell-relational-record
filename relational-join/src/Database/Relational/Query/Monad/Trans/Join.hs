@@ -79,8 +79,8 @@ restoreLeft pL naR = updateContext $ Context.restoreLeft pL naR
 
 -- | Basic query instance.
 instance (Monad q, Functor q) => MonadQuery (QueryJoin q) where
-  on     =  updateJoinRestriction
-  wheres =  updateRestriction
+  restrictJoin  =  updateJoinRestriction
+  restrictQuery =  updateRestriction
   unsafeSubQuery          = unsafeSubQueryWithAttr
   -- unsafeMergeAnotherQuery = unsafeQueryMergeWithAttr
 

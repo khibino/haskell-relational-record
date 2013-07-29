@@ -40,7 +40,7 @@ module Database.Relational.Query.Relation (
 
 import Database.Relational.Query.Monad.Qualify (Qualify, evalQualifyPrime, qualifyQuery)
 import Database.Relational.Query.Monad.Class
-  (MonadQualify (liftQualify), MonadQuery (on, unsafeSubQuery))
+  (MonadQualify (liftQualify), MonadQuery (unsafeSubQuery), on)
 import Database.Relational.Query.Monad.Simple (QuerySimple, SimpleQuery)
 import qualified Database.Relational.Query.Monad.Simple as Simple
 import Database.Relational.Query.Monad.Aggregate (QueryAggregate, AggregatedQuery)
