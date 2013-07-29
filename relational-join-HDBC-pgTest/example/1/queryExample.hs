@@ -29,6 +29,15 @@ groupMemberShip =
   , () <- on $ m ?! groupId' .=. just (g ! Group.id')
   ]
 
+groupMemberShipE :: Relation () (Maybe Membership, Group)
+groupMemberShipE =
+  relation $
+  [ m >< g
+  | m  <- queryMaybe membership
+  , g  <- query      group
+  , () <- on $ m .! groupId' .=. g ! Group.id'
+  ]
+
 -- Monadic join style
 userGroup0 :: Relation () (Maybe User, Maybe Group)
 userGroup0 =
@@ -37,7 +46,19 @@ userGroup0 =
   | u   <- queryMaybe user
   , mg  <- queryMaybe groupMemberShip
 
-  , ()  <- on $ u ?! User.id' .=. mg ?!? fst' ?! userId'
+  , ()  <- on  $ u ?! User.id' .=. mg ?!? fst' ?! userId'
+
+  , ()  <- asc $ u ?! User.id'
+  ]
+
+userGroup0E :: Relation () (Maybe User, Maybe Group)
+userGroup0E =
+  relation $
+  [ u   >< mg ?! snd'
+  | u   <- queryMaybe user
+  , mg  <- queryMaybe groupMemberShip
+
+  , ()  <- on  $ u .! User.id' .=. mg ?!? fst' .! userId'
 
   , ()  <- asc $ u ?! User.id'
   ]
@@ -50,6 +71,20 @@ userGroup1 =
   | umg <- query $
            user `left` membership `on'` [\ u m -> just (u ! User.id') .=. m ?! userId' ]
            `full` group `on'` [ \ um g -> um ?!? snd' ?! groupId' .=. g ?! Group.id' ]
+  , let um = umg ! fst'
+        u  = um ?! fst'
+        g  = umg ! snd'
+
+  , ()  <- asc $ u ?! User.id'
+  ]
+
+userGroup1E :: Relation () (Maybe User, Maybe Group)
+userGroup1E =
+  relation $
+  [ u >< g
+  | umg <- query $
+           user `left` membership `on'` [\ u m -> u ! User.id' .=. m .! userId' ]
+           `full` group `on'` [ \ um g -> um ?!? snd' .! groupId' .=. g .! Group.id' ]
   , let um = umg ! fst'
         u  = um ?! fst'
         g  = umg ! snd'
@@ -71,6 +106,23 @@ userGroup2 =
            ]
 
   , ()  <- on $ u ?! User.id' .=. mg ?!? fst' ?! userId'
+
+  , ()  <- asc $ u ?! User.id'
+  ]
+
+userGroup2E :: Relation () (Maybe User, Maybe Group)
+userGroup2E =
+  relation $
+  [ u   >< mg ?! snd'
+  | u   <- queryMaybe user
+  , mg  <- queryMaybe . relation $
+           [ m >< g
+           | m  <- queryMaybe membership
+           , g  <- query      group
+           , () <- on $ m .! groupId' .=. g ! Group.id'
+           ]
+
+  , ()  <- on $ u .! User.id' .=. mg ?!? fst' .! userId'
 
   , ()  <- asc $ u ?! User.id'
   ]
@@ -163,8 +215,11 @@ run =  handleSqlError' $ withConnectionIO connect
                     => Relation p a -> p -> IO ()
                run' = runAndPrint conn
            run' userGroup0 ()
+           run' userGroup0E ()
            run' userGroup1 ()
+           run' userGroup1E ()
            run' userGroup2 ()
+           run' userGroup2E ()
            run' userGroup0Aggregate ()
            run' userGroup3 "Haskell"
            run' userGroupU ("Kei Hibino", "Haskell")

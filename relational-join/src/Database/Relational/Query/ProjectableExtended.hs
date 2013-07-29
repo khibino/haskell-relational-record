@@ -24,6 +24,8 @@ module Database.Relational.Query.ProjectableExtended (
 
   (<!>), (<?!>), (<?!?>), (<!??>),
 
+  (.!), (.?),
+
   -- -- * Get weaken projection type
   -- Projectable (project),
 
@@ -41,7 +43,7 @@ import Prelude hiding (pi)
 import Data.Int (Int32)
 
 import qualified Language.SQL.Keyword as SQL
-import Database.Relational.Query.Expr (Expr)
+import Database.Relational.Query.Expr (Expr, fromJust)
 import Database.Relational.Query.Projection (Projection)
 import Database.Relational.Query.Aggregation (Aggregation)
 import Database.Relational.Query.Projectable
@@ -182,6 +184,23 @@ projectPiMaybe' p = project . Projectable.piMaybe' p
         -> p (Maybe b)           -- ^ Narrower projected object. 'Maybe' phantom type result
 (<?!?>) =  projectPiMaybe'
 
+-- | Get narrower projected expression along with projectino path
+--   and strip 'Maybe' phantom type off.
+(.!) :: (ProjectablePi p, Projectable p (Expr p))
+     => p (Maybe a) -- ^ Source projection type 'p'. 'Maybe' phantom type
+     -> Pi a b      -- ^ Projection path
+     -> Expr p b    -- ^ Narrower projected expression. 'Maybe' phantom type is stripped off
+(.!) p = fromJust . projectPiMaybe p
+
+-- | Get narrower projected expression along with projectino path
+--   and strip 'Maybe' phantom type off.
+--   Projection path leaf is 'Maybe' case.
+(.?) :: (ProjectablePi p, Projectable p (Expr p))
+     => p (Maybe a)    -- ^ Source projection type 'p'. 'Maybe' phantom type
+     -> Pi a (Maybe b) -- ^ Projection path. 'Maybe' type leaf
+     -> Expr p b       -- ^ Narrower projected expression. 'Maybe' phantom type is stripped off
+(.?) p = fromJust . projectPiMaybe' p
+
 
 -- | Interface to compose phantom 'Maybe' nested type.
 class ProjectableFlattenMaybe a b where
@@ -253,5 +272,5 @@ flattenPh =  runIds
 --       => p a -> p b -> p c
 -- (>?<) =  generalizedZip'
 
-infixl 8 !, ?!, ?!?, !??, <!>, <?!>, <?!?>, <!??>
+infixl 8 !, ?!, ?!?, !??, <!>, <?!>, <?!?>, <!??>, .!, .?
 -- infixl 1 >?<
