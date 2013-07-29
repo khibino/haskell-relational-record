@@ -39,7 +39,9 @@ import Data.Array (listArray, (!))
 import Data.Set (toList, fromList, (\\))
 
 import Database.Record.Persistable
-  (PersistableRecord, Persistable(persistable))
+  (PersistableSqlType, runPersistableNullValue, PersistableType (persistableType),
+   PersistableRecordWidth, runPersistableRecordWidth, PersistableWidth(persistableWidth),
+   PersistableRecord, Persistable(persistable))
 import Database.Record.KeyConstraint
   (Primary, Unique, KeyConstraint, HasKeyConstraint(keyConstraint), unique, indexes)
 import qualified Database.Record.Persistable as Persistable
@@ -71,6 +73,12 @@ recordToSql' =  recordSerializer persistable
 (<&>) :: RecordToSql q a -> RecordToSql q b -> RecordToSql q (a, b)
 ra <&> rb = RecordToSql (\(a, b) -> runFromRecord ra a ++ runFromRecord rb b)
 
+-- | Derivation rule of 'RecordToSql' proof object for Haskell 'Maybe' type.
+maybeRecord :: PersistableSqlType q -> PersistableRecordWidth a -> RecordToSql q a -> RecordToSql q (Maybe a)
+maybeRecord qt w (RecordToSql f) =  RecordToSql d  where
+  d (Just r) = f r
+  d Nothing  = replicate (runPersistableRecordWidth w) (runPersistableNullValue qt)
+
 infixl 4 <&>
 
 
@@ -83,6 +91,11 @@ class ToSql q a where
 --   from Haskell tuple ('a', 'b') type into list of SQL type ['q'].
 instance (ToSql q a, ToSql q b) => ToSql q (a, b) where
   recordToSql = recordToSql <&> recordToSql
+
+-- | Inference rule of 'RecordToSql' proof object which can convert
+--   from Haskell 'Maybe' type into list of SQL type ['q'].
+instance (PersistableType q, PersistableWidth a, ToSql q a) => ToSql q (Maybe a)  where
+  recordToSql = maybeRecord persistableType persistableWidth recordToSql
 
 -- | Inference rule of 'RecordToSql' proof object which can convert
 --   from Haskell unit () type into /empty/ list of SQL type ['q'].
