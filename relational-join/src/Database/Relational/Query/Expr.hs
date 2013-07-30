@@ -13,7 +13,7 @@
 -- Contains normal interfaces.
 module Database.Relational.Query.Expr (
   -- * Typed SQL Expression
-  Expr, showExpr,
+  Expr,
 
   -- * Constant SQL Expression
   ShowConstantSQL (showConstantSQL),

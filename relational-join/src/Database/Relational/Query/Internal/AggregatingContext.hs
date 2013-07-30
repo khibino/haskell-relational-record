@@ -26,7 +26,8 @@ import qualified Data.DList as DList
 import Data.Monoid ((<>))
 import Control.Applicative (pure)
 
-import Database.Relational.Query.Expr (Expr, showExpr, fromTriBool, exprAnd)
+import Database.Relational.Query.Expr (Expr, fromTriBool, exprAnd)
+import Database.Relational.Query.Expr.Unsafe (showExpr)
 import Database.Relational.Query.Aggregation (Aggregation)
 
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)

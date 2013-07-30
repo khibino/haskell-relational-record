@@ -26,7 +26,8 @@ module Database.Relational.Query.Internal.Context (
 
 import Prelude hiding (product)
 
-import Database.Relational.Query.Expr (Expr, showExpr, fromTriBool, exprAnd)
+import Database.Relational.Query.Expr (Expr, fromTriBool, exprAnd)
+import Database.Relational.Query.Expr.Unsafe (showExpr)
 import Database.Relational.Query.Sub (asColumnN)
 
 import Database.Relational.Query.Internal.Product (QueryProductNode, QueryProduct, queryProductSQL)

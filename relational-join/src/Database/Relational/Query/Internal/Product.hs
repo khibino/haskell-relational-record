@@ -20,8 +20,9 @@ module Database.Relational.Query.Internal.Product (
   ) where
 
 import Prelude hiding (and, product)
-import Database.Relational.Query.Expr (showExpr, fromTriBool, exprAnd)
+import Database.Relational.Query.Expr (fromTriBool, exprAnd)
 import qualified Database.Relational.Query.Expr as Expr
+import Database.Relational.Query.Expr.Unsafe (showExpr)
 import Database.Relational.Query.Projection (Projection)
 import Database.Relational.Query.Projectable (valueTrue)
 import Database.Relational.Query.Sub (SubQuery, Qualified)
