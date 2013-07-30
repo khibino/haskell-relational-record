@@ -1,6 +1,6 @@
 /*
-   % psql -f del.sql learningsql
-   % dropdb learningsql
+   % psql -f del.sql testdb
+   % dropdb testdb
  */
 
 drop table LEARNINGSQL.transaction;
