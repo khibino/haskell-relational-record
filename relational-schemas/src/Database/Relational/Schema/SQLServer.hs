@@ -18,9 +18,10 @@ import Data.Int (Int32, Int64)
 import Data.Map (Map)
 import Data.Time (LocalTime, Day, TimeOfDay)
 import Database.Record.Instances ()
-import Database.Relational.Query (Expr, Query, Relation, PlaceHolders, (!), (.=.), (><), asc, fromRelation,
-                                  just, placeholder', query, relation', showExpr, unsafeProjectSql,
-                                  wheres)
+import Database.Relational.Query (Query, Relation, PlaceHolders, Projection,
+                                  (!), (.=.), (><), asc, fromRelation, just, placeholder',
+                                  query, relation', unsafeShowSql, unsafeShowSqlProjection,
+                                  unsafeProjectSql, wheres)
 import Database.Relational.Schema.SQLServerSyscat.Columns
 import Database.Relational.Schema.SQLServerSyscat.Indexes
 import Database.Relational.Schema.SQLServerSyscat.IndexColumns
@@ -80,14 +81,14 @@ getType mapFromSql rec@((cols,typs),typScms) = do
                     then typ
                     else [t|Maybe $(typ)|]
 
-sqlsrvTrue :: Expr Bool
-sqlsrvTrue = unsafeProjectSql "1"
+sqlsrvTrue :: Projection Bool
+sqlsrvTrue =  unsafeProjectSql "1"
 
-sqlsrvObjectId :: Expr String -> Expr String -> Expr Int32
+sqlsrvObjectId :: Projection String -> Projection String -> Projection Int32
 sqlsrvObjectId s t = unsafeProjectSql $
-    "OBJECT_ID(" ++ showExpr s ++ " + '.' + " ++ showExpr t ++ ")"
+    "OBJECT_ID(" ++ unsafeShowSql s ++ " + '.' + " ++ unsafeShowSql t ++ ")"
 
-sqlsrvOidPlaceHolder :: (PlaceHolders (String, String), Expr Int32)
+sqlsrvOidPlaceHolder :: (PlaceHolders (String, String), Projection Int32)
 sqlsrvOidPlaceHolder =  (nsParam >< relParam, oid)
   where
     (nsParam, (relParam, oid)) =
@@ -107,7 +108,7 @@ columnTypeRelation = relation' $ do
   where
     (params, oid) = sqlsrvOidPlaceHolder
     sqlsrvSchemaName i = unsafeProjectSql $
-        "SCHEMA_NAME(" ++ showExpr i ++ ")"
+        "SCHEMA_NAME(" ++ unsafeShowSqlProjection i ++ ")"
 
 columnTypeQuerySQL :: Query (String, String) ((Columns, Types), String)
 columnTypeQuerySQL = fromRelation columnTypeRelation
