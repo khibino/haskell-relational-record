@@ -142,6 +142,16 @@ userGroup0Aggregate =
   , ()  <- asc $ c
   ]
 
+-- Concatinate operator
+userGroupStr :: Relation () (Maybe String)
+userGroupStr =
+  relation $
+  [ u ?!? User.name' .||? just (value " - ") .||? g ?!? Group.name'
+  | ug <- query userGroup2
+  , let u = ug ! fst'
+        g = ug ! snd'
+  ]
+
 -- Type check is imcomplete when nested case
 userGroup2Fail :: Relation () (Maybe User, Maybe Group)
 userGroup2Fail =
@@ -225,6 +235,7 @@ run =  handleSqlError' $ withConnectionIO connect
            run' userGroup0Aggregate ()
            run' userGroup3 "Haskell"
            run' userGroupU ("Kei Hibino", "Haskell")
+           run' userGroupStr ()
            run' userGroup2Fail ()
        )
 

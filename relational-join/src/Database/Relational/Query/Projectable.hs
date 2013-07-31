@@ -447,8 +447,9 @@ instance ProjectableIdZip PlaceHolders where
   rightId = unsafeCastPlaceHolders
 
 
-infixl 7 .*., ./.
-infixl 6 .+., .-.
+infixl 7 .*., ./., .*?, ./?
+infixl 6 .+., .-., .+?, .-?
+infixl 5 .||., .||?
 infix  4 .=., .<>., .>., .>=., .<., .<=., `in'`
 infixr 3 `and`
 infixr 2 `or`
