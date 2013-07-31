@@ -27,6 +27,9 @@ module Database.Relational.Query.Projectable (
   placeholder', placeholder,
 
   -- * Projectable into SQL strings
+  unsafeShowSqlExpr,
+  unsafeShowSqlProjection,
+  unsafeShowSqlAggregation,
   ProjectableShowSql (unsafeShowSql),
 
   -- * Binary Operators
@@ -82,12 +85,12 @@ sqlTermsString = d  where
   d (cs) =  paren $ intercalate ", " cs
 
 -- | SQL expression strings which represent projection.
-sqlString :: Projection r -> String
-sqlString =  sqlTermsString . columns
+sqlStringOfProjection :: Projection r -> String
+sqlStringOfProjection =  sqlTermsString . columns
 
 -- | 'Expr' from 'Projection'
 exprOfProjection :: Projection r -> Expr Projection r
-exprOfProjection =  UnsafeExpr.Expr . sqlString
+exprOfProjection =  UnsafeExpr.Expr . sqlStringOfProjection
 
 -- | Projection interface into expression.
 class ExpressionProjectable p where
@@ -98,7 +101,7 @@ instance ExpressionProjectable Projection where
   expr = exprOfProjection
 
 instance ExpressionProjectable Aggregation where
-  expr = UnsafeExpr.Expr . sqlString . Aggregation.unsafeProjection
+  expr = UnsafeExpr.Expr . sqlStringOfProjection . Aggregation.unsafeProjection
 
 -- | Projection interface.
 class ProjectablePi p where
@@ -174,17 +177,29 @@ class ProjectableShowSql p where
   unsafeShowSql :: p a    -- ^ Source projection object
                 -> String -- ^ Result SQL expression string.
 
--- | Unsafely get SQL term from 'Proejction'.
-instance ProjectableShowSql Projection where
-  unsafeShowSql = sqlString
+-- | Unsafely get SQL term from 'Expr'.
+unsafeShowSqlExpr :: Expr p t -> String
+unsafeShowSqlExpr =  UnsafeExpr.showExpr
 
 -- | Unsafely get SQL term from 'Expr'.
 instance ProjectableShowSql (Expr p) where
-  unsafeShowSql = UnsafeExpr.showExpr
+  unsafeShowSql = unsafeShowSqlExpr
 
--- | Unsafely get SQL term from 'Aggregation.unsafeFromProjection'.
+-- | Unsafely get SQL term from 'Proejction'.
+unsafeShowSqlProjection :: Projection r -> String
+unsafeShowSqlProjection = sqlStringOfProjection
+
+-- | Unsafely get SQL term from 'Proejction'.
+instance ProjectableShowSql Projection where
+  unsafeShowSql = unsafeShowSqlProjection
+
+-- | Unsafely get SQL term from 'Aggregation'.
+unsafeShowSqlAggregation :: Aggregation a -> String
+unsafeShowSqlAggregation =  unsafeShowSql . Aggregation.unsafeProjection
+
+-- | Unsafely get SQL term from 'Aggregation'.
 instance ProjectableShowSql Aggregation where
-  unsafeShowSql = unsafeShowSql . Aggregation.unsafeProjection
+  unsafeShowSql = unsafeShowSqlAggregation
 
 
 -- | Binary operator type for SQL String.
