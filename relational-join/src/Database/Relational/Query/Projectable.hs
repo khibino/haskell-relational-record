@@ -40,7 +40,9 @@ module Database.Relational.Query.Projectable (
 
   in', isNull, isNotNull, and, or, not,
 
+  (.||.), (.||?),
   (.+.), (.-.), (./.), (.*.),
+  (.+?), (.-?), (./?), (.*?),
 
   -- * Zipping projections
   ProjectableZip (projectZip), (><),
@@ -53,6 +55,7 @@ module Database.Relational.Query.Projectable (
 import Prelude hiding (and, or, not, pi)
 
 import Data.List (intercalate)
+import Data.String (IsString)
 import Control.Applicative ((<$>))
 
 import qualified Language.SQL.Keyword as SQL
@@ -229,10 +232,10 @@ compareBinOp :: (SqlProjectable p, ProjectableShowSql p)
 compareBinOp =  unsafeBinOp
 
 -- | Unsafely make number projection binary operator from string binary operator.
-numBinOp :: (SqlProjectable p, ProjectableShowSql p, Num a)
+monoBinOp :: (SqlProjectable p, ProjectableShowSql p)
          => SqlBinOp
          -> p a -> p a -> p a
-numBinOp =  unsafeBinOp
+monoBinOp =  unsafeBinOp
 
 
 -- | Compare operator corresponding SQL /=/ .
@@ -280,30 +283,60 @@ not :: (SqlProjectable p, ProjectableShowSql p)
     => p (Maybe Bool) -> p (Maybe Bool)
 not =  unsafeUniOp SQLs.not
 
+-- | Concatinate operator corresponding SQL /||/ .
+(.||.) :: (SqlProjectable p, ProjectableShowSql p, IsString a)
+       => p a -> p a -> p a
+(.||.) =  unsafeBinOp (SQLs..||.)
+
+-- | Concatinate operator corresponding SQL /||/ . Maybe type version.
+(.||?) :: (SqlProjectable p, ProjectableShowSql p, IsString a)
+       => p (Maybe a) -> p (Maybe a) -> p (Maybe a)
+(.||?) =  unsafeBinOp (SQLs..||.)
+
 -- | Unsafely make number projection binary operator from SQL operator string.
-numBinOp' :: (SqlProjectable p, ProjectableShowSql p, Num a)
+monoBinOp' :: (SqlProjectable p, ProjectableShowSql p)
           => String -> p a -> p a -> p a
-numBinOp' = numBinOp . sqlBinOp
+monoBinOp' = monoBinOp . sqlBinOp
 
 -- | Number operator corresponding SQL /+/ .
 (.+.) :: (SqlProjectable p, ProjectableShowSql p, Num a)
   => p a -> p a -> p a
-(.+.) =  numBinOp' "+"
+(.+.) =  monoBinOp' "+"
 
 -- | Number operator corresponding SQL /-/ .
 (.-.) :: (SqlProjectable p, ProjectableShowSql p, Num a)
   => p a -> p a -> p a
-(.-.) =  numBinOp' "-"
+(.-.) =  monoBinOp' "-"
 
 -- | Number operator corresponding SQL /// .
 (./.) :: (SqlProjectable p, ProjectableShowSql p, Num a)
   => p a -> p a -> p a
-(./.) =  numBinOp' "/"
+(./.) =  monoBinOp' "/"
 
 -- | Number operator corresponding SQL /*/ .
 (.*.) :: (SqlProjectable p, ProjectableShowSql p, Num a)
   => p a -> p a -> p a
-(.*.) =  numBinOp' "*"
+(.*.) =  monoBinOp' "*"
+
+-- | Number operator corresponding SQL /+/ .
+(.+?) :: (SqlProjectable p, ProjectableShowSql p, Num a)
+  => p (Maybe a) -> p (Maybe a) -> p (Maybe a)
+(.+?) =  monoBinOp' "+"
+
+-- | Number operator corresponding SQL /-/ .
+(.-?) :: (SqlProjectable p, ProjectableShowSql p, Num a)
+  => p (Maybe a) -> p (Maybe a) -> p (Maybe a)
+(.-?) =  monoBinOp' "-"
+
+-- | Number operator corresponding SQL /// .
+(./?) :: (SqlProjectable p, ProjectableShowSql p, Num a)
+  => p (Maybe a) -> p (Maybe a) -> p (Maybe a)
+(./?) =  monoBinOp' "/"
+
+-- | Number operator corresponding SQL /*/ .
+(.*?) :: (SqlProjectable p, ProjectableShowSql p, Num a)
+  => p (Maybe a) -> p (Maybe a) -> p (Maybe a)
+(.*?) =  monoBinOp' "*"
 
 -- | Binary operator corresponding SQL /IN/ .
 in' :: (SqlProjectable p, ProjectableShowSql p)
