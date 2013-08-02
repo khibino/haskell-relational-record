@@ -38,7 +38,7 @@ import Database.HDBC.Session (withConnectionIO, handleSqlError')
 
 allAccount :: Relation () (Account)
 allAccount =
-  relation $
+  relation
   [ a
   | a  <- query account
   ]
@@ -53,7 +53,7 @@ allAccount =
 --
 account1 :: Relation () Account
 account1 =
-  relation $
+  relation
   [ a
   | a  <- query account
   , () <- wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
@@ -61,7 +61,7 @@ account1 =
 
 account1' :: Relation () (((Int32, String), Int32), Maybe Double)
 account1' =
-  relation $
+  relation
   [ a ! Account.accountId' >< a ! Account.productCd' >< a ! Account.custId' >< a ! Account.availBalance'
   | a  <- query account
   , () <- wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
@@ -77,7 +77,7 @@ account1' =
 --
 join1 :: Relation () (Employee, Department)
 join1 =
-  relation $
+  relation
   [ e >< d
   | e  <- query employee
   , d  <- query department
@@ -86,7 +86,7 @@ join1 =
 
 join1' :: Relation () ((String, String), String)
 join1' =
-  relation $
+  relation
   [ e ! Employee.fname' >< e ! Employee.lname' >< d ! Department.name'
   | e  <- query employee
   , d  <- query department
@@ -103,7 +103,7 @@ join1' =
 --
 selfJoin1 :: Relation () (Employee, Employee)
 selfJoin1 =
-  relation $
+  relation
   [ e >< m
   | e  <- query employee
   , m  <- query employee
@@ -112,7 +112,7 @@ selfJoin1 =
 
 selfJoin1' :: Relation () ((String, String), (String, String))
 selfJoin1' =
-  relation $
+  relation
   [ emp >< mgr 
   | e  <- query employee
   , m  <- query employee
@@ -136,7 +136,7 @@ selfJoin1' =
 --
 employee1 :: Relation () (Maybe Int32, Maybe Int32)
 employee1 =
-  relation $
+  relation
   [ just (e ! Employee.empId') >< e ! Employee.assignedBranchId'
   | e  <- query employee
   , () <- wheres $ e ! Employee.title' .=. just (value "Teller")
@@ -144,7 +144,7 @@ employee1 =
 
 account2 :: Relation () (Maybe Int32, Maybe Int32)
 account2 =
-  relation $
+  relation
   [ a ! Account.openEmpId' >< a ! Account.openBranchId'
   | a  <- query account
   , () <- wheres $ a ! Account.productCd' .=. value "SAV"
@@ -152,9 +152,26 @@ account2 =
 
 union1 :: Relation () (Maybe Int32, Maybe Int32)
 union1 = 
-  relation $
+  relation
   [ ea
   | ea <- query $ employee1 `union` account2
+  , () <- asc $ ea ! fst'
+  ]
+
+union1' :: Relation () (Maybe Int32, Maybe Int32)
+union1' =
+  relation
+  [ ea
+  | ea <- query $ relation
+          [ just (e ! Employee.empId') >< e ! Employee.assignedBranchId'
+          | e  <- query employee
+          , () <- wheres $ e ! Employee.title' .=. just (value "Teller")
+          ]
+          `union` relation
+          [ a ! Account.openEmpId' >< a ! Account.openBranchId'
+          | a  <- query account
+          , () <- wheres $ a ! Account.productCd' .=. value "SAV"
+          ]
   , () <- asc $ ea ! fst'
   ]
 
@@ -169,11 +186,11 @@ union1 =
 --
 group1 :: Relation () (Maybe Int32, Int32)
 group1 =
-  aggregateRelation $
+  aggregateRelation
   [ g >< count a
   | a  <- query account
   , g  <- groupBy $ a ! Account.openEmpId'
-  , () <- asc $ g 
+  , () <- asc $ g <!> id' 
   ]
 
 runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a, ToSql SqlValue p)
@@ -196,4 +213,5 @@ main = handleSqlError' $ withConnectionIO connect $ \conn -> do
   run selfJoin1 ()
   run selfJoin1' ()
   run union1 ()
+  run union1' ()
   run group1 ()
