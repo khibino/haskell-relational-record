@@ -32,7 +32,7 @@ import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Expr (Expr, fromTriBool)
 import Database.Relational.Query.Sub (SubQuery, Qualified)
 
-import Database.Relational.Query.Monad.Class (MonadQuery (..))
+import Database.Relational.Query.Monad.Class (MonadRestrict(..), MonadQuery (..))
 
 
 -- | 'StateT' type to accumulate join product context.
@@ -77,10 +77,13 @@ restoreLeft :: QueryProductNode -> NodeAttr -> QueryJoin ()
 restoreLeft pL naR = updateContext $ Context.restoreLeft pL naR
 -}
 
--- | Basic query instance.
+-- | 'MonadRestrict' instance for joinable query.
+instance (Monad q, Functor q) => MonadRestrict (QueryJoin q) where
+  restrict = updateRestriction
+
+-- | Joinable query instance.
 instance (Monad q, Functor q) => MonadQuery (QueryJoin q) where
   restrictJoin  =  updateJoinRestriction
-  restrictQuery =  updateRestriction
   unsafeSubQuery          = unsafeSubQueryWithAttr
   -- unsafeMergeAnotherQuery = unsafeQueryMergeWithAttr
 

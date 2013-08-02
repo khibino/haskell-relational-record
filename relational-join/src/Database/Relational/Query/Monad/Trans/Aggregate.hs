@@ -34,7 +34,7 @@ import Database.Relational.Query.Internal.AggregatingContext (AggregatingContext
 import qualified Database.Relational.Query.Internal.AggregatingContext as Context
 
 import Database.Relational.Query.Monad.Class
-  (MonadQuery(..), MonadAggregate(..))
+  (MonadRestrict(..), MonadQuery(..), MonadAggregate(..))
 
 
 -- | 'StateT' type to accumulate aggregating context.
@@ -57,10 +57,13 @@ runAggregatingPrime =  (`runAggregating` primeAggregatingContext)
 aggregate :: Monad m => m a -> Aggregatings m a
 aggregate =  lift
 
+-- | Aggregated 'MonadRestrict'.
+instance MonadRestrict m => MonadRestrict (Aggregatings m) where
+  restrict =  aggregate . restrict
+
 -- | Aggregated 'MonadQuery'.
 instance MonadQuery m => MonadQuery (Aggregatings m) where
   restrictJoin  =  aggregate . restrictJoin
-  restrictQuery =  aggregate . restrictQuery
   unsafeSubQuery na = aggregate . unsafeSubQuery na
 
 -- | Unsafely update aggregating context.

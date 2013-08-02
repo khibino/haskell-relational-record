@@ -38,7 +38,7 @@ import Database.Relational.Query.Aggregation (Aggregation)
 import qualified Database.Relational.Query.Aggregation as Aggregation
 
 import Database.Relational.Query.Monad.Class
-  (MonadQuery(..), MonadAggregate(..))
+  (MonadRestrict(..), MonadQuery(..), MonadAggregate(..))
 
 
 -- | 'StateT' type to accumulate ordering context.
@@ -62,10 +62,13 @@ runOrderingsPrime q = runOrderings q $ primeOrderingContext
 orderings :: Monad m => m a -> Orderings p m a
 orderings =  lift
 
+-- | 'MonadRestrict' with ordering.
+instance MonadRestrict m => MonadRestrict (Orderings p m) where
+  restrict =  orderings . restrict
+
 -- | 'MonadQuery' with ordering.
 instance MonadQuery m => MonadQuery (Orderings p m) where
   restrictJoin  =  orderings . restrictJoin
-  restrictQuery =  orderings . restrictQuery
   unsafeSubQuery na       = orderings . unsafeSubQuery na
   -- unsafeMergeAnotherQuery = unsafeMergeAnotherOrderBys
 
