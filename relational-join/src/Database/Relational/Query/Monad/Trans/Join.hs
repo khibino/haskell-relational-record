@@ -32,7 +32,7 @@ import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Expr (Expr, fromTriBool)
 import Database.Relational.Query.Sub (SubQuery, Qualified)
 
-import Database.Relational.Query.Monad.Class (MonadRestrict(..), MonadQuery (..))
+import Database.Relational.Query.Monad.Class (MonadQuery (..))
 
 
 -- | 'StateT' type to accumulate join product context.
@@ -65,10 +65,6 @@ updateJoinRestriction e = updateContext (updateProduct d)  where
   d  Nothing  = error "on: product is empty!"
   d (Just pt) = restrictProduct pt (fromTriBool e)
 
--- | Add whole query restriction.
-updateRestriction :: Monad m => Expr Projection (Maybe Bool) -> QueryJoin m ()
-updateRestriction e = updateContext (Context.addRestriction e)
-
 {-
 takeProduct :: QueryJoin (Maybe QueryProductNode)
 takeProduct =  queryCore Context.takeProduct
@@ -76,10 +72,6 @@ takeProduct =  queryCore Context.takeProduct
 restoreLeft :: QueryProductNode -> NodeAttr -> QueryJoin ()
 restoreLeft pL naR = updateContext $ Context.restoreLeft pL naR
 -}
-
--- | 'MonadRestrict' instance for joinable query.
-instance (Monad q, Functor q) => MonadRestrict (QueryJoin q) where
-  restrict = updateRestriction
 
 -- | Joinable query instance.
 instance (Monad q, Functor q) => MonadQuery (QueryJoin q) where
@@ -109,7 +101,7 @@ unsafeQueryMergeWithAttr =  unsafeMergeAnother
 -}
 
 -- | Run 'QueryJoin' to get SQL string.
-expandSQL :: Monad m => QueryJoin m (Projection r, t) -> m ((String, Projection r), t)
+expandSQL :: Monad m => QueryJoin m (Projection r, st) -> m ((String, Projection r), st)
 expandSQL qp = do
   ((pj, st), c) <- runQueryPrime qp
   return ((Context.composeSQL pj c, pj), st)

@@ -31,8 +31,8 @@ import Database.Relational.Query.Internal.Product (NodeAttr)
 -- | Restrict context interface
 class (Functor m, Monad m) => MonadRestrict m where
   -- | Add restriction to this context.
-  restrict :: Expr Projection (Maybe Bool) -- ^ 'Expr' 'Projection' which represent restriction
-           -> m ()                         -- ^ Restricted query context
+  restrictContext :: Expr Projection (Maybe Bool) -- ^ 'Expr' 'Projection' which represent restriction
+                  -> m ()                         -- ^ Restricted query context
 
 -- | Query building interface.
 class (Functor m, Monad m) => MonadQuery m where
@@ -73,11 +73,11 @@ on =  restrictJoin . expr
 
 -- | Add restriction to this query.
 wheresE :: MonadRestrict m => Expr Projection (Maybe Bool) -> m ()
-wheresE =  restrict
+wheresE =  restrictContext
 
 -- | Add restriction to this query. Projection type version.
 wheres :: MonadRestrict m => Projection (Maybe Bool) -> m ()
-wheres =  restrict . expr
+wheres =  restrictContext . expr
 
 -- | Add /group by/ term into context and get aggregated projection.
 groupBy :: MonadAggregate m

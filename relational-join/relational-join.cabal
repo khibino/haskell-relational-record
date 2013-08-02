@@ -31,6 +31,7 @@ library
                        Database.Relational.Query.Monad.Class
                        Database.Relational.Query.Monad.Trans.Ordering
                        Database.Relational.Query.Monad.Trans.Aggregate
+                       Database.Relational.Query.Monad.Trans.Restrict
                        Database.Relational.Query.Monad.Trans.Join
                        Database.Relational.Query.Monad.Core
                        Database.Relational.Query.Monad.Simple
@@ -51,6 +52,7 @@ library
                        Database.Relational.Query.Internal.AliasId
                        Database.Relational.Query.Internal.ShowS
                        Database.Relational.Query.Internal.Product
+                       Database.Relational.Query.Internal.RestrictContext
                        Database.Relational.Query.Internal.Context
                        Database.Relational.Query.Internal.AggregatingContext
                        Database.Relational.Query.Internal.OrderingContext

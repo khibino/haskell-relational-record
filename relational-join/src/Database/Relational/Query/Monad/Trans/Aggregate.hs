@@ -59,7 +59,7 @@ aggregate =  lift
 
 -- | Aggregated 'MonadRestrict'.
 instance MonadRestrict m => MonadRestrict (Aggregatings m) where
-  restrict =  aggregate . restrict
+  restrictContext =  aggregate . restrictContext
 
 -- | Aggregated 'MonadQuery'.
 instance MonadQuery m => MonadQuery (Aggregatings m) where
