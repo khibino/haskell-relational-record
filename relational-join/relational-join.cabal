@@ -53,7 +53,7 @@ library
                        Database.Relational.Query.Internal.ShowS
                        Database.Relational.Query.Internal.Product
                        Database.Relational.Query.Internal.RestrictContext
-                       Database.Relational.Query.Internal.Context
+                       Database.Relational.Query.Monad.Trans.JoinState
                        Database.Relational.Query.Internal.AggregatingContext
                        Database.Relational.Query.Internal.OrderingContext
                        Database.Relational.Query.Monad.Qualify

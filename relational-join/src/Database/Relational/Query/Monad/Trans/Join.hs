@@ -23,9 +23,8 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.State (modify, StateT, runStateT)
 import Control.Applicative (Applicative)
 
-import Database.Relational.Query.Internal.Context
-  (Context, primeContext, updateProduct)
-import qualified Database.Relational.Query.Internal.Context as Context
+import Database.Relational.Query.Monad.Trans.JoinState
+  (Context, primeContext, updateProduct, composeSQL)
 import Database.Relational.Query.Internal.Product (NodeAttr, restrictProduct, growProduct)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
@@ -67,10 +66,10 @@ updateJoinRestriction e = updateContext (updateProduct d)  where
 
 {-
 takeProduct :: QueryJoin (Maybe QueryProductNode)
-takeProduct =  queryCore Context.takeProduct
+takeProduct =  queryCore State.takeProduct
 
 restoreLeft :: QueryProductNode -> NodeAttr -> QueryJoin ()
-restoreLeft pL naR = updateContext $ Context.restoreLeft pL naR
+restoreLeft pL naR = updateContext $ State.restoreLeft pL naR
 -}
 
 -- | Joinable query instance.
@@ -104,4 +103,4 @@ unsafeQueryMergeWithAttr =  unsafeMergeAnother
 expandSQL :: Monad m => QueryJoin m (Projection r, st) -> m ((String, Projection r), st)
 expandSQL qp = do
   ((pj, st), c) <- runQueryPrime qp
-  return ((Context.composeSQL pj c, pj), st)
+  return ((composeSQL pj c, pj), st)
