@@ -19,8 +19,9 @@ module Database.Relational.Query.Monad.Trans.Ordering (
   -- * API of query with ordering
   asc, desc,
 
-  -- * Result order by SQLs
-  appendOrderBys
+  -- * Result SQL order-by clause
+  appendOrderBys,
+  OrderByAppend (orderByAppend)
   ) where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
@@ -38,7 +39,7 @@ import Database.Relational.Query.Aggregation (Aggregation)
 import qualified Database.Relational.Query.Aggregation as Aggregation
 
 import Database.Relational.Query.Monad.Class
-  (MonadQuery(..), MonadAggregate(..))
+  (MonadRestrict(..), MonadQuery(..), MonadAggregate(..))
 
 
 -- | 'StateT' type to accumulate ordering context.
@@ -62,10 +63,13 @@ runOrderingsPrime q = runOrderings q $ primeOrderingContext
 orderings :: Monad m => m a -> Orderings p m a
 orderings =  lift
 
+-- | 'MonadRestrict' with ordering.
+instance MonadRestrict m => MonadRestrict (Orderings p m) where
+  restrictContext =  orderings . restrictContext
+
 -- | 'MonadQuery' with ordering.
 instance MonadQuery m => MonadQuery (Orderings p m) where
   restrictJoin  =  orderings . restrictJoin
-  restrictQuery =  orderings . restrictQuery
   unsafeSubQuery na       = orderings . unsafeSubQuery na
   -- unsafeMergeAnotherQuery = unsafeMergeAnotherOrderBys
 
@@ -140,8 +144,10 @@ appendOrderBys' c = (++ d (Context.composeOrderBys c))  where
   d "" = ""
   d s  = ' ' : s
 
+newtype OrderByAppend = OrderByAppend { orderByAppend :: String -> String }
+
 -- | Run 'Orderings' to get query result and order-by appending function.
-appendOrderBys :: MonadQuery m
-               => Orderings p m a         -- ^ 'Orderings' to run
-               -> m (a, String -> String) -- ^ Query result and order-by appending function.
-appendOrderBys q = second appendOrderBys' <$> runOrderingsPrime q
+appendOrderBys :: (Monad m, Functor m)
+               => Orderings p m a      -- ^ 'Orderings' to run
+               -> m (a, OrderByAppend) -- ^ Query result and order-by appending function.
+appendOrderBys q = second (OrderByAppend . appendOrderBys') <$> runOrderingsPrime q

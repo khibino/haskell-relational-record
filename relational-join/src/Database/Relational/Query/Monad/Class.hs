@@ -13,7 +13,7 @@
 -- This module defines query building interface classes.
 module Database.Relational.Query.Monad.Class (
   -- * Query interface classes
-  MonadQualify (..),
+  MonadQualify (..), MonadRestrict (..),
   MonadQuery (..), MonadAggregate (..),
 
   onE, on, wheresE, wheres,
@@ -28,14 +28,20 @@ import Database.Relational.Query.Sub (SubQuery, Qualified)
 
 import Database.Relational.Query.Internal.Product (NodeAttr)
 
+-- | Restrict context interface
+class (Functor m, Monad m) => MonadRestrict m where
+  -- | Add restriction to this context.
+  restrictContext :: Expr Projection (Maybe Bool) -- ^ 'Expr' 'Projection' which represent restriction
+                  -> m ()                         -- ^ Restricted query context
+
 -- | Query building interface.
 class (Functor m, Monad m) => MonadQuery m where
   -- | Add restriction to last join.
   restrictJoin :: Expr Projection (Maybe Bool) -- ^ 'Expr' 'Projection' which represent restriction
                -> m ()                         -- ^ Restricted query context
-  -- | Add restriction to this query.
-  restrictQuery :: Expr Projection (Maybe Bool) -- ^ 'Expr' 'Projection' which represent restriction
-                -> m ()                         -- ^ Restricted query context
+  -- -- | Add restriction to this query.
+  -- restrictQuery :: Expr Projection (Maybe Bool) -- ^ 'Expr' 'Projection' which represent restriction
+  --               -> m ()                         -- ^ Restricted query context
   -- | Unsafely join subquery with this query.
   unsafeSubQuery :: NodeAttr           -- ^ Attribute maybe or just
                  -> Qualified SubQuery -- ^ 'SubQuery' to join
@@ -66,12 +72,12 @@ on :: MonadQuery m => Projection (Maybe Bool) -> m ()
 on =  restrictJoin . expr
 
 -- | Add restriction to this query.
-wheresE :: MonadQuery m => Expr Projection (Maybe Bool) -> m ()
-wheresE =  restrictQuery
+wheresE :: MonadRestrict m => Expr Projection (Maybe Bool) -> m ()
+wheresE =  restrictContext
 
 -- | Add restriction to this query. Projection type version.
-wheres :: MonadQuery m => Projection (Maybe Bool) -> m ()
-wheres =  restrictQuery . expr
+wheres :: MonadRestrict m => Projection (Maybe Bool) -> m ()
+wheres =  restrictContext . expr
 
 -- | Add /group by/ term into context and get aggregated projection.
 groupBy :: MonadAggregate m

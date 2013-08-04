@@ -15,7 +15,8 @@ module Database.Relational.Query.Monad.Core (
 
 import Database.Relational.Query.Monad.Qualify (Qualify)
 import Database.Relational.Query.Monad.Trans.Join (QueryJoin)
+import Database.Relational.Query.Monad.Trans.Restrict (Restrict)
 
 
 -- | Core query monad type used by simple query and aggregated query.
-type QueryCore = QueryJoin Qualify
+type QueryCore = Restrict (QueryJoin Qualify)

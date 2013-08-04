@@ -23,9 +23,8 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.State (modify, StateT, runStateT)
 import Control.Applicative (Applicative)
 
-import Database.Relational.Query.Internal.Context
-  (Context, primeContext, updateProduct)
-import qualified Database.Relational.Query.Internal.Context as Context
+import Database.Relational.Query.Monad.Trans.JoinState
+  (Context, primeContext, updateProduct, composeSQL)
 import Database.Relational.Query.Internal.Product (NodeAttr, restrictProduct, growProduct)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
@@ -65,22 +64,17 @@ updateJoinRestriction e = updateContext (updateProduct d)  where
   d  Nothing  = error "on: product is empty!"
   d (Just pt) = restrictProduct pt (fromTriBool e)
 
--- | Add whole query restriction.
-updateRestriction :: Monad m => Expr Projection (Maybe Bool) -> QueryJoin m ()
-updateRestriction e = updateContext (Context.addRestriction e)
-
 {-
 takeProduct :: QueryJoin (Maybe QueryProductNode)
-takeProduct =  queryCore Context.takeProduct
+takeProduct =  queryCore State.takeProduct
 
 restoreLeft :: QueryProductNode -> NodeAttr -> QueryJoin ()
-restoreLeft pL naR = updateContext $ Context.restoreLeft pL naR
+restoreLeft pL naR = updateContext $ State.restoreLeft pL naR
 -}
 
--- | Basic query instance.
+-- | Joinable query instance.
 instance (Monad q, Functor q) => MonadQuery (QueryJoin q) where
   restrictJoin  =  updateJoinRestriction
-  restrictQuery =  updateRestriction
   unsafeSubQuery          = unsafeSubQueryWithAttr
   -- unsafeMergeAnotherQuery = unsafeQueryMergeWithAttr
 
@@ -106,7 +100,7 @@ unsafeQueryMergeWithAttr =  unsafeMergeAnother
 -}
 
 -- | Run 'QueryJoin' to get SQL string.
-expandSQL :: Monad m => QueryJoin m (Projection r, t) -> m ((String, Projection r), t)
+expandSQL :: Monad m => QueryJoin m (Projection r, st) -> m ((String, Projection r), st)
 expandSQL qp = do
   ((pj, st), c) <- runQueryPrime qp
-  return ((Context.composeSQL pj c, pj), st)
+  return ((composeSQL pj c, pj), st)

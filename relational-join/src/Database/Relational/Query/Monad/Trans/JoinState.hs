@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 -- |
--- Module      : Database.Relational.Query.Internal.Context
+-- Module      : Database.Relational.Query.Monad.Trans.JoinState
 -- Copyright   : 2013 Kei Hibino
 -- License     : BSD3
 --
@@ -9,25 +9,21 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- This module provides context definition for
--- "Database.Relational.Query.Monad.Trans.Join" and
--- "Database.Relational.Query.Monad.Trans.Ordering".
-module Database.Relational.Query.Internal.Context (
+-- This module provides state definition for
+-- "Database.Relational.Query.Monad.Trans.Join".
+module Database.Relational.Query.Monad.Trans.JoinState (
   -- * Join context
   Context,
 
   primeContext,
 
   updateProduct, -- takeProduct, restoreLeft,
-  addRestriction,
 
   composeSQL
   ) where
 
 import Prelude hiding (product)
 
-import Database.Relational.Query.Expr (Expr, fromTriBool, exprAnd)
-import Database.Relational.Query.Expr.Unsafe (showExpr)
 import Database.Relational.Query.Sub (asColumnN)
 
 import Database.Relational.Query.Internal.Product (QueryProductNode, QueryProduct, queryProductSQL)
@@ -42,13 +38,11 @@ import qualified Language.SQL.Keyword as SQL
 
 -- | Context type for QueryJoin.
 data Context = Context
-               { product :: Maybe QueryProductNode
-               , restriction :: Maybe (Expr Projection Bool)
-               }
+               { product :: Maybe QueryProductNode }
 
 -- | Initial 'Context'.
 primeContext :: Context
-primeContext =  Context Nothing Nothing
+primeContext =  Context Nothing
 
 -- | Update product of 'Context'.
 updateProduct' :: (Maybe QueryProductNode -> Maybe QueryProductNode) -> Context -> Context
@@ -64,28 +58,19 @@ updateProduct uf = updateProduct' (Just . uf)
 -- restoreLeft :: QueryProductNode -> Product.NodeAttr -> Context -> Context
 -- restoreLeft pL naR ctx = updateProduct (Product.growLeft pL naR) ctx
 
--- | Add restriction of 'Context'.
-addRestriction :: Expr Projection (Maybe Bool) -> Context -> Context
-addRestriction e1 ctx =
-  ctx { restriction = Just . uf . restriction $ ctx }
-  where uf  Nothing  = fromTriBool e1
-        uf (Just e0) = e0 `exprAnd` fromTriBool e1
-
 -- | Compose SQL String from QueryJoin monad object.
-composeSQL' :: Projection r -> QueryProduct -> Maybe (Expr Projection Bool) -> String
-composeSQL' pj pd re =
+composeSQL' :: Projection r -> QueryProduct -> String
+composeSQL' pj pd =
   unwordsSQL
   $ [SELECT, columns' `SQL.sepBy` ", ",
      FROM, SQL.word . queryProductSQL $ pd]
-  ++ wheres re
-    where columns' = zipWith
-                    (\f n -> SQL.word f `asColumnN` n)
-                    (Projection.columns pj)
-                    [(0 :: Int)..]
-          wheres  = Prelude.maybe [] (\e -> [WHERE, SQL.word . showExpr $ e])
+  where columns' = zipWith
+                   (\f n -> SQL.word f `asColumnN` n)
+                   (Projection.columns pj)
+                   [(0 :: Int)..]
 
 -- | Compose SQL String from QueryJoin monad object.
 composeSQL :: Projection r -> Context -> String
 composeSQL pj c = composeSQL' pj
                   (maybe (error "relation: empty product!") (Product.nodeTree) (product c))
-                  (restriction c)
+
