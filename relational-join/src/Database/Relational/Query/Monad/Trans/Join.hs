@@ -24,7 +24,7 @@ import Control.Monad.Trans.State (modify, StateT, runStateT)
 import Control.Applicative (Applicative)
 
 import Database.Relational.Query.Monad.Trans.JoinState
-  (Context, primeContext, updateProduct, composeSQL)
+  (JoinContext, primeJoinContext, updateProduct, composeSQL)
 import Database.Relational.Query.Internal.Product (NodeAttr, restrictProduct, growProduct)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
@@ -36,26 +36,26 @@ import Database.Relational.Query.Monad.Class (MonadQuery (..))
 
 -- | 'StateT' type to accumulate join product context.
 newtype QueryJoin m a =
-  QueryJoin { queryState :: StateT Context m a }
+  QueryJoin { queryState :: StateT JoinContext m a }
   deriving (MonadTrans, Monad, Functor, Applicative)
 
 -- | Run 'QueryJoin' to expand context state.
 runQueryJoin :: QueryJoin m a  -- ^ Context to expand
-             -> Context        -- ^ Initial context
-             -> m (a, Context) -- ^ Expanded result
+             -> JoinContext        -- ^ Initial context
+             -> m (a, JoinContext) -- ^ Expanded result
 runQueryJoin =  runStateT . queryState
 
 -- | Run 'QueryJoin' with primary empty context to expand context state.
 runQueryPrime :: QueryJoin m a  -- ^ Context to expand
-              -> m (a, Context) -- ^ Expanded result
-runQueryPrime q = runQueryJoin q primeContext
+              -> m (a, JoinContext) -- ^ Expanded result
+runQueryPrime q = runQueryJoin q primeJoinContext
 
 -- | Lift to 'QueryJoin'
 join' :: Monad m => m a -> QueryJoin m a
 join' =  lift
 
 -- | Unsafely update join product context.
-updateContext :: Monad m => (Context -> Context) -> QueryJoin m ()
+updateContext :: Monad m => (JoinContext -> JoinContext) -> QueryJoin m ()
 updateContext =  QueryJoin . modify
 
 -- | Add last join product restriction.

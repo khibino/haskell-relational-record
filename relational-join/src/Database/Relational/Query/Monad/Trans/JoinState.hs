@@ -13,9 +13,9 @@
 -- "Database.Relational.Query.Monad.Trans.Join".
 module Database.Relational.Query.Monad.Trans.JoinState (
   -- * Join context
-  Context,
+  JoinContext,
 
-  primeContext,
+  primeJoinContext,
 
   updateProduct, -- takeProduct, restoreLeft,
 
@@ -36,26 +36,26 @@ import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
 
 
--- | Context type for QueryJoin.
-data Context = Context
+-- | JoinContext type for QueryJoin.
+data JoinContext = JoinContext
                { product :: Maybe QueryProductNode }
 
--- | Initial 'Context'.
-primeContext :: Context
-primeContext =  Context Nothing
+-- | Initial 'JoinContext'.
+primeJoinContext :: JoinContext
+primeJoinContext =  JoinContext Nothing
 
--- | Update product of 'Context'.
-updateProduct' :: (Maybe QueryProductNode -> Maybe QueryProductNode) -> Context -> Context
+-- | Update product of 'JoinContext'.
+updateProduct' :: (Maybe QueryProductNode -> Maybe QueryProductNode) -> JoinContext -> JoinContext
 updateProduct' uf ctx = ctx { product = uf . product $ ctx }
 
--- | Update product of 'Context'.
-updateProduct :: (Maybe QueryProductNode -> QueryProductNode) -> Context -> Context
+-- | Update product of 'JoinContext'.
+updateProduct :: (Maybe QueryProductNode -> QueryProductNode) -> JoinContext -> JoinContext
 updateProduct uf = updateProduct' (Just . uf)
 
--- takeProduct :: Context -> (Maybe QueryProductNode, Context)
+-- takeProduct :: JoinContext -> (Maybe QueryProductNode, JoinContext)
 -- takeProduct ctx = (product ctx, updateProduct' (const Nothing) ctx)
 
--- restoreLeft :: QueryProductNode -> Product.NodeAttr -> Context -> Context
+-- restoreLeft :: QueryProductNode -> Product.NodeAttr -> JoinContext -> JoinContext
 -- restoreLeft pL naR ctx = updateProduct (Product.growLeft pL naR) ctx
 
 -- | Compose SQL String from QueryJoin monad object.
@@ -70,7 +70,7 @@ composeSQL' pj pd =
                    [(0 :: Int)..]
 
 -- | Compose SQL String from QueryJoin monad object.
-composeSQL :: Projection r -> Context -> String
+composeSQL :: Projection r -> JoinContext -> String
 composeSQL pj c = composeSQL' pj
                   (maybe (error "relation: empty product!") (Product.nodeTree) (product c))
 
