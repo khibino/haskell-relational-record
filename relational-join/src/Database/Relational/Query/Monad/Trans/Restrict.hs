@@ -24,9 +24,8 @@ import Control.Monad.Trans.State (modify, StateT, runStateT)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second)
 
-import Database.Relational.Query.Internal.RestrictContext
-  (RestrictContext, primeRestrictContext, addRestriction)
-import qualified Database.Relational.Query.Internal.RestrictContext as RestrictContext
+import Database.Relational.Query.Monad.Trans.RestrictState
+  (RestrictContext, primeRestrictContext, addRestriction, composeWheres)
 import Database.Relational.Query.Projection (Projection)
 import Database.Relational.Query.Expr (Expr)
 
@@ -72,7 +71,7 @@ instance MonadQuery q => MonadQuery (Restrict q) where
 
 -- | Get order-by appending function from 'RestrictContext'.
 appendWheres' :: RestrictContext -> String -> String
-appendWheres' c = (++ d (RestrictContext.composeWheres c))  where
+appendWheres' c = (++ d (composeWheres c))  where
   d "" = ""
   d s  = ' ' : s
 
@@ -87,4 +86,4 @@ appendWheres r = second (WheresAppend . appendWheres') <$> runRestrictPrime r
 -- expandSQL :: Monad m => Restrict m a -> m (String, a)
 -- expandSQL r = do
 --   (a, c) <- runRestrictPrime r
---   return (RestrictContext.composeSQL c, a)
+--   return (State.composeSQL c, a)

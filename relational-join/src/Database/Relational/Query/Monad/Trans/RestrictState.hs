@@ -1,5 +1,5 @@
 -- |
--- Module      : Database.Relational.Query.Internal.Context
+-- Module      : Database.Relational.Query.Monad.Trans.RestrictState
 -- Copyright   : 2013 Kei Hibino
 -- License     : BSD3
 --
@@ -8,9 +8,8 @@
 -- Portability : unknown
 --
 -- This module provides context definition for
--- "Database.Relational.Query.Monad.Trans.Join" and
--- "Database.Relational.Query.Monad.Trans.Ordering".
-module Database.Relational.Query.Internal.RestrictContext (
+-- "Database.Relational.Query.Monad.Trans.Restrict".
+module Database.Relational.Query.Monad.Trans.RestrictState (
   -- * Context of restriction
   RestrictContext,
 
