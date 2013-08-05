@@ -30,8 +30,9 @@ import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Aggregation (Aggregation)
 import qualified Database.Relational.Query.Aggregation as Aggregation
 
-import Database.Relational.Query.Internal.AggregatingContext (AggregatingContext, primeAggregatingContext)
-import qualified Database.Relational.Query.Internal.AggregatingContext as Context
+import Database.Relational.Query.Monad.Trans.AggregateState
+  (AggregatingContext, primeAggregatingContext, addGroupBy, composeGroupBys)
+import qualified Database.Relational.Query.Monad.Trans.AggregateState as State
 
 import Database.Relational.Query.Monad.Class
   (MonadRestrict(..), MonadQuery(..), MonadAggregate(..))
@@ -72,13 +73,13 @@ updateAggregatingContext =  Aggregatings . modify
 
 -- | Unsafely add not-typeful aggregating terms.
 addGroupBys' :: Monad m => [String] -> Aggregatings m ()
-addGroupBys' gbs = updateAggregatingContext (\c -> foldl (flip Context.addGroupBy) c gbs)
+addGroupBys' gbs = updateAggregatingContext (\c -> foldl (flip addGroupBy) c gbs)
 
 -- | Add restrictions for aggregated query.
 addRestriction :: MonadQuery m
                => Expr Aggregation (Maybe Bool) -- ^ Restriction to add
                -> Aggregatings m ()             -- ^ Result restricted context
-addRestriction =  updateAggregatingContext . Context.addRestriction
+addRestriction =  updateAggregatingContext . State.addRestriction
 
 -- | Add aggregating terms.
 addGroupBys :: MonadQuery m
@@ -96,7 +97,7 @@ instance MonadQuery m => MonadAggregate (Aggregatings m) where
 
 -- | Get group-by appending function from 'AggregatingContext'.
 appendGroupBys' :: AggregatingContext -> String -> String
-appendGroupBys' c = (++ d (Context.composeGroupBys c))  where
+appendGroupBys' c = (++ d (composeGroupBys c))  where
   d "" = ""
   d s  = ' ' : s
 
