@@ -82,8 +82,3 @@ appendWheres :: (Monad m, Functor m)
              => Restrict m a            -- ^ 'Restrict' to run
              -> m (a,  WheresAppend) -- ^ Query result and order-by appending function.
 appendWheres r = second (WheresAppend . appendWheres') <$> runRestrictPrime r
-
--- expandSQL :: Monad m => Restrict m a -> m (String, a)
--- expandSQL r = do
---   (a, c) <- runRestrictPrime r
---   return (State.composeSQL c, a)
