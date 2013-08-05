@@ -45,10 +45,10 @@ addRestriction e1 ctx =
   where uf  Nothing  = fromTriBool e1
         uf (Just e0) = e0 `exprAnd` fromTriBool e1
 
--- | Compose SQL String from QueryJoin monad object.
+-- | Compose SQL String from 'RestrictContext' object.
 composeWheres' :: Maybe (Expr Projection Bool) -> String
 composeWheres' =  maybe [] (\e -> unwordsSQL [WHERE, SQL.word . showExpr $ e])
 
--- | Compose SQL String from QueryJoin monad object.
+-- | Compose SQL String from 'RestrictContext' object.
 composeWheres :: RestrictContext -> String
 composeWheres = composeWheres' . restriction

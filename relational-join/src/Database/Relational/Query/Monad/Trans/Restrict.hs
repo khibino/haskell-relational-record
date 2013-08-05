@@ -79,6 +79,6 @@ newtype WheresAppend = WheresAppend { wheresAppend :: String -> String }
 
 -- | Run 'Restricts' to get query result and order-by appending function.
 appendWheres :: (Monad m, Functor m)
-             => Restrict m a            -- ^ 'Restrict' to run
-             -> m (a,  WheresAppend) -- ^ Query result and order-by appending function.
+             => Restrict m a         -- ^ 'Restrict' to run
+             -> m (a,  WheresAppend) -- ^ WHERE clause appending function.
 appendWheres r = second (WheresAppend . appendWheres') <$> runRestrictPrime r

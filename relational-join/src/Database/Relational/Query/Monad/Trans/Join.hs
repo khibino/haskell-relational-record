@@ -15,16 +15,20 @@ module Database.Relational.Query.Monad.Trans.Join (
   QueryJoin, join',
 
   -- * Result SQL
+  appendFrom,
   expandSQL
   ) where
 
 import Prelude hiding (product)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.State (modify, StateT, runStateT)
-import Control.Applicative (Applicative)
+import Control.Applicative (Applicative, (<$>))
+import Control.Arrow (second)
 
+import Database.Relational.Query.Monad.Trans.StateAppend (Append)
+import qualified Database.Relational.Query.Monad.Trans.StateAppend as Append
 import Database.Relational.Query.Monad.Trans.JoinState
-  (JoinContext, primeJoinContext, updateProduct, composeSQL)
+  (JoinContext, primeJoinContext, updateProduct, composeFrom, composeSQL)
 import Database.Relational.Query.Internal.Product (NodeAttr, restrictProduct, growProduct)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
@@ -98,6 +102,12 @@ unsafeMergeAnother naR qR = do
 unsafeQueryMergeWithAttr :: NodeAttr -> QueryJoin (Projection r) -> QueryJoin (Projection r)
 unsafeQueryMergeWithAttr =  unsafeMergeAnother
 -}
+
+-- | Run 'QueryJoin'
+appendFrom :: (Monad m, Functor m)
+           => QueryJoin m a             -- ^ 'QueryJoin' to run
+           -> m (a, Append JoinContext) -- ^ FROM clause appending function.
+appendFrom q = second (Append.liftToString composeFrom) <$> runQueryPrime q
 
 -- | Run 'QueryJoin' to get SQL string.
 expandSQL :: Monad m => QueryJoin m (Projection r, st) -> m ((String, Projection r), st)

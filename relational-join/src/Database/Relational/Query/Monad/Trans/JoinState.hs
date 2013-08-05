@@ -19,6 +19,7 @@ module Database.Relational.Query.Monad.Trans.JoinState (
 
   updateProduct, -- takeProduct, restoreLeft,
 
+  composeFrom,
   composeSQL
   ) where
 
@@ -58,7 +59,18 @@ updateProduct uf = updateProduct' (Just . uf)
 -- restoreLeft :: QueryProductNode -> Product.NodeAttr -> JoinContext -> JoinContext
 -- restoreLeft pL naR ctx = updateProduct (Product.growLeft pL naR) ctx
 
--- | Compose SQL String from QueryJoin monad object.
+-- | Compose SQL String from 'JoinContext' object.
+composeFrom' :: QueryProduct -> String
+composeFrom' pd =
+  unwordsSQL
+  $ [FROM, SQL.word . queryProductSQL $ pd]
+
+composeFrom :: JoinContext -> String
+composeFrom =  composeFrom'
+              . maybe (error "relation: empty product!") (Product.nodeTree)
+              . product
+
+-- | Compose SQL String from 'JoinContext' object.
 composeSQL' :: Projection r -> QueryProduct -> String
 composeSQL' pj pd =
   unwordsSQL
@@ -69,7 +81,7 @@ composeSQL' pj pd =
                    (Projection.columns pj)
                    [(0 :: Int)..]
 
--- | Compose SQL String from QueryJoin monad object.
+-- | Compose SQL String from 'JoinContext' object.
 composeSQL :: Projection r -> JoinContext -> String
 composeSQL pj c = composeSQL' pj
                   (maybe (error "relation: empty product!") (Product.nodeTree) (product c))
