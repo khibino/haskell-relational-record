@@ -29,9 +29,8 @@ import Control.Monad.Trans.State (StateT, runStateT, modify)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second)
 
-import Database.Relational.Query.Internal.OrderingContext
-  (Order(Asc, Desc), OrderingContext, primeOrderingContext)
-import qualified Database.Relational.Query.Internal.OrderingContext as Context
+import Database.Relational.Query.Monad.Trans.OrderingState
+  (Order(Asc, Desc), OrderingContext, primeOrderingContext, updateOrderBy, composeOrderBys)
 
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
@@ -103,7 +102,7 @@ updateOrderBys :: (Monad m, OrderingTerms p)
                -> p t              -- ^ Ordering terms to add
                -> Orderings p m () -- ^ Result context with ordering
 updateOrderBys order p = updateOrderingContext (\c -> foldl update c (orderTerms p))  where
-  update = flip (Context.updateOrderBy order)
+  update = flip (updateOrderBy order)
 
 {-
 takeOrderBys :: Monad m => Orderings p m OrderBys
@@ -140,7 +139,7 @@ desc =  updateOrderBys Desc
 
 -- | Get order-by appending function from 'OrderingContext'.
 appendOrderBys' :: OrderingContext -> String -> String
-appendOrderBys' c = (++ d (Context.composeOrderBys c))  where
+appendOrderBys' c = (++ d (composeOrderBys c))  where
   d "" = ""
   d s  = ' ' : s
 

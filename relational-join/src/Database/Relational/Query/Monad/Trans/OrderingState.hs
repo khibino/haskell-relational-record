@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 -- |
--- Module      : Database.Relational.Query.Internal.OrderingContext
+-- Module      : Database.Relational.Query.Monad.Trans.OrderingState
 -- Copyright   : 2013 Kei Hibino
 -- License     : BSD3
 --
@@ -11,7 +11,7 @@
 --
 -- This module provides context definition for
 -- "Database.Relational.Query.Monad.Trans.Ordering".
-module Database.Relational.Query.Internal.OrderingContext (
+module Database.Relational.Query.Monad.Trans.OrderingState (
   -- * Ordering context
   Order (..), OrderBys,
   OrderingContext,

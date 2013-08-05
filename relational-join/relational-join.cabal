@@ -55,7 +55,7 @@ library
                        Database.Relational.Query.Monad.Trans.RestrictState
                        Database.Relational.Query.Monad.Trans.JoinState
                        Database.Relational.Query.Monad.Trans.AggregateState
-                       Database.Relational.Query.Internal.OrderingContext
+                       Database.Relational.Query.Monad.Trans.OrderingState
                        Database.Relational.Query.Monad.Qualify
 
                        Database.Relational.Schema.DB2Syscat.Tabconst
