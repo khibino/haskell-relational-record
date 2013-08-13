@@ -17,6 +17,7 @@ module Database.Relational.Query.Projection (
 
   unsafeFromColumns,
   fromQualifiedSubQuery,
+  unsafeFromTable,
 
   -- * Projections
   compose,
@@ -31,6 +32,8 @@ import Prelude hiding (pi)
 import Data.Array (Array, listArray)
 import qualified Data.Array as Array
 
+import Database.Relational.Query.Table (Table)
+import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Relational.Query.Sub (SubQuery, queryWidth, Qualified)
@@ -94,6 +97,11 @@ unsafeFromColumns fs = unsafeFromUnit . Columns $ listArray (0, length fs - 1) f
 -- | Unsafely generate  'Projection' from qualified subquery.
 fromQualifiedSubQuery :: Qualified SubQuery -> Projection t
 fromQualifiedSubQuery =  unsafeFromUnit . Sub
+
+-- | Unsafely generate unqualified 'Projection' from 'Table'.
+unsafeFromTable :: Table r
+                -> Projection r
+unsafeFromTable =  unsafeFromColumns . Table.columns
 
 -- | Concatenate 'Projection'.
 compose :: Projection a -> Projection b -> Projection (c a b)
