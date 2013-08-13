@@ -65,6 +65,7 @@ composeFrom' pd =
   unwordsSQL
   $ [FROM, SQL.word . queryProductSQL $ pd]
 
+-- | Compose SQL String from 'JoinContext' object.
 composeFrom :: JoinContext -> String
 composeFrom =  composeFrom'
               . maybe (error "relation: empty product!") (Product.nodeTree)
@@ -85,4 +86,3 @@ composeSQL' pj pd =
 composeSQL :: Projection r -> JoinContext -> String
 composeSQL pj c = composeSQL' pj
                   (maybe (error "relation: empty product!") (Product.nodeTree) (product c))
-

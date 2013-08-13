@@ -24,17 +24,15 @@ import Control.Monad.Trans.State (StateT, runStateT, modify)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second)
 
+import Database.Relational.Query.Monad.Trans.StateAppend (Append, append, liftToString)
+import Database.Relational.Query.Monad.Trans.AggregateState
+  (AggregatingContext, primeAggregatingContext, addGroupBy, composeGroupBys)
+import qualified Database.Relational.Query.Monad.Trans.AggregateState as State
 import Database.Relational.Query.Expr (Expr)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Aggregation (Aggregation)
 import qualified Database.Relational.Query.Aggregation as Aggregation
-
-import Database.Relational.Query.Monad.Trans.StateAppend (Append, append)
-import qualified Database.Relational.Query.Monad.Trans.StateAppend as Append
-import Database.Relational.Query.Monad.Trans.AggregateState
-  (AggregatingContext, primeAggregatingContext, addGroupBy, composeGroupBys)
-import qualified Database.Relational.Query.Monad.Trans.AggregateState as State
 
 import Database.Relational.Query.Monad.Class
   (MonadRestrict(..), MonadQuery(..), MonadAggregate(..))
@@ -96,14 +94,15 @@ instance MonadQuery m => MonadAggregate (Aggregatings m) where
   aggregateKey = addGroupBys
   restrictAggregatedQuery = addRestriction
 
-
+-- | GROUP BY terms appending function.
 type GroupBysAppend = Append AggregatingContext
 
 -- | Run 'Aggregatings' to get GROUP BY terms appending function.
 extractGroupBys :: MonadQuery m
                 => Aggregatings m a      -- ^ 'Aggregatings' to run
                 -> m (a, GroupBysAppend) -- ^ GROUP BY terms appending function.
-extractGroupBys q = second (Append.liftToString composeGroupBys) <$> runAggregatingPrime q
+extractGroupBys q = second (liftToString composeGroupBys) <$> runAggregatingPrime q
 
+-- | Run GROUP BY terms append.
 appendGroupBys :: GroupBysAppend -> String -> String
 appendGroupBys =  append

@@ -25,8 +25,7 @@ import Control.Monad.Trans.State (modify, StateT, runStateT)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second)
 
-import Database.Relational.Query.Monad.Trans.StateAppend (Append, append)
-import qualified Database.Relational.Query.Monad.Trans.StateAppend as Append
+import Database.Relational.Query.Monad.Trans.StateAppend (Append, append, liftToString)
 import Database.Relational.Query.Monad.Trans.JoinState
   (JoinContext, primeJoinContext, updateProduct, composeFrom, composeSQL)
 import Database.Relational.Query.Internal.Product (NodeAttr, restrictProduct, growProduct)
@@ -103,14 +102,16 @@ unsafeQueryMergeWithAttr :: NodeAttr -> QueryJoin (Projection r) -> QueryJoin (P
 unsafeQueryMergeWithAttr =  unsafeMergeAnother
 -}
 
+-- | FROM clause appending function.
 type FromAppend = Append JoinContext
 
 -- | Run 'QueryJoin' to get FROM clause appending function.
 extractFrom :: (Monad m, Functor m)
            => QueryJoin m a     -- ^ 'QueryJoin' to run
            -> m (a, FromAppend) -- ^ FROM clause appending function.
-extractFrom q = second (Append.liftToString composeFrom) <$> runQueryPrime q
+extractFrom q = second (liftToString composeFrom) <$> runQueryPrime q
 
+-- | Run FROM clause append.
 appendFrom :: FromAppend -> String -> String
 appendFrom =  append
 

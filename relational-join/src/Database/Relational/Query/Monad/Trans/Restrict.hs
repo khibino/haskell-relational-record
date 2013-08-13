@@ -16,7 +16,7 @@ module Database.Relational.Query.Monad.Trans.Restrict (
 
   -- * Result SQL wheres clause
   extractWheres,
-  WhereAppend (appendWhere)
+  WhereAppend, appendWhere
   ) where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
@@ -24,6 +24,7 @@ import Control.Monad.Trans.State (modify, StateT, runStateT)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second)
 
+import Database.Relational.Query.Monad.Trans.StateAppend (Append, append, liftToString)
 import Database.Relational.Query.Monad.Trans.RestrictState
   (RestrictContext, primeRestrictContext, addRestriction, composeWheres)
 import Database.Relational.Query.Projection (Projection)
@@ -69,16 +70,15 @@ instance MonadQuery q => MonadQuery (Restrict q) where
   restrictJoin     = restrict . restrictJoin
   unsafeSubQuery a = restrict . unsafeSubQuery a
 
--- | Get order-by appending function from 'RestrictContext'.
-extractWheres' :: RestrictContext -> String -> String
-extractWheres' c = (++ d (composeWheres c))  where
-  d "" = ""
-  d s  = ' ' : s
-
-newtype WhereAppend = WhereAppend { appendWhere :: String -> String }
+-- | WHERE clause appending function.
+type WhereAppend = Append RestrictContext
 
 -- | Run 'Restricts' to get WHERE clause appending function.
 extractWheres :: (Monad m, Functor m)
               => Restrict m a         -- ^ 'Restrict' to run
               -> m (a,  WhereAppend) -- ^ WHERE clause appending function.
-extractWheres r = second (WhereAppend . extractWheres') <$> runRestrictPrime r
+extractWheres r = second (liftToString composeWheres) <$> runRestrictPrime r
+
+-- | Run WHERE clause append.
+appendWhere :: WhereAppend -> String -> String
+appendWhere =  append
