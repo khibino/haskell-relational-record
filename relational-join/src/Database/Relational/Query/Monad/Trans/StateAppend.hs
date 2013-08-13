@@ -12,7 +12,7 @@
 module Database.Relational.Query.Monad.Trans.StateAppend (
   -- * Type tagged string append function types
   Append (append),
-  liftToString,
+  liftToString
   ) where
 
 -- | Type tagged string append function.

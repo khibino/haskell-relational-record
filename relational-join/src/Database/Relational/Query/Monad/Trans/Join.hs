@@ -15,7 +15,7 @@ module Database.Relational.Query.Monad.Trans.Join (
   QueryJoin, join',
 
   -- * Result SQL
-  FromAppend, appendFrom, runFromAppend,
+  FromAppend, extractFrom, appendFrom,
   expandSQL
   ) where
 
@@ -105,14 +105,14 @@ unsafeQueryMergeWithAttr =  unsafeMergeAnother
 
 type FromAppend = Append JoinContext
 
--- | Run 'QueryJoin'
-appendFrom :: (Monad m, Functor m)
+-- | Run 'QueryJoin' to get FROM clause appending function.
+extractFrom :: (Monad m, Functor m)
            => QueryJoin m a     -- ^ 'QueryJoin' to run
            -> m (a, FromAppend) -- ^ FROM clause appending function.
-appendFrom q = second (Append.liftToString composeFrom) <$> runQueryPrime q
+extractFrom q = second (Append.liftToString composeFrom) <$> runQueryPrime q
 
-runFromAppend :: FromAppend -> String -> String
-runFromAppend =  append
+appendFrom :: FromAppend -> String -> String
+appendFrom =  append
 
 -- | Run 'QueryJoin' to get SQL string.
 expandSQL :: Monad m => QueryJoin m (Projection r, st) -> m ((String, Projection r), st)

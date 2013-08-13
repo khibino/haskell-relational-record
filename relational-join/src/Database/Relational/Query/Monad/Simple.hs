@@ -29,11 +29,11 @@ import Database.Relational.Query.SQL (selectSeedSQL)
 import Database.Relational.Query.Monad.Qualify (Qualify)
 import Database.Relational.Query.Monad.Class (MonadQualify(..))
 import Database.Relational.Query.Monad.Trans.Join
-  (join', FromAppend, runFromAppend, appendFrom)
-import Database.Relational.Query.Monad.Trans.Ordering
-  (Orderings, orderings, OrderedQuery, OrderByAppend, orderByAppend, appendOrderBys)
+  (join', FromAppend, appendFrom, extractFrom)
 import Database.Relational.Query.Monad.Trans.Restrict
-  (restrict, WheresAppend, wheresAppend, appendWheres)
+  (restrict, WhereAppend, appendWhere, extractWheres)
+import Database.Relational.Query.Monad.Trans.Ordering
+  (Orderings, orderings, OrderedQuery, OrderByAppend, appendOrderBy, extractOrderBys)
 import Database.Relational.Query.Monad.Core (QueryCore)
 
 import Database.Relational.Query.Sub (SubQuery, subQuery)
@@ -54,14 +54,14 @@ instance MonadQualify Qualify (Orderings Projection QueryCore) where
   liftQualify = simple
 
 expandAppend :: SimpleQuery r
-              -> Qualify (((Projection r, OrderByAppend), WheresAppend), FromAppend)
-expandAppend =  appendFrom . appendWheres . appendOrderBys
+              -> Qualify (((Projection r, OrderByAppend), WhereAppend), FromAppend)
+expandAppend =  extractFrom . extractWheres . extractOrderBys
 
 -- | Run 'SimpleQuery' to get SQL string.
 expandSQL :: SimpleQuery r -> Qualify (String, Projection r)
 expandSQL q = do
   (((pj, ao), aw), af) <- expandAppend q
-  return (orderByAppend ao . wheresAppend aw . runFromAppend af $ selectSeedSQL pj, pj)
+  return (appendOrderBy ao . appendWhere aw . appendFrom af $ selectSeedSQL pj, pj)
 
 -- | Run 'SimpleQuery' to get SQL string with 'Qualify' computation.
 toSQL :: SimpleQuery r  -- ^ 'SimpleQuery' to run

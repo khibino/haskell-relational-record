@@ -20,8 +20,8 @@ module Database.Relational.Query.Monad.Trans.Ordering (
   asc, desc,
 
   -- * Result SQL order-by clause
-  appendOrderBys,
-  OrderByAppend (orderByAppend)
+  extractOrderBys,
+  OrderByAppend (appendOrderBy)
   ) where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
@@ -138,15 +138,15 @@ desc =  updateOrderBys Desc
 
 
 -- | Get order-by appending function from 'OrderingContext'.
-appendOrderBys' :: OrderingContext -> String -> String
-appendOrderBys' c = (++ d (composeOrderBys c))  where
+extractOrderBys' :: OrderingContext -> String -> String
+extractOrderBys' c = (++ d (composeOrderBys c))  where
   d "" = ""
   d s  = ' ' : s
 
-newtype OrderByAppend = OrderByAppend { orderByAppend :: String -> String }
+newtype OrderByAppend = OrderByAppend { appendOrderBy :: String -> String }
 
 -- | Run 'Orderings' to get query result and order-by appending function.
-appendOrderBys :: (Monad m, Functor m)
+extractOrderBys :: (Monad m, Functor m)
                => Orderings p m a      -- ^ 'Orderings' to run
                -> m (a, OrderByAppend) -- ^ Query result and order-by appending function.
-appendOrderBys q = second (OrderByAppend . appendOrderBys') <$> runOrderingsPrime q
+extractOrderBys q = second (OrderByAppend . extractOrderBys') <$> runOrderingsPrime q
