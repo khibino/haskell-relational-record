@@ -16,7 +16,7 @@ module Database.Relational.Query.Monad.Trans.Aggregate (
   Aggregatings, aggregate,
 
   -- * Result group by SQLs
-  appendGroupBys
+  GroupBysAppend, extractGroupBys, appendGroupBys
   ) where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
@@ -30,6 +30,8 @@ import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Aggregation (Aggregation)
 import qualified Database.Relational.Query.Aggregation as Aggregation
 
+import Database.Relational.Query.Monad.Trans.StateAppend (Append, append)
+import qualified Database.Relational.Query.Monad.Trans.StateAppend as Append
 import Database.Relational.Query.Monad.Trans.AggregateState
   (AggregatingContext, primeAggregatingContext, addGroupBy, composeGroupBys)
 import qualified Database.Relational.Query.Monad.Trans.AggregateState as State
@@ -95,14 +97,13 @@ instance MonadQuery m => MonadAggregate (Aggregatings m) where
   restrictAggregatedQuery = addRestriction
 
 
--- | Get group-by appending function from 'AggregatingContext'.
-appendGroupBys' :: AggregatingContext -> String -> String
-appendGroupBys' c = (++ d (composeGroupBys c))  where
-  d "" = ""
-  d s  = ' ' : s
+type GroupBysAppend = Append AggregatingContext
 
--- | Run 'Aggregatings' to get query result and group-by appending function.
-appendGroupBys :: MonadQuery m
-               => Aggregatings m a        -- ^ 'Aggregatings' to run
-               -> m (a, String -> String) -- ^ Query result and group-by appending function.
-appendGroupBys q = second appendGroupBys' <$> runAggregatingPrime q
+-- | Run 'Aggregatings' to get GROUP BY terms appending function.
+extractGroupBys :: MonadQuery m
+                => Aggregatings m a      -- ^ 'Aggregatings' to run
+                -> m (a, GroupBysAppend) -- ^ GROUP BY terms appending function.
+extractGroupBys q = second (Append.liftToString composeGroupBys) <$> runAggregatingPrime q
+
+appendGroupBys :: GroupBysAppend -> String -> String
+appendGroupBys =  append
