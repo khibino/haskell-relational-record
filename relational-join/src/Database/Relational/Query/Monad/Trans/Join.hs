@@ -15,8 +15,7 @@ module Database.Relational.Query.Monad.Trans.Join (
   QueryJoin, join',
 
   -- * Result SQL
-  FromAppend, extractFrom, appendFrom,
-  expandSQL
+  FromAppend, extractFrom, appendFrom
   ) where
 
 import Prelude hiding (product)
@@ -27,7 +26,7 @@ import Control.Arrow (second)
 
 import Database.Relational.Query.Monad.Trans.StateAppend (Append, append, liftToString)
 import Database.Relational.Query.Monad.Trans.JoinState
-  (JoinContext, primeJoinContext, updateProduct, composeFrom, composeSQL)
+  (JoinContext, primeJoinContext, updateProduct, composeFrom)
 import Database.Relational.Query.Internal.Product (NodeAttr, restrictProduct, growProduct)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
@@ -114,9 +113,3 @@ extractFrom q = second (liftToString composeFrom) <$> runQueryPrime q
 -- | Run FROM clause append.
 appendFrom :: FromAppend -> String -> String
 appendFrom =  append
-
--- | Run 'QueryJoin' to get SQL string.
-expandSQL :: Monad m => QueryJoin m (Projection r, st) -> m ((String, Projection r), st)
-expandSQL qp = do
-  ((pj, st), c) <- runQueryPrime qp
-  return ((composeSQL pj c, pj), st)

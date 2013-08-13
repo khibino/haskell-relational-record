@@ -19,19 +19,13 @@ module Database.Relational.Query.Monad.Trans.JoinState (
 
   updateProduct, -- takeProduct, restoreLeft,
 
-  composeFrom,
-  composeSQL
+  composeFrom
   ) where
 
 import Prelude hiding (product)
 
-import Database.Relational.Query.Sub (asColumnN)
-
 import Database.Relational.Query.Internal.Product (QueryProductNode, QueryProduct, queryProductSQL)
 import qualified Database.Relational.Query.Internal.Product as Product
-
-import Database.Relational.Query.Projection (Projection)
-import qualified Database.Relational.Query.Projection as Projection
 
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
@@ -70,19 +64,3 @@ composeFrom :: JoinContext -> String
 composeFrom =  composeFrom'
               . maybe (error "relation: empty product!") (Product.nodeTree)
               . product
-
--- | Compose SQL String from 'JoinContext' object.
-composeSQL' :: Projection r -> QueryProduct -> String
-composeSQL' pj pd =
-  unwordsSQL
-  $ [SELECT, columns' `SQL.sepBy` ", ",
-     FROM, SQL.word . queryProductSQL $ pd]
-  where columns' = zipWith
-                   (\f n -> SQL.word f `asColumnN` n)
-                   (Projection.columns pj)
-                   [(0 :: Int)..]
-
--- | Compose SQL String from 'JoinContext' object.
-composeSQL :: Projection r -> JoinContext -> String
-composeSQL pj c = composeSQL' pj
-                  (maybe (error "relation: empty product!") (Product.nodeTree) (product c))
