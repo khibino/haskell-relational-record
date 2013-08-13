@@ -87,7 +87,7 @@ unsafeSubQueryWithAttr :: Monad q
                        -> QueryJoin q (Projection r) -- ^ Result joined context and 'SubQuery' result projection.
 unsafeSubQueryWithAttr attr qsub = do
   updateContext (updateProduct (`growProduct` (attr, qsub)))
-  return $ Projection.fromQualifiedSubQuery qsub
+  return $ Projection.unsafeFromQualifiedSubQuery qsub
 
 {-
 unsafeMergeAnother :: NodeAttr -> QueryJoin a -> QueryJoin a

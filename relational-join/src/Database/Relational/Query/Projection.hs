@@ -16,7 +16,7 @@ module Database.Relational.Query.Projection (
   columns,
 
   unsafeFromColumns,
-  fromQualifiedSubQuery,
+  unsafeFromQualifiedSubQuery,
   unsafeFromTable,
 
   -- * Projections
@@ -95,8 +95,8 @@ unsafeFromColumns :: [String]     -- ^ SQL string list specifies columns
 unsafeFromColumns fs = unsafeFromUnit . Columns $ listArray (0, length fs - 1) fs
 
 -- | Unsafely generate  'Projection' from qualified subquery.
-fromQualifiedSubQuery :: Qualified SubQuery -> Projection t
-fromQualifiedSubQuery =  unsafeFromUnit . Sub
+unsafeFromQualifiedSubQuery :: Qualified SubQuery -> Projection t
+unsafeFromQualifiedSubQuery =  unsafeFromUnit . Sub
 
 -- | Unsafely generate unqualified 'Projection' from 'Table'.
 unsafeFromTable :: Table r
