@@ -14,17 +14,10 @@ module Database.Relational.Query.Table (
 
   -- * Phantom typed table type
   Table, unType, name, shortName, width, columns, index, table, toMaybe,
-
-  -- * Simple query from table
-  fromTableToSql
   ) where
 
-import Data.List (intercalate)
 import Data.Array (Array, listArray, elems)
 import qualified Data.Array as Array
-
-import Language.SQL.Keyword (Keyword(..), unwordsSQL)
-import qualified Language.SQL.Keyword as SQL
 
 
 -- | Untyped typed table type
@@ -91,11 +84,3 @@ table :: String -> [String] -> Table r
 table n f = Table $ Untyped n w fa  where
   w  = length f
   fa = listArray (0, w - 1) f
-
-
--- | SQL to query table
-fromTableToSql :: Untyped -> String
-fromTableToSql t =
-  unwordsSQL
-  $ [SELECT, SQL.word $ ", " `intercalate` columns' t,
-     FROM, SQL.word $ name' t]

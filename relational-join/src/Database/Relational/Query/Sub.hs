@@ -26,6 +26,8 @@ module Database.Relational.Query.Sub (
   column
   ) where
 
+import Data.List (intercalate)
+
 import Database.Relational.Query.Table (Table, (!))
 import qualified Database.Relational.Query.Table as Table
 
@@ -99,11 +101,18 @@ width =  d  where
   d (SubQuery { width' = w }) = w
   d (Bin _ l _)               = width l
 
+-- | SQL to query table
+fromTableToSql :: Table.Untyped -> String
+fromTableToSql t =
+  unwordsSQL
+  $ [SELECT, SQL.word $ ", " `intercalate` Table.columns' t,
+     FROM, SQL.word $ Table.name' t]
+
 -- | SQL string for nested-query and toplevel-SQL.
 toSQLs :: SubQuery
        -> (String, String) -- ^ subquery SQL and top-level SQL
 toSQLs =  d  where
-  d (Table u)               = (Table.name' u, Table.fromTableToSql u)
+  d (Table u)               = (Table.name' u, fromTableToSql u)
   d (SubQuery { sql' = q }) = ('(' : q ++ [')'], q)
   d (Bin op l r)            = ('(' : q ++ [')'], q)  where
     q = unwords [unitSQL l, SQL.wordShow $ keywordBinOp op, unitSQL r]
