@@ -11,6 +11,9 @@
 --
 -- This module defines functions to generate simple SQL strings.
 module Database.Relational.Query.SQL (
+  -- * Select SQL
+  selectSeedSQL,
+
   -- * Update SQL
   updateSQL', updateSQL,
 
@@ -20,11 +23,24 @@ module Database.Relational.Query.SQL (
 
 import Data.Array (listArray, (!))
 
-import Language.SQL.Keyword (Keyword(..), (.=.))
+import Language.SQL.Keyword (Keyword(..), (.=.), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
 import Database.Record.ToSql (untypedUpdateValuesIndex)
+import Database.Relational.Query.Sub (asColumnN)
 import Database.Relational.Query.Table (Table, name, columns)
+import Database.Relational.Query.Projection (Projection)
+import qualified Database.Relational.Query.Projection as Projection
 
+
+-- | Generate select SQL. Append seed query string.
+selectSeedSQL :: Projection r -> String
+selectSeedSQL pj =
+  unwordsSQL
+  $ [SELECT, columns' `SQL.sepBy` ", "]
+  where columns' = zipWith
+                   (\f n -> SQL.word f `asColumnN` n)
+                   (Projection.columns pj)
+                   [(0 :: Int)..]
 
 -- | Generate update SQL by specified key and table.
 updateSQL' :: String   -- ^ Table name

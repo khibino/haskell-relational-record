@@ -15,7 +15,7 @@ module Database.Relational.Query.Monad.Trans.Join (
   QueryJoin, join',
 
   -- * Result SQL
-  appendFrom,
+  FromAppend, appendFrom, runFromAppend,
   expandSQL
   ) where
 
@@ -25,7 +25,7 @@ import Control.Monad.Trans.State (modify, StateT, runStateT)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second)
 
-import Database.Relational.Query.Monad.Trans.StateAppend (Append)
+import Database.Relational.Query.Monad.Trans.StateAppend (Append, append)
 import qualified Database.Relational.Query.Monad.Trans.StateAppend as Append
 import Database.Relational.Query.Monad.Trans.JoinState
   (JoinContext, primeJoinContext, updateProduct, composeFrom, composeSQL)
@@ -103,11 +103,16 @@ unsafeQueryMergeWithAttr :: NodeAttr -> QueryJoin (Projection r) -> QueryJoin (P
 unsafeQueryMergeWithAttr =  unsafeMergeAnother
 -}
 
+type FromAppend = Append JoinContext
+
 -- | Run 'QueryJoin'
 appendFrom :: (Monad m, Functor m)
-           => QueryJoin m a             -- ^ 'QueryJoin' to run
-           -> m (a, Append JoinContext) -- ^ FROM clause appending function.
+           => QueryJoin m a     -- ^ 'QueryJoin' to run
+           -> m (a, FromAppend) -- ^ FROM clause appending function.
 appendFrom q = second (Append.liftToString composeFrom) <$> runQueryPrime q
+
+runFromAppend :: FromAppend -> String -> String
+runFromAppend =  append
 
 -- | Run 'QueryJoin' to get SQL string.
 expandSQL :: Monad m => QueryJoin m (Projection r, st) -> m ((String, Projection r), st)

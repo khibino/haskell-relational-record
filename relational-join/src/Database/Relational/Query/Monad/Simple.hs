@@ -24,16 +24,16 @@ module Database.Relational.Query.Monad.Simple (
 
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
+import Database.Relational.Query.SQL (selectSeedSQL)
 
 import Database.Relational.Query.Monad.Qualify (Qualify)
 import Database.Relational.Query.Monad.Class (MonadQualify(..))
-import Database.Relational.Query.Monad.Trans.Join (join')
-import qualified Database.Relational.Query.Monad.Trans.Join as Join
+import Database.Relational.Query.Monad.Trans.Join
+  (join', FromAppend, runFromAppend, appendFrom)
 import Database.Relational.Query.Monad.Trans.Ordering
-  (Orderings, orderings, OrderedQuery, OrderByAppend, orderByAppend)
-import qualified Database.Relational.Query.Monad.Trans.Ordering as Ordering
-import Database.Relational.Query.Monad.Trans.Restrict (restrict, WheresAppend, wheresAppend)
-import qualified Database.Relational.Query.Monad.Trans.Restrict as Restrict
+  (Orderings, orderings, OrderedQuery, OrderByAppend, orderByAppend, appendOrderBys)
+import Database.Relational.Query.Monad.Trans.Restrict
+  (restrict, WheresAppend, wheresAppend, appendWheres)
 import Database.Relational.Query.Monad.Core (QueryCore)
 
 import Database.Relational.Query.Sub (SubQuery, subQuery)
@@ -53,16 +53,15 @@ simple =  orderings . restrict . join'
 instance MonadQualify Qualify (Orderings Projection QueryCore) where
   liftQualify = simple
 
--- | Run 'SimpleQuery' to get SQL string.
-expandSQL' :: SimpleQuery r                                                   -- ^ 'SimpleQuery' to run
-           -> Qualify ((String, Projection r), (OrderByAppend, WheresAppend)) -- ^ Result SQL string and ordering appending function
-expandSQL' =  Join.expandSQL . fmap assoc . Restrict.appendWheres . Ordering.appendOrderBys  where
-  assoc ((a, b), c) = (a, (b, c))
+expandAppend :: SimpleQuery r
+              -> Qualify (((Projection r, OrderByAppend), WheresAppend), FromAppend)
+expandAppend =  appendFrom . appendWheres . appendOrderBys
 
+-- | Run 'SimpleQuery' to get SQL string.
 expandSQL :: SimpleQuery r -> Qualify (String, Projection r)
 expandSQL q = do
-  ((sql, pj), (a1, a2)) <- expandSQL' q
-  return (orderByAppend a1 (wheresAppend a2 sql), pj)
+  (((pj, ao), aw), af) <- expandAppend q
+  return (orderByAppend ao . wheresAppend aw . runFromAppend af $ selectSeedSQL pj, pj)
 
 -- | Run 'SimpleQuery' to get SQL string with 'Qualify' computation.
 toSQL :: SimpleQuery r  -- ^ 'SimpleQuery' to run
