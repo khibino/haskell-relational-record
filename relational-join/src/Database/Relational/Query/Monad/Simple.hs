@@ -66,7 +66,7 @@ expandSQL q = do
 -- | Run 'SimpleQuery' to get SQL string with 'Qualify' computation.
 toSQL :: SimpleQuery r  -- ^ 'SimpleQuery' to run
       -> Qualify String -- ^ Result SQL string with 'Qualify' computation
-toSQL q = fst `fmap` expandSQL q
+toSQL =  fmap fst . expandSQL
 
 -- | Run 'SimpleQuery' to get 'SubQuery' with 'Qualify' computation.
 toSubQuery :: SimpleQuery r    -- ^ 'SimpleQuery' to run

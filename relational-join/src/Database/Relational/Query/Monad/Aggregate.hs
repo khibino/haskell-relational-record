@@ -22,27 +22,24 @@ module Database.Relational.Query.Monad.Aggregate (
   toSubQuery
   ) where
 
-import Control.Applicative ((<$>))
-
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Aggregation (Aggregation)
 import qualified Database.Relational.Query.Aggregation as Aggregation
+import Database.Relational.Query.SQL (selectSeedSQL)
 import Database.Relational.Query.Sub (SubQuery, subQuery)
 
 import Database.Relational.Query.Monad.Qualify (Qualify)
 import Database.Relational.Query.Monad.Class (MonadQualify(..))
-import Database.Relational.Query.Monad.Trans.Join (join')
-import qualified Database.Relational.Query.Monad.Trans.Join as Join
-import Database.Relational.Query.Monad.Trans.Ordering
-  (Orderings, orderings, OrderedQuery, OrderByAppend, appendOrderBy)
-import qualified Database.Relational.Query.Monad.Trans.Ordering as Ordering
+import Database.Relational.Query.Monad.Trans.Join
+  (join', FromAppend, appendFrom, extractFrom)
 import Database.Relational.Query.Monad.Trans.Restrict
-  (restrict, WhereAppend, appendWhere)
-import qualified Database.Relational.Query.Monad.Trans.Restrict as Restrict
-import Database.Relational.Query.Monad.Core (QueryCore)
+  (restrict, WhereAppend, appendWhere, extractWheres)
 import Database.Relational.Query.Monad.Trans.Aggregate
   (Aggregatings, aggregate, GroupBysAppend, appendGroupBys, extractGroupBys)
+import Database.Relational.Query.Monad.Trans.Ordering
+  (Orderings, orderings, OrderedQuery, OrderByAppend, appendOrderBy, extractOrderBys)
+import Database.Relational.Query.Monad.Core (QueryCore)
 
 
 -- | Aggregated query monad type.
@@ -59,21 +56,27 @@ aggregatedQuery =  orderings . aggregate . restrict . join'
 instance MonadQualify Qualify (Orderings Aggregation (Aggregatings QueryCore)) where
   liftQualify = aggregatedQuery
 
+expandAppend :: AggregatedQuery r
+             -> Qualify ((((Aggregation r, OrderByAppend), GroupBysAppend), WhereAppend), FromAppend)
+expandAppend =  extractFrom . extractWheres . extractGroupBys . extractOrderBys
+
 -- | Run 'AggregatedQuery' to get SQL string.
-expandSQL :: AggregatedQuery r -> Qualify ((String, Projection r), ((OrderByAppend, GroupBysAppend), WhereAppend))
-expandSQL q = Join.expandSQL $ assoc <$> Restrict.extractWheres (extractGroupBys (Ordering.extractOrderBys q))  where
-  assoc (((a, b), c), d) = (Aggregation.unsafeProjection a, ((b, c), d))
+expandSQL :: AggregatedQuery r -> Qualify (String, Projection r)
+expandSQL q = do
+  ((((aggr, ao), ag), aw), af) <- expandAppend q
+  let projection = Aggregation.unsafeProjection aggr
+  return (appendOrderBy ao . appendGroupBys ag . appendWhere aw . appendFrom af
+          $ selectSeedSQL projection,
+          projection)
 
 -- | Run 'AggregatedQuery' to get SQL with 'Qualify' computation.
 toSQL :: AggregatedQuery r -- ^ 'AggregatedQuery' to run
       -> Qualify String    -- ^ Result SQL string with 'Qualify' computation
-toSQL q = do
-  ((sql, _pj), ((appOrd, appGrp), appWhere)) <- expandSQL q
-  return . appendOrderBy appOrd . appendGroupBys appGrp . appendWhere appWhere $ sql
+toSQL =  fmap fst . expandSQL
 
 -- | Run 'AggregatedQuery' to get 'SubQuery' with 'Qualify' computation.
 toSubQuery :: AggregatedQuery r -- ^ 'AggregatedQuery' to run
            -> Qualify SubQuery  -- ^ Result 'SubQuery' with 'Qualify' computation
 toSubQuery q = do
-  ((sql, pj), ((appOrd, appGrp), appWhere)) <- expandSQL q
-  return $ subQuery (appendOrderBy appOrd . appendGroupBys appGrp . appendWhere appWhere $ sql) (Projection.width pj)
+  (sql, pj) <- expandSQL q
+  return $ subQuery sql (Projection.width pj)
