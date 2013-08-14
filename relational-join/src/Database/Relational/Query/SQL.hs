@@ -37,10 +37,9 @@ import qualified Database.Relational.Query.Projection as Projection
 
 
 -- | Generate select SQL. Append seed query string.
-selectSeedSQL :: Projection r -> String
+selectSeedSQL :: Projection r -> ShowS
 selectSeedSQL pj =
-  unwordsSQL
-  $ [SELECT, columns' `SQL.sepBy` ", "]
+  (unwordsSQL [SELECT, columns' `SQL.sepBy` ", "] ++)
   where columns' = zipWith
                    (\f n -> SQL.word f `asColumnN` n)
                    (Projection.columns pj)

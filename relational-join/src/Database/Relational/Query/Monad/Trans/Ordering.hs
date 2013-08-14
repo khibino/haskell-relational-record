@@ -21,7 +21,7 @@ module Database.Relational.Query.Monad.Trans.Ordering (
 
   -- * Result SQL order-by clause
   extractOrderBys,
-  OrderByAppend, appendOrderBy
+  OrderByPrepend, prependOrderBy
   ) where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
@@ -29,7 +29,7 @@ import Control.Monad.Trans.State (StateT, runStateT, modify)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second)
 
-import Database.Relational.Query.Monad.Trans.StateAppend (Append, append, liftToString)
+import Database.Relational.Query.Monad.Trans.StatePrepend (Prepend, prepend, liftToString)
 import Database.Relational.Query.Monad.Trans.OrderingState
   (Order(Asc, Desc), OrderingContext, primeOrderingContext, updateOrderBy, composeOrderBys)
 import Database.Relational.Query.Projection (Projection)
@@ -136,15 +136,15 @@ desc :: (Monad m, OrderingTerms p)
      -> Orderings p m () -- ^ Result context with ordering
 desc =  updateOrderBys Desc
 
--- | ORDER BY clause appending function.
-type OrderByAppend = Append OrderingContext
+-- | ORDER BY clause prepending function.
+type OrderByPrepend = Prepend OrderingContext
 
--- | Run 'Orderings' to get ORDER BY clause appending function.
+-- | Run 'Orderings' to get ORDER BY clause prepending function.
 extractOrderBys :: (Monad m, Functor m)
                => Orderings p m a      -- ^ 'Orderings' to run
-               -> m (a, OrderByAppend) -- ^ Query result and order-by appending function.
+               -> m (a, OrderByPrepend) -- ^ Query result and order-by prepending function.
 extractOrderBys q = second (liftToString composeOrderBys) <$> runOrderingsPrime q
 
--- | Run ORDER BY clause append.
-appendOrderBy :: OrderByAppend -> String -> String
-appendOrderBy =  append
+-- | Run ORDER BY clause prepend.
+prependOrderBy :: OrderByPrepend -> String -> String
+prependOrderBy =  prepend

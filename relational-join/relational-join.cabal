@@ -60,7 +60,7 @@ library
                        Database.Relational.Query.Internal.AliasId
                        Database.Relational.Query.Internal.ShowS
                        Database.Relational.Query.Internal.Product
-                       Database.Relational.Query.Monad.Trans.StateAppend
+                       Database.Relational.Query.Monad.Trans.StatePrepend
                        Database.Relational.Query.Monad.Trans.RestrictState
                        Database.Relational.Query.Monad.Trans.JoinState
                        Database.Relational.Query.Monad.Trans.AggregateState

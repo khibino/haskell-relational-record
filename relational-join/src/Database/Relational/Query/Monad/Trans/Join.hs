@@ -15,7 +15,7 @@ module Database.Relational.Query.Monad.Trans.Join (
   QueryJoin, join',
 
   -- * Result SQL
-  FromAppend, extractFrom, appendFrom
+  FromPrepend, extractFrom, prependFrom
   ) where
 
 import Prelude hiding (product)
@@ -24,7 +24,7 @@ import Control.Monad.Trans.State (modify, StateT, runStateT)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second)
 
-import Database.Relational.Query.Monad.Trans.StateAppend (Append, append, liftToString)
+import Database.Relational.Query.Monad.Trans.StatePrepend (Prepend, prepend, liftToString)
 import Database.Relational.Query.Monad.Trans.JoinState
   (JoinContext, primeJoinContext, updateProduct, composeFrom)
 import Database.Relational.Query.Internal.Product (NodeAttr, restrictProduct, growProduct)
@@ -101,15 +101,15 @@ unsafeQueryMergeWithAttr :: NodeAttr -> QueryJoin (Projection r) -> QueryJoin (P
 unsafeQueryMergeWithAttr =  unsafeMergeAnother
 -}
 
--- | FROM clause appending function.
-type FromAppend = Append JoinContext
+-- | FROM clause prepending function.
+type FromPrepend = Prepend JoinContext
 
--- | Run 'QueryJoin' to get FROM clause appending function.
+-- | Run 'QueryJoin' to get FROM clause prepending function.
 extractFrom :: (Monad m, Functor m)
            => QueryJoin m a     -- ^ 'QueryJoin' to run
-           -> m (a, FromAppend) -- ^ FROM clause appending function.
+           -> m (a, FromPrepend) -- ^ FROM clause prepending function.
 extractFrom q = second (liftToString composeFrom) <$> runQueryPrime q
 
--- | Run FROM clause append.
-appendFrom :: FromAppend -> String -> String
-appendFrom =  append
+-- | Run FROM clause prepend.
+prependFrom :: FromPrepend -> String -> String
+prependFrom =  prepend

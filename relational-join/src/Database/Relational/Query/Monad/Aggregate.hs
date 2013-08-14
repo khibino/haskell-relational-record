@@ -32,13 +32,13 @@ import Database.Relational.Query.Sub (SubQuery, subQuery)
 import Database.Relational.Query.Monad.Qualify (Qualify)
 import Database.Relational.Query.Monad.Class (MonadQualify(..))
 import Database.Relational.Query.Monad.Trans.Join
-  (join', FromAppend, appendFrom, extractFrom)
+  (join', FromPrepend, prependFrom, extractFrom)
 import Database.Relational.Query.Monad.Trans.Restrict
-  (restrict, WhereAppend, appendWhere, extractWheres)
+  (restrict, WherePrepend, prependWhere, extractWheres)
 import Database.Relational.Query.Monad.Trans.Aggregate
-  (Aggregatings, aggregate, GroupBysAppend, appendGroupBys, extractGroupBys)
+  (Aggregatings, aggregate, GroupBysPrepend, prependGroupBys, extractGroupBys)
 import Database.Relational.Query.Monad.Trans.Ordering
-  (Orderings, orderings, OrderedQuery, OrderByAppend, appendOrderBy, extractOrderBys)
+  (Orderings, orderings, OrderedQuery, OrderByPrepend, prependOrderBy, extractOrderBys)
 import Database.Relational.Query.Monad.Type (QueryCore)
 
 
@@ -56,17 +56,17 @@ aggregatedQuery =  orderings . aggregate . restrict . join'
 instance MonadQualify Qualify (Orderings Aggregation (Aggregatings QueryCore)) where
   liftQualify = aggregatedQuery
 
-expandAppend :: AggregatedQuery r
-             -> Qualify ((((Aggregation r, OrderByAppend), GroupBysAppend), WhereAppend), FromAppend)
-expandAppend =  extractFrom . extractWheres . extractGroupBys . extractOrderBys
+expandPrepend :: AggregatedQuery r
+             -> Qualify ((((Aggregation r, OrderByPrepend), GroupBysPrepend), WherePrepend), FromPrepend)
+expandPrepend =  extractFrom . extractWheres . extractGroupBys . extractOrderBys
 
 -- | Run 'AggregatedQuery' to get SQL string.
 expandSQL :: AggregatedQuery r -> Qualify (String, Projection r)
 expandSQL q = do
-  ((((aggr, ao), ag), aw), af) <- expandAppend q
+  ((((aggr, ao), ag), aw), af) <- expandPrepend q
   let projection = Aggregation.unsafeProjection aggr
-  return (appendOrderBy ao . appendGroupBys ag . appendWhere aw . appendFrom af
-          $ selectSeedSQL projection,
+  return (selectSeedSQL projection . prependFrom af . prependWhere aw
+          . prependGroupBys ag . prependOrderBy ao $ "",
           projection)
 
 -- | Run 'AggregatedQuery' to get SQL with 'Qualify' computation.
