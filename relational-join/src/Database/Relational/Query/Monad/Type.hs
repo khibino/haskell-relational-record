@@ -10,13 +10,21 @@
 -- This module defines core query type.
 module Database.Relational.Query.Monad.Type (
   -- * Core query monad
-  QueryCore
+  QueryCore,
+
+  -- * Monad to restrict target records.
+  SimpleRestrict
   ) where
+
+import Data.Functor.Identity (Identity)
 
 import Database.Relational.Query.Monad.Qualify (Qualify)
 import Database.Relational.Query.Monad.Trans.Join (QueryJoin)
 import Database.Relational.Query.Monad.Trans.Restrict (Restrict)
 
 
--- | Core query monad type used by simple query and aggregated query.
+-- | Core query monad type used from simple query and aggregated query.
 type QueryCore = Restrict (QueryJoin Qualify)
+
+-- | Restrict only monad type used from update statement and delete statement.
+type SimpleRestrict = Restrict Identity
