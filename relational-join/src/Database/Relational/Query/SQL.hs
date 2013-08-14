@@ -16,9 +16,13 @@ module Database.Relational.Query.SQL (
 
   -- * Update SQL
   updateSQL', updateSQL,
+  updateAllColumnsSQL', updateAllColumnsSQL,
 
   -- * Insert SQL
-  insertSQL', insertSQL
+  insertSQL', insertSQL,
+
+  -- * Delete SQL
+  deleteSQL', deleteSQL
   ) where
 
 import Data.Array (listArray, (!))
@@ -43,6 +47,7 @@ selectSeedSQL pj =
                    [(0 :: Int)..]
 
 -- | Generate update SQL by specified key and table.
+--   Columns name list of table are also required.
 updateSQL' :: String   -- ^ Table name
            -> [String] -- ^ Column name list
            -> [Int]    -- ^ Key column indexes
@@ -65,6 +70,18 @@ updateSQL :: Table r -- ^ Table metadata
           -> String  -- ^ Result SQL
 updateSQL tbl = updateSQL' (name tbl) (columns tbl)
 
+-- | Generate all column update SQL by specified table.
+--   Columns name list of table are also required.
+updateAllColumnsSQL' :: String -> [String] -> String
+updateAllColumnsSQL' table cols =
+  SQL.unwordsSQL
+  $ [UPDATE, SQL.word table, SET, updAssigns `SQL.sepBy` ", "]
+  where
+    updAssigns = [ SQL.word c .=. "?" | c <- cols ]
+
+-- | Generate all column update SQL by specified table.
+updateAllColumnsSQL :: Table r -> String
+updateAllColumnsSQL tbl = updateAllColumnsSQL' (name tbl) (columns tbl)
 
 -- | Generate insert SQL.
 insertSQL' :: String   -- ^ Table name
@@ -81,3 +98,12 @@ insertSQL' table cols =
 insertSQL :: Table r -- ^ Table metadata
           -> String  -- ^ Result SQL
 insertSQL tbl = insertSQL' (name tbl) (columns tbl)
+
+deleteSQL' :: String -> String
+deleteSQL' table =
+  SQL.unwordsSQL
+  $ [DELETE, FROM, SQL.word table]
+
+deleteSQL :: Table r -- ^ Table metadata
+          -> String  -- ^ Result SQL
+deleteSQL = deleteSQL' . name
