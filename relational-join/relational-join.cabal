@@ -1,8 +1,16 @@
 name:                relational-join
 version:             0.0.1.0
-synopsis:            Typeful relational algebraic join engine
-description:         This package contiains typeful relation structure
-                     and combinators for projection, product and join.
+synopsis:            Typeful, Modular, Relational, algebraic query engine
+description:         This package contiains typeful relation structure,
+                     SQL query generator and some RDBMSs' schema templates.
+                     Supported query features are below:
+                     - Type safe query building
+                     - Restriction, Join, Aggregation
+                     - Modularized relations
+                     - Typed placeholders
+                     Supported RDBMS schemas are below:
+                     - IBM DB2
+                     - PostgreSQL
 homepage:            http://twitter.com/khibino
 license:             BSD3
 license-file:        LICENSE
