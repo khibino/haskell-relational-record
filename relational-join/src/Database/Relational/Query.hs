@@ -21,7 +21,7 @@ module Database.Relational.Query (
   module Database.Relational.Query.ProjectableExtended,
   module Database.Relational.Query.Monad.Class,
   module Database.Relational.Query.Monad.Trans.Ordering,
-  module Database.Relational.Query.Monad.Core,
+  module Database.Relational.Query.Monad.Type,
   module Database.Relational.Query.Monad.Simple,
   module Database.Relational.Query.Monad.Aggregate,
   module Database.Relational.Query.Relation,
@@ -47,7 +47,7 @@ import Database.Relational.Query.ProjectableExtended
 import Database.Relational.Query.Monad.Class
   (on, wheres, groupBy, having, onE, wheresE, havingE)
 import Database.Relational.Query.Monad.Trans.Ordering (asc, desc)
-import Database.Relational.Query.Monad.Core (QueryCore)
+import Database.Relational.Query.Monad.Type
 import Database.Relational.Query.Monad.Simple (QuerySimple, SimpleQuery)
 import Database.Relational.Query.Monad.Aggregate (QueryAggregate, AggregatedQuery)
 import Database.Relational.Query.Relation

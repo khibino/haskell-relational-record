@@ -39,7 +39,7 @@ import Database.Relational.Query.Monad.Trans.Aggregate
   (Aggregatings, aggregate, GroupBysAppend, appendGroupBys, extractGroupBys)
 import Database.Relational.Query.Monad.Trans.Ordering
   (Orderings, orderings, OrderedQuery, OrderByAppend, appendOrderBy, extractOrderBys)
-import Database.Relational.Query.Monad.Core (QueryCore)
+import Database.Relational.Query.Monad.Type (QueryCore)
 
 
 -- | Aggregated query monad type.

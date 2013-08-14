@@ -1,5 +1,5 @@
 -- |
--- Module      : Database.Relational.Query.Monad.Core
+-- Module      : Database.Relational.Query.Monad.Type
 -- Copyright   : 2013 Kei Hibino
 -- License     : BSD3
 --
@@ -8,7 +8,7 @@
 -- Portability : unknown
 --
 -- This module defines core query type.
-module Database.Relational.Query.Monad.Core (
+module Database.Relational.Query.Monad.Type (
   -- * Core query monad
   QueryCore
   ) where

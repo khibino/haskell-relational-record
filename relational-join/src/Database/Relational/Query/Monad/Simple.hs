@@ -34,7 +34,7 @@ import Database.Relational.Query.Monad.Trans.Restrict
   (restrict, WhereAppend, appendWhere, extractWheres)
 import Database.Relational.Query.Monad.Trans.Ordering
   (Orderings, orderings, OrderedQuery, OrderByAppend, appendOrderBy, extractOrderBys)
-import Database.Relational.Query.Monad.Core (QueryCore)
+import Database.Relational.Query.Monad.Type (QueryCore)
 
 import Database.Relational.Query.Sub (SubQuery, subQuery)
 
