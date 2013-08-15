@@ -44,7 +44,9 @@ library
                        Database.Relational.Query.Monad.Type
                        Database.Relational.Query.Monad.Simple
                        Database.Relational.Query.Monad.Aggregate
+                       Database.Relational.Query.Monad.Restrict
                        Database.Relational.Query.Relation
+                       Database.Relational.Query.Restriction
                        Database.Relational.Query.Type
                        Database.Relational.Query.Derives
                        Database.Relational.Query.TH

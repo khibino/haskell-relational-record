@@ -7,18 +7,32 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- This module defines Query type with type parameter
--- which specifies place-holder parameter type and query result type.
+-- This module defines typed SQL.
 module Database.Relational.Query.Type (
-  Query (untypeQuery), unsafeTypedQuery, fromRelation,
+  -- * Typed query statement
+  Query (untypeQuery), unsafeTypedQuery,
 
+  relationQuery,
+  fromRelation,
+
+  -- * Typed update statement
   Update(untypeUpdate), unsafeTypedUpdate, typedUpdate,
-  Insert(untypeInsert), unsafeTypedInsert, typedInsert
+
+  restrictedUpdate,
+
+  -- * Typed insert statement
+  Insert(untypeInsert), unsafeTypedInsert, typedInsert,
+
+  -- * Typed delete statement
+  Delete(untypeDelete), unsafeTypedDelete,
+
+  restrictedDelete
   ) where
 
 import Database.Relational.Query.Relation (Relation, sqlFromRelation)
+import Database.Relational.Query.Restriction (Restriction, sqlWhereFromRestriction)
 import Database.Relational.Query.Table (Table)
-import Database.Relational.Query.SQL (updateSQL, insertSQL)
+import Database.Relational.Query.SQL (updateSQL, insertSQL, updateAllColumnsSQL, deleteSQL)
 
 
 -- | Query type with place-holder parameter 'p' and query result type 'a'.
@@ -33,9 +47,14 @@ unsafeTypedQuery =  Query
 instance Show (Query p a) where
   show = untypeQuery
 
--- | From 'Relation' into type 'Query'.
+-- | From 'Relation' into typed 'Query'.
+relationQuery :: Relation p r -> Query p r
+relationQuery =  unsafeTypedQuery . sqlFromRelation
+
+{-# DEPRECATED fromRelation "Use relationQuery instead of this." #-}
+-- | From 'Relation' into typed 'Query'.
 fromRelation :: Relation p r -> Query p r
-fromRelation =  unsafeTypedQuery . sqlFromRelation
+fromRelation =  relationQuery
 
 
 -- | Update type with place-holder parameter 'p' and update record type 'a'.
@@ -53,6 +72,10 @@ typedUpdate tbl = unsafeTypedUpdate . updateSQL tbl
 instance Show (Update p a) where
   show = untypeUpdate
 
+restrictedUpdate :: Table r -> Restriction p r -> Update p r
+restrictedUpdate tbl r = unsafeTypedUpdate . updateAllColumnsSQL tbl
+                         . sqlWhereFromRestriction tbl r $ ""
+
 
 -- | Insert type to insert record type 'a'.
 newtype Insert a   = Insert { untypeInsert :: String }
@@ -68,3 +91,19 @@ typedInsert =  unsafeTypedInsert . insertSQL
 -- | Show insert SQL string
 instance Show (Insert a) where
   show = untypeInsert
+
+
+-- | Delete type with place-holder parameter 'p' and delete record type 'a'.
+newtype Delete p a = Delete { untypeDelete :: String }
+
+-- | Unsafely make typed 'Delete' from SQL string.
+unsafeTypedDelete :: String -> Delete p a
+unsafeTypedDelete =  Delete
+
+-- | Show delete SQL string
+instance Show (Delete p a) where
+  show = untypeDelete
+
+restrictedDelete :: Table r -> Restriction p r -> Delete p a
+restrictedDelete tbl r = unsafeTypedDelete . deleteSQL tbl
+                         . sqlWhereFromRestriction tbl r $ ""

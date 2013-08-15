@@ -11,7 +11,7 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- This module defines definitions about aggregated query type.
+-- This module contains definitions about aggregated query type.
 module Database.Relational.Query.Monad.Aggregate (
   -- * Aggregated Query
   QueryAggregate,

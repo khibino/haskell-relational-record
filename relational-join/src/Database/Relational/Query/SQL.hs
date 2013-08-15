@@ -71,15 +71,14 @@ updateSQL tbl = updateSQL' (name tbl) (columns tbl)
 
 -- | Generate all column update SQL by specified table.
 --   Columns name list of table are also required.
-updateAllColumnsSQL' :: String -> [String] -> String
+updateAllColumnsSQL' :: String -> [String] -> ShowS
 updateAllColumnsSQL' table cols =
-  SQL.unwordsSQL
-  $ [UPDATE, SQL.word table, SET, updAssigns `SQL.sepBy` ", "]
+  (SQL.unwordsSQL [UPDATE, SQL.word table, SET, updAssigns `SQL.sepBy` ", "] ++)
   where
     updAssigns = [ SQL.word c .=. "?" | c <- cols ]
 
 -- | Generate all column update SQL by specified table.
-updateAllColumnsSQL :: Table r -> String
+updateAllColumnsSQL :: Table r -> ShowS
 updateAllColumnsSQL tbl = updateAllColumnsSQL' (name tbl) (columns tbl)
 
 -- | Generate insert SQL.
@@ -98,11 +97,9 @@ insertSQL :: Table r -- ^ Table metadata
           -> String  -- ^ Result SQL
 insertSQL tbl = insertSQL' (name tbl) (columns tbl)
 
-deleteSQL' :: String -> String
-deleteSQL' table =
-  SQL.unwordsSQL
-  $ [DELETE, FROM, SQL.word table]
+deleteSQL' :: String -> ShowS
+deleteSQL' table = (SQL.unwordsSQL [DELETE, FROM, SQL.word table] ++)
 
 deleteSQL :: Table r -- ^ Table metadata
-          -> String  -- ^ Result SQL
+          -> ShowS   -- ^ Result SQL
 deleteSQL = deleteSQL' . name

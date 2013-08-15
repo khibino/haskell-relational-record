@@ -11,7 +11,7 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- This module defines definitions about simple (not-aggregated) query type.
+-- This module contains definitions about simple (not-aggregated) query type.
 module Database.Relational.Query.Monad.Simple (
   -- * Simple query
   QuerySimple, SimpleQuery,
@@ -42,7 +42,7 @@ import Database.Relational.Query.Sub (SubQuery, subQuery)
 -- | Simple query (not-aggregated) monad type.
 type QuerySimple = Orderings Projection QueryCore
 
--- | Simple query (not-aggregated) query type. SimpleQuery r == QuerySimple (Projection r).
+-- | Simple query (not-aggregated) query type. 'SimpleQuery' r == 'QuerySimple' ('Projection' r).
 type SimpleQuery r = OrderedQuery Projection QueryCore r
 
 -- | Lift from qualified table forms into 'QuerySimple'.
