@@ -8,7 +8,7 @@
 -- Portability : unknown
 --
 -- This module provides context definition for
--- "Database.Relational.Query.Monad.Trans.Restrict".
+-- "Database.Relational.Query.Monad.Trans.Restricting".
 module Database.Relational.Query.Monad.Trans.RestrictState (
   -- * Context of restriction
   RestrictContext,

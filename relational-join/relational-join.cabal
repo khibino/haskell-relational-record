@@ -39,7 +39,7 @@ library
                        Database.Relational.Query.Monad.Class
                        Database.Relational.Query.Monad.Trans.Ordering
                        Database.Relational.Query.Monad.Trans.Aggregating
-                       Database.Relational.Query.Monad.Trans.Restrict
+                       Database.Relational.Query.Monad.Trans.Restricting
                        Database.Relational.Query.Monad.Trans.Join
                        Database.Relational.Query.Monad.Type
                        Database.Relational.Query.Monad.Simple

@@ -1,7 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 -- |
--- Module      : Database.Relational.Query.Monad.Trans.Restrict
+-- Module      : Database.Relational.Query.Monad.Trans.Restricting
 -- Copyright   : 2013 Kei Hibino
 -- License     : BSD3
 --
@@ -10,7 +10,7 @@
 -- Portability : unknown
 --
 -- This module defines monad transformer which lift to basic 'MonadQuery'.
-module Database.Relational.Query.Monad.Trans.Restrict (
+module Database.Relational.Query.Monad.Trans.Restricting (
   -- * Transformer into restricted context
   Restrict, restrict,
 

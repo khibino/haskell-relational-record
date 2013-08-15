@@ -30,7 +30,7 @@ import Database.Relational.Query.Monad.Qualify (Qualify)
 import Database.Relational.Query.Monad.Class (MonadQualify(..))
 import Database.Relational.Query.Monad.Trans.Join
   (join', FromPrepend, prependFrom, extractFrom)
-import Database.Relational.Query.Monad.Trans.Restrict
+import Database.Relational.Query.Monad.Trans.Restricting
   (restrict, WherePrepend, prependWhere, extractWheres)
 import Database.Relational.Query.Monad.Trans.Ordering
   (Orderings, orderings, OrderedQuery, OrderByPrepend, prependOrderBy, extractOrderBys)

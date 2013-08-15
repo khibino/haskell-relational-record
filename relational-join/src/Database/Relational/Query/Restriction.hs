@@ -22,7 +22,7 @@ import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable (PlaceHolders)
 
-import Database.Relational.Query.Monad.Trans.Restrict (prependWhere)
+import Database.Relational.Query.Monad.Trans.Restricting (prependWhere)
 import Database.Relational.Query.Monad.Restrict (Restrict, expandWhere)
 
 -- | Restriction type with place-holder parameter 'p' and projection record type 'r'.
