@@ -65,7 +65,7 @@ library
                        Database.Relational.Query.Monad.Trans.StatePrepend
                        Database.Relational.Query.Monad.Trans.RestrictState
                        Database.Relational.Query.Monad.Trans.JoinState
-                       Database.Relational.Query.Monad.Trans.AggregateState
+                       Database.Relational.Query.Monad.Trans.AggregatingState
                        Database.Relational.Query.Monad.Trans.OrderingState
                        Database.Relational.Query.Monad.Qualify
 

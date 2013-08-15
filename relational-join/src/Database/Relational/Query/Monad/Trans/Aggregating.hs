@@ -25,9 +25,9 @@ import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second)
 
 import Database.Relational.Query.Monad.Trans.StatePrepend (Prepend, prepend, liftToString)
-import Database.Relational.Query.Monad.Trans.AggregateState
+import Database.Relational.Query.Monad.Trans.AggregatingState
   (AggregatingContext, primeAggregatingContext, addGroupBy, composeGroupBys)
-import qualified Database.Relational.Query.Monad.Trans.AggregateState as State
+import qualified Database.Relational.Query.Monad.Trans.AggregatingState as State
 import Database.Relational.Query.Expr (Expr)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection

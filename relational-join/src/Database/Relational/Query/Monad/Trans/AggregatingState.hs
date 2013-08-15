@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 -- |
--- Module      : Database.Relational.Query.Monad.Trans.AggregateState
+-- Module      : Database.Relational.Query.Monad.Trans.AggregatingState
 -- Copyright   : 2013 Kei Hibino
 -- License     : BSD3
 --
@@ -11,7 +11,7 @@
 --
 -- This module provides state definition for
 -- "Database.Relational.Query.Monad.Trans.Aggregate".
-module Database.Relational.Query.Monad.Trans.AggregateState (
+module Database.Relational.Query.Monad.Trans.AggregatingState (
   -- * Context of aggregated query
   AggregatingContext,
 
