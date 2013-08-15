@@ -55,7 +55,7 @@ runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a, ToSql SqlValue p)
             => conn -> Relation p a -> p -> IO ()
 runAndPrint conn rel param = do
   putStrLn $ "SQL: " ++ sqlFromRelation rel
-  records  <- runQuery conn param (fromRelation rel)
+  records  <- runQuery conn param (relationalQuery rel)
   mapM_ print records
   putStrLn ""
 

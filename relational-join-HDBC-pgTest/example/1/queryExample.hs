@@ -14,9 +14,10 @@ import Group (Group, group)
 import Membership (Membership, groupId', userId', membership)
 
 import PgTestDataSource (connect)
+import Database.HDBC.Record.Statement
+  (ExecutedStatement, bindTo, execute)
 import Database.HDBC.Record.Query
-  (ExecutedStatement,
-   runQuery, prepare, bindTo, execute, fetchUnique, fetchUnique')
+  (runQuery, prepare, fetchUnique, fetchUnique')
 import Database.HDBC.Session (withConnectionIO, handleSqlError')
 
 
@@ -216,7 +217,7 @@ runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a, ToSql SqlValue p)
             => conn -> Relation p a -> p -> IO ()
 runAndPrint conn rel param = do
   putStrLn $ "SQL: " ++ sqlFromRelation rel
-  records  <- runQuery conn param (fromRelation rel)
+  records  <- runQuery conn param (relationalQuery rel)
   mapM_ print records
   putStrLn ""
 
@@ -242,7 +243,7 @@ run =  handleSqlError' $ withConnectionIO connect
 runU :: Show a => (ExecutedStatement (User, Group) -> IO a) -> IO ()
 runU f = handleSqlError' $ withConnectionIO connect
         (\conn -> do
-            pq <- prepare conn (fromRelation userGroupU)
+            pq <- prepare conn (relationalQuery userGroupU)
             let bs = ("Kei Hibino", "Haskell") `bindTo` pq
             es <- execute bs
             r  <- f es
