@@ -12,11 +12,7 @@
 -- This module provides typed 'Query' running sequence
 -- which intermediate structres are typed.
 module Database.HDBC.Record.Query (
-  PreparedQuery, prepare,
-
-  BoundStatement, bindTo', bindTo,
-
-  ExecutedStatement, executed, result, execute,
+  PreparedQuery, prepare, prepareQuery,
 
   fetch, fetchAll, fetchAll',
   listToUnique, fetchUnique, fetchUnique',
@@ -31,62 +27,31 @@ import Database.HDBC (IConnection, Statement, SqlValue)
 import qualified Database.HDBC as HDBC
 
 import Database.Relational.Query (Query, untypeQuery)
-
 import Database.Record
-  (RecordToSql, ToSql(recordToSql), runFromRecord,
-   RecordFromSql, FromSql(recordFromSql), runToRecord)
+  (ToSql, RecordFromSql, FromSql(recordFromSql), runToRecord)
+
+import Database.HDBC.Record.Statement
+  (unsafePrepare, PreparedStatement,
+   bindTo, BoundStatement,
+   execute, ExecutedStatement, executed)
 
 
--- | Typed prepared statement type.
-newtype PreparedQuery p a =
-  PreparedQuery {
-    -- | Untyped prepared statement before executed.
-    prepared :: Statement
-    }
+-- | Typed prepared query type.
+type PreparedQuery p a = PreparedStatement p a
 
--- | Typed prepared statement which has bound placeholder parameters.
-data BoundStatement a =
-  BoundStatement
-  {
-    -- | Untyped prepared statement before executed.
-    bound  :: Statement
-    -- | Bound parameters.
-  , params :: [SqlValue]
-  }
-
--- | Typed executed statement.
-data ExecutedStatement a =
-  ExecutedStatement
-  { -- | Untyped executed statement.
-    executed :: Statement
-    -- | Result of HDBC execute.
-  , result   :: Integer
-  }
-
--- | Typed prepare operation.
+-- | Typed prepare query operation.
 prepare :: IConnection conn
         => conn                   -- ^ Database connection
         -> Query p a              -- ^ Typed query
         -> IO (PreparedQuery p a) -- ^ Result typed prepared query with parameter type 'p' and result type 'a'
-prepare conn = fmap PreparedQuery . HDBC.prepare conn . untypeQuery
+prepare conn = unsafePrepare conn . untypeQuery
 
--- | Typed operation to bind parameters.
-bindTo' :: RecordToSql SqlValue p -- ^ Proof object to convert from parameter type 'p' into 'SqlValue' list.
-        -> p                      -- ^ Parameter to bind
-        -> PreparedQuery p a      -- ^ Prepared query to bind to
-        -> BoundStatement a       -- ^ Result parameter bound statement
-bindTo' toSql p q = BoundStatement { bound = prepared q, params = runFromRecord toSql p }
-
--- | Typed operation to bind parameters. Infered 'RecordToSql' is used.
-bindTo :: ToSql SqlValue p => p -> PreparedQuery p a -> BoundStatement a
-bindTo =  bindTo' recordToSql
-
--- | Typed execute operation.
-execute :: BoundStatement a -> IO (ExecutedStatement a)
-execute bs = do
-  let stmt = bound bs
-  n <- HDBC.execute stmt (params bs)
-  return $ ExecutedStatement stmt n
+-- | Same as 'prepare'.
+prepareQuery :: IConnection conn
+             => conn                   -- ^ Database connection
+             -> Query p a              -- ^ Typed query
+             -> IO (PreparedQuery p a) -- ^ Result typed prepared query with parameter type 'p' and result type 'a'
+prepareQuery = prepare
 
 -- | Polymorphic fetch operation.
 fetchRecordsExplicit :: Functor f
