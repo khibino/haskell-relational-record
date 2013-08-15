@@ -61,26 +61,26 @@ import qualified Database.Relational.Query.Sub as SubQuery
 
 
 -- | Relation type with place-holder parameter 'p' and query result type 'r'.
-data Relation p r = SubQuery SubQuery
+data Relation p r = SubQuery (Qualify SubQuery)
                   | SimpleRel (SimpleQuery r)
                   | AggregateRel (AggregatedQuery r)
 
 
 -- | Simple 'Relation' from 'Table'.
 table :: Table r -> Relation () r
-table =  SubQuery . SubQuery.fromTable
+table =  SubQuery . return . SubQuery.fromTable
 
 
 -- | Sub-query Qualify monad from relation.
 subQueryQualifyFromRelation :: Relation p r -> Qualify SubQuery
 subQueryQualifyFromRelation =  d  where
-  d (SubQuery sub)    = return $ sub
+  d (SubQuery qsub)   = qsub
   d (SimpleRel qp)    = Simple.toSubQuery qp
   d (AggregateRel qp) = Aggregate.toSubQuery qp
 
--- | Sub-query from relation.
-subQueryFromRelation :: Relation p r -> SubQuery
-subQueryFromRelation =  evalQualifyPrime . subQueryQualifyFromRelation
+-- -- | Sub-query from relation.
+-- subQueryFromRelation :: Relation p r -> SubQuery
+-- subQueryFromRelation =  evalQualifyPrime . subQueryQualifyFromRelation
 
 -- | Basic monadic join operation using 'MonadQuery'.
 queryWithAttr :: MonadQualify Qualify m
@@ -239,9 +239,10 @@ unsafeLiftAppend :: (SubQuery -> SubQuery -> SubQuery)
            -> Relation p a
            -> Relation q a
            -> Relation r a
-unsafeLiftAppend op a0 a1 = SubQuery $ s0 `op` s1  where
-  s0 = subQueryFromRelation a0
-  s1 = subQueryFromRelation a1
+unsafeLiftAppend op a0 a1 = SubQuery $ do
+  s0 <- subQueryQualifyFromRelation a0
+  s1 <- subQueryQualifyFromRelation a1
+  return $ s0 `op` s1
 
 liftAppend :: (SubQuery -> SubQuery -> SubQuery)
            -> Relation () a
@@ -284,7 +285,7 @@ infixl 7 `union`, `except`, `intersect`, `union'`, `except'`, `intersect'`
 -- | SQL string with qualify computation from 'Relation'.
 sqlQualifyFromRelation :: Relation p r -> Qualify String
 sqlQualifyFromRelation =  d  where
-  d (SubQuery sub)    = return $ SubQuery.toSQL sub
+  d (SubQuery qsub)   = SubQuery.toSQL `fmap` qsub
   d (SimpleRel qp)    = Simple.toSQL qp
   d (AggregateRel qp) = Aggregate.toSQL qp
 
