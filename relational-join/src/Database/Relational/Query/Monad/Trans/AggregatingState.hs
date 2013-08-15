@@ -10,7 +10,7 @@
 -- Portability : unknown
 --
 -- This module provides state definition for
--- "Database.Relational.Query.Monad.Trans.Aggregate".
+-- "Database.Relational.Query.Monad.Trans.Aggregating".
 module Database.Relational.Query.Monad.Trans.AggregatingState (
   -- * Context of aggregated query
   AggregatingContext,
