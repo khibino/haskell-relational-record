@@ -25,7 +25,7 @@ import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second)
 
 import Database.Relational.Query.Monad.Trans.StatePrepend (Prepend, prepend, liftToString)
-import Database.Relational.Query.Monad.Trans.RestrictState
+import Database.Relational.Query.Monad.Trans.RestrictingState
   (RestrictContext, primeRestrictContext, addRestriction, composeWheres)
 import Database.Relational.Query.Projection (Projection)
 import Database.Relational.Query.Expr (Expr)

@@ -1,5 +1,5 @@
 -- |
--- Module      : Database.Relational.Query.Monad.Trans.RestrictState
+-- Module      : Database.Relational.Query.Monad.Trans.RestrictingState
 -- Copyright   : 2013 Kei Hibino
 -- License     : BSD3
 --
@@ -9,7 +9,7 @@
 --
 -- This module provides context definition for
 -- "Database.Relational.Query.Monad.Trans.Restricting".
-module Database.Relational.Query.Monad.Trans.RestrictState (
+module Database.Relational.Query.Monad.Trans.RestrictingState (
   -- * Context of restriction
   RestrictContext,
 
