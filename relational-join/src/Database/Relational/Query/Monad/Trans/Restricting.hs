@@ -12,7 +12,7 @@
 -- This module defines monad transformer which lift to basic 'MonadQuery'.
 module Database.Relational.Query.Monad.Trans.Restricting (
   -- * Transformer into restricted context
-  Restrict, restrict,
+  Restrictings, restrictings,
 
   -- * Result SQL wheres clause
   extractWheres,
@@ -34,50 +34,50 @@ import Database.Relational.Query.Monad.Class (MonadRestrict(..), MonadQuery (..)
 
 
 -- | 'StateT' type to accumulate join product context.
-newtype Restrict m a =
-  Restrict { queryState :: StateT RestrictContext m a }
+newtype Restrictings m a =
+  Restrictings { queryState :: StateT RestrictContext m a }
   deriving (MonadTrans, Monad, Functor, Applicative)
 
--- | Run 'Restrict' to expand context state.
-runRestrict :: Restrict m a  -- ^ RestrictContext to expand
+-- | Run 'Restrictings' to expand context state.
+runRestrictings :: Restrictings m a  -- ^ RestrictContext to expand
              -> RestrictContext        -- ^ Initial context
              -> m (a, RestrictContext) -- ^ Expanded result
-runRestrict =  runStateT . queryState
+runRestrictings =  runStateT . queryState
 
--- | Run 'Restrict' with primary empty context to expand context state.
-runRestrictPrime :: Restrict m a           -- ^ RestrictContext to expand
+-- | Run 'Restrictings' with primary empty context to expand context state.
+runRestrictingsPrime :: Restrictings m a           -- ^ RestrictContext to expand
                  -> m (a, RestrictContext) -- ^ Expanded result
-runRestrictPrime q = runRestrict q primeRestrictContext
+runRestrictingsPrime q = runRestrictings q primeRestrictContext
 
--- | Lift to 'Restrict'
-restrict :: Monad m => m a -> Restrict m a
-restrict =  lift
+-- | Lift to 'Restrictings'
+restrictings :: Monad m => m a -> Restrictings m a
+restrictings =  lift
 
 -- | Unsafely update join product context.
-updateRestrictContext :: Monad m => (RestrictContext -> RestrictContext) -> Restrict m ()
-updateRestrictContext =  Restrict . modify
+updateRestrictContext :: Monad m => (RestrictContext -> RestrictContext) -> Restrictings m ()
+updateRestrictContext =  Restrictings . modify
 
 -- | Add whole query restriction.
-updateRestriction :: Monad m => Expr Projection (Maybe Bool) -> Restrict m ()
+updateRestriction :: Monad m => Expr Projection (Maybe Bool) -> Restrictings m ()
 updateRestriction e = updateRestrictContext (addRestriction e)
 
 -- | 'MonadRestrict' instance.
-instance (Monad q, Functor q) => MonadRestrict (Restrict q) where
+instance (Monad q, Functor q) => MonadRestrict (Restrictings q) where
   restrictContext = updateRestriction
 
 -- | Restricted 'MonadQuery' instance.
-instance MonadQuery q => MonadQuery (Restrict q) where
-  restrictJoin     = restrict . restrictJoin
-  unsafeSubQuery a = restrict . unsafeSubQuery a
+instance MonadQuery q => MonadQuery (Restrictings q) where
+  restrictJoin     = restrictings . restrictJoin
+  unsafeSubQuery a = restrictings . unsafeSubQuery a
 
 -- | WHERE clause prepending function.
 type WherePrepend = Prepend RestrictContext
 
--- | Run 'Restricts' to get WHERE clause prepending function.
+-- | Run 'Restrictings' to get WHERE clause prepending function.
 extractWheres :: (Monad m, Functor m)
-              => Restrict m a         -- ^ 'Restrict' to run
+              => Restrictings m a         -- ^ 'Restrictings' to run
               -> m (a,  WherePrepend) -- ^ WHERE clause prepending function.
-extractWheres r = second (liftToString composeWheres) <$> runRestrictPrime r
+extractWheres r = second (liftToString composeWheres) <$> runRestrictingsPrime r
 
 -- | Run WHERE clause prepend.
 prependWhere :: WherePrepend -> String -> String

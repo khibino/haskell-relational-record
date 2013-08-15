@@ -19,12 +19,11 @@ module Database.Relational.Query.Monad.Restrict (
 import Data.Functor.Identity (Identity (..), runIdentity)
 
 import Database.Relational.Query.Monad.Trans.Restricting
-  (WherePrepend, extractWheres)
-import qualified Database.Relational.Query.Monad.Trans.Restricting as Trans
+  (Restrictings, WherePrepend, extractWheres)
 
 
 -- | Restrict only monad type used from update statement and delete statement.
-type Restrict = Trans.Restrict Identity
+type Restrict = Restrictings Identity
 
 -- -- | 'return' of 'Restrict'
 -- restricted :: a -> Restrict a

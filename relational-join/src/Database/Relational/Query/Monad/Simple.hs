@@ -31,7 +31,7 @@ import Database.Relational.Query.Monad.Class (MonadQualify(..))
 import Database.Relational.Query.Monad.Trans.Join
   (join', FromPrepend, prependFrom, extractFrom)
 import Database.Relational.Query.Monad.Trans.Restricting
-  (restrict, WherePrepend, prependWhere, extractWheres)
+  (restrictings, WherePrepend, prependWhere, extractWheres)
 import Database.Relational.Query.Monad.Trans.Ordering
   (Orderings, orderings, OrderedQuery, OrderByPrepend, prependOrderBy, extractOrderBys)
 import Database.Relational.Query.Monad.Type (QueryCore)
@@ -47,7 +47,7 @@ type SimpleQuery r = OrderedQuery Projection QueryCore r
 
 -- | Lift from qualified table forms into 'QuerySimple'.
 simple :: Qualify a -> QuerySimple a
-simple =  orderings . restrict . join'
+simple =  orderings . restrictings . join'
 
 -- | Instance to lift from qualified table forms into 'QuerySimple'.
 instance MonadQualify Qualify (Orderings Projection QueryCore) where
