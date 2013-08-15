@@ -27,6 +27,7 @@ library
                        Database.HDBC.Record.Statement
                        Database.HDBC.Record.Query
                        Database.HDBC.Record.Insert
+                       Database.HDBC.Record.Delete
                        Database.HDBC.Query.TH
                        Database.HDBC.SqlValueExtra
                        Database.HDBC.Schema.Driver
