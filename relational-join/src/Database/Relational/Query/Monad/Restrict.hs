@@ -13,7 +13,7 @@ module Database.Relational.Query.Monad.Restrict (
   Restrict,
 
   -- restricted,
-  expandPrepend
+  expandWhere
   ) where
 
 import Data.Functor.Identity (Identity (..), runIdentity)
@@ -31,5 +31,5 @@ type Restrict = Trans.Restrict Identity
 -- restricted =  restrict . Identity
 
 -- | Run 'Restrict' to get SQL WHERE clause.
-expandPrepend :: Restrict a -> (a, WherePrepend)
-expandPrepend =  runIdentity . extractWheres
+expandWhere :: Restrict a -> (a, WherePrepend)
+expandWhere =  runIdentity . extractWheres

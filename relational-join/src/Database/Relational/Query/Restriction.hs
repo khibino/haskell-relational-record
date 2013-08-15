@@ -23,7 +23,7 @@ import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable (PlaceHolders)
 
 import Database.Relational.Query.Monad.Trans.Restrict (prependWhere)
-import Database.Relational.Query.Monad.Restrict (Restrict, expandPrepend)
+import Database.Relational.Query.Monad.Restrict (Restrict, expandWhere)
 
 -- | Restriction type with place-holder parameter 'p' and projection record type 'r'.
 newtype Restriction p r = Restriction (Projection r -> Restrict ())
@@ -39,4 +39,4 @@ restriction'  = Restriction . (fmap (const ()) .)
 -- | SQL WHERE clause 'ShowS' string from 'Restriction'.
 sqlWhereFromRestriction :: Table r -> Restriction p r -> ShowS
 sqlWhereFromRestriction tbl (Restriction q) = prependWhere aw
-  where (_ph, aw) = expandPrepend (q $ Projection.unsafeFromTable tbl)
+  where (_ph, aw) = expandWhere (q $ Projection.unsafeFromTable tbl)
