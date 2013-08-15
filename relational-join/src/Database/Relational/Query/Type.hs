@@ -94,18 +94,18 @@ instance Show (Insert a) where
   show = untypeInsert
 
 
--- | Delete type with place-holder parameter 'p' and delete record type 'a'.
-newtype Delete p a = Delete { untypeDelete :: String }
+-- | Delete type with place-holder parameter 'p'.
+newtype Delete p = Delete { untypeDelete :: String }
 
 -- | Unsafely make typed 'Delete' from SQL string.
-unsafeTypedDelete :: String -> Delete p a
+unsafeTypedDelete :: String -> Delete p
 unsafeTypedDelete =  Delete
 
 -- | Show delete SQL string
-instance Show (Delete p a) where
+instance Show (Delete p) where
   show = untypeDelete
 
 -- | Make typed 'Delete' from 'Table' and 'Restriction'.
-restrictedDelete :: Table r -> Restriction p r -> Delete p a
+restrictedDelete :: Table r -> Restriction p r -> Delete p
 restrictedDelete tbl r = unsafeTypedDelete . deleteSQL tbl
                          . sqlWhereFromRestriction tbl r $ ""
