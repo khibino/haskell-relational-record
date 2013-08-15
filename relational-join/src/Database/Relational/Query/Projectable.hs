@@ -42,7 +42,7 @@ module Database.Relational.Query.Projectable (
 
   (.||.), (.||?),
   (.+.), (.-.), (./.), (.*.),
-  (.+?), (.-?), (./?), (.*?),
+  (?+?), (?-?), (?/?), (?*?),
 
   -- * Zipping projections
   ProjectableZip (projectZip), (><),
@@ -319,24 +319,24 @@ monoBinOp' = monoBinOp . sqlBinOp
 (.*.) =  monoBinOp' "*"
 
 -- | Number operator corresponding SQL /+/ .
-(.+?) :: (SqlProjectable p, ProjectableShowSql p, Num a)
+(?+?) :: (SqlProjectable p, ProjectableShowSql p, Num a)
   => p (Maybe a) -> p (Maybe a) -> p (Maybe a)
-(.+?) =  monoBinOp' "+"
+(?+?) =  monoBinOp' "+"
 
 -- | Number operator corresponding SQL /-/ .
-(.-?) :: (SqlProjectable p, ProjectableShowSql p, Num a)
+(?-?) :: (SqlProjectable p, ProjectableShowSql p, Num a)
   => p (Maybe a) -> p (Maybe a) -> p (Maybe a)
-(.-?) =  monoBinOp' "-"
+(?-?) =  monoBinOp' "-"
 
 -- | Number operator corresponding SQL /// .
-(./?) :: (SqlProjectable p, ProjectableShowSql p, Num a)
+(?/?) :: (SqlProjectable p, ProjectableShowSql p, Num a)
   => p (Maybe a) -> p (Maybe a) -> p (Maybe a)
-(./?) =  monoBinOp' "/"
+(?/?) =  monoBinOp' "/"
 
 -- | Number operator corresponding SQL /*/ .
-(.*?) :: (SqlProjectable p, ProjectableShowSql p, Num a)
+(?*?) :: (SqlProjectable p, ProjectableShowSql p, Num a)
   => p (Maybe a) -> p (Maybe a) -> p (Maybe a)
-(.*?) =  monoBinOp' "*"
+(?*?) =  monoBinOp' "*"
 
 -- | Binary operator corresponding SQL /IN/ .
 in' :: (SqlProjectable p, ProjectableShowSql p)
@@ -447,8 +447,8 @@ instance ProjectableIdZip PlaceHolders where
   rightId = unsafeCastPlaceHolders
 
 
-infixl 7 .*., ./., .*?, ./?
-infixl 6 .+., .-., .+?, .-?
+infixl 7 .*., ./., ?*?, ?/?
+infixl 6 .+., .-., ?+?, ?-?
 infixl 5 .||., .||?
 infix  4 .=., .<>., .>., .>=., .<., .<=., `in'`
 infixr 3 `and`
