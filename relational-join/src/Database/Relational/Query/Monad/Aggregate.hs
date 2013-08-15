@@ -35,7 +35,7 @@ import Database.Relational.Query.Monad.Trans.Join
   (join', FromPrepend, prependFrom, extractFrom)
 import Database.Relational.Query.Monad.Trans.Restrict
   (restrict, WherePrepend, prependWhere, extractWheres)
-import Database.Relational.Query.Monad.Trans.Aggregate
+import Database.Relational.Query.Monad.Trans.Aggregating
   (Aggregatings, aggregate, GroupBysPrepend, prependGroupBys, extractGroupBys)
 import Database.Relational.Query.Monad.Trans.Ordering
   (Orderings, orderings, OrderedQuery, OrderByPrepend, prependOrderBy, extractOrderBys)

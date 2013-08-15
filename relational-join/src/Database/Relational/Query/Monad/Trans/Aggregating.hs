@@ -1,7 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 -- |
--- Module      : Database.Relational.Query.Monad.Trans.Aggregate
+-- Module      : Database.Relational.Query.Monad.Trans.Aggregating
 -- Copyright   : 2013 Kei Hibino
 -- License     : BSD3
 --
@@ -11,7 +11,7 @@
 --
 -- This module defines monad transformer which lift
 -- from 'MonadQuery' into Aggregated query.
-module Database.Relational.Query.Monad.Trans.Aggregate (
+module Database.Relational.Query.Monad.Trans.Aggregating (
   -- * Transformer into aggregated query
   Aggregatings, aggregate,
 
