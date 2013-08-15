@@ -74,7 +74,7 @@ import Database.Record.Instances ()
 
 import Database.Relational.Query
   (Table, Pi, Relation,
-   sqlFromRelation, Query, fromRelation, Update, Insert, typedInsert,
+   sqlFromRelation, Query, relationalQuery, Update, Insert, typedInsert,
    HasConstraintKey(constraintKey), projectionKey, Primary, NotNull)
 import qualified Database.Relational.Query as Query
 
@@ -247,7 +247,7 @@ definePrimaryQuery toDef' paramType recType relE = do
   let toDef = varName toDef'
   simpleValD toDef
     [t| Query $paramType $recType |]
-    [|  fromRelation (primary $relE) |]
+    [|  relationalQuery (primary $relE) |]
 
 -- | Template of derived primary 'Update'.
 definePrimaryUpdate :: VarName -- ^ Variable name of result declaration

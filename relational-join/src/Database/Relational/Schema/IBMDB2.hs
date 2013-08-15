@@ -26,7 +26,7 @@ import qualified Data.Map as Map
 import Data.Time (LocalTime, Day)
 import Language.Haskell.TH (TypeQ)
 
-import Database.Relational.Query.Type (fromRelation)
+import Database.Relational.Query.Type (relationalQuery)
 import Database.Relational.Query
   (Query, Relation, query, relation',
    wheres, (.=.), (!), (><), placeholder, asc, value)
@@ -88,7 +88,7 @@ columnsRelationFromTable =  relation' $ do
 
 -- | Phantom typed 'Query' to get 'Columns' from schema name and table name.
 columnsQuerySQL :: Query (String, String) Columns
-columnsQuerySQL =  fromRelation columnsRelationFromTable
+columnsQuerySQL =  relationalQuery columnsRelationFromTable
 
 
 -- | 'Relation' to query primary key name from schema name and table name.
@@ -116,4 +116,4 @@ primaryKeyRelation =  relation' $ do
 
 -- | Phantom typed 'Query' to get primary key name from schema name and table name.
 primaryKeyQuerySQL :: Query (String, String) String
-primaryKeyQuerySQL =  fromRelation primaryKeyRelation
+primaryKeyQuerySQL =  relationalQuery primaryKeyRelation

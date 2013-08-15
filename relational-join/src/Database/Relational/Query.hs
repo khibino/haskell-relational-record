@@ -55,7 +55,7 @@ import Database.Relational.Query.Monad.Aggregate (QueryAggregate, AggregatedQuer
 import Database.Relational.Query.Monad.Restrict (Restrict)
 import Database.Relational.Query.Relation
 import Database.Relational.Query.Type
-  (Query, untypeQuery, relationQuery, fromRelation,
+  (Query, untypeQuery, relationalQuery, fromRelation,
    Update, untypeUpdate, typedUpdate, restrictedUpdate,
    Insert, untypeInsert, typedInsert,
    Delete, untypeDelete, restrictedDelete)

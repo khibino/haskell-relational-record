@@ -12,7 +12,7 @@ module Database.Relational.Query.Type (
   -- * Typed query statement
   Query (untypeQuery), unsafeTypedQuery,
 
-  relationQuery,
+  relationalQuery,
   fromRelation,
 
   -- * Typed update statement
@@ -48,13 +48,13 @@ instance Show (Query p a) where
   show = untypeQuery
 
 -- | From 'Relation' into typed 'Query'.
-relationQuery :: Relation p r -> Query p r
-relationQuery =  unsafeTypedQuery . sqlFromRelation
+relationalQuery :: Relation p r -> Query p r
+relationalQuery =  unsafeTypedQuery . sqlFromRelation
 
-{-# DEPRECATED fromRelation "Use relationQuery instead of this." #-}
+{-# DEPRECATED fromRelation "Use relationalQuery instead of this." #-}
 -- | From 'Relation' into typed 'Query'.
 fromRelation :: Relation p r -> Query p r
-fromRelation =  relationQuery
+fromRelation =  relationalQuery
 
 
 -- | Update type with place-holder parameter 'p' and update record type 'a'.

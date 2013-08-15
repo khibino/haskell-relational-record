@@ -34,7 +34,7 @@ import Data.Time
   (DiffTime, NominalDiffTime,
    LocalTime, ZonedTime, Day, TimeOfDay)
 
-import Database.Relational.Query.Type (fromRelation)
+import Database.Relational.Query.Type (relationalQuery)
 import Database.Relational.Query
   (Query, Relation, query, query', relation', relation, union,
    wheres, (.=.), (.>.), in', values, (!), fst', snd',
@@ -159,7 +159,7 @@ columnRelation = relation' $ do
 
 -- | Phantom typed 'Query' to get 'Column' from schema name and table name.
 columnQuerySQL :: Query (String, String) Column
-columnQuerySQL =  fromRelation columnRelation
+columnQuerySQL =  relationalQuery columnRelation
 
 -- | 'Relation' to query primary key length from schema name and table name.
 primaryKeyLengthRelation :: Relation (String, String) Int32
@@ -174,7 +174,7 @@ primaryKeyLengthRelation =  relation' $ do
 
 -- | Phantom typed 'Query' to get primary key length from schema name and table name.
 primaryKeyLengthQuerySQL :: Query (String, String) Int32
-primaryKeyLengthQuerySQL =  fromRelation primaryKeyLengthRelation
+primaryKeyLengthQuerySQL =  relationalQuery primaryKeyLengthRelation
 
 -- | One column which is nth column of composite primary key.
 constraintColRelation :: Int32 -> Relation () (PgConstraint, (Int16, Int32))
@@ -209,4 +209,4 @@ primaryKeyRelation n = relation' $ do
 
 -- | Phantom typed 'Query' to get primary key name from schema name and table name.
 primaryKeyQuerySQL :: Int32 -> Query (String, String) String
-primaryKeyQuerySQL =  fromRelation . primaryKeyRelation
+primaryKeyQuerySQL =  relationalQuery . primaryKeyRelation
