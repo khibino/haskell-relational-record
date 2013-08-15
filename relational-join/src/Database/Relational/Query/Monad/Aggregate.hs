@@ -36,7 +36,7 @@ import Database.Relational.Query.Monad.Trans.Join
 import Database.Relational.Query.Monad.Trans.Restricting
   (restrictings, WherePrepend, prependWhere, extractWheres)
 import Database.Relational.Query.Monad.Trans.Aggregating
-  (Aggregatings, aggregate, GroupBysPrepend, prependGroupBys, extractGroupBys)
+  (Aggregatings, aggregatings, GroupBysPrepend, prependGroupBys, extractGroupBys)
 import Database.Relational.Query.Monad.Trans.Ordering
   (Orderings, orderings, OrderedQuery, OrderByPrepend, prependOrderBy, extractOrderBys)
 import Database.Relational.Query.Monad.Type (QueryCore)
@@ -50,7 +50,7 @@ type AggregatedQuery r = OrderedQuery Aggregation (Aggregatings QueryCore) r
 
 -- | Lift from qualified table forms into 'QueryAggregate'.
 aggregatedQuery :: Qualify a -> QueryAggregate a
-aggregatedQuery =  orderings . aggregate . restrictings . join'
+aggregatedQuery =  orderings . aggregatings . restrictings . join'
 
 -- | Instance to lift from qualified table forms into 'QueryAggregate'.
 instance MonadQualify Qualify (Orderings Aggregation (Aggregatings QueryCore)) where

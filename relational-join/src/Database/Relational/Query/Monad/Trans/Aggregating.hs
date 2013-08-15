@@ -13,7 +13,7 @@
 -- from 'MonadQuery' into Aggregated query.
 module Database.Relational.Query.Monad.Trans.Aggregating (
   -- * Transformer into aggregated query
-  Aggregatings, aggregate,
+  Aggregatings, aggregatings,
 
   -- * Result group by SQLs
   GroupBysPrepend, extractGroupBys, prependGroupBys
@@ -55,17 +55,17 @@ runAggregatingPrime :: Aggregatings m a          -- ^ Context to expand
 runAggregatingPrime =  (`runAggregating` primeAggregatingContext)
 
 -- | Lift to 'Aggregatings'.
-aggregate :: Monad m => m a -> Aggregatings m a
-aggregate =  lift
+aggregatings :: Monad m => m a -> Aggregatings m a
+aggregatings =  lift
 
 -- | Aggregated 'MonadRestrict'.
 instance MonadRestrict m => MonadRestrict (Aggregatings m) where
-  restrictContext =  aggregate . restrictContext
+  restrictContext =  aggregatings . restrictContext
 
 -- | Aggregated 'MonadQuery'.
 instance MonadQuery m => MonadQuery (Aggregatings m) where
-  restrictJoin  =  aggregate . restrictJoin
-  unsafeSubQuery na = aggregate . unsafeSubQuery na
+  restrictJoin  =  aggregatings . restrictJoin
+  unsafeSubQuery na = aggregatings . unsafeSubQuery na
 
 -- | Unsafely update aggregating context.
 updateAggregatingContext :: Monad m => (AggregatingContext -> AggregatingContext) -> Aggregatings m ()
