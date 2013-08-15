@@ -25,6 +25,7 @@ import Database.Relational.Query.Projectable (PlaceHolders)
 import Database.Relational.Query.Monad.Trans.Restrict (prependWhere)
 import Database.Relational.Query.Monad.Restrict (Restrict, expandPrepend)
 
+-- | Restriction type with place-holder parameter 'p' and projection record type 'r'.
 newtype Restriction p r = Restriction (Projection r -> Restrict ())
 
 -- | Finalize 'Restrict' monad and generate 'Restriction'.

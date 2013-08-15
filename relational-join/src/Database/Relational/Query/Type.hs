@@ -72,6 +72,7 @@ typedUpdate tbl = unsafeTypedUpdate . updateSQL tbl
 instance Show (Update p a) where
   show = untypeUpdate
 
+-- | Make typed 'Update' from 'Table' and 'Restriction'.
 restrictedUpdate :: Table r -> Restriction p r -> Update p r
 restrictedUpdate tbl r = unsafeTypedUpdate . updateAllColumnsSQL tbl
                          . sqlWhereFromRestriction tbl r $ ""
@@ -104,6 +105,7 @@ unsafeTypedDelete =  Delete
 instance Show (Delete p a) where
   show = untypeDelete
 
+-- | Make typed 'Delete' from 'Table' and 'Restriction'.
 restrictedDelete :: Table r -> Restriction p r -> Delete p a
 restrictedDelete tbl r = unsafeTypedDelete . deleteSQL tbl
                          . sqlWhereFromRestriction tbl r $ ""

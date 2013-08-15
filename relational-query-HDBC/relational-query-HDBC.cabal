@@ -24,6 +24,7 @@ library
                        Database.HDBC.Record.Persistable
                        Database.HDBC.Record.Singleton
                        Database.HDBC.Record.TH
+                       Database.HDBC.Record.Statement
                        Database.HDBC.Record.Query
                        Database.HDBC.Query.TH
                        Database.HDBC.SqlValueExtra

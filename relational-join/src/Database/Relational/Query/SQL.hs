@@ -97,9 +97,11 @@ insertSQL :: Table r -- ^ Table metadata
           -> String  -- ^ Result SQL
 insertSQL tbl = insertSQL' (name tbl) (columns tbl)
 
+-- | Generate all column delete SQL by specified table. Untyped table version.
 deleteSQL' :: String -> ShowS
 deleteSQL' table = (SQL.unwordsSQL [DELETE, FROM, SQL.word table] ++)
 
+-- | Generate all column delete SQL by specified table.
 deleteSQL :: Table r -- ^ Table metadata
           -> ShowS   -- ^ Result SQL
 deleteSQL = deleteSQL' . name
