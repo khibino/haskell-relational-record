@@ -34,7 +34,7 @@ import Database.Relational.Query.Constraint
    (Key, Primary, Unique, projectionKey, uniqueKey,
     HasConstraintKey(constraintKey))
 import qualified Database.Relational.Query.Constraint as Constraint
-import Database.Relational.Query.Type (Update, typedUpdate)
+import Database.Relational.Query.Type (KeyUpdate, typedKeyUpdate)
 
 
 -- | Query restricted with specified key.
@@ -68,14 +68,14 @@ primary :: HasConstraintKey Primary a p
 primary =  primary' constraintKey
 
 
--- | Typed 'Update' using specified key.
-updateByConstraintKey :: Table r    -- ^ 'Table' to update
-                      -> Key c r p  -- ^ Key with constraint 'c', record type 'r' and column type 'p'
-                      -> Update p r -- ^ Result typed 'Update'
-updateByConstraintKey table key = typedUpdate table (Constraint.indexes key)
+-- | Typed 'KeyUpdate' using specified key.
+updateByConstraintKey :: Table r       -- ^ 'Table' to update
+                      -> Key c r p     -- ^ Key with constraint 'c', record type 'r' and columns type 'p'
+                      -> KeyUpdate p r -- ^ Result typed 'Update'
+updateByConstraintKey table key = typedKeyUpdate table (Constraint.indexes key)
 
--- | Typed 'Update' using infered primary key.
+-- | Typed 'KeyUpdate' using infered primary key.
 primaryUpdate :: (HasConstraintKey Primary r p)
-              => Table r            -- ^ 'Table' to update
-              -> Update p r -- ^ Result typed 'Update'
+              => Table r       -- ^ 'Table' to update
+              -> KeyUpdate p r -- ^ Result typed 'Update'
 primaryUpdate table = updateByConstraintKey table (uniqueKey constraintKey)

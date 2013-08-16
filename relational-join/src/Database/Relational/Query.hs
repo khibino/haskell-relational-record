@@ -56,7 +56,8 @@ import Database.Relational.Query.Monad.Restrict (Restrict)
 import Database.Relational.Query.Relation
 import Database.Relational.Query.Type
   (Query, untypeQuery, relationalQuery, fromRelation,
-   Update, untypeUpdate, typedUpdate, restrictedUpdate,
+   KeyUpdate, untypeKeyUpdate, typedKeyUpdate,
+   Update, untypeUpdate, restrictedUpdate,
    Insert, untypeInsert, typedInsert,
    Delete, untypeDelete, restrictedDelete)
 import Database.Relational.Query.Restriction

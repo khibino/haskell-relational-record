@@ -16,17 +16,14 @@ module Database.Relational.Query.Type (
   fromRelation,
 
   -- * Typed update statement
-  Update(untypeUpdate), unsafeTypedUpdate, typedUpdate,
-
-  restrictedUpdate,
+  KeyUpdate(untypeKeyUpdate), unsafeTypedKeyUpdate, typedKeyUpdate,
+  Update(untypeUpdate), unsafeTypedUpdate, restrictedUpdate,
 
   -- * Typed insert statement
   Insert(untypeInsert), unsafeTypedInsert, typedInsert,
 
   -- * Typed delete statement
-  Delete(untypeDelete), unsafeTypedDelete,
-
-  restrictedDelete
+  Delete(untypeDelete), unsafeTypedDelete, restrictedDelete
   ) where
 
 import Database.Relational.Query.Relation (Relation, sqlFromRelation)
@@ -58,24 +55,36 @@ fromRelation =  relationalQuery
 
 
 -- | Update type with place-holder parameter 'p' and update record type 'a'.
+newtype KeyUpdate p a = KeyUpdate { untypeKeyUpdate :: String }
+
+-- | Unsafely make typed 'KeyUpdate' from SQL string.
+unsafeTypedKeyUpdate :: String -> KeyUpdate p a
+unsafeTypedKeyUpdate =  KeyUpdate
+
+-- | Make typed 'KeyUpdate' from 'Table' and key indexes.
+typedKeyUpdate :: Table r -> [Int] -> KeyUpdate p r
+typedKeyUpdate tbl = unsafeTypedKeyUpdate . updateSQL tbl
+
+-- | Show update SQL string
+instance Show (KeyUpdate p a) where
+  show = untypeKeyUpdate
+
+
+-- | Update type with place-holder parameter 'p' and update record type 'a'.
 newtype Update p a = Update { untypeUpdate :: String }
 
 -- | Unsafely make typed 'Update' from SQL string.
 unsafeTypedUpdate :: String -> Update p a
 unsafeTypedUpdate =  Update
 
--- | Make typed 'Update' from 'Table' and key indexes.
-typedUpdate :: Table r -> [Int] -> Update p r
-typedUpdate tbl = unsafeTypedUpdate . updateSQL tbl
-
--- | Show update SQL string
-instance Show (Update p a) where
-  show = untypeUpdate
-
 -- | Make typed 'Update' from 'Table' and 'Restriction'.
 restrictedUpdate :: Table r -> Restriction p r -> Update p r
 restrictedUpdate tbl r = unsafeTypedUpdate . updateAllColumnsSQL tbl
                          . sqlWhereFromRestriction tbl r $ ""
+
+-- | Show update SQL string
+instance Show (Update p a) where
+  show = untypeUpdate
 
 
 -- | Insert type to insert record type 'a'.
@@ -101,11 +110,11 @@ newtype Delete p = Delete { untypeDelete :: String }
 unsafeTypedDelete :: String -> Delete p
 unsafeTypedDelete =  Delete
 
--- | Show delete SQL string
-instance Show (Delete p) where
-  show = untypeDelete
-
 -- | Make typed 'Delete' from 'Table' and 'Restriction'.
 restrictedDelete :: Table r -> Restriction p r -> Delete p
 restrictedDelete tbl r = unsafeTypedDelete . deleteSQL tbl
                          . sqlWhereFromRestriction tbl r $ ""
+
+-- | Show delete SQL string
+instance Show (Delete p) where
+  show = untypeDelete

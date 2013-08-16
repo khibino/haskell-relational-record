@@ -44,7 +44,7 @@ import qualified Database.Record.KeyConstraint as C
 import Database.Record (PersistableRecordWidth, PersistableWidth (persistableWidth))
 
 
--- | Constraint Key proof object. Constraint type 'c', record type 'r' and column type 'ct'.
+-- | Constraint Key proof object. Constraint type 'c', record type 'r' and columns type 'ct'.
 data Key c r ct = Key [Int] (PersistableRecordWidth ct)
 
 -- | Index of key which specifies constraint key.
