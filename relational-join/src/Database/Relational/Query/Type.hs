@@ -54,7 +54,9 @@ fromRelation :: Relation p r -> Query p r
 fromRelation =  relationalQuery
 
 
--- | Update type with place-holder parameter 'p' and update record type 'a'.
+-- | Update type with key type 'p' and update record type 'a'.
+--   Columns to update are record columns other than key columns,
+--   So all place-holder correspond to record type 'a' columns.
 newtype KeyUpdate p a = KeyUpdate { untypeKeyUpdate :: String }
 
 -- | Unsafely make typed 'KeyUpdate' from SQL string.
@@ -71,6 +73,8 @@ instance Show (KeyUpdate p a) where
 
 
 -- | Update type with place-holder parameter 'p' and update record type 'a'.
+--   Columns to update are record all columns,
+--   So all place-holder correspond to type ('a', 'p') columns.
 newtype Update p a = Update { untypeUpdate :: String }
 
 -- | Unsafely make typed 'Update' from SQL string.
