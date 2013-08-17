@@ -55,6 +55,7 @@ unsafePiAppend :: (PersistableRecordWidth c' -> PersistableRecordWidth c)
 unsafePiAppend f (Pi p0 _) (Pi p1 w) =
   Pi (p0 `unsafePiAppend'` p1) (f w)
 
+-- | Unsafely untype key to expand indexes.
 unsafeExpandIndexes :: Pi a b -> [Int]
 unsafeExpandIndexes = d  where
   d (Pi (Map is) _)    = is
