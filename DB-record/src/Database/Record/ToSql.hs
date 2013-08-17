@@ -137,7 +137,7 @@ unsafeUpdateValuesWithIndexes pr key a =
 
 -- | Convert from Haskell type `ra` into SQL value `q` list expected by update form like
 --
--- /UPDATE <table> SET c0 = ?, c1 = ?, ..., cn = ? WHERE key = ?/
+-- /UPDATE <table> SET c0 = ?, c1 = ?, ..., cn = ? WHERE key0 = ? AND key1 = ? AND key2 = ? ... /
 --
 --   using 'RecordToSql' proof object.
 updateValuesByUnique' :: RecordToSql q ra
