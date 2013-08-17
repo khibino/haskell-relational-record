@@ -29,7 +29,7 @@ import Database.HDBC.Record.Statement
 -- | Typed prepared update type.
 type PreparedUpdate p = PreparedStatement p ()
 
--- | Typed prepare insert operation.
+-- | Typed prepare update operation.
 prepare :: IConnection conn
         => conn
         -> Update p a
@@ -51,7 +51,7 @@ runPreparedUpdate :: (ToSql SqlValue a, ToSql SqlValue p)
                   -> IO Integer
 runPreparedUpdate = curry runPreparedNoFetch
 
--- | Prepare insert statement, bind parameters,
+-- | Prepare update statement, bind parameters,
 --   execute statement and get execution result.
 runUpdate :: (IConnection conn, ToSql SqlValue a, ToSql SqlValue p)
           => conn
