@@ -13,7 +13,6 @@
 -- which intermediate structres are typed.
 module Database.HDBC.Record.Delete (
   PreparedDelete, prepare, prepareDelete,
-  BoundDelete, ExecutedDelete, executeDelete,
 
   runPreparedDelete, runDelete
   ) where
@@ -24,20 +23,11 @@ import Database.Relational.Query (Delete, untypeDelete)
 import Database.Record (ToSql)
 
 import Database.HDBC.Record.Statement
-  (unsafePrepare, PreparedStatement,
-   BoundStatement,
-   executeNoFetch, ExecutedStatement,
-   runPreparedNoFetch)
+  (unsafePrepare, PreparedStatement, runPreparedNoFetch)
 
 
 -- | Typed prepared insert type.
 type PreparedDelete p = PreparedStatement p ()
-
--- | Typed prepared insert which has bound placeholder parameters.
-type BoundDelete = BoundStatement ()
-
--- | Typed executed insert.
-type ExecutedDelete = ExecutedStatement ()
 
 -- | Typed prepare insert operation.
 prepare :: IConnection conn
@@ -52,10 +42,6 @@ prepareDelete :: IConnection conn
               -> Delete p
               -> IO (PreparedDelete p)
 prepareDelete = prepare
-
--- | Typed execute insert operation.
-executeDelete :: BoundDelete -> IO Integer
-executeDelete =  executeNoFetch
 
 -- | Bind parameters, execute statement and get execution result.
 runPreparedDelete :: ToSql SqlValue p

@@ -13,7 +13,6 @@
 -- which intermediate structres are typed.
 module Database.HDBC.Record.Insert (
   PreparedInsert, prepare, prepareInsert,
-  BoundInsert, ExecutedInsert, executeInsert,
 
   runPreparedInsert, runInsert
   ) where
@@ -24,20 +23,11 @@ import Database.Relational.Query (Insert, untypeInsert)
 import Database.Record (ToSql)
 
 import Database.HDBC.Record.Statement
-  (unsafePrepare, PreparedStatement,
-   BoundStatement,
-   executeNoFetch, ExecutedStatement,
-   runPreparedNoFetch)
+  (unsafePrepare, PreparedStatement, runPreparedNoFetch)
 
 
 -- | Typed prepared insert type.
 type PreparedInsert a = PreparedStatement a ()
-
--- | Typed prepared insert which has bound placeholder parameters.
-type BoundInsert = BoundStatement ()
-
--- | Typed executed insert.
-type ExecutedInsert = ExecutedStatement ()
 
 -- | Typed prepare insert operation.
 prepare :: IConnection conn
@@ -52,10 +42,6 @@ prepareInsert :: IConnection conn
               -> Insert a
               -> IO (PreparedInsert a)
 prepareInsert = prepare
-
--- | Typed execute insert operation.
-executeInsert :: BoundInsert -> IO Integer
-executeInsert =  executeNoFetch
 
 -- | Bind parameters, execute statement and get execution result.
 runPreparedInsert :: ToSql SqlValue a
