@@ -14,7 +14,7 @@
 module Database.HDBC.Record.Statement (
   PreparedStatement, unsafePrepare,
 
-  BoundStatement, bindTo', bindTo,
+  BoundStatement (..), bindTo', bindTo,
 
   ExecutedStatement, executed, result, execute,
 

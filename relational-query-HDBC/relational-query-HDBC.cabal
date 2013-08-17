@@ -29,6 +29,7 @@ library
                        Database.HDBC.Record.Update
                        Database.HDBC.Record.Insert
                        Database.HDBC.Record.Delete
+                       Database.HDBC.Record.KeyUpdate
                        Database.HDBC.Query.TH
                        Database.HDBC.SqlValueExtra
                        Database.HDBC.Schema.Driver
