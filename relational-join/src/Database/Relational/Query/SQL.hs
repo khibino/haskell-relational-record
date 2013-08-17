@@ -30,6 +30,7 @@ import Data.Array (listArray, (!))
 import Language.SQL.Keyword (Keyword(..), (.=.), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
 import Database.Record.ToSql (untypedUpdateValuesIndex)
+import Database.Relational.Query.Pi.Unsafe (Pi, unsafeExpandIndexes)
 import Database.Relational.Query.Sub (asColumnN)
 import Database.Relational.Query.Table (Table, name, columns)
 import Database.Relational.Query.Projection (Projection)
@@ -65,9 +66,9 @@ updateSQL' table cols ixs =
 
 -- | Generate update SQL specified by single key.
 updateSQL :: Table r -- ^ Table metadata
-          -> [Int]   -- ^ Key column indexes
+          -> Pi r p  -- ^ Key columns
           -> String  -- ^ Result SQL
-updateSQL tbl = updateSQL' (name tbl) (columns tbl)
+updateSQL tbl key = updateSQL' (name tbl) (columns tbl) (unsafeExpandIndexes key)
 
 -- | Generate all column update SQL by specified table.
 --   Columns name list of table are also required.

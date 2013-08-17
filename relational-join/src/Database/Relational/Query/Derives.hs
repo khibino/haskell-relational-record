@@ -87,7 +87,7 @@ updateValuesWithKey =  unsafeUpdateValuesWithIndexes recordToSql . unsafeExpandI
 updateBySpecifiedKey :: Table r       -- ^ 'Table' to update
                      -> Pi r p        -- ^ Key with record type 'r' and columns type 'p'
                      -> KeyUpdate p r -- ^ Result typed 'Update'
-updateBySpecifiedKey table = typedKeyUpdate table . unsafeExpandIndexes
+updateBySpecifiedKey table = typedKeyUpdate table
 
 -- | Typed 'KeyUpdate' using specified constraint key.
 updateByConstraintKey :: Table r       -- ^ 'Table' to update

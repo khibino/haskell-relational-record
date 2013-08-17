@@ -10,24 +10,25 @@
 -- This module defines typed SQL.
 module Database.Relational.Query.Type (
   -- * Typed query statement
-  Query (untypeQuery), unsafeTypedQuery,
+  Query (..), unsafeTypedQuery,
 
   relationalQuery,
   fromRelation,
 
   -- * Typed update statement
-  KeyUpdate(untypeKeyUpdate), unsafeTypedKeyUpdate, typedKeyUpdate,
-  Update(untypeUpdate), unsafeTypedUpdate, restrictedUpdate,
+  KeyUpdate (..), unsafeTypedKeyUpdate, typedKeyUpdate,
+  Update (..), unsafeTypedUpdate, restrictedUpdate,
 
   -- * Typed insert statement
-  Insert(untypeInsert), unsafeTypedInsert, typedInsert,
+  Insert (..), unsafeTypedInsert, typedInsert,
 
   -- * Typed delete statement
-  Delete(untypeDelete), unsafeTypedDelete, restrictedDelete
+  Delete (..), unsafeTypedDelete, restrictedDelete
   ) where
 
 import Database.Relational.Query.Relation (Relation, sqlFromRelation)
 import Database.Relational.Query.Restriction (Restriction, sqlWhereFromRestriction)
+import Database.Relational.Query.Pi (Pi)
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.SQL (updateSQL, insertSQL, updateAllColumnsSQL, deleteSQL)
 
@@ -57,15 +58,17 @@ fromRelation =  relationalQuery
 -- | Update type with key type 'p' and update record type 'a'.
 --   Columns to update are record columns other than key columns,
 --   So all place-holder correspond to record type 'a' columns.
-newtype KeyUpdate p a = KeyUpdate { untypeKeyUpdate :: String }
+data KeyUpdate p a = KeyUpdate { updateKey :: Pi a p
+                               , untypeKeyUpdate :: String
+                               }
 
 -- | Unsafely make typed 'KeyUpdate' from SQL string.
-unsafeTypedKeyUpdate :: String -> KeyUpdate p a
+unsafeTypedKeyUpdate :: Pi a p -> String -> KeyUpdate p a
 unsafeTypedKeyUpdate =  KeyUpdate
 
 -- | Make typed 'KeyUpdate' from 'Table' and key indexes.
-typedKeyUpdate :: Table r -> [Int] -> KeyUpdate p r
-typedKeyUpdate tbl = unsafeTypedKeyUpdate . updateSQL tbl
+typedKeyUpdate :: Table a -> Pi a p -> KeyUpdate p a
+typedKeyUpdate tbl key = unsafeTypedKeyUpdate key $ updateSQL tbl key
 
 -- | Show update SQL string
 instance Show (KeyUpdate p a) where
