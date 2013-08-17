@@ -26,10 +26,10 @@ import Database.HDBC.Record.Statement
   (unsafePrepare, PreparedStatement, runPreparedNoFetch)
 
 
--- | Typed prepared insert type.
+-- | Typed prepared delete type.
 type PreparedDelete p = PreparedStatement p ()
 
--- | Typed prepare insert operation.
+-- | Typed prepare delete operation.
 prepare :: IConnection conn
         => conn
         -> Delete p
@@ -50,7 +50,7 @@ runPreparedDelete :: ToSql SqlValue p
                   -> IO Integer
 runPreparedDelete =  runPreparedNoFetch
 
--- | Prepare insert statement, bind parameters,
+-- | Prepare delete statement, bind parameters,
 --   execute statement and get execution result.
 runDelete :: (IConnection conn, ToSql SqlValue p)
           => conn
