@@ -23,7 +23,9 @@ module Database.Relational.Query.Pi.Unsafe (
 
   pi,
 
-  definePi, defineDirectPi', defineDirectPi
+  definePi, defineDirectPi', defineDirectPi,
+
+  unsafeExpandIndexes
   ) where
 
 import Prelude hiding (pi)

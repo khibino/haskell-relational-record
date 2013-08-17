@@ -19,13 +19,15 @@ module Database.Relational.Query.Derives (
   primary', primary,
 
   -- * Update derivation
+  updateValuesWithKey,
   updateByConstraintKey,
   primaryUpdate
   ) where
 
-import Database.Record (PersistableWidth)
+import Database.Record (PersistableWidth, ToSql (recordToSql))
+import Database.Record.ToSql (unsafeUpdateValuesWithIndexes)
 import Database.Relational.Query.Table (Table)
-import Database.Relational.Query.Pi (Pi)
+import Database.Relational.Query.Pi.Unsafe (Pi, unsafeExpandIndexes)
 import Database.Relational.Query.Projectable (placeholder, (.=.))
 import Database.Relational.Query.ProjectableExtended ((!))
 import Database.Relational.Query.Monad.Class (wheres)
@@ -68,11 +70,28 @@ primary :: HasConstraintKey Primary a p
 primary =  primary' constraintKey
 
 
+-- | Convert from Haskell type `r` into SQL value `q` list expected by update form like
+--
+-- /UPDATE <table> SET c0 = ?, c1 = ?, ..., cn = ? WHERE key0 = ? AND key1 = ? AND key2 = ? ... /
+--
+--   using derived 'RecordToSql' proof object.
+updateValuesWithKey :: ToSql q r
+                    => Pi r p
+                    -> r
+                    -> [q]
+updateValuesWithKey =  unsafeUpdateValuesWithIndexes recordToSql . unsafeExpandIndexes
+
 -- | Typed 'KeyUpdate' using specified key.
+updateByKey :: Table r       -- ^ 'Table' to update
+            -> Pi r p        -- ^ Key with record type 'r' and columns type 'p'
+            -> KeyUpdate p r -- ^ Result typed 'Update'
+updateByKey table = typedKeyUpdate table . unsafeExpandIndexes
+
+-- | Typed 'KeyUpdate' using specified constraint key.
 updateByConstraintKey :: Table r       -- ^ 'Table' to update
                       -> Key c r p     -- ^ Key with constraint 'c', record type 'r' and columns type 'p'
                       -> KeyUpdate p r -- ^ Result typed 'Update'
-updateByConstraintKey table key = typedKeyUpdate table (Constraint.indexes key)
+updateByConstraintKey table = updateByKey table . Constraint.projectionKey
 
 -- | Typed 'KeyUpdate' using infered primary key.
 primaryUpdate :: (HasConstraintKey Primary r p)
