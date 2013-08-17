@@ -26,6 +26,7 @@ library
                        Database.HDBC.Record.TH
                        Database.HDBC.Record.Statement
                        Database.HDBC.Record.Query
+                       Database.HDBC.Record.Update
                        Database.HDBC.Record.Insert
                        Database.HDBC.Record.Delete
                        Database.HDBC.Query.TH
