@@ -48,6 +48,7 @@ unsafePiAppend' = d  where
     is' = listArray (0, length is) is
 
 -- | Projection path from type 'r0' into type 'r1'.
+--   This type also indicate key object which type is 'r1' for record type 'r0'.
 data Pi r0 r1 = Pi (Pi' r0 r1) (PersistableRecordWidth r1)
 
 unsafePiAppend :: (PersistableRecordWidth c' -> PersistableRecordWidth c)
