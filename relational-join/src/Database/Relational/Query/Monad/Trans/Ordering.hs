@@ -47,7 +47,7 @@ newtype Orderings (p :: * -> *) m a =
   Orderings { orderingState :: StateT OrderingContext m a }
   deriving (MonadTrans, Monad, Functor, Applicative)
 
--- | Run 'Orderings' to expand context state
+-- | Run 'Orderings' to expand context state.
 runOrderings :: Orderings p m a        -- ^ Context to expand
              -> OrderingContext        -- ^ Initial context
              -> m (a, OrderingContext) -- ^ Expanded result
@@ -64,7 +64,7 @@ orderings =  lift
 
 -- | 'MonadRestrict' with ordering.
 instance MonadRestrict m => MonadRestrict (Orderings p m) where
-  restrictContext =  orderings . restrictContext
+  restrictContext = orderings . restrictContext
 
 -- | 'MonadQuery' with ordering.
 instance MonadQuery m => MonadQuery (Orderings p m) where
