@@ -11,7 +11,7 @@
 -- Portability : unknown
 --
 -- This module defines monad transformer which lift
--- from 'MonadQuery' into query with ordering.
+-- from query into query with ordering.
 module Database.Relational.Query.Monad.Trans.Ordering (
   -- * Transformer into query with ordering
   Orderings, orderings, OrderedQuery, OrderingTerms,
