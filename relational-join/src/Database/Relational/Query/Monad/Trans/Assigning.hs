@@ -76,8 +76,7 @@ targetProjection (AssignTarget (tbl, pi')) =
 
 -- | Add an assignment.
 assignTo :: Monad m => Projection v ->  AssignTarget r v -> Assignings r m ()
-assignTo vp target = updateAssigningContext
-                     . foldr (>>>) id
+assignTo vp target = updateAssigningContext . foldr (>>>) id
                      $ zipWith updateAssignments lefts rights  where
   lefts  = Projection.columns $ targetProjection target
   rights = Projection.columns vp

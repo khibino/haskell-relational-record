@@ -27,7 +27,7 @@ module Database.Relational.Query.Monad.Trans.Ordering (
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.State (StateT, runStateT, modify)
 import Control.Applicative (Applicative, (<$>))
-import Control.Arrow (second)
+import Control.Arrow (second, (>>>))
 
 import Database.Relational.Query.Monad.Trans.StatePrepend (Prepend, prepend, liftToString)
 import Database.Relational.Query.Monad.Trans.OrderingState
@@ -101,8 +101,8 @@ updateOrderBys :: (Monad m, OrderingTerms p)
                => Order            -- ^ Order direction
                -> p t              -- ^ Ordering terms to add
                -> Orderings p m () -- ^ Result context with ordering
-updateOrderBys order p = updateOrderingContext (\c -> foldl update c (orderTerms p))  where
-  update = flip (updateOrderBy order)
+updateOrderBys order p = updateOrderingContext . foldr (>>>) id $ updates  where
+  updates = updateOrderBy order `map` orderTerms p
 
 {-
 takeOrderBys :: Monad m => Orderings p m OrderBys

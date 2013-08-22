@@ -22,7 +22,7 @@ module Database.Relational.Query.Monad.Trans.Aggregating (
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.State (StateT, runStateT, modify)
 import Control.Applicative (Applicative, (<$>))
-import Control.Arrow (second)
+import Control.Arrow (second, (>>>))
 
 import Database.Relational.Query.Monad.Trans.StatePrepend (Prepend, prepend, liftToString)
 import Database.Relational.Query.Monad.Trans.AggregatingState
@@ -73,7 +73,7 @@ updateAggregatingContext =  Aggregatings . modify
 
 -- | Unsafely add not-typeful aggregating terms.
 addGroupBys' :: Monad m => [String] -> Aggregatings m ()
-addGroupBys' gbs = updateAggregatingContext (\c -> foldl (flip addGroupBy) c gbs)
+addGroupBys' gbs = updateAggregatingContext . foldr (>>>) id $ map addGroupBy gbs
 
 -- | Add restrictions for aggregated query.
 addRestriction :: MonadQuery m
