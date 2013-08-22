@@ -18,7 +18,6 @@ module Database.Relational.Query.SQL (
   updateSeedSQL,
   updateSQL',
   updateOtherThanKeySQL', updateOtherThanKeySQL,
-  updateAllColumnsSQL', updateAllColumnsSQL,
 
   -- * Insert SQL
   insertSQL', insertSQL,
@@ -88,18 +87,6 @@ updateOtherThanKeySQL :: Table r -- ^ Table metadata
           -> String  -- ^ Result SQL
 updateOtherThanKeySQL tbl key =
   updateOtherThanKeySQL' (name tbl) (columns tbl) (unsafeExpandIndexes key)
-
--- | Generate all column update SQL by specified table.
---   Columns name list of table are also required.
-updateAllColumnsSQL' :: String -> [String] -> ShowS
-updateAllColumnsSQL' table cols =
-  (SQL.unwordsSQL [UPDATE, SQL.word table, SET, updAssigns `SQL.sepBy` ", "] ++)
-  where
-    updAssigns = [ SQL.word c .=. "?" | c <- cols ]
-
--- | Generate all column update SQL by specified table.
-updateAllColumnsSQL :: Table r -> ShowS
-updateAllColumnsSQL tbl = updateAllColumnsSQL' (name tbl) (columns tbl)
 
 -- | Generate insert SQL.
 insertSQL' :: String   -- ^ Table name
