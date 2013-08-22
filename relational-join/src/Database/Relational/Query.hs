@@ -21,10 +21,12 @@ module Database.Relational.Query (
   module Database.Relational.Query.ProjectableExtended,
   module Database.Relational.Query.Monad.Class,
   module Database.Relational.Query.Monad.Trans.Ordering,
+  module Database.Relational.Query.Monad.Trans.Assigning,
   module Database.Relational.Query.Monad.Type,
   module Database.Relational.Query.Monad.Simple,
   module Database.Relational.Query.Monad.Aggregate,
   module Database.Relational.Query.Monad.Restrict,
+  module Database.Relational.Query.Monad.Target,
   module Database.Relational.Query.Relation,
   module Database.Relational.Query.Type,
   module Database.Relational.Query.Restriction,
@@ -32,7 +34,7 @@ module Database.Relational.Query (
   ) where
 
 import Database.Relational.Query.Table (Table)
-import Database.Relational.Query.SQL (updateSQL, insertSQL)
+import Database.Relational.Query.SQL (updateOtherThanKeySQL, insertSQL)
 import Database.Relational.Query.Pi
 import Database.Relational.Query.Constraint
   (Key, tableConstraint, projectionKey,
@@ -49,16 +51,19 @@ import Database.Relational.Query.ProjectableExtended
 import Database.Relational.Query.Monad.Class
   (on, wheres, groupBy, having, onE, wheresE, havingE)
 import Database.Relational.Query.Monad.Trans.Ordering (asc, desc)
+import Database.Relational.Query.Monad.Trans.Assigning (assignTo, (!#), (<-#))
 import Database.Relational.Query.Monad.Type
 import Database.Relational.Query.Monad.Simple (QuerySimple, SimpleQuery)
 import Database.Relational.Query.Monad.Aggregate (QueryAggregate, AggregatedQuery)
 import Database.Relational.Query.Monad.Restrict (Restrict)
+import Database.Relational.Query.Monad.Target (Target)
 import Database.Relational.Query.Relation
 import Database.Relational.Query.Type
   (Query, untypeQuery, relationalQuery, fromRelation,
    KeyUpdate, updateKey, untypeKeyUpdate, typedKeyUpdate,
-   Update, untypeUpdate, restrictedUpdate,
+   Update, untypeUpdate, typedUpdate, targetUpdate,
+   typedUpdateAllColumn, restricredUpdateAllColumn,
    Insert, untypeInsert, typedInsert,
-   Delete, untypeDelete, restrictedDelete)
+   Delete, untypeDelete, typedDelete, restrictedDelete)
 import Database.Relational.Query.Restriction
 import Database.Relational.Query.Derives

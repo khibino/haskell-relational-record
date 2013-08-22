@@ -17,20 +17,27 @@ module Database.Relational.Query.Type (
 
   -- * Typed update statement
   KeyUpdate (..), unsafeTypedKeyUpdate, typedKeyUpdate,
-  Update (..), unsafeTypedUpdate, restrictedUpdate,
+  Update (..), unsafeTypedUpdate, typedUpdate, targetUpdate,
+  typedUpdateAllColumn, restricredUpdateAllColumn,
 
   -- * Typed insert statement
   Insert (..), unsafeTypedInsert, typedInsert,
 
   -- * Typed delete statement
-  Delete (..), unsafeTypedDelete, restrictedDelete
+  Delete (..), unsafeTypedDelete, typedDelete, restrictedDelete
   ) where
 
+import Database.Record (PersistableWidth)
+
 import Database.Relational.Query.Relation (Relation, sqlFromRelation)
-import Database.Relational.Query.Restriction (Restriction, sqlWhereFromRestriction)
+import Database.Relational.Query.Restriction
+  (Restriction, RestrictionContext, restriction',
+   UpdateTarget, UpdateTargetContext, updateTarget', liftTargetAllColumn',
+   sqlWhereFromRestriction, sqlFromUpdateTarget)
 import Database.Relational.Query.Pi (Pi)
 import Database.Relational.Query.Table (Table)
-import Database.Relational.Query.SQL (updateSQL, insertSQL, updateAllColumnsSQL, deleteSQL)
+import Database.Relational.Query.SQL
+  (updateOtherThanKeySQL, insertSQL, updateSeedSQL, deleteSQL)
 
 
 -- | Query type with place-holder parameter 'p' and query result type 'a'.
@@ -68,7 +75,7 @@ unsafeTypedKeyUpdate =  KeyUpdate
 
 -- | Make typed 'KeyUpdate' from 'Table' and key indexes.
 typedKeyUpdate :: Table a -> Pi a p -> KeyUpdate p a
-typedKeyUpdate tbl key = unsafeTypedKeyUpdate key $ updateSQL tbl key
+typedKeyUpdate tbl key = unsafeTypedKeyUpdate key $ updateOtherThanKeySQL tbl key
 
 -- | Show update SQL string
 instance Show (KeyUpdate p a) where
@@ -85,9 +92,31 @@ unsafeTypedUpdate :: String -> Update p a
 unsafeTypedUpdate =  Update
 
 -- | Make typed 'Update' from 'Table' and 'Restriction'.
-restrictedUpdate :: Table r -> Restriction p r -> Update p r
-restrictedUpdate tbl r = unsafeTypedUpdate . updateAllColumnsSQL tbl
-                         . sqlWhereFromRestriction tbl r $ ""
+typedUpdate :: Table r -> UpdateTarget p r -> Update p r
+typedUpdate tbl ut = unsafeTypedUpdate . updateSeedSQL tbl
+                     . sqlFromUpdateTarget tbl ut $ ""
+
+-- | Directly make typed 'Update' from 'Table' and 'Target' monad context.
+targetUpdate :: Table r
+             -> UpdateTargetContext p r -- ^ 'Target' monad context
+             -> Update p r
+targetUpdate tbl = typedUpdate tbl . updateTarget'
+
+-- | Make typed 'Update' from 'Table' and 'Restriction'.
+--   Update target is all column.
+typedUpdateAllColumn :: PersistableWidth r
+                     => Table r
+                     -> Restriction p r
+                     -> Update (r, p) r
+typedUpdateAllColumn tbl r = typedUpdate tbl $ liftTargetAllColumn' r
+
+-- | Directly make typed 'Update' from 'Table' and 'Restrict' monad context.
+--   Update target is all column.
+restricredUpdateAllColumn :: PersistableWidth r
+                           => Table r
+                           -> RestrictionContext p r
+                           -> Update (r, p) r
+restricredUpdateAllColumn tbl = typedUpdateAllColumn tbl . restriction'
 
 -- | Show update SQL string
 instance Show (Update p a) where
@@ -118,9 +147,15 @@ unsafeTypedDelete :: String -> Delete p
 unsafeTypedDelete =  Delete
 
 -- | Make typed 'Delete' from 'Table' and 'Restriction'.
-restrictedDelete :: Table r -> Restriction p r -> Delete p
-restrictedDelete tbl r = unsafeTypedDelete . deleteSQL tbl
-                         . sqlWhereFromRestriction tbl r $ ""
+typedDelete :: Table r -> Restriction p r -> Delete p
+typedDelete tbl r = unsafeTypedDelete . deleteSQL tbl
+                    . sqlWhereFromRestriction tbl r $ ""
+
+-- | Directly make typed 'Delete' from 'Table' and 'Restrict' monad context.
+restrictedDelete :: Table r
+                 -> RestrictionContext p r -- ^ 'Restrict' monad context.
+                 -> Delete p
+restrictedDelete tbl = typedDelete tbl . restriction'
 
 -- | Show delete SQL string
 instance Show (Delete p) where

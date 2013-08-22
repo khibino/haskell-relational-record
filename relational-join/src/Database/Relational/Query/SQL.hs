@@ -15,7 +15,9 @@ module Database.Relational.Query.SQL (
   selectSeedSQL,
 
   -- * Update SQL
-  updateSQL', updateSQL,
+  updateSeedSQL,
+  updateSQL',
+  updateOtherThanKeySQL', updateOtherThanKeySQL,
   updateAllColumnsSQL', updateAllColumnsSQL,
 
   -- * Insert SQL
@@ -46,29 +48,46 @@ selectSeedSQL pj =
                    (Projection.columns pj)
                    [(0 :: Int)..]
 
+updateSeedSQL :: Table r -> ShowS
+updateSeedSQL table = (unwordsSQL [UPDATE, SQL.word $ name table] ++)
+
 -- | Generate update SQL by specified key and table.
 --   Columns name list of table are also required.
 updateSQL' :: String   -- ^ Table name
-           -> [String] -- ^ Column name list
-           -> [Int]    -- ^ Key column indexes
+           -> [String] -- ^ Column name list to update
+           -> [String] -- ^ Key column name list
            -> String   -- ^ Result SQL
-updateSQL' table cols ixs =
+updateSQL' table cols key =
   SQL.unwordsSQL
   $ [UPDATE, SQL.word table, SET, updAssigns `SQL.sepBy` ", ",
      WHERE, keyAssigns `SQL.sepBy` " AND " ]
   where
+    assigns cs = [ SQL.word c .=. "?" | c <- cs ]
+    updAssigns = assigns cols
+    keyAssigns = assigns key
+
+-- | Generate update SQL by specified key and table.
+--   Columns name list of table are also required.
+updateOtherThanKeySQL' :: String   -- ^ Table name
+           -> [String] -- ^ Column name list
+           -> [Int]    -- ^ Key column indexes
+           -> String   -- ^ Result SQL
+updateOtherThanKeySQL' table cols ixs =
+  updateSQL' table updColumns keyColumns
+  where
     width = length cols
     cols' = listArray (0, width -1) cols
     otherThanKey = untypedUpdateValuesIndex ixs width
-    assigns is = [ SQL.word (cols' ! i) .=. "?" | i <- is ]
-    updAssigns = assigns otherThanKey
-    keyAssigns = assigns ixs
+    columns' is = [ cols' ! i | i <- is ]
+    updColumns = columns' otherThanKey
+    keyColumns = columns' ixs
 
 -- | Generate update SQL specified by single key.
-updateSQL :: Table r -- ^ Table metadata
+updateOtherThanKeySQL :: Table r -- ^ Table metadata
           -> Pi r p  -- ^ Key columns
           -> String  -- ^ Result SQL
-updateSQL tbl key = updateSQL' (name tbl) (columns tbl) (unsafeExpandIndexes key)
+updateOtherThanKeySQL tbl key =
+  updateOtherThanKeySQL' (name tbl) (columns tbl) (unsafeExpandIndexes key)
 
 -- | Generate all column update SQL by specified table.
 --   Columns name list of table are also required.
