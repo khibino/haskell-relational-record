@@ -41,10 +41,12 @@ library
                        Database.Relational.Query.Monad.Trans.Aggregating
                        Database.Relational.Query.Monad.Trans.Restricting
                        Database.Relational.Query.Monad.Trans.Join
+                       Database.Relational.Query.Monad.Trans.Assigning
                        Database.Relational.Query.Monad.Type
                        Database.Relational.Query.Monad.Simple
                        Database.Relational.Query.Monad.Aggregate
                        Database.Relational.Query.Monad.Restrict
+                       Database.Relational.Query.Monad.Target
                        Database.Relational.Query.Relation
                        Database.Relational.Query.Restriction
                        Database.Relational.Query.Type
@@ -63,6 +65,7 @@ library
                        Database.Relational.Query.Internal.ShowS
                        Database.Relational.Query.Internal.Product
                        Database.Relational.Query.Monad.Trans.StatePrepend
+                       Database.Relational.Query.Monad.Trans.AssigningState
                        Database.Relational.Query.Monad.Trans.JoinState
                        Database.Relational.Query.Monad.Trans.RestrictingState
                        Database.Relational.Query.Monad.Trans.AggregatingState
