@@ -11,18 +11,18 @@ deleteBanana :: Delete ()
 deleteBanana =
   typedDelete tableOfSetA banana
 
-updateBanana :: Update (SetA, ()) SetA
+updateBanana :: Update (SetA, ())
 updateBanana =
   typedUpdateAllColumn tableOfSetA banana
 
-updateBanana2 :: Update String SetA
+updateBanana2 :: Update String
 updateBanana2 =
   targetUpdate tableOfSetA $
   \ta pa -> do (ph', ()) <- placeholder ( \ph -> ta !# name' <-# ph )
                wheres $ pa ! name' .=. value "Banana"
                return ph'
 
-updateBanana3 :: Update SetA SetA
+updateBanana3 :: Update SetA
 updateBanana3 =
   targetUpdate tableOfSetA $
   \ta pa -> do (ph', ()) <- placeholder ( \ph -> ta !# id' <-# ph )

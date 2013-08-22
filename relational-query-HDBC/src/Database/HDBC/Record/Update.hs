@@ -32,31 +32,29 @@ type PreparedUpdate p = PreparedStatement p ()
 -- | Typed prepare update operation.
 prepare :: IConnection conn
         => conn
-        -> Update p a
-        -> IO (PreparedUpdate (a, p))
+        -> Update p
+        -> IO (PreparedUpdate p)
 prepare conn = unsafePrepare conn . untypeUpdate
 
 -- | Same as 'prepare'.
 prepareUpdate :: IConnection conn
               => conn
-              -> Update p a
-              -> IO (PreparedUpdate (a, p))
+              -> Update p
+              -> IO (PreparedUpdate p)
 prepareUpdate = prepare
 
 -- | Bind parameters, execute statement and get execution result.
-runPreparedUpdate :: (ToSql SqlValue a, ToSql SqlValue p)
-                  => a
-                  -> p
-                  -> PreparedUpdate (a, p)
+runPreparedUpdate :: ToSql SqlValue p
+                  => p
+                  -> PreparedUpdate p
                   -> IO Integer
-runPreparedUpdate = curry runPreparedNoFetch
+runPreparedUpdate = runPreparedNoFetch
 
 -- | Prepare update statement, bind parameters,
 --   execute statement and get execution result.
-runUpdate :: (IConnection conn, ToSql SqlValue a, ToSql SqlValue p)
+runUpdate :: (IConnection conn, ToSql SqlValue p)
           => conn
-          -> a
           -> p
-          -> Update p a
+          -> Update p
           -> IO Integer
-runUpdate conn a p = (>>= runPreparedUpdate a p) . prepareUpdate conn
+runUpdate conn p = (>>= runPreparedUpdate p) . prepareUpdate conn

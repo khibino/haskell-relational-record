@@ -82,24 +82,22 @@ instance Show (KeyUpdate p a) where
   show = untypeKeyUpdate
 
 
--- | Update type with place-holder parameter 'p' and update record type 'a'.
---   Columns to update are record all columns,
---   So all place-holder correspond to type ('a', 'p') columns.
-newtype Update p a = Update { untypeUpdate :: String }
+-- | Update type with place-holder parameter 'p'.
+newtype Update p = Update { untypeUpdate :: String }
 
 -- | Unsafely make typed 'Update' from SQL string.
-unsafeTypedUpdate :: String -> Update p a
+unsafeTypedUpdate :: String -> Update p
 unsafeTypedUpdate =  Update
 
 -- | Make typed 'Update' from 'Table' and 'Restriction'.
-typedUpdate :: Table r -> UpdateTarget p r -> Update p r
+typedUpdate :: Table r -> UpdateTarget p r -> Update p
 typedUpdate tbl ut = unsafeTypedUpdate . updateSeedSQL tbl
                      . sqlFromUpdateTarget tbl ut $ ""
 
 -- | Directly make typed 'Update' from 'Table' and 'Target' monad context.
 targetUpdate :: Table r
              -> UpdateTargetContext p r -- ^ 'Target' monad context
-             -> Update p r
+             -> Update p
 targetUpdate tbl = typedUpdate tbl . updateTarget'
 
 -- | Make typed 'Update' from 'Table' and 'Restriction'.
@@ -107,7 +105,7 @@ targetUpdate tbl = typedUpdate tbl . updateTarget'
 typedUpdateAllColumn :: PersistableWidth r
                      => Table r
                      -> Restriction p r
-                     -> Update (r, p) r
+                     -> Update (r, p)
 typedUpdateAllColumn tbl r = typedUpdate tbl $ liftTargetAllColumn' r
 
 -- | Directly make typed 'Update' from 'Table' and 'Restrict' monad context.
@@ -115,11 +113,11 @@ typedUpdateAllColumn tbl r = typedUpdate tbl $ liftTargetAllColumn' r
 restricredUpdateAllColumn :: PersistableWidth r
                            => Table r
                            -> RestrictionContext p r
-                           -> Update (r, p) r
+                           -> Update (r, p)
 restricredUpdateAllColumn tbl = typedUpdateAllColumn tbl . restriction'
 
 -- | Show update SQL string
-instance Show (Update p a) where
+instance Show (Update p) where
   show = untypeUpdate
 
 
