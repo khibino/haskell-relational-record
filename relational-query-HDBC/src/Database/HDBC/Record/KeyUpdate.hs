@@ -72,7 +72,7 @@ runPreparedKeyUpdate a = executeNoFetch . bindToKeyUpdate a
 
 -- | Prepare insert statement, bind parameters,
 --   execute statement and get execution result.
-runKeyUpdate :: (IConnection conn, ToSql SqlValue a, ToSql SqlValue p)
+runKeyUpdate :: (IConnection conn, ToSql SqlValue a)
              => conn
              -> a
              -> KeyUpdate p a
