@@ -64,7 +64,7 @@ newOrange =  Stock 2 "Orange" 150 10
 keyUpdateUidName :: KeyUpdate (Int32, String) Stock
 keyUpdateUidName =  typedKeyUpdate tableOfStock (seq' >< name')
 
-runKeyUpdateAndPrint :: (ToSql SqlValue a, ToSql SqlValue p)=> KeyUpdate p a -> a -> IO ()
+runKeyUpdateAndPrint :: ToSql SqlValue a => KeyUpdate p a -> a -> IO ()
 runKeyUpdateAndPrint ku r = handleConnectionIO connect $ \conn -> do
   putStrLn $ "SQL: " ++ show ku
   rv <- runKeyUpdate conn r ku
