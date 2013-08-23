@@ -1,18 +1,11 @@
 #! /bin/sh
 
-create_setA_table='
-CREATE TABLE EXAMPLE4.set_a (
+create_stock_table='
+CREATE TABLE EXAMPLE4.stock (
  seq  INTEGER NOT NULL,
  name VARCHAR(30) NOT NULL,
-
- PRIMARY KEY(seq)
-)
-'
-
-create_setB_table='
-CREATE TABLE EXAMPLE4.set_b (
- seq  INTEGER NOT NULL,
- name VARCHAR(30) NOT NULL,
+ unit INTEGER NOT NULL,
+ amount INTEGER NOT NULL,
 
  PRIMARY KEY(seq)
 )
@@ -21,6 +14,4 @@ CREATE TABLE EXAMPLE4.set_b (
 set -x
 
 psql -c "CREATE SCHEMA EXAMPLE4" testdb
-psql -c "$create_setA_table" testdb
-
-runghc -i.. insert.hs
+psql -c "$create_stock_table" testdb
