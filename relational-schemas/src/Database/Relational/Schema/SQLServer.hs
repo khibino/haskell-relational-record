@@ -19,7 +19,7 @@ import Data.Map (Map)
 import Data.Time (LocalTime, Day, TimeOfDay)
 import Database.Record.Instances ()
 import Database.Relational.Query (Query, Relation, PlaceHolders, Projection,
-                                  (!), (.=.), (><), asc, fromRelation, just, placeholder',
+                                  (!), (.=.), (><), asc, relationalQuery, just, placeholder',
                                   query, relation', unsafeShowSql, unsafeShowSqlProjection,
                                   unsafeProjectSql, wheres)
 import Database.Relational.Schema.SQLServerSyscat.Columns
@@ -111,7 +111,7 @@ columnTypeRelation = relation' $ do
         "SCHEMA_NAME(" ++ unsafeShowSqlProjection i ++ ")"
 
 columnTypeQuerySQL :: Query (String, String) ((Columns, Types), String)
-columnTypeQuerySQL = fromRelation columnTypeRelation
+columnTypeQuerySQL =  relationalQuery columnTypeRelation
 
 primaryKeyRelation :: Relation (String,String) (Maybe String)
 primaryKeyRelation = relation' $ do
@@ -129,4 +129,4 @@ primaryKeyRelation = relation' $ do
     return   (params, cols   ! Columns.name')
 
 primaryKeyQuerySQL :: Query (String,String) (Maybe String)
-primaryKeyQuerySQL = fromRelation primaryKeyRelation
+primaryKeyQuerySQL =  relationalQuery primaryKeyRelation
