@@ -44,8 +44,20 @@ import qualified Database.Relational.Query.Sub as SubQuery
 data ProjectionUnit = Columns (Array Int String)
                     | Sub (Qualified SubQuery)
 
+-- | Untyped projection. Forgot record type.
+newtype Untyped = Composed { projectionUnits :: [ProjectionUnit] }
+
 -- | Phantom typed projection. Projected into Haskell record type 't'.
-data Projection t = Composed [ProjectionUnit]
+newtype Projection t = Projection { untypeProjection :: Untyped }
+
+typedProjection :: Untyped -> Projection t
+typedProjection =  Projection
+
+units :: Projection t -> [ProjectionUnit]
+units =  projectionUnits . untypeProjection
+
+fromUnits :: [ProjectionUnit] -> Projection t
+fromUnits =  typedProjection . Composed
 
 -- | ProjectionUnit width.
 widthOfUnit :: ProjectionUnit -> Int
@@ -63,15 +75,14 @@ columnOfUnit =  d  where
 
 -- | Width of 'Projection'.
 width :: Projection r -> Int
-width =  d  where
-  d (Composed prod) = sum . map widthOfUnit $ prod
+width =  sum . map widthOfUnit . units  where
 
 -- | Get column SQL string of 'Projection'.
 column :: Projection r -- ^ Source 'Projection'
        -> Int          -- ^ Column index
        -> String       -- ^ Result SQL string
 column =  d  where
-  d (Composed us') i' = rec us' i'  where
+  d proj i' = rec (units proj) i'  where
     rec []       _       = error $ "index out of bounds: " ++ show i'
     rec (u : us) i
       | i < widthOfUnit u = columnOfUnit u i
@@ -87,7 +98,7 @@ columns p = map (\n -> column p n) . take w $ [0 .. ]
 
 -- | Unsafely generate 'Projection' from ProjectionUnit.
 unsafeFromUnit :: ProjectionUnit -> Projection t
-unsafeFromUnit =  Composed . (:[])
+unsafeFromUnit =  fromUnits . (:[])
 
 -- | Unsafely generate 'Projection' from SQL string list.
 unsafeFromColumns :: [String]     -- ^ SQL string list specifies columns
@@ -105,7 +116,7 @@ unsafeFromTable =  unsafeFromColumns . Table.columns
 
 -- | Concatenate 'Projection'.
 compose :: Projection a -> Projection b -> Projection (c a b)
-compose (Composed a) (Composed b) = Composed $ a ++ b
+compose a b = fromUnits $ units a ++ units b
 
 
 -- | Unsafely trace projection path.
@@ -136,8 +147,8 @@ piMaybe' =  unsafeProject
 
 -- | Composite nested 'Maybe' on projection phantom type.
 flattenMaybe :: Projection (Maybe (Maybe a)) -> Projection (Maybe a)
-flattenMaybe (Composed pus) = Composed pus
+flattenMaybe =  typedProjection . untypeProjection
 
 -- | Cast into 'Maybe' on projection phantom type.
 just :: Projection r -> Projection (Maybe r)
-just (Composed us) = Composed us
+just =  typedProjection . untypeProjection
