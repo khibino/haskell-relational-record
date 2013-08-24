@@ -45,12 +45,15 @@ data ProjectionUnit = Columns (Array Int String)
                     | Sub (Qualified SubQuery)
 
 -- | Untyped projection. Forgot record type.
-newtype Untyped = Composed { projectionUnits :: [ProjectionUnit] }
+newtype UntypedProjection = Composed [ProjectionUnit]
+
+projectionUnits :: UntypedProjection -> [ProjectionUnit]
+projectionUnits (Composed us) = us
 
 -- | Phantom typed projection. Projected into Haskell record type 't'.
-newtype Projection t = Projection { untypeProjection :: Untyped }
+newtype Projection t = Projection { untypeProjection :: UntypedProjection }
 
-typedProjection :: Untyped -> Projection t
+typedProjection :: UntypedProjection -> Projection t
 typedProjection =  Projection
 
 units :: Projection t -> [ProjectionUnit]
@@ -60,14 +63,14 @@ fromUnits :: [ProjectionUnit] -> Projection t
 fromUnits =  typedProjection . Composed
 
 -- | ProjectionUnit width.
-widthOfUnit :: ProjectionUnit -> Int
-widthOfUnit =  d  where
+widthOfProjectionUnit :: ProjectionUnit -> Int
+widthOfProjectionUnit =  d  where
   d (Columns a) = mx - mn + 1 where (mn, mx) = Array.bounds a
   d (Sub sq)    = queryWidth sq
 
 -- | Get column of ProjectionUnit.
-columnOfUnit :: ProjectionUnit -> Int -> String
-columnOfUnit =  d  where
+columnOfProjectionUnit :: ProjectionUnit -> Int -> String
+columnOfProjectionUnit =  d  where
   d (Columns a) i | mn <= i && i <= mx = a Array.! i
                   | otherwise          = error $ "index out of bounds (unit): " ++ show i
     where (mn, mx) = Array.bounds a
@@ -75,7 +78,7 @@ columnOfUnit =  d  where
 
 -- | Width of 'Projection'.
 width :: Projection r -> Int
-width =  sum . map widthOfUnit . units  where
+width =  sum . map widthOfProjectionUnit . units  where
 
 -- | Get column SQL string of 'Projection'.
 column :: Projection r -- ^ Source 'Projection'
@@ -83,11 +86,11 @@ column :: Projection r -- ^ Source 'Projection'
        -> String       -- ^ Result SQL string
 column =  d  where
   d proj i' = rec (units proj) i'  where
-    rec []       _       = error $ "index out of bounds: " ++ show i'
+    rec []       _        = error $ "index out of bounds: " ++ show i'
     rec (u : us) i
-      | i < widthOfUnit u = columnOfUnit u i
+      | i < widthOfProjectionUnit u = columnOfProjectionUnit u i
       | i < 0             = error $ "index out of bounds: " ++ show i
-      | otherwise         = rec us (i - widthOfUnit u)
+      | otherwise         = rec us (i - widthOfProjectionUnit u)
 
 -- | Get column SQL string list of projection.
 columns :: Projection r -- ^ Source 'Projection'
