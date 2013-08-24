@@ -21,8 +21,6 @@ module Database.Relational.Query.Restriction (
   -- * Generate SQL from restriction.
   sqlWhereFromRestriction,
   sqlFromUpdateTarget
-
-  -- Restriction, restriction, restriction',
   ) where
 
 import Database.Record (PersistableWidth)
@@ -43,6 +41,7 @@ import Database.Relational.Query.Monad.Target (Target, TargetStatement, expandPr
 -- | Restriction type with place-holder parameter 'p' and projection record type 'r'.
 newtype Restriction p r = Restriction (Projection r -> Restrict ())
 
+-- | Not finalized 'Restrict' monad type.
 type RestrictionContext p r = RestrictedStatement r (PlaceHolders p)
 
 -- | Finalize 'Restrict' monad and generate 'Restriction'.
@@ -68,6 +67,7 @@ sqlWhereFromRestriction tbl (Restriction q) = prependWhere aw
 newtype UpdateTarget p r =
   UpdateTarget (Table r -> Projection r -> Target r ())
 
+-- | Not finalized 'Target' monad type.
 type UpdateTargetContext p r = TargetStatement r (PlaceHolders p)
 
 -- | Finalize 'Target' monad and generate 'UpdateTarget'.
@@ -93,21 +93,25 @@ updateAllColumn rs tbl proj = do
   ph1       <- assignings $ runRestriction rs proj
   return $ ph0 >< ph1
 
+-- | Lift 'Restriction' to 'UpdateTarget'. Update target columns are all.
 liftTargetAllColumn :: PersistableWidth r
                      => Restriction () r
                      -> UpdateTarget r r
 liftTargetAllColumn rs = updateTarget' $ \tbl proj -> fmap rightId $ updateAllColumn rs tbl proj
 
+-- | Lift 'Restriction' to 'UpdateTarget'. Update target columns are all. With placefolder type 'p'.
 liftTargetAllColumn' :: PersistableWidth r
                      => Restriction p r
                      -> UpdateTarget (r, p) r
 liftTargetAllColumn' rs = updateTarget' $ updateAllColumn rs
 
+-- | Finalize 'Restrict' monad and generate 'UpdateTarget'. Update target columns are all.
 updateTargetAllColumn :: PersistableWidth r
                       => (Projection r -> Restrict ())
                       -> UpdateTarget r r
 updateTargetAllColumn = liftTargetAllColumn . restriction
 
+-- | Finalize 'Restrict' monad and generate 'UpdateTarget'. Update target columns are all. With placefolder type 'p'.
 updateTargetAllColumn' :: PersistableWidth r
                        => (Projection r -> Restrict (PlaceHolders p))
                        -> UpdateTarget (r, p) r

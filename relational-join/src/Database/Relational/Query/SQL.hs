@@ -38,7 +38,7 @@ import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
 
--- | Generate select SQL. Append seed query string.
+-- | Generate select SQL. Seed SQL string append to this.
 selectSeedSQL :: Projection r -> ShowS
 selectSeedSQL pj =
   (unwordsSQL [SELECT, columns' `SQL.sepBy` ", "] ++)
@@ -47,6 +47,7 @@ selectSeedSQL pj =
                    (Projection.columns pj)
                    [(0 :: Int)..]
 
+-- | Generate update SQL. Seed SQL string append to this.
 updateSeedSQL :: Table r -> ShowS
 updateSeedSQL table = (unwordsSQL [UPDATE, SQL.word $ name table] ++)
 
