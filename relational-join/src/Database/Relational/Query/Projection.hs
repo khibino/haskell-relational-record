@@ -44,11 +44,22 @@ import qualified Database.Relational.Query.Sub as SubQuery
 data ProjectionUnit = Columns (Array Int String)
                     | Sub (Qualified SubQuery)
 
--- | Untyped projection. Forgot record type.
-newtype UntypedProjection = Composed [ProjectionUnit]
+projectionUnitFromColumns :: [String] -> ProjectionUnit
+projectionUnitFromColumns cs = Columns $ listArray (0, length cs - 1) cs
 
-projectionUnits :: UntypedProjection -> [ProjectionUnit]
-projectionUnits (Composed us) = us
+-- | Untyped projection. Forgot record type.
+type UntypedProjection = [ProjectionUnit]
+
+unitUntypedProjection :: ProjectionUnit -> UntypedProjection
+unitUntypedProjection =  (:[])
+
+-- | Make untyped projection from columns.
+untypedProjectionFromColumns :: [String] -> UntypedProjection
+untypedProjectionFromColumns =  unitUntypedProjection . projectionUnitFromColumns
+
+-- | Make untyped projection from sub query.
+untypedProjectionFromSubQuery :: Qualified SubQuery -> UntypedProjection
+untypedProjectionFromSubQuery =  unitUntypedProjection . Sub
 
 -- | Phantom typed projection. Projected into Haskell record type 't'.
 newtype Projection t = Projection { untypeProjection :: UntypedProjection }
@@ -57,10 +68,10 @@ typedProjection :: UntypedProjection -> Projection t
 typedProjection =  Projection
 
 units :: Projection t -> [ProjectionUnit]
-units =  projectionUnits . untypeProjection
+units =  untypeProjection
 
 fromUnits :: [ProjectionUnit] -> Projection t
-fromUnits =  typedProjection . Composed
+fromUnits =  typedProjection
 
 -- | ProjectionUnit width.
 widthOfProjectionUnit :: ProjectionUnit -> Int
@@ -99,18 +110,14 @@ columns p = map (\n -> column p n) . take w $ [0 .. ]
   where w = width p
 
 
--- | Unsafely generate 'Projection' from ProjectionUnit.
-unsafeFromUnit :: ProjectionUnit -> Projection t
-unsafeFromUnit =  fromUnits . (:[])
-
 -- | Unsafely generate 'Projection' from SQL string list.
 unsafeFromColumns :: [String]     -- ^ SQL string list specifies columns
                   -> Projection r -- ^ Result 'Projection'
-unsafeFromColumns fs = unsafeFromUnit . Columns $ listArray (0, length fs - 1) fs
+unsafeFromColumns =  typedProjection . untypedProjectionFromColumns
 
 -- | Unsafely generate  'Projection' from qualified subquery.
 unsafeFromQualifiedSubQuery :: Qualified SubQuery -> Projection t
-unsafeFromQualifiedSubQuery =  unsafeFromUnit . Sub
+unsafeFromQualifiedSubQuery =  typedProjection . untypedProjectionFromSubQuery
 
 -- | Unsafely generate unqualified 'Projection' from 'Table'.
 unsafeFromTable :: Table r
