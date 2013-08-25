@@ -23,10 +23,18 @@ module Database.Relational.Query.Sub (
   asColumnN,
 
   -- * Sub-query columns
-  column
+  column,
+
+  -- * Untyped projection
+  ProjectionUnit, UntypedProjection,
+
+  untypedProjectionFromColumns, untypedProjectionFromSubQuery,
+  widthOfProjectionUnit, columnOfProjectionUnit
   ) where
 
 import Data.List (intercalate)
+import Data.Array (Array, listArray)
+import qualified Data.Array as Array
 
 import Database.Relational.Query.Table (Table, (!))
 import qualified Database.Relational.Query.Table as Table
@@ -193,3 +201,39 @@ qualifiedForm =  qualifiedSQLas . fmap (unitSQL)
 -- | Show 'SubQuery'.
 instance Show SubQuery where
   show = toSQL
+
+
+-- | Projection structure unit
+data ProjectionUnit = Columns (Array Int String)
+                    | Sub (Qualified SubQuery)
+
+projectionUnitFromColumns :: [String] -> ProjectionUnit
+projectionUnitFromColumns cs = Columns $ listArray (0, length cs - 1) cs
+
+-- | Untyped projection. Forgot record type.
+type UntypedProjection = [ProjectionUnit]
+
+unitUntypedProjection :: ProjectionUnit -> UntypedProjection
+unitUntypedProjection =  (:[])
+
+-- | Make untyped projection from columns.
+untypedProjectionFromColumns :: [String] -> UntypedProjection
+untypedProjectionFromColumns =  unitUntypedProjection . projectionUnitFromColumns
+
+-- | Make untyped projection from sub query.
+untypedProjectionFromSubQuery :: Qualified SubQuery -> UntypedProjection
+untypedProjectionFromSubQuery =  unitUntypedProjection . Sub
+
+-- | ProjectionUnit width.
+widthOfProjectionUnit :: ProjectionUnit -> Int
+widthOfProjectionUnit =  d  where
+  d (Columns a) = mx - mn + 1 where (mn, mx) = Array.bounds a
+  d (Sub sq)    = queryWidth sq
+
+-- | Get column of ProjectionUnit.
+columnOfProjectionUnit :: ProjectionUnit -> Int -> String
+columnOfProjectionUnit =  d  where
+  d (Columns a) i | mn <= i && i <= mx = a Array.! i
+                  | otherwise          = error $ "index out of bounds (unit): " ++ show i
+    where (mn, mx) = Array.bounds a
+  d (Sub sq) i = column sq i
