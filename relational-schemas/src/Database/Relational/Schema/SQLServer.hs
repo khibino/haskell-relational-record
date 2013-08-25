@@ -18,7 +18,7 @@ import Data.Int (Int32, Int64)
 import Data.Map (Map)
 import Data.Time (LocalTime, Day, TimeOfDay)
 import Database.Record.Instances ()
-import Database.Relational.Query (Query, Relation, PlaceHolders, Projection,
+import Database.Relational.Query (Query, Relation, PlaceHolders, Projection, Flat,
                                   (!), (.=.), (><), asc, relationalQuery, just, placeholder',
                                   query, relation', unsafeShowSql, unsafeShowSqlProjection,
                                   unsafeProjectSql, wheres)
@@ -60,7 +60,7 @@ mapFromSqlDefault =
 normalizeColumn :: String -> String
 normalizeColumn = map toLower
 
-notNull :: ((Columns,Types),String) -> Bool 
+notNull :: ((Columns,Types),String) -> Bool
 notNull ((cols,_),_) = isTrue . Columns.isNullable $ cols
   where
     isTrue (Just b) = not b
@@ -81,14 +81,14 @@ getType mapFromSql rec@((cols,typs),typScms) = do
                     then typ
                     else [t|Maybe $(typ)|]
 
-sqlsrvTrue :: Projection Bool
+sqlsrvTrue :: Projection Flat Bool
 sqlsrvTrue =  unsafeProjectSql "1"
 
-sqlsrvObjectId :: Projection String -> Projection String -> Projection Int32
+sqlsrvObjectId :: Projection Flat String -> Projection Flat String -> Projection Flat Int32
 sqlsrvObjectId s t = unsafeProjectSql $
     "OBJECT_ID(" ++ unsafeShowSql s ++ " + '.' + " ++ unsafeShowSql t ++ ")"
 
-sqlsrvOidPlaceHolder :: (PlaceHolders (String, String), Projection Int32)
+sqlsrvOidPlaceHolder :: (PlaceHolders (String, String), Projection Flat Int32)
 sqlsrvOidPlaceHolder =  (nsParam >< relParam, oid)
   where
     (nsParam, (relParam, oid)) =
@@ -116,7 +116,7 @@ columnTypeQuerySQL =  relationalQuery columnTypeRelation
 primaryKeyRelation :: Relation (String,String) (Maybe String)
 primaryKeyRelation = relation' $ do
     idxes  <- query indexes
-    idxcol <- query indexColumns 
+    idxcol <- query indexColumns
     cols   <- query columns
     wheres $ idxes  ! Indexes.objectId'      .=. idxcol ! IndexColumns.objectId'
     wheres $ idxes  ! Indexes.indexId'       .=. idxcol ! IndexColumns.indexId'
