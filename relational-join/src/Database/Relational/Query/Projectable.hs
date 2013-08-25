@@ -39,7 +39,7 @@ module Database.Relational.Query.Projectable (
 
   in', isNull, isNotNull, and, or, not,
 
-  (.||.), (.||?),
+  (.||.), (?||?),
   (.+.), (.-.), (./.), (.*.),
   (?+?), (?-?), (?/?), (?*?),
 
@@ -261,9 +261,9 @@ not =  unsafeUniOp SQLs.not
 (.||.) =  unsafeBinOp (SQLs..||.)
 
 -- | Concatinate operator corresponding SQL /||/ . Maybe type version.
-(.||?) :: (SqlProjectable p, ProjectableShowSql p, IsString a)
+(?||?) :: (SqlProjectable p, ProjectableShowSql p, IsString a)
        => p (Maybe a) -> p (Maybe a) -> p (Maybe a)
-(.||?) =  unsafeBinOp (SQLs..||.)
+(?||?) =  unsafeBinOp (SQLs..||.)
 
 -- | Unsafely make number projection binary operator from SQL operator string.
 monoBinOp' :: (SqlProjectable p, ProjectableShowSql p)
@@ -412,7 +412,7 @@ instance ProjectableIdZip PlaceHolders where
 
 infixl 7 .*., ./., ?*?, ?/?
 infixl 6 .+., .-., ?+?, ?-?
-infixl 5 .||., .||?
+infixl 5 .||., ?||?
 infix  4 .=., .<>., .>., .>=., .<., .<=., `in'`
 infixr 3 `and`
 infixr 2 `or`
