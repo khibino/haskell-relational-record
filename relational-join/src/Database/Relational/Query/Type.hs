@@ -13,7 +13,6 @@ module Database.Relational.Query.Type (
   Query (..), unsafeTypedQuery,
 
   relationalQuery,
-  fromRelation,
 
   -- * Typed update statement
   KeyUpdate (..), unsafeTypedKeyUpdate, typedKeyUpdate,
@@ -55,11 +54,6 @@ instance Show (Query p a) where
 -- | From 'Relation' into typed 'Query'.
 relationalQuery :: Relation p r -> Query p r
 relationalQuery =  unsafeTypedQuery . sqlFromRelation
-
-{-# DEPRECATED fromRelation "Use relationalQuery instead of this." #-}
--- | From 'Relation' into typed 'Query'.
-fromRelation :: Relation p r -> Query p r
-fromRelation =  relationalQuery
 
 
 -- | Update type with key type 'p' and update record type 'a'.
