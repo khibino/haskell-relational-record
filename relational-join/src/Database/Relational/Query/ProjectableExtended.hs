@@ -150,6 +150,7 @@ projectPiMaybe' p = project . Projection.piMaybe' p
       -> p c (Maybe b)   -- ^ Narrower projected object. 'Maybe' phantom type result
 (?!?) =  projectPiMaybe'
 
+{-# DEPRECATED (<!>), (<?!>), (<?!?>), (<!??>) "Use not angled operators" #-}
 (<!>) :: Projectable Projection p
     => Projection c a   -- ^ Source projection
     -> Pi a b -- ^ Projection path
