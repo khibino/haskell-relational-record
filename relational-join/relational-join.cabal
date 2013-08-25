@@ -29,13 +29,14 @@ library
                        Database.Relational.Query.Pi
                        Database.Relational.Query.Pi.Unsafe
                        Database.Relational.Query.Constraint
-                       Database.Relational.Query.Projection
-                       Database.Relational.Query.Aggregation
+                       Database.Relational.Query.Context
                        Database.Relational.Query.Projectable
                        Database.Relational.Query.ProjectableExtended
                        Database.Relational.Query.Expr
                        Database.Relational.Query.Expr.Unsafe
                        Database.Relational.Query.Sub
+                       Database.Relational.Query.Projection
+                       Database.Relational.Query.Aggregation
                        Database.Relational.Query.Monad.Class
                        Database.Relational.Query.Monad.Trans.Ordering
                        Database.Relational.Query.Monad.Trans.Aggregating
