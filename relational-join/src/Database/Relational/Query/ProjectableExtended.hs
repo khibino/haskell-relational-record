@@ -22,8 +22,6 @@ module Database.Relational.Query.ProjectableExtended (
   -- * Get narrower projections
   (!), (?!), (?!?), (!??),
 
-  (<!>), (<?!>), (<?!?>), (<!??>),
-
   (.!), (.?),
 
   -- -- * Get weaken projection type
@@ -150,25 +148,6 @@ projectPiMaybe' p = project . Projection.piMaybe' p
       -> p c (Maybe b)   -- ^ Narrower projected object. 'Maybe' phantom type result
 (?!?) =  projectPiMaybe'
 
-{-# DEPRECATED (<!>), (<?!>), (<?!?>), (<!??>) "Use not angled operators" #-}
-(<!>) :: Projectable Projection p
-    => Projection c a   -- ^ Source projection
-    -> Pi a b -- ^ Projection path
-    -> p c b   -- ^ Narrower projected object
-(<!>) = (!)
-
-(<?!>) :: Projectable Projection p
-     => Projection c (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
-     -> Pi a b       -- ^ Projection path
-     -> p c (Maybe b) -- ^ Narrower projected object. 'Maybe' type result
-(<?!>) = (?!)
-
-(<?!?>) :: Projectable Projection p
-      => Projection c (Maybe a)   -- ^ Source 'Projection'. 'Maybe' phantom type
-      -> Pi a (Maybe b) -- ^ Projection path. 'Maybe' type leaf
-      -> p c (Maybe b)   -- ^ Narrower projected object. 'Maybe' phantom type result
-(<?!?>) = (?!?)
-
 -- | Get narrower projected expression along with projectino path
 --   and strip 'Maybe' phantom type off.
 (.!) :: Projection c (Maybe a) -- ^ Source projection type 'p'. 'Maybe' phantom type
@@ -221,13 +200,6 @@ projectFlattenPiMaybe p = project . flattenPiMaybe p
       -> p cont c                  -- ^ Narrower flatten and projected object.
 (!??) =  projectFlattenPiMaybe
 
-(<!??>) :: (ProjectableFlattenMaybe (Maybe b) c,
-          Projectable Projection p, ProjectableMaybe (p cont))
-      => Projection cont (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
-      -> Pi a b                    -- ^ Projection path
-      -> p cont c                  -- ^ Narrower flatten and projected object.
-(<!??>) = (!??)
-
 
 -- | Interface to run recursively identity element laws.
 class ProjectableRunIdsZip a b where
@@ -254,5 +226,5 @@ flattenPh =  runIds
 --       => p a -> p b -> p c
 -- (>?<) =  generalizedZip'
 
-infixl 8 !, ?!, ?!?, !??, .!, .?, <!>, <?!>, <?!?>, <!??>
+infixl 8 !, ?!, ?!?, !??, .!, .?
 -- infixl 1 >?<
