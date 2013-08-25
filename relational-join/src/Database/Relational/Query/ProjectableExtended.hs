@@ -43,21 +43,21 @@ import Prelude hiding (pi)
 import Data.Int (Int32)
 
 import qualified Language.SQL.Keyword as SQL
+import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Expr (Expr, fromJust)
 import Database.Relational.Query.Projection (Projection)
-import Database.Relational.Query.Aggregation (Aggregation)
+import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable
-  (ExpressionProjectable (expr), ProjectablePi, PlaceHolders,
+  (expr, PlaceHolders,
    ProjectableMaybe (flattenMaybe), ProjectableIdZip (leftId, rightId),
    SqlProjectable, unsafeProjectSql, ProjectableShowSql (unsafeShowSql))
-import qualified Database.Relational.Query.Projectable as Projectable
 import Database.Relational.Query.Pi (Pi)
 
 
 -- | Projection interface.
 class Projectable p0 p1 where
   -- ｜ Project from projection type 'p0' into weaken projection types 'p1'.
-  project :: p0 a -> p1 a
+  project :: p0 c a -> p1 c a
 
 -- | Parened String.
 paren :: String -> String
@@ -71,40 +71,40 @@ sqlUniOp :: SQL.Keyword -> SqlUniOp
 sqlUniOp kw = (SQL.wordShow kw ++) . (' ' :) . paren
 
 -- | Unsafely make aggregation uni-operator from SQL keyword.
-unsafeAggregateOp :: (SqlProjectable p, Projectable Aggregation p)
-                  => SQL.Keyword -> Projection a -> p b
+unsafeAggregateOp :: SqlProjectable (p Aggregated)
+                  => SQL.Keyword -> Projection Flat a -> p Aggregated b
 unsafeAggregateOp op = unsafeProjectSql . sqlUniOp op . unsafeShowSql
 
 -- | Aggregation function COUNT.
-count :: (SqlProjectable p, Projectable Aggregation p) => Projection a -> p Int32
+count :: SqlProjectable (p Aggregated) => Projection Flat a -> p Aggregated Int32
 count =  unsafeAggregateOp SQL.COUNT
 
 -- | Aggregation function SUM.
-sum'  :: (Num a, SqlProjectable p, Projectable Aggregation p) => Projection a -> p a
+sum'  :: (Num a, SqlProjectable (p Aggregated)) => Projection Flat a -> p Aggregated a
 sum'  =  unsafeAggregateOp SQL.SUM
 
 -- | Aggregation function AVG.
-avg   :: (Num a, Fractional b, SqlProjectable p, Projectable Aggregation p)=> Projection a -> p b
+avg   :: (Num a, Fractional b, SqlProjectable (p Aggregated))=> Projection Flat a -> p Aggregated b
 avg   =  unsafeAggregateOp SQL.AVG
 
 -- | Aggregation function MAX.
-max'  :: (Ord a, SqlProjectable p, Projectable Aggregation p) => Projection a -> p a
+max'  :: (Ord a, SqlProjectable (p Aggregated)) => Projection Flat a -> p Aggregated a
 max'  =  unsafeAggregateOp SQL.MAX
 
 -- | Aggregation function MIN.
-min'  :: (Ord a, SqlProjectable p, Projectable Aggregation p) => Projection a -> p a
+min'  :: (Ord a, SqlProjectable (p Aggregated)) => Projection Flat a -> p Aggregated a
 min'  =  unsafeAggregateOp SQL.MIN
 
 -- | Aggregation function EVERY.
-every :: (SqlProjectable p, Projectable Aggregation p) => Projection (Maybe Bool) -> p (Maybe Bool)
+every :: (SqlProjectable (p Aggregated)) => Projection Flat (Maybe Bool) -> p Aggregated (Maybe Bool)
 every =  unsafeAggregateOp SQL.EVERY
 
 -- | Aggregation function ANY.
-any'  :: (SqlProjectable p, Projectable Aggregation p) => Projection (Maybe Bool) -> p (Maybe Bool)
+any'  :: (SqlProjectable (p Aggregated)) => Projection Flat (Maybe Bool) -> p Aggregated (Maybe Bool)
 any'  =  unsafeAggregateOp SQL.ANY
 
 -- | Aggregation function SOME.
-some' :: (SqlProjectable p, Projectable Aggregation p) => Projection (Maybe Bool) -> p (Maybe Bool)
+some' :: (SqlProjectable (p Aggregated)) => Projection Flat (Maybe Bool) -> p Aggregated (Maybe Bool)
 some' =  unsafeAggregateOp SQL.SOME
 
 -- | Project from 'Projection' into 'Projection'.
@@ -112,93 +112,75 @@ instance Projectable Projection Projection where
   project = id
 
 -- | Project from 'Projection' into 'Expr' 'Projection'.
-instance Projectable Projection (Expr Projection) where
+instance Projectable Projection Expr where
   project = expr
 
--- | Project from 'Aggregation' into 'Aggregation'.
-instance Projectable Aggregation Aggregation where
-  project = id
+projectPi :: Projectable Projection p1 => Projection c a -> Pi a b -> p1 c b
+projectPi p = project . Projection.pi p
 
--- | Project from 'Aggregation' into 'Expr' 'Aggregation'.
-instance Projectable Aggregation (Expr Aggregation) where
-  project = expr
+projectPiMaybe :: Projectable Projection p1 => Projection c (Maybe a) -> Pi a b -> p1 c (Maybe b)
+projectPiMaybe p = project . Projection.piMaybe p
 
-projectPi :: (ProjectablePi p0, Projectable p0 p1) => p0 a -> Pi a b -> p1 b
-projectPi p = project . Projectable.pi p
-
-projectPiMaybe :: (ProjectablePi p0, Projectable p0 p1) => p0 (Maybe a) -> Pi a b -> p1 (Maybe b)
-projectPiMaybe p = project . Projectable.piMaybe p
-
-projectPiMaybe' :: (ProjectablePi p0, Projectable p0 p1) => p0 (Maybe a) -> Pi a (Maybe b) -> p1 (Maybe b)
-projectPiMaybe' p = project . Projectable.piMaybe' p
+projectPiMaybe' :: Projectable Projection p1 => Projection c (Maybe a) -> Pi a (Maybe b) -> p1 c (Maybe b)
+projectPiMaybe' p = project . Projection.piMaybe' p
 
 -- | Get narrower projection along with projection path
 --   and project into result projection type.
 (!) :: Projectable Projection p
-    => Projection a   -- ^ Source projection
+    => Projection c a   -- ^ Source projection
     -> Pi a b -- ^ Projection path
-    -> p b   -- ^ Narrower projected object
+    -> p c b   -- ^ Narrower projected object
 (!) =  projectPi
 
 -- | Get narrower projection along with projection path
 --   and project into result projection type.
 --   'Maybe' phantom type is propagated.
 (?!) :: Projectable Projection p
-     => Projection (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
+     => Projection c (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
      -> Pi a b       -- ^ Projection path
-     -> p (Maybe b) -- ^ Narrower projected object. 'Maybe' type result
+     -> p c (Maybe b) -- ^ Narrower projected object. 'Maybe' type result
 (?!) =  projectPiMaybe
 
 -- | Get narrower projection along with projection path
 --   and project into result projection type.
 --   'Maybe' phantom type is propagated. Projection path leaf is 'Maybe' case.
 (?!?) :: Projectable Projection p
-      => Projection (Maybe a)   -- ^ Source 'Projection'. 'Maybe' phantom type
+      => Projection c (Maybe a)   -- ^ Source 'Projection'. 'Maybe' phantom type
       -> Pi a (Maybe b) -- ^ Projection path. 'Maybe' type leaf
-      -> p (Maybe b)   -- ^ Narrower projected object. 'Maybe' phantom type result
+      -> p c (Maybe b)   -- ^ Narrower projected object. 'Maybe' phantom type result
 (?!?) =  projectPiMaybe'
 
--- | Get narrower aggregated projection along with projection path
---   and project into result projection type.
-(<!>) :: Projectable Aggregation p
-      => Aggregation a -- ^ Source 'Aggregation'
-      -> Pi a b        -- ^ Projection path
-      -> p b           -- ^ Narrower projected object
-(<!>) =  projectPi
+(<!>) :: Projectable Projection p
+    => Projection c a   -- ^ Source projection
+    -> Pi a b -- ^ Projection path
+    -> p c b   -- ^ Narrower projected object
+(<!>) = (!)
 
--- | Get narrower aggregated projection along with projection path
---   and project into result projection type.
---   'Maybe' phantom type is propagated.
-(<?!>) :: Projectable Aggregation p
-       => Aggregation (Maybe a) -- ^ Source 'Aggregation'. 'Maybe' phantom type
-       -> Pi a b                -- ^ Projection path
-       -> p (Maybe b)           -- ^ Narrower projected object. 'Maybe' phantom type result
-(<?!>) =  projectPiMaybe
+(<?!>) :: Projectable Projection p
+     => Projection c (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
+     -> Pi a b       -- ^ Projection path
+     -> p c (Maybe b) -- ^ Narrower projected object. 'Maybe' type result
+(<?!>) = (?!)
 
--- | Get narrower aggregated projection along with projection path
---   and project into result projection type.
---   'Maybe' phantom type is propagated. Projection path leaf is 'Maybe' case.
-(<?!?>) :: Projectable Aggregation p
-        => Aggregation (Maybe a) -- ^ Source 'Aggregation'. 'Maybe' phantom type
-        -> Pi a (Maybe b)        -- ^ Projection path. 'Maybe' type leaf
-        -> p (Maybe b)           -- ^ Narrower projected object. 'Maybe' phantom type result
-(<?!?>) =  projectPiMaybe'
+(<?!?>) :: Projectable Projection p
+      => Projection c (Maybe a)   -- ^ Source 'Projection'. 'Maybe' phantom type
+      -> Pi a (Maybe b) -- ^ Projection path. 'Maybe' type leaf
+      -> p c (Maybe b)   -- ^ Narrower projected object. 'Maybe' phantom type result
+(<?!?>) = (?!?)
 
 -- | Get narrower projected expression along with projectino path
 --   and strip 'Maybe' phantom type off.
-(.!) :: (ProjectablePi p, Projectable p (Expr p))
-     => p (Maybe a) -- ^ Source projection type 'p'. 'Maybe' phantom type
+(.!) :: Projection c (Maybe a) -- ^ Source projection type 'p'. 'Maybe' phantom type
      -> Pi a b      -- ^ Projection path
-     -> Expr p b    -- ^ Narrower projected expression. 'Maybe' phantom type is stripped off
+     -> Expr c b    -- ^ Narrower projected expression. 'Maybe' phantom type is stripped off
 (.!) p = fromJust . projectPiMaybe p
 
 -- | Get narrower projected expression along with projectino path
 --   and strip 'Maybe' phantom type off.
 --   Projection path leaf is 'Maybe' case.
-(.?) :: (ProjectablePi p, Projectable p (Expr p))
-     => p (Maybe a)    -- ^ Source projection type 'p'. 'Maybe' phantom type
+(.?) :: Projection c (Maybe a)    -- ^ Source projection type 'p'. 'Maybe' phantom type
      -> Pi a (Maybe b) -- ^ Projection path. 'Maybe' type leaf
-     -> Expr p b       -- ^ Narrower projected expression. 'Maybe' phantom type is stripped off
+     -> Expr c b       -- ^ Narrower projected expression. 'Maybe' phantom type is stripped off
 (.?) p = fromJust . projectPiMaybe' p
 
 
@@ -216,35 +198,34 @@ instance ProjectableFlattenMaybe (Maybe a) (Maybe a) where
   flatten = id
 
 -- | Get narrower projection with flatten leaf phantom Maybe types along with projection path.
-flattenPiMaybe :: (ProjectablePi p, ProjectableMaybe p, ProjectableFlattenMaybe (Maybe b) c)
-               => p (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
+flattenPiMaybe :: (ProjectableMaybe (Projection cont), ProjectableFlattenMaybe (Maybe b) c)
+               => Projection cont (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
                -> Pi a b               -- ^ Projection path
-               -> p c         -- ^ Narrower 'Projection'. Flatten 'Maybe' phantom type
-flattenPiMaybe p = flatten . Projectable.piMaybe p
+               -> Projection cont c         -- ^ Narrower 'Projection'. Flatten 'Maybe' phantom type
+flattenPiMaybe p = flatten . Projection.piMaybe p
 
-projectFlattenPiMaybe :: (ProjectablePi p0, ProjectableMaybe p0, Projectable p0 p1, ProjectableFlattenMaybe (Maybe b) c)
-               => p0 (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
-               -> Pi a b               -- ^ Projection path
-               -> p1 c         -- ^ Narrower 'Projection'. Flatten 'Maybe' phantom type
+projectFlattenPiMaybe :: (ProjectableMaybe (Projection cont),
+                          Projectable Projection p1, ProjectableFlattenMaybe (Maybe b) c)
+                      => Projection cont (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
+                      -> Pi a b                    -- ^ Projection path
+                      -> p1 cont c                 -- ^ Narrower 'Projection'. Flatten 'Maybe' phantom type
 projectFlattenPiMaybe p = project . flattenPiMaybe p
 
 -- | Get narrower projection with flatten leaf phantom Maybe types along with projection path
 --   and project into result projection type.
 (!??) :: (ProjectableFlattenMaybe (Maybe b) c,
-          Projectable Projection p, ProjectableMaybe p)
-      => Projection (Maybe a) -- ^ Source 'Aggregation'. 'Maybe' phantom type
-      -> Pi a b               -- ^ Projection path
-      -> p c                  -- ^ Narrower flatten and projected object.
+          Projectable Projection p, ProjectableMaybe (p cont))
+      => Projection cont (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
+      -> Pi a b                    -- ^ Projection path
+      -> p cont c                  -- ^ Narrower flatten and projected object.
 (!??) =  projectFlattenPiMaybe
 
--- | Get narrower aggregated projection with flatten leaf phantom Maybe types along with projection path
---   and project into result projection type.
 (<!??>) :: (ProjectableFlattenMaybe (Maybe b) c,
-            Projectable Aggregation p, ProjectableMaybe p)
-        => Aggregation (Maybe a) -- ^ Source 'Aggregation'. 'Maybe' phantom type
-        -> Pi a b                -- ^ Projection path
-        -> p c                   -- ^ Narrower flatten and projected object.
-(<!??>) =  projectFlattenPiMaybe
+          Projectable Projection p, ProjectableMaybe (p cont))
+      => Projection cont (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
+      -> Pi a b                    -- ^ Projection path
+      -> p cont c                  -- ^ Narrower flatten and projected object.
+(<!??>) = (!??)
 
 
 -- | Interface to run recursively identity element laws.
@@ -272,5 +253,5 @@ flattenPh =  runIds
 --       => p a -> p b -> p c
 -- (>?<) =  generalizedZip'
 
-infixl 8 !, ?!, ?!?, !??, <!>, <?!>, <?!?>, <!??>, .!, .?
+infixl 8 !, ?!, ?!?, !??, .!, .?, <!>, <?!>, <?!?>, <!??>
 -- infixl 1 >?<

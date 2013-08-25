@@ -15,6 +15,7 @@ module Database.Relational.Query.Monad.Target (
   expandPrepend
   ) where
 
+import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Projection (Projection)
 import Database.Relational.Query.Monad.Restrict (Restrict, expandWhere)
@@ -28,7 +29,7 @@ type Target r = Assignings r Restrict
 -- | TargetStatement type synonym.
 --   Table and projection record type must be
 --   the same as 'Target' type parameter 'r'.
-type TargetStatement r a = Table r -> Projection r -> Target r a
+type TargetStatement r a = Table r -> Projection Flat r -> Target r a
 
 -- -- | 'return' of 'Update'
 -- updateStatement :: a -> Assignings r (Restrictings Identity) a

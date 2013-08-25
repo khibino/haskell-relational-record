@@ -24,6 +24,7 @@ import Control.Monad.Trans.State (StateT, runStateT, modify)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second, (>>>))
 
+import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Monad.Trans.StatePrepend (Prepend, prepend, liftToString)
 import Database.Relational.Query.Monad.Trans.AggregatingState
   (AggregatingContext, primeAggregatingContext, addGroupBy, composeGroupBys)
@@ -31,8 +32,6 @@ import qualified Database.Relational.Query.Monad.Trans.AggregatingState as State
 import Database.Relational.Query.Expr (Expr)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
-import Database.Relational.Query.Aggregation (Aggregation)
-import qualified Database.Relational.Query.Aggregation as Aggregation
 
 import Database.Relational.Query.Monad.Class
   (MonadRestrict(..), MonadQuery(..), MonadAggregate(..))
@@ -77,17 +76,17 @@ addGroupBys' gbs = updateAggregatingContext . foldr (>>>) id $ map addGroupBy gb
 
 -- | Add restrictions for aggregated query.
 addRestriction :: MonadQuery m
-               => Expr Aggregation (Maybe Bool) -- ^ Restriction to add
-               -> Aggregatings m ()             -- ^ Result restricted context
+               => Expr Aggregated (Maybe Bool) -- ^ Restriction to add
+               -> Aggregatings m ()            -- ^ Result restricted context
 addRestriction =  updateAggregatingContext . State.addRestriction
 
 -- | Add aggregating terms.
 addGroupBys :: MonadQuery m
-            => Projection r                   -- ^ Group-by term to add
-            -> Aggregatings m (Aggregation r) -- ^ Result aggregated context
+            => Projection Flat r              -- ^ Group-by term to add
+            -> Aggregatings m (Projection Aggregated r) -- ^ Result aggregated context
 addGroupBys p = do
   addGroupBys' . Projection.columns $ p
-  return $ Aggregation.unsafeFromProjection p
+  return $ Projection.unsafeToAggregated p
 
 -- | Aggregated query instance.
 instance MonadQuery m => MonadAggregate (Aggregatings m) where

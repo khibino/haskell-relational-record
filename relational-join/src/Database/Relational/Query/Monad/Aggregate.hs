@@ -22,10 +22,9 @@ module Database.Relational.Query.Monad.Aggregate (
   toSubQuery
   ) where
 
+import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
-import Database.Relational.Query.Aggregation (Aggregation)
-import qualified Database.Relational.Query.Aggregation as Aggregation
 import Database.Relational.Query.SQL (selectSeedSQL)
 import Database.Relational.Query.Sub (SubQuery, subQuery)
 
@@ -43,28 +42,28 @@ import Database.Relational.Query.Monad.Type (QueryCore)
 
 
 -- | Aggregated query monad type.
-type QueryAggregate    = Orderings Aggregation (Aggregatings QueryCore)
+type QueryAggregate    = Orderings Aggregated (Aggregatings QueryCore)
 
--- | Aggregated query type. AggregatedQuery r == QueryAggregate (Aggregation r).
-type AggregatedQuery r = OrderedQuery Aggregation (Aggregatings QueryCore) r
+-- | Aggregated query type. AggregatedQuery r == QueryAggregate (Projection Aggregated r).
+type AggregatedQuery r = OrderedQuery Aggregated (Aggregatings QueryCore) r
 
 -- | Lift from qualified table forms into 'QueryAggregate'.
 aggregatedQuery :: Qualify a -> QueryAggregate a
 aggregatedQuery =  orderings . aggregatings . restrictings . join'
 
 -- | Instance to lift from qualified table forms into 'QueryAggregate'.
-instance MonadQualify Qualify (Orderings Aggregation (Aggregatings QueryCore)) where
+instance MonadQualify Qualify (Orderings Aggregated (Aggregatings QueryCore)) where
   liftQualify = aggregatedQuery
 
 expandPrepend :: AggregatedQuery r
-             -> Qualify ((((Aggregation r, OrderByPrepend), GroupBysPrepend), WherePrepend), FromPrepend)
+                 -> Qualify ((((Projection Aggregated r, OrderByPrepend), GroupBysPrepend), WherePrepend), FromPrepend)
 expandPrepend =  extractFrom . extractWheres . extractGroupBys . extractOrderBys
 
 -- | Run 'AggregatedQuery' to get SQL string.
-expandSQL :: AggregatedQuery r -> Qualify (String, Projection r)
+expandSQL :: AggregatedQuery r -> Qualify (String, Projection Flat r)
 expandSQL q = do
   ((((aggr, ao), ag), aw), af) <- expandPrepend q
-  let projection = Aggregation.unsafeProjection aggr
+  let projection = Projection.unsafeToFlat aggr
   return (selectSeedSQL projection . prependFrom af . prependWhere aw
           . prependGroupBys ag . prependOrderBy ao $ "",
           projection)

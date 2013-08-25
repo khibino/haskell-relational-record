@@ -24,10 +24,10 @@ import Control.Monad.Trans.State (modify, StateT, runStateT)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second)
 
+import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Monad.Trans.StatePrepend (Prepend, prepend, liftToString)
 import Database.Relational.Query.Monad.Trans.RestrictingState
   (RestrictContext, primeRestrictContext, addRestriction, composeWheres)
-import Database.Relational.Query.Projection (Projection)
 import Database.Relational.Query.Expr (Expr)
 
 import Database.Relational.Query.Monad.Class (MonadRestrict(..), MonadQuery (..))
@@ -58,7 +58,7 @@ updateRestrictContext :: Monad m => (RestrictContext -> RestrictContext) -> Rest
 updateRestrictContext =  Restrictings . modify
 
 -- | Add whole query restriction.
-updateRestriction :: Monad m => Expr Projection (Maybe Bool) -> Restrictings m ()
+updateRestriction :: Monad m => Expr Flat (Maybe Bool) -> Restrictings m ()
 updateRestriction e = updateRestrictContext (addRestriction e)
 
 -- | 'MonadRestrict' instance.

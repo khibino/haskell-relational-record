@@ -22,6 +22,7 @@ module Database.Relational.Query.Monad.Simple (
   toSubQuery
   ) where
 
+import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.SQL (selectSeedSQL)
@@ -40,25 +41,25 @@ import Database.Relational.Query.Sub (SubQuery, subQuery)
 
 
 -- | Simple query (not-aggregated) monad type.
-type QuerySimple = Orderings Projection QueryCore
+type QuerySimple = Orderings Flat QueryCore
 
 -- | Simple query (not-aggregated) query type. 'SimpleQuery' r == 'QuerySimple' ('Projection' r).
-type SimpleQuery r = OrderedQuery Projection QueryCore r
+type SimpleQuery r = OrderedQuery Flat QueryCore r
 
 -- | Lift from qualified table forms into 'QuerySimple'.
 simple :: Qualify a -> QuerySimple a
 simple =  orderings . restrictings . join'
 
 -- | Instance to lift from qualified table forms into 'QuerySimple'.
-instance MonadQualify Qualify (Orderings Projection QueryCore) where
+instance MonadQualify Qualify (Orderings Flat QueryCore) where
   liftQualify = simple
 
 expandPrepend :: SimpleQuery r
-              -> Qualify (((Projection r, OrderByPrepend), WherePrepend), FromPrepend)
+              -> Qualify (((Projection Flat r, OrderByPrepend), WherePrepend), FromPrepend)
 expandPrepend =  extractFrom . extractWheres . extractOrderBys
 
 -- | Run 'SimpleQuery' to get SQL string.
-expandSQL :: SimpleQuery r -> Qualify (String, Projection r)
+expandSQL :: SimpleQuery r -> Qualify (String, Projection Flat r)
 expandSQL q = do
   (((pj, ao), aw), af) <- expandPrepend q
   return (selectSeedSQL pj . prependFrom af . prependWhere aw . prependOrderBy ao $ "", pj)

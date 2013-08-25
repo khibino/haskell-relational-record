@@ -23,6 +23,7 @@ module Database.Relational.Query.Monad.Trans.Assigning (
   SetPrepend, prependSet
   ) where
 
+import Database.Relational.Query.Context (Flat)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.State (StateT, runStateT, modify)
 import Control.Applicative (Applicative, (<$>))
@@ -70,12 +71,12 @@ instance MonadRestrict m => MonadRestrict (Assignings r m) where
 -- | Target of assignment.
 newtype AssignTarget r v = AssignTarget (Table r, Pi r v)
 
-targetProjection :: AssignTarget r v -> Projection v
+targetProjection :: AssignTarget r v -> Projection Flat v
 targetProjection (AssignTarget (tbl, pi')) =
   Projection.pi (Projection.unsafeFromTable tbl) pi'
 
 -- | Add an assignment.
-assignTo :: Monad m => Projection v ->  AssignTarget r v -> Assignings r m ()
+assignTo :: Monad m => Projection Flat v ->  AssignTarget r v -> Assignings r m ()
 assignTo vp target = updateAssigningContext . foldr (>>>) id
                      $ zipWith updateAssignments lefts rights  where
   lefts  = Projection.columns $ targetProjection target
@@ -86,7 +87,7 @@ assignTo vp target = updateAssigningContext . foldr (>>>) id
 (!#) =  curry AssignTarget
 
 -- | Add and assginment.
-(<-#) :: Monad m => AssignTarget r v -> Projection v -> Assignings r m ()
+(<-#) :: Monad m => AssignTarget r v -> Projection Flat v -> Assignings r m ()
 (<-#) =  flip assignTo
 
 infix 8 !#

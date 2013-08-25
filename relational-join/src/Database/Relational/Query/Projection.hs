@@ -24,11 +24,14 @@ module Database.Relational.Query.Projection (
 
   pi, piMaybe, piMaybe',
 
-  flattenMaybe, just
+  flattenMaybe, just,
+
+  unsafeToAggregated, unsafeToFlat
   ) where
 
 import Prelude hiding (pi)
 
+import Database.Relational.Query.Context (Aggregated, Flat)
 import Database.Relational.Query.Table (Table)
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Pi (Pi)
@@ -40,25 +43,25 @@ import Database.Relational.Query.Sub
 
 
 -- | Phantom typed projection. Projected into Haskell record type 't'.
-newtype Projection t = Projection { untypeProjection :: UntypedProjection }
+newtype Projection c t = Projection { untypeProjection :: UntypedProjection }
 
-typedProjection :: UntypedProjection -> Projection t
+typedProjection :: UntypedProjection -> Projection c t
 typedProjection =  Projection
 
-units :: Projection t -> [ProjectionUnit]
+units :: Projection c t -> [ProjectionUnit]
 units =  untypeProjection
 
-fromUnits :: [ProjectionUnit] -> Projection t
+fromUnits :: [ProjectionUnit] -> Projection c t
 fromUnits =  typedProjection
 
 -- | Width of 'Projection'.
-width :: Projection r -> Int
+width :: Projection c r -> Int
 width =  sum . map widthOfProjectionUnit . units  where
 
 -- | Get column SQL string of 'Projection'.
-column :: Projection r -- ^ Source 'Projection'
-       -> Int          -- ^ Column index
-       -> String       -- ^ Result SQL string
+column :: Projection c r -- ^ Source 'Projection'
+       -> Int            -- ^ Column index
+       -> String         -- ^ Result SQL string
 column =  d  where
   d proj i' = rec (units proj) i'  where
     rec []       _        = error $ "index out of bounds: " ++ show i'
@@ -68,61 +71,75 @@ column =  d  where
       | otherwise         = rec us (i - widthOfProjectionUnit u)
 
 -- | Get column SQL string list of projection.
-columns :: Projection r -- ^ Source 'Projection'
-        -> [String]     -- ^ Result SQL string list
+columns :: Projection c r -- ^ Source 'Projection'
+        -> [String]       -- ^ Result SQL string list
 columns p = map (\n -> column p n) . take w $ [0 .. ]
   where w = width p
 
 
 -- | Unsafely generate 'Projection' from SQL string list.
-unsafeFromColumns :: [String]     -- ^ SQL string list specifies columns
-                  -> Projection r -- ^ Result 'Projection'
+unsafeFromColumns :: [String]       -- ^ SQL string list specifies columns
+                  -> Projection c r -- ^ Result 'Projection'
 unsafeFromColumns =  typedProjection . untypedProjectionFromColumns
 
 -- | Unsafely generate  'Projection' from qualified subquery.
-unsafeFromQualifiedSubQuery :: Qualified SubQuery -> Projection t
+unsafeFromQualifiedSubQuery :: Qualified SubQuery -> Projection c t
 unsafeFromQualifiedSubQuery =  typedProjection . untypedProjectionFromSubQuery
 
 -- | Unsafely generate unqualified 'Projection' from 'Table'.
 unsafeFromTable :: Table r
-                -> Projection r
+                -> Projection c r
 unsafeFromTable =  unsafeFromColumns . Table.columns
 
 -- | Concatenate 'Projection'.
-compose :: Projection a -> Projection b -> Projection (c a b)
+compose :: Projection c a -> Projection c b -> Projection c (pair a b)
 compose a b = fromUnits $ units a ++ units b
 
 
 -- | Unsafely trace projection path.
-unsafeProject :: Projection a' -> Pi a b -> Projection b'
+unsafeProject :: Projection c a' -> Pi a b -> Projection c b'
 unsafeProject p pi' =
   unsafeFromColumns
   . (`UnsafePi.pi` pi')
   . columns $ p
 
 -- | Trace projection path to get narrower 'Projection'.
-pi :: Projection a -- ^ Source 'Projection'
-   -> Pi a b       -- ^ Projection path
-   -> Projection b -- ^ Narrower 'Projection'
+pi :: Projection c a -- ^ Source 'Projection'
+   -> Pi a b         -- ^ Projection path
+   -> Projection c b -- ^ Narrower 'Projection'
 pi =  unsafeProject
 
 -- | Trace projection path to get narrower 'Projection'. From 'Maybe' type to 'Maybe' type.
-piMaybe :: Projection (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
-        -> Pi a b               -- ^ Projection path
-        -> Projection (Maybe b) -- ^ Narrower 'Projection'. 'Maybe' type result
+piMaybe :: Projection c (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
+        -> Pi a b                 -- ^ Projection path
+        -> Projection c (Maybe b) -- ^ Narrower 'Projection'. 'Maybe' type result
 piMaybe =  unsafeProject
 
 -- | Trace projection path to get narrower 'Projection'. From 'Maybe' type to 'Maybe' type.
 --   Leaf type of projection path is 'Maybe'.
-piMaybe' :: Projection (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
-         -> Pi a (Maybe b)       -- ^ Projection path. 'Maybe' type leaf
-         -> Projection (Maybe b) -- ^ Narrower 'Projection'. 'Maybe' type result
+piMaybe' :: Projection c (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
+         -> Pi a (Maybe b)         -- ^ Projection path. 'Maybe' type leaf
+         -> Projection c (Maybe b) -- ^ Narrower 'Projection'. 'Maybe' type result
 piMaybe' =  unsafeProject
 
+unsafeCast :: Projection c r -> Projection c r'
+unsafeCast =  typedProjection . untypeProjection
+
 -- | Composite nested 'Maybe' on projection phantom type.
-flattenMaybe :: Projection (Maybe (Maybe a)) -> Projection (Maybe a)
-flattenMaybe =  typedProjection . untypeProjection
+flattenMaybe :: Projection c (Maybe (Maybe a)) -> Projection c (Maybe a)
+flattenMaybe =  unsafeCast
 
 -- | Cast into 'Maybe' on projection phantom type.
-just :: Projection r -> Projection (Maybe r)
-just =  typedProjection . untypeProjection
+just :: Projection c r -> Projection c (Maybe r)
+just =  unsafeCast
+
+unsafeChangeContext :: Projection c r -> Projection c' r
+unsafeChangeContext =  typedProjection . untypeProjection
+
+-- | Unsafely lift to aggregated context.
+unsafeToAggregated :: Projection Flat r -> Projection Aggregated r
+unsafeToAggregated =  unsafeChangeContext
+
+-- | Unsafely down to flat context.
+unsafeToFlat :: Projection Aggregated r -> Projection Flat r
+unsafeToFlat =  unsafeChangeContext

@@ -16,7 +16,6 @@ module Database.Relational.Query (
   module Database.Relational.Query.Expr,
   module Database.Relational.Query.Sub,
   module Database.Relational.Query.Projection,
-  module Database.Relational.Query.Aggregation,
   module Database.Relational.Query.Projectable,
   module Database.Relational.Query.ProjectableExtended,
   module Database.Relational.Query.Monad.Class,
@@ -45,7 +44,6 @@ import Database.Relational.Query.Constraint
 import Database.Relational.Query.Expr hiding (fromJust, just)
 import Database.Relational.Query.Sub (SubQuery, unitSQL, queryWidth)
 import Database.Relational.Query.Projection (Projection)
-import Database.Relational.Query.Aggregation (Aggregation)
 import Database.Relational.Query.Projectable
 import Database.Relational.Query.ProjectableExtended
 import Database.Relational.Query.Monad.Class

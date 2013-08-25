@@ -24,6 +24,7 @@ import Control.Monad.Trans.State (modify, StateT, runStateT)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second)
 
+import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Monad.Trans.StatePrepend (Prepend, prepend, liftToString)
 import Database.Relational.Query.Monad.Trans.JoinState
   (JoinContext, primeJoinContext, updateProduct, composeFrom)
@@ -61,7 +62,7 @@ updateContext :: Monad m => (JoinContext -> JoinContext) -> QueryJoin m ()
 updateContext =  QueryJoin . modify
 
 -- | Add last join product restriction.
-updateJoinRestriction :: Monad m => Expr Projection (Maybe Bool) -> QueryJoin m ()
+updateJoinRestriction :: Monad m => Expr Flat (Maybe Bool) -> QueryJoin m ()
 updateJoinRestriction e = updateContext (updateProduct d)  where
   d  Nothing  = error "on: product is empty!"
   d (Just pt) = restrictProduct pt (fromTriBool e)
@@ -82,9 +83,9 @@ instance (Monad q, Functor q) => MonadQuery (QueryJoin q) where
 
 -- | Unsafely join subquery with this query.
 unsafeSubQueryWithAttr :: Monad q
-                       => NodeAttr                   -- ^ Attribute maybe or just
-                       -> Qualified SubQuery         -- ^ 'SubQuery' to join
-                       -> QueryJoin q (Projection r) -- ^ Result joined context and 'SubQuery' result projection.
+                       => NodeAttr                        -- ^ Attribute maybe or just
+                       -> Qualified SubQuery              -- ^ 'SubQuery' to join
+                       -> QueryJoin q (Projection Flat r) -- ^ Result joined context and 'SubQuery' result projection.
 unsafeSubQueryWithAttr attr qsub = do
   updateContext (updateProduct (`growProduct` (attr, qsub)))
   return $ Projection.unsafeFromQualifiedSubQuery qsub

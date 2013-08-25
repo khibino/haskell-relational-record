@@ -38,6 +38,7 @@ module Database.Relational.Query.Relation (
   union', except', intersect'
   ) where
 
+import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Monad.Qualify (Qualify, evalQualifyPrime, qualifyQuery)
 import Database.Relational.Query.Monad.Class
   (MonadQualify (liftQualify), MonadQuery (unsafeSubQuery), on)
@@ -52,7 +53,6 @@ import Database.Relational.Query.Internal.Product (NodeAttr(Just', Maybe))
 
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
-import Database.Relational.Query.Aggregation (Aggregation)
 import Database.Relational.Query.Projectable
   (PlaceHolders, addPlaceHolders, projectZip)
 
@@ -84,7 +84,7 @@ subQueryQualifyFromRelation =  d  where
 
 -- | Basic monadic join operation using 'MonadQuery'.
 queryWithAttr :: MonadQualify Qualify m
-              => NodeAttr -> Relation p r -> m (PlaceHolders p, Projection r)
+              => NodeAttr -> Relation p r -> m (PlaceHolders p, Projection Flat r)
 queryWithAttr attr = addPlaceHolders . run where
   run rel = do
     q <- liftQualify $ do
@@ -94,42 +94,42 @@ queryWithAttr attr = addPlaceHolders . run where
   -- d (Relation q) = unsafeMergeAnotherQuery attr q
 
 -- | Join subquery with place-holder parameter 'p'. query result is not 'Maybe'.
-query' :: MonadQualify Qualify m => Relation p r -> m (PlaceHolders p, Projection r)
+query' :: MonadQualify Qualify m => Relation p r -> m (PlaceHolders p, Projection Flat r)
 query' =  queryWithAttr Just'
 
 -- | Join subquery. Query result is not 'Maybe'.
-query :: MonadQualify Qualify m => Relation () r -> m (Projection r)
+query :: MonadQualify Qualify m => Relation () r -> m (Projection Flat r)
 query =  fmap snd . query'
 
 -- | Join subquery with place-holder parameter 'p'. Query result is 'Maybe'.
-queryMaybe' :: MonadQualify Qualify m => Relation p r -> m (PlaceHolders p, Projection (Maybe r))
+queryMaybe' :: MonadQualify Qualify m => Relation p r -> m (PlaceHolders p, Projection Flat (Maybe r))
 queryMaybe' pr =  do
   (ph, pj) <- queryWithAttr Maybe pr
   return (ph, Projection.just pj)
 
 -- | Join subquery. Query result is 'Maybe'.
-queryMaybe :: MonadQualify Qualify m => Relation () r -> m (Projection (Maybe r))
+queryMaybe :: MonadQualify Qualify m => Relation () r -> m (Projection Flat (Maybe r))
 queryMaybe =  fmap snd . queryMaybe'
 
 -- | Finalize 'QuerySimple' monad and generate 'Relation'.
-relation :: QuerySimple (Projection r) -> Relation () r
+relation :: QuerySimple (Projection Flat r) -> Relation () r
 relation =  SimpleRel
 
 -- | Finalize 'QuerySimple' monad and generate 'Relation' with place-holder parameter 'p'.
-relation' :: QuerySimple (PlaceHolders p, Projection r) -> Relation p r
+relation' :: QuerySimple (PlaceHolders p, Projection Flat r) -> Relation p r
 relation' =  SimpleRel . fmap snd
 
 -- | Finalize 'QueryAggregate' monad and geneate 'Relation'.
-aggregateRelation :: QueryAggregate (Aggregation r) -> Relation () r
+aggregateRelation :: QueryAggregate (Projection Aggregated r) -> Relation () r
 aggregateRelation =  AggregateRel
 
 -- | Finalize 'QueryAggregate' monad and geneate 'Relation' with place-holder parameter 'p'.
-aggregateRelation' :: QueryAggregate (PlaceHolders p, Aggregation r) -> Relation p r
+aggregateRelation' :: QueryAggregate (PlaceHolders p, Projection Aggregated r) -> Relation p r
 aggregateRelation' =  AggregateRel . fmap snd
 
 
 -- | Restriction function type for direct style join operator.
-type JoinRestriction a b = Projection a -> Projection b -> Projection (Maybe Bool)
+type JoinRestriction a b = Projection Flat a -> Projection Flat b -> Projection Flat (Maybe Bool)
 
 unsafeCastPlaceHolder :: Relation a r -> Relation b r
 unsafeCastPlaceHolder =  d  where
@@ -146,8 +146,8 @@ leftPh :: Relation (p, ()) r -> Relation p r
 leftPh =  unsafeCastPlaceHolder
 
 -- | Basic direct join operation with place-holder parameters.
-join' :: (qa -> QuerySimple (PlaceHolders pa, Projection a))
-      -> (qb -> QuerySimple (PlaceHolders pb, Projection b))
+join' :: (qa -> QuerySimple (PlaceHolders pa, Projection Flat a))
+      -> (qb -> QuerySimple (PlaceHolders pb, Projection Flat b))
       -> qa
       -> qb
       -> [JoinRestriction a b]
@@ -187,8 +187,8 @@ full' :: Relation pa a                         -- ^ Left query to join
 full'  =  join' queryMaybe' queryMaybe'
 
 -- | Basic direct join operation.
-join :: (qa -> QuerySimple (Projection a))
-     -> (qb -> QuerySimple (Projection b))
+join :: (qa -> QuerySimple (Projection Flat a))
+     -> (qb -> QuerySimple (Projection Flat b))
      -> qa
      -> qb
      -> [JoinRestriction a b]

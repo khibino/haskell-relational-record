@@ -1,4 +1,4 @@
-{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 -- |
@@ -34,8 +34,6 @@ import Database.Relational.Query.Monad.Trans.OrderingState
   (Order(Asc, Desc), OrderingContext, primeOrderingContext, updateOrderBy, composeOrderBys)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
-import Database.Relational.Query.Aggregation (Aggregation)
-import qualified Database.Relational.Query.Aggregation as Aggregation
 
 import Database.Relational.Query.Monad.Class
   (MonadRestrict(..), MonadQuery(..), MonadAggregate(..))
@@ -43,7 +41,7 @@ import Database.Relational.Query.Monad.Class
 
 -- | 'StateT' type to accumulate ordering context.
 --   Type 'p' is ordering term projection type.
-newtype Orderings (p :: * -> *) m a =
+newtype Orderings p m a =
   Orderings { orderingState :: StateT OrderingContext m a }
   deriving (MonadTrans, Monad, Functor, Applicative)
 
@@ -78,28 +76,24 @@ instance MonadAggregate m => MonadAggregate (Orderings p m) where
   restrictAggregatedQuery = orderings . restrictAggregatedQuery
 
 -- | OrderedQuery type synonym. Projection must be the same as 'Orderings' type parameter 'p'
-type OrderedQuery p m r = Orderings p m (p r)
+type OrderedQuery p m r = Orderings p m (Projection p r)
 
 -- | Ordering term projection type interface.
 class OrderingTerms p where
   orderTerms :: p t -> [String]
 
 -- | 'Projection' is ordering term.
-instance OrderingTerms Projection where
+instance OrderingTerms (Projection c) where
   orderTerms = Projection.columns
-
--- | 'Aggregation' is ordering term.
-instance OrderingTerms Aggregation where
-  orderTerms = Projection.columns . Aggregation.unsafeProjection
 
 -- | Unsafely update ordering context.
 updateOrderingContext :: Monad m => (OrderingContext -> OrderingContext) -> Orderings p m ()
 updateOrderingContext =  Orderings . modify
 
 -- | Add ordering terms.
-updateOrderBys :: (Monad m, OrderingTerms p)
+updateOrderBys :: (Monad m, OrderingTerms (Projection p))
                => Order            -- ^ Order direction
-               -> p t              -- ^ Ordering terms to add
+               -> Projection p t   -- ^ Ordering terms to add
                -> Orderings p m () -- ^ Result context with ordering
 updateOrderBys order p = updateOrderingContext . foldr (>>>) id $ updates  where
   updates = updateOrderBy order `map` orderTerms p
@@ -125,14 +119,14 @@ unsafeMergeAnotherOrderBys naR qR = do
 
 
 -- | Add ascendant ordering term.
-asc  :: (Monad m, OrderingTerms p)
-     => p t              -- ^ Ordering terms to add
-     -> Orderings p m () -- ^ Result context with ordering
+asc :: (Monad m, OrderingTerms (Projection p))
+    => Projection p t   -- ^ Ordering terms to add
+    -> Orderings p m () -- ^ Result context with ordering
 asc  =  updateOrderBys Asc
 
 -- | Add descendant ordering term.
-desc :: (Monad m, OrderingTerms p)
-     => p t              -- ^ Ordering terms to add
+desc :: (Monad m, OrderingTerms (Projection p))
+     => Projection p t   -- ^ Ordering terms to add
      -> Orderings p m () -- ^ Result context with ordering
 desc =  updateOrderBys Desc
 

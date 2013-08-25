@@ -18,6 +18,7 @@ module Database.Relational.Query.Monad.Restrict (
 
 import Data.Functor.Identity (Identity (..), runIdentity)
 
+import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Projection (Projection)
 import Database.Relational.Query.Monad.Trans.Restricting
   (Restrictings, WherePrepend, extractWheres)
@@ -29,7 +30,7 @@ type Restrict = Restrictings Identity
 -- | RestrictedStatement type synonym.
 --   Projection record type 'r' must be
 --   the same as 'Restrictings' type parameter 'r'.
-type RestrictedStatement r a = Projection r -> Restrict a
+type RestrictedStatement r a = Projection Flat r -> Restrict a
 
 -- -- | 'return' of 'Restrict'
 -- restricted :: a -> Restrict a

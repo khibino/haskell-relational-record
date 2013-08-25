@@ -10,8 +10,8 @@
 -- This module defines operators on various polymorphic projections.
 module Database.Relational.Query.Projectable (
   -- * Conversion between individual Projections
-  ExpressionProjectable (expr),
-  ProjectablePi (pi, piMaybe, piMaybe'),
+  expr,
+  -- ProjectablePi (pi, piMaybe, piMaybe'),
 
   -- * Projectable from SQL strings
   SqlProjectable (unsafeProjectSqlTerms), unsafeProjectSql,
@@ -29,7 +29,6 @@ module Database.Relational.Query.Projectable (
   -- * Projectable into SQL strings
   unsafeShowSqlExpr,
   unsafeShowSqlProjection,
-  unsafeShowSqlAggregation,
   ProjectableShowSql (unsafeShowSql),
 
   -- * Binary Operators
@@ -72,9 +71,6 @@ import Database.Relational.Query.Pi (Pi, piZip)
 import Database.Relational.Query.Projection (Projection, columns, unsafeFromColumns)
 import qualified Database.Relational.Query.Projection as Projection
 
-import Database.Relational.Query.Aggregation (Aggregation)
-import qualified Database.Relational.Query.Aggregation as Aggregation
-
 
 -- | Parened String.
 paren :: String -> String
@@ -88,23 +84,16 @@ sqlTermsString = d  where
   d (cs) =  paren $ intercalate ", " cs
 
 -- | SQL expression strings which represent projection.
-sqlStringOfProjection :: Projection r -> String
+sqlStringOfProjection :: Projection c r -> String
 sqlStringOfProjection =  sqlTermsString . columns
 
 -- | 'Expr' from 'Projection'
-exprOfProjection :: Projection r -> Expr Projection r
+exprOfProjection :: Projection c r -> Expr c r
 exprOfProjection =  UnsafeExpr.Expr . sqlStringOfProjection
 
--- | Projection interface into expression.
-class ExpressionProjectable p where
-  -- | Project from Projection type 'p' into expression type.
-  expr :: p a -> Expr p a
-
-instance ExpressionProjectable Projection where
-  expr = exprOfProjection
-
-instance ExpressionProjectable Aggregation where
-  expr = UnsafeExpr.Expr . sqlStringOfProjection . Aggregation.unsafeProjection
+-- | Project from Projection type into expression type.
+expr :: Projection p a -> Expr p a
+expr =  exprOfProjection
 
 -- | Projection interface.
 class ProjectablePi p where
@@ -116,19 +105,14 @@ class ProjectablePi p where
   --   Leaf type of projection path is 'Maybe'.
   piMaybe' :: p (Maybe a) -> Pi a (Maybe b) -> p (Maybe b)
 
-instance ProjectablePi Projection where
+instance ProjectablePi (Projection c) where
   pi       = Projection.pi
   piMaybe  = Projection.piMaybe
   piMaybe' = Projection.piMaybe'
 
-instance ProjectablePi Aggregation where
-  pi       = Aggregation.pi
-  piMaybe  = Aggregation.piMaybe
-  piMaybe' = Aggregation.piMaybe'
-
 
 -- | Unsafely generate 'Projection' from SQL expression strings.
-unsafeSqlTermsProjection :: [String] -> Projection t
+unsafeSqlTermsProjection :: [String] -> Projection c t
 unsafeSqlTermsProjection =  unsafeFromColumns
 
 -- | Interface to project SQL terms unsafely.
@@ -138,16 +122,12 @@ class SqlProjectable p where
                         -> p t      -- ^ Result projection object
 
 -- | Unsafely make 'Projection' from SQL terms.
-instance SqlProjectable Projection where
+instance SqlProjectable (Projection c) where
   unsafeProjectSqlTerms = unsafeSqlTermsProjection
 
 -- | Unsafely make 'Expr' from SQL terms.
 instance SqlProjectable (Expr p) where
   unsafeProjectSqlTerms = UnsafeExpr.Expr . sqlTermsString
-
--- | Unsafely make 'Aggregation' from SQL terms.
-instance SqlProjectable Aggregation where
-  unsafeProjectSqlTerms = Aggregation.unsafeFromProjection . unsafeProjectSqlTerms
 
 -- | Unsafely Project single SQL term.
 unsafeProjectSql :: SqlProjectable p => String -> p t
@@ -189,20 +169,12 @@ instance ProjectableShowSql (Expr p) where
   unsafeShowSql = unsafeShowSqlExpr
 
 -- | Unsafely get SQL term from 'Proejction'.
-unsafeShowSqlProjection :: Projection r -> String
+unsafeShowSqlProjection :: Projection c r -> String
 unsafeShowSqlProjection = sqlStringOfProjection
 
 -- | Unsafely get SQL term from 'Proejction'.
-instance ProjectableShowSql Projection where
+instance ProjectableShowSql (Projection c) where
   unsafeShowSql = unsafeShowSqlProjection
-
--- | Unsafely get SQL term from 'Aggregation'.
-unsafeShowSqlAggregation :: Aggregation a -> String
-unsafeShowSqlAggregation =  unsafeShowSql . Aggregation.unsafeProjection
-
--- | Unsafely get SQL term from 'Aggregation'.
-instance ProjectableShowSql Aggregation where
-  unsafeShowSql = unsafeShowSqlAggregation
 
 
 -- | Binary operator type for SQL String.
@@ -394,12 +366,8 @@ instance ProjectableZip PlaceHolders where
   projectZip PlaceHolders PlaceHolders = PlaceHolders
 
 -- | Zip 'Projection'.
-instance ProjectableZip Projection where
+instance ProjectableZip (Projection c) where
   projectZip = Projection.compose
-
--- | Zip 'Aggregation'
-instance ProjectableZip Aggregation where
-  projectZip = Aggregation.compose
 
 -- | Zip 'Pi'
 instance ProjectableZip (Pi a) where
@@ -422,7 +390,7 @@ instance ProjectableMaybe PlaceHolders where
   flattenMaybe = unsafeCastPlaceHolders
 
 -- | Control phantom 'Maybe' type in projection type 'Projection'.
-instance ProjectableMaybe Projection where
+instance ProjectableMaybe (Projection c) where
   just         = Projection.just
   flattenMaybe = Projection.flattenMaybe
 
@@ -430,11 +398,6 @@ instance ProjectableMaybe Projection where
 instance ProjectableMaybe (Expr p) where
   just         = Expr.just
   flattenMaybe = Expr.fromJust
-
--- | Control phantom 'Maybe' type in aggregate projection type 'Projection'.
-instance ProjectableMaybe Aggregation where
-  just         = Aggregation.just
-  flattenMaybe = Aggregation.flattenMaybe
 
 -- | Zipping except for identity element laws.
 class ProjectableZip p => ProjectableIdZip p where
