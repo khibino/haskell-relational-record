@@ -23,7 +23,7 @@ module Database.Relational.Query.Expr (
   -- * Type conversion
   just, fromJust,
 
-  fromTriBool, exprAnd
+  exprAnd
   ) where
 
 import Prelude hiding (and, or)
@@ -117,10 +117,6 @@ just =  unsafeCastExpr
 --   Behavior around boolean is strongly dependent on RDBMS impelemetations.
 fromJust :: Expr p (Maybe ft) -> Expr p ft
 fromJust =  unsafeCastExpr
-
--- | Unsafely fromJust of phantom typed 'Maybe' 'Bool'.
-fromTriBool :: Expr p (Maybe Bool) -> Expr p Bool
-fromTriBool =  unsafeCastExpr
 
 -- | AND operator for 'Expr'.
 exprAnd :: Expr p Bool -> Expr p Bool -> Expr p Bool
