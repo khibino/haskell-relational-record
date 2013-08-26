@@ -32,6 +32,7 @@ import qualified Language.SQL.Keyword as SQL
 -- | Context type for Restrict.
 newtype RestrictContext = RestrictContext QueryRestriction
 
+-- | Finalize context to extract accumulated restriction state.
 restriction :: RestrictContext -> QueryRestriction
 restriction (RestrictContext r) = r
 

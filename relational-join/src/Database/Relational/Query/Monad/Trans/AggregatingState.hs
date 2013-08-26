@@ -19,7 +19,7 @@ module Database.Relational.Query.Monad.Trans.AggregatingState (
 
   addGroupBy, addRestriction,
 
-  aggregatedRestriction, aggregateTerms,
+  aggregateRestriction, aggregateTerms,
 
   composeGroupBys
   ) where
@@ -61,9 +61,11 @@ addRestriction e1 ctx =
   where uf  Nothing  = fromJust e1
         uf (Just e0) = e0 `exprAnd` fromJust e1
 
-aggregatedRestriction :: AggregatingContext -> AggregatedQueryRestriction
-aggregatedRestriction = restriction
+-- | Finalize context to extract accumulated aggregate restriction state.
+aggregateRestriction :: AggregatingContext -> AggregatedQueryRestriction
+aggregateRestriction = restriction
 
+-- | Finalize context to extract accumulated aggregate terms state.
 aggregateTerms :: AggregatingContext -> AggregateTerms
 aggregateTerms =  DList.toList . groupByTerms
 

@@ -59,6 +59,7 @@ restoreLowOrderBys :: OrderBys -> OrderingContext -> OrderingContext
 restoreLowOrderBys ros ctx = ctx { orderBys = orderBys ctx <> ros }
 -}
 
+-- | Finalize context to extract accumulated ordering state.
 orderingTerms :: OrderingContext -> OrderingTerms
 orderingTerms =  DList.toList . orderBys
 
