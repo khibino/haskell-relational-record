@@ -13,12 +13,14 @@
 -- "Database.Relational.Query.Monad.Trans.Ordering".
 module Database.Relational.Query.Monad.Trans.OrderingState (
   -- * Ordering context
-  Order (..), OrderBys,
+  Order, OrderBys,
   OrderingContext,
 
   primeOrderingContext,
 
   updateOrderBy, -- takeOrderBys, restoreLowOrderBys,
+
+  orderingTerms,
 
   composeOrderBys
   ) where
@@ -28,15 +30,14 @@ import qualified Data.DList as DList
 import Data.Monoid ((<>))
 import Control.Applicative (pure)
 
+import Database.Relational.Query.Sub (Order, order, OrderingTerm, OrderingTerms)
+
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
 
 
--- | Order direction. Ascendant or Descendant.
-data Order = Asc | Desc
-
 -- | Ordering terms.
-type OrderBys = DList (Order, String)
+type OrderBys = DList OrderingTerm
 
 -- | Context type for Orderings.
 newtype OrderingContext = OrderingContext { orderBys :: OrderBys }
@@ -58,10 +59,8 @@ restoreLowOrderBys :: OrderBys -> OrderingContext -> OrderingContext
 restoreLowOrderBys ros ctx = ctx { orderBys = orderBys ctx <> ros }
 -}
 
--- | Get SQL keyword from order attribute.
-order :: Order -> Keyword
-order Asc  = ASC
-order Desc = DESC
+orderingTerms :: OrderingContext -> OrderingTerms
+orderingTerms =  DList.toList . orderBys
 
 -- | Concatinate order-by terms into SQL string.
 composeOrderBys :: OrderingContext -> String

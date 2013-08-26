@@ -40,7 +40,10 @@ module Database.Relational.Query.Sub (
   QueryRestriction,
 
   -- * Types for aggregation
-  AggregateTerm, AggregateTerms, AggregatedQueryRestriction
+  AggregateTerm, AggregateTerms, AggregatedQueryRestriction,
+
+  -- * Types for ordering
+  Order (..), order, OrderingTerm, OrderingTerms
   ) where
 
 import Data.Maybe (fromMaybe)
@@ -301,3 +304,18 @@ type AggregateTerms = [AggregateTerm]
 
 -- | Type for restriction of aggregated query.
 type AggregatedQueryRestriction = Maybe (Expr Aggregated Bool)
+
+
+-- | Order direction. Ascendant or Descendant.
+data Order = Asc | Desc
+
+-- | Get SQL keyword from order attribute.
+order :: Order -> Keyword
+order Asc  = ASC
+order Desc = DESC
+
+-- | Type for order-by term
+type OrderingTerm = (Order, String)
+
+-- | Type for order-by terms
+type OrderingTerms = [(Order, String)]
