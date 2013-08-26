@@ -31,7 +31,7 @@ import Database.Relational.Query.Monad.Trans.JoinState
 import Database.Relational.Query.Internal.Product (NodeAttr, restrictProduct, growProduct)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
-import Database.Relational.Query.Expr (Expr, fromTriBool)
+import Database.Relational.Query.Expr (Expr, fromJust)
 import Database.Relational.Query.Sub (SubQuery, Qualified)
 
 import Database.Relational.Query.Monad.Class (MonadQuery (..))
@@ -64,8 +64,8 @@ updateContext =  QueryJoin . modify
 -- | Add last join product restriction.
 updateJoinRestriction :: Monad m => Expr Flat (Maybe Bool) -> QueryJoin m ()
 updateJoinRestriction e = updateContext (updateProduct d)  where
-  d  Nothing  = error "on: product is empty!"
-  d (Just pt) = restrictProduct pt (fromTriBool e)
+  d  Nothing  = error "on: Product is empty! Restrict target product is not found!"
+  d (Just pt) = restrictProduct pt (fromJust e)
 
 {-
 takeProduct :: QueryJoin (Maybe QueryProductNode)

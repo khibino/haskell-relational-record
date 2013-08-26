@@ -112,7 +112,9 @@ unsafeCastExpr =  Expr . showExpr
 just :: Expr p ft -> Expr p (Maybe ft)
 just =  unsafeCastExpr
 
--- | Safe from just is allowed only for having or where 'Expr'.
+-- | Allowed only for having or where 'Expr'.
+--   So NULL expression result will be possible.
+--   Behavior around boolean is strongly dependent on RDBMS impelemetations.
 fromJust :: Expr p (Maybe ft) -> Expr p ft
 fromJust =  unsafeCastExpr
 

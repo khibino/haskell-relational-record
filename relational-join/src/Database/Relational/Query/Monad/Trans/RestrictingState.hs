@@ -21,7 +21,7 @@ module Database.Relational.Query.Monad.Trans.RestrictingState (
   ) where
 
 import Database.Relational.Query.Context (Flat)
-import Database.Relational.Query.Expr (Expr, fromTriBool, exprAnd)
+import Database.Relational.Query.Expr (Expr, fromJust, exprAnd)
 import Database.Relational.Query.Expr.Unsafe (showExpr)
 
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
@@ -41,8 +41,8 @@ primeRestrictContext =  RestrictContext Nothing
 addRestriction :: Expr Flat (Maybe Bool) -> RestrictContext -> RestrictContext
 addRestriction e1 ctx =
   ctx { restriction = Just . uf . restriction $ ctx }
-  where uf  Nothing  = fromTriBool e1
-        uf (Just e0) = e0 `exprAnd` fromTriBool e1
+  where uf  Nothing  = fromJust e1
+        uf (Just e0) = e0 `exprAnd` fromJust e1
 
 -- | Compose SQL String from 'RestrictContext' object.
 composeWheres' :: Maybe (Expr Flat Bool) -> String

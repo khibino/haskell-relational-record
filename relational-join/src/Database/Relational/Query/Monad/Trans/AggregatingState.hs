@@ -28,7 +28,7 @@ import Data.Monoid ((<>))
 import Control.Applicative (pure)
 
 import Database.Relational.Query.Context (Aggregated)
-import Database.Relational.Query.Expr (Expr, fromTriBool, exprAnd)
+import Database.Relational.Query.Expr (Expr, fromJust, exprAnd)
 import Database.Relational.Query.Expr.Unsafe (showExpr)
 
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
@@ -61,8 +61,8 @@ addGroupBy t c =  c { groupByTerms = groupByTerms c <> pure t }
 addRestriction :: Expr Aggregated (Maybe Bool) -> AggregatingContext -> AggregatingContext
 addRestriction e1 ctx =
   ctx { restriction = Just . uf . restriction $ ctx }
-  where uf  Nothing  = fromTriBool e1
-        uf (Just e0) = e0 `exprAnd` fromTriBool e1
+  where uf  Nothing  = fromJust e1
+        uf (Just e0) = e0 `exprAnd` fromJust e1
 
 -- | Extract 'AggregatingContext' into SQL string.
 composeGroupBys :: AggregatingContext -> String
