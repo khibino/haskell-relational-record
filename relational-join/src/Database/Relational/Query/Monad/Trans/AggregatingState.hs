@@ -63,7 +63,7 @@ addRestriction e1 ctx =
 
 -- | Finalize context to extract accumulated aggregate restriction state.
 aggregateRestriction :: AggregatingContext -> AggregatedQueryRestriction
-aggregateRestriction = restriction
+aggregateRestriction =  restriction
 
 -- | Finalize context to extract accumulated aggregate terms state.
 aggregateTerms :: AggregatingContext -> AggregateTerms

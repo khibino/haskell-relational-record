@@ -11,11 +11,13 @@
 -- "Database.Relational.Query.Monad.Trans.Restricting".
 module Database.Relational.Query.Monad.Trans.RestrictingState (
   -- * Context of restriction
-  RestrictContext, restriction,
+  RestrictContext,
 
   primeRestrictContext,
 
   addRestriction,
+
+  restriction,
 
   composeWheres
   ) where
@@ -30,11 +32,8 @@ import qualified Language.SQL.Keyword as SQL
 
 
 -- | Context type for Restrict.
-newtype RestrictContext = RestrictContext QueryRestriction
-
--- | Finalize context to extract accumulated restriction state.
-restriction :: RestrictContext -> QueryRestriction
-restriction (RestrictContext r) = r
+newtype RestrictContext = RestrictContext
+                          { restriction' :: QueryRestriction }
 
 -- | Initial 'RestrictContext'.
 primeRestrictContext :: RestrictContext
@@ -43,9 +42,13 @@ primeRestrictContext =  RestrictContext Nothing
 -- | Add restriction of 'RestrictContext'.
 addRestriction :: Expr Flat (Maybe Bool) -> RestrictContext -> RestrictContext
 addRestriction e1 ctx =
-  RestrictContext . Just . uf . restriction $ ctx
+  ctx { restriction' = Just . uf . restriction' $ ctx }
   where uf  Nothing  = fromJust e1
         uf (Just e0) = e0 `exprAnd` fromJust e1
+
+-- | Finalize context to extract accumulated restriction state.
+restriction :: RestrictContext -> QueryRestriction
+restriction =  restriction'
 
 -- | Compose SQL String from 'RestrictContext' object.
 composeWheres' :: Maybe (Expr Flat Bool) -> String
@@ -53,4 +56,4 @@ composeWheres' =  maybe [] (\e -> unwordsSQL [WHERE, SQL.word . showExpr $ e])
 
 -- | Compose SQL String from 'RestrictContext' object.
 composeWheres :: RestrictContext -> String
-composeWheres =  composeWheres' . restriction
+composeWheres =  composeWheres' . restriction'

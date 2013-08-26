@@ -19,6 +19,8 @@ module Database.Relational.Query.Monad.Trans.JoinState (
 
   updateProduct, -- takeProduct, restoreLeft,
 
+  joinProduct,
+
   composeFrom
   ) where
 
@@ -33,7 +35,7 @@ import qualified Language.SQL.Keyword as SQL
 
 -- | JoinContext type for QueryJoin.
 data JoinContext = JoinContext
-               { product :: Maybe QueryProductNode }
+                   { product :: Maybe QueryProductNode }
 
 -- | Initial 'JoinContext'.
 primeJoinContext :: JoinContext
@@ -53,6 +55,9 @@ updateProduct uf = updateProduct' (Just . uf)
 -- restoreLeft :: QueryProductNode -> Product.NodeAttr -> JoinContext -> JoinContext
 -- restoreLeft pL naR ctx = updateProduct (Product.growLeft pL naR) ctx
 
+joinProduct :: JoinContext -> QueryProduct
+joinProduct =  maybe (error "relation: empty product!") Product.nodeTree . product
+
 -- | Compose SQL String from 'JoinContext' object.
 composeFrom' :: QueryProduct -> String
 composeFrom' pd =
@@ -61,6 +66,4 @@ composeFrom' pd =
 
 -- | Compose SQL String from 'JoinContext' object.
 composeFrom :: JoinContext -> String
-composeFrom =  composeFrom'
-              . maybe (error "relation: empty product!") Product.nodeTree
-              . product
+composeFrom =  composeFrom' . joinProduct
