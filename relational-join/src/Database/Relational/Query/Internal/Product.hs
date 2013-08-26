@@ -10,29 +10,16 @@
 -- This module defines product structure to compose SQL join.
 module Database.Relational.Query.Internal.Product (
   -- * Product tree type
-  NodeAttr (Just', Maybe),
-  ProductTree, Node, QueryProduct, QueryProductNode,
-  nodeTree, growRight, -- growLeft,
+  NodeAttr (..), ProductTree (..),
+  Node (Node), node, nodeAttr, nodeTree,
+  growRight, -- growLeft,
   growProduct, product, restrictProduct,
-
-  -- * Compose joined SQL
-  queryProductSQL
   ) where
 
 import Prelude hiding (and, product)
 import Database.Relational.Query.Context (Flat)
-import Database.Relational.Query.Expr (fromTriBool, exprAnd)
+import Database.Relational.Query.Expr (exprAnd)
 import qualified Database.Relational.Query.Expr as Expr
-import Database.Relational.Query.Expr.Unsafe (showExpr)
-import Database.Relational.Query.Projectable (valueTrue)
-import Database.Relational.Query.Sub (SubQuery, Qualified)
-import qualified Database.Relational.Query.Sub as SubQuery
-
-import Database.Relational.Query.Internal.ShowS
-  (showUnwordsSQL, showWordSQL, showUnwords)
-import Language.SQL.Keyword (Keyword(..))
-
-import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 import Data.Foldable (Foldable (foldMap))
 
@@ -62,11 +49,6 @@ instance Foldable ProductTree where
   foldMap f pq = rec pq where
     rec (Leaf q) = f q
     rec (Join (Node _ lp) (Node _ rp) _ ) = rec lp <> rec rp
-
--- | Product tree specialized by 'SubQuery'.
-type QueryProduct = ProductTree (Qualified SubQuery)
--- | Product node specialized by 'SubQuery'.
-type QueryProductNode = Node (Qualified SubQuery)
 
 -- | Make product node from node attribute and product tree.
 node :: NodeAttr      -- ^ Node attribute
@@ -119,27 +101,3 @@ restrictProduct :: Node q    -- ^ Target node which has product to restrict
                 -> Expr Bool -- ^ Restriction to add
                 -> Node q    -- ^ Result node
 restrictProduct (Node a t) e = node a (restrictProduct' t e)
-
-
--- | Show product tree of query into SQL. ShowS result.
-showQueryProduct :: QueryProduct -> ShowS
-showQueryProduct =  rec  where
-  joinType Just' Just' = INNER
-  joinType Just' Maybe = LEFT
-  joinType Maybe Just' = RIGHT
-  joinType Maybe Maybe = FULL
-  urec (Node _ p@(Leaf _))     = rec p
-  urec (Node _ p@(Join _ _ _)) = showParen True (rec p)
-  rec (Leaf q)               = showString $ SubQuery.qualifiedForm q
-  rec (Join left' right' rs) =
-    showUnwords
-    [urec left',
-     showUnwordsSQL [joinType (nodeAttr left') (nodeAttr right'), JOIN],
-     urec right',
-     showWordSQL ON,
-     showString . showExpr
-     . fromMaybe (fromTriBool valueTrue) {- or error on compile -}  $ rs]
-
--- | Show product tree of query into SQL.
-queryProductSQL :: QueryProduct -> String
-queryProductSQL =  ($ "") . showQueryProduct

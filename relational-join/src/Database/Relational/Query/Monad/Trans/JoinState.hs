@@ -24,8 +24,8 @@ module Database.Relational.Query.Monad.Trans.JoinState (
 
 import Prelude hiding (product)
 
-import Database.Relational.Query.Internal.Product (QueryProductNode, QueryProduct, queryProductSQL)
 import qualified Database.Relational.Query.Internal.Product as Product
+import Database.Relational.Query.Sub (QueryProductNode, QueryProduct, queryProductSQL)
 
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
@@ -62,5 +62,5 @@ composeFrom' pd =
 -- | Compose SQL String from 'JoinContext' object.
 composeFrom :: JoinContext -> String
 composeFrom =  composeFrom'
-              . maybe (error "relation: empty product!") (Product.nodeTree)
+              . maybe (error "relation: empty product!") Product.nodeTree
               . product

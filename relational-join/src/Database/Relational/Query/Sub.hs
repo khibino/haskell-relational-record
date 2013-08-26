@@ -29,16 +29,29 @@ module Database.Relational.Query.Sub (
   ProjectionUnit, UntypedProjection,
 
   untypedProjectionFromColumns, untypedProjectionFromSubQuery,
-  widthOfProjectionUnit, columnOfProjectionUnit
+  widthOfProjectionUnit, columnOfProjectionUnit,
+
+  -- * Product of sub-queries
+  QueryProduct, QueryProductNode,
+
+  queryProductSQL
   ) where
 
+import Data.Maybe (fromMaybe)
 import Data.List (intercalate)
 import Data.Array (Array, listArray)
 import qualified Data.Array as Array
 
+import Database.Relational.Query.Expr (valueExpr)
+import Database.Relational.Query.Expr.Unsafe (showExpr)
+import Database.Relational.Query.Internal.Product
+  (NodeAttr(Just', Maybe), ProductTree (Leaf, Join),
+   Node (Node), nodeAttr)
 import Database.Relational.Query.Table (Table, (!))
 import qualified Database.Relational.Query.Table as Table
 
+import Database.Relational.Query.Internal.ShowS
+  (showUnwordsSQL, showWordSQL, showUnwords)
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
 import qualified Language.SQL.Keyword.ConcatString as SQLs
@@ -237,3 +250,32 @@ columnOfProjectionUnit =  d  where
                   | otherwise          = error $ "index out of bounds (unit): " ++ show i
     where (mn, mx) = Array.bounds a
   d (Sub sq) i = column sq i
+
+
+-- | Product tree specialized by 'SubQuery'.
+type QueryProduct = ProductTree (Qualified SubQuery)
+-- | Product node specialized by 'SubQuery'.
+type QueryProductNode = Node (Qualified SubQuery)
+
+-- | Show product tree of query into SQL. ShowS result.
+showQueryProduct :: QueryProduct -> ShowS
+showQueryProduct =  rec  where
+  joinType Just' Just' = INNER
+  joinType Just' Maybe = LEFT
+  joinType Maybe Just' = RIGHT
+  joinType Maybe Maybe = FULL
+  urec (Node _ p@(Leaf _))     = rec p
+  urec (Node _ p@(Join _ _ _)) = showParen True (rec p)
+  rec (Leaf q)               = showString $ qualifiedForm q
+  rec (Join left' right' rs) =
+    showUnwords
+    [urec left',
+     showUnwordsSQL [joinType (nodeAttr left') (nodeAttr right'), JOIN],
+     urec right',
+     showWordSQL ON,
+     showString . showExpr
+     . fromMaybe (valueExpr True) {- or error on compile -}  $ rs]
+
+-- | Show product tree of query into SQL.
+queryProductSQL :: QueryProduct -> String
+queryProductSQL =  ($ "") . showQueryProduct
