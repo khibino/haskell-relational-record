@@ -19,6 +19,8 @@ module Database.Relational.Query.Monad.Trans.AggregatingState (
 
   addGroupBy, addRestriction,
 
+  aggregatedRestriction, aggregateTerms,
+
   composeGroupBys
   ) where
 
@@ -30,23 +32,18 @@ import Control.Applicative (pure)
 import Database.Relational.Query.Context (Aggregated)
 import Database.Relational.Query.Expr (Expr, fromJust, exprAnd)
 import Database.Relational.Query.Expr.Unsafe (showExpr)
+import Database.Relational.Query.Sub (AggregateTerm, AggregateTerms, AggregatedQueryRestriction)
 
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
 import qualified Language.SQL.Keyword.ConcatString as SQLs
 
 
--- | Internal type for group-by term
-type GroupByTerm = String
-
--- | Group-by terms type
-type GroupBys = DList GroupByTerm
-
 -- | Context state of aggregated query.
 data AggregatingContext =
   AggregatingContext
-  { groupByTerms :: GroupBys
-  , restriction  :: Maybe (Expr Aggregated Bool)
+  { groupByTerms :: DList AggregateTerm
+  , restriction  :: AggregatedQueryRestriction
   }
 
 -- | Initial value of 'AggregatingContext'.
@@ -63,6 +60,12 @@ addRestriction e1 ctx =
   ctx { restriction = Just . uf . restriction $ ctx }
   where uf  Nothing  = fromJust e1
         uf (Just e0) = e0 `exprAnd` fromJust e1
+
+aggregatedRestriction :: AggregatingContext -> AggregatedQueryRestriction
+aggregatedRestriction = restriction
+
+aggregateTerms :: AggregatingContext -> AggregateTerms
+aggregateTerms =  DList.toList . groupByTerms
 
 -- | Extract 'AggregatingContext' into SQL string.
 composeGroupBys :: AggregatingContext -> String

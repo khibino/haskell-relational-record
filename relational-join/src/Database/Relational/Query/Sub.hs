@@ -37,7 +37,10 @@ module Database.Relational.Query.Sub (
   queryProductSQL,
 
   -- * Query restriction
-  QueryRestriction
+  QueryRestriction,
+
+  -- * Types for aggregation
+  AggregateTerm, AggregateTerms, AggregatedQueryRestriction
   ) where
 
 import Data.Maybe (fromMaybe)
@@ -45,7 +48,7 @@ import Data.List (intercalate)
 import Data.Array (Array, listArray)
 import qualified Data.Array as Array
 
-import Database.Relational.Query.Context (Flat)
+import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Expr (Expr, valueExpr)
 import Database.Relational.Query.Expr.Unsafe (showExpr)
 import Database.Relational.Query.Internal.Product
@@ -288,3 +291,13 @@ queryProductSQL =  ($ "") . showQueryProduct
 
 -- | Type for restriction of query.
 type QueryRestriction = Maybe (Expr Flat Bool)
+
+
+-- | Type for group-by term
+type AggregateTerm = String
+
+-- | Type for group-by terms
+type AggregateTerms = [AggregateTerm]
+
+-- | Type for restriction of aggregated query.
+type AggregatedQueryRestriction = Maybe (Expr Aggregated Bool)
