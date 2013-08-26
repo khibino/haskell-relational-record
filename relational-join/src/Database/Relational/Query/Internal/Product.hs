@@ -11,7 +11,7 @@
 module Database.Relational.Query.Internal.Product (
   -- * Product tree type
   NodeAttr (..), ProductTree (..),
-  Node (Node), node, nodeAttr, nodeTree,
+  Node, node, nodeAttr, nodeTree,
   growRight, -- growLeft,
   growProduct, product, restrictProduct,
   ) where

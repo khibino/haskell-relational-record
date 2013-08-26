@@ -46,7 +46,7 @@ import Database.Relational.Query.Expr (valueExpr)
 import Database.Relational.Query.Expr.Unsafe (showExpr)
 import Database.Relational.Query.Internal.Product
   (NodeAttr(Just', Maybe), ProductTree (Leaf, Join),
-   Node (Node), nodeAttr)
+   Node, nodeAttr, nodeTree)
 import Database.Relational.Query.Table (Table, (!))
 import qualified Database.Relational.Query.Table as Table
 
@@ -264,8 +264,9 @@ showQueryProduct =  rec  where
   joinType Just' Maybe = LEFT
   joinType Maybe Just' = RIGHT
   joinType Maybe Maybe = FULL
-  urec (Node _ p@(Leaf _))     = rec p
-  urec (Node _ p@(Join _ _ _)) = showParen True (rec p)
+  urec n = case nodeTree n of
+    p@(Leaf _)     -> rec p
+    p@(Join _ _ _) -> showParen True (rec p)
   rec (Leaf q)               = showString $ qualifiedForm q
   rec (Join left' right' rs) =
     showUnwords
