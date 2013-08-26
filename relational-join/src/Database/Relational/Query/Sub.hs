@@ -34,7 +34,10 @@ module Database.Relational.Query.Sub (
   -- * Product of sub-queries
   QueryProduct, QueryProductNode,
 
-  queryProductSQL
+  queryProductSQL,
+
+  -- * Query restriction
+  QueryRestriction
   ) where
 
 import Data.Maybe (fromMaybe)
@@ -42,7 +45,8 @@ import Data.List (intercalate)
 import Data.Array (Array, listArray)
 import qualified Data.Array as Array
 
-import Database.Relational.Query.Expr (valueExpr)
+import Database.Relational.Query.Context (Flat)
+import Database.Relational.Query.Expr (Expr, valueExpr)
 import Database.Relational.Query.Expr.Unsafe (showExpr)
 import Database.Relational.Query.Internal.Product
   (NodeAttr(Just', Maybe), ProductTree (Leaf, Join),
@@ -280,3 +284,7 @@ showQueryProduct =  rec  where
 -- | Show product tree of query into SQL.
 queryProductSQL :: QueryProduct -> String
 queryProductSQL =  ($ "") . showQueryProduct
+
+
+-- | Type for restriction of query.
+type QueryRestriction = Maybe (Expr Flat Bool)
