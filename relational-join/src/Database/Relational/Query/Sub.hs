@@ -12,6 +12,7 @@
 -- This module defines sub-query structure used in query products.
 module Database.Relational.Query.Sub (
   -- * Sub-query
+  UniTermSQL,
   SubQuery, fromTable, subQuery, union, except, intersect,
   toSQL, unitSQL, width,
 
@@ -67,6 +68,9 @@ import qualified Language.SQL.Keyword as SQL
 import qualified Language.SQL.Keyword.ConcatString as SQLs
 
 
+-- | Uni-term raw SQL
+type UniTermSQL = String
+
 data BinOp = Union | Except | Intersect
 
 keywordBinOp :: BinOp -> Keyword
@@ -84,14 +88,14 @@ data SubQuery = Table Table.Untyped
               | Bin BinOp SubQuery SubQuery
 
 -- | 'SubQuery' from 'Table'.
-fromTable :: Table r -- ^ Typed 'Table' metadata
+fromTable :: Table r  -- ^ Typed 'Table' metadata
           -> SubQuery -- ^ Result 'SubQuery'
 fromTable =  Table . Table.unType
 
 -- | Unsafely generate 'SubQuery' from SQL.
-subQuery :: String -- ^ SQL string
-            -> Int -- ^ Width of 'SubQuery'
-            -> SubQuery -- ^ Result 'SubQuery'
+subQuery :: String   -- ^ SQL string
+         -> Int      -- ^ Width of 'SubQuery'
+         -> SubQuery -- ^ Result 'SubQuery'
 subQuery =  SubQuery
 
 -- | Binary operator on 'SubQuery'
@@ -179,7 +183,7 @@ qualify :: a -> Qualifier -> Qualified a
 qualify =  Qualified
 
 -- | Column name of projection index.
-columnN :: Int -> String
+columnN :: Int -> UniTermSQL
 columnN i = 'f' : show i
 
 -- | Renamed column in SQL expression.
@@ -191,11 +195,11 @@ showQualifier :: Qualifier -> String
 showQualifier (Qualifier i) = 'T' : show i
 
 -- | Binary operator to qualify.
-(<.>) :: Qualifier -> String -> String
+(<.>) :: Qualifier -> UniTermSQL -> UniTermSQL
 i <.> n =  showQualifier i ++ '.' : n
 
 -- | Qualified expression from qualifier and projection index.
-columnFromId :: Qualifier -> Int -> String
+columnFromId :: Qualifier -> Int -> UniTermSQL
 columnFromId qi i = qi <.> columnN i
 
 -- | From 'Qualified' SQL string into 'String'.
@@ -210,7 +214,7 @@ queryWidth :: Qualified SubQuery -> Int
 queryWidth =  width . unQualify
 
 -- | Get column SQL string of 'SubQuery'.
-column :: Qualified SubQuery -> Int -> String
+column :: Qualified SubQuery -> Int -> UniTermSQL
 column qs =  d (unQualify qs)  where
   q = qualifier qs
   d (Table u)      i = (q <.> (u ! i))
@@ -227,10 +231,10 @@ instance Show SubQuery where
 
 
 -- | Projection structure unit
-data ProjectionUnit = Columns (Array Int String)
+data ProjectionUnit = Columns (Array Int UniTermSQL)
                     | Sub (Qualified SubQuery)
 
-projectionUnitFromColumns :: [String] -> ProjectionUnit
+projectionUnitFromColumns :: [UniTermSQL] -> ProjectionUnit
 projectionUnitFromColumns cs = Columns $ listArray (0, length cs - 1) cs
 
 -- | Untyped projection. Forgot record type.
@@ -240,7 +244,7 @@ unitUntypedProjection :: ProjectionUnit -> UntypedProjection
 unitUntypedProjection =  (:[])
 
 -- | Make untyped projection from columns.
-untypedProjectionFromColumns :: [String] -> UntypedProjection
+untypedProjectionFromColumns :: [UniTermSQL] -> UntypedProjection
 untypedProjectionFromColumns =  unitUntypedProjection . projectionUnitFromColumns
 
 -- | Make untyped projection from sub query.
@@ -254,7 +258,7 @@ widthOfProjectionUnit =  d  where
   d (Sub sq)    = queryWidth sq
 
 -- | Get column of ProjectionUnit.
-columnOfProjectionUnit :: ProjectionUnit -> Int -> String
+columnOfProjectionUnit :: ProjectionUnit -> Int -> UniTermSQL
 columnOfProjectionUnit =  d  where
   d (Columns a) i | mn <= i && i <= mx = a Array.! i
                   | otherwise          = error $ "index out of bounds (unit): " ++ show i
@@ -297,7 +301,7 @@ type QueryRestriction = Maybe (Expr Flat Bool)
 
 
 -- | Type for group-by term
-type AggregateTerm = String
+type AggregateTerm = UniTermSQL
 
 -- | Type for group-by terms
 type AggregateTerms = [AggregateTerm]
@@ -315,7 +319,7 @@ order Asc  = ASC
 order Desc = DESC
 
 -- | Type for order-by term
-type OrderingTerm = (Order, String)
+type OrderingTerm = (Order, UniTermSQL)
 
 -- | Type for order-by terms
-type OrderingTerms = [(Order, String)]
+type OrderingTerms = [OrderingTerm]

@@ -55,6 +55,7 @@ updateProduct uf = updateProduct' (Just . uf)
 -- restoreLeft :: QueryProductNode -> Product.NodeAttr -> JoinContext -> JoinContext
 -- restoreLeft pL naR ctx = updateProduct (Product.growLeft pL naR) ctx
 
+-- |  Finalize context to extract accumulated query product.
 joinProduct :: JoinContext -> QueryProduct
 joinProduct =  maybe (error "relation: empty product!") Product.nodeTree . product
 
