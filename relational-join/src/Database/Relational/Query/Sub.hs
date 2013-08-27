@@ -72,9 +72,9 @@ import qualified Language.SQL.Keyword.ConcatString as SQLs
 type ColumnSQL = String
 -- newtype ColumnSQL = ColumnSQL String
 
-uniTermSQL :: String -> ColumnSQL
-uniTermSQL =  id
--- uniTermSQL =  ColumnSQL
+columnSQL :: String -> ColumnSQL
+columnSQL =  id
+-- columnSQL =  ColumnSQL
 
 stringFromColumnSQL :: ColumnSQL -> String
 stringFromColumnSQL =  id
@@ -197,7 +197,7 @@ qualify =  Qualified
 
 -- | Column name of projection index.
 columnN :: Int -> ColumnSQL
-columnN i = uniTermSQL $ 'f' : show i
+columnN i = columnSQL $ 'f' : show i
 
 -- | Renamed column in SQL expression.
 asColumnN :: SQL.Keyword -> Int -> SQL.Keyword
@@ -209,7 +209,7 @@ showQualifier (Qualifier i) = 'T' : show i
 
 -- | Binary operator to qualify.
 (<.>) :: Qualifier -> ColumnSQL -> ColumnSQL
-i <.> n = uniTermSQL $ showQualifier i ++ '.' : stringFromColumnSQL n
+i <.> n = columnSQL $ showQualifier i ++ '.' : stringFromColumnSQL n
 
 -- | Qualified expression from qualifier and projection index.
 columnFromId :: Qualifier -> Int -> ColumnSQL
@@ -230,7 +230,7 @@ queryWidth =  width . unQualify
 column :: Qualified SubQuery -> Int -> ColumnSQL
 column qs =  d (unQualify qs)  where
   q = qualifier qs
-  d (Table u)      i = (q <.> uniTermSQL (u ! i))
+  d (Table u)      i = (q <.> columnSQL (u ! i))
   d (SubQuery _ _) i = (q `columnFromId` i)
   d (Bin _ _ _)    i = (q `columnFromId` i)
 
