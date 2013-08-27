@@ -25,6 +25,7 @@ import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second, (>>>))
 
 import Database.Relational.Query.Context (Flat, Aggregated)
+import Database.Relational.Query.Sub (AggregateTerm)
 import Database.Relational.Query.Monad.Trans.StatePrepend (Prepend, prepend, liftToString)
 import Database.Relational.Query.Monad.Trans.AggregatingState
   (AggregatingContext, primeAggregatingContext, addGroupBy, composeGroupBys)
@@ -71,7 +72,7 @@ updateAggregatingContext :: Monad m => (AggregatingContext -> AggregatingContext
 updateAggregatingContext =  Aggregatings . modify
 
 -- | Unsafely add not-typeful aggregating terms.
-addGroupBys' :: Monad m => [String] -> Aggregatings m ()
+addGroupBys' :: Monad m => [AggregateTerm] -> Aggregatings m ()
 addGroupBys' gbs = updateAggregatingContext . foldr (>>>) id $ map addGroupBy gbs
 
 -- | Add restrictions for aggregated query.

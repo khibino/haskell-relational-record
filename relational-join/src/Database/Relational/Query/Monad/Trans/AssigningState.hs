@@ -30,14 +30,16 @@ import qualified Data.DList as DList
 import Data.Monoid ((<>))
 import Control.Applicative (pure)
 
+import Database.Relational.Query.Table (ColumnSQL, sqlWordFromColumn)
+
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
 
 -- | Column SQL String
-type Column = String
+type Column = ColumnSQL
 
 -- | Value SQL String
-type Term   = String
+type Term   = ColumnSQL
 
 -- | Assigning terms.
 type Assignments = DList (Column, Term)
@@ -57,5 +59,5 @@ updateAssignments col term ctx =
 -- | Concatinate order-by terms into SQL string.
 composeAssignments :: AssigningContext -> String
 composeAssignments ac = unwordsSQL $ [SET, assignList `SQL.sepBy` ", "]  where
-  assignList = DList.foldr (\ (col, term) r -> [SQL.word col, SQL.word term] `SQL.sepBy` " = "  : r) []
+  assignList = DList.foldr (\ (col, term) r -> [sqlWordFromColumn col, sqlWordFromColumn term] `SQL.sepBy` " = "  : r) []
                $ assignments ac

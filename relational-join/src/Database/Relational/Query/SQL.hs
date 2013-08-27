@@ -33,7 +33,7 @@ import qualified Language.SQL.Keyword as SQL
 import Database.Record.ToSql (untypedUpdateValuesIndex)
 import Database.Relational.Query.Pi.Unsafe (Pi, unsafeExpandIndexes)
 import Database.Relational.Query.Sub (asColumnN)
-import Database.Relational.Query.Table (Table, name, columns)
+import Database.Relational.Query.Table (ColumnSQL, sqlWordFromColumn, Table, name, columns)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
@@ -43,7 +43,7 @@ selectSeedSQL :: Projection c r -> ShowS
 selectSeedSQL pj =
   (unwordsSQL [SELECT, columns' `SQL.sepBy` ", "] ++)
   where columns' = zipWith
-                   (\f n -> SQL.word f `asColumnN` n)
+                   (\f n -> sqlWordFromColumn f `asColumnN` n)
                    (Projection.columns pj)
                    [(0 :: Int)..]
 
@@ -54,24 +54,24 @@ updateSeedSQL table = (unwordsSQL [UPDATE, SQL.word $ name table] ++)
 -- | Generate update SQL by specified key and table.
 --   Columns name list of table are also required.
 updateSQL' :: String   -- ^ Table name
-           -> [String] -- ^ Column name list to update
-           -> [String] -- ^ Key column name list
+           -> [ColumnSQL] -- ^ Column name list to update
+           -> [ColumnSQL] -- ^ Key column name list
            -> String   -- ^ Result SQL
 updateSQL' table cols key =
   SQL.unwordsSQL
   $ [UPDATE, SQL.word table, SET, updAssigns `SQL.sepBy` ", ",
      WHERE, keyAssigns `SQL.sepBy` " AND " ]
   where
-    assigns cs = [ SQL.word c .=. "?" | c <- cs ]
+    assigns cs = [ sqlWordFromColumn c .=. "?" | c <- cs ]
     updAssigns = assigns cols
     keyAssigns = assigns key
 
 -- | Generate update SQL by specified key and table.
 --   Columns name list of table are also required.
-updateOtherThanKeySQL' :: String   -- ^ Table name
-           -> [String] -- ^ Column name list
-           -> [Int]    -- ^ Key column indexes
-           -> String   -- ^ Result SQL
+updateOtherThanKeySQL' :: String      -- ^ Table name
+                       -> [ColumnSQL] -- ^ Column name list
+                       -> [Int]       -- ^ Key column indexes
+                       -> String      -- ^ Result SQL
 updateOtherThanKeySQL' table cols ixs =
   updateSQL' table updColumns keyColumns
   where
@@ -90,15 +90,15 @@ updateOtherThanKeySQL tbl key =
   updateOtherThanKeySQL' (name tbl) (columns tbl) (unsafeExpandIndexes key)
 
 -- | Generate insert SQL.
-insertSQL' :: String   -- ^ Table name
-           -> [String] -- ^ Column name list
-           -> String   -- ^ Result SQL
+insertSQL' :: String      -- ^ Table name
+           -> [ColumnSQL] -- ^ Column name list
+           -> String      -- ^ Result SQL
 insertSQL' table cols =
   SQL.unwordsSQL
   $ [INSERT, INTO, SQL.word table, cols' `SQL.parenSepBy` ", ",
      VALUES, pfs `SQL.parenSepBy` ", "]
-  where cols' = map SQL.word cols
-        pfs      = replicate (length cols) "?"
+  where cols' = map sqlWordFromColumn cols
+        pfs   = replicate (length cols) "?"
 
 -- | Generate insert SQL.
 insertSQL :: Table r -- ^ Table metadata

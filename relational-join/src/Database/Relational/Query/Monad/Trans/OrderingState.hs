@@ -30,7 +30,8 @@ import qualified Data.DList as DList
 import Data.Monoid ((<>))
 import Control.Applicative (pure)
 
-import Database.Relational.Query.Sub (Order, order, OrderingTerm, OrderingTerms)
+import Database.Relational.Query.Table (sqlWordFromColumn)
+import Database.Relational.Query.Sub (Order, order, OrderColumn, OrderingTerm, OrderingTerms)
 
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
@@ -47,7 +48,7 @@ primeOrderingContext :: OrderingContext
 primeOrderingContext =  OrderingContext DList.empty
 
 -- | Add order-by term.
-updateOrderBy :: Order -> String -> OrderingContext -> OrderingContext
+updateOrderBy :: Order -> OrderColumn -> OrderingContext -> OrderingContext
 updateOrderBy order' term ctx =
   ctx { orderBys = orderBys ctx <> pure (order', term)  }
 
@@ -66,7 +67,7 @@ orderingTerms =  DList.toList . orderBys
 -- | Concatinate order-by terms into SQL string.
 composeOrderBys :: OrderingContext -> String
 composeOrderBys oc = unwordsSQL orders  where
-  orderList = DList.foldr (\ (o, e) r -> [SQL.word e, order o] `SQL.sepBy` " "  : r) []
+  orderList = DList.foldr (\ (o, e) r -> [sqlWordFromColumn e, order o] `SQL.sepBy` " "  : r) []
               $ orderBys oc
   orders | null orderList = []
          | otherwise      = [ORDER, BY, orderList `SQL.sepBy` ", "]

@@ -62,6 +62,7 @@ import qualified Language.SQL.Keyword.ConcatString as SQLs
 
 import Database.Record (PersistableWidth, PersistableRecordWidth, derivedWidth)
 
+import Database.Relational.Query.Table (columnSQL, stringFromColumnSQL)
 import Database.Relational.Query.Expr (Expr, ShowConstantSQL (showConstantSQL))
 import qualified Database.Relational.Query.Expr as Expr
 import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr
@@ -85,7 +86,7 @@ sqlTermsString = d  where
 
 -- | SQL expression strings which represent projection.
 sqlStringOfProjection :: Projection c r -> String
-sqlStringOfProjection =  sqlTermsString . columns
+sqlStringOfProjection =  sqlTermsString . map stringFromColumnSQL . columns
 
 -- | 'Expr' from 'Projection'
 exprOfProjection :: Projection c r -> Expr c r
@@ -113,7 +114,7 @@ instance ProjectablePi (Projection c) where
 
 -- | Unsafely generate 'Projection' from SQL expression strings.
 unsafeSqlTermsProjection :: [String] -> Projection c t
-unsafeSqlTermsProjection =  unsafeFromColumns
+unsafeSqlTermsProjection =  unsafeFromColumns . map columnSQL
 
 -- | Interface to project SQL terms unsafely.
 class SqlProjectable p where

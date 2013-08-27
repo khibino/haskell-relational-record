@@ -43,7 +43,7 @@ module Database.Relational.Query.Sub (
   AggregateTerm, AggregateTerms, AggregatedQueryRestriction,
 
   -- * Types for ordering
-  Order (..), order, OrderingTerm, OrderingTerms
+  Order (..), order, OrderColumn, OrderingTerm, OrderingTerms
   ) where
 
 import Data.Maybe (fromMaybe)
@@ -314,8 +314,11 @@ order :: Order -> Keyword
 order Asc  = ASC
 order Desc = DESC
 
+-- | Type for order-by column
+type OrderColumn = ColumnSQL
+
 -- | Type for order-by term
-type OrderingTerm = (Order, ColumnSQL)
+type OrderingTerm = (Order, OrderColumn)
 
 -- | Type for order-by terms
 type OrderingTerms = [OrderingTerm]

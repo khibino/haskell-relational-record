@@ -32,11 +32,11 @@ import Control.Applicative (pure)
 import Database.Relational.Query.Context (Aggregated)
 import Database.Relational.Query.Expr (Expr, fromJust, exprAnd)
 import Database.Relational.Query.Expr.Unsafe (showExpr)
+import Database.Relational.Query.Table (sqlWordFromColumn)
 import Database.Relational.Query.Sub (AggregateTerm, AggregateTerms, AggregatedQueryRestriction)
 
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
-import qualified Language.SQL.Keyword.ConcatString as SQLs
 
 
 -- | Context state of aggregated query.
@@ -51,7 +51,7 @@ primeAggregatingContext :: AggregatingContext
 primeAggregatingContext =  AggregatingContext DList.empty Nothing
 
 -- | Add group by term into 'AggregatingContext'.
-addGroupBy :: String -> AggregatingContext -> AggregatingContext
+addGroupBy :: AggregateTerm -> AggregatingContext -> AggregatingContext
 addGroupBy t c =  c { groupByTerms = groupByTerms c <> pure t }
 
 -- | Add having restriction into 'AggregatingContext'.
@@ -74,6 +74,6 @@ composeGroupBys :: AggregatingContext -> String
 composeGroupBys ac = unwordsSQL $ groupBys ++ havings
   where groupBys
           | null gs   = []
-          | otherwise = [GROUP, BY, SQL.word . concat $ gs `SQLs.sepBy` ", "]
-        gs = DList.toList (groupByTerms ac)
+          | otherwise = [GROUP, BY, gs `SQL.sepBy` ", "]
+        gs = map sqlWordFromColumn $ DList.toList (groupByTerms ac)
         havings = maybe [] (\e -> [HAVING, SQL.word . showExpr $ e]) $ restriction ac

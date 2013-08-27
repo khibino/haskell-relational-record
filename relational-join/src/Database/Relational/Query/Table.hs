@@ -26,18 +26,15 @@ import qualified Language.SQL.Keyword as SQL
 
 
 -- | Column SQL string type
-type ColumnSQL = String
--- newtype ColumnSQL = ColumnSQL String
+newtype ColumnSQL = ColumnSQL String
 
 -- | 'ColumnSQL' from string
 columnSQL :: String -> ColumnSQL
-columnSQL =  id
--- columnSQL =  ColumnSQL
+columnSQL =  ColumnSQL
 
 -- | String from ColumnSQL
 stringFromColumnSQL :: ColumnSQL -> String
-stringFromColumnSQL =  id
--- stringFromColumnSQL (ColumnSQL s) = s
+stringFromColumnSQL (ColumnSQL s) = s
 
 -- | SQL word from 'ColumnSQL'
 sqlWordFromColumn :: ColumnSQL -> SQL.Keyword

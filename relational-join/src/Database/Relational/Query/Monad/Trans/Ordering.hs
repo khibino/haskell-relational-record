@@ -29,7 +29,7 @@ import Control.Monad.Trans.State (StateT, runStateT, modify)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second, (>>>))
 
-import Database.Relational.Query.Sub (Order(Asc, Desc))
+import Database.Relational.Query.Sub (Order(Asc, Desc), OrderColumn)
 import Database.Relational.Query.Monad.Trans.StatePrepend (Prepend, prepend, liftToString)
 import Database.Relational.Query.Monad.Trans.OrderingState
   (OrderingContext, primeOrderingContext, updateOrderBy, composeOrderBys)
@@ -81,7 +81,7 @@ type OrderedQuery p m r = Orderings p m (Projection p r)
 
 -- | Ordering term projection type interface.
 class OrderingTerms p where
-  orderTerms :: p t -> [String]
+  orderTerms :: p t -> [OrderColumn]
 
 -- | 'Projection' is ordering term.
 instance OrderingTerms (Projection c) where
