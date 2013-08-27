@@ -25,7 +25,7 @@ import Database.Relational.Query.Monad.Trans.Restricting
 
 
 -- | Restrict only monad type used from update statement and delete statement.
-type Restrict = Restrictings Identity
+type Restrict = Restrictings Flat Identity
 
 -- | RestrictedStatement type synonym.
 --   Projection record type 'r' must be

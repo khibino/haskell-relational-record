@@ -50,7 +50,7 @@ import Data.Maybe (fromMaybe)
 import Data.Array (Array, listArray)
 import qualified Data.Array as Array
 
-import Database.Relational.Query.Context (Flat, Aggregated)
+import Database.Relational.Query.Context (Aggregated)
 import Database.Relational.Query.Expr (Expr, valueExpr)
 import Database.Relational.Query.Expr.Unsafe (showExpr)
 import Database.Relational.Query.Internal.Product
@@ -293,7 +293,7 @@ queryProductSQL =  ($ "") . showQueryProduct
 
 
 -- | Type for restriction of query.
-type QueryRestriction = Maybe (Expr Flat Bool)
+type QueryRestriction c = Maybe (Expr c Bool)
 
 
 -- | Type for group-by term

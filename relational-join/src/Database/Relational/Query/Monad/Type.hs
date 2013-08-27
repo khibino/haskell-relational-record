@@ -13,10 +13,11 @@ module Database.Relational.Query.Monad.Type (
   QueryCore,
   ) where
 
+import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Monad.Qualify (Qualify)
 import Database.Relational.Query.Monad.Trans.Join (QueryJoin)
 import Database.Relational.Query.Monad.Trans.Restricting (Restrictings)
 
 
 -- | Core query monad type used from simple query and aggregated query.
-type QueryCore = Restrictings (QueryJoin Qualify)
+type QueryCore = Restrictings Flat (QueryJoin Qualify)
