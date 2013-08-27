@@ -12,7 +12,6 @@
 -- This module defines sub-query structure used in query products.
 module Database.Relational.Query.Sub (
   -- * Sub-query
-  ColumnSQL,
   SubQuery, fromTable, subQuery, union, except, intersect,
   toSQL, unitSQL, width,
 
@@ -58,7 +57,8 @@ import Database.Relational.Query.Expr.Unsafe (showExpr)
 import Database.Relational.Query.Internal.Product
   (NodeAttr(Just', Maybe), ProductTree (Leaf, Join),
    Node, nodeAttr, nodeTree)
-import Database.Relational.Query.Table (Table, (!))
+import Database.Relational.Query.Table
+  (ColumnSQL, columnSQL, sqlWordFromColumn, stringFromColumnSQL, Table, (!))
 import qualified Database.Relational.Query.Table as Table
 
 import Database.Relational.Query.Internal.ShowS
@@ -66,22 +66,6 @@ import Database.Relational.Query.Internal.ShowS
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
 import qualified Language.SQL.Keyword.ConcatString as SQLs
-
-
--- | Uni-term raw SQL
-type ColumnSQL = String
--- newtype ColumnSQL = ColumnSQL String
-
-columnSQL :: String -> ColumnSQL
-columnSQL =  id
--- columnSQL =  ColumnSQL
-
-stringFromColumnSQL :: ColumnSQL -> String
-stringFromColumnSQL =  id
--- stringFromColumnSQL (ColumnSQL s) = s
-
-sqlWordFromColumn :: ColumnSQL -> SQL.Keyword
-sqlWordFromColumn =  SQL.word . stringFromColumnSQL
 
 
 data BinOp = Union | Except | Intersect
