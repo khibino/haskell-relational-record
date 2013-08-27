@@ -45,7 +45,7 @@ sqlWordFromColumn =  SQL.word . stringFromColumnSQL
 
 
 -- | Untyped typed table type
-data Untyped = Untyped String Int (Array Int String)
+data Untyped = Untyped String Int (Array Int ColumnSQL)
 
 -- | Name string of table in SQL
 name' :: Untyped -> String
@@ -56,17 +56,17 @@ width' :: Untyped -> Int
 width'      (Untyped _ w _) = w
 
 -- | Column name strings in SQL
-columnArray :: Untyped -> Array Int String
+columnArray :: Untyped -> Array Int ColumnSQL
 columnArray (Untyped _ _ c) = c
 
 -- | Column name strings in SQL
-columns' :: Untyped -> [String]
+columns' :: Untyped -> [ColumnSQL]
 columns' =  elems . columnArray
 
 -- | Column name string in SQL specified by index
 (!) :: Untyped
-    -> Int    -- ^ Column index
-    -> String -- ^ Column name String in SQL
+    -> Int       -- ^ Column index
+    -> ColumnSQL -- ^ Column name String in SQL
 t ! i = columnArray t Array.! i
 
 
@@ -90,13 +90,13 @@ width :: Table r -> Int
 width  = width'  . unType
 
 -- | Column name strings in SQL
-columns :: Table r -> [String]
+columns :: Table r -> [ColumnSQL]
 columns =  columns' . unType
 
 -- | Column name string in SQL specified by index
 index :: Table r
       -> Int    -- ^ Column index
-      -> String -- ^ Column name String in SQL
+      -> ColumnSQL -- ^ Column name String in SQL
 index =  (!) . unType
 
 -- | Cast phantom type into 'Maybe' type.
@@ -107,4 +107,4 @@ toMaybe (Table t) = (Table t)
 table :: String -> [String] -> Table r
 table n f = Table $ Untyped n w fa  where
   w  = length f
-  fa = listArray (0, w - 1) f
+  fa = listArray (0, w - 1) $ map columnSQL f

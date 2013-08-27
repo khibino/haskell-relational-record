@@ -47,7 +47,6 @@ module Database.Relational.Query.Sub (
   ) where
 
 import Data.Maybe (fromMaybe)
-import Data.List (intercalate)
 import Data.Array (Array, listArray)
 import qualified Data.Array as Array
 
@@ -116,7 +115,7 @@ hideTable :: SubQuery -> SubQuery
 hideTable = d  where
   d (Table t)          = subQuery sql (Table.width' t)  where
     columns' = zipWith
-               (\f n -> SQL.word f `asColumnN` n)
+               (\f n -> sqlWordFromColumn f `asColumnN` n)
                (Table.columns' t)
                [(0 :: Int)..]
     sql = unwordsSQL
@@ -137,7 +136,7 @@ width =  d  where
 fromTableToSql :: Table.Untyped -> String
 fromTableToSql t =
   unwordsSQL
-  $ [SELECT, SQL.word $ ", " `intercalate` Table.columns' t,
+  $ [SELECT, map sqlWordFromColumn (Table.columns' t) `SQL.sepBy` ", ",
      FROM, SQL.word $ Table.name' t]
 
 -- | SQL string for nested-query and toplevel-SQL.
@@ -214,7 +213,7 @@ queryWidth =  width . unQualify
 column :: Qualified SubQuery -> Int -> ColumnSQL
 column qs =  d (unQualify qs)  where
   q = qualifier qs
-  d (Table u)      i = (q <.> columnSQL (u ! i))
+  d (Table u)      i = (q <.> (u ! i))
   d (SubQuery _ _) i = (q `columnFromId` i)
   d (Bin _ _ _)    i = (q `columnFromId` i)
 

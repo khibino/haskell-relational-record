@@ -32,7 +32,7 @@ module Database.Relational.Query.Projection (
 import Prelude hiding (pi)
 
 import Database.Relational.Query.Context (Aggregated, Flat)
-import Database.Relational.Query.Table (Table)
+import Database.Relational.Query.Table (Table, ColumnSQL)
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
@@ -61,7 +61,7 @@ width =  sum . map widthOfProjectionUnit . units  where
 -- | Get column SQL string of 'Projection'.
 column :: Projection c r -- ^ Source 'Projection'
        -> Int            -- ^ Column index
-       -> String         -- ^ Result SQL string
+       -> ColumnSQL      -- ^ Result SQL string
 column =  d  where
   d proj i' = rec (units proj) i'  where
     rec []       _        = error $ "index out of bounds: " ++ show i'
@@ -72,13 +72,13 @@ column =  d  where
 
 -- | Get column SQL string list of projection.
 columns :: Projection c r -- ^ Source 'Projection'
-        -> [String]       -- ^ Result SQL string list
+        -> [ColumnSQL]    -- ^ Result SQL string list
 columns p = map (\n -> column p n) . take w $ [0 .. ]
   where w = width p
 
 
 -- | Unsafely generate 'Projection' from SQL string list.
-unsafeFromColumns :: [String]       -- ^ SQL string list specifies columns
+unsafeFromColumns :: [ColumnSQL]    -- ^ SQL string list specifies columns
                   -> Projection c r -- ^ Result 'Projection'
 unsafeFromColumns =  typedProjection . untypedProjectionFromColumns
 
