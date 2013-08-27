@@ -70,6 +70,19 @@ import qualified Language.SQL.Keyword.ConcatString as SQLs
 
 -- | Uni-term raw SQL
 type UniTermSQL = String
+-- newtype UniTermSQL = UniTermSQL String
+
+uniTermSQL :: String -> UniTermSQL
+uniTermSQL =  id
+-- uniTermSQL =  UniTermSQL
+
+stringFromUniTermSQL :: UniTermSQL -> String
+stringFromUniTermSQL =  id
+-- stringFromUniTermSQL (UniTermSQL s) = s
+
+wordSqlFromUniTerm :: UniTermSQL -> SQL.Keyword
+wordSqlFromUniTerm =  SQL.word . stringFromUniTermSQL
+
 
 data BinOp = Union | Except | Intersect
 
@@ -184,11 +197,11 @@ qualify =  Qualified
 
 -- | Column name of projection index.
 columnN :: Int -> UniTermSQL
-columnN i = 'f' : show i
+columnN i = uniTermSQL $ 'f' : show i
 
 -- | Renamed column in SQL expression.
 asColumnN :: SQL.Keyword -> Int -> SQL.Keyword
-f `asColumnN` n = f `SQL.as` SQL.word (columnN  n)
+f `asColumnN` n = f `SQL.as` wordSqlFromUniTerm (columnN  n)
 
 -- | Alias string from qualifier
 showQualifier :: Qualifier -> String
@@ -196,7 +209,7 @@ showQualifier (Qualifier i) = 'T' : show i
 
 -- | Binary operator to qualify.
 (<.>) :: Qualifier -> UniTermSQL -> UniTermSQL
-i <.> n =  showQualifier i ++ '.' : n
+i <.> n = uniTermSQL $ showQualifier i ++ '.' : stringFromUniTermSQL n
 
 -- | Qualified expression from qualifier and projection index.
 columnFromId :: Qualifier -> Int -> UniTermSQL
@@ -217,7 +230,7 @@ queryWidth =  width . unQualify
 column :: Qualified SubQuery -> Int -> UniTermSQL
 column qs =  d (unQualify qs)  where
   q = qualifier qs
-  d (Table u)      i = (q <.> (u ! i))
+  d (Table u)      i = (q <.> uniTermSQL (u ! i))
   d (SubQuery _ _) i = (q `columnFromId` i)
   d (Bin _ _ _)    i = (q `columnFromId` i)
 
