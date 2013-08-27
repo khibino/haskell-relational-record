@@ -1,5 +1,7 @@
-{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 -- |
 -- Module      : Database.Relational.Query.Monad.Trans.Ordering
@@ -62,7 +64,7 @@ orderings :: Monad m => m a -> Orderings p m a
 orderings =  lift
 
 -- | 'MonadRestrict' with ordering.
-instance MonadRestrict m => MonadRestrict (Orderings p m) where
+instance MonadRestrict c m => MonadRestrict c (Orderings p m) where
   restrictContext = orderings . restrictContext
 
 -- | 'MonadQuery' with ordering.
@@ -74,7 +76,6 @@ instance MonadQuery m => MonadQuery (Orderings p m) where
 -- | 'MonadAggregate' with ordering.
 instance MonadAggregate m => MonadAggregate (Orderings p m) where
   aggregateKey = orderings . aggregateKey
-  restrictAggregatedQuery = orderings . restrictAggregatedQuery
 
 -- | OrderedQuery type synonym. Projection must be the same as 'Orderings' type parameter 'p'
 type OrderedQuery p m r = Orderings p m (Projection p r)

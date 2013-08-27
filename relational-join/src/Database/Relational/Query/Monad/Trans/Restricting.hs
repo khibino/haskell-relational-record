@@ -1,5 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 -- |
 -- Module      : Database.Relational.Query.Monad.Trans.Restricting
@@ -16,8 +17,8 @@ module Database.Relational.Query.Monad.Trans.Restricting (
   Restrictings, restrictings,
 
   -- * Result SQL wheres clause
-  extractWheres,
-  WherePrepend, prependWhere
+  extractWheres, WherePrepend, prependWhere,
+  extractHavings, HavingPrepend, prependHaving
   ) where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
@@ -25,13 +26,13 @@ import Control.Monad.Trans.State (modify, StateT, runStateT)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second)
 
-import Database.Relational.Query.Context (Flat)
+import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Monad.Trans.StatePrepend (Prepend, prepend, liftToString)
 import Database.Relational.Query.Monad.Trans.RestrictingState
-  (RestrictContext, primeRestrictContext, addRestriction, composeWheres)
+  (RestrictContext, primeRestrictContext, addRestriction, composeWheres, composeHavings)
 import Database.Relational.Query.Expr (Expr)
 
-import Database.Relational.Query.Monad.Class (MonadRestrict(..), MonadQuery (..))
+import Database.Relational.Query.Monad.Class (MonadRestrict(..), MonadQuery (..), MonadAggregate(..))
 
 
 -- | 'StateT' type to accumulate join product context.
@@ -63,13 +64,17 @@ updateRestriction :: Monad m => Expr c (Maybe Bool) -> Restrictings c m ()
 updateRestriction e = updateRestrictContext (addRestriction e)
 
 -- | 'MonadRestrict' instance.
-instance (Monad q, Functor q) => MonadRestrict (Restrictings Flat q) where
+instance (Monad q, Functor q) => MonadRestrict c (Restrictings c q) where
   restrictContext = updateRestriction
 
 -- | Restricted 'MonadQuery' instance.
 instance MonadQuery q => MonadQuery (Restrictings c q) where
   restrictJoin     = restrictings . restrictJoin
   unsafeSubQuery a = restrictings . unsafeSubQuery a
+
+-- | Resticted 'MonadAggregate' instance.
+instance MonadAggregate m => MonadAggregate (Restrictings c m) where
+  aggregateKey = restrictings . aggregateKey
 
 -- | WHERE clause prepending function.
 type WherePrepend = Prepend (RestrictContext Flat)
@@ -83,3 +88,16 @@ extractWheres r = second (liftToString composeWheres) <$> runRestrictingsPrime r
 -- | Run WHERE clause prepend.
 prependWhere :: WherePrepend -> String -> String
 prependWhere =  prepend
+
+-- | HAVING clause prepending function.
+type HavingPrepend = Prepend (RestrictContext Aggregated)
+
+-- | Run 'Restrictings' to get HAVING clause prepending function.
+extractHavings :: (Monad m, Functor m)
+               => Restrictings Aggregated m a -- ^ 'Restrictings' to run
+               -> m (a,  HavingPrepend)       -- ^ HAVING clause prepending function.
+extractHavings r = second (liftToString composeHavings) <$> runRestrictingsPrime r
+
+-- | Run HAVING clause prepend.
+prependHaving :: HavingPrepend -> String -> String
+prependHaving =  prepend

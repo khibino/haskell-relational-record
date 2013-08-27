@@ -17,9 +17,9 @@ module Database.Relational.Query.Monad.Trans.AggregatingState (
 
   primeAggregatingContext,
 
-  addGroupBy, addRestriction,
+  addGroupBy,
 
-  aggregateRestriction, aggregateTerms,
+  aggregateTerms,
 
   composeGroupBys
   ) where
@@ -29,41 +29,25 @@ import qualified Data.DList as DList
 import Data.Monoid ((<>))
 import Control.Applicative (pure)
 
-import Database.Relational.Query.Context (Aggregated)
-import Database.Relational.Query.Expr (Expr, fromJust, exprAnd)
-import Database.Relational.Query.Expr.Unsafe (showExpr)
 import Database.Relational.Query.Table (sqlWordFromColumn)
-import Database.Relational.Query.Sub (AggregateTerm, AggregateTerms, AggregatedQueryRestriction)
+import Database.Relational.Query.Sub (AggregateTerm, AggregateTerms)
 
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
 
 
 -- | Context state of aggregated query.
-data AggregatingContext =
+newtype AggregatingContext =
   AggregatingContext
-  { groupByTerms :: DList AggregateTerm
-  , restriction  :: AggregatedQueryRestriction
-  }
+  { groupByTerms :: DList AggregateTerm }
 
 -- | Initial value of 'AggregatingContext'.
 primeAggregatingContext :: AggregatingContext
-primeAggregatingContext =  AggregatingContext DList.empty Nothing
+primeAggregatingContext =  AggregatingContext DList.empty
 
 -- | Add group by term into 'AggregatingContext'.
 addGroupBy :: AggregateTerm -> AggregatingContext -> AggregatingContext
 addGroupBy t c =  c { groupByTerms = groupByTerms c <> pure t }
-
--- | Add having restriction into 'AggregatingContext'.
-addRestriction :: Expr Aggregated (Maybe Bool) -> AggregatingContext -> AggregatingContext
-addRestriction e1 ctx =
-  ctx { restriction = Just . uf . restriction $ ctx }
-  where uf  Nothing  = fromJust e1
-        uf (Just e0) = e0 `exprAnd` fromJust e1
-
--- | Finalize context to extract accumulated aggregate restriction state.
-aggregateRestriction :: AggregatingContext -> AggregatedQueryRestriction
-aggregateRestriction =  restriction
 
 -- | Finalize context to extract accumulated aggregate terms state.
 aggregateTerms :: AggregatingContext -> AggregateTerms
@@ -71,9 +55,8 @@ aggregateTerms =  DList.toList . groupByTerms
 
 -- | Extract 'AggregatingContext' into SQL string.
 composeGroupBys :: AggregatingContext -> String
-composeGroupBys ac = unwordsSQL $ groupBys ++ havings
+composeGroupBys ac = unwordsSQL $ groupBys
   where groupBys
           | null gs   = []
           | otherwise = [GROUP, BY, gs `SQL.sepBy` ", "]
         gs = map sqlWordFromColumn $ DList.toList (groupByTerms ac)
-        havings = maybe [] (\e -> [HAVING, SQL.word . showExpr $ e]) $ restriction ac

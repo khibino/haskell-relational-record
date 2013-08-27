@@ -1,4 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 -- |
 -- Module      : Database.Relational.Query.Monad.Trans.Aggregating
@@ -29,8 +31,6 @@ import Database.Relational.Query.Sub (AggregateTerm)
 import Database.Relational.Query.Monad.Trans.StatePrepend (Prepend, prepend, liftToString)
 import Database.Relational.Query.Monad.Trans.AggregatingState
   (AggregatingContext, primeAggregatingContext, addGroupBy, composeGroupBys)
-import qualified Database.Relational.Query.Monad.Trans.AggregatingState as State
-import Database.Relational.Query.Expr (Expr)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
@@ -59,7 +59,7 @@ aggregatings :: Monad m => m a -> Aggregatings m a
 aggregatings =  lift
 
 -- | Aggregated 'MonadRestrict'.
-instance MonadRestrict m => MonadRestrict (Aggregatings m) where
+instance MonadRestrict c m => MonadRestrict c (Aggregatings m) where
   restrictContext =  aggregatings . restrictContext
 
 -- | Aggregated 'MonadQuery'.
@@ -75,12 +75,6 @@ updateAggregatingContext =  Aggregatings . modify
 addGroupBys' :: Monad m => [AggregateTerm] -> Aggregatings m ()
 addGroupBys' gbs = updateAggregatingContext . foldr (>>>) id $ map addGroupBy gbs
 
--- | Add restrictions for aggregated query.
-addRestriction :: MonadQuery m
-               => Expr Aggregated (Maybe Bool) -- ^ Restriction to add
-               -> Aggregatings m ()            -- ^ Result restricted context
-addRestriction =  updateAggregatingContext . State.addRestriction
-
 -- | Add aggregating terms.
 addGroupBys :: MonadQuery m
             => Projection Flat r              -- ^ Group-by term to add
@@ -92,7 +86,6 @@ addGroupBys p = do
 -- | Aggregated query instance.
 instance MonadQuery m => MonadAggregate (Aggregatings m) where
   aggregateKey = addGroupBys
-  restrictAggregatedQuery = addRestriction
 
 -- | GROUP BY terms prepending function.
 type GroupBysPrepend = Prepend AggregatingContext

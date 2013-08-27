@@ -29,9 +29,9 @@ import Database.Relational.Query.Sub (SubQuery, Qualified)
 import Database.Relational.Query.Internal.Product (NodeAttr)
 
 -- | Restrict context interface
-class (Functor m, Monad m) => MonadRestrict m where
+class (Functor m, Monad m) => MonadRestrict c m where
   -- | Add restriction to this context.
-  restrictContext :: Expr Flat (Maybe Bool) -- ^ 'Expr' 'Projection' which represent restriction
+  restrictContext :: Expr c (Maybe Bool) -- ^ 'Expr' 'Projection' which represent restriction
                   -> m ()                         -- ^ Restricted query context
 
 -- | Query building interface.
@@ -59,9 +59,6 @@ class MonadQuery m => MonadAggregate m where
   -- | Add /group by/ term into context and get aggregated projection.
   aggregateKey :: Projection Flat r           -- ^ Projection to add into group by
                -> m (Projection Aggregated r) -- ^ Result context and aggregated projection
-  -- | Add restriction to this aggregated query.
-  restrictAggregatedQuery :: Expr Aggregated (Maybe Bool) -- ^ 'Expr' 'Aggregated' which represent restriction
-                          -> m ()                          -- ^ Restricted query context
 
 -- | Add restriction to last join.
 onE :: MonadQuery m => Expr Flat (Maybe Bool) -> m ()
@@ -72,11 +69,11 @@ on :: MonadQuery m => Projection Flat (Maybe Bool) -> m ()
 on =  restrictJoin . expr
 
 -- | Add restriction to this query.
-wheresE :: MonadRestrict m => Expr Flat (Maybe Bool) -> m ()
+wheresE :: MonadRestrict Flat m => Expr Flat (Maybe Bool) -> m ()
 wheresE =  restrictContext
 
 -- | Add restriction to this query. Projection type version.
-wheres :: MonadRestrict m => Projection Flat (Maybe Bool) -> m ()
+wheres :: MonadRestrict Flat m => Projection Flat (Maybe Bool) -> m ()
 wheres =  restrictContext . expr
 
 -- | Add /group by/ term into context and get aggregated projection.
@@ -86,9 +83,9 @@ groupBy :: MonadAggregate m
 groupBy =  aggregateKey
 
 -- | Add restriction to this aggregated query.
-havingE :: MonadAggregate m => Expr Aggregated (Maybe Bool) -> m ()
-havingE =  restrictAggregatedQuery
+havingE :: MonadRestrict Aggregated m => Expr Aggregated (Maybe Bool) -> m ()
+havingE =  restrictContext
 
 -- | Add restriction to this aggregated query. Aggregated Projection type version.
-having :: MonadAggregate m => Projection Aggregated (Maybe Bool) -> m ()
-having =  restrictAggregatedQuery . expr
+having :: MonadRestrict Aggregated m => Projection Aggregated (Maybe Bool) -> m ()
+having =  restrictContext . expr

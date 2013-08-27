@@ -1,4 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 -- |
 -- Module      : Database.Relational.Query.Monad.Trans.Assigning
@@ -65,7 +67,7 @@ updateAssigningContext :: Monad m => (AssigningContext -> AssigningContext) -> A
 updateAssigningContext =  Assignings . modify
 
 -- | 'MonadRestrict' with ordering.
-instance MonadRestrict m => MonadRestrict (Assignings r m) where
+instance MonadRestrict c m => MonadRestrict c (Assignings r m) where
   restrictContext = assignings . restrictContext
 
 -- | Target of assignment.

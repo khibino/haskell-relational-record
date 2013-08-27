@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 -- |
@@ -33,7 +34,8 @@ import Database.Relational.Query.Monad.Class (MonadQualify(..))
 import Database.Relational.Query.Monad.Trans.Join
   (join', FromPrepend, prependFrom, extractFrom)
 import Database.Relational.Query.Monad.Trans.Restricting
-  (restrictings, WherePrepend, prependWhere, extractWheres)
+  (Restrictings, restrictings,
+   WherePrepend, prependWhere, extractWheres, HavingPrepend, prependHaving, extractHavings)
 import Database.Relational.Query.Monad.Trans.Aggregating
   (Aggregatings, aggregatings, GroupBysPrepend, prependGroupBys, extractGroupBys)
 import Database.Relational.Query.Monad.Trans.Ordering
@@ -42,30 +44,30 @@ import Database.Relational.Query.Monad.Type (QueryCore)
 
 
 -- | Aggregated query monad type.
-type QueryAggregate    = Orderings Aggregated (Aggregatings QueryCore)
+type QueryAggregate    = Orderings Aggregated (Restrictings Aggregated (Aggregatings QueryCore))
 
 -- | Aggregated query type. AggregatedQuery r == QueryAggregate (Projection Aggregated r).
-type AggregatedQuery r = OrderedQuery Aggregated (Aggregatings QueryCore) r
+type AggregatedQuery r = OrderedQuery Aggregated (Restrictings Aggregated (Aggregatings QueryCore)) r
 
 -- | Lift from qualified table forms into 'QueryAggregate'.
 aggregatedQuery :: Qualify a -> QueryAggregate a
-aggregatedQuery =  orderings . aggregatings . restrictings . join'
+aggregatedQuery =  orderings . restrictings . aggregatings . restrictings . join'
 
 -- | Instance to lift from qualified table forms into 'QueryAggregate'.
-instance MonadQualify Qualify (Orderings Aggregated (Aggregatings QueryCore)) where
+instance MonadQualify Qualify QueryAggregate where
   liftQualify = aggregatedQuery
 
 expandPrepend :: AggregatedQuery r
-                 -> Qualify ((((Projection Aggregated r, OrderByPrepend), GroupBysPrepend), WherePrepend), FromPrepend)
-expandPrepend =  extractFrom . extractWheres . extractGroupBys . extractOrderBys
+                 -> Qualify (((((Projection Aggregated r, OrderByPrepend), HavingPrepend), GroupBysPrepend), WherePrepend), FromPrepend)
+expandPrepend =  extractFrom . extractWheres . extractGroupBys . extractHavings . extractOrderBys
 
 -- | Run 'AggregatedQuery' to get SQL string.
 expandSQL :: AggregatedQuery r -> Qualify (String, Projection Flat r)
 expandSQL q = do
-  ((((aggr, ao), ag), aw), af) <- expandPrepend q
+  (((((aggr, ao), ah), ag), aw), af) <- expandPrepend q
   let projection = Projection.unsafeToFlat aggr
   return (selectSeedSQL projection . prependFrom af . prependWhere aw
-          . prependGroupBys ag . prependOrderBy ao $ "",
+          . prependGroupBys ag . prependHaving ah . prependOrderBy ao $ "",
           projection)
 
 -- | Run 'AggregatedQuery' to get SQL with 'Qualify' computation.
