@@ -80,8 +80,8 @@ stringFromColumnSQL :: ColumnSQL -> String
 stringFromColumnSQL =  id
 -- stringFromColumnSQL (ColumnSQL s) = s
 
-wordSqlFromColumn :: ColumnSQL -> SQL.Keyword
-wordSqlFromColumn =  SQL.word . stringFromColumnSQL
+sqlWordFromColumn :: ColumnSQL -> SQL.Keyword
+sqlWordFromColumn =  SQL.word . stringFromColumnSQL
 
 
 data BinOp = Union | Except | Intersect
@@ -201,7 +201,7 @@ columnN i = uniTermSQL $ 'f' : show i
 
 -- | Renamed column in SQL expression.
 asColumnN :: SQL.Keyword -> Int -> SQL.Keyword
-f `asColumnN` n = f `SQL.as` wordSqlFromColumn (columnN  n)
+f `asColumnN` n = f `SQL.as` sqlWordFromColumn (columnN  n)
 
 -- | Alias string from qualifier
 showQualifier :: Qualifier -> String
