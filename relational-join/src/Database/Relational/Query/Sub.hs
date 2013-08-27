@@ -12,7 +12,7 @@
 -- This module defines sub-query structure used in query products.
 module Database.Relational.Query.Sub (
   -- * Sub-query
-  UniTermSQL,
+  ColumnSQL,
   SubQuery, fromTable, subQuery, union, except, intersect,
   toSQL, unitSQL, width,
 
@@ -69,19 +69,19 @@ import qualified Language.SQL.Keyword.ConcatString as SQLs
 
 
 -- | Uni-term raw SQL
-type UniTermSQL = String
--- newtype UniTermSQL = UniTermSQL String
+type ColumnSQL = String
+-- newtype ColumnSQL = ColumnSQL String
 
-uniTermSQL :: String -> UniTermSQL
+uniTermSQL :: String -> ColumnSQL
 uniTermSQL =  id
--- uniTermSQL =  UniTermSQL
+-- uniTermSQL =  ColumnSQL
 
-stringFromUniTermSQL :: UniTermSQL -> String
-stringFromUniTermSQL =  id
--- stringFromUniTermSQL (UniTermSQL s) = s
+stringFromColumnSQL :: ColumnSQL -> String
+stringFromColumnSQL =  id
+-- stringFromColumnSQL (ColumnSQL s) = s
 
-wordSqlFromUniTerm :: UniTermSQL -> SQL.Keyword
-wordSqlFromUniTerm =  SQL.word . stringFromUniTermSQL
+wordSqlFromColumn :: ColumnSQL -> SQL.Keyword
+wordSqlFromColumn =  SQL.word . stringFromColumnSQL
 
 
 data BinOp = Union | Except | Intersect
@@ -196,23 +196,23 @@ qualify :: a -> Qualifier -> Qualified a
 qualify =  Qualified
 
 -- | Column name of projection index.
-columnN :: Int -> UniTermSQL
+columnN :: Int -> ColumnSQL
 columnN i = uniTermSQL $ 'f' : show i
 
 -- | Renamed column in SQL expression.
 asColumnN :: SQL.Keyword -> Int -> SQL.Keyword
-f `asColumnN` n = f `SQL.as` wordSqlFromUniTerm (columnN  n)
+f `asColumnN` n = f `SQL.as` wordSqlFromColumn (columnN  n)
 
 -- | Alias string from qualifier
 showQualifier :: Qualifier -> String
 showQualifier (Qualifier i) = 'T' : show i
 
 -- | Binary operator to qualify.
-(<.>) :: Qualifier -> UniTermSQL -> UniTermSQL
-i <.> n = uniTermSQL $ showQualifier i ++ '.' : stringFromUniTermSQL n
+(<.>) :: Qualifier -> ColumnSQL -> ColumnSQL
+i <.> n = uniTermSQL $ showQualifier i ++ '.' : stringFromColumnSQL n
 
 -- | Qualified expression from qualifier and projection index.
-columnFromId :: Qualifier -> Int -> UniTermSQL
+columnFromId :: Qualifier -> Int -> ColumnSQL
 columnFromId qi i = qi <.> columnN i
 
 -- | From 'Qualified' SQL string into 'String'.
@@ -227,7 +227,7 @@ queryWidth :: Qualified SubQuery -> Int
 queryWidth =  width . unQualify
 
 -- | Get column SQL string of 'SubQuery'.
-column :: Qualified SubQuery -> Int -> UniTermSQL
+column :: Qualified SubQuery -> Int -> ColumnSQL
 column qs =  d (unQualify qs)  where
   q = qualifier qs
   d (Table u)      i = (q <.> uniTermSQL (u ! i))
@@ -244,10 +244,10 @@ instance Show SubQuery where
 
 
 -- | Projection structure unit
-data ProjectionUnit = Columns (Array Int UniTermSQL)
+data ProjectionUnit = Columns (Array Int ColumnSQL)
                     | Sub (Qualified SubQuery)
 
-projectionUnitFromColumns :: [UniTermSQL] -> ProjectionUnit
+projectionUnitFromColumns :: [ColumnSQL] -> ProjectionUnit
 projectionUnitFromColumns cs = Columns $ listArray (0, length cs - 1) cs
 
 -- | Untyped projection. Forgot record type.
@@ -257,7 +257,7 @@ unitUntypedProjection :: ProjectionUnit -> UntypedProjection
 unitUntypedProjection =  (:[])
 
 -- | Make untyped projection from columns.
-untypedProjectionFromColumns :: [UniTermSQL] -> UntypedProjection
+untypedProjectionFromColumns :: [ColumnSQL] -> UntypedProjection
 untypedProjectionFromColumns =  unitUntypedProjection . projectionUnitFromColumns
 
 -- | Make untyped projection from sub query.
@@ -271,7 +271,7 @@ widthOfProjectionUnit =  d  where
   d (Sub sq)    = queryWidth sq
 
 -- | Get column of ProjectionUnit.
-columnOfProjectionUnit :: ProjectionUnit -> Int -> UniTermSQL
+columnOfProjectionUnit :: ProjectionUnit -> Int -> ColumnSQL
 columnOfProjectionUnit =  d  where
   d (Columns a) i | mn <= i && i <= mx = a Array.! i
                   | otherwise          = error $ "index out of bounds (unit): " ++ show i
@@ -314,7 +314,7 @@ type QueryRestriction = Maybe (Expr Flat Bool)
 
 
 -- | Type for group-by term
-type AggregateTerm = UniTermSQL
+type AggregateTerm = ColumnSQL
 
 -- | Type for group-by terms
 type AggregateTerms = [AggregateTerm]
@@ -332,7 +332,7 @@ order Asc  = ASC
 order Desc = DESC
 
 -- | Type for order-by term
-type OrderingTerm = (Order, UniTermSQL)
+type OrderingTerm = (Order, ColumnSQL)
 
 -- | Type for order-by terms
 type OrderingTerms = [OrderingTerm]
