@@ -34,8 +34,9 @@ import qualified Language.SQL.Keyword as SQL
 
 
 -- | JoinContext type for QueryJoin.
-data JoinContext = JoinContext
-                   { product :: Maybe QueryProductNode }
+newtype JoinContext =
+  JoinContext
+  { product :: Maybe QueryProductNode }
 
 -- | Initial 'JoinContext'.
 primeJoinContext :: JoinContext
