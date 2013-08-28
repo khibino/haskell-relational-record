@@ -228,7 +228,7 @@ instance Show SubQuery where
 
 -- | Projection structure unit
 data ProjectionUnit = Columns (Array Int ColumnSQL)
-                    | Sub (Qualified SubQuery)
+                    | Normalized (Qualified Int)
 
 projectionUnitFromColumns :: [ColumnSQL] -> ProjectionUnit
 projectionUnitFromColumns cs = Columns $ listArray (0, length cs - 1) cs
@@ -245,13 +245,18 @@ untypedProjectionFromColumns =  unitUntypedProjection . projectionUnitFromColumn
 
 -- | Make untyped projection from sub query.
 untypedProjectionFromSubQuery :: Qualified SubQuery -> UntypedProjection
-untypedProjectionFromSubQuery =  unitUntypedProjection . Sub
+untypedProjectionFromSubQuery qs = d $ unQualify qs  where  --  unitUntypedProjection . Sub
+  normalized = unitUntypedProjection . Normalized $ fmap width qs
+  d (Table _)      = untypedProjectionFromColumns . map (column qs)
+                     $ take (queryWidth qs) [0..]
+  d (SubQuery _ _) = normalized
+  d (Bin _ _ _)    = normalized
 
 -- | ProjectionUnit width.
 widthOfProjectionUnit :: ProjectionUnit -> Int
 widthOfProjectionUnit =  d  where
-  d (Columns a) = mx - mn + 1 where (mn, mx) = Array.bounds a
-  d (Sub sq)    = queryWidth sq
+  d (Columns a)     = mx - mn + 1 where (mn, mx) = Array.bounds a
+  d (Normalized qw) = unQualify qw
 
 -- | Get column of ProjectionUnit.
 columnOfProjectionUnit :: ProjectionUnit -> Int -> ColumnSQL
@@ -259,7 +264,9 @@ columnOfProjectionUnit =  d  where
   d (Columns a) i | mn <= i && i <= mx = a Array.! i
                   | otherwise          = error $ "index out of bounds (unit): " ++ show i
     where (mn, mx) = Array.bounds a
-  d (Sub sq) i = column sq i
+  d (Normalized qw) i | i < w          = qualifier qw `columnFromId` i
+                      | otherwise      = error $ "index out of bounds (normalized unit): " ++ show i
+    where w = unQualify qw
 
 
 -- | Product tree specialized by 'SubQuery'.
