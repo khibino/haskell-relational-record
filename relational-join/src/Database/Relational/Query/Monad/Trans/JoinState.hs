@@ -27,7 +27,7 @@ module Database.Relational.Query.Monad.Trans.JoinState (
 import Prelude hiding (product)
 
 import qualified Database.Relational.Query.Internal.Product as Product
-import Database.Relational.Query.Sub (QueryProductNode, QueryProduct, queryProductSQL)
+import Database.Relational.Query.Sub (QueryProductNode, QueryProduct, JoinProduct, queryProductSQL)
 
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
@@ -57,8 +57,8 @@ updateProduct uf = updateProduct' (Just . uf)
 -- restoreLeft pL naR ctx = updateProduct (Product.growLeft pL naR) ctx
 
 -- |  Finalize context to extract accumulated query product.
-joinProduct :: JoinContext -> QueryProduct
-joinProduct =  maybe (error "relation: empty product!") Product.nodeTree . product
+joinProduct :: JoinContext -> JoinProduct
+joinProduct =  fmap Product.nodeTree . product
 
 -- | Compose SQL String from 'JoinContext' object.
 composeFrom' :: QueryProduct -> String
@@ -68,4 +68,4 @@ composeFrom' pd =
 
 -- | Compose SQL String from 'JoinContext' object.
 composeFrom :: JoinContext -> String
-composeFrom =  composeFrom' . joinProduct
+composeFrom =  composeFrom' . maybe (error "relation: empty product!") ( Product.nodeTree) . product

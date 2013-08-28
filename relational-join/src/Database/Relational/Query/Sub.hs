@@ -36,6 +36,8 @@ module Database.Relational.Query.Sub (
 
   queryProductSQL,
 
+  JoinProduct,
+
   -- * Query restriction
   QueryRestriction,
 
@@ -275,8 +277,8 @@ type QueryProduct = ProductTree (Qualified SubQuery)
 type QueryProductNode = Node (Qualified SubQuery)
 
 -- | Show product tree of query into SQL. ShowS result.
-showQueryProduct :: QueryProduct -> ShowS
-showQueryProduct =  rec  where
+showsQueryProduct :: QueryProduct -> ShowS
+showsQueryProduct =  rec  where
   joinType Just' Just' = INNER
   joinType Just' Maybe = LEFT
   joinType Maybe Just' = RIGHT
@@ -296,7 +298,14 @@ showQueryProduct =  rec  where
 
 -- | Show product tree of query into SQL.
 queryProductSQL :: QueryProduct -> String
-queryProductSQL =  ($ "") . showQueryProduct
+queryProductSQL =  ($ "") . showsQueryProduct
+
+-- | Type for join product of query.
+type JoinProduct = Maybe QueryProduct
+
+-- | Shows join product of query.
+_showsJoinProduct :: Maybe QueryProduct -> ShowS
+_showsJoinProduct =  maybe (error "relation: empty product!") showsQueryProduct
 
 
 -- | Type for restriction of query.
