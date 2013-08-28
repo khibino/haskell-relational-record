@@ -219,7 +219,7 @@ column qs =  d (unQualify qs)  where
 
 -- | Get qualified SQL string, like (SELECT ...) AS T0
 qualifiedForm :: Qualified SubQuery -> String
-qualifiedForm =  qualifiedSQLas . fmap (unitSQL)
+qualifiedForm =  qualifiedSQLas . fmap unitSQL
 
 -- | Show 'SubQuery'.
 instance Show SubQuery where
