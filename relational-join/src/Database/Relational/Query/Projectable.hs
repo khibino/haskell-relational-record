@@ -83,13 +83,13 @@ sqlTermsString = d  where
   d ([c]) = c
   d (cs) =  paren $ intercalate ", " cs
 
--- | SQL expression strings which represent projection.
-sqlStringOfProjection :: Projection c r -> String
-sqlStringOfProjection =  sqlTermsString . map stringFromColumnSQL . columns
+-- | Unsafely get SQL term from 'Proejction'.
+unsafeShowSqlProjection :: Projection c r -> String
+unsafeShowSqlProjection =  sqlTermsString . map stringFromColumnSQL . columns
 
 -- | 'Expr' from 'Projection'
 exprOfProjection :: Projection c r -> Expr c r
-exprOfProjection =  UnsafeExpr.Expr . sqlStringOfProjection
+exprOfProjection =  UnsafeExpr.Expr . unsafeShowSqlProjection
 
 -- | Project from Projection type into expression type.
 expr :: Projection p a -> Expr p a
@@ -152,10 +152,6 @@ unsafeShowSqlExpr =  UnsafeExpr.showExpr
 -- | Unsafely get SQL term from 'Expr'.
 instance ProjectableShowSql (Expr p) where
   unsafeShowSql = unsafeShowSqlExpr
-
--- | Unsafely get SQL term from 'Proejction'.
-unsafeShowSqlProjection :: Projection c r -> String
-unsafeShowSqlProjection = sqlStringOfProjection
 
 -- | Unsafely get SQL term from 'Proejction'.
 instance ProjectableShowSql (Projection c) where
