@@ -52,7 +52,6 @@ module Database.Relational.Query.Projectable (
 
 import Prelude hiding (and, or, not, pi)
 
-import Data.List (intercalate)
 import Data.String (IsString)
 import Control.Applicative ((<$>))
 
@@ -61,7 +60,7 @@ import qualified Language.SQL.Keyword.ConcatString as SQLs
 
 import Database.Record (PersistableWidth, PersistableRecordWidth, derivedWidth)
 
-import Database.Relational.Query.Internal.String (paren)
+import Database.Relational.Query.Internal.String (paren, sqlRowString)
 import Database.Relational.Query.Table (columnSQL, stringFromColumnSQL)
 import Database.Relational.Query.Expr (Expr, ShowConstantSQL (showConstantSQL))
 import qualified Database.Relational.Query.Expr as Expr
@@ -72,13 +71,6 @@ import Database.Relational.Query.Pi (Pi, piZip)
 import Database.Relational.Query.Projection (Projection, columns, unsafeFromColumns)
 import qualified Database.Relational.Query.Projection as Projection
 
-
--- | Row String of SQL values.
-sqlRowString :: [String] -> String
-sqlRowString = d where
-  d ([])  = error $ "Projection: no columns."
-  d ([c]) = c
-  d (cs) =  paren $ intercalate ", " cs
 
 -- | Unsafely get SQL term from 'Proejction'.
 unsafeShowSqlProjection :: Projection c r -> String

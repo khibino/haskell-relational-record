@@ -12,8 +12,10 @@
 module Database.Relational.Query.Internal.String (
   showUnwordsSQL, showWordSQL, showUnwords,
 
-  paren
+  paren, sqlRowString
   ) where
+
+import Data.List (intercalate)
 
 import Language.SQL.Keyword (unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
@@ -36,3 +38,10 @@ showUnwords =  rec  where
 -- | Parened String.
 paren :: String -> String
 paren =  ('(' :) . (++[')'])
+
+-- | Row String of SQL values.
+sqlRowString :: [String] -> String
+sqlRowString = d where
+  d ([])  = error $ "Projection: no columns."
+  d ([c]) = c
+  d (cs) =  paren $ intercalate ", " cs
