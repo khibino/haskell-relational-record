@@ -11,7 +11,6 @@
 module Database.Relational.Query.Projectable (
   -- * Conversion between individual Projections
   expr,
-  -- ProjectablePi (pi, piMaybe, piMaybe'),
 
   -- * Projectable from SQL strings
   SqlProjectable (unsafeProjectSqlTerms), unsafeProjectSql,
@@ -95,21 +94,6 @@ exprOfProjection =  UnsafeExpr.Expr . sqlStringOfProjection
 -- | Project from Projection type into expression type.
 expr :: Projection p a -> Expr p a
 expr =  exprOfProjection
-
--- | Projection interface.
-class ProjectablePi p where
-  -- | Trace projection path 'Pi' to get narrower projection type 'p'.
-  pi       :: p a -> Pi a b -> p b
-  -- | Trace projection path 'Pi' to get narrower projection type 'p'. From 'Maybe' type to 'Maybe' type.
-  piMaybe  :: p (Maybe a) -> Pi a b -> p (Maybe b)
-  -- | Trace projection path 'Pi' to get narrower projection type 'p'.From 'Maybe' type to 'Maybe' type.
-  --   Leaf type of projection path is 'Maybe'.
-  piMaybe' :: p (Maybe a) -> Pi a (Maybe b) -> p (Maybe b)
-
-instance ProjectablePi (Projection c) where
-  pi       = Projection.pi
-  piMaybe  = Projection.piMaybe
-  piMaybe' = Projection.piMaybe'
 
 
 -- | Unsafely generate 'Projection' from SQL expression strings.
