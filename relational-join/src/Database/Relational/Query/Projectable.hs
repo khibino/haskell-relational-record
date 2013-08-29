@@ -73,16 +73,16 @@ import Database.Relational.Query.Projection (Projection, columns, unsafeFromColu
 import qualified Database.Relational.Query.Projection as Projection
 
 
--- | String of SQL terms.
-sqlTermsString :: [String] -> String
-sqlTermsString = d  where
+-- | Row String of SQL values.
+sqlRowString :: [String] -> String
+sqlRowString = d where
   d ([])  = error $ "Projection: no columns."
   d ([c]) = c
   d (cs) =  paren $ intercalate ", " cs
 
 -- | Unsafely get SQL term from 'Proejction'.
 unsafeShowSqlProjection :: Projection c r -> String
-unsafeShowSqlProjection =  sqlTermsString . map stringFromColumnSQL . columns
+unsafeShowSqlProjection =  sqlRowString . map stringFromColumnSQL . columns
 
 -- | 'Expr' from 'Projection'
 exprOfProjection :: Projection c r -> Expr c r
@@ -109,7 +109,7 @@ instance SqlProjectable (Projection c) where
 
 -- | Unsafely make 'Expr' from SQL terms.
 instance SqlProjectable (Expr p) where
-  unsafeProjectSqlTerms = UnsafeExpr.Expr . sqlTermsString
+  unsafeProjectSqlTerms = UnsafeExpr.Expr . sqlRowString
 
 -- | Unsafely Project single SQL term.
 unsafeProjectSql :: SqlProjectable p => String -> p t
