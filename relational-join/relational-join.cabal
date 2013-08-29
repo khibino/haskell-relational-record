@@ -62,7 +62,7 @@ library
 
   other-modules:
                        Database.Relational.Query.Internal.AliasId
-                       Database.Relational.Query.Internal.ShowS
+                       Database.Relational.Query.Internal.String
                        Database.Relational.Query.Internal.Product
                        Database.Relational.Query.Monad.Trans.StatePrepend
                        Database.Relational.Query.Monad.Trans.AssigningState

@@ -62,7 +62,7 @@ import Database.Relational.Query.Table
   (ColumnSQL, columnSQL, sqlWordFromColumn, stringFromColumnSQL, Table, (!))
 import qualified Database.Relational.Query.Table as Table
 
-import Database.Relational.Query.Internal.ShowS
+import Database.Relational.Query.Internal.String
   (showUnwordsSQL, showWordSQL, showUnwords)
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL

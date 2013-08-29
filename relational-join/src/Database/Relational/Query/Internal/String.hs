@@ -1,5 +1,5 @@
 -- |
--- Module      : Database.Relational.Query.Internal.ShowS
+-- Module      : Database.Relational.Query.Internal.String
 -- Copyright   : 2013 Kei Hibino
 -- License     : BSD3
 --
@@ -9,7 +9,7 @@
 --
 -- This module provides SQL string concatination functions
 -- which result is ShowS differential lists.
-module Database.Relational.Query.Internal.ShowS (
+module Database.Relational.Query.Internal.String (
   showUnwordsSQL, showWordSQL, showUnwords
   ) where
 
