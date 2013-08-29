@@ -41,6 +41,8 @@ import Prelude hiding (pi)
 import Data.Int (Int32)
 
 import qualified Language.SQL.Keyword as SQL
+
+import Database.Relational.Query.Internal.String (paren)
 import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Expr (Expr, fromJust)
 import Database.Relational.Query.Projection (Projection)
@@ -56,10 +58,6 @@ import Database.Relational.Query.Pi (Pi)
 class Projectable p0 p1 where
   -- ｜ Project from projection type 'p0' into weaken projection types 'p1'.
   project :: p0 c a -> p1 c a
-
--- | Parened String.
-paren :: String -> String
-paren =  ('(' :) . (++[')'])
 
 -- | Uni-operator type for SQL String
 type SqlUniOp = String -> String

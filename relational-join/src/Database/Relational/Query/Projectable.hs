@@ -61,6 +61,7 @@ import qualified Language.SQL.Keyword.ConcatString as SQLs
 
 import Database.Record (PersistableWidth, PersistableRecordWidth, derivedWidth)
 
+import Database.Relational.Query.Internal.String (paren)
 import Database.Relational.Query.Table (columnSQL, stringFromColumnSQL)
 import Database.Relational.Query.Expr (Expr, ShowConstantSQL (showConstantSQL))
 import qualified Database.Relational.Query.Expr as Expr
@@ -71,10 +72,6 @@ import Database.Relational.Query.Pi (Pi, piZip)
 import Database.Relational.Query.Projection (Projection, columns, unsafeFromColumns)
 import qualified Database.Relational.Query.Projection as Projection
 
-
--- | Parened String.
-paren :: String -> String
-paren =  ('(' :) . (++[')'])
 
 -- | String of SQL terms.
 sqlTermsString :: [String] -> String
