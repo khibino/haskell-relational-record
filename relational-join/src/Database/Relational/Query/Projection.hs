@@ -26,13 +26,16 @@ module Database.Relational.Query.Projection (
 
   flattenMaybe, just,
 
-  unsafeToAggregated, unsafeToFlat
+  unsafeToAggregated, unsafeToFlat,
+
+  unsafeShowSqlProjection
   ) where
 
 import Prelude hiding (pi)
 
+import Database.Relational.Query.Internal.String (sqlRowString)
 import Database.Relational.Query.Context (Aggregated, Flat)
-import Database.Relational.Query.Table (Table, ColumnSQL)
+import Database.Relational.Query.Table (Table, ColumnSQL, stringFromColumnSQL)
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
@@ -143,3 +146,7 @@ unsafeToAggregated =  unsafeChangeContext
 -- | Unsafely down to flat context.
 unsafeToFlat :: Projection Aggregated r -> Projection Flat r
 unsafeToFlat =  unsafeChangeContext
+
+-- | Unsafely get SQL term from 'Proejction'.
+unsafeShowSqlProjection :: Projection c r -> String
+unsafeShowSqlProjection =  sqlRowString . map stringFromColumnSQL . columns

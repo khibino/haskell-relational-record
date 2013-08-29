@@ -61,20 +61,17 @@ import qualified Language.SQL.Keyword.ConcatString as SQLs
 import Database.Record (PersistableWidth, PersistableRecordWidth, derivedWidth)
 
 import Database.Relational.Query.Internal.String (paren, sqlRowString)
-import Database.Relational.Query.Table (columnSQL, stringFromColumnSQL)
+import Database.Relational.Query.Table (columnSQL)
 import Database.Relational.Query.Expr (Expr, ShowConstantSQL (showConstantSQL))
 import qualified Database.Relational.Query.Expr as Expr
 import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr
 
 import Database.Relational.Query.Pi (Pi, piZip)
 
-import Database.Relational.Query.Projection (Projection, columns, unsafeFromColumns)
+import Database.Relational.Query.Projection
+  (Projection, unsafeFromColumns, unsafeShowSqlProjection)
 import qualified Database.Relational.Query.Projection as Projection
 
-
--- | Unsafely get SQL term from 'Proejction'.
-unsafeShowSqlProjection :: Projection c r -> String
-unsafeShowSqlProjection =  sqlRowString . map stringFromColumnSQL . columns
 
 -- | 'Expr' from 'Projection'
 exprOfProjection :: Projection c r -> Expr c r
