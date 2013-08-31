@@ -28,12 +28,16 @@ module Database.Relational.Query.Projection (
 
   unsafeToAggregated, unsafeToFlat,
 
-  unsafeShowSqlProjection
+  unsafeShowSqlProjection,
+
+  -- * List Projection
+  ListProjection, list, unsafeListProjectionFromSubQuery,
+  unsafeShowSqlListProjection
   ) where
 
 import Prelude hiding (pi)
 
-import Database.Relational.Query.Internal.String (sqlRowString)
+import Database.Relational.Query.Internal.String (paren, sqlRowString, sqlRowListString)
 import Database.Relational.Query.Context (Aggregated, Flat)
 import Database.Relational.Query.Table (Table, ColumnSQL, stringFromColumnSQL)
 import qualified Database.Relational.Query.Table as Table
@@ -43,6 +47,7 @@ import Database.Relational.Query.Sub
   (SubQuery, Qualified,
    ProjectionUnit, widthOfProjectionUnit, columnOfProjectionUnit,
    UntypedProjection, untypedProjectionFromColumns, untypedProjectionFromSubQuery)
+import qualified Database.Relational.Query.Sub as SubQuery
 
 
 -- | Phantom typed projection. Projected into Haskell record type 't'.
@@ -150,3 +155,21 @@ unsafeToFlat =  unsafeChangeContext
 -- | Unsafely get SQL term from 'Proejction'.
 unsafeShowSqlProjection :: Projection c r -> String
 unsafeShowSqlProjection =  sqlRowString . map stringFromColumnSQL . columns
+
+
+-- | Projection type for row list.
+data ListProjection p t = List [p t]
+                        | Sub SubQuery
+
+-- | Make row list projection from 'Projection' list.
+list :: [p t] -> ListProjection p t
+list =  List
+
+-- | Make row list projection from 'SubQuery'.
+unsafeListProjectionFromSubQuery :: SubQuery -> ListProjection p t
+unsafeListProjectionFromSubQuery =  Sub
+
+unsafeShowSqlListProjection :: (p t -> String) -> ListProjection p t -> String
+unsafeShowSqlListProjection sf = d  where
+  d (List ps) = sqlRowListString $ map sf ps
+  d (Sub sub) = paren $ SubQuery.toSQL sub

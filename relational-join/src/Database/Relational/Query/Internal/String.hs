@@ -12,7 +12,7 @@
 module Database.Relational.Query.Internal.String (
   showUnwordsSQL, showWordSQL, showUnwords,
 
-  paren, sqlRowString
+  paren, sqlRowString, sqlRowListString
   ) where
 
 import Data.List (intercalate)
@@ -45,3 +45,7 @@ sqlRowString = d where
   d ([])  = error $ "Projection: no columns."
   d ([c]) = c
   d (cs) =  paren $ intercalate ", " cs
+
+-- | Rows String of SQL.
+sqlRowListString :: [String] -> String
+sqlRowListString =  paren . intercalate ", "
