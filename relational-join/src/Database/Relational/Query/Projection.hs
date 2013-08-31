@@ -28,8 +28,6 @@ module Database.Relational.Query.Projection (
 
   unsafeToAggregated, unsafeToFlat,
 
-  unsafeShowSqlProjection,
-
   -- * List Projection
   ListProjection, list, unsafeListProjectionFromSubQuery,
   unsafeShowSqlListProjection
@@ -37,9 +35,9 @@ module Database.Relational.Query.Projection (
 
 import Prelude hiding (pi)
 
-import Database.Relational.Query.Internal.String (paren, sqlRowString, sqlRowListString)
+import Database.Relational.Query.Internal.String (paren, sqlRowListString)
 import Database.Relational.Query.Context (Aggregated, Flat)
-import Database.Relational.Query.Table (Table, ColumnSQL, stringFromColumnSQL)
+import Database.Relational.Query.Table (Table, ColumnSQL)
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
@@ -151,10 +149,6 @@ unsafeToAggregated =  unsafeChangeContext
 -- | Unsafely down to flat context.
 unsafeToFlat :: Projection Aggregated r -> Projection Flat r
 unsafeToFlat =  unsafeChangeContext
-
--- | Unsafely get SQL term from 'Proejction'.
-unsafeShowSqlProjection :: Projection c r -> String
-unsafeShowSqlProjection =  sqlRowString . map stringFromColumnSQL . columns
 
 
 -- | Projection type for row list.
