@@ -68,7 +68,9 @@ import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr
 
 import Database.Relational.Query.Pi (Pi, piZip)
 
-import Database.Relational.Query.Projection (Projection, unsafeFromColumns, columns)
+import Database.Relational.Query.Projection
+  (Projection, unsafeFromColumns, columns,
+   ListProjection, unsafeShowSqlListProjection)
 import qualified Database.Relational.Query.Projection as Projection
 
 
@@ -124,8 +126,8 @@ valueFalse :: (SqlProjectable p, ProjectableMaybe p) => p (Maybe Bool)
 valueFalse =  just $ value False
 
 -- | Polymorphic proejction of SQL set value from Haskell list.
-values :: (SqlProjectable p, ShowConstantSQL t) => [t] -> p [t]
-values =  unsafeProjectSqlTerms . map showConstantSQL
+values :: (SqlProjectable p, ShowConstantSQL t) => [t] -> ListProjection p t
+values =  Projection.list . map value
 
 
 -- | Interface to get SQL term from projections.
@@ -282,8 +284,9 @@ monoBinOp' = monoBinOp . sqlBinOp
 
 -- | Binary operator corresponding SQL /IN/ .
 in' :: (SqlProjectable p, ProjectableShowSql p)
-    => p t -> p [t] -> p (Maybe Bool)
-in' =  unsafeBinOp (SQLs.in')
+    => p t -> ListProjection p t -> p (Maybe Bool)
+in' a lp = unsafeProjectSql . paren
+           $ SQLs.in' (unsafeShowSql a) (unsafeShowSqlListProjection unsafeShowSql lp)
 
 -- | Operator corresponding SQL /IS NULL/ .
 isNull :: (SqlProjectable p, ProjectableShowSql p)

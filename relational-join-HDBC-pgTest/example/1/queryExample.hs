@@ -139,7 +139,7 @@ userGroup0Aggregate =
   , g   <- groupBy (ug ! snd' ?!? Group.name')
   , let uid = ug ! fst' ?! User.id'
   , let c  = count uid
-  , ()  <- having $ c .<. value 3
+  , ()  <- having $ c `in'` values [1, 2]
   , ()  <- asc $ c
   ]
 

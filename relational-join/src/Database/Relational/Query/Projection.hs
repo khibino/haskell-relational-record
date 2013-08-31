@@ -163,6 +163,7 @@ list =  List
 unsafeListProjectionFromSubQuery :: SubQuery -> ListProjection p t
 unsafeListProjectionFromSubQuery =  Sub
 
+-- | Map projection show operatoions and concatinate to single SQL expression.
 unsafeShowSqlListProjection :: (p t -> String) -> ListProjection p t -> String
 unsafeShowSqlListProjection sf = d  where
   d (List ps) = sqlRowListString $ map sf ps
