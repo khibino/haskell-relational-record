@@ -22,7 +22,7 @@ module Database.Relational.Query.Projectable (
   unsafeValueNull,
 
   -- * Placeholders
-  PlaceHolders, addPlaceHolders,
+  PlaceHolders, addPlaceHolders, unsafePlaceHolders,
   placeholder', placeholder,
 
   -- * Projectable into SQL strings
@@ -304,6 +304,10 @@ data PlaceHolders p = PlaceHolders
 -- | Unsafely add placeholder parameter to queries.
 addPlaceHolders :: Functor f => f a -> f (PlaceHolders p, a)
 addPlaceHolders =  fmap ((,) PlaceHolders)
+
+-- | Unsafely get placeholder parameter
+unsafePlaceHolders :: PlaceHolders p
+unsafePlaceHolders =  PlaceHolders
 
 -- | Unsafely cast placeholder parameter type.
 unsafeCastPlaceHolders :: PlaceHolders a -> PlaceHolders b

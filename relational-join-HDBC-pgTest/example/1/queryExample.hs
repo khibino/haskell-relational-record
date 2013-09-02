@@ -131,10 +131,31 @@ userGroup2E =
   ]
 
 -- Aggregation
-userGroup0Aggregate :: Relation () ((Maybe String, Int32), Maybe Bool)
-userGroup0Aggregate =
+userGroupAggregate0 :: Relation () ((Maybe String, Int32), Maybe Bool)
+userGroupAggregate0 =
   aggregateRelation $
   [ g >< c >< every (uid .<. just (value 3))
+  | ug  <- query userGroup0
+  , g   <- groupBy (ug ! snd' ?!? Group.name')
+  , let uid = ug ! fst' ?! User.id'
+  , let c  = count uid
+  , ()  <- having $ c `in'` values [1, 2]
+  , ()  <- asc $ c
+  ]
+
+user3 :: Relation () (Maybe Int32)
+user3 =
+  relation $
+  [ just uid
+  | u  <- query user
+  , let uid = u ! User.id'
+  , () <- wheres $ uid .<. value 3
+  ]
+
+userGroupAggregate1 :: Relation () ((Maybe String, Int32), Maybe Bool)
+userGroupAggregate1 =
+  aggregateRelation $
+  [ g >< c >< every (uid `in'` queryList user3)
   | ug  <- query userGroup0
   , g   <- groupBy (ug ! snd' ?!? Group.name')
   , let uid = ug ! fst' ?! User.id'
@@ -233,7 +254,8 @@ run =  handleSqlError' $ withConnectionIO connect
            -- run' userGroup1E ()
            run' userGroup2 ()
            run' userGroup2E ()
-           run' userGroup0Aggregate ()
+           run' userGroupAggregate0 ()
+           run' userGroupAggregate1 ()
            run' userGroup3 "Haskell"
            run' userGroupU ("Kei Hibino", "Haskell")
            run' userGroupStr ()

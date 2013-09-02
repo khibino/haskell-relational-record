@@ -24,7 +24,7 @@ module Database.Relational.Query.Relation (
   sqlFromRelation,
 
   -- * Query using relation
-  query, query', queryMaybe, queryMaybe',
+  query, query', queryMaybe, queryMaybe', queryList, queryList',
 
   -- * Direct style join
   JoinRestriction,
@@ -37,6 +37,8 @@ module Database.Relational.Query.Relation (
   union, except, intersect,
   union', except', intersect'
   ) where
+
+import Control.Arrow ((&&&))
 
 import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Monad.Qualify (Qualify, evalQualifyPrime, qualifyQuery)
@@ -51,10 +53,11 @@ import Database.Relational.Query.Table (Table)
 
 import Database.Relational.Query.Internal.Product (NodeAttr(Just', Maybe))
 
-import Database.Relational.Query.Projection (Projection)
+import Database.Relational.Query.Projection
+  (Projection, ListProjection, unsafeListProjectionFromSubQuery)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable
-  (PlaceHolders, addPlaceHolders, projectZip)
+  (PlaceHolders, addPlaceHolders, unsafePlaceHolders, projectZip)
 
 import Database.Relational.Query.Sub (SubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
@@ -70,6 +73,8 @@ data Relation p r = SubQuery (Qualify SubQuery)
 table :: Table r -> Relation () r
 table =  SubQuery . return . SubQuery.fromTable
 
+placeHoldersFromRelation :: Relation p r -> PlaceHolders p
+placeHoldersFromRelation =  const unsafePlaceHolders
 
 -- | Sub-query Qualify monad from relation.
 subQueryQualifyFromRelation :: Relation p r -> Qualify SubQuery
@@ -110,6 +115,17 @@ queryMaybe' pr =  do
 -- | Join subquery. Query result is 'Maybe'.
 queryMaybe :: MonadQualify Qualify m => Relation () r -> m (Projection Flat (Maybe r))
 queryMaybe =  fmap snd . queryMaybe'
+
+queryList0 :: Relation p r -> ListProjection (Projection Flat) r
+queryList0 =  unsafeListProjectionFromSubQuery . evalQualifyPrime . subQueryQualifyFromRelation
+
+-- | List subQuery, for /IN/ and /EXIST/ with place-holder parameter 'p'.
+queryList' :: Relation p r -> (PlaceHolders p, ListProjection (Projection Flat) r)
+queryList' =  placeHoldersFromRelation &&& queryList0
+
+-- | List subQuery, for /IN/ and /EXIST/.
+queryList :: Relation () r -> ListProjection (Projection Flat) r
+queryList =  queryList0
 
 -- | Finalize 'QuerySimple' monad and generate 'Relation'.
 relation :: QuerySimple (Projection Flat r) -> Relation () r
