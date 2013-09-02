@@ -63,7 +63,7 @@ import Database.Relational.Query.Table
 import qualified Database.Relational.Query.Table as Table
 
 import Database.Relational.Query.Internal.String
-  (showUnwordsSQL, showWordSQL, showUnwords)
+  (showUnwordsSQL, showWordSQL, showUnwords, paren)
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
 import qualified Language.SQL.Keyword.ConcatString as SQLs
@@ -146,8 +146,8 @@ toSQLs :: SubQuery
        -> (String, String) -- ^ subquery SQL and top-level SQL
 toSQLs =  d  where
   d (Table u)               = (Table.name' u, fromTableToSql u)
-  d (SubQuery { sql' = q }) = ('(' : q ++ [')'], q)
-  d (Bin op l r)            = ('(' : q ++ [')'], q)  where
+  d (SubQuery { sql' = q }) = (paren q, q)
+  d (Bin op l r)            = (paren q, q)  where
     q = unwords [unitSQL l, SQL.wordShow $ keywordBinOp op, unitSQL r]
 
 -- | SQL string for nested-qeury.
