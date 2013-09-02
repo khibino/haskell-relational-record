@@ -45,7 +45,7 @@ import Database.Relational.Query.Constraint
 import Database.Relational.Query.Context
 import Database.Relational.Query.Expr hiding (fromJust, just)
 import Database.Relational.Query.Sub (SubQuery, unitSQL, queryWidth)
-import Database.Relational.Query.Projection (Projection)
+import Database.Relational.Query.Projection (Projection, list)
 import Database.Relational.Query.Projectable
 import Database.Relational.Query.ProjectableExtended
 import Database.Relational.Query.Monad.Class
