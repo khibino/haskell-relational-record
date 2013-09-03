@@ -37,9 +37,9 @@ module Database.Relational.Query.Projectable (
 
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
 
-  in', isNull, isNotNull, and, or,
+  in', and', or,
 
-  not', exists,
+  isNull, isNotNull, not', exists,
 
   (.||.), (?||?),
   (.+.), (.-.), (./.), (.*.),
@@ -53,7 +53,7 @@ module Database.Relational.Query.Projectable (
   ProjectableMaybe (just, flattenMaybe)
   ) where
 
-import Prelude hiding (and, or, pi)
+import Prelude hiding (or, pi)
 
 import Data.String (IsString)
 import Control.Applicative ((<$>))
@@ -220,9 +220,9 @@ monoBinOp =  unsafeBinOp
 (.<>.) =  compareBinOp (SQLs..<>.)
 
 -- | Logical operator corresponding SQL /AND/ .
-and :: (SqlProjectable p, ProjectableShowSql p)
-  => p ft -> p ft -> p (Maybe Bool)
-and =  compareBinOp SQLs.and
+and' :: (SqlProjectable p, ProjectableShowSql p)
+     => p ft -> p ft -> p (Maybe Bool)
+and' =  compareBinOp SQLs.and
 
 -- | Logical operator corresponding SQL /OR/ .
 or  :: (SqlProjectable p, ProjectableShowSql p)
@@ -404,6 +404,6 @@ infixl 7 .*., ./., ?*?, ?/?
 infixl 6 .+., .-., ?+?, ?-?
 infixl 5 .||., ?||?
 infix  4 .=., .<>., .>., .>=., .<., .<=., `in'`
-infixr 3 `and`
+infixr 3 `and'`
 infixr 2 `or`
 infixl 1  ><
