@@ -26,6 +26,9 @@ module Language.SQL.Keyword.Concat (
   (.||.),
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
   and, or, not, in',
+
+  -- * Uni-nary operator
+  defineUniOp
   ) where
 
 import Prelude hiding (and, or, not)
@@ -115,6 +118,10 @@ and    =  defineBinOp AND
 -- | Binary `OR` operator for SQL boolean expression.
 or :: Keyword -> Keyword -> Keyword
 or     =  defineBinOp OR
+
+-- | Uni operator
+defineUniOp :: Keyword -> Keyword -> Keyword
+defineUniOp op e = unwords' [op, e]
 
 -- | Uni `NOT` operator for SQL boolean expression.
 not :: Keyword -> Keyword

@@ -22,8 +22,10 @@ module Language.SQL.Keyword.ConcatString (
 
   (.||.),
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
-  and, or, not, in'
+  and, or, not, in',
 
+  -- * Uni-nary operator
+  defineUniOp
   ) where
 
 import Prelude hiding (and, or, not)
@@ -84,6 +86,11 @@ and    =  defineBinOp AND
 -- | Binary `OR` operator for SQL boolean expression.
 or :: String -> String -> String
 or     =  defineBinOp OR
+
+-- | Define uni-nary operator on 'String' type represeted by specified 'Keyword'.
+--   Result is delimited by whitespace like unwords on 'String' list.
+defineUniOp :: Keyword -> String -> String
+defineUniOp op e = unwords [wordShow op, e]
 
 -- | Uni `NOT` operator for SQL boolean expression.
 not :: String -> String

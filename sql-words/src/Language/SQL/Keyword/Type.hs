@@ -46,6 +46,7 @@ data Keyword = SELECT | ALL | DISTINCT | ON
 
              | LIKE
              | AND | OR | NOT
+             | EXISTS
 
              | IS | NULL | IN
 
