@@ -27,7 +27,7 @@ module Language.SQL.Keyword.Concat (
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
   and, or, not, in',
 
-  -- * Uni-nary operator
+  -- * Unary operator
   defineUniOp
   ) where
 
@@ -119,7 +119,8 @@ and    =  defineBinOp AND
 or :: Keyword -> Keyword -> Keyword
 or     =  defineBinOp OR
 
--- | Uni operator
+-- | Define unary operator on 'Keyword' type represeted by specified 'Keyword'.
+--   Result is delimited by whitespace like unwords on 'String' list.
 defineUniOp :: Keyword -> Keyword -> Keyword
 defineUniOp op e = unwords' [op, e]
 
