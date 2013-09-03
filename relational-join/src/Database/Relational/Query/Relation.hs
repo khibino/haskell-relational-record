@@ -116,15 +116,15 @@ queryMaybe' pr =  do
 queryMaybe :: MonadQualify Qualify m => Relation () r -> m (Projection Flat (Maybe r))
 queryMaybe =  fmap snd . queryMaybe'
 
-queryList0 :: Relation p r -> ListProjection (Projection Flat) r
+queryList0 :: Relation p r -> ListProjection (Projection c) r
 queryList0 =  unsafeListProjectionFromSubQuery . evalQualifyPrime . subQueryQualifyFromRelation
 
 -- | List subQuery, for /IN/ and /EXIST/ with place-holder parameter 'p'.
-queryList' :: Relation p r -> (PlaceHolders p, ListProjection (Projection Flat) r)
+queryList' :: Relation p r -> (PlaceHolders p, ListProjection (Projection c) r)
 queryList' =  placeHoldersFromRelation &&& queryList0
 
 -- | List subQuery, for /IN/ and /EXIST/.
-queryList :: Relation () r -> ListProjection (Projection Flat) r
+queryList :: Relation () r -> ListProjection (Projection c) r
 queryList =  queryList0
 
 -- | Finalize 'QuerySimple' monad and generate 'Relation'.

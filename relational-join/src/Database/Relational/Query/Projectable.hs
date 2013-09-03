@@ -237,7 +237,7 @@ not =  unsafeUniOp SQLs.not
 
 -- | Logical operator corresponding SQL /EXISTS/ .
 exists :: (SqlProjectable p, ProjectableShowSql p)
-       => ListProjection (Projection Exists) (Maybe Bool) -> p (Maybe Bool)
+       => ListProjection (Projection Exists) r -> p (Maybe Bool)
 exists =  unsafeProjectSql . paren . SQLs.defineUniOp SQL.EXISTS
           . unsafeShowSqlListProjection unsafeShowSql
 
