@@ -279,6 +279,7 @@ run =  handleSqlError' $ withConnectionIO connect
 runU :: Show a => (ExecutedStatement (User, Group) -> IO a) -> IO ()
 runU f = handleSqlError' $ withConnectionIO connect
         (\conn -> do
+            putStrLn $ "SQL: " ++ sqlFromRelation userGroupU
             pq <- prepare conn (relationalQuery userGroupU)
             let bs = ("Kei Hibino", "Haskell") `bindTo` pq
             es <- execute bs
