@@ -25,7 +25,7 @@ module Language.SQL.Keyword.Concat (
 
   (.||.),
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
-  and, or, not, in',
+  and, or, in',
 
   -- * Unary operator
   defineUniOp
@@ -123,10 +123,6 @@ or     =  defineBinOp OR
 --   Result is delimited by whitespace like unwords on 'String' list.
 defineUniOp :: Keyword -> Keyword -> Keyword
 defineUniOp op e = unwords' [op, e]
-
--- | Uni `NOT` operator for SQL boolean expression.
-not :: Keyword -> Keyword
-not e = unwords' [NOT, e]
 
 -- | Binary `IN` operator for SQL.
 in' :: Keyword -> Keyword -> Keyword

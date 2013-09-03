@@ -22,7 +22,7 @@ module Language.SQL.Keyword.ConcatString (
 
   (.||.),
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
-  and, or, not, in',
+  and, or, in',
 
   -- * Unary operator
   defineUniOp
@@ -91,10 +91,6 @@ or     =  defineBinOp OR
 --   Result is delimited by whitespace like unwords on 'String' list.
 defineUniOp :: Keyword -> String -> String
 defineUniOp op e = unwords [wordShow op, e]
-
--- | Uni `NOT` operator for SQL boolean expression.
-not :: String -> String
-not e = unwords [wordShow NOT, e]
 
 -- | Binary `IN` operator for SQL.
 in' :: String -> String -> String
