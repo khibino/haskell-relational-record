@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances #-}
 -- |
 -- Module      : Database.Relational.Query.Projectable
 -- Copyright   : 2013 Kei Hibino
@@ -36,7 +37,9 @@ module Database.Relational.Query.Projectable (
 
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
 
-  in', isNull, isNotNull, and, or, not,
+  in', isNull, isNotNull, and, or,
+
+  not, exists,
 
   (.||.), (?||?),
   (.+.), (.-.), (./.), (.*.),
@@ -61,6 +64,7 @@ import qualified Language.SQL.Keyword.ConcatString as SQLs
 import Database.Record (PersistableWidth, PersistableRecordWidth, derivedWidth)
 
 import Database.Relational.Query.Internal.String (paren, sqlRowString)
+import Database.Relational.Query.Context (Flat, Aggregated, Exists)
 import Database.Relational.Query.Table (columnSQL, stringFromColumnSQL)
 import Database.Relational.Query.Expr (Expr, ShowConstantSQL (showConstantSQL))
 import qualified Database.Relational.Query.Expr as Expr
@@ -98,7 +102,11 @@ class SqlProjectable p where
                         -> p t      -- ^ Result projection object
 
 -- | Unsafely make 'Projection' from SQL terms.
-instance SqlProjectable (Projection c) where
+instance SqlProjectable (Projection Flat) where
+  unsafeProjectSqlTerms = unsafeSqlTermsProjection
+
+-- | Unsafely make 'Projection' from SQL terms.
+instance SqlProjectable (Projection Aggregated) where
   unsafeProjectSqlTerms = unsafeSqlTermsProjection
 
 -- | Unsafely make 'Expr' from SQL terms.
@@ -226,6 +234,12 @@ or  =  compareBinOp SQLs.or
 not :: (SqlProjectable p, ProjectableShowSql p)
     => p (Maybe Bool) -> p (Maybe Bool)
 not =  unsafeUniOp SQLs.not
+
+-- | Logical operator corresponding SQL /EXISTS/ .
+exists :: (SqlProjectable p, ProjectableShowSql p)
+       => ListProjection (Projection Exists) (Maybe Bool) -> p (Maybe Bool)
+exists =  unsafeProjectSql . paren . SQLs.defineUniOp SQL.EXISTS
+          . unsafeShowSqlListProjection unsafeShowSql
 
 -- | Concatinate operator corresponding SQL /||/ .
 (.||.) :: (SqlProjectable p, ProjectableShowSql p, IsString a)
