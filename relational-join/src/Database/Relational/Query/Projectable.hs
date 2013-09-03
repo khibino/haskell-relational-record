@@ -164,13 +164,12 @@ type SqlBinOp = String -> String -> String
 sqlBinOp :: String -> SqlBinOp
 sqlBinOp =  SQLs.defineBinOp . SQL.word
 
--- | Unsafely make projection unary operator from SQL operator string.
+-- | Unsafely make projection unary operator from SQL keyword.
 unsafeUniOp :: (SqlProjectable p, ProjectableShowSql p)
-            => (String -> String)
-            -> p a -> p b
-unsafeUniOp op = unsafeProjectSql . paren . op . unsafeShowSql
+            => SQL.Keyword -> p a -> p b
+unsafeUniOp kw = unsafeProjectSql . paren . SQLs.defineUniOp kw . unsafeShowSql
 
--- | Unsafely make projection binary operator from SQL operator string.
+-- | Unsafely make projection binary operator from string binary operator.
 unsafeBinOp :: (SqlProjectable p, ProjectableShowSql p)
             => SqlBinOp
             -> p a -> p b -> p c
@@ -233,7 +232,7 @@ or  =  compareBinOp SQLs.or
 -- | Logical operator corresponding SQL /NOT/ .
 not :: (SqlProjectable p, ProjectableShowSql p)
     => p (Maybe Bool) -> p (Maybe Bool)
-not =  unsafeUniOp SQLs.not
+not =  unsafeUniOp SQL.NOT
 
 -- | Logical operator corresponding SQL /EXISTS/ .
 exists :: (SqlProjectable p, ProjectableShowSql p)
