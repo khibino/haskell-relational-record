@@ -64,6 +64,19 @@ userGroup0E =
   , ()  <- asc $ u ?! User.id'
   ]
 
+haskellUser :: Relation () (String, Maybe String)
+haskellUser =
+  relation
+  [ value "Functional programmer!" >< hu ?!? User.name'
+  | let hus = relation
+              [ ug ! fst'
+              | ug <- query userGroup0
+              , () <- wheres $ ug ! snd' ?!? Group.name' .=. just (value "Haskell")
+              ]
+  , hu <- query hus
+  , () <- wheres . exists . queryList $ hus
+  ]
+
 -- Direct join style
 userGroup1 :: Relation () (Maybe User, Maybe Group)
 userGroup1 =
@@ -250,6 +263,7 @@ run =  handleSqlError' $ withConnectionIO connect
                run' = runAndPrint conn
            run' userGroup0 ()
            run' userGroup0E ()
+           run' haskellUser ()
            run' userGroup1 ()
            -- run' userGroup1E ()
            run' userGroup2 ()
