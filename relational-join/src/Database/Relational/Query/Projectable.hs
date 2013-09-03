@@ -39,7 +39,7 @@ module Database.Relational.Query.Projectable (
 
   in', isNull, isNotNull, and, or,
 
-  not, exists,
+  not', exists,
 
   (.||.), (?||?),
   (.+.), (.-.), (./.), (.*.),
@@ -53,7 +53,7 @@ module Database.Relational.Query.Projectable (
   ProjectableMaybe (just, flattenMaybe)
   ) where
 
-import Prelude hiding (and, or, not, pi)
+import Prelude hiding (and, or, pi)
 
 import Data.String (IsString)
 import Control.Applicative ((<$>))
@@ -230,9 +230,9 @@ or  :: (SqlProjectable p, ProjectableShowSql p)
 or  =  compareBinOp SQLs.or
 
 -- | Logical operator corresponding SQL /NOT/ .
-not :: (SqlProjectable p, ProjectableShowSql p)
+not' :: (SqlProjectable p, ProjectableShowSql p)
     => p (Maybe Bool) -> p (Maybe Bool)
-not =  unsafeUniOp SQL.NOT
+not' =  unsafeUniOp SQL.NOT
 
 -- | Logical operator corresponding SQL /EXISTS/ .
 exists :: (SqlProjectable p, ProjectableShowSql p)
@@ -309,7 +309,7 @@ isNull x = compareBinOp (SQLs.defineBinOp SQL.IS) x unsafeValueNull
 -- | Operator corresponding SQL /NOT (... IS NULL)/ .
 isNotNull :: (SqlProjectable p, ProjectableShowSql p)
           => p (Maybe t) -> p (Maybe Bool)
-isNotNull =  not . isNull
+isNotNull =  not' . isNull
 
 -- | Placeholder parameter type which has real parameter type arguemnt 'p'.
 data PlaceHolders p = PlaceHolders
