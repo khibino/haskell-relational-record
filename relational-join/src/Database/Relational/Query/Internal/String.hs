@@ -10,30 +10,36 @@
 -- This module provides SQL string concatination functions
 -- which result is ShowS differential lists.
 module Database.Relational.Query.Internal.String (
-  showUnwordsSQL, showWordSQL, showUnwords,
+  showUnwordsSQL, showWordSQL, showWordSQL', showUnwords,
 
   paren, sqlRowString, sqlRowListString
   ) where
 
 import Data.List (intercalate)
 
-import Language.SQL.Keyword (unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
 
 -- | Unwords 'SQL.Keyword' list and resturns 'ShowS'.
 showUnwordsSQL :: [SQL.Keyword] -> ShowS
-showUnwordsSQL =  showString . unwordsSQL
+showUnwordsSQL =  showUnwords . map showWordSQL
 
 -- | From 'SQL.Keyword' into 'ShowS'.
 showWordSQL :: SQL.Keyword -> ShowS
 showWordSQL =  showString . SQL.wordShow
+
+showSpace :: ShowS
+showSpace =  showChar ' '
+
+-- | From 'SQL.Keyword' with white into 'ShowS'.
+showWordSQL' :: SQL.Keyword -> ShowS
+showWordSQL' kw = showWordSQL kw . showSpace
 
 -- | 'ShowS' version of unwords function.
 showUnwords :: [ShowS] -> ShowS
 showUnwords =  rec  where
   rec []     = id
   rec [s]    = s
-  rec (s:ss@(_:_)) = s . showChar ' ' . rec ss
+  rec (s:ss@(_:_)) = s . showSpace . rec ss
 
 -- | Parened String.
 paren :: String -> String
