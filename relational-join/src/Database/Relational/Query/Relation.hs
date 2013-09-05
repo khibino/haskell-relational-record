@@ -41,7 +41,7 @@ module Database.Relational.Query.Relation (
 import Control.Arrow ((&&&))
 
 import Database.Relational.Query.Context (Flat, Aggregated)
-import Database.Relational.Query.Monad.Qualify (Qualify, evalQualifyPrime, qualifyQuery)
+import Database.Relational.Query.Monad.Type (ConfigureQuery, configureQuery, qualifyQuery)
 import Database.Relational.Query.Monad.Class
   (MonadQualify (liftQualify), MonadQuery (unsafeSubQuery), on)
 import Database.Relational.Query.Monad.Simple (QuerySimple, SimpleQuery)
@@ -64,7 +64,7 @@ import qualified Database.Relational.Query.Sub as SubQuery
 
 
 -- | Relation type with place-holder parameter 'p' and query result type 'r'.
-data Relation p r = SubQuery (Qualify SubQuery)
+data Relation p r = SubQuery (ConfigureQuery SubQuery)
                   | SimpleRel (SimpleQuery r)
                   | AggregateRel (AggregatedQuery r)
 
@@ -77,7 +77,7 @@ placeHoldersFromRelation :: Relation p r -> PlaceHolders p
 placeHoldersFromRelation =  const unsafePlaceHolders
 
 -- | Sub-query Qualify monad from relation.
-subQueryQualifyFromRelation :: Relation p r -> Qualify SubQuery
+subQueryQualifyFromRelation :: Relation p r -> ConfigureQuery SubQuery
 subQueryQualifyFromRelation =  d  where
   d (SubQuery qsub)   = qsub
   d (SimpleRel qp)    = Simple.toSubQuery qp
@@ -85,10 +85,10 @@ subQueryQualifyFromRelation =  d  where
 
 -- -- | Sub-query from relation.
 -- subQueryFromRelation :: Relation p r -> SubQuery
--- subQueryFromRelation =  evalQualifyPrime . subQueryQualifyFromRelation
+-- subQueryFromRelation =  configureQuery . subQueryQualifyFromRelation
 
 -- | Basic monadic join operation using 'MonadQuery'.
-queryWithAttr :: MonadQualify Qualify m
+queryWithAttr :: MonadQualify ConfigureQuery m
               => NodeAttr -> Relation p r -> m (PlaceHolders p, Projection Flat r)
 queryWithAttr attr = addPlaceHolders . run where
   run rel = do
@@ -99,25 +99,25 @@ queryWithAttr attr = addPlaceHolders . run where
   -- d (Relation q) = unsafeMergeAnotherQuery attr q
 
 -- | Join subquery with place-holder parameter 'p'. query result is not 'Maybe'.
-query' :: MonadQualify Qualify m => Relation p r -> m (PlaceHolders p, Projection Flat r)
+query' :: MonadQualify ConfigureQuery m => Relation p r -> m (PlaceHolders p, Projection Flat r)
 query' =  queryWithAttr Just'
 
 -- | Join subquery. Query result is not 'Maybe'.
-query :: MonadQualify Qualify m => Relation () r -> m (Projection Flat r)
+query :: MonadQualify ConfigureQuery m => Relation () r -> m (Projection Flat r)
 query =  fmap snd . query'
 
 -- | Join subquery with place-holder parameter 'p'. Query result is 'Maybe'.
-queryMaybe' :: MonadQualify Qualify m => Relation p r -> m (PlaceHolders p, Projection Flat (Maybe r))
+queryMaybe' :: MonadQualify ConfigureQuery m => Relation p r -> m (PlaceHolders p, Projection Flat (Maybe r))
 queryMaybe' pr =  do
   (ph, pj) <- queryWithAttr Maybe pr
   return (ph, Projection.just pj)
 
 -- | Join subquery. Query result is 'Maybe'.
-queryMaybe :: MonadQualify Qualify m => Relation () r -> m (Projection Flat (Maybe r))
+queryMaybe :: MonadQualify ConfigureQuery m => Relation () r -> m (Projection Flat (Maybe r))
 queryMaybe =  fmap snd . queryMaybe'
 
 queryList0 :: Relation p r -> ListProjection (Projection c) r
-queryList0 =  unsafeListProjectionFromSubQuery . evalQualifyPrime . subQueryQualifyFromRelation
+queryList0 =  unsafeListProjectionFromSubQuery . configureQuery . subQueryQualifyFromRelation
 
 -- | List subQuery, for /IN/ and /EXIST/ with place-holder parameter 'p'.
 queryList' :: Relation p r -> (PlaceHolders p, ListProjection (Projection c) r)
@@ -299,7 +299,7 @@ intersect' =  liftAppend' SubQuery.intersect
 infixl 7 `union`, `except`, `intersect`, `union'`, `except'`, `intersect'`
 
 -- | SQL string with qualify computation from 'Relation'.
-sqlQualifyFromRelation :: Relation p r -> Qualify String
+sqlQualifyFromRelation :: Relation p r -> ConfigureQuery String
 sqlQualifyFromRelation =  d  where
   d (SubQuery qsub)   = SubQuery.toSQL `fmap` qsub
   d (SimpleRel qp)    = Simple.toSQL qp
@@ -307,7 +307,7 @@ sqlQualifyFromRelation =  d  where
 
 -- | SQL string from 'Relation'.
 sqlFromRelation :: Relation p r -> String
-sqlFromRelation =  evalQualifyPrime . sqlQualifyFromRelation
+sqlFromRelation =  configureQuery . sqlQualifyFromRelation
 
 instance Show (Relation p r) where
   show = sqlFromRelation

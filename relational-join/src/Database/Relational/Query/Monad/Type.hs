@@ -10,14 +10,28 @@
 -- This module defines core query type.
 module Database.Relational.Query.Monad.Type (
   -- * Core query monad
-  QueryCore,
+  ConfigureQuery, configureQuery, qualifyQuery, QueryCore,
   ) where
 
+import Database.Relational.Query.Sub (Qualified)
 import Database.Relational.Query.Context (Flat)
-import Database.Relational.Query.Monad.Qualify (Qualify)
+import qualified Database.Relational.Query.Monad.Qualify as Qualify
+import Database.Relational.Query.Monad.Qualify (Qualify, evalQualifyPrime)
+import Database.Relational.Query.Monad.Trans.Config (QueryConfig, runQueryDefault, config)
 import Database.Relational.Query.Monad.Trans.Join (QueryJoin)
 import Database.Relational.Query.Monad.Trans.Restricting (Restrictings)
 
 
--- | Core query monad type used from simple query and aggregated query.
-type QueryCore = Restrictings Flat (QueryJoin Qualify)
+-- | Thin monad type for untyped structure.
+type ConfigureQuery = QueryConfig Qualify
+
+-- | Run 'ConfigureQuery' monad with initial state to get only result.
+configureQuery :: ConfigureQuery c -> c
+configureQuery =  evalQualifyPrime . runQueryDefault
+
+-- | Get qualifyed table form query.
+qualifyQuery :: a -> ConfigureQuery (Qualified a)
+qualifyQuery =  config . Qualify.qualifyQuery
+
+-- | Core query monad type used from flat(not-aggregated) query and aggregated query.
+type QueryCore = Restrictings Flat (QueryJoin ConfigureQuery)
