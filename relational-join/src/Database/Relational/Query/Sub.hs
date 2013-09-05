@@ -36,6 +36,8 @@ module Database.Relational.Query.Sub (
 
   queryProductSQL,
 
+  UnitProductSupport (..),
+
   JoinProduct,
 
   -- * Query restriction
@@ -63,7 +65,7 @@ import Database.Relational.Query.Table
 import qualified Database.Relational.Query.Table as Table
 
 import Database.Relational.Query.Internal.String
-  (showUnwordsSQL, showWordSQL, showUnwords, paren)
+  (showUnwordsSQL, showWordSQL, showWordSQL', showUnwords, paren)
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
 import qualified Language.SQL.Keyword.ConcatString as SQLs
@@ -303,10 +305,14 @@ queryProductSQL =  ($ "") . showsQueryProduct
 -- | Type for join product of query.
 type JoinProduct = Maybe QueryProduct
 
--- | Shows join product of query.
-_showsJoinProduct :: Maybe QueryProduct -> ShowS
-_showsJoinProduct =  maybe (error "relation: empty product!") showsQueryProduct
+data UnitProductSupport = UPSupported | UPNotSupported
 
+-- | Shows join product of query.
+_showsJoinProduct :: UnitProductSupport -> Maybe QueryProduct -> ShowS
+_showsJoinProduct ups =  maybe (up ups) from  where
+  from qp = showWordSQL' FROM . showsQueryProduct qp
+  up UPSupported    = showString ""
+  up UPNotSupported = error "relation: Unit product support mode is disabled!"
 
 -- | Type for restriction of query.
 type QueryRestriction c = Maybe (Expr c Bool)
