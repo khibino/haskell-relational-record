@@ -28,6 +28,7 @@ import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.SQL (selectSeedSQL)
 
 import Database.Relational.Query.Monad.Class (MonadQualify(..))
+import Database.Relational.Query.Monad.Trans.Config (askConfig)
 import Database.Relational.Query.Monad.Trans.Join
   (join', FromPrepend, prependFrom, extractFrom)
 import Database.Relational.Query.Monad.Trans.Restricting
@@ -61,7 +62,8 @@ expandPrepend =  extractFrom . extractWheres . extractOrderBys
 expandSQL :: SimpleQuery r -> ConfigureQuery (String, Projection Flat r)
 expandSQL q = do
   (((pj, ao), aw), af) <- expandPrepend q
-  return (selectSeedSQL pj . prependFrom af . prependWhere aw . prependOrderBy ao $ "", pj)
+  c <- askConfig
+  return (selectSeedSQL pj . prependFrom af c . prependWhere aw . prependOrderBy ao $ "", pj)
 
 -- | Run 'SimpleQuery' to get SQL string with 'Qualify' computation.
 toSQL :: SimpleQuery r         -- ^ 'SimpleQuery' to run

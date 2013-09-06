@@ -27,7 +27,9 @@ module Database.Relational.Query.Monad.Trans.JoinState (
 import Prelude hiding (product)
 
 import qualified Database.Relational.Query.Internal.Product as Product
-import Database.Relational.Query.Sub (QueryProductNode, QueryProduct, JoinProduct, queryProductSQL)
+import Database.Relational.Query.Sub
+  (QueryProductNode, QueryProduct, JoinProduct, queryProductSQL,
+   UnitProductSupport (UPSupported, UPNotSupported))
 
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
@@ -67,5 +69,7 @@ composeFrom' pd =
   $ [FROM, SQL.word . queryProductSQL $ pd]
 
 -- | Compose SQL String from 'JoinContext' object.
-composeFrom :: JoinContext -> String
-composeFrom =  composeFrom' . maybe (error "relation: empty product!") ( Product.nodeTree) . product
+composeFrom :: UnitProductSupport -> JoinContext -> String
+composeFrom ups = maybe (up ups) (composeFrom' .  Product.nodeTree) . product  where
+  up UPSupported    = ""
+  up UPNotSupported = error "relation: Unit product support mode is disabled!"

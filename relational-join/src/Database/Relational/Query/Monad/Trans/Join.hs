@@ -32,7 +32,7 @@ import Database.Relational.Query.Internal.Product (NodeAttr, restrictProduct, gr
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Expr (Expr, fromJust)
-import Database.Relational.Query.Sub (SubQuery, Qualified)
+import Database.Relational.Query.Sub (SubQuery, Qualified, UnitProductSupport)
 
 import Database.Relational.Query.Monad.Class (MonadQuery (..))
 
@@ -102,15 +102,15 @@ unsafeQueryMergeWithAttr :: NodeAttr -> QueryJoin (Projection r) -> QueryJoin (P
 unsafeQueryMergeWithAttr =  unsafeMergeAnother
 -}
 
--- | FROM clause prepending function.
-type FromPrepend = Prepend JoinContext
+-- | FROM clause prepending function type.
+type FromPrepend = UnitProductSupport -> Prepend JoinContext
 
 -- | Run 'QueryJoin' to get FROM clause prepending function.
 extractFrom :: (Monad m, Functor m)
-           => QueryJoin m a     -- ^ 'QueryJoin' to run
-           -> m (a, FromPrepend) -- ^ FROM clause prepending function.
-extractFrom q = second (liftToString composeFrom) <$> runQueryPrime q
+            => QueryJoin m a      -- ^ 'QueryJoin' to run
+            -> m (a, FromPrepend) -- ^ FROM clause prepending function.
+extractFrom q = second (\jc ups -> liftToString (composeFrom ups) $ jc) <$> runQueryPrime q
 
 -- | Run FROM clause prepend.
-prependFrom :: FromPrepend -> String -> String
-prependFrom =  prepend
+prependFrom :: FromPrepend -> UnitProductSupport -> String -> String
+prependFrom =  fmap prepend

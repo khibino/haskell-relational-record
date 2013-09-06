@@ -15,11 +15,11 @@ module Database.Relational.Query.Monad.Trans.Config (
   defaultConfig,
 
   QueryConfig, config,
-  runQueryConfig, runQueryDefault
+  runQueryConfig, runQueryDefault, askConfig
   ) where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
-import Control.Monad.Trans.Reader (ReaderT, runReaderT)
+import Control.Monad.Trans.Reader (ReaderT, runReaderT, ask)
 import Control.Applicative (Applicative)
 
 import Database.Relational.Query.Sub (UnitProductSupport (UPSupported))
@@ -45,6 +45,10 @@ runQueryConfig =  runReaderT . queryConfig
 runQueryDefault ::  QueryConfig m a -> m a
 runQueryDefault q = runQueryConfig q defaultConfig
 
--- | Lift to 'QueryConfig'
+-- | Lift to 'QueryConfig'.
 config :: Monad m => m a -> QueryConfig m a
 config =  lift
+
+-- | Read configuration.
+askConfig :: Monad m => QueryConfig m Config
+askConfig =  QueryConfig $ ask

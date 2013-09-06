@@ -30,6 +30,7 @@ import Database.Relational.Query.SQL (selectSeedSQL)
 import Database.Relational.Query.Sub (SubQuery, subQuery)
 
 import Database.Relational.Query.Monad.Class (MonadQualify(..))
+import Database.Relational.Query.Monad.Trans.Config (askConfig)
 import Database.Relational.Query.Monad.Trans.Join
   (join', FromPrepend, prependFrom, extractFrom)
 import Database.Relational.Query.Monad.Trans.Restricting
@@ -64,8 +65,9 @@ expandPrepend =  extractFrom . extractWheres . extractGroupBys . extractHavings 
 expandSQL :: AggregatedQuery r -> ConfigureQuery (String, Projection Flat r)
 expandSQL q = do
   (((((aggr, ao), ah), ag), aw), af) <- expandPrepend q
+  c <- askConfig
   let projection = Projection.unsafeToFlat aggr
-  return (selectSeedSQL projection . prependFrom af . prependWhere aw
+  return (selectSeedSQL projection . prependFrom af c . prependWhere aw
           . prependGroupBys ag . prependHaving ah . prependOrderBy ao $ "",
           projection)
 
