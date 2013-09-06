@@ -21,7 +21,7 @@ module Database.Relational.Query.Relation (
 
   -- nested, width,
 
-  sqlFromRelation,
+  sqlFromRelationWith, sqlFromRelation,
 
   -- * Query using relation
   query, query', queryMaybe, queryMaybe', queryList, queryList',
@@ -39,6 +39,7 @@ module Database.Relational.Query.Relation (
   ) where
 
 import Database.Relational.Query.Context (Flat, Aggregated)
+import Database.Relational.Query.Monad.Trans.Config (Config, defaultConfig)
 import Database.Relational.Query.Monad.Type (ConfigureQuery, configureQuery, qualifyQuery)
 import Database.Relational.Query.Monad.Class
   (MonadQualify (liftQualify), MonadQuery (unsafeSubQuery), on)
@@ -311,9 +312,13 @@ sqlQualifyFromRelation =  d  where
   d (SimpleRel qp)    = Simple.toSQL qp
   d (AggregateRel qp) = Aggregate.toSQL qp
 
+-- | Generate SQL string from 'Relation' with configuration.
+sqlFromRelationWith :: Relation p r -> Config -> String
+sqlFromRelationWith =  configureQuery . sqlQualifyFromRelation
+
 -- | SQL string from 'Relation'.
 sqlFromRelation :: Relation p r -> String
-sqlFromRelation =  configureQuery . sqlQualifyFromRelation
+sqlFromRelation =  (`sqlFromRelationWith` defaultConfig)
 
 instance Show (Relation p r) where
   show = sqlFromRelation

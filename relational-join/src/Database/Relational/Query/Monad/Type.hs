@@ -17,7 +17,7 @@ import Database.Relational.Query.Sub (Qualified)
 import Database.Relational.Query.Context (Flat)
 import qualified Database.Relational.Query.Monad.Qualify as Qualify
 import Database.Relational.Query.Monad.Qualify (Qualify, evalQualifyPrime)
-import Database.Relational.Query.Monad.Trans.Config (QueryConfig, runQueryDefault, config)
+import Database.Relational.Query.Monad.Trans.Config (Config, QueryConfig, runQueryConfig, config)
 import Database.Relational.Query.Monad.Trans.Join (QueryJoin)
 import Database.Relational.Query.Monad.Trans.Restricting (Restrictings)
 
@@ -26,8 +26,8 @@ import Database.Relational.Query.Monad.Trans.Restricting (Restrictings)
 type ConfigureQuery = QueryConfig Qualify
 
 -- | Run 'ConfigureQuery' monad with initial state to get only result.
-configureQuery :: ConfigureQuery c -> c
-configureQuery =  evalQualifyPrime . runQueryDefault
+configureQuery :: ConfigureQuery c -> Config -> c
+configureQuery c = evalQualifyPrime . runQueryConfig c
 
 -- | Get qualifyed table form query.
 qualifyQuery :: a -> ConfigureQuery (Qualified a)

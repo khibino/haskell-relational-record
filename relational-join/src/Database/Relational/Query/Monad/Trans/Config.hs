@@ -12,10 +12,10 @@
 -- This module defines monad transformer which requires query generate configuration.
 module Database.Relational.Query.Monad.Trans.Config (
   -- * Transformer into query with configuration
-  defaultConfig,
+  Config, defaultConfig,
 
   QueryConfig, config,
-  runQueryConfig, runQueryDefault, askConfig
+  runQueryConfig, askConfig
   ) where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
@@ -40,10 +40,6 @@ newtype QueryConfig m a =
 -- | Run 'QueryConfig' to expand with configuration
 runQueryConfig :: QueryConfig m a -> Config -> m a
 runQueryConfig =  runReaderT . queryConfig
-
--- | Run 'QueryConfig' with defualt configuration
-runQueryDefault ::  QueryConfig m a -> m a
-runQueryDefault q = runQueryConfig q defaultConfig
 
 -- | Lift to 'QueryConfig'.
 config :: Monad m => m a -> QueryConfig m a
