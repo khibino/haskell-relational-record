@@ -20,6 +20,7 @@ module Database.Relational.Query (
   module Database.Relational.Query.Projectable,
   module Database.Relational.Query.ProjectableExtended,
   module Database.Relational.Query.Monad.Class,
+  module Database.Relational.Query.Monad.Trans.Config,
   module Database.Relational.Query.Monad.Trans.Ordering,
   module Database.Relational.Query.Monad.Trans.Assigning,
   module Database.Relational.Query.Monad.Type,
@@ -50,6 +51,7 @@ import Database.Relational.Query.Projectable
 import Database.Relational.Query.ProjectableExtended
 import Database.Relational.Query.Monad.Class
   (on, wheres, groupBy, having, onE, wheresE, havingE)
+import Database.Relational.Query.Monad.Trans.Config (Config, defaultConfig)
 import Database.Relational.Query.Monad.Trans.Ordering (asc, desc)
 import Database.Relational.Query.Monad.Trans.Assigning (assignTo, (!#), (<-#))
 import Database.Relational.Query.Monad.Type

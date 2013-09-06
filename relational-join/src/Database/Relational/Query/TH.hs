@@ -73,8 +73,8 @@ import qualified Database.Record.TH as Record
 import Database.Record.Instances ()
 
 import Database.Relational.Query
-  (Table, Pi, Relation,
-   sqlFromRelation, Query, relationalQuery, KeyUpdate, Insert, typedInsert,
+  (Table, Pi, Relation, Config,
+   sqlFromRelationWith, Query, relationalQuery, KeyUpdate, Insert, typedInsert,
    HasConstraintKey(constraintKey), projectionKey, Primary, NotNull)
 import qualified Database.Relational.Query as Query
 
@@ -367,9 +367,10 @@ defineTableDefault schema table columns derives primaryIxs mayNotNullIdx = do
 -- | Inlining composed 'Query' in compile type.
 inlineQuery :: VarName      -- ^ Top-level variable name which has 'Relation' type
             -> Relation p r -- ^ Object which has 'Relation' type
+            -> Config       -- ^ Configuration to generate SQL
             -> VarName      -- ^ Variable name for inlined query
             -> Q [Dec]      -- ^ Result declarations
-inlineQuery relVar' rel qVar' =  do
+inlineQuery relVar' rel config qVar' =  do
   let relVar = varName relVar'
       qVar   = varName qVar'
   relInfo <- reify relVar
@@ -378,6 +379,6 @@ inlineQuery relVar' rel qVar' =  do
       | prn == ''Relation    -> do
         simpleValD qVar
           [t| Query $(return p) $(return r) |]
-          [|  unsafeTypedQuery $(stringE . sqlFromRelation $ rel) |]
+          [|  unsafeTypedQuery $(stringE $ rel `sqlFromRelationWith` config) |]
     _                             ->
       compileError $ "expandRelation: Variable must have Relation type: " ++ show relVar
