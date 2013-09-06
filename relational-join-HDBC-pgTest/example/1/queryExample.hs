@@ -73,8 +73,9 @@ haskellUser =
               | ug <- query userGroup0
               , () <- wheres $ ug ! snd' ?!? Group.name' .=. just (value "Haskell")
               ]
-  , hu <- query hus
-  , () <- wheres . exists . queryList $ hus
+  , hu  <- query hus
+  , hul <-  queryList hus
+  , () <- wheres $ exists hul
   ]
 
 -- Direct join style
@@ -168,13 +169,14 @@ user3 =
 userGroupAggregate1 :: Relation () ((Maybe String, Int32), Maybe Bool)
 userGroupAggregate1 =
   aggregateRelation $
-  [ g >< c >< every (uid `in'` queryList user3)
+  [ g >< c >< every (uid `in'` us)
   | ug  <- query userGroup0
   , g   <- groupBy (ug ! snd' ?!? Group.name')
   , let uid = ug ! fst' ?! User.id'
   , let c  = count uid
   , ()  <- having $ c `in'` values [1, 2]
   , ()  <- asc $ c
+  , us  <- queryList user3
   ]
 
 -- Concatinate operator

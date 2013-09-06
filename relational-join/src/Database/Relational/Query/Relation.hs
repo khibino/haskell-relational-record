@@ -38,8 +38,6 @@ module Database.Relational.Query.Relation (
   union', except', intersect'
   ) where
 
-import Control.Arrow ((&&&))
-
 import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Monad.Type (ConfigureQuery, configureQuery, qualifyQuery)
 import Database.Relational.Query.Monad.Class
@@ -116,15 +114,23 @@ queryMaybe' pr =  do
 queryMaybe :: MonadQualify ConfigureQuery m => Relation () r -> m (Projection Flat (Maybe r))
 queryMaybe =  fmap snd . queryMaybe'
 
-queryList0 :: Relation p r -> ListProjection (Projection c) r
-queryList0 =  unsafeListProjectionFromSubQuery . configureQuery . subQueryQualifyFromRelation
+queryList0 :: MonadQualify ConfigureQuery m => Relation p r -> m (ListProjection (Projection c) r)
+queryList0 =  liftQualify
+              . fmap unsafeListProjectionFromSubQuery
+              . subQueryQualifyFromRelation
 
 -- | List subQuery, for /IN/ and /EXIST/ with place-holder parameter 'p'.
-queryList' :: Relation p r -> (PlaceHolders p, ListProjection (Projection c) r)
-queryList' =  placeHoldersFromRelation &&& queryList0
+queryList' :: MonadQualify ConfigureQuery m
+           => Relation p r
+           -> m (PlaceHolders p, ListProjection (Projection c) r)
+queryList' rel = do
+  ql <- queryList0 rel
+  return (placeHoldersFromRelation rel, ql)
 
 -- | List subQuery, for /IN/ and /EXIST/.
-queryList :: Relation () r -> ListProjection (Projection c) r
+queryList :: MonadQualify ConfigureQuery m
+          => Relation () r
+          -> m (ListProjection (Projection c) r)
 queryList =  queryList0
 
 -- | Finalize 'QuerySimple' monad and generate 'Relation'.
