@@ -88,6 +88,7 @@ data SubQuery = Table Table.Untyped
                 { sql'   :: String
                 , width' :: !Int
                 }
+              | Flat Config UntypedProjection JoinProduct (QueryRestriction Context.Flat) OrderingTerms
               | Bin BinOp SubQuery SubQuery
 
 -- | 'SubQuery' from 'Table'.
@@ -131,6 +132,7 @@ hideTable = d  where
 
   d sub@(SubQuery _ _)   = sub
   d sub@(Bin _ _ _)      = sub
+  d sub@(Flat _ _ _ _ _) = sub
 
 -- | Width of 'SubQuery'.
 width :: SubQuery -> Int
@@ -138,6 +140,7 @@ width =  d  where
   d (Table u)                 = Table.width' u
   d (SubQuery { width' = w }) = w
   d (Bin _ l _)               = width l
+  d (Flat _ up _ _ _)         = widthOfUntypedProjection up
 
 -- | SQL to query table
 fromTableToSql :: Table.Untyped -> String
@@ -147,9 +150,9 @@ fromTableToSql t =
      FROM, SQL.word $ Table.name' t]
 
 -- | Generate select SQL. Seed SQL string append to this.
-_selectPrefixSQL :: UntypedProjection -> ShowS
-_selectPrefixSQL up =
-  (unwordsSQL [SELECT, columns' `SQL.sepBy` ", "] ++)
+selectPrefixSQL :: UntypedProjection -> ShowS
+selectPrefixSQL up =
+  showUnwordsSQL [SELECT, columns' `SQL.sepBy` ", "]
   where columns' = zipWith
                    (\f n -> sqlWordFromColumn f `asColumnN` n)
                    (columnsOfUntypedProjection up)
@@ -163,6 +166,9 @@ toSQLs =  d  where
   d (SubQuery { sql' = q }) = (paren q, q)
   d (Bin op l r)            = (paren q, q)  where
     q = unwords [unitSQL l, SQL.wordShow $ keywordBinOp op, unitSQL r]
+  d (Flat cf up pd rs od)   = (paren q, q)  where
+    q = selectPrefixSQL up . showsJoinProduct cf pd
+        . composeRestrict WHERE rs . composeOrderByes od $ ""
 
 -- | SQL string for nested-qeury.
 unitSQL :: SubQuery -> String
@@ -229,9 +235,10 @@ queryWidth =  width . unQualify
 column :: Qualified SubQuery -> Int -> ColumnSQL
 column qs =  d (unQualify qs)  where
   q = qualifier qs
-  d (Table u)      i = (q <.> (u ! i))
-  d (SubQuery _ _) i = (q `columnFromId` i)
-  d (Bin _ _ _)    i = (q `columnFromId` i)
+  d (Table u)         i = q <.> (u ! i)
+  d (SubQuery _ _)    i = q `columnFromId` i
+  d (Bin _ _ _)       i = q `columnFromId` i
+  d (Flat _ up _ _ _) i = columnOfUntypedProjection up i
 
 -- | Get qualified SQL string, like (SELECT ...) AS T0
 qualifiedForm :: Qualified SubQuery -> String
@@ -263,10 +270,11 @@ untypedProjectionFromColumns =  unitUntypedProjection . projectionUnitFromColumn
 untypedProjectionFromSubQuery :: Qualified SubQuery -> UntypedProjection
 untypedProjectionFromSubQuery qs = d $ unQualify qs  where  --  unitUntypedProjection . Sub
   normalized = unitUntypedProjection . Normalized $ fmap width qs
-  d (Table _)      = untypedProjectionFromColumns . map (column qs)
-                     $ take (queryWidth qs) [0..]
-  d (SubQuery _ _) = normalized
-  d (Bin _ _ _)    = normalized
+  d (Table _)        = untypedProjectionFromColumns . map (column qs)
+                       $ take (queryWidth qs) [0..]
+  d (SubQuery _ _)   = normalized
+  d (Bin _ _ _)      = normalized
+  d (Flat _ _ _ _ _) = normalized
 
 -- | ProjectionUnit width.
 widthOfProjectionUnit :: ProjectionUnit -> Int
@@ -350,8 +358,8 @@ queryProductSQL =  ($ "") . showsQueryProduct
 type JoinProduct = Maybe QueryProduct
 
 -- | Shows join product of query.
-_showsJoinProduct :: UnitProductSupport -> JoinProduct -> ShowS
-_showsJoinProduct ups =  maybe (up ups) from  where
+showsJoinProduct :: UnitProductSupport -> JoinProduct -> ShowS
+showsJoinProduct ups =  maybe (up ups) from  where
   from qp = showSpace . showWordSQL' FROM . showsQueryProduct qp
   up UPSupported    = id
   up UPNotSupported = error "relation: Unit product support mode is disabled!"
@@ -360,8 +368,8 @@ _showsJoinProduct ups =  maybe (up ups) from  where
 type QueryRestriction c = Maybe (Expr c Bool)
 
 -- | Compose SQL String from 'Expr' object.
-_composeRestrict :: Keyword -> QueryRestriction c -> ShowS
-_composeRestrict k = maybe id (\e -> showSpace . showUnwordsSQL [k, SQL.word . showExpr $ e])
+composeRestrict :: Keyword -> QueryRestriction c -> ShowS
+composeRestrict k = maybe id (\e -> showSpace . showUnwordsSQL [k, SQL.word . showExpr $ e])
 
 
 -- | Type for group-by term
@@ -395,8 +403,8 @@ type OrderingTerm = (Order, OrderColumn)
 -- | Type for order-by terms
 type OrderingTerms = [OrderingTerm]
 
-_composeOrderByes :: OrderingTerms -> ShowS
-_composeOrderByes ots = orders  where
+composeOrderByes :: OrderingTerms -> ShowS
+composeOrderByes ots = orders  where
   orderList = foldr (\ (o, e) r -> [sqlWordFromColumn e, order o] `SQL.sepBy` " "  : r) [] ots
   orders | null orderList = id
          | otherwise      = showSpace . showUnwordsSQL [ORDER, BY, orderList `SQL.sepBy` ", "]
