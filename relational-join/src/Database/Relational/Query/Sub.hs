@@ -47,7 +47,7 @@ module Database.Relational.Query.Sub (
   QueryRestriction,
 
   -- * Types for aggregation
-  AggregateTerm, AggregateTerms, AggregatedQueryRestriction,
+  AggregateTerm, AggregateTerms,
 
   -- * Types for ordering
   Order (..), order, OrderColumn, OrderingTerm, OrderingTerms
@@ -57,7 +57,6 @@ import Data.Maybe (fromMaybe)
 import Data.Array (Array, listArray)
 import qualified Data.Array as Array
 
--- import Database.Relational.Query.Context (Aggregated)
 import qualified Database.Relational.Query.Context as Context
 import Database.Relational.Query.Expr (Expr, valueExpr)
 import Database.Relational.Query.Expr.Unsafe (showExpr)
@@ -340,9 +339,6 @@ type AggregateTerm = ColumnSQL
 
 -- | Type for group-by terms
 type AggregateTerms = [AggregateTerm]
-
--- | Type for restriction of aggregated query.
-type AggregatedQueryRestriction = Maybe (Expr Context.Aggregated Bool)
 
 _composeGroupBys :: AggregateTerms -> ShowS
 _composeGroupBys as = groupBys where
