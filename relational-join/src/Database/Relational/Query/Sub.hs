@@ -69,7 +69,7 @@ import Database.Relational.Query.Table
 import qualified Database.Relational.Query.Table as Table
 
 import Database.Relational.Query.Internal.String
-  (showUnwordsSQL, showWordSQL, showWordSQL', showUnwords, paren)
+  (showUnwordsSQL, showWordSQL, showWordSQL', showUnwords, showSpace, paren)
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
 import qualified Language.SQL.Keyword.ConcatString as SQLs
@@ -321,14 +321,18 @@ queryProductSQL =  ($ "") . showsQueryProduct
 type JoinProduct = Maybe QueryProduct
 
 -- | Shows join product of query.
-_showsJoinProduct :: UnitProductSupport -> Maybe QueryProduct -> ShowS
+_showsJoinProduct :: UnitProductSupport -> JoinProduct -> ShowS
 _showsJoinProduct ups =  maybe (up ups) from  where
-  from qp = showWordSQL' FROM . showsQueryProduct qp
-  up UPSupported    = showString ""
+  from qp = showSpace . showWordSQL' FROM . showsQueryProduct qp
+  up UPSupported    = id
   up UPNotSupported = error "relation: Unit product support mode is disabled!"
 
 -- | Type for restriction of query.
 type QueryRestriction c = Maybe (Expr c Bool)
+
+-- | Compose SQL String from 'Expr' object.
+_composeRestrict :: Keyword -> QueryRestriction c -> ShowS
+_composeRestrict k = maybe id (\e -> showSpace . showUnwordsSQL [k, SQL.word . showExpr $ e])
 
 
 -- | Type for group-by term
@@ -339,6 +343,13 @@ type AggregateTerms = [AggregateTerm]
 
 -- | Type for restriction of aggregated query.
 type AggregatedQueryRestriction = Maybe (Expr Context.Aggregated Bool)
+
+_composeGroupBys :: AggregateTerms -> ShowS
+_composeGroupBys as = groupBys where
+  groupBys
+    | null gs   = id
+    | otherwise = showSpace . showUnwordsSQL [GROUP, BY, gs `SQL.sepBy` ", "]
+  gs = map sqlWordFromColumn as
 
 
 -- | Order direction. Ascendant or Descendant.
@@ -357,3 +368,9 @@ type OrderingTerm = (Order, OrderColumn)
 
 -- | Type for order-by terms
 type OrderingTerms = [OrderingTerm]
+
+_composeOrderByes :: OrderingTerms -> ShowS
+_composeOrderByes ots = orders  where
+  orderList = foldr (\ (o, e) r -> [sqlWordFromColumn e, order o] `SQL.sepBy` " "  : r) [] ots
+  orders | null orderList = id
+         | otherwise      = showSpace . showUnwordsSQL [ORDER, BY, orderList `SQL.sepBy` ", "]

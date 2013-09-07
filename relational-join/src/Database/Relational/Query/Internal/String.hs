@@ -10,7 +10,8 @@
 -- This module provides SQL string concatination functions
 -- which result is ShowS differential lists.
 module Database.Relational.Query.Internal.String (
-  showUnwordsSQL, showWordSQL, showWordSQL', showUnwords,
+  showUnwordsSQL, showWordSQL, showWordSQL',
+  showUnwords, showSpace,
 
   paren, sqlRowString, sqlRowListString
   ) where
@@ -27,6 +28,7 @@ showUnwordsSQL =  showUnwords . map showWordSQL
 showWordSQL :: SQL.Keyword -> ShowS
 showWordSQL =  showString . SQL.wordShow
 
+-- | 'ShowS' of whitespace.
 showSpace :: ShowS
 showSpace =  showChar ' '
 
