@@ -42,9 +42,9 @@ import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Relational.Query.Sub
-  (SubQuery, Qualified,
-   ProjectionUnit, widthOfProjectionUnit, columnOfProjectionUnit,
-   UntypedProjection, untypedProjectionFromColumns, untypedProjectionFromSubQuery)
+  (SubQuery, Qualified, ProjectionUnit,
+   UntypedProjection, widthOfUntypedProjection, columnsOfUntypedProjection,
+   untypedProjectionFromColumns, untypedProjectionFromSubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
 
 
@@ -62,25 +62,12 @@ fromUnits =  typedProjection
 
 -- | Width of 'Projection'.
 width :: Projection c r -> Int
-width =  sum . map widthOfProjectionUnit . units  where
-
--- | Get column SQL string of 'Projection'.
-column :: Projection c r -- ^ Source 'Projection'
-       -> Int            -- ^ Column index
-       -> ColumnSQL      -- ^ Result SQL string
-column =  d  where
-  d proj i' = rec (units proj) i'  where
-    rec []       _        = error $ "index out of bounds: " ++ show i'
-    rec (u : us) i
-      | i < widthOfProjectionUnit u = columnOfProjectionUnit u i
-      | i < 0             = error $ "index out of bounds: " ++ show i
-      | otherwise         = rec us (i - widthOfProjectionUnit u)
+width =  widthOfUntypedProjection . untypeProjection
 
 -- | Get column SQL string list of projection.
 columns :: Projection c r -- ^ Source 'Projection'
         -> [ColumnSQL]    -- ^ Result SQL string list
-columns p = map (\n -> column p n) . take w $ [0 .. ]
-  where w = width p
+columns =  columnsOfUntypedProjection . untypeProjection
 
 
 -- | Unsafely generate 'Projection' from SQL string list.

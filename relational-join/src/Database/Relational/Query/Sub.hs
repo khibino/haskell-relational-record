@@ -29,7 +29,7 @@ module Database.Relational.Query.Sub (
   ProjectionUnit, UntypedProjection,
 
   untypedProjectionFromColumns, untypedProjectionFromSubQuery,
-  widthOfProjectionUnit, columnOfProjectionUnit,
+  widthOfUntypedProjection, columnsOfUntypedProjection,
 
 
   -- * Configuration type for query
@@ -284,9 +284,11 @@ columnOfProjectionUnit =  d  where
                       | otherwise      = error $ "index out of bounds (normalized unit): " ++ show i
     where w = unQualify qw
 
+-- | Width of 'UntypedProjection'.
 widthOfUntypedProjection :: UntypedProjection -> Int
 widthOfUntypedProjection =  sum . map widthOfProjectionUnit
 
+-- | Get column SQL string of 'UntypedProjection'.
 columnOfUntypedProjection :: UntypedProjection -- ^ Source 'Projection'
                           -> Int               -- ^ Column index
                           -> ColumnSQL         -- ^ Result SQL string
