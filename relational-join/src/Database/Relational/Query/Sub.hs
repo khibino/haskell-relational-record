@@ -129,8 +129,8 @@ hideTable = d  where
           $ [SELECT, columns' `SQL.sepBy` ", ",
              FROM, SQL.word . Table.name' $ t]
 
-  d sub@(SubQuery _ _) = sub
-  d sub@(Bin _ _ _)    = sub
+  d sub@(SubQuery _ _)   = sub
+  d sub@(Bin _ _ _)      = sub
 
 -- | Width of 'SubQuery'.
 width :: SubQuery -> Int
@@ -145,6 +145,15 @@ fromTableToSql t =
   unwordsSQL
   $ [SELECT, map sqlWordFromColumn (Table.columns' t) `SQL.sepBy` ", ",
      FROM, SQL.word $ Table.name' t]
+
+-- | Generate select SQL. Seed SQL string append to this.
+_selectPrefixSQL :: UntypedProjection -> ShowS
+_selectPrefixSQL up =
+  (unwordsSQL [SELECT, columns' `SQL.sepBy` ", "] ++)
+  where columns' = zipWith
+                   (\f n -> sqlWordFromColumn f `asColumnN` n)
+                   (columnsOfUntypedProjection up)
+                   [(0 :: Int)..]
 
 -- | SQL string for nested-query and toplevel-SQL.
 toSQLs :: SubQuery
@@ -274,6 +283,25 @@ columnOfProjectionUnit =  d  where
   d (Normalized qw) i | i < w          = qualifier qw `columnFromId` i
                       | otherwise      = error $ "index out of bounds (normalized unit): " ++ show i
     where w = unQualify qw
+
+widthOfUntypedProjection :: UntypedProjection -> Int
+widthOfUntypedProjection =  sum . map widthOfProjectionUnit
+
+columnOfUntypedProjection :: UntypedProjection -- ^ Source 'Projection'
+                          -> Int               -- ^ Column index
+                          -> ColumnSQL         -- ^ Result SQL string
+columnOfUntypedProjection up i' = rec up i' where
+  rec []       _        = error $ "index out of bounds: " ++ show i'
+  rec (u : us) i
+    | i < widthOfProjectionUnit u = columnOfProjectionUnit u i
+    | i < 0             = error $ "index out of bounds: " ++ show i
+    | otherwise         = rec us (i - widthOfProjectionUnit u)
+
+-- | Get column SQL string list of projection.
+columnsOfUntypedProjection :: UntypedProjection -- ^ Source 'Projection'
+                           -> [ColumnSQL]       -- ^ Result SQL string list
+columnsOfUntypedProjection p = map (\n -> columnOfUntypedProjection p n) . take w $ [0 .. ]
+  where w = widthOfUntypedProjection p
 
 
 -- | Configuration type.
