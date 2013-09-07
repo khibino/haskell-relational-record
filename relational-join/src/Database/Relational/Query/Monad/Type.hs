@@ -13,11 +13,11 @@ module Database.Relational.Query.Monad.Type (
   ConfigureQuery, configureQuery, qualifyQuery, QueryCore,
   ) where
 
-import Database.Relational.Query.Sub (Qualified)
+import Database.Relational.Query.Sub (Qualified, Config)
 import Database.Relational.Query.Context (Flat)
 import qualified Database.Relational.Query.Monad.Qualify as Qualify
 import Database.Relational.Query.Monad.Qualify (Qualify, evalQualifyPrime)
-import Database.Relational.Query.Monad.Trans.Config (Config, QueryConfig, runQueryConfig, config)
+import Database.Relational.Query.Monad.Trans.Config (QueryConfig, runQueryConfig, config)
 import Database.Relational.Query.Monad.Trans.Join (QueryJoin)
 import Database.Relational.Query.Monad.Trans.Restricting (Restrictings)
 

@@ -12,8 +12,6 @@
 -- This module defines monad transformer which requires query generate configuration.
 module Database.Relational.Query.Monad.Trans.Config (
   -- * Transformer into query with configuration
-  Config, defaultConfig,
-
   QueryConfig, config,
   runQueryConfig, askConfig
   ) where
@@ -22,15 +20,8 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT, runReaderT, ask)
 import Control.Applicative (Applicative)
 
-import Database.Relational.Query.Sub (UnitProductSupport (UPSupported))
+import Database.Relational.Query.Sub (Config)
 
-
--- | Configuration type.
-type Config = UnitProductSupport
-
--- | Default configuration.
-defaultConfig :: Config
-defaultConfig =  UPSupported
 
 -- | 'ReaderT' type to require query generate configuration.
 newtype QueryConfig m a =

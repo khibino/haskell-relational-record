@@ -39,7 +39,6 @@ module Database.Relational.Query.Relation (
   ) where
 
 import Database.Relational.Query.Context (Flat, Aggregated)
-import Database.Relational.Query.Monad.Trans.Config (Config, defaultConfig)
 import Database.Relational.Query.Monad.Type (ConfigureQuery, configureQuery, qualifyQuery)
 import Database.Relational.Query.Monad.Class
   (MonadQualify (liftQualify), MonadQuery (unsafeSubQuery), on)
@@ -58,7 +57,7 @@ import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable
   (PlaceHolders, addPlaceHolders, unsafePlaceHolders, projectZip)
 
-import Database.Relational.Query.Sub (SubQuery)
+import Database.Relational.Query.Sub (SubQuery, Config, defaultConfig)
 import qualified Database.Relational.Query.Sub as SubQuery
 
 

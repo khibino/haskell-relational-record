@@ -31,12 +31,15 @@ module Database.Relational.Query.Sub (
   untypedProjectionFromColumns, untypedProjectionFromSubQuery,
   widthOfProjectionUnit, columnOfProjectionUnit,
 
+
+  -- * Configuration type for query
+  Config, defaultConfig,
+  UnitProductSupport (..),
+
   -- * Product of sub-queries
   QueryProduct, QueryProductNode,
 
   queryProductSQL,
-
-  UnitProductSupport (..),
 
   JoinProduct,
 
@@ -54,7 +57,8 @@ import Data.Maybe (fromMaybe)
 import Data.Array (Array, listArray)
 import qualified Data.Array as Array
 
-import Database.Relational.Query.Context (Aggregated)
+-- import Database.Relational.Query.Context (Aggregated)
+import qualified Database.Relational.Query.Context as Context
 import Database.Relational.Query.Expr (Expr, valueExpr)
 import Database.Relational.Query.Expr.Unsafe (showExpr)
 import Database.Relational.Query.Internal.Product
@@ -273,6 +277,17 @@ columnOfProjectionUnit =  d  where
     where w = unQualify qw
 
 
+-- | Configuration type.
+type Config = UnitProductSupport
+
+-- | Default configuration.
+defaultConfig :: Config
+defaultConfig =  UPSupported
+
+-- | Unit product is supported or not.
+data UnitProductSupport = UPSupported | UPNotSupported
+
+
 -- | Product tree specialized by 'SubQuery'.
 type QueryProduct = ProductTree (Qualified SubQuery)
 -- | Product node specialized by 'SubQuery'.
@@ -305,8 +320,6 @@ queryProductSQL =  ($ "") . showsQueryProduct
 -- | Type for join product of query.
 type JoinProduct = Maybe QueryProduct
 
-data UnitProductSupport = UPSupported | UPNotSupported
-
 -- | Shows join product of query.
 _showsJoinProduct :: UnitProductSupport -> Maybe QueryProduct -> ShowS
 _showsJoinProduct ups =  maybe (up ups) from  where
@@ -325,7 +338,7 @@ type AggregateTerm = ColumnSQL
 type AggregateTerms = [AggregateTerm]
 
 -- | Type for restriction of aggregated query.
-type AggregatedQueryRestriction = Maybe (Expr Aggregated Bool)
+type AggregatedQueryRestriction = Maybe (Expr Context.Aggregated Bool)
 
 
 -- | Order direction. Ascendant or Descendant.
