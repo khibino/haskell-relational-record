@@ -22,6 +22,8 @@ module Database.Relational.Query.Monad.Trans.AssigningState (
 
   updateAssignments,
 
+  assignments,
+
   composeAssignments
   ) where
 
@@ -31,7 +33,7 @@ import Data.Monoid ((<>))
 import Control.Applicative (pure)
 
 import Database.Relational.Query.Table (sqlWordFromColumn)
-import Database.Relational.Query.Sub (AssignColumn, AssignTerm, Assignment)
+import Database.Relational.Query.Sub (AssignColumn, AssignTerm, Assignment, Assignments)
 
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
@@ -41,7 +43,7 @@ import qualified Language.SQL.Keyword as SQL
 type AssigningTerms = DList Assignment
 
 -- | Context type for Assignings.
-newtype AssigningContext = AssigningContext { assignments :: AssigningTerms }
+newtype AssigningContext = AssigningContext { assigningTerms :: AssigningTerms }
 
 -- | Initial 'AssigningContext'
 primeAssigningContext :: AssigningContext
@@ -50,10 +52,14 @@ primeAssigningContext =  AssigningContext DList.empty
 -- | Add order-by term.
 updateAssignments :: AssignColumn -> AssignTerm -> AssigningContext -> AssigningContext
 updateAssignments col term ctx =
-  ctx { assignments = assignments ctx <> pure (col, term)  }
+  ctx { assigningTerms = assigningTerms ctx <> pure (col, term)  }
+
+-- | Finalize context to extract accumulated assignment pairs state.
+assignments :: AssigningContext -> Assignments
+assignments =  DList.toList . assigningTerms
 
 -- | Concatinate order-by terms into SQL string.
 composeAssignments :: AssigningContext -> String
 composeAssignments ac = unwordsSQL $ [SET, assignList `SQL.sepBy` ", "]  where
   assignList = DList.foldr (\ (col, term) r -> [sqlWordFromColumn col, sqlWordFromColumn term] `SQL.sepBy` " = "  : r) []
-               $ assignments ac
+               $ assigningTerms ac

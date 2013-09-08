@@ -45,7 +45,7 @@ module Database.Relational.Query.Sub (
   JoinProduct,
 
   -- * Query restriction
-  QueryRestriction,
+  QueryRestriction, composeWhere,
 
   -- * Types for aggregation
   AggregateTerm, AggregateTerms,
@@ -54,7 +54,7 @@ module Database.Relational.Query.Sub (
   Order (..), order, OrderColumn, OrderingTerm, OrderingTerms,
 
   -- * Types for assignments
-  AssignColumn, AssignTerm, Assignment, Assignments
+  AssignColumn, AssignTerm, Assignment, Assignments, composeSets
   ) where
 
 import Data.Maybe (fromMaybe)
@@ -198,10 +198,10 @@ toSQLs =  d  where
   d (Bin op l r)            = (paren q, q)  where
     q = unwords [unitSQL l, SQL.wordShow $ keywordBinOp op, unitSQL r]
   d (Flat cf up pd rs od)   = (paren q, q)  where
-    q = selectPrefixSQL up . showsJoinProduct cf pd . composeRestrict WHERE rs
+    q = selectPrefixSQL up . showsJoinProduct cf pd . composeWhere rs
         . composeOrderByes od $ ""
   d (Aggregated cf up pd rs ag grs od) = (paren q, q)  where
-    q = selectPrefixSQL up . showsJoinProduct cf pd . composeRestrict WHERE rs
+    q = selectPrefixSQL up . showsJoinProduct cf pd . composeWhere rs
         . composeGroupBys ag . composeRestrict HAVING grs . composeOrderByes od $ ""
 
 -- | SQL string for nested-qeury.
@@ -403,9 +403,13 @@ showsJoinProduct ups =  maybe (up ups) from  where
 -- | Type for restriction of query.
 type QueryRestriction c = Maybe (Expr c Bool)
 
--- | Compose SQL String from 'Expr' object.
+-- | Compose SQL String from 'QueryRestriction'.
 composeRestrict :: Keyword -> QueryRestriction c -> ShowS
 composeRestrict k = maybe id (\e -> showSpace . showUnwordsSQL [k, SQL.word . showExpr $ e])
+
+-- | Compose WHERE clause from 'QueryRestriction'.
+composeWhere :: QueryRestriction Context.Flat -> ShowS
+composeWhere =  composeRestrict WHERE
 
 
 -- | Type for group-by term
@@ -457,3 +461,10 @@ type Assignment = (AssignColumn, AssignTerm)
 
 -- | Assignment pair list.
 type Assignments = [Assignment]
+
+-- | Compose SET clause from 'Assignments'.
+composeSets :: Assignments -> ShowS
+composeSets as = showSpace . showUnwordsSQL [SET, assignList `SQL.sepBy` ", "]  where
+  assignList = foldr (\ (col, term) r ->
+                       [sqlWordFromColumn col, sqlWordFromColumn term] `SQL.sepBy` " = "  : r)
+               [] as
