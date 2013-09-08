@@ -17,10 +17,7 @@ module Database.Relational.Query.Monad.Trans.Restricting (
   Restrictings, restrictings,
 
   -- * Result
-  extractRestrict,
-
-  extractWheres, WherePrepend, prependWhere,
-  extractHavings, HavingPrepend, prependHaving
+  extractRestrict
   ) where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
@@ -28,10 +25,8 @@ import Control.Monad.Trans.State (modify, StateT, runStateT)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second)
 
-import Database.Relational.Query.Context (Flat, Aggregated)
-import Database.Relational.Query.Monad.Trans.StatePrepend (Prepend, prepend, liftToString)
 import Database.Relational.Query.Monad.Trans.RestrictingState
-  (RestrictContext, primeRestrictContext, addRestriction, restriction, composeWheres, composeHavings)
+  (RestrictContext, primeRestrictContext, addRestriction, restriction)
 import Database.Relational.Query.Expr (Expr)
 import Database.Relational.Query.Sub (QueryRestriction)
 
@@ -82,29 +77,3 @@ instance MonadAggregate m => MonadAggregate (Restrictings c m) where
 -- | Run 'Restrictings' to get 'QueryRestriction'
 extractRestrict :: (Monad m, Functor m) => Restrictings c m a -> m (a, QueryRestriction c)
 extractRestrict q = second restriction <$> runRestrictingsPrime q
-
--- | WHERE clause prepending function.
-type WherePrepend = Prepend (RestrictContext Flat)
-
--- | Run 'Restrictings' to get WHERE clause prepending function.
-extractWheres :: (Monad m, Functor m)
-              => Restrictings Flat m a -- ^ 'Restrictings' to run
-              -> m (a,  WherePrepend)  -- ^ WHERE clause prepending function.
-extractWheres r = second (liftToString composeWheres) <$> runRestrictingsPrime r
-
--- | Run WHERE clause prepend.
-prependWhere :: WherePrepend -> String -> String
-prependWhere =  prepend
-
--- | HAVING clause prepending function.
-type HavingPrepend = Prepend (RestrictContext Aggregated)
-
--- | Run 'Restrictings' to get HAVING clause prepending function.
-extractHavings :: (Monad m, Functor m)
-               => Restrictings Aggregated m a -- ^ 'Restrictings' to run
-               -> m (a,  HavingPrepend)       -- ^ HAVING clause prepending function.
-extractHavings r = second (liftToString composeHavings) <$> runRestrictingsPrime r
-
--- | Run HAVING clause prepend.
-prependHaving :: HavingPrepend -> String -> String
-prependHaving =  prepend

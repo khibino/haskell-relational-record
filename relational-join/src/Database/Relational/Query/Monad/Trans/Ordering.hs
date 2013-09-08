@@ -22,10 +22,7 @@ module Database.Relational.Query.Monad.Trans.Ordering (
   asc, desc,
 
   -- * Result
-  extractOrderingTerms,
-
-  extractOrderBys,
-  OrderByPrepend, prependOrderBy
+  extractOrderingTerms
   ) where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
@@ -34,9 +31,8 @@ import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second, (>>>))
 
 import Database.Relational.Query.Sub (Order(Asc, Desc), OrderColumn, OrderingTerms)
-import Database.Relational.Query.Monad.Trans.StatePrepend (Prepend, prepend, liftToString)
 import Database.Relational.Query.Monad.Trans.OrderingState
-  (OrderingContext, primeOrderingContext, updateOrderBy, orderingTerms, composeOrderBys)
+  (OrderingContext, primeOrderingContext, updateOrderBy, orderingTerms)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
@@ -137,16 +133,3 @@ desc =  updateOrderBys Desc
 -- | Run 'Orderings' to get 'OrderingTerms'
 extractOrderingTerms :: (Monad m, Functor m) => Orderings p m a -> m (a, OrderingTerms)
 extractOrderingTerms q = second orderingTerms <$> runOrderingsPrime q
-
--- | ORDER BY clause prepending function.
-type OrderByPrepend = Prepend OrderingContext
-
--- | Run 'Orderings' to get ORDER BY clause prepending function.
-extractOrderBys :: (Monad m, Functor m)
-               => Orderings p m a      -- ^ 'Orderings' to run
-               -> m (a, OrderByPrepend) -- ^ Query result and order-by prepending function.
-extractOrderBys q = second (liftToString composeOrderBys) <$> runOrderingsPrime q
-
--- | Run ORDER BY clause prepend.
-prependOrderBy :: OrderByPrepend -> String -> String
-prependOrderBy =  prepend

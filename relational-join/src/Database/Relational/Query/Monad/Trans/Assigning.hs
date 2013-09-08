@@ -21,10 +21,7 @@ module Database.Relational.Query.Monad.Trans.Assigning (
   assignTo, (!#), (<-#), AssignTarget,
 
   -- * Result SQL set clause
-  extractAssignments,
-
-  extractSets,
-  SetPrepend, prependSet
+  extractAssignments
   ) where
 
 import Database.Relational.Query.Context (Flat)
@@ -34,9 +31,8 @@ import Control.Applicative (Applicative, (<$>))
 import Control.Arrow ((>>>), second)
 
 import Database.Relational.Query.Sub (Assignments)
-import Database.Relational.Query.Monad.Trans.StatePrepend (Prepend, prepend, liftToString)
 import Database.Relational.Query.Monad.Trans.AssigningState
-  (AssigningContext, primeAssigningContext, updateAssignments, assignments, composeAssignments)
+  (AssigningContext, primeAssigningContext, updateAssignments, assignments)
 import Database.Relational.Query.Pi (Pi)
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Projection (Projection)
@@ -98,21 +94,8 @@ assignTo vp target = updateAssigningContext . foldr (>>>) id
 infix 8 !#
 infix 4 <-#
 
--- | SET clause prepending function.
-type SetPrepend = Prepend AssigningContext
-
 -- | Run 'Assignings' to get 'Assignments'
 extractAssignments :: (Monad m, Functor m)
                    => Assignings r m a
                    -> m (a, Assignments)
 extractAssignments q = second assignments <$> runAssigningsPrime q
-
--- | Run 'Assignings' to get SET clause prepending function.
-extractSets :: (Monad m, Functor m)
-           => Assignings r m a
-           -> m (a, SetPrepend)
-extractSets q = second (liftToString composeAssignments) <$> runAssigningsPrime q
-
--- | Run SET clause prepend.
-prependSet :: SetPrepend -> String -> String
-prependSet =  prepend

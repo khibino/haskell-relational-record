@@ -15,9 +15,7 @@ module Database.Relational.Query.Monad.Trans.Join (
   QueryJoin, join',
 
   -- * Result
-  extractProduct,
-
-  FromPrepend, extractFrom, prependFrom
+  extractProduct
   ) where
 
 import Prelude hiding (product)
@@ -27,14 +25,13 @@ import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second)
 
 import Database.Relational.Query.Context (Flat)
-import Database.Relational.Query.Monad.Trans.StatePrepend (Prepend, prepend, liftToString)
 import Database.Relational.Query.Monad.Trans.JoinState
-  (JoinContext, primeJoinContext, updateProduct, joinProduct, composeFrom)
+  (JoinContext, primeJoinContext, updateProduct, joinProduct)
 import Database.Relational.Query.Internal.Product (NodeAttr, restrictProduct, growProduct)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Expr (Expr, fromJust)
-import Database.Relational.Query.Sub (SubQuery, Qualified, UnitProductSupport, JoinProduct)
+import Database.Relational.Query.Sub (SubQuery, Qualified, JoinProduct)
 
 import Database.Relational.Query.Monad.Class (MonadQuery (..))
 
@@ -107,16 +104,3 @@ unsafeQueryMergeWithAttr =  unsafeMergeAnother
 -- | Run 'QueryJoin' to get 'JoinProduct'
 extractProduct :: (Monad m, Functor m) => QueryJoin m a -> m (a, JoinProduct)
 extractProduct q = second joinProduct <$> runQueryPrime q
-
--- | FROM clause prepending function type.
-type FromPrepend = UnitProductSupport -> Prepend JoinContext
-
--- | Run 'QueryJoin' to get FROM clause prepending function.
-extractFrom :: (Monad m, Functor m)
-            => QueryJoin m a      -- ^ 'QueryJoin' to run
-            -> m (a, FromPrepend) -- ^ FROM clause prepending function.
-extractFrom q = second (\jc ups -> liftToString (composeFrom ups) $ jc) <$> runQueryPrime q
-
--- | Run FROM clause prepend.
-prependFrom :: FromPrepend -> UnitProductSupport -> String -> String
-prependFrom =  fmap prepend

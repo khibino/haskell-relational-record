@@ -18,9 +18,7 @@ module Database.Relational.Query.Monad.Trans.Aggregating (
   Aggregatings, aggregatings,
 
   -- * Result
-  extractAggregateTerms,
-
-  GroupBysPrepend, extractGroupBys, prependGroupBys
+  extractAggregateTerms
   ) where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
@@ -30,9 +28,8 @@ import Control.Arrow (second, (>>>))
 
 import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Sub (AggregateTerm, AggregateTerms)
-import Database.Relational.Query.Monad.Trans.StatePrepend (Prepend, prepend, liftToString)
 import Database.Relational.Query.Monad.Trans.AggregatingState
-  (AggregatingContext, primeAggregatingContext, aggregateTerms, addGroupBy, composeGroupBys)
+  (AggregatingContext, primeAggregatingContext, aggregateTerms, addGroupBy)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
@@ -92,16 +89,3 @@ instance MonadQuery m => MonadAggregate (Aggregatings m) where
 -- | Run 'Aggregatings' to get 'AggregateTerms'.
 extractAggregateTerms :: (Monad m, Functor m) => Aggregatings m a -> m (a, AggregateTerms)
 extractAggregateTerms q = second aggregateTerms <$> runAggregatingPrime q
-
--- | GROUP BY terms prepending function.
-type GroupBysPrepend = Prepend AggregatingContext
-
--- | Run 'Aggregatings' to get GROUP BY terms prepending function.
-extractGroupBys :: MonadQuery m
-                => Aggregatings m a      -- ^ 'Aggregatings' to run
-                -> m (a, GroupBysPrepend) -- ^ GROUP BY terms prepending function.
-extractGroupBys q = second (liftToString composeGroupBys) <$> runAggregatingPrime q
-
--- | Run GROUP BY terms prepend.
-prependGroupBys :: GroupBysPrepend -> String -> String
-prependGroupBys =  prepend
