@@ -35,6 +35,6 @@ type TargetStatement r a = Table r -> Projection Flat r -> Target r a
 -- updateStatement :: a -> Assignings r (Restrictings Identity) a
 -- updateStatement =  assignings . restrictings . Identity
 
--- | Run 'UpdateStatement' to get SQL WHERE clause.
+-- | Run 'Target' to get SQL WHERE clause.
 expandPrepend :: Assignings r Restrict a -> ((a, SetPrepend), WherePrepend)
 expandPrepend = expandWhere. extractSets
