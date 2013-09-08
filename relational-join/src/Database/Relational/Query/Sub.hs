@@ -89,7 +89,12 @@ data SubQuery = Table Table.Untyped
                 { sql'   :: String
                 , width' :: !Int
                 }
-              | Flat Config UntypedProjection JoinProduct (QueryRestriction Context.Flat) OrderingTerms
+              | Flat Config
+                UntypedProjection JoinProduct (QueryRestriction Context.Flat)
+                OrderingTerms
+              | Aggregated Config
+                UntypedProjection JoinProduct (QueryRestriction Context.Flat)
+                AggregateTerms (QueryRestriction Context.Aggregated) OrderingTerms
               | Bin BinOp SubQuery SubQuery
 
 -- | 'SubQuery' from 'Table'.
@@ -140,17 +145,19 @@ hideTable = d  where
           $ [SELECT, columns' `SQL.sepBy` ", ",
              FROM, SQL.word . Table.name' $ t]
 
-  d sub@(SubQuery _ _)   = sub
-  d sub@(Bin _ _ _)      = sub
-  d sub@(Flat _ _ _ _ _) = sub
+  d sub@(SubQuery _ _)             = sub
+  d sub@(Bin _ _ _)                = sub
+  d sub@(Flat _ _ _ _ _)           = sub
+  d sub@(Aggregated _ _ _ _ _ _ _) = sub
 
 -- | Width of 'SubQuery'.
 width :: SubQuery -> Int
 width =  d  where
   d (Table u)                 = Table.width' u
-  d (SubQuery { width' = w }) = w
-  d (Bin _ l _)               = width l
-  d (Flat _ up _ _ _)         = widthOfUntypedProjection up
+  d (SubQuery { width' = w })   = w
+  d (Bin _ l _)                 = width l
+  d (Flat _ up _ _ _)           = widthOfUntypedProjection up
+  d (Aggregated _ up _ _ _ _ _) = widthOfUntypedProjection up
 
 -- | SQL to query table
 fromTableToSql :: Table.Untyped -> String
@@ -177,8 +184,11 @@ toSQLs =  d  where
   d (Bin op l r)            = (paren q, q)  where
     q = unwords [unitSQL l, SQL.wordShow $ keywordBinOp op, unitSQL r]
   d (Flat cf up pd rs od)   = (paren q, q)  where
-    q = selectPrefixSQL up . showsJoinProduct cf pd
-        . composeRestrict WHERE rs . composeOrderByes od $ ""
+    q = selectPrefixSQL up . showsJoinProduct cf pd . composeRestrict WHERE rs
+        . composeOrderByes od $ ""
+  d (Aggregated cf up pd rs ag grs od) = (paren q, q)  where
+    q = selectPrefixSQL up . showsJoinProduct cf pd . composeRestrict WHERE rs
+        . composeGroupBys ag . composeRestrict HAVING grs . composeOrderByes od $ ""
 
 -- | SQL string for nested-qeury.
 unitSQL :: SubQuery -> String
@@ -245,10 +255,11 @@ queryWidth =  width . unQualify
 column :: Qualified SubQuery -> Int -> ColumnSQL
 column qs =  d (unQualify qs)  where
   q = qualifier qs
-  d (Table u)         i = q <.> (u ! i)
-  d (SubQuery _ _)    i = q `columnFromId` i
-  d (Bin _ _ _)       i = q `columnFromId` i
-  d (Flat _ up _ _ _) i = columnOfUntypedProjection up i
+  d (Table u)         i           = q <.> (u ! i)
+  d (SubQuery _ _)    i           = q `columnFromId` i
+  d (Bin _ _ _)       i           = q `columnFromId` i
+  d (Flat _ up _ _ _) i           = columnOfUntypedProjection up i
+  d (Aggregated _ up _ _ _ _ _) i = columnOfUntypedProjection up i
 
 -- | Get qualified SQL string, like (SELECT ...) AS T0
 qualifiedForm :: Qualified SubQuery -> String
@@ -280,11 +291,12 @@ untypedProjectionFromColumns =  unitUntypedProjection . projectionUnitFromColumn
 untypedProjectionFromSubQuery :: Qualified SubQuery -> UntypedProjection
 untypedProjectionFromSubQuery qs = d $ unQualify qs  where  --  unitUntypedProjection . Sub
   normalized = unitUntypedProjection . Normalized $ fmap width qs
-  d (Table _)        = untypedProjectionFromColumns . map (column qs)
-                       $ take (queryWidth qs) [0..]
-  d (SubQuery _ _)   = normalized
-  d (Bin _ _ _)      = normalized
-  d (Flat _ _ _ _ _) = normalized
+  d (Table _)                  = untypedProjectionFromColumns . map (column qs)
+                                 $ take (queryWidth qs) [0..]
+  d (SubQuery _ _)             = normalized
+  d (Bin _ _ _)                = normalized
+  d (Flat _ _ _ _ _)           = normalized
+  d (Aggregated _ _ _ _ _ _ _) = normalized
 
 -- | ProjectionUnit width.
 widthOfProjectionUnit :: ProjectionUnit -> Int
@@ -388,8 +400,8 @@ type AggregateTerm = ColumnSQL
 -- | Type for group-by terms
 type AggregateTerms = [AggregateTerm]
 
-_composeGroupBys :: AggregateTerms -> ShowS
-_composeGroupBys as = groupBys where
+composeGroupBys :: AggregateTerms -> ShowS
+composeGroupBys as = groupBys where
   groupBys
     | null gs   = id
     | otherwise = showSpace . showUnwordsSQL [GROUP, BY, gs `SQL.sepBy` ", "]
