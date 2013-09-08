@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 -- |
 -- Module      : Database.Relational.Query.Monad.Trans.AggregatingState
 -- Copyright   : 2013 Kei Hibino
@@ -19,9 +17,7 @@ module Database.Relational.Query.Monad.Trans.AggregatingState (
 
   addGroupBy,
 
-  aggregateTerms,
-
-  composeGroupBys
+  aggregateTerms
   ) where
 
 import Data.DList (DList)
@@ -29,11 +25,7 @@ import qualified Data.DList as DList
 import Data.Monoid ((<>))
 import Control.Applicative (pure)
 
-import Database.Relational.Query.Table (sqlWordFromColumn)
 import Database.Relational.Query.Sub (AggregateTerm, AggregateTerms)
-
-import Language.SQL.Keyword (Keyword(..), unwordsSQL)
-import qualified Language.SQL.Keyword as SQL
 
 
 -- | Context state of aggregated query.
@@ -52,11 +44,3 @@ addGroupBy t c =  c { groupByTerms = groupByTerms c <> pure t }
 -- | Finalize context to extract accumulated aggregate terms state.
 aggregateTerms :: AggregatingContext -> AggregateTerms
 aggregateTerms =  DList.toList . groupByTerms
-
--- | Extract 'AggregatingContext' into SQL string.
-composeGroupBys :: AggregatingContext -> String
-composeGroupBys ac = unwordsSQL $ groupBys
-  where groupBys
-          | null gs   = []
-          | otherwise = [GROUP, BY, gs `SQL.sepBy` ", "]
-        gs = map sqlWordFromColumn $ DList.toList (groupByTerms ac)

@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 -- |
 -- Module      : Database.Relational.Query.Monad.Trans.JoinState
 -- Copyright   : 2013 Kei Hibino
@@ -19,20 +17,15 @@ module Database.Relational.Query.Monad.Trans.JoinState (
 
   updateProduct, -- takeProduct, restoreLeft,
 
-  joinProduct,
+  joinProduct
 
-  composeFrom
+  -- composeFrom
   ) where
 
 import Prelude hiding (product)
 
 import qualified Database.Relational.Query.Internal.Product as Product
-import Database.Relational.Query.Sub
-  (QueryProductNode, QueryProduct, JoinProduct, queryProductSQL,
-   UnitProductSupport (UPSupported, UPNotSupported))
-
-import Language.SQL.Keyword (Keyword(..), unwordsSQL)
-import qualified Language.SQL.Keyword as SQL
+import Database.Relational.Query.Sub (QueryProductNode, JoinProduct)
 
 
 -- | JoinContext type for QueryJoin.
@@ -61,15 +54,3 @@ updateProduct uf = updateProduct' (Just . uf)
 -- |  Finalize context to extract accumulated query product.
 joinProduct :: JoinContext -> JoinProduct
 joinProduct =  fmap Product.nodeTree . product
-
--- | Compose SQL String from 'JoinContext' object.
-composeFrom' :: QueryProduct -> String
-composeFrom' pd =
-  unwordsSQL
-  $ [FROM, SQL.word . queryProductSQL $ pd]
-
--- | Compose SQL String from 'JoinContext' object.
-composeFrom :: UnitProductSupport -> JoinContext -> String
-composeFrom ups = maybe (up ups) (composeFrom' .  Product.nodeTree) . product  where
-  up UPSupported    = ""
-  up UPNotSupported = error "relation: Unit product support mode is disabled!"

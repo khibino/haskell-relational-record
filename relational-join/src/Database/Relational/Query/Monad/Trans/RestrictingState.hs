@@ -17,18 +17,11 @@ module Database.Relational.Query.Monad.Trans.RestrictingState (
 
   addRestriction,
 
-  restriction,
-
-  composeWheres, composeHavings
+  restriction
   ) where
 
-import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Expr (Expr, fromJust, exprAnd)
-import Database.Relational.Query.Expr.Unsafe (showExpr)
 import Database.Relational.Query.Sub (QueryRestriction)
-
-import Language.SQL.Keyword (Keyword(..), unwordsSQL)
-import qualified Language.SQL.Keyword as SQL
 
 
 -- | Context type for Restrict.
@@ -49,19 +42,3 @@ addRestriction e1 ctx =
 -- | Finalize context to extract accumulated restriction state.
 restriction :: RestrictContext c -> QueryRestriction c
 restriction =  restriction'
-
--- | Compose SQL String from 'RestrictContext' object.
-composeRestrict' :: Keyword -> Maybe (Expr c Bool) -> String
-composeRestrict' k = maybe [] (\e -> unwordsSQL [k, SQL.word . showExpr $ e])
-
--- | Compose SQL String from 'RestrictContext' object.
-composeRestrict :: Keyword -> RestrictContext c -> String
-composeRestrict k = composeRestrict' k . restriction'
-
--- | Compose SQL String from 'RestrictContext' object.
-composeWheres :: RestrictContext Flat -> String
-composeWheres =  composeRestrict WHERE
-
--- | Compose SQL String from 'RestrictContext' object.
-composeHavings :: RestrictContext Aggregated -> String
-composeHavings =  composeRestrict HAVING

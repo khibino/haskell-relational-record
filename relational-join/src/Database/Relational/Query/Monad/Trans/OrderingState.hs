@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 -- |
 -- Module      : Database.Relational.Query.Monad.Trans.OrderingState
 -- Copyright   : 2013 Kei Hibino
@@ -20,9 +18,7 @@ module Database.Relational.Query.Monad.Trans.OrderingState (
 
   updateOrderBy, -- takeOrderBys, restoreLowOrderBys,
 
-  orderingTerms,
-
-  composeOrderBys
+  orderingTerms
   ) where
 
 import Data.DList (DList)
@@ -30,11 +26,7 @@ import qualified Data.DList as DList
 import Data.Monoid ((<>))
 import Control.Applicative (pure)
 
-import Database.Relational.Query.Table (sqlWordFromColumn)
-import Database.Relational.Query.Sub (Order, order, OrderColumn, OrderingTerm, OrderingTerms)
-
-import Language.SQL.Keyword (Keyword(..), unwordsSQL)
-import qualified Language.SQL.Keyword as SQL
+import Database.Relational.Query.Sub (Order, OrderColumn, OrderingTerm, OrderingTerms)
 
 
 -- | Ordering terms.
@@ -63,11 +55,3 @@ restoreLowOrderBys ros ctx = ctx { orderBys = orderBys ctx <> ros }
 -- | Finalize context to extract accumulated ordering state.
 orderingTerms :: OrderingContext -> OrderingTerms
 orderingTerms =  DList.toList . orderBys
-
--- | Concatinate order-by terms into SQL string.
-composeOrderBys :: OrderingContext -> String
-composeOrderBys oc = unwordsSQL orders  where
-  orderList = DList.foldr (\ (o, e) r -> [sqlWordFromColumn e, order o] `SQL.sepBy` " "  : r) []
-              $ orderBys oc
-  orders | null orderList = []
-         | otherwise      = [ORDER, BY, orderList `SQL.sepBy` ", "]
