@@ -12,7 +12,7 @@
 -- This module defines sub-query structure used in query products.
 module Database.Relational.Query.Sub (
   -- * Sub-query
-  SubQuery, fromTable, subQuery, flatSubQuery, aggregatedSubQuery,
+  SubQuery, fromTable, flatSubQuery, aggregatedSubQuery,
   union, except, intersect,
   toSQL, unitSQL, width,
 
@@ -20,8 +20,6 @@ module Database.Relational.Query.Sub (
   Qualifier (Qualifier),
   Qualified, qualifier, unQualify, qualify,
   queryWidth, qualifiedForm,
-
-  asColumnN,
 
   -- * Sub-query columns
   column,
@@ -88,10 +86,6 @@ keywordBinOp = d  where
 
 -- | Sub-query type
 data SubQuery = Table Table.Untyped
-              | SubQuery
-                { sql'   :: String
-                , width' :: !Int
-                }
               | Flat Config
                 UntypedProjection JoinProduct (QueryRestriction Context.Flat)
                 OrderingTerms
@@ -104,12 +98,6 @@ data SubQuery = Table Table.Untyped
 fromTable :: Table r  -- ^ Typed 'Table' metadata
           -> SubQuery -- ^ Result 'SubQuery'
 fromTable =  Table . Table.unType
-
--- | Unsafely generate 'SubQuery' from SQL.
-subQuery :: String   -- ^ SQL string
-         -> Int      -- ^ Width of 'SubQuery'
-         -> SubQuery -- ^ Result 'SubQuery'
-subQuery =  SubQuery
 
 -- | Unsafely generate flat 'SubQuery' from untyped components.
 flatSubQuery :: Config
@@ -147,7 +135,6 @@ intersect =  Bin Intersect
 width :: SubQuery -> Int
 width =  d  where
   d (Table u)                 = Table.width' u
-  d (SubQuery { width' = w })   = w
   d (Bin _ l _)                 = width l
   d (Flat _ up _ _ _)           = widthOfUntypedProjection up
   d (Aggregated _ up _ _ _ _ _) = widthOfUntypedProjection up
@@ -173,7 +160,6 @@ fromTableToNormalizedSQL t =
 normalizedSQL :: SubQuery -> String
 normalizedSQL =  d  where
   d (Table t)                      = fromTableToNormalizedSQL t
-  d sub@(SubQuery _ _)             = unitSQL sub
   d sub@(Bin _ _ _)                = unitSQL sub
   d sub@(Flat _ _ _ _ _)           = unitSQL sub
   d sub@(Aggregated _ _ _ _ _ _ _) = unitSQL sub
@@ -192,7 +178,6 @@ toSQLs :: SubQuery
        -> (String, String) -- ^ subquery SQL and top-level SQL
 toSQLs =  d  where
   d (Table u)               = (Table.name' u, fromTableToSql u)
-  d (SubQuery { sql' = q }) = (paren q, q)
   d (Bin op l r)            = (paren q, q)  where
     q = unwords [normalizedSQL l, SQL.wordShow $ keywordBinOp op, normalizedSQL r]
   d (Flat cf up pd rs od)   = (paren q, q)  where
@@ -268,7 +253,6 @@ column :: Qualified SubQuery -> Int -> ColumnSQL
 column qs =  d (unQualify qs)  where
   q = qualifier qs
   d (Table u)         i           = q <.> (u ! i)
-  d (SubQuery _ _)    i           = q `columnFromId` i
   d (Bin _ _ _)       i           = q `columnFromId` i
   d (Flat _ up _ _ _) i           = columnOfUntypedProjection up i
   d (Aggregated _ up _ _ _ _ _) i = columnOfUntypedProjection up i
@@ -305,7 +289,6 @@ untypedProjectionFromSubQuery qs = d $ unQualify qs  where  --  unitUntypedProje
   normalized = unitUntypedProjection . Normalized $ fmap width qs
   d (Table _)                  = untypedProjectionFromColumns . map (column qs)
                                  $ take (queryWidth qs) [0..]
-  d (SubQuery _ _)             = normalized
   d (Bin _ _ _)                = normalized
   d (Flat _ _ _ _ _)           = normalized
   d (Aggregated _ _ _ _ _ _ _) = normalized
