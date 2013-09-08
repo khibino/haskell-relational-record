@@ -13,10 +13,10 @@
 -- "Database.Relational.Query.Monad.Trans.Assigning".
 module Database.Relational.Query.Monad.Trans.AssigningState (
   -- * Assigning context
-  Assignments,
+  AssigningTerms,
   AssigningContext,
 
-  Column, Term,
+  AssignColumn, AssignTerm,
 
   primeAssigningContext,
 
@@ -35,24 +35,28 @@ import Database.Relational.Query.Table (ColumnSQL, sqlWordFromColumn)
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
 
+
 -- | Column SQL String
-type Column = ColumnSQL
+type AssignColumn = ColumnSQL
 
 -- | Value SQL String
-type Term   = ColumnSQL
+type AssignTerm   = ColumnSQL
+
+-- | Assignment pair
+type Assignment = (AssignColumn, AssignTerm)
 
 -- | Assigning terms.
-type Assignments = DList (Column, Term)
+type AssigningTerms = DList Assignment
 
 -- | Context type for Assignings.
-newtype AssigningContext = AssigningContext { assignments :: Assignments }
+newtype AssigningContext = AssigningContext { assignments :: AssigningTerms }
 
 -- | Initial 'AssigningContext'
 primeAssigningContext :: AssigningContext
 primeAssigningContext =  AssigningContext DList.empty
 
 -- | Add order-by term.
-updateAssignments :: Column -> Term -> AssigningContext -> AssigningContext
+updateAssignments :: AssignColumn -> AssignTerm -> AssigningContext -> AssigningContext
 updateAssignments col term ctx =
   ctx { assignments = assignments ctx <> pure (col, term)  }
 
