@@ -25,19 +25,18 @@ module Database.Relational.Query.Monad.Simple (
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
-import Database.Relational.Query.SQL (selectSeedSQL)
 
 import Database.Relational.Query.Monad.Class (MonadQualify(..))
 import Database.Relational.Query.Monad.Trans.Config (askConfig)
-import Database.Relational.Query.Monad.Trans.Join
-  (join', FromPrepend, prependFrom, extractFrom)
-import Database.Relational.Query.Monad.Trans.Restricting
-  (restrictings, WherePrepend, prependWhere, extractWheres)
+import Database.Relational.Query.Monad.Trans.Join (join')
+import Database.Relational.Query.Monad.Trans.Restricting (restrictings)
 import Database.Relational.Query.Monad.Trans.Ordering
-  (Orderings, orderings, OrderedQuery, OrderByPrepend, prependOrderBy, extractOrderBys)
-import Database.Relational.Query.Monad.Type (ConfigureQuery, QueryCore)
+  (Orderings, orderings, OrderedQuery, extractOrderingTerms)
+import Database.Relational.Query.Monad.Type (ConfigureQuery, QueryCore, extractCore)
 
-import Database.Relational.Query.Sub (SubQuery, subQuery)
+import Database.Relational.Query.Sub
+  (SubQuery, flatSubQuery, JoinProduct, QueryRestriction, OrderingTerms)
+import qualified Database.Relational.Query.Sub as SubQuery
 
 
 -- | Simple query (not-aggregated) monad type.
@@ -54,25 +53,19 @@ simple =  orderings . restrictings . join'
 instance MonadQualify ConfigureQuery (Orderings Flat QueryCore) where
   liftQualify = simple
 
-expandPrepend :: SimpleQuery r
-              -> ConfigureQuery (((Projection Flat r, OrderByPrepend), WherePrepend), FromPrepend)
-expandPrepend =  extractFrom . extractWheres . extractOrderBys
-
--- | Run 'SimpleQuery' to get SQL string.
-expandSQL :: SimpleQuery r -> ConfigureQuery (String, Projection Flat r)
-expandSQL q = do
-  (((pj, ao), aw), af) <- expandPrepend q
-  c <- askConfig
-  return (selectSeedSQL pj . prependFrom af c . prependWhere aw . prependOrderBy ao $ "", pj)
+extract :: SimpleQuery r
+        -> ConfigureQuery (((Projection Flat r, OrderingTerms), QueryRestriction Flat), JoinProduct)
+extract =  extractCore . extractOrderingTerms
 
 -- | Run 'SimpleQuery' to get SQL string with 'Qualify' computation.
 toSQL :: SimpleQuery r         -- ^ 'SimpleQuery' to run
       -> ConfigureQuery String -- ^ Result SQL string with 'Qualify' computation
-toSQL =  fmap fst . expandSQL
+toSQL =  fmap SubQuery.toSQL . toSubQuery
 
 -- | Run 'SimpleQuery' to get 'SubQuery' with 'Qualify' computation.
 toSubQuery :: SimpleQuery r           -- ^ 'SimpleQuery' to run
            -> ConfigureQuery SubQuery -- ^ Result 'SubQuery' with 'Qualify' computation
 toSubQuery q = do
-  (sql, pj) <- expandSQL q
-  return $ subQuery sql (Projection.width pj)
+   (((pj, ot), rs), pd) <- extract q
+   c <- askConfig
+   return $ flatSubQuery c (Projection.untype pj) pd rs ot

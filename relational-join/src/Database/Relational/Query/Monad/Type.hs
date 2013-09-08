@@ -10,16 +10,16 @@
 -- This module defines core query type.
 module Database.Relational.Query.Monad.Type (
   -- * Core query monad
-  ConfigureQuery, configureQuery, qualifyQuery, QueryCore,
+  ConfigureQuery, configureQuery, qualifyQuery, QueryCore, extractCore
   ) where
 
-import Database.Relational.Query.Sub (Qualified, Config)
+import Database.Relational.Query.Sub (Qualified, Config, JoinProduct, QueryRestriction)
 import Database.Relational.Query.Context (Flat)
 import qualified Database.Relational.Query.Monad.Qualify as Qualify
 import Database.Relational.Query.Monad.Qualify (Qualify, evalQualifyPrime)
 import Database.Relational.Query.Monad.Trans.Config (QueryConfig, runQueryConfig, config)
-import Database.Relational.Query.Monad.Trans.Join (QueryJoin)
-import Database.Relational.Query.Monad.Trans.Restricting (Restrictings)
+import Database.Relational.Query.Monad.Trans.Join (QueryJoin, extractProduct)
+import Database.Relational.Query.Monad.Trans.Restricting (Restrictings, extractRestrict)
 
 
 -- | Thin monad type for untyped structure.
@@ -35,3 +35,7 @@ qualifyQuery =  config . Qualify.qualifyQuery
 
 -- | Core query monad type used from flat(not-aggregated) query and aggregated query.
 type QueryCore = Restrictings Flat (QueryJoin ConfigureQuery)
+
+-- | Extract 'QueryCore' computation.
+extractCore :: QueryCore a -> ConfigureQuery ((a, QueryRestriction Flat), JoinProduct)
+extractCore =  extractProduct . extractRestrict

@@ -14,6 +14,7 @@ module Database.Relational.Query.Projection (
 
   width,
   columns,
+  untype,
 
   unsafeFromColumns,
   unsafeFromQualifiedSubQuery,
@@ -68,6 +69,10 @@ width =  widthOfUntypedProjection . untypeProjection
 columns :: Projection c r -- ^ Source 'Projection'
         -> [ColumnSQL]    -- ^ Result SQL string list
 columns =  columnsOfUntypedProjection . untypeProjection
+
+-- | Unsafely get untyped projection.
+untype :: Projection c r -> UntypedProjection
+untype =  untypeProjection
 
 
 -- | Unsafely generate 'Projection' from SQL string list.
