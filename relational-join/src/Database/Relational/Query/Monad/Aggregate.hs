@@ -26,21 +26,20 @@ module Database.Relational.Query.Monad.Aggregate (
 import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
-import Database.Relational.Query.SQL (selectSeedSQL)
-import Database.Relational.Query.Sub (SubQuery, subQuery)
+import Database.Relational.Query.Sub
+  (SubQuery, aggregatedSubQuery, JoinProduct, QueryRestriction, AggregateTerms, OrderingTerms)
+import qualified Database.Relational.Query.Sub as SubQuery
 
 import Database.Relational.Query.Monad.Class (MonadQualify(..))
 import Database.Relational.Query.Monad.Trans.Config (askConfig)
-import Database.Relational.Query.Monad.Trans.Join
-  (join', FromPrepend, prependFrom, extractFrom)
+import Database.Relational.Query.Monad.Trans.Join (join')
 import Database.Relational.Query.Monad.Trans.Restricting
-  (Restrictings, restrictings,
-   WherePrepend, prependWhere, extractWheres, HavingPrepend, prependHaving, extractHavings)
+  (Restrictings, restrictings, extractRestrict)
 import Database.Relational.Query.Monad.Trans.Aggregating
-  (Aggregatings, aggregatings, GroupBysPrepend, prependGroupBys, extractGroupBys)
+  (Aggregatings, aggregatings, extractAggregateTerms)
 import Database.Relational.Query.Monad.Trans.Ordering
-  (Orderings, orderings, OrderedQuery, OrderByPrepend, prependOrderBy, extractOrderBys)
-import Database.Relational.Query.Monad.Type (ConfigureQuery, QueryCore)
+  (Orderings, orderings, OrderedQuery, extractOrderingTerms)
+import Database.Relational.Query.Monad.Type (ConfigureQuery, QueryCore, extractCore)
 
 
 -- | Aggregated query monad type.
@@ -57,28 +56,23 @@ aggregatedQuery =  orderings . restrictings . aggregatings . restrictings . join
 instance MonadQualify ConfigureQuery QueryAggregate where
   liftQualify = aggregatedQuery
 
-expandPrepend :: AggregatedQuery r
-                 -> ConfigureQuery (((((Projection Aggregated r, OrderByPrepend), HavingPrepend), GroupBysPrepend), WherePrepend), FromPrepend)
-expandPrepend =  extractFrom . extractWheres . extractGroupBys . extractHavings . extractOrderBys
-
--- | Run 'AggregatedQuery' to get SQL string.
-expandSQL :: AggregatedQuery r -> ConfigureQuery (String, Projection Flat r)
-expandSQL q = do
-  (((((aggr, ao), ah), ag), aw), af) <- expandPrepend q
-  c <- askConfig
-  let projection = Projection.unsafeToFlat aggr
-  return (selectSeedSQL projection . prependFrom af c . prependWhere aw
-          . prependGroupBys ag . prependHaving ah . prependOrderBy ao $ "",
-          projection)
+extract :: AggregatedQuery r
+        -> ConfigureQuery (((((Projection Aggregated r, OrderingTerms),
+                                 QueryRestriction Aggregated),
+                                AggregateTerms),
+                               QueryRestriction Flat),
+                              JoinProduct)
+extract =  extractCore . extractAggregateTerms . extractRestrict . extractOrderingTerms
 
 -- | Run 'AggregatedQuery' to get SQL with 'ConfigureQuery' computation.
 toSQL :: AggregatedQuery r     -- ^ 'AggregatedQuery' to run
       -> ConfigureQuery String -- ^ Result SQL string with 'ConfigureQuery' computation
-toSQL =  fmap fst . expandSQL
+toSQL =  fmap SubQuery.toSQL . toSubQuery
 
 -- | Run 'AggregatedQuery' to get 'SubQuery' with 'ConfigureQuery' computation.
 toSubQuery :: AggregatedQuery r       -- ^ 'AggregatedQuery' to run
            -> ConfigureQuery SubQuery -- ^ Result 'SubQuery' with 'ConfigureQuery' computation
 toSubQuery q = do
-  (sql, pj) <- expandSQL q
-  return $ subQuery sql (Projection.width pj)
+  (((((pj, ot), grs), ag), rs), pd) <- extract q
+  c <- askConfig
+  return $ aggregatedSubQuery c (Projection.untype pj) pd rs ag grs ot
