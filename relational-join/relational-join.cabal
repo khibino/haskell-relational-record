@@ -65,7 +65,6 @@ library
                        Database.Relational.Query.Internal.AliasId
                        Database.Relational.Query.Internal.String
                        Database.Relational.Query.Internal.Product
-                       Database.Relational.Query.Monad.Trans.StatePrepend
                        Database.Relational.Query.Monad.Trans.AssigningState
                        Database.Relational.Query.Monad.Trans.JoinState
                        Database.Relational.Query.Monad.Trans.RestrictingState
