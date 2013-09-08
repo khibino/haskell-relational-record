@@ -464,7 +464,9 @@ type Assignments = [Assignment]
 
 -- | Compose SET clause from 'Assignments'.
 composeSets :: Assignments -> ShowS
-composeSets as = showSpace . showUnwordsSQL [SET, assignList `SQL.sepBy` ", "]  where
+composeSets as = assigns  where
   assignList = foldr (\ (col, term) r ->
                        [sqlWordFromColumn col, sqlWordFromColumn term] `SQL.sepBy` " = "  : r)
                [] as
+  assigns | null assignList = error "Update assignment list is null!"
+          | otherwise       = showSpace . showUnwordsSQL [SET, assignList `SQL.sepBy` ", "]

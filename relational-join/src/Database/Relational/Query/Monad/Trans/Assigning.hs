@@ -31,9 +31,10 @@ import Control.Monad.Trans.State (StateT, runStateT, modify)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow ((>>>), second)
 
+import Database.Relational.Query.Sub (Assignments)
 import Database.Relational.Query.Monad.Trans.StatePrepend (Prepend, prepend, liftToString)
 import Database.Relational.Query.Monad.Trans.AssigningState
-  (AssigningContext, primeAssigningContext, updateAssignments, composeAssignments)
+  (AssigningContext, primeAssigningContext, updateAssignments, assignments, composeAssignments)
 import Database.Relational.Query.Pi (Pi)
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Projection (Projection)
@@ -97,6 +98,12 @@ infix 4 <-#
 
 -- | SET clause prepending function.
 type SetPrepend = Prepend AssigningContext
+
+-- | Run 'Assignings' to get 'Assignments'
+extractAssignments :: (Monad m, Functor m)
+                   => Assignings r m a
+                   -> m (a, Assignments)
+extractAssignments q = second assignments <$> runAssigningsPrime q
 
 -- | Run 'Assignings' to get SET clause prepending function.
 extractSets :: (Monad m, Functor m)
