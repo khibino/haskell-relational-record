@@ -16,7 +16,9 @@ module Database.Relational.Query.Monad.Trans.Restricting (
   -- * Transformer into restricted context
   Restrictings, restrictings,
 
-  -- * Result SQL wheres clause
+  -- * Result
+  extractRestrict,
+
   extractWheres, WherePrepend, prependWhere,
   extractHavings, HavingPrepend, prependHaving
   ) where
@@ -29,8 +31,9 @@ import Control.Arrow (second)
 import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Monad.Trans.StatePrepend (Prepend, prepend, liftToString)
 import Database.Relational.Query.Monad.Trans.RestrictingState
-  (RestrictContext, primeRestrictContext, addRestriction, composeWheres, composeHavings)
+  (RestrictContext, primeRestrictContext, addRestriction, restriction, composeWheres, composeHavings)
 import Database.Relational.Query.Expr (Expr)
+import Database.Relational.Query.Sub (QueryRestriction)
 
 import Database.Relational.Query.Monad.Class (MonadRestrict(..), MonadQuery (..), MonadAggregate(..))
 
@@ -75,6 +78,10 @@ instance MonadQuery q => MonadQuery (Restrictings c q) where
 -- | Resticted 'MonadAggregate' instance.
 instance MonadAggregate m => MonadAggregate (Restrictings c m) where
   aggregateKey = restrictings . aggregateKey
+
+-- | Run 'Restrictings' to get 'QueryRestriction'
+extractRestrict :: (Monad m, Functor m) => Restrictings c m a -> m (a, QueryRestriction c)
+extractRestrict q = second restriction <$> runRestrictingsPrime q
 
 -- | WHERE clause prepending function.
 type WherePrepend = Prepend (RestrictContext Flat)

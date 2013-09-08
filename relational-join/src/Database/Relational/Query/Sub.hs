@@ -12,7 +12,8 @@
 -- This module defines sub-query structure used in query products.
 module Database.Relational.Query.Sub (
   -- * Sub-query
-  SubQuery, fromTable, subQuery, union, except, intersect,
+  SubQuery, fromTable, subQuery, flatSubQuery,
+  union, except, intersect,
   toSQL, unitSQL, width,
 
   -- * Qualified Sub-query
@@ -101,6 +102,15 @@ subQuery :: String   -- ^ SQL string
          -> Int      -- ^ Width of 'SubQuery'
          -> SubQuery -- ^ Result 'SubQuery'
 subQuery =  SubQuery
+
+-- | Unsafely generate 'SubQuery' from untyped components.
+flatSubQuery :: Config
+             -> UntypedProjection
+             -> JoinProduct
+             -> QueryRestriction Context.Flat
+             -> OrderingTerms
+             -> SubQuery
+flatSubQuery = Flat
 
 -- | Binary operator on 'SubQuery'
 binSubQuery :: BinOp -> SubQuery -> SubQuery -> SubQuery

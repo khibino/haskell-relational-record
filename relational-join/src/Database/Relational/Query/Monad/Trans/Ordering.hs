@@ -21,7 +21,9 @@ module Database.Relational.Query.Monad.Trans.Ordering (
   -- * API of query with ordering
   asc, desc,
 
-  -- * Result SQL order-by clause
+  -- * Result
+  extractOrderingTerms,
+
   extractOrderBys,
   OrderByPrepend, prependOrderBy
   ) where
@@ -31,10 +33,10 @@ import Control.Monad.Trans.State (StateT, runStateT, modify)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second, (>>>))
 
-import Database.Relational.Query.Sub (Order(Asc, Desc), OrderColumn)
+import Database.Relational.Query.Sub (Order(Asc, Desc), OrderColumn, OrderingTerms)
 import Database.Relational.Query.Monad.Trans.StatePrepend (Prepend, prepend, liftToString)
 import Database.Relational.Query.Monad.Trans.OrderingState
-  (OrderingContext, primeOrderingContext, updateOrderBy, composeOrderBys)
+  (OrderingContext, primeOrderingContext, updateOrderBy, orderingTerms, composeOrderBys)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
@@ -81,11 +83,11 @@ instance MonadAggregate m => MonadAggregate (Orderings p m) where
 type OrderedQuery p m r = Orderings p m (Projection p r)
 
 -- | Ordering term projection type interface.
-class OrderingTerms p where
+class ProjectableOrdering p where
   orderTerms :: p t -> [OrderColumn]
 
 -- | 'Projection' is ordering term.
-instance OrderingTerms (Projection c) where
+instance ProjectableOrdering (Projection c) where
   orderTerms = Projection.columns
 
 -- | Unsafely update ordering context.
@@ -93,7 +95,7 @@ updateOrderingContext :: Monad m => (OrderingContext -> OrderingContext) -> Orde
 updateOrderingContext =  Orderings . modify
 
 -- | Add ordering terms.
-updateOrderBys :: (Monad m, OrderingTerms (Projection p))
+updateOrderBys :: (Monad m, ProjectableOrdering (Projection p))
                => Order            -- ^ Order direction
                -> Projection p t   -- ^ Ordering terms to add
                -> Orderings p m () -- ^ Result context with ordering
@@ -121,16 +123,20 @@ unsafeMergeAnotherOrderBys naR qR = do
 
 
 -- | Add ascendant ordering term.
-asc :: (Monad m, OrderingTerms (Projection p))
+asc :: (Monad m, ProjectableOrdering (Projection p))
     => Projection p t   -- ^ Ordering terms to add
     -> Orderings p m () -- ^ Result context with ordering
 asc  =  updateOrderBys Asc
 
 -- | Add descendant ordering term.
-desc :: (Monad m, OrderingTerms (Projection p))
+desc :: (Monad m, ProjectableOrdering (Projection p))
      => Projection p t   -- ^ Ordering terms to add
      -> Orderings p m () -- ^ Result context with ordering
 desc =  updateOrderBys Desc
+
+-- | Run 'Orderings' to get 'OrderingTerms'
+extractOrderingTerms :: (Monad m, Functor m) => Orderings p m a -> m (a, OrderingTerms)
+extractOrderingTerms q = second orderingTerms <$> runOrderingsPrime q
 
 -- | ORDER BY clause prepending function.
 type OrderByPrepend = Prepend OrderingContext

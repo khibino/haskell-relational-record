@@ -17,7 +17,9 @@ module Database.Relational.Query.Monad.Trans.Aggregating (
   -- * Transformer into aggregated query
   Aggregatings, aggregatings,
 
-  -- * Result group by SQLs
+  -- * Result
+  extractAggregateTerms,
+
   GroupBysPrepend, extractGroupBys, prependGroupBys
   ) where
 
@@ -27,10 +29,10 @@ import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second, (>>>))
 
 import Database.Relational.Query.Context (Flat, Aggregated)
-import Database.Relational.Query.Sub (AggregateTerm)
+import Database.Relational.Query.Sub (AggregateTerm, AggregateTerms)
 import Database.Relational.Query.Monad.Trans.StatePrepend (Prepend, prepend, liftToString)
 import Database.Relational.Query.Monad.Trans.AggregatingState
-  (AggregatingContext, primeAggregatingContext, addGroupBy, composeGroupBys)
+  (AggregatingContext, primeAggregatingContext, aggregateTerms, addGroupBy, composeGroupBys)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
@@ -86,6 +88,10 @@ addGroupBys p = do
 -- | Aggregated query instance.
 instance MonadQuery m => MonadAggregate (Aggregatings m) where
   aggregateKey = addGroupBys
+
+-- | Run 'Aggregatings' to get 'AggregateTerms'.
+extractAggregateTerms :: (Monad m, Functor m) => Aggregatings m a -> m (a, AggregateTerms)
+extractAggregateTerms q = second aggregateTerms <$> runAggregatingPrime q
 
 -- | GROUP BY terms prepending function.
 type GroupBysPrepend = Prepend AggregatingContext
