@@ -62,9 +62,7 @@ import qualified Database.Relational.Query.Sub as SubQuery
 
 
 -- | Relation type with place-holder parameter 'p' and query result type 'r'.
-data Relation p r = SubQuery (ConfigureQuery SubQuery)
-                  | SimpleRel (SimpleQuery r)
-                  | AggregateRel (AggregatedQuery r)
+newtype Relation p r = SubQuery (ConfigureQuery SubQuery)
 
 
 -- | Simple 'Relation' from 'Table'.
@@ -78,8 +76,6 @@ placeHoldersFromRelation =  const unsafePlaceHolders
 subQueryQualifyFromRelation :: Relation p r -> ConfigureQuery SubQuery
 subQueryQualifyFromRelation =  d  where
   d (SubQuery qsub)   = qsub
-  d (SimpleRel qp)    = Simple.toSubQuery qp
-  d (AggregateRel qp) = Aggregate.toSubQuery qp
 
 -- -- | Sub-query from relation.
 -- subQueryFromRelation :: Relation p r -> SubQuery
@@ -133,21 +129,27 @@ queryList :: MonadQualify ConfigureQuery m
           -> m (ListProjection (Projection c) r)
 queryList =  queryList0
 
+unsafeRelation :: SimpleQuery rp -> Relation p r
+unsafeRelation =  SubQuery . Simple.toSubQuery
+
 -- | Finalize 'QuerySimple' monad and generate 'Relation'.
 relation :: QuerySimple (Projection Flat r) -> Relation () r
-relation =  SimpleRel
+relation =  unsafeRelation
 
 -- | Finalize 'QuerySimple' monad and generate 'Relation' with place-holder parameter 'p'.
 relation' :: QuerySimple (PlaceHolders p, Projection Flat r) -> Relation p r
-relation' =  SimpleRel . fmap snd
+relation' =  unsafeRelation . fmap snd
+
+unsafeAggregateRelation :: AggregatedQuery rp -> Relation p r
+unsafeAggregateRelation =  SubQuery . Aggregate.toSubQuery
 
 -- | Finalize 'QueryAggregate' monad and geneate 'Relation'.
 aggregateRelation :: QueryAggregate (Projection Aggregated r) -> Relation () r
-aggregateRelation =  AggregateRel
+aggregateRelation =  unsafeAggregateRelation
 
 -- | Finalize 'QueryAggregate' monad and geneate 'Relation' with place-holder parameter 'p'.
 aggregateRelation' :: QueryAggregate (PlaceHolders p, Projection Aggregated r) -> Relation p r
-aggregateRelation' =  AggregateRel . fmap snd
+aggregateRelation' =  unsafeAggregateRelation . fmap snd
 
 
 -- | Restriction function type for direct style join operator.
@@ -156,8 +158,6 @@ type JoinRestriction a b = Projection Flat a -> Projection Flat b -> Projection 
 unsafeCastPlaceHolder :: Relation a r -> Relation b r
 unsafeCastPlaceHolder =  d  where
   d (SubQuery q)      = SubQuery q
-  d (SimpleRel qm)    = SimpleRel qm
-  d (AggregateRel qm) = AggregateRel qm
 
 -- | Simplify placeholder type applying left identity element.
 rightPh :: Relation ((), p) r -> Relation p r
@@ -308,8 +308,6 @@ infixl 7 `union`, `except`, `intersect`, `union'`, `except'`, `intersect'`
 sqlQualifyFromRelation :: Relation p r -> ConfigureQuery String
 sqlQualifyFromRelation =  d  where
   d (SubQuery qsub)   = SubQuery.toSQL `fmap` qsub
-  d (SimpleRel qp)    = Simple.toSQL qp
-  d (AggregateRel qp) = Aggregate.toSQL qp
 
 -- | Generate SQL string from 'Relation' with configuration.
 sqlFromRelationWith :: Relation p r -> Config -> String
