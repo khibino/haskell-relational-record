@@ -51,7 +51,10 @@ module Database.Relational.Query.Sub (
   AggregateTerm, AggregateTerms,
 
   -- * Types for ordering
-  Order (..), order, OrderColumn, OrderingTerm, OrderingTerms
+  Order (..), order, OrderColumn, OrderingTerm, OrderingTerms,
+
+  -- * Types for assignments
+  AssignColumn, AssignTerm, Assignment, Assignments
   ) where
 
 import Data.Maybe (fromMaybe)
@@ -441,3 +444,16 @@ composeOrderByes ots = orders  where
   orderList = foldr (\ (o, e) r -> [sqlWordFromColumn e, order o] `SQL.sepBy` " "  : r) [] ots
   orders | null orderList = id
          | otherwise      = showSpace . showUnwordsSQL [ORDER, BY, orderList `SQL.sepBy` ", "]
+
+
+-- | Column SQL String
+type AssignColumn = ColumnSQL
+
+-- | Value SQL String
+type AssignTerm   = ColumnSQL
+
+-- | Assignment pair
+type Assignment = (AssignColumn, AssignTerm)
+
+-- | Assignment pair list.
+type Assignments = [Assignment]

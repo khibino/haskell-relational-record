@@ -30,20 +30,12 @@ import qualified Data.DList as DList
 import Data.Monoid ((<>))
 import Control.Applicative (pure)
 
-import Database.Relational.Query.Table (ColumnSQL, sqlWordFromColumn)
+import Database.Relational.Query.Table (sqlWordFromColumn)
+import Database.Relational.Query.Sub (AssignColumn, AssignTerm, Assignment)
 
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
 
-
--- | Column SQL String
-type AssignColumn = ColumnSQL
-
--- | Value SQL String
-type AssignTerm   = ColumnSQL
-
--- | Assignment pair
-type Assignment = (AssignColumn, AssignTerm)
 
 -- | Assigning terms.
 type AssigningTerms = DList Assignment
