@@ -36,7 +36,7 @@ import Database.Relational.Query.Restriction
 import Database.Relational.Query.Pi (Pi)
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.SQL
-  (updateOtherThanKeySQL, insertSQL, updateSeedSQL, deleteSQL)
+  (updateOtherThanKeySQL, insertSQL, updatePrefixSQL, deleteSQL)
 
 
 -- | Query type with place-holder parameter 'p' and query result type 'a'.
@@ -85,7 +85,7 @@ unsafeTypedUpdate =  Update
 
 -- | Make typed 'Update' from 'Table' and 'Restriction'.
 typedUpdate :: Table r -> UpdateTarget p r -> Update p
-typedUpdate tbl ut = unsafeTypedUpdate . updateSeedSQL tbl
+typedUpdate tbl ut = unsafeTypedUpdate . updatePrefixSQL tbl
                      . sqlFromUpdateTarget tbl ut $ ""
 
 -- | Directly make typed 'Update' from 'Table' and 'Target' monad context.

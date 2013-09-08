@@ -140,8 +140,8 @@ width =  d  where
   d (Aggregated _ up _ _ _ _ _) = widthOfUntypedProjection up
 
 -- | SQL to query table.
-fromTableToSql :: Table.Untyped -> String
-fromTableToSql t =
+fromTableToSQL :: Table.Untyped -> String
+fromTableToSQL t =
   unwordsSQL
   $ [SELECT, map sqlWordFromColumn (Table.columns' t) `SQL.sepBy` ", ",
      FROM, SQL.word $ Table.name' t]
@@ -177,7 +177,7 @@ selectPrefixSQL up =
 toSQLs :: SubQuery
        -> (String, String) -- ^ subquery SQL and top-level SQL
 toSQLs =  d  where
-  d (Table u)               = (Table.name' u, fromTableToSql u)
+  d (Table u)               = (Table.name' u, fromTableToSQL u)
   d (Bin op l r)            = (paren q, q)  where
     q = unwords [normalizedSQL l, SQL.wordShow $ keywordBinOp op, normalizedSQL r]
   d (Flat cf up pd rs od)   = (paren q, q)  where

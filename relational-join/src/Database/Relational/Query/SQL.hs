@@ -12,7 +12,7 @@
 -- This module defines functions to generate simple SQL strings.
 module Database.Relational.Query.SQL (
   -- * Update SQL
-  updateSeedSQL,
+  updatePrefixSQL,
   updateSQL',
   updateOtherThanKeySQL', updateOtherThanKeySQL,
 
@@ -33,8 +33,8 @@ import Database.Relational.Query.Table (ColumnSQL, sqlWordFromColumn, Table, nam
 
 
 -- | Generate update SQL. Seed SQL string append to this.
-updateSeedSQL :: Table r -> ShowS
-updateSeedSQL table = (unwordsSQL [UPDATE, SQL.word $ name table] ++)
+updatePrefixSQL :: Table r -> ShowS
+updatePrefixSQL table = (unwordsSQL [UPDATE, SQL.word $ name table] ++)
 
 -- | Generate update SQL by specified key and table.
 --   Columns name list of table are also required.
