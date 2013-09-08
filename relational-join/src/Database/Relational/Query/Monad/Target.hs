@@ -12,19 +12,16 @@ module Database.Relational.Query.Monad.Target (
   -- * Monad to restrict target records with assignment.
   Target, TargetStatement,
   -- updateStatement,
-  extract,
-  expandPrepend
+  extract
   ) where
 
 import Database.Relational.Query.Sub (QueryRestriction, Assignments)
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Projection (Projection)
-import Database.Relational.Query.Monad.Restrict (Restrict, expandWhere)
+import Database.Relational.Query.Monad.Restrict (Restrict)
 import qualified Database.Relational.Query.Monad.Restrict as Restrict
-import Database.Relational.Query.Monad.Trans.Restricting (WherePrepend)
-import Database.Relational.Query.Monad.Trans.Assigning
-  (Assignings, SetPrepend, extractAssignments, extractSets)
+import Database.Relational.Query.Monad.Trans.Assigning (Assignings, extractAssignments)
 
 -- | Target update monad type used from update statement and merge statement.
 type Target r = Assignings r Restrict
@@ -41,7 +38,3 @@ type TargetStatement r a = Table r -> Projection Flat r -> Target r a
 -- | Run 'Target'.
 extract :: Target r a -> ((a, Assignments), QueryRestriction Flat)
 extract =  Restrict.extract . extractAssignments
-
--- | Run 'Target' to get SQL WHERE clause.
-expandPrepend :: Target r a -> ((a, SetPrepend), WherePrepend)
-expandPrepend = expandWhere. extractSets

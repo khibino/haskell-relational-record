@@ -13,8 +13,7 @@ module Database.Relational.Query.Monad.Restrict (
   Restrict, RestrictedStatement,
 
   -- restricted,
-  extract,
-  expandWhere
+  extract
   ) where
 
 import Data.Functor.Identity (Identity (..), runIdentity)
@@ -22,8 +21,7 @@ import Data.Functor.Identity (Identity (..), runIdentity)
 import Database.Relational.Query.Sub (QueryRestriction)
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Projection (Projection)
-import Database.Relational.Query.Monad.Trans.Restricting
-  (Restrictings, extractRestrict, WherePrepend, extractWheres)
+import Database.Relational.Query.Monad.Trans.Restricting (Restrictings, extractRestrict)
 
 
 -- | Restrict only monad type used from update statement and delete statement.
@@ -41,7 +39,3 @@ type RestrictedStatement r a = Projection Flat r -> Restrict a
 -- | Run 'Restrict' to get 'QueryRestriction'.
 extract :: Restrict a -> (a, QueryRestriction Flat)
 extract =  runIdentity . extractRestrict
-
--- | Run 'Restrict' to get SQL WHERE clause.
-expandWhere :: Restrict a -> (a, WherePrepend)
-expandWhere =  runIdentity . extractWheres
