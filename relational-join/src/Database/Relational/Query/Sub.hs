@@ -131,38 +131,17 @@ aggregatedSubQuery :: Config
                    -> SubQuery
 aggregatedSubQuery = Aggregated
 
--- | Binary operator on 'SubQuery'
-binSubQuery :: BinOp -> SubQuery -> SubQuery -> SubQuery
-binSubQuery op a b = Bin op (hideTable a) (hideTable b)
-
 -- | Union binary operator on 'SubQuery'
 union     :: SubQuery -> SubQuery -> SubQuery
-union     =  binSubQuery Union
+union     =  Bin Union
 
 -- | Except binary operator on 'SubQuery'
 except    :: SubQuery -> SubQuery -> SubQuery
-except    =  binSubQuery Except
+except    =  Bin Except
 
 -- | Intersect binary operator on 'SubQuery'
 intersect :: SubQuery -> SubQuery -> SubQuery
-intersect =  binSubQuery Intersect
-
--- | Unify projection field name.
-hideTable :: SubQuery -> SubQuery
-hideTable = d  where
-  d (Table t)          = subQuery sql (Table.width' t)  where
-    columns' = zipWith
-               (\f n -> sqlWordFromColumn f `asColumnN` n)
-               (Table.columns' t)
-               [(0 :: Int)..]
-    sql = unwordsSQL
-          $ [SELECT, columns' `SQL.sepBy` ", ",
-             FROM, SQL.word . Table.name' $ t]
-
-  d sub@(SubQuery _ _)             = sub
-  d sub@(Bin _ _ _)                = sub
-  d sub@(Flat _ _ _ _ _)           = sub
-  d sub@(Aggregated _ _ _ _ _ _ _) = sub
+intersect =  Bin Intersect
 
 -- | Width of 'SubQuery'.
 width :: SubQuery -> Int
@@ -173,12 +152,31 @@ width =  d  where
   d (Flat _ up _ _ _)           = widthOfUntypedProjection up
   d (Aggregated _ up _ _ _ _ _) = widthOfUntypedProjection up
 
--- | SQL to query table
+-- | SQL to query table.
 fromTableToSql :: Table.Untyped -> String
 fromTableToSql t =
   unwordsSQL
   $ [SELECT, map sqlWordFromColumn (Table.columns' t) `SQL.sepBy` ", ",
      FROM, SQL.word $ Table.name' t]
+
+-- | Generate normalized column SQL from table.
+fromTableToNormalizedSQL :: Table.Untyped -> String
+fromTableToNormalizedSQL t =
+  unwordsSQL
+  $ [SELECT, columns' `SQL.sepBy` ", ", FROM, SQL.word . Table.name' $ t]  where
+  columns' = zipWith
+             (\f n -> sqlWordFromColumn f `asColumnN` n)
+             (Table.columns' t)
+             [(0 :: Int)..]
+
+-- | Normalized column SQL
+normalizedSQL :: SubQuery -> String
+normalizedSQL =  d  where
+  d (Table t)                      = fromTableToNormalizedSQL t
+  d sub@(SubQuery _ _)             = unitSQL sub
+  d sub@(Bin _ _ _)                = unitSQL sub
+  d sub@(Flat _ _ _ _ _)           = unitSQL sub
+  d sub@(Aggregated _ _ _ _ _ _ _) = unitSQL sub
 
 -- | Generate select SQL. Seed SQL string append to this.
 selectPrefixSQL :: UntypedProjection -> ShowS
@@ -196,7 +194,7 @@ toSQLs =  d  where
   d (Table u)               = (Table.name' u, fromTableToSql u)
   d (SubQuery { sql' = q }) = (paren q, q)
   d (Bin op l r)            = (paren q, q)  where
-    q = unwords [unitSQL l, SQL.wordShow $ keywordBinOp op, unitSQL r]
+    q = unwords [normalizedSQL l, SQL.wordShow $ keywordBinOp op, normalizedSQL r]
   d (Flat cf up pd rs od)   = (paren q, q)  where
     q = selectPrefixSQL up . showsJoinProduct cf pd . composeWhere rs
         . composeOrderByes od $ ""
