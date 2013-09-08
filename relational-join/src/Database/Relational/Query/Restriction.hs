@@ -28,16 +28,17 @@ import Database.Record (PersistableWidth)
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Pi (id')
 import Database.Relational.Query.Table (Table)
+import Database.Relational.Query.Sub (composeWhere, composeSets)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable
   (PlaceHolders, placeholder, addPlaceHolders, (><), rightId)
 
-import Database.Relational.Query.Monad.Trans.Assigning
-  (assignings, (!#), (<-#), prependSet)
-import Database.Relational.Query.Monad.Trans.Restricting (prependWhere)
-import Database.Relational.Query.Monad.Restrict (Restrict, RestrictedStatement, expandWhere)
-import Database.Relational.Query.Monad.Target (Target, TargetStatement, expandPrepend)
+import Database.Relational.Query.Monad.Trans.Assigning (assignings, (!#), (<-#))
+import Database.Relational.Query.Monad.Restrict (Restrict, RestrictedStatement)
+import qualified Database.Relational.Query.Monad.Restrict as Restrict
+import Database.Relational.Query.Monad.Target (Target, TargetStatement)
+import qualified Database.Relational.Query.Monad.Target as Target
 
 
 -- | Restriction type with place-holder parameter 'p' and projection record type 'r'.
@@ -61,8 +62,8 @@ runRestriction (Restriction qf) =
 
 -- | SQL WHERE clause 'ShowS' string from 'Restriction'.
 sqlWhereFromRestriction :: Table r -> Restriction p r -> ShowS
-sqlWhereFromRestriction tbl (Restriction q) = prependWhere aw
-  where (_ph, aw) = expandWhere (q $ Projection.unsafeFromTable tbl)
+sqlWhereFromRestriction tbl (Restriction q) = composeWhere rs
+  where (_ph, rs) = Restrict.extract (q $ Projection.unsafeFromTable tbl)
 
 
 -- | UpdateTarget type with place-holder parameter 'p' and projection record type 'r'.
@@ -122,5 +123,5 @@ updateTargetAllColumn' = liftTargetAllColumn' . restriction'
 
 -- | SQL SET clause and WHERE clause 'ShowS' string from 'UpdateTarget'
 sqlFromUpdateTarget :: Table r -> UpdateTarget p r -> ShowS
-sqlFromUpdateTarget tbl (UpdateTarget q) = prependSet as . prependWhere aw
-  where ((_ph, as), aw) = expandPrepend (q tbl (Projection.unsafeFromTable tbl))
+sqlFromUpdateTarget tbl (UpdateTarget q) = composeSets as . composeWhere rs
+  where ((_ph, as), rs) = Target.extract (q tbl (Projection.unsafeFromTable tbl))

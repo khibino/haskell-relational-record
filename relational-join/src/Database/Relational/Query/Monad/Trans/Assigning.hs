@@ -21,6 +21,8 @@ module Database.Relational.Query.Monad.Trans.Assigning (
   assignTo, (!#), (<-#), AssignTarget,
 
   -- * Result SQL set clause
+  extractAssignments,
+
   extractSets,
   SetPrepend, prependSet
   ) where
