@@ -19,7 +19,7 @@ module Database.Relational.Query.Relation (
   relation, relation',
   aggregateRelation, aggregateRelation',
 
-  -- nested, width,
+  dump,
 
   sqlFromRelationWith, sqlFromRelation,
 
@@ -315,6 +315,10 @@ sqlFromRelationWith =  configureQuery . sqlQualifyFromRelation
 -- | SQL string from 'Relation'.
 sqlFromRelation :: Relation p r -> String
 sqlFromRelation =  (`sqlFromRelationWith` defaultConfig)
+
+-- | Dump internal structure tree.
+dump :: Relation p r -> String
+dump =  show . (`configureQuery` defaultConfig) . subQueryQualifyFromRelation
 
 instance Show (Relation p r) where
   show = sqlFromRelation

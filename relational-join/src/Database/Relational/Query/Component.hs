@@ -55,6 +55,9 @@ stringFromColumnSQL (ColumnSQL s) = s
 sqlWordFromColumn :: ColumnSQL -> SQL.Keyword
 sqlWordFromColumn =  SQL.word . stringFromColumnSQL
 
+instance Show ColumnSQL where
+  show = stringFromColumnSQL
+
 
 -- | Configuration type.
 type Config = UnitProductSupport
@@ -64,7 +67,7 @@ defaultConfig :: Config
 defaultConfig =  UPSupported
 
 -- | Unit product is supported or not.
-data UnitProductSupport = UPSupported | UPNotSupported
+data UnitProductSupport = UPSupported | UPNotSupported  deriving Show
 
 
 -- | Type for restriction of query.
@@ -91,7 +94,7 @@ type AggregateTerms = [AggregateTerm]
 
 
 -- | Order direction. Ascendant or Descendant.
-data Order = Asc | Desc
+data Order = Asc | Desc  deriving Show
 
 -- | Type for order-by column
 type OrderColumn = ColumnSQL

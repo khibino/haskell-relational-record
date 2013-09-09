@@ -60,7 +60,7 @@ import qualified Language.SQL.Keyword as SQL
 import qualified Language.SQL.Keyword.ConcatString as SQLs
 
 
-data BinOp = Union | Except | Intersect
+data BinOp = Union | Except | Intersect  deriving Show
 
 keywordBinOp :: BinOp -> Keyword
 keywordBinOp = d  where
@@ -77,6 +77,7 @@ data SubQuery = Table Table.Untyped
                 UntypedProjection JoinProduct (QueryRestriction Context.Flat)
                 AggregateTerms (QueryRestriction Context.Aggregated) OrderingTerms
               | Bin BinOp SubQuery SubQuery
+              deriving Show
 
 -- | 'SubQuery' from 'Table'.
 fromTable :: Table r  -- ^ Typed 'Table' metadata
@@ -180,10 +181,10 @@ toSQL :: SubQuery -> String
 toSQL =  snd . toSQLs
 
 -- | Qualifier type.
-newtype Qualifier = Qualifier Int
+newtype Qualifier = Qualifier Int  deriving Show
 
 -- | Qualified query.
-data Qualified a = Qualified a Qualifier
+data Qualified a = Qualified a Qualifier  deriving Show
 
 -- | 'Functor' instance of 'Qualified'
 instance Functor Qualified where
@@ -245,14 +246,11 @@ column qs =  d (unQualify qs)  where
 qualifiedForm :: Qualified SubQuery -> String
 qualifiedForm =  qualifiedSQLas . fmap unitSQL
 
--- | Show 'SubQuery'.
-instance Show SubQuery where
-  show = toSQL
-
 
 -- | Projection structure unit
 data ProjectionUnit = Columns (Array Int ColumnSQL)
                     | Normalized (Qualified Int)
+                    deriving Show
 
 projectionUnitFromColumns :: [ColumnSQL] -> ProjectionUnit
 projectionUnitFromColumns cs = Columns $ listArray (0, length cs - 1) cs
@@ -339,10 +337,6 @@ showsQueryProduct =  rec  where
      showWordSQL ON,
      showString . showExpr
      . fromMaybe (valueExpr True) {- or error on compile -}  $ rs]
-
--- | Show product tree of query into SQL.
-queryProductSQL :: QueryProduct -> String
-queryProductSQL =  ($ "") . showsQueryProduct
 
 -- | Type for join product of query.
 type JoinProduct = Maybe QueryProduct

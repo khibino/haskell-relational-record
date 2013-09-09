@@ -23,7 +23,7 @@ import Database.Relational.Query.Component (ColumnSQL, columnSQL)
 
 
 -- | Untyped typed table type
-data Untyped = Untyped String Int (Array Int ColumnSQL)
+data Untyped = Untyped String Int (Array Int ColumnSQL)  deriving Show
 
 -- | Name string of table in SQL
 name' :: Untyped -> String

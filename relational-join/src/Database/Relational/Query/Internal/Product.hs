@@ -27,14 +27,15 @@ import Data.Foldable (Foldable (foldMap))
 type Expr = Expr.Expr Flat
 
 -- | node attribute for product.
-data NodeAttr = Just' | Maybe
+data NodeAttr = Just' | Maybe deriving Show
 
 -- | Product tree type. Product tree is constructed by left node and right node.
 data ProductTree q = Leaf q
                    | Join !(Node q) !(Node q) !(Maybe (Expr Bool))
+                   deriving Show
 
 -- | Product node. node attribute and product tree.
-data Node q = Node !NodeAttr !(ProductTree q)
+data Node q = Node !NodeAttr !(ProductTree q)  deriving Show
 
 -- | Get node attribute.
 nodeAttr :: Node q -> NodeAttr
