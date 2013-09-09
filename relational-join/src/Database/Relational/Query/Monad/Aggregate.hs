@@ -26,8 +26,8 @@ module Database.Relational.Query.Monad.Aggregate (
 import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
-import Database.Relational.Query.Sub
-  (SubQuery, aggregatedSubQuery, JoinProduct, QueryRestriction, AggregateTerms, OrderingTerms)
+import Database.Relational.Query.Component (QueryRestriction, AggregateTerms, OrderingTerms)
+import Database.Relational.Query.Sub (SubQuery, aggregatedSubQuery, JoinProduct)
 import qualified Database.Relational.Query.Sub as SubQuery
 
 import Database.Relational.Query.Monad.Class (MonadQualify(..))

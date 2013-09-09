@@ -27,7 +27,7 @@ import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second, (>>>))
 
 import Database.Relational.Query.Context (Flat, Aggregated)
-import Database.Relational.Query.Sub (AggregateTerm, AggregateTerms)
+import Database.Relational.Query.Component (AggregateTerm, AggregateTerms)
 import Database.Relational.Query.Monad.Trans.AggregatingState
   (AggregatingContext, primeAggregatingContext, aggregateTerms, addGroupBy)
 import Database.Relational.Query.Projection (Projection)

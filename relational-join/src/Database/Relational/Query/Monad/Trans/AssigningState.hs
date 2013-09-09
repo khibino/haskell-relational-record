@@ -28,7 +28,7 @@ import qualified Data.DList as DList
 import Data.Monoid ((<>))
 import Control.Applicative (pure)
 
-import Database.Relational.Query.Sub (AssignColumn, AssignTerm, Assignment, Assignments)
+import Database.Relational.Query.Component (AssignColumn, AssignTerm, Assignment, Assignments)
 
 
 -- | Assigning terms.

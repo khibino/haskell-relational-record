@@ -34,8 +34,8 @@ import Database.Relational.Query.Monad.Trans.Ordering
   (Orderings, orderings, OrderedQuery, extractOrderingTerms)
 import Database.Relational.Query.Monad.Type (ConfigureQuery, QueryCore, extractCore)
 
-import Database.Relational.Query.Sub
-  (SubQuery, flatSubQuery, JoinProduct, QueryRestriction, OrderingTerms)
+import Database.Relational.Query.Component (QueryRestriction, OrderingTerms)
+import Database.Relational.Query.Sub (SubQuery, flatSubQuery, JoinProduct)
 import qualified Database.Relational.Query.Sub as SubQuery
 
 

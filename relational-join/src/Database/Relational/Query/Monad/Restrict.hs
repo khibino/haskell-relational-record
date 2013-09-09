@@ -18,7 +18,7 @@ module Database.Relational.Query.Monad.Restrict (
 
 import Data.Functor.Identity (Identity (..), runIdentity)
 
-import Database.Relational.Query.Sub (QueryRestriction)
+import Database.Relational.Query.Component (QueryRestriction)
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Projection (Projection)
 import Database.Relational.Query.Monad.Trans.Restricting (Restrictings, extractRestrict)

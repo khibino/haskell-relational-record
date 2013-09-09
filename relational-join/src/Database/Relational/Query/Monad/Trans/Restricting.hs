@@ -28,7 +28,7 @@ import Control.Arrow (second)
 import Database.Relational.Query.Monad.Trans.RestrictingState
   (RestrictContext, primeRestrictContext, addRestriction, restriction)
 import Database.Relational.Query.Expr (Expr)
-import Database.Relational.Query.Sub (QueryRestriction)
+import Database.Relational.Query.Component (QueryRestriction)
 
 import Database.Relational.Query.Monad.Class (MonadRestrict(..), MonadQuery (..), MonadAggregate(..))
 

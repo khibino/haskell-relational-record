@@ -15,7 +15,7 @@ module Database.Relational.Query.Monad.Target (
   extract
   ) where
 
-import Database.Relational.Query.Sub (QueryRestriction, Assignments)
+import Database.Relational.Query.Component (QueryRestriction, Assignments)
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Projection (Projection)

@@ -25,7 +25,7 @@ import qualified Data.DList as DList
 import Data.Monoid ((<>))
 import Control.Applicative (pure)
 
-import Database.Relational.Query.Sub (AggregateTerm, AggregateTerms)
+import Database.Relational.Query.Component (AggregateTerm, AggregateTerms)
 
 
 -- | Context state of aggregated query.

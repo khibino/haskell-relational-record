@@ -32,23 +32,7 @@ module Database.Relational.Query.Sub (
 
 
   -- * Product of sub-queries
-  QueryProduct, QueryProductNode,
-
-  queryProductSQL,
-
-  JoinProduct,
-
-  -- * Query restriction
-  QueryRestriction, composeWhere,
-
-  -- * Types for aggregation
-  AggregateTerm, AggregateTerms,
-
-  -- * Types for ordering
-  Order (..), order, OrderColumn, OrderingTerm, OrderingTerms,
-
-  -- * Types for assignments
-  AssignColumn, AssignTerm, Assignment, Assignments, composeSets
+  QueryProduct, QueryProductNode, JoinProduct,
   ) where
 
 import Data.Maybe (fromMaybe)
@@ -56,14 +40,16 @@ import Data.Array (Array, listArray)
 import qualified Data.Array as Array
 
 import qualified Database.Relational.Query.Context as Context
-import Database.Relational.Query.Expr (Expr, valueExpr)
+import Database.Relational.Query.Expr (valueExpr)
 import Database.Relational.Query.Expr.Unsafe (showExpr)
 import Database.Relational.Query.Internal.Product
   (NodeAttr(Just', Maybe), ProductTree (Leaf, Join),
    Node, nodeAttr, nodeTree)
 import Database.Relational.Query.Component
   (ColumnSQL, columnSQL, sqlWordFromColumn, stringFromColumnSQL,
-   Config, UnitProductSupport (UPSupported, UPNotSupported))
+   Config, UnitProductSupport (UPSupported, UPNotSupported),
+   QueryRestriction, composeWhere, composeHaving,
+   AggregateTerms, Order (Asc, Desc), OrderingTerms)
 import Database.Relational.Query.Table (Table, (!))
 import qualified Database.Relational.Query.Table as Table
 
@@ -183,7 +169,7 @@ toSQLs =  d  where
         . composeOrderByes od $ ""
   d (Aggregated cf up pd rs ag grs od) = (paren q, q)  where
     q = selectPrefixSQL up . showsJoinProduct cf pd . composeWhere rs
-        . composeGroupBys ag . composeRestrict HAVING grs . composeOrderByes od $ ""
+        . composeGroupBys ag . composeHaving grs . composeOrderByes od $ ""
 
 -- | SQL string for nested-qeury.
 unitSQL :: SubQuery -> String
@@ -368,23 +354,6 @@ showsJoinProduct ups =  maybe (up ups) from  where
   up UPSupported    = id
   up UPNotSupported = error "relation: Unit product support mode is disabled!"
 
--- | Type for restriction of query.
-type QueryRestriction c = Maybe (Expr c Bool)
-
--- | Compose SQL String from 'QueryRestriction'.
-composeRestrict :: Keyword -> QueryRestriction c -> ShowS
-composeRestrict k = maybe id (\e -> showSpace . showUnwordsSQL [k, SQL.word . showExpr $ e])
-
--- | Compose WHERE clause from 'QueryRestriction'.
-composeWhere :: QueryRestriction Context.Flat -> ShowS
-composeWhere =  composeRestrict WHERE
-
-
--- | Type for group-by term
-type AggregateTerm = ColumnSQL
-
--- | Type for group-by terms
-type AggregateTerms = [AggregateTerm]
 
 composeGroupBys :: AggregateTerms -> ShowS
 composeGroupBys as = groupBys where
@@ -394,47 +363,13 @@ composeGroupBys as = groupBys where
   gs = map sqlWordFromColumn as
 
 
--- | Order direction. Ascendant or Descendant.
-data Order = Asc | Desc
-
 -- | Get SQL keyword from order attribute.
 order :: Order -> Keyword
 order Asc  = ASC
 order Desc = DESC
-
--- | Type for order-by column
-type OrderColumn = ColumnSQL
-
--- | Type for order-by term
-type OrderingTerm = (Order, OrderColumn)
-
--- | Type for order-by terms
-type OrderingTerms = [OrderingTerm]
 
 composeOrderByes :: OrderingTerms -> ShowS
 composeOrderByes ots = orders  where
   orderList = foldr (\ (o, e) r -> [sqlWordFromColumn e, order o] `SQL.sepBy` " "  : r) [] ots
   orders | null orderList = id
          | otherwise      = showSpace . showUnwordsSQL [ORDER, BY, orderList `SQL.sepBy` ", "]
-
-
--- | Column SQL String
-type AssignColumn = ColumnSQL
-
--- | Value SQL String
-type AssignTerm   = ColumnSQL
-
--- | Assignment pair
-type Assignment = (AssignColumn, AssignTerm)
-
--- | Assignment pair list.
-type Assignments = [Assignment]
-
--- | Compose SET clause from 'Assignments'.
-composeSets :: Assignments -> ShowS
-composeSets as = assigns  where
-  assignList = foldr (\ (col, term) r ->
-                       [sqlWordFromColumn col, sqlWordFromColumn term] `SQL.sepBy` " = "  : r)
-               [] as
-  assigns | null assignList = error "Update assignment list is null!"
-          | otherwise       = showSpace . showUnwordsSQL [SET, assignList `SQL.sepBy` ", "]

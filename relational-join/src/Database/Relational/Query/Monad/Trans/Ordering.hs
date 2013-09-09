@@ -30,7 +30,7 @@ import Control.Monad.Trans.State (StateT, runStateT, modify)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second, (>>>))
 
-import Database.Relational.Query.Sub (Order(Asc, Desc), OrderColumn, OrderingTerms)
+import Database.Relational.Query.Component (Order(Asc, Desc), OrderColumn, OrderingTerms)
 import Database.Relational.Query.Monad.Trans.OrderingState
   (OrderingContext, primeOrderingContext, updateOrderBy, orderingTerms)
 import Database.Relational.Query.Projection (Projection)

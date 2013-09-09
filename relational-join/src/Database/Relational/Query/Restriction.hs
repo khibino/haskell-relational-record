@@ -28,7 +28,7 @@ import Database.Record (PersistableWidth)
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Pi (id')
 import Database.Relational.Query.Table (Table)
-import Database.Relational.Query.Sub (composeWhere, composeSets)
+import Database.Relational.Query.Component (composeWhere, composeSets)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable

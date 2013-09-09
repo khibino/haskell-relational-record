@@ -21,7 +21,7 @@ module Database.Relational.Query.Monad.Trans.RestrictingState (
   ) where
 
 import Database.Relational.Query.Expr (Expr, fromJust, exprAnd)
-import Database.Relational.Query.Sub (QueryRestriction)
+import Database.Relational.Query.Component (QueryRestriction)
 
 
 -- | Context type for Restrict.

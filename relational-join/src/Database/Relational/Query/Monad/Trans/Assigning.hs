@@ -30,7 +30,7 @@ import Control.Monad.Trans.State (StateT, runStateT, modify)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow ((>>>), second)
 
-import Database.Relational.Query.Sub (Assignments)
+import Database.Relational.Query.Component (Assignments)
 import Database.Relational.Query.Monad.Trans.AssigningState
   (AssigningContext, primeAssigningContext, updateAssignments, assignments)
 import Database.Relational.Query.Pi (Pi)

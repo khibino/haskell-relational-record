@@ -26,7 +26,7 @@ import qualified Data.DList as DList
 import Data.Monoid ((<>))
 import Control.Applicative (pure)
 
-import Database.Relational.Query.Sub (Order, OrderColumn, OrderingTerm, OrderingTerms)
+import Database.Relational.Query.Component (Order, OrderColumn, OrderingTerm, OrderingTerms)
 
 
 -- | Ordering terms.
