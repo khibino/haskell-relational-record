@@ -47,18 +47,17 @@ import qualified Database.Relational.Query.Monad.Simple as Simple
 import Database.Relational.Query.Monad.Aggregate (QueryAggregate, AggregatedQuery)
 import qualified Database.Relational.Query.Monad.Aggregate as Aggregate
 
+import Database.Relational.Query.Component (Config, defaultConfig)
 import Database.Relational.Query.Table (Table)
-
 import Database.Relational.Query.Internal.Product (NodeAttr(Just', Maybe))
+import Database.Relational.Query.Sub (SubQuery)
+import qualified Database.Relational.Query.Sub as SubQuery
 
 import Database.Relational.Query.Projection
   (Projection, ListProjection, unsafeListProjectionFromSubQuery)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable
   (PlaceHolders, addPlaceHolders, unsafePlaceHolders, projectZip)
-
-import Database.Relational.Query.Sub (SubQuery, Config, defaultConfig)
-import qualified Database.Relational.Query.Sub as SubQuery
 
 
 -- | Relation type with place-holder parameter 'p' and query result type 'r'.

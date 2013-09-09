@@ -13,7 +13,8 @@ module Database.Relational.Query.Monad.Type (
   ConfigureQuery, configureQuery, qualifyQuery, QueryCore, extractCore
   ) where
 
-import Database.Relational.Query.Sub (Qualified, Config, JoinProduct, QueryRestriction)
+import Database.Relational.Query.Component (Config)
+import Database.Relational.Query.Sub (Qualified, JoinProduct, QueryRestriction)
 import Database.Relational.Query.Context (Flat)
 import qualified Database.Relational.Query.Monad.Qualify as Qualify
 import Database.Relational.Query.Monad.Qualify (Qualify, evalQualifyPrime)

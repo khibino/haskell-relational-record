@@ -15,6 +15,7 @@ module Database.Relational.Query (
   module Database.Relational.Query.Constraint,
   module Database.Relational.Query.Context,
   module Database.Relational.Query.Expr,
+  module Database.Relational.Query.Component,
   module Database.Relational.Query.Sub,
   module Database.Relational.Query.Projection,
   module Database.Relational.Query.Projectable,
@@ -44,7 +45,8 @@ import Database.Relational.Query.Constraint
    Primary, Unique, NotNull)
 import Database.Relational.Query.Context
 import Database.Relational.Query.Expr hiding (fromJust, just)
-import Database.Relational.Query.Sub (SubQuery, unitSQL, queryWidth, Config, defaultConfig)
+import Database.Relational.Query.Component (Config, defaultConfig, UnitProductSupport (..))
+import Database.Relational.Query.Sub (SubQuery, unitSQL, queryWidth)
 import Database.Relational.Query.Projection (Projection, list)
 import Database.Relational.Query.Projectable
 import Database.Relational.Query.ProjectableExtended

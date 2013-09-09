@@ -31,10 +31,6 @@ module Database.Relational.Query.Sub (
   widthOfUntypedProjection, columnsOfUntypedProjection,
 
 
-  -- * Configuration type for query
-  Config, defaultConfig,
-  UnitProductSupport (..),
-
   -- * Product of sub-queries
   QueryProduct, QueryProductNode,
 
@@ -66,7 +62,8 @@ import Database.Relational.Query.Internal.Product
   (NodeAttr(Just', Maybe), ProductTree (Leaf, Join),
    Node, nodeAttr, nodeTree)
 import Database.Relational.Query.Component
-  (ColumnSQL, columnSQL, sqlWordFromColumn, stringFromColumnSQL)
+  (ColumnSQL, columnSQL, sqlWordFromColumn, stringFromColumnSQL,
+   Config, UnitProductSupport (UPSupported, UPNotSupported))
 import Database.Relational.Query.Table (Table, (!))
 import qualified Database.Relational.Query.Table as Table
 
@@ -330,17 +327,6 @@ columnsOfUntypedProjection :: UntypedProjection -- ^ Source 'Projection'
                            -> [ColumnSQL]       -- ^ Result SQL string list
 columnsOfUntypedProjection p = map (\n -> columnOfUntypedProjection p n) . take w $ [0 .. ]
   where w = widthOfUntypedProjection p
-
-
--- | Configuration type.
-type Config = UnitProductSupport
-
--- | Default configuration.
-defaultConfig :: Config
-defaultConfig =  UPSupported
-
--- | Unit product is supported or not.
-data UnitProductSupport = UPSupported | UPNotSupported
 
 
 -- | Product tree specialized by 'SubQuery'.
