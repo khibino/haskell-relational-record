@@ -65,7 +65,7 @@ import Database.Record (PersistableWidth, PersistableRecordWidth, derivedWidth)
 
 import Database.Relational.Query.Internal.String (paren, sqlRowString)
 import Database.Relational.Query.Context (Flat, Aggregated, Exists)
-import Database.Relational.Query.Table (columnSQL, stringFromColumnSQL)
+import Database.Relational.Query.Component (columnSQL, stringFromColumnSQL)
 import Database.Relational.Query.Expr (Expr, ShowConstantSQL (showConstantSQL))
 import qualified Database.Relational.Query.Expr as Expr
 import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr

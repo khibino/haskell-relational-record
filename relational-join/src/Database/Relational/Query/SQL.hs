@@ -29,7 +29,8 @@ import Language.SQL.Keyword (Keyword(..), (.=.), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
 import Database.Record.ToSql (untypedUpdateValuesIndex)
 import Database.Relational.Query.Pi.Unsafe (Pi, unsafeExpandIndexes)
-import Database.Relational.Query.Table (ColumnSQL, sqlWordFromColumn, Table, name, columns)
+import Database.Relational.Query.Component (ColumnSQL, sqlWordFromColumn)
+import Database.Relational.Query.Table (Table, name, columns)
 
 
 -- | Generate update SQL. Seed SQL string append to this.

@@ -38,7 +38,8 @@ import Prelude hiding (pi)
 
 import Database.Relational.Query.Internal.String (paren, sqlRowListString)
 import Database.Relational.Query.Context (Aggregated, Flat)
-import Database.Relational.Query.Table (Table, ColumnSQL)
+import Database.Relational.Query.Component (ColumnSQL)
+import Database.Relational.Query.Table (Table)
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi

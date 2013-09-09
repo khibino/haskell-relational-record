@@ -9,9 +9,6 @@
 --
 -- This module defines table type which has table metadatas.
 module Database.Relational.Query.Table (
-  -- * Type for column SQL string
-  ColumnSQL, columnSQL, sqlWordFromColumn, stringFromColumnSQL,
-
   -- * Untyped table type
   Untyped, name', width', columns', (!),
 
@@ -22,23 +19,7 @@ module Database.Relational.Query.Table (
 import Data.Array (Array, listArray, elems)
 import qualified Data.Array as Array
 
-import qualified Language.SQL.Keyword as SQL
-
-
--- | Column SQL string type
-newtype ColumnSQL = ColumnSQL String
-
--- | 'ColumnSQL' from string
-columnSQL :: String -> ColumnSQL
-columnSQL =  ColumnSQL
-
--- | String from ColumnSQL
-stringFromColumnSQL :: ColumnSQL -> String
-stringFromColumnSQL (ColumnSQL s) = s
-
--- | SQL word from 'ColumnSQL'
-sqlWordFromColumn :: ColumnSQL -> SQL.Keyword
-sqlWordFromColumn =  SQL.word . stringFromColumnSQL
+import Database.Relational.Query.Component (ColumnSQL, columnSQL)
 
 
 -- | Untyped typed table type

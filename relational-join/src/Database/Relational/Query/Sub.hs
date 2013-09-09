@@ -65,8 +65,9 @@ import Database.Relational.Query.Expr.Unsafe (showExpr)
 import Database.Relational.Query.Internal.Product
   (NodeAttr(Just', Maybe), ProductTree (Leaf, Join),
    Node, nodeAttr, nodeTree)
-import Database.Relational.Query.Table
-  (ColumnSQL, columnSQL, sqlWordFromColumn, stringFromColumnSQL, Table, (!))
+import Database.Relational.Query.Component
+  (ColumnSQL, columnSQL, sqlWordFromColumn, stringFromColumnSQL)
+import Database.Relational.Query.Table (Table, (!))
 import qualified Database.Relational.Query.Table as Table
 
 import Database.Relational.Query.Internal.String
