@@ -45,8 +45,6 @@ mapFromSqlDefault =
                  , ("float",         [t|Double|])
                  , ("ntext",         [t|String|])
                  , ("bit",           [t|Char|])
-                 , ("decimal",       [t|String|])
-                 , ("numeric",       [t|String|])
                  , ("bigint",        [t|Int64|])
                  , ("varbinary",     [t|String|])
                  , ("varchar",       [t|String|])
