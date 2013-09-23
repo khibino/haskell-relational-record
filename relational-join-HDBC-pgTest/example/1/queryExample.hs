@@ -179,6 +179,19 @@ userGroupAggregate1 =
   , us  <- queryList user3
   ]
 
+userGroupAggregate2 :: Relation () ((Maybe String, Int32), Maybe Bool)
+userGroupAggregate2 =
+  aggregateRelation $
+  [ g >< c >< every (uid .<. just (value 3))
+  | ug  <- query userGroup0
+  , g   <- groupBy (ug ! snd' ?!? Group.name')
+  , let uid = ug ! fst' ?! User.id'
+  , ()  <- wheres $ uid .<. just (value 2)
+  , let c  = count uid
+  , ()  <- having $ c `in'` values [1, 2]
+  , ()  <- asc $ c
+  ]
+
 -- Concatinate operator
 userGroupStr :: Relation () (Maybe String)
 userGroupStr =
@@ -272,6 +285,7 @@ run =  handleSqlError' $ withConnectionIO connect
            run' userGroup2E ()
            run' userGroupAggregate0 ()
            run' userGroupAggregate1 ()
+           run' userGroupAggregate2 ()
            run' userGroup3 "Haskell"
            run' userGroupU ("Kei Hibino", "Haskell")
            run' userGroupStr ()

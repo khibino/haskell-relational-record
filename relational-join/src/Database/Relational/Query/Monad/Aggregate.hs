@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -30,7 +31,7 @@ import Database.Relational.Query.Component (QueryRestriction, AggregateTerms, Or
 import Database.Relational.Query.Sub (SubQuery, aggregatedSubQuery, JoinProduct)
 import qualified Database.Relational.Query.Sub as SubQuery
 
-import Database.Relational.Query.Monad.Class (MonadQualify(..))
+import Database.Relational.Query.Monad.Class (MonadRestrict(..), MonadQualify(..))
 import Database.Relational.Query.Monad.Trans.Config (askConfig)
 import Database.Relational.Query.Monad.Trans.Join (join')
 import Database.Relational.Query.Monad.Trans.Restricting
@@ -51,6 +52,10 @@ type AggregatedQuery r = OrderedQuery Aggregated (Restrictings Aggregated (Aggre
 -- | Lift from qualified table forms into 'QueryAggregate'.
 aggregatedQuery :: ConfigureQuery a -> QueryAggregate a
 aggregatedQuery =  orderings . restrictings . aggregatings . restrictings . join'
+
+-- | Restricted 'MonadRestrict' instance.
+instance MonadRestrict Flat q => MonadRestrict Flat (Restrictings Aggregated q) where
+  restrictContext = restrictings . restrictContext
 
 -- | Instance to lift from qualified table forms into 'QueryAggregate'.
 instance MonadQualify ConfigureQuery QueryAggregate where
