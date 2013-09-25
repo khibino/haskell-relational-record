@@ -53,7 +53,7 @@ getPrimaryKey' :: IConnection conn
                -> String
                -> IO [String]
 getPrimaryKey' conn scm tbl = do
-    prims <- catMaybes `fmap` runQuery' conn (scm,tbl) primaryKeyQuerySQL
+    prims <- catMaybes `fmap` runQuery' conn primaryKeyQuerySQL (scm,tbl)
     let primColumns = map normalizeColumn prims
     putLog $ "getPrimaryKey: keys=" ++ show primColumns
     return primColumns
@@ -65,7 +65,7 @@ getFields' :: IConnection conn
            -> String
            -> IO ([(String, TypeQ)], [Int])
 getFields' tmap conn scm tbl = do
-    rows <- runQuery' conn (scm, tbl) columnTypeQuerySQL
+    rows <- runQuery' conn columnTypeQuerySQL (scm, tbl)
     case rows of
       [] -> compileErrorIO
             $ "getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl
