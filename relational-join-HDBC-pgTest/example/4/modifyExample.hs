@@ -54,7 +54,7 @@ updateCherry =  typedUpdate tableOfStock . updateTargetAllColumn' $ \proj -> do
 runUpdateAndPrint :: ToSql SqlValue p => Update p -> p -> IO ()
 runUpdateAndPrint u p = handleConnectionIO connect $ \conn -> do
   putStrLn $ "SQL: " ++ show u
-  rv <- runUpdate conn p u
+  rv <- runUpdate conn u p
   print rv
   commit conn
 
@@ -67,7 +67,7 @@ keyUpdateUidName =  typedKeyUpdate tableOfStock (seq' >< name')
 runKeyUpdateAndPrint :: ToSql SqlValue a => KeyUpdate p a -> a -> IO ()
 runKeyUpdateAndPrint ku r = handleConnectionIO connect $ \conn -> do
   putStrLn $ "SQL: " ++ show ku
-  rv <- runKeyUpdate conn r ku
+  rv <- runKeyUpdate conn ku r
   print rv
   commit conn
 
