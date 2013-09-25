@@ -12,7 +12,11 @@
 -- This module provides typed 'KeyUpdate' running sequence
 -- which intermediate structres are typed.
 module Database.HDBC.Record.KeyUpdate (
-  PreparedKeyUpdate, prepare, prepareKeyUpdate,
+  PreparedKeyUpdate,
+
+  prepare, prepareKeyUpdate,
+
+  bindKeyUpdate,
 
   runPreparedKeyUpdate, runKeyUpdate
   ) where
@@ -29,7 +33,7 @@ import Database.HDBC.Record.Statement
   (BoundStatement (BoundStatement, bound, params), executeNoFetch)
 
 
--- | Typed prepared update type.
+-- | Typed prepared key-update type.
 data PreparedKeyUpdate p a =
   PreparedKeyUpdate
   {
@@ -39,7 +43,7 @@ data PreparedKeyUpdate p a =
   , preparedKeyUpdate :: Statement
   }
 
--- | Typed prepare update operation.
+-- | Typed prepare key-update operation.
 prepare :: IConnection conn
         => conn
         -> KeyUpdate p a
@@ -50,25 +54,25 @@ prepare conn ku = fmap (PreparedKeyUpdate key) . HDBC.prepare conn $ sql  where
 
 -- | Same as 'prepare'.
 prepareKeyUpdate :: IConnection conn
-              => conn
-              -> KeyUpdate p a
-              -> IO (PreparedKeyUpdate p a)
+                 => conn
+                 -> KeyUpdate p a
+                 -> IO (PreparedKeyUpdate p a)
 prepareKeyUpdate = prepare
 
-bindToKeyUpdate :: ToSql SqlValue a
-                   => a
-                   -> PreparedKeyUpdate p a
-                   -> BoundStatement ()
-bindToKeyUpdate a pre =
+bindKeyUpdate :: ToSql SqlValue a
+              => PreparedKeyUpdate p a
+              -> a
+              -> BoundStatement ()
+bindKeyUpdate pre a =
   BoundStatement { bound = preparedKeyUpdate pre, params = updateValuesWithKey key a }
   where key = updateKey pre
 
 -- | Bind parameters, execute statement and get execution result.
 runPreparedKeyUpdate :: ToSql SqlValue a
-                     => a
-                     -> PreparedKeyUpdate p a
+                     => PreparedKeyUpdate p a
+                     -> a
                      -> IO Integer
-runPreparedKeyUpdate a = executeNoFetch . bindToKeyUpdate a
+runPreparedKeyUpdate pre = executeNoFetch . bindKeyUpdate pre
 
 -- | Prepare insert statement, bind parameters,
 --   execute statement and get execution result.
@@ -77,4 +81,4 @@ runKeyUpdate :: (IConnection conn, ToSql SqlValue a)
              -> a
              -> KeyUpdate p a
              -> IO Integer
-runKeyUpdate conn a = (>>= runPreparedKeyUpdate a) . prepareKeyUpdate conn
+runKeyUpdate conn a = (>>= \ps -> runPreparedKeyUpdate ps a) . prepareKeyUpdate conn
