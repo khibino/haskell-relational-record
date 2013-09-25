@@ -127,15 +127,15 @@ runPreparedQuery' ps = runStatement' . bind ps
 -- | Prepare SQL, bind parameters, execute statement and lazily fetch all records.
 runQuery :: (IConnection conn, ToSql SqlValue p, FromSql SqlValue a)
          => conn      -- ^ Database connection
-         -> p         -- ^ Parameter type
          -> Query p a -- ^ Query to get record type 'a' requires parameter 'p'
+         -> p         -- ^ Parameter type
          -> IO [a]    -- ^ Action to get records
-runQuery conn p = (>>= \ps -> runPreparedQuery ps p) . prepare conn
+runQuery conn q p = prepare conn q >>= (`runPreparedQuery` p)
 
 -- | Strict version of 'runQuery'.
 runQuery' :: (IConnection conn, ToSql SqlValue p, FromSql SqlValue a)
           => conn      -- ^ Database connection
-          -> p         -- ^ Parameter type
           -> Query p a -- ^ Query to get record type 'a' requires parameter 'p'
+          -> p         -- ^ Parameter type
           -> IO [a]    -- ^ Action to get records
-runQuery' conn p = (>>= \ps -> runPreparedQuery' ps p) . prepare conn
+runQuery' conn q p = prepare conn q >>= (`runPreparedQuery'` p)

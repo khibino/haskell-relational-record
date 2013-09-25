@@ -64,7 +64,7 @@ getPrimaryKey' :: IConnection conn
 getPrimaryKey' conn scm' tbl' = do
   let tbl = map toUpper tbl'
       scm = map toUpper scm'
-  primCols <- runQuery' conn (scm, tbl) primaryKeyQuerySQL
+  primCols <- runQuery' conn primaryKeyQuerySQL (scm, tbl)
   let primaryKeyCols = normalizeColumn `fmap` primCols
   putLog $ "getPrimaryKey: primary key = " ++ show primaryKeyCols
 
@@ -79,8 +79,8 @@ getFields' :: IConnection conn
 getFields' tmap conn scm' tbl' = do
   let tbl = map toUpper tbl'
       scm = map toUpper scm'
-      
-  cols <- runQuery' conn (scm, tbl) columnsQuerySQL
+
+  cols <- runQuery' conn columnsQuerySQL (scm, tbl)
   case cols of
     [] ->  compileErrorIO
            $ "getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl

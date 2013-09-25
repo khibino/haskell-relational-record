@@ -65,13 +65,13 @@ getPrimaryKey' :: IConnection conn
 getPrimaryKey' conn scm' tbl' = do
   let scm = map toLower scm'
       tbl = map toLower tbl'
-  mayKeyLen <- runQuery' conn (scm, tbl) primaryKeyLengthQuerySQL
+  mayKeyLen <- runQuery' conn primaryKeyLengthQuerySQL (scm, tbl)
   case mayKeyLen of
     []        -> do
       putLog $ "getPrimaryKey: Primary key not found."
       return []
     [keyLen]  -> do
-      primCols <- runQuery' conn (scm, tbl) (primaryKeyQuerySQL keyLen)
+      primCols <- runQuery' conn (primaryKeyQuerySQL keyLen) (scm, tbl)
       let primaryKeyCols = normalizeColumn `fmap` primCols
       putLog $ "getPrimaryKey: primary key = " ++ show primaryKeyCols
       return primaryKeyCols
@@ -88,7 +88,7 @@ getFields' :: IConnection conn
 getFields' tmap conn scm' tbl' = do
   let scm = map toLower scm'
       tbl = map toLower tbl'
-  cols <- runQuery' conn (scm, tbl) columnQuerySQL
+  cols <- runQuery' conn columnQuerySQL (scm, tbl)
   case cols of
     [] ->  compileErrorIO
            $ "getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl
@@ -111,4 +111,3 @@ driverPostgreSQL :: IConnection conn => Driver conn
 driverPostgreSQL =
   emptyDriver { getFieldsWithMap = getFields' }
               { getPrimaryKey    = getPrimaryKey' }
-
