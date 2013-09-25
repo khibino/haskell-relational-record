@@ -31,9 +31,7 @@ import qualified Employee
 import Employee (Employee, employee)
 
 import DataSource (connect)
-import Database.HDBC.Record.Query
-  (ExecutedStatement,
-   runQuery, prepare, bindTo, execute, fetchUnique, fetchUnique')
+import Database.HDBC.Record.Query (runQuery)
 import Database.HDBC.Session (withConnectionIO, handleSqlError')
 
 allAccount :: Relation () (Account)
@@ -113,7 +111,7 @@ selfJoin1 =
 selfJoin1' :: Relation () ((String, String), (String, String))
 selfJoin1' =
   relation
-  [ emp >< mgr 
+  [ emp >< mgr
   | e  <- query employee
   , m  <- query employee
   , () <- on $ e ! Employee.superiorEmpId' .=. just (m ! Employee.empId')
@@ -151,7 +149,7 @@ account2 =
   ]
 
 union1 :: Relation () (Maybe Int32, Maybe Int32)
-union1 = 
+union1 =
   relation
   [ ea
   | ea <- query $ employee1 `union` account2
@@ -190,14 +188,14 @@ group1 =
   [ g >< count a
   | a  <- query account
   , g  <- groupBy $ a ! Account.openEmpId'
-  , () <- asc $ g <!> id' 
+  , () <- asc $ g ! id'
   ]
 
 runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a, ToSql SqlValue p)
             => conn -> Relation p a -> p -> IO ()
 runAndPrint conn rel param = do
   putStrLn $ "SQL: " ++ sqlFromRelation rel
-  records <- runQuery conn param (fromRelation rel)
+  records <- runQuery conn param (relationalQuery rel)
   mapM_ print records
   putStrLn ""
 
