@@ -54,7 +54,7 @@ runPreparedUpdate = runPreparedNoFetch
 --   execute statement and get execution result.
 runUpdate :: (IConnection conn, ToSql SqlValue p)
           => conn
-          -> p
           -> Update p
+          -> p
           -> IO Integer
-runUpdate conn p = (>>= \ps -> runPreparedUpdate ps p) . prepareUpdate conn
+runUpdate conn q p = prepareUpdate conn q >>= (`runPreparedUpdate` p)

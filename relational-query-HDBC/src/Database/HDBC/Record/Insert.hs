@@ -54,7 +54,7 @@ runPreparedInsert =  runPreparedNoFetch
 --   execute statement and get execution result.
 runInsert :: (IConnection conn, ToSql SqlValue a)
           => conn
-          -> a
           -> Insert a
+          -> a
           -> IO Integer
-runInsert conn p = (>>= \ps -> runPreparedInsert ps p) . prepareInsert conn
+runInsert conn q p = prepareInsert conn q >>= (`runPreparedInsert` p)

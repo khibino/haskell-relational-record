@@ -71,7 +71,7 @@ bind' toSql q p = BoundStatement { bound = prepared q, params = runFromRecord to
 bind :: ToSql SqlValue p => PreparedStatement p a -> p -> BoundStatement a
 bind =  bind' recordToSql
 
--- | Same as 'bind' except for argument is swapped.
+-- | Same as 'bind' except for argument is flipped.
 bindTo :: ToSql SqlValue p => p -> PreparedStatement p a -> BoundStatement a
 bindTo =  flip bind
 

@@ -59,6 +59,7 @@ prepareKeyUpdate :: IConnection conn
                  -> IO (PreparedKeyUpdate p a)
 prepareKeyUpdate = prepare
 
+-- | Typed operation to bind parameters for 'PreparedKeyUpdate' type.
 bindKeyUpdate :: ToSql SqlValue a
               => PreparedKeyUpdate p a
               -> a
@@ -78,7 +79,7 @@ runPreparedKeyUpdate pre = executeNoFetch . bindKeyUpdate pre
 --   execute statement and get execution result.
 runKeyUpdate :: (IConnection conn, ToSql SqlValue a)
              => conn
-             -> a
              -> KeyUpdate p a
+             -> a
              -> IO Integer
-runKeyUpdate conn a = (>>= \ps -> runPreparedKeyUpdate ps a) . prepareKeyUpdate conn
+runKeyUpdate conn q a = prepareKeyUpdate conn q >>= (`runPreparedKeyUpdate` a)

@@ -54,7 +54,7 @@ runPreparedDelete =  runPreparedNoFetch
 --   execute statement and get execution result.
 runDelete :: (IConnection conn, ToSql SqlValue p)
           => conn
-          -> p
           -> Delete p
+          -> p
           -> IO Integer
-runDelete conn p = (>>= \ps -> runPreparedDelete ps p) . prepareDelete conn
+runDelete conn q p =  prepareDelete conn q >>= (`runPreparedDelete` p)
