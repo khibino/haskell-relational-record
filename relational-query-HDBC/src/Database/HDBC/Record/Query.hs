@@ -32,7 +32,7 @@ import Database.Record
 
 import Database.HDBC.Record.Statement
   (unsafePrepare, PreparedStatement,
-   bindTo, BoundStatement,
+   bind, BoundStatement,
    execute, ExecutedStatement, executed)
 
 
@@ -112,17 +112,17 @@ runStatement' =  (>>= fetchAll') . execute
 
 -- | Bind parameters, execute statement and lazily fetch all records.
 runPreparedQuery :: (ToSql SqlValue p, FromSql SqlValue a)
-                 => p                 -- ^ Parameter type
-                 -> PreparedQuery p a -- ^ Statement to bind to
+                 => PreparedQuery p a -- ^ Statement to bind to
+                 -> p                 -- ^ Parameter type
                  -> IO [a]            -- ^ Action to get records
-runPreparedQuery p = runStatement . (p `bindTo`)
+runPreparedQuery ps = runStatement . bind ps
 
 -- | Strict version of 'runPreparedQuery'.
 runPreparedQuery' :: (ToSql SqlValue p, FromSql SqlValue a)
-                  => p                 -- ^ Parameter type
-                  -> PreparedQuery p a -- ^ Statement to bind to
+                  => PreparedQuery p a -- ^ Statement to bind to
+                  -> p                 -- ^ Parameter type
                   -> IO [a]            -- ^ Action to get records
-runPreparedQuery' p = runStatement' . (p `bindTo`)
+runPreparedQuery' ps = runStatement' . bind ps
 
 -- | Prepare SQL, bind parameters, execute statement and lazily fetch all records.
 runQuery :: (IConnection conn, ToSql SqlValue p, FromSql SqlValue a)
@@ -130,7 +130,7 @@ runQuery :: (IConnection conn, ToSql SqlValue p, FromSql SqlValue a)
          -> p         -- ^ Parameter type
          -> Query p a -- ^ Query to get record type 'a' requires parameter 'p'
          -> IO [a]    -- ^ Action to get records
-runQuery conn p = (>>= runPreparedQuery p) . prepare conn
+runQuery conn p = (>>= \ps -> runPreparedQuery ps p) . prepare conn
 
 -- | Strict version of 'runQuery'.
 runQuery' :: (IConnection conn, ToSql SqlValue p, FromSql SqlValue a)
@@ -138,4 +138,4 @@ runQuery' :: (IConnection conn, ToSql SqlValue p, FromSql SqlValue a)
           -> p         -- ^ Parameter type
           -> Query p a -- ^ Query to get record type 'a' requires parameter 'p'
           -> IO [a]    -- ^ Action to get records
-runQuery' conn p = (>>= runPreparedQuery' p) . prepare conn
+runQuery' conn p = (>>= \ps -> runPreparedQuery' ps p) . prepare conn

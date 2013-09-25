@@ -14,7 +14,7 @@
 module Database.HDBC.Record.Statement (
   PreparedStatement, unsafePrepare,
 
-  BoundStatement (..), bindTo', bindTo,
+  BoundStatement (..), bind', bind, bindTo,
 
   ExecutedStatement, executed, result, execute,
 
@@ -61,15 +61,19 @@ unsafePrepare :: IConnection conn
 unsafePrepare conn = fmap PreparedStatement . HDBC.prepare conn
 
 -- | Typed operation to bind parameters.
-bindTo' :: RecordToSql SqlValue p -- ^ Proof object to convert from parameter type 'p' into 'SqlValue' list.
-        -> p                      -- ^ Parameter to bind
-        -> PreparedStatement p a      -- ^ Prepared query to bind to
-        -> BoundStatement a       -- ^ Result parameter bound statement
-bindTo' toSql p q = BoundStatement { bound = prepared q, params = runFromRecord toSql p }
+bind' :: RecordToSql SqlValue p -- ^ Proof object to convert from parameter type 'p' into 'SqlValue' list.
+      -> PreparedStatement p a  -- ^ Prepared query to bind to
+      -> p                      -- ^ Parameter to bind
+      -> BoundStatement a       -- ^ Result parameter bound statement
+bind' toSql q p = BoundStatement { bound = prepared q, params = runFromRecord toSql p }
 
 -- | Typed operation to bind parameters. Infered 'RecordToSql' is used.
+bind :: ToSql SqlValue p => PreparedStatement p a -> p -> BoundStatement a
+bind =  bind' recordToSql
+
+-- | Same as 'bind' except for argument is swapped.
 bindTo :: ToSql SqlValue p => p -> PreparedStatement p a -> BoundStatement a
-bindTo =  bindTo' recordToSql
+bindTo =  flip bind
 
 -- | Typed execute operation.
 execute :: BoundStatement a -> IO (ExecutedStatement a)
@@ -84,7 +88,7 @@ executeNoFetch =  fmap result . execute
 
 -- | Bind parameters, execute statement and get execution result.
 runPreparedNoFetch :: ToSql SqlValue a
-                  => a
-                  -> PreparedStatement a ()
+                  => PreparedStatement a ()
+                  -> a
                   -> IO Integer
-runPreparedNoFetch p = executeNoFetch . (p `bindTo`)
+runPreparedNoFetch p = executeNoFetch . (p `bind`)

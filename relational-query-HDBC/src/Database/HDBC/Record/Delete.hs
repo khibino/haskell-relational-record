@@ -45,8 +45,8 @@ prepareDelete = prepare
 
 -- | Bind parameters, execute statement and get execution result.
 runPreparedDelete :: ToSql SqlValue p
-                  => p
-                  -> PreparedDelete p
+                  => PreparedDelete p
+                  -> p
                   -> IO Integer
 runPreparedDelete =  runPreparedNoFetch
 
@@ -57,4 +57,4 @@ runDelete :: (IConnection conn, ToSql SqlValue p)
           -> p
           -> Delete p
           -> IO Integer
-runDelete conn p = (>>= runPreparedDelete p) . prepareDelete conn
+runDelete conn p = (>>= \ps -> runPreparedDelete ps p) . prepareDelete conn
