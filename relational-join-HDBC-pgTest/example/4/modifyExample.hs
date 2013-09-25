@@ -75,7 +75,7 @@ allStock :: IO [Stock]
 allStock =  handleConnectionIO connect $ \conn -> do
   let q = stock
   putStrLn $ "SQL: " ++ show q
-  runQuery' conn () (relationalQuery q)
+  runQuery' conn (relationalQuery q) ()
 
 deleteStock :: Delete Int32
 deleteStock =  typedDelete tableOfStock . restriction' $ \proj -> do
