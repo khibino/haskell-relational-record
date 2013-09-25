@@ -58,18 +58,18 @@ getPrimaryKey' :: IConnection conn
                -> String
                -> IO [String]
 getPrimaryKey' conn scm tbl = do
-    tblinfo <- runQuery' conn () (tableInfoQuerySQL scm tbl)
+    tblinfo <- runQuery' conn (tableInfoQuerySQL scm tbl) ()
     let primColumns = map (normalizeColumn . TableInfo.name)
                       . filter ((1 ==) . TableInfo.pk) $ tblinfo
     if length primColumns <= 1 then do
         putLog $ "getPrimaryKey: key=" ++ show primColumns
         return primColumns
      else do
-        idxlist <- runQuery' conn () (indexListQuerySQL scm tbl)
+        idxlist <- runQuery' conn (indexListQuerySQL scm tbl) ()
         let idxNames = filter (isPrefixOf "sqlite_autoindex_")
                        . map IndexList.name
                        . filter ((1 ==) . IndexList.unique) $ idxlist
-        idxInfos <- mapM (runQuery' conn () . indexInfoQuerySQL scm) idxNames
+        idxInfos <- mapM (\ixn -> runQuery' conn (indexInfoQuerySQL scm ixn) ()) idxNames
         let isPrimaryKey = (sort primColumns ==) . sort . map (normalizeColumn . IndexInfo.name)
         let idxInfo = concat . take 1 . filter isPrimaryKey $ idxInfos
         let comp x y = compare (IndexInfo.seqno x) (IndexInfo.seqno y)
@@ -84,7 +84,7 @@ getFields' :: IConnection conn
            -> String
            -> IO ([(String, TypeQ)], [Int])
 getFields' tmap conn scm tbl = do
-    rows <- runQuery' conn () (tableInfoQuerySQL scm tbl)
+    rows <- runQuery' conn (tableInfoQuerySQL scm tbl) ()
     case rows of
       [] -> compileErrorIO
             $ "getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl
