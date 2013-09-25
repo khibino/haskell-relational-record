@@ -30,7 +30,7 @@ runInsertStocks ss = handleConnectionIO connect $ \conn -> do
   let q =  insertStock
   putStrLn $ "SQL: " ++ show q
   ps   <- prepareInsert conn q
-  rvs  <- mapM (`runPreparedInsert` ps) ss
+  rvs  <- mapM (runPreparedInsert ps) ss
   print rvs
   commit conn
 
@@ -85,8 +85,8 @@ deleteStock =  typedDelete tableOfStock . restriction' $ \proj -> do
 runDeleteStocks :: ToSql SqlValue a => Delete a -> [a] -> IO ()
 runDeleteStocks d xs = handleConnectionIO connect $ \conn -> do
   putStrLn $ "SQL: " ++ show d
-  ps <- prepareDelete conn d
-  rvs <- mapM (`runPreparedDelete` ps) xs
+  ps  <- prepareDelete conn d
+  rvs <- mapM (runPreparedDelete ps) xs
   print rvs
   commit conn
 
