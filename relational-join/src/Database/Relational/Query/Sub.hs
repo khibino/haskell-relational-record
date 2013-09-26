@@ -19,7 +19,7 @@ module Database.Relational.Query.Sub (
   -- * Qualified Sub-query
   Qualifier (Qualifier),
   Qualified, qualifier, unQualify, qualify,
-  queryWidth, qualifiedForm,
+  queryWidth,
 
   -- * Sub-query columns
   column,
@@ -57,7 +57,6 @@ import Database.Relational.Query.Internal.String
   (showUnwordsSQL, showWordSQL, showWordSQL', showUnwords, showSpace, showParen')
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
-import qualified Language.SQL.Keyword.ConcatString as SQLs
 
 
 data BinOp = Union | Except | Intersect  deriving Show
@@ -226,11 +225,11 @@ columnFromId :: Qualifier -> Int -> ColumnSQL
 columnFromId qi i = qi <.> columnN i
 
 -- | From 'Qualified' SQL string into 'String'.
-qualifiedSQLas :: Qualified String -> String
+qualifiedSQLas :: Qualified ShowS -> ShowS
 qualifiedSQLas q =
-  unQualify q
-  `SQLs.as`
-  (showQualifier $ qualifier q)
+  showUnwords
+  [unQualify q, showWordSQL AS,
+   (showQualifier (qualifier q) ++)]
 
 -- | Width of 'Qualified' 'SubQUery'.
 queryWidth :: Qualified SubQuery -> Int
@@ -246,8 +245,8 @@ column qs =  d (unQualify qs)  where
   d (Aggregated _ up _ _ _ _ _) i = columnOfUntypedProjection up i
 
 -- | Get qualified SQL string, like (SELECT ...) AS T0
-qualifiedForm :: Qualified SubQuery -> String
-qualifiedForm =  qualifiedSQLas . fmap unitSQL
+qualifiedForm :: Qualified SubQuery -> ShowS
+qualifiedForm =  qualifiedSQLas . fmap showUnitSQL
 
 
 -- | Projection structure unit
@@ -331,7 +330,7 @@ showsQueryProduct =  rec  where
   urec n = case nodeTree n of
     p@(Leaf _)     -> rec p
     p@(Join _ _ _) -> showParen True (rec p)
-  rec (Leaf q)               = showString $ qualifiedForm q
+  rec (Leaf q)               = qualifiedForm q
   rec (Join left' right' rs) =
     showUnwords
     [urec left',
