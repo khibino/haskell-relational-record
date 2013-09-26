@@ -265,7 +265,7 @@ userGroupU =
 runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a, ToSql SqlValue p)
             => conn -> Relation p a -> p -> IO ()
 runAndPrint conn rel param = do
-  putStrLn $ "SQL: " ++ sqlFromRelation rel
+  putStrLn $ "SQL: " ++ show rel
   records  <- runQuery conn (relationalQuery rel) param
   mapM_ print records
   putStrLn ""
@@ -295,7 +295,7 @@ run =  handleSqlError' $ withConnectionIO connect
 runU :: Show a => (ExecutedStatement (User, Group) -> IO a) -> IO ()
 runU f = handleSqlError' $ withConnectionIO connect
         (\conn -> do
-            putStrLn $ "SQL: " ++ sqlFromRelation userGroupU
+            putStrLn $ "SQL: " ++ show userGroupU
             pq <- prepare conn (relationalQuery userGroupU)
             let bs = ("Kei Hibino", "Haskell") `bindTo` pq
             es <- execute bs
