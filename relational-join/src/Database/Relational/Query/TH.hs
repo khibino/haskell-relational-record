@@ -379,6 +379,6 @@ inlineQuery relVar' rel config qVar' =  do
       | prn == ''Relation    -> do
         simpleValD qVar
           [t| Query $(return p) $(return r) |]
-          [|  unsafeTypedQuery $(stringE $ rel `sqlFromRelationWith` config) |]
+          [|  unsafeTypedQuery $(stringE . sqlFromRelationWith rel config $ "") |]
     _                             ->
       compileError $ "expandRelation: Variable must have Relation type: " ++ show relVar

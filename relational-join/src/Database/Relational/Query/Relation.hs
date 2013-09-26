@@ -303,17 +303,12 @@ intersect' =  liftAppend' SubQuery.intersect
 
 infixl 7 `union`, `except`, `intersect`, `union'`, `except'`, `intersect'`
 
--- | SQL string with qualify computation from 'Relation'.
-sqlQualifyFromRelation :: Relation p r -> ConfigureQuery String
-sqlQualifyFromRelation =  d  where
-  d (SubQuery qsub)   = SubQuery.toSQL `fmap` qsub
-
 -- | Generate SQL string from 'Relation' with configuration.
-sqlFromRelationWith :: Relation p r -> Config -> String
-sqlFromRelationWith =  configureQuery . sqlQualifyFromRelation
+sqlFromRelationWith :: Relation p r -> Config -> ShowS
+sqlFromRelationWith (SubQuery qsub) =  configureQuery $ fmap SubQuery.showSQL qsub
 
 -- | SQL string from 'Relation'.
-sqlFromRelation :: Relation p r -> String
+sqlFromRelation :: Relation p r -> ShowS
 sqlFromRelation =  (`sqlFromRelationWith` defaultConfig)
 
 -- | Dump internal structure tree.
@@ -321,7 +316,7 @@ dump :: Relation p r -> String
 dump =  show . (`configureQuery` defaultConfig) . subQueryQualifyFromRelation
 
 instance Show (Relation p r) where
-  show = sqlFromRelation
+  show = ($ "") . sqlFromRelation
 
 {-
 -- | Get projection width from 'Relation'.

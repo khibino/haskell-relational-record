@@ -36,7 +36,8 @@ import Database.Relational.Query.Restriction
 import Database.Relational.Query.Pi (Pi)
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.SQL
-  (updateOtherThanKeySQL, insertSQL, updatePrefixSQL, deleteSQL)
+  (QuerySuffix, showsQuerySuffix,
+   updateOtherThanKeySQL, insertSQL, updatePrefixSQL, deleteSQL)
 
 
 -- | Query type with place-holder parameter 'p' and query result type 'a'.
@@ -51,9 +52,13 @@ unsafeTypedQuery =  Query
 instance Show (Query p a) where
   show = untypeQuery
 
+-- | From 'Relation' into typed 'Query' with suffix SQL words.
+relationalQuery' :: Relation p r -> QuerySuffix -> Query p r
+relationalQuery' rel qsuf = unsafeTypedQuery . sqlFromRelation rel . showsQuerySuffix qsuf $ ""
+
 -- | From 'Relation' into typed 'Query'.
 relationalQuery :: Relation p r -> Query p r
-relationalQuery =  unsafeTypedQuery . sqlFromRelation
+relationalQuery =  (`relationalQuery'` [])
 
 
 -- | Update type with key type 'p' and update record type 'a'.
