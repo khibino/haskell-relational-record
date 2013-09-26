@@ -12,7 +12,7 @@ module Database.Relational.Query.Type (
   -- * Typed query statement
   Query (..), unsafeTypedQuery,
 
-  relationalQuery,
+  relationalQuery', relationalQuery,
 
   -- * Typed update statement
   KeyUpdate (..), unsafeTypedKeyUpdate, typedKeyUpdate,
