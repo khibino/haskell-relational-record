@@ -132,9 +132,9 @@ fromTableToSQL t =
      FROM, SQL.word $ Table.name' t]
 
 -- | Generate normalized column SQL from table.
-fromTableToNormalizedSQL :: Table.Untyped -> String
+fromTableToNormalizedSQL :: Table.Untyped -> ShowS
 fromTableToNormalizedSQL t =
-  unwordsSQL
+  showUnwordsSQL
   $ [SELECT, columns' `SQL.sepBy` ", ", FROM, SQL.word . Table.name' $ t]  where
   columns' = zipWith
              (\f n -> sqlWordFromColumn f `asColumnN` n)
@@ -142,12 +142,12 @@ fromTableToNormalizedSQL t =
              [(0 :: Int)..]
 
 -- | Normalized column SQL
-normalizedSQL :: SubQuery -> String
+normalizedSQL :: SubQuery -> ShowS
 normalizedSQL =  d  where
   d (Table t)                      = fromTableToNormalizedSQL t
-  d sub@(Bin _ _ _)                = unitSQL sub
-  d sub@(Flat _ _ _ _ _)           = unitSQL sub
-  d sub@(Aggregated _ _ _ _ _ _ _) = unitSQL sub
+  d sub@(Bin _ _ _)                = showUnitSQL sub
+  d sub@(Flat _ _ _ _ _)           = showUnitSQL sub
+  d sub@(Aggregated _ _ _ _ _ _ _) = showUnitSQL sub
 
 -- | Generate select SQL. Seed SQL string append to this.
 selectPrefixSQL :: UntypedProjection -> ShowS
@@ -164,7 +164,7 @@ toSQLs :: SubQuery
 toSQLs =  d  where
   d (Table u)               = (showString $ Table.name' u, fromTableToSQL u)
   d (Bin op l r)            = (showParen' q, q "")  where
-    q = (unwords [normalizedSQL l, SQL.wordShow $ keywordBinOp op, normalizedSQL r] ++)
+    q = showUnwords [normalizedSQL l, showWordSQL $ keywordBinOp op, normalizedSQL r]
   d (Flat cf up pd rs od)   = (showParen' q, q "")  where
     q = selectPrefixSQL up . showsJoinProduct cf pd . composeWhere rs
         . composeOrderByes od
@@ -172,9 +172,12 @@ toSQLs =  d  where
     q = selectPrefixSQL up . showsJoinProduct cf pd . composeWhere rs
         . composeGroupBys ag . composeHaving grs . composeOrderByes od
 
+showUnitSQL :: SubQuery -> ShowS
+showUnitSQL =  fst . toSQLs
+
 -- | SQL string for nested-qeury.
 unitSQL :: SubQuery -> String
-unitSQL =  ($ "") . fst . toSQLs
+unitSQL =  ($ "") . showUnitSQL
 
 -- | SQL string for toplevel-SQL.
 toSQL :: SubQuery -> String
