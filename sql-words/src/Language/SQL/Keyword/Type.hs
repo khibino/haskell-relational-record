@@ -27,6 +27,9 @@ import Data.List (find)
 data Keyword = SELECT | ALL | DISTINCT | ON
              | GROUP | COUNT | SUM | AVG | MAX | MIN | EVERY | ANY | SOME
              | ORDER | BY | ASC | DESC | HAVING
+             | FOR
+
+             | LIMIT
              | FETCH | FIRST | NEXT | ROW | ROWS | ONLY
 
              | UNION | EXCEPT | INTERSECT
@@ -42,9 +45,15 @@ data Keyword = SELECT | ALL | DISTINCT | ON
 
              | INSERT | INTO | VALUES
 
+             | MERGE
+
+             | OVER | PARTITION
+             | DENSE_RANK | RANK | ROW_NUMBER
+             | LAG | LEAD | FIRST_VALUE | LAST_VALUE
+
              | CASE | END | WHEN | ELSE | THEN
 
-             | LIKE
+             | LIKE | SIMILAR
              | AND | OR | NOT
              | EXISTS
 
