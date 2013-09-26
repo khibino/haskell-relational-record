@@ -14,7 +14,7 @@ module Database.Relational.Query.Sub (
   -- * Sub-query
   SubQuery, fromTable, flatSubQuery, aggregatedSubQuery,
   union, except, intersect,
-  toSQL, unitSQL, width,
+  showSQL, toSQL, unitSQL, width,
 
   -- * Qualified Sub-query
   Qualifier (Qualifier),
