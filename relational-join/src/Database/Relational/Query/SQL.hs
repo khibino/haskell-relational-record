@@ -11,6 +11,9 @@
 --
 -- This module defines functions to generate simple SQL strings.
 module Database.Relational.Query.SQL (
+  -- * Query suffix
+  QuerySuffix, showsQuerySuffix,
+
   -- * Update SQL
   updatePrefixSQL,
   updateSQL',
@@ -25,24 +28,34 @@ module Database.Relational.Query.SQL (
 
 import Data.Array (listArray, (!))
 
-import Language.SQL.Keyword (Keyword(..), (.=.), unwordsSQL)
+import Language.SQL.Keyword (Keyword(..), (.=.))
 import qualified Language.SQL.Keyword as SQL
 import Database.Record.ToSql (untypedUpdateValuesIndex)
+import Database.Relational.Query.Internal.String (showUnwordsSQL, showSpace)
 import Database.Relational.Query.Pi.Unsafe (Pi, unsafeExpandIndexes)
 import Database.Relational.Query.Component (ColumnSQL, sqlWordFromColumn)
 import Database.Relational.Query.Table (Table, name, columns)
 
 
+-- | Type for query suffix words
+type QuerySuffix = [Keyword]
+
+-- | Expand query suffix words
+showsQuerySuffix :: QuerySuffix -> ShowS
+showsQuerySuffix =  d  where
+  d []       = ("" ++)
+  d qs@(_:_) = showSpace . showUnwordsSQL qs
+
 -- | Generate update SQL. Seed SQL string append to this.
 updatePrefixSQL :: Table r -> ShowS
-updatePrefixSQL table = (unwordsSQL [UPDATE, SQL.word $ name table] ++)
+updatePrefixSQL table = showUnwordsSQL [UPDATE, SQL.word $ name table]
 
 -- | Generate update SQL by specified key and table.
 --   Columns name list of table are also required.
-updateSQL' :: String   -- ^ Table name
+updateSQL' :: String      -- ^ Table name
            -> [ColumnSQL] -- ^ Column name list to update
            -> [ColumnSQL] -- ^ Key column name list
-           -> String   -- ^ Result SQL
+           -> String      -- ^ Result SQL
 updateSQL' table cols key =
   SQL.unwordsSQL
   $ [UPDATE, SQL.word table, SET, updAssigns `SQL.sepBy` ", ",
