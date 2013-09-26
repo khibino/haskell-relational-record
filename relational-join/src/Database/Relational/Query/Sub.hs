@@ -54,7 +54,7 @@ import Database.Relational.Query.Table (Table, (!))
 import qualified Database.Relational.Query.Table as Table
 
 import Database.Relational.Query.Internal.String
-  (showUnwordsSQL, showWordSQL, showWordSQL', showUnwords, showSpace, paren)
+  (showUnwordsSQL, showWordSQL, showWordSQL', showUnwords, showSpace, showParen')
 import Language.SQL.Keyword (Keyword(..), unwordsSQL)
 import qualified Language.SQL.Keyword as SQL
 import qualified Language.SQL.Keyword.ConcatString as SQLs
@@ -160,21 +160,21 @@ selectPrefixSQL up =
 
 -- | SQL string for nested-query and toplevel-SQL.
 toSQLs :: SubQuery
-       -> (String, String) -- ^ subquery SQL and top-level SQL
+       -> (ShowS, String) -- ^ subquery SQL and top-level SQL
 toSQLs =  d  where
-  d (Table u)               = (Table.name' u, fromTableToSQL u)
-  d (Bin op l r)            = (paren q, q)  where
-    q = unwords [normalizedSQL l, SQL.wordShow $ keywordBinOp op, normalizedSQL r]
-  d (Flat cf up pd rs od)   = (paren q, q)  where
+  d (Table u)               = (showString $ Table.name' u, fromTableToSQL u)
+  d (Bin op l r)            = (showParen' q, q "")  where
+    q = (unwords [normalizedSQL l, SQL.wordShow $ keywordBinOp op, normalizedSQL r] ++)
+  d (Flat cf up pd rs od)   = (showParen' q, q "")  where
     q = selectPrefixSQL up . showsJoinProduct cf pd . composeWhere rs
-        . composeOrderByes od $ ""
-  d (Aggregated cf up pd rs ag grs od) = (paren q, q)  where
+        . composeOrderByes od
+  d (Aggregated cf up pd rs ag grs od) = (showParen' q, q "")  where
     q = selectPrefixSQL up . showsJoinProduct cf pd . composeWhere rs
-        . composeGroupBys ag . composeHaving grs . composeOrderByes od $ ""
+        . composeGroupBys ag . composeHaving grs . composeOrderByes od
 
 -- | SQL string for nested-qeury.
 unitSQL :: SubQuery -> String
-unitSQL =  fst . toSQLs
+unitSQL =  ($ "") . fst . toSQLs
 
 -- | SQL string for toplevel-SQL.
 toSQL :: SubQuery -> String

@@ -11,7 +11,7 @@
 -- which result is ShowS differential lists.
 module Database.Relational.Query.Internal.String (
   showUnwordsSQL, showWordSQL, showWordSQL',
-  showUnwords, showSpace,
+  showUnwords, showSpace, showParen',
 
   paren, sqlRowString, sqlRowListString
   ) where
@@ -31,6 +31,10 @@ showWordSQL =  showString . SQL.wordShow
 -- | 'ShowS' of whitespace.
 showSpace :: ShowS
 showSpace =  showChar ' '
+
+-- | Paren 'ShowS'.
+showParen' :: ShowS -> ShowS
+showParen' =  showParen True
 
 -- | From 'SQL.Keyword' with white into 'ShowS'.
 showWordSQL' :: SQL.Keyword -> ShowS
