@@ -69,3 +69,4 @@ import Database.Relational.Query.Type
    Delete, untypeDelete, typedDelete, restrictedDelete)
 import Database.Relational.Query.Restriction
 import Database.Relational.Query.Derives
+  hiding (specifyTableDerivation', specifyTableDerivation)

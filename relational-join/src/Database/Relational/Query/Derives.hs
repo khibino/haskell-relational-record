@@ -23,7 +23,13 @@ module Database.Relational.Query.Derives (
   updateByConstraintKey,
   primaryUpdate,
 
-  updateValuesWithKey
+  updateValuesWithKey,
+
+  -- * Derived objects from table
+  TableDerivation,
+  specifyTableDerivation', specifyTableDerivation,
+
+  derivedTable, derivedRelation, derivedInsert
   ) where
 
 import Database.Record (PersistableWidth, ToSql (recordToSql))
@@ -33,12 +39,12 @@ import Database.Relational.Query.Pi.Unsafe (Pi, unsafeExpandIndexes)
 import Database.Relational.Query.Projectable (placeholder, (.=.))
 import Database.Relational.Query.ProjectableExtended ((!))
 import Database.Relational.Query.Monad.Class (wheres)
-import Database.Relational.Query.Relation (Relation, relation', query)
+import Database.Relational.Query.Relation (Relation, relation', query, table)
 import Database.Relational.Query.Constraint
    (Key, Primary, Unique, projectionKey, uniqueKey,
     HasConstraintKey(constraintKey))
 import qualified Database.Relational.Query.Constraint as Constraint
-import Database.Relational.Query.Type (KeyUpdate, typedKeyUpdate)
+import Database.Relational.Query.Type (KeyUpdate, typedKeyUpdate, Insert)
 
 
 -- | Query restricted with specified key.
@@ -87,16 +93,49 @@ updateValuesWithKey =  unsafeUpdateValuesWithIndexes recordToSql . unsafeExpandI
 updateBySpecifiedKey :: Table r       -- ^ 'Table' to update
                      -> Pi r p        -- ^ Key with record type 'r' and columns type 'p'
                      -> KeyUpdate p r -- ^ Result typed 'Update'
-updateBySpecifiedKey table = typedKeyUpdate table
+updateBySpecifiedKey table' = typedKeyUpdate table'
 
 -- | Typed 'KeyUpdate' using specified constraint key.
 updateByConstraintKey :: Table r       -- ^ 'Table' to update
                       -> Key c r p     -- ^ Key with constraint 'c', record type 'r' and columns type 'p'
                       -> KeyUpdate p r -- ^ Result typed 'Update'
-updateByConstraintKey table = updateBySpecifiedKey table . Constraint.projectionKey
+updateByConstraintKey table' = updateBySpecifiedKey table' . Constraint.projectionKey
 
 -- | Typed 'KeyUpdate' using infered primary key.
 primaryUpdate :: (HasConstraintKey Primary r p)
               => Table r       -- ^ 'Table' to update
               -> KeyUpdate p r -- ^ Result typed 'Update'
-primaryUpdate table = updateByConstraintKey table (uniqueKey constraintKey)
+primaryUpdate table' = updateByConstraintKey table' (uniqueKey constraintKey)
+
+
+-- | Capabilities derived from table.
+data TableDerivation r =
+  TableDerivation
+  { derivedTable'    :: Table r
+  , derivedRelation' :: Relation () r
+  , derivedInsert'   :: Insert r
+  }
+
+-- | Specify properties derived from table.
+specifyTableDerivation' :: Table r -> Relation () r -> Insert r -> TableDerivation r
+specifyTableDerivation' =  TableDerivation
+
+-- | Specify properties derived from table.
+specifyTableDerivation :: Table r -> Insert r -> TableDerivation r
+specifyTableDerivation t = specifyTableDerivation' t (table t)
+
+-- | Inference rule for 'TableDerivation'.
+class TableDerivable r where
+  tableDerivation :: TableDerivation r
+
+-- | Infered 'Table'.
+derivedTable :: TableDerivable r => Table r
+derivedTable =  derivedTable' tableDerivation
+
+-- | Infered 'Relation'.
+derivedRelation :: TableDerivable r => Relation () r
+derivedRelation =  derivedRelation' tableDerivation
+
+-- | Infered 'Insert'.
+derivedInsert :: TableDerivable r => Insert r
+derivedInsert =  derivedInsert' tableDerivation
