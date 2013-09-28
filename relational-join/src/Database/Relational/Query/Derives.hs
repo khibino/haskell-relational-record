@@ -29,6 +29,7 @@ module Database.Relational.Query.Derives (
   TableDerivation,
   specifyTableDerivation', specifyTableDerivation,
 
+  TableDerivable (..),
   derivedTable, derivedRelation, derivedInsert
   ) where
 
@@ -44,7 +45,7 @@ import Database.Relational.Query.Constraint
    (Key, Primary, Unique, projectionKey, uniqueKey,
     HasConstraintKey(constraintKey))
 import qualified Database.Relational.Query.Constraint as Constraint
-import Database.Relational.Query.Type (KeyUpdate, typedKeyUpdate, Insert)
+import Database.Relational.Query.Type (KeyUpdate, typedKeyUpdate, Insert, typedInsert)
 
 
 -- | Query restricted with specified key.
@@ -121,8 +122,8 @@ specifyTableDerivation' :: Table r -> Relation () r -> Insert r -> TableDerivati
 specifyTableDerivation' =  TableDerivation
 
 -- | Specify properties derived from table.
-specifyTableDerivation :: Table r -> Insert r -> TableDerivation r
-specifyTableDerivation t = specifyTableDerivation' t (table t)
+specifyTableDerivation :: Table r -> TableDerivation r
+specifyTableDerivation t = specifyTableDerivation' t (table t) (typedInsert t)
 
 -- | Inference rule for 'TableDerivation'.
 class TableDerivable r where
