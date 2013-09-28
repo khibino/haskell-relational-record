@@ -41,7 +41,6 @@ module Database.Relational.Query.TH (
   -- * Basic SQL templates generate rules
   definePrimaryQuery,
   definePrimaryUpdate,
-  defineInsert,
 
   -- * Var expression templates
   tableVarExpDefault,
@@ -49,9 +48,7 @@ module Database.Relational.Query.TH (
 
   -- * Derived SQL templates from table definitions
   defineSqlsWithPrimaryKey,
-  defineSqls,
   defineSqlsWithPrimaryKeyDefault,
-  defineSqlsDefault
   ) where
 
 import Data.Char (toUpper, toLower)
@@ -74,7 +71,7 @@ import Database.Record.Instances ()
 
 import Database.Relational.Query
   (Table, Pi, Relation, Config,
-   sqlFromRelationWith, Query, relationalQuery, KeyUpdate, Insert, typedInsert,
+   sqlFromRelationWith, Query, relationalQuery, KeyUpdate, Insert,
    HasConstraintKey(constraintKey), projectionKey, Primary, NotNull)
 
 import Database.Relational.Query.Constraint (Key, unsafeDefineConstraintKey)
@@ -287,17 +284,6 @@ definePrimaryUpdate toDef' paramType recType tableE = do
     [|  primaryUpdate $tableE |]
 
 
--- | Template of 'Insert'.
-defineInsert :: VarName -- ^ Variable name of result declaration
-             -> TypeQ   -- ^ Record type of 'Insert'
-             -> ExpQ    -- ^ 'Table' expression
-             -> Q [Dec] -- ^ Result 'Insert' declaration
-defineInsert toDef' recType tableE = do
-  let toDef = varName toDef'
-  simpleValD toDef
-    [t| Insert $recType |]
-    [|  typedInsert $tableE |]
-
 -- | SQL templates derived from primary key.
 defineSqlsWithPrimaryKey :: VarName -- ^ Variable name of select query definition from primary key
                          -> VarName -- ^ Variable name of update statement definition from primary key
@@ -311,13 +297,6 @@ defineSqlsWithPrimaryKey sel upd paramType recType relE tableE = do
   updD <- definePrimaryUpdate upd paramType recType tableE
   return $ selD ++ updD
 
--- | SQL templates for 'Table'.
-defineSqls :: VarName -- ^ Variable name of 'Insert' declaration
-           -> TypeQ   -- ^ Record type
-           -> ExpQ    -- ^ 'Table' expression
-           -> Q [Dec] -- ^ Result declarations
-defineSqls =  defineInsert
-
 -- | SQL templates derived from primary key using default naming rule.
 defineSqlsWithPrimaryKeyDefault :: String  -- ^ Table name of Database
                                 -> TypeQ   -- ^ Primary key type
@@ -330,15 +309,6 @@ defineSqlsWithPrimaryKeyDefault table  =
   where
     sel = table `varNameWithPrefix` "select"
     upd = table `varNameWithPrefix` "update"
-
--- | SQL templates for 'Table' using default naming rule.
-defineSqlsDefault :: String  -- ^ Table name string
-                  -> TypeQ   -- ^ Record type
-                  -> ExpQ    -- ^ 'Table' expression
-                  -> Q [Dec] -- ^ Result declarations
-defineSqlsDefault table =
-  defineSqls
-    (table `varNameWithPrefix` "insert")
 
 -- | Generate all templates about table except for constraint keys using default naming rule.
 defineTableDefault' :: String            -- ^ Schema name of Database
