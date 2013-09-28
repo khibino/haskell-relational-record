@@ -82,7 +82,9 @@ import Database.Relational.Query.Constraint (Key, unsafeDefineConstraintKey)
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Type (unsafeTypedQuery)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
-import Database.Relational.Query.Derives (primary, primaryUpdate)
+import Database.Relational.Query.Derives
+  (primary, primaryUpdate,
+   TableDerivable (..), specifyTableDerivation, derivedTable, derivedRelation, derivedInsert)
 
 
 -- | Rule template to infer constraint key.
@@ -174,6 +176,32 @@ defineColumnDefault mayConstraint recType name =
   where varN        = varCamelcaseName (name ++ "'")
         withCName t = (t, varCamelcaseName (name ++ "_constraint"))
 
+-- | Rule template to infer table derivations.
+defineTableDerivableInstance :: TypeQ -> String -> [String] -> Q [Dec]
+defineTableDerivableInstance recordType table columns =
+  [d| instance TableDerivable $recordType where
+        tableDerivation = specifyTableDerivation
+                          $ Table.table $(stringE table) $(listE $ map stringE columns)
+    |]
+
+-- |Template to define infered entries from table type.
+defineTableDerivations :: VarName -- ^ Table declaration variable name
+                       -> VarName -- ^ Relation declaration variable name
+                       -> VarName -- ^ Insert statement declaration variable name
+                       -> TypeQ   -- ^ Record type
+                       -> Q [Dec] -- ^ Table and Relation declaration
+defineTableDerivations tableVar' relVar' insVar' recordType = do
+  let tableVar = varName tableVar'
+  tableDs <- simpleValD tableVar [t| Table $recordType |]
+             [| derivedTable |]
+  let relVar   = varName relVar'
+  relDs   <- simpleValD relVar   [t| Relation () $recordType |]
+             [| derivedRelation |]
+  let insVar = varName insVar'
+  insDs   <- simpleValD insVar   [t| Insert $recordType |]
+             [| derivedInsert |]
+  return $ concat [tableDs, relDs, insDs]
+
 -- | 'Table' and 'Relation' templates.
 defineTableTypes :: VarName  -- ^ Table declaration variable name
                  -> VarName  -- ^ Relation declaration variable name
@@ -184,7 +212,7 @@ defineTableTypes :: VarName  -- ^ Table declaration variable name
 defineTableTypes tableVar' relVar' recordType table columns = do
   let tableVar = varName tableVar'
   tableDs <- simpleValD tableVar [t| Table $(recordType) |]
-            [| Table.table $(stringE table) $(listE $ map stringE columns) |]
+             [| Table.table $(stringE table) $(listE $ map stringE columns) |]
   let relVar   = varName relVar'
   relDs   <- simpleValD relVar   [t| Relation () $(recordType) |]
              [| Query.table $(toVarExp tableVar') |]
