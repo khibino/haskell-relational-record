@@ -175,16 +175,16 @@ defineColumnDefault mayConstraint recType name =
         withCName t = (t, varCamelcaseName (name ++ "_constraint"))
 
 -- | 'Table' and 'Relation' templates.
-defineTableTypes :: VarName                          -- ^ Table declaration variable name
-                 -> VarName                          -- ^ Relation declaration variable name
-                 -> TypeQ                            -- ^ Record type
-                 -> String                           -- ^ Table name in SQL ex. FOO_SCHEMA.table0
-                 -> [((String, TypeQ), Maybe TypeQ)] -- ^ Column names and types and constraint type
-                 -> Q [Dec]                          -- ^ Table and Relation declaration
+defineTableTypes :: VarName  -- ^ Table declaration variable name
+                 -> VarName  -- ^ Relation declaration variable name
+                 -> TypeQ    -- ^ Record type
+                 -> String   -- ^ Table name in SQL ex. FOO_SCHEMA.table0
+                 -> [String] -- ^ Column names
+                 -> Q [Dec]  -- ^ Table and Relation declaration
 defineTableTypes tableVar' relVar' recordType table columns = do
   let tableVar = varName tableVar'
   tableDs <- simpleValD tableVar [t| Table $(recordType) |]
-            [| Table.table $(stringE table) $(listE $ map stringE (map (fst . fst) columns)) |]
+            [| Table.table $(stringE table) $(listE $ map stringE columns) |]
   let relVar   = varName relVar'
   relDs   <- simpleValD relVar   [t| Relation () $(recordType) |]
              [| Query.table $(toVarExp tableVar') |]
@@ -221,7 +221,7 @@ defineTableTypesDefault schema table columns = do
              (relationVarNameDefault table)
              recordType
              (tableSQL schema table)
-             columns
+             (map (fst . fst) columns)
   let defCol i ((name, typ), constraint) = defineColumnDefault constraint recordType name i typ
   colsDs  <- fmap concat . sequence . zipWith defCol [0..] $ columns
   return $ tableDs ++ colsDs
