@@ -26,7 +26,7 @@ module Database.Relational.Query.Derives (
   updateValuesWithKey,
 
   -- * Derived objects from table
-  TableDerivation,
+  TableDerivation (..),
   specifyTableDerivation', specifyTableDerivation,
 
   TableDerivable (..),
