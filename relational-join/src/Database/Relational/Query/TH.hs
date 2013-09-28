@@ -76,7 +76,6 @@ import Database.Relational.Query
   (Table, Pi, Relation, Config,
    sqlFromRelationWith, Query, relationalQuery, KeyUpdate, Insert, typedInsert,
    HasConstraintKey(constraintKey), projectionKey, Primary, NotNull)
-import qualified Database.Relational.Query as Query
 
 import Database.Relational.Query.Constraint (Key, unsafeDefineConstraintKey)
 import qualified Database.Relational.Query.Table as Table
@@ -181,10 +180,10 @@ defineTableDerivableInstance :: TypeQ -> String -> [String] -> Q [Dec]
 defineTableDerivableInstance recordType table columns =
   [d| instance TableDerivable $recordType where
         tableDerivation = specifyTableDerivation
-                          $ Table.table $(stringE table) $(listE $ map stringE columns)
+                          (Table.table $(stringE table) $(listE $ map stringE columns))
     |]
 
--- |Template to define infered entries from table type.
+-- | Template to define infered entries from table type.
 defineTableDerivations :: VarName -- ^ Table declaration variable name
                        -> VarName -- ^ Relation declaration variable name
                        -> VarName -- ^ Insert statement declaration variable name
@@ -205,18 +204,15 @@ defineTableDerivations tableVar' relVar' insVar' recordType = do
 -- | 'Table' and 'Relation' templates.
 defineTableTypes :: VarName  -- ^ Table declaration variable name
                  -> VarName  -- ^ Relation declaration variable name
+                 -> VarName -- ^ Insert statement declaration variable name
                  -> TypeQ    -- ^ Record type
                  -> String   -- ^ Table name in SQL ex. FOO_SCHEMA.table0
                  -> [String] -- ^ Column names
                  -> Q [Dec]  -- ^ Table and Relation declaration
-defineTableTypes tableVar' relVar' recordType table columns = do
-  let tableVar = varName tableVar'
-  tableDs <- simpleValD tableVar [t| Table $(recordType) |]
-             [| Table.table $(stringE table) $(listE $ map stringE columns) |]
-  let relVar   = varName relVar'
-  relDs   <- simpleValD relVar   [t| Relation () $(recordType) |]
-             [| Query.table $(toVarExp tableVar') |]
-  return $ tableDs ++ relDs
+defineTableTypes tableVar' relVar' insVar' recordType table columns = do
+  iDs <- defineTableDerivableInstance recordType table columns
+  dDs <- defineTableDerivations tableVar' relVar' insVar' recordType
+  return $ iDs ++ dDs
 
 tableSQL :: String -> String -> String
 tableSQL schema table = map toUpper schema ++ '.' : map toLower table
@@ -247,6 +243,7 @@ defineTableTypesDefault schema table columns = do
   tableDs <- defineTableTypes
              (tableVarNameDefault table)
              (relationVarNameDefault table)
+             (table `varNameWithPrefix` "insert")
              recordType
              (tableSQL schema table)
              (map (fst . fst) columns)
@@ -349,12 +346,7 @@ defineTableDefault' :: String            -- ^ Schema name of Database
                     -> [(String, TypeQ)] -- ^ Column names and types
                     -> [ConName]         -- ^ derivings for Record type
                     -> Q [Dec]           -- ^ Result declarations
-defineTableDefault' schema table columns derives = do
-  recD <- defineTableTypesAndRecordDefault schema table columns derives
-  let recType = recordTypeDefault table
-      tableE  = tableVarExpDefault table
-  sqlD <- defineSqlsDefault table recType tableE
-  return $ recD ++ sqlD
+defineTableDefault' =  defineTableTypesAndRecordDefault
 
 -- | All templates about primary key.
 defineWithPrimaryKeyDefault :: String  -- ^ Table name string
