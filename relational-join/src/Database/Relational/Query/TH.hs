@@ -17,7 +17,6 @@
 -- so mapping between list of untyped SQL type and Haskell record type will be done too.
 module Database.Relational.Query.TH (
   -- * All templates about table
-  defineTableDefault',
   defineTableDefault,
 
   -- * Inlining typed 'Query'
@@ -310,14 +309,6 @@ defineSqlsWithPrimaryKeyDefault table  =
     sel = table `varNameWithPrefix` "select"
     upd = table `varNameWithPrefix` "update"
 
--- | Generate all templates about table except for constraint keys using default naming rule.
-defineTableDefault' :: String            -- ^ Schema name of Database
-                    -> String            -- ^ Table name of Database
-                    -> [(String, TypeQ)] -- ^ Column names and types
-                    -> [ConName]         -- ^ derivings for Record type
-                    -> Q [Dec]           -- ^ Result declarations
-defineTableDefault' =  defineTableTypesAndRecordDefault
-
 -- | All templates about primary key.
 defineWithPrimaryKeyDefault :: String  -- ^ Table name string
                             -> TypeQ   -- ^ Type of primary key
@@ -344,7 +335,7 @@ defineTableDefault :: String            -- ^ Schema name string of Database
                    -> Maybe Int         -- ^ Not null key index
                    -> Q [Dec]           -- ^ Result declarations
 defineTableDefault schema table columns derives primaryIxs mayNotNullIdx = do
-  tblD  <- defineTableDefault' schema table columns derives
+  tblD  <- defineTableTypesAndRecordDefault schema table columns derives
   let pairT x y = appT (appT (tupleT 2) x) y
       keyType   = foldl1' pairT . map (snd . (columns !!)) $ primaryIxs
   primD <- case primaryIxs of

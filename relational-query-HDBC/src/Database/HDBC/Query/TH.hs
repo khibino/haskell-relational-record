@@ -45,7 +45,7 @@ defineTableDefault' :: String            -- ^ Schema name
                     -> [ConName]         -- ^ Derivings
                     -> Q [Dec]           -- ^ Result declaration
 defineTableDefault' schema table columns derives = do
-  modelD <- Relational.defineTableDefault' schema table columns derives
+  modelD <- Relational.defineTableTypesAndRecordDefault schema table columns derives
   sqlvD  <- defineRecordWithSqlTypeDefault [t| SqlValue |] table columns
   return $ modelD ++ sqlvD
 
