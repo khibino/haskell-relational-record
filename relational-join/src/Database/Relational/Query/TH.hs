@@ -42,6 +42,7 @@ module Database.Relational.Query.TH (
   definePrimaryUpdate,
 
   -- * Var expression templates
+  derivationExpDefault,
   tableVarExpDefault,
   relationVarExpDefault,
 
@@ -78,8 +79,8 @@ import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Type (unsafeTypedQuery)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Relational.Query.Derives
-  (primary, primaryUpdate,
-   TableDerivable (..), specifyTableDerivation, derivedTable, derivedRelation, derivedInsert)
+  (primary, primaryUpdate, TableDerivable (..), TableDerivation,
+   specifyTableDerivation, derivedTable, derivedRelation, derivedInsert)
 
 
 -- | Rule template to infer constraint key.
@@ -180,12 +181,16 @@ defineTableDerivableInstance recordType table columns =
     |]
 
 -- | Template to define infered entries from table type.
-defineTableDerivations :: VarName -- ^ Table declaration variable name
+defineTableDerivations :: VarName -- ^ TableDerivation declaration variable name
+                       -> VarName -- ^ Table declaration variable name
                        -> VarName -- ^ Relation declaration variable name
                        -> VarName -- ^ Insert statement declaration variable name
                        -> TypeQ   -- ^ Record type
                        -> Q [Dec] -- ^ Table and Relation declaration
-defineTableDerivations tableVar' relVar' insVar' recordType = do
+defineTableDerivations derivationVar' tableVar' relVar' insVar' recordType = do
+  let derivationVar = varName derivationVar'
+  derivationDs <- simpleValD derivationVar [t| TableDerivation $recordType |]
+                  [| tableDerivation |]
   let tableVar = varName tableVar'
   tableDs <- simpleValD tableVar [t| Table $recordType |]
              [| derivedTable |]
@@ -195,30 +200,39 @@ defineTableDerivations tableVar' relVar' insVar' recordType = do
   let insVar = varName insVar'
   insDs   <- simpleValD insVar   [t| Insert $recordType |]
              [| derivedInsert |]
-  return $ concat [tableDs, relDs, insDs]
+  return $ concat [derivationDs, tableDs, relDs, insDs]
 
 -- | 'Table' and 'Relation' templates.
-defineTableTypes :: VarName  -- ^ Table declaration variable name
+defineTableTypes :: VarName  -- ^ TableDerivation declaration variable name
+                 -> VarName  -- ^ Table declaration variable name
                  -> VarName  -- ^ Relation declaration variable name
-                 -> VarName -- ^ Insert statement declaration variable name
+                 -> VarName  -- ^ Insert statement declaration variable name
                  -> TypeQ    -- ^ Record type
                  -> String   -- ^ Table name in SQL ex. FOO_SCHEMA.table0
                  -> [String] -- ^ Column names
                  -> Q [Dec]  -- ^ Table and Relation declaration
-defineTableTypes tableVar' relVar' insVar' recordType table columns = do
+defineTableTypes derivationVar' tableVar' relVar' insVar' recordType table columns = do
   iDs <- defineTableDerivableInstance recordType table columns
-  dDs <- defineTableDerivations tableVar' relVar' insVar' recordType
+  dDs <- defineTableDerivations derivationVar' tableVar' relVar' insVar' recordType
   return $ iDs ++ dDs
 
 tableSQL :: String -> String -> String
 tableSQL schema table = map toUpper schema ++ '.' : map toLower table
+
+derivationVarNameDefault :: String -> VarName
+derivationVarNameDefault =  (`varNameWithPrefix` "derivationFrom")
+
+-- | Make 'TableDerivation' variable expression template from table name using default naming rule.
+derivationExpDefault :: String -- ^ Table name string
+                     -> ExpQ   -- ^ Result var Exp
+derivationExpDefault =  toVarExp . derivationVarNameDefault
 
 tableVarNameDefault :: String -> VarName
 tableVarNameDefault =  (`varNameWithPrefix` "tableOf")
 
 -- | Make 'Table' variable expression template from table name using default naming rule.
 tableVarExpDefault :: String -- ^ Table name string
-                   -> ExpQ -- ^ Result var Exp
+                   -> ExpQ   -- ^ Result var Exp
 tableVarExpDefault =  toVarExp . tableVarNameDefault
 
 relationVarNameDefault :: String -> VarName
@@ -237,6 +251,7 @@ defineTableTypesDefault :: String                           -- ^ Schema name
 defineTableTypesDefault schema table columns = do
   let recordType = recordTypeDefault table
   tableDs <- defineTableTypes
+             (derivationVarNameDefault table)
              (tableVarNameDefault table)
              (relationVarNameDefault table)
              (table `varNameWithPrefix` "insert")
