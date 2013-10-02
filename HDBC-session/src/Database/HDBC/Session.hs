@@ -14,7 +14,7 @@
 module Database.HDBC.Session (
   -- * Bracketed session
   -- $bracketedSession
-  withConnection, withConnectionIO,
+  withConnection, withConnectionIO, withConnectionIO',
 
   -- * Show errors
   -- $showErrors
@@ -76,3 +76,10 @@ withConnectionIO :: IConnection conn
                  -> (conn -> IO a) -- ^ Transaction body
                  -> IO a           -- ^ Result transaction action
 withConnectionIO =  withConnection bracket id
+
+-- | Same as 'withConnectionIO' other than wrapping transaction body in 'handleSqlError''.
+withConnectionIO' :: IConnection conn
+                  => IO conn        -- ^ Connect action
+                  -> (conn -> IO a) -- ^ Transaction body
+                  -> IO a           -- ^ Result transaction action
+withConnectionIO' connect body = withConnectionIO connect $ handleSqlError' . body
