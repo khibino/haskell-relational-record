@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Database.Relational.Schema.OracleSyscat.TabColumns where
+module Database.Relational.Schema.OracleDataDictionary.TabColumns where
 
 import Data.Int (Int32)
 -- import Data.ByteString (ByteString)

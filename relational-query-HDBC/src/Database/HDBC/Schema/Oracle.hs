@@ -25,8 +25,8 @@ import Database.Relational.Schema.Oracle
     ( normalizeColumn, notNull, getType
     , columnsQuerySQL, primaryKeyQuerySQL
     )
-import Database.Relational.Schema.OracleSyscat.TabColumns (DbaTabColumns (DbaTabColumns))
-import qualified Database.Relational.Schema.OracleSyscat.TabColumns as Cols
+import Database.Relational.Schema.OracleDataDictionary.TabColumns (DbaTabColumns (DbaTabColumns))
+import qualified Database.Relational.Schema.OracleDataDictionary.TabColumns as Cols
 
 $(defineRecordWithSqlTypeDefaultFromDefined
     [t|SqlValue|]

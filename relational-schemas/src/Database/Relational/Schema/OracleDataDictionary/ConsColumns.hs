@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Database.Relational.Schema.OracleSyscat.ConsColumns where
+module Database.Relational.Schema.OracleDataDictionary.ConsColumns where
 
 import Data.Int (Int32)
 

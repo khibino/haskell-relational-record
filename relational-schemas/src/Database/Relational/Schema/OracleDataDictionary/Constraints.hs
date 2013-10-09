@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Database.Relational.Schema.OracleSyscat.Constraints where
+module Database.Relational.Schema.OracleDataDictionary.Constraints where
 
 import Database.Record.TH (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)

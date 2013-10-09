@@ -15,12 +15,12 @@ import Language.Haskell.TH (TypeQ)
 
 import Database.Relational.Query
 
-import Database.Relational.Schema.OracleSyscat.ConsColumns (dbaConsColumns)
-import qualified Database.Relational.Schema.OracleSyscat.ConsColumns as ConsCols
-import Database.Relational.Schema.OracleSyscat.Constraints (dbaConstraints)
-import qualified Database.Relational.Schema.OracleSyscat.Constraints as Cons
-import Database.Relational.Schema.OracleSyscat.TabColumns (DbaTabColumns, dbaTabColumns)
-import qualified Database.Relational.Schema.OracleSyscat.TabColumns as Cols
+import Database.Relational.Schema.OracleDataDictionary.ConsColumns (dbaConsColumns)
+import qualified Database.Relational.Schema.OracleDataDictionary.ConsColumns as ConsCols
+import Database.Relational.Schema.OracleDataDictionary.Constraints (dbaConstraints)
+import qualified Database.Relational.Schema.OracleDataDictionary.Constraints as Cons
+import Database.Relational.Schema.OracleDataDictionary.TabColumns (DbaTabColumns, dbaTabColumns)
+import qualified Database.Relational.Schema.OracleDataDictionary.TabColumns as Cols
 
 -- NOT COMPLETED
 -- (ref: http://docs.oracle.com/cd/B28359_01/server.111/b28318/datatype.htm)
