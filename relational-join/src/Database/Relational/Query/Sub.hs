@@ -232,8 +232,7 @@ columnFromId qi i = qi <.> columnN i
 qualifiedSQLas :: Qualified ShowS -> ShowS
 qualifiedSQLas q =
   showUnwords
-  [unQualify q, showWordSQL AS,
-   (showQualifier (qualifier q) ++)]
+  [unQualify q, (showQualifier (qualifier q) ++)]
 
 -- | Width of 'Qualified' 'SubQUery'.
 queryWidth :: Qualified SubQuery -> Int
