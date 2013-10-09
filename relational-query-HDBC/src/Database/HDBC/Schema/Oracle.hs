@@ -46,7 +46,9 @@ getPrimaryKey' :: IConnection conn
                -> String -- ^ owner name
                -> String -- ^ table name
                -> IO [String] -- ^ primary key names
-getPrimaryKey' conn owner tbl = do
+getPrimaryKey' conn owner' tbl' = do
+    let owner = map toUpper owner'
+        tbl = map toUpper tbl'
     prims <- map normalizeColumn . catMaybes <$>
         runQuery' conn primaryKeyQuerySQL (owner, tbl)
     putLog $ "getPrimaryKey: keys = " ++ show prims
