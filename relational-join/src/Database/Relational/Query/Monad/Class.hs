@@ -14,7 +14,8 @@
 module Database.Relational.Query.Monad.Class (
   -- * Query interface classes
   MonadQualify (..), MonadRestrict (..),
-  MonadQuery (..), MonadAggregate (..),
+  MonadQuery (..),
+  MonadAggregate (..), MonadCube (..),
 
   onE, on, wheresE, wheres,
   groupBy, havingE, having
@@ -59,6 +60,12 @@ class MonadQuery m => MonadAggregate m where
   -- | Add /group by/ term into context and get aggregated projection.
   aggregateKey :: Projection Flat r           -- ^ Projection to add into group by
                -> m (Projection Aggregated r) -- ^ Result context and aggregated projection
+
+-- | Aggregated query building interface extends 'MonadQuery'.
+class MonadQuery m => MonadCube m where
+  -- | Add /group by/ term into context and get aggregated projection.
+  cubeKey :: Projection Flat r                   -- ^ Projection to add into group by
+          -> m (Projection Aggregated (Maybe r)) -- ^ Result context and aggregated projection
 
 -- | Add restriction to last join.
 onE :: MonadQuery m => Expr Flat (Maybe Bool) -> m ()
