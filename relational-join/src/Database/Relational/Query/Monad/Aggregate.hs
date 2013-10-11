@@ -24,7 +24,7 @@ module Database.Relational.Query.Monad.Aggregate (
   toSubQuery
   ) where
 
-import Database.Relational.Query.Context (Flat, Aggregated)
+import Database.Relational.Query.Context (Flat, Aggregated, Group)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Component (QueryRestriction, AggregateTerms, OrderingTerms)
@@ -44,10 +44,10 @@ import Database.Relational.Query.Monad.Type (ConfigureQuery, QueryCore, extractC
 
 
 -- | Aggregated query monad type.
-type QueryAggregate    = Orderings Aggregated (Restrictings Aggregated (Aggregatings QueryCore))
+type QueryAggregate     = Orderings Aggregated (Restrictings Aggregated (Aggregatings Group QueryCore))
 
 -- | Aggregated query type. AggregatedQuery r == QueryAggregate (Projection Aggregated r).
-type AggregatedQuery r = OrderedQuery Aggregated (Restrictings Aggregated (Aggregatings QueryCore)) r
+type AggregatedQuery  r = OrderedQuery Aggregated (Restrictings Aggregated (Aggregatings Group QueryCore)) r
 
 -- | Lift from qualified table forms into 'QueryAggregate'.
 aggregatedQuery :: ConfigureQuery a -> QueryAggregate a
