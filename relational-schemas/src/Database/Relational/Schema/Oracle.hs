@@ -46,7 +46,7 @@ mapFromSqlDefault = Map.fromList
     , ("UROWID", [t|String|])
     ]
 
--- | Normalize column name string to query Oracle DB system catalog.
+-- | Normalize column name string to query Oracle DB data dictionary.
 normalizeColumn :: String -> String
 normalizeColumn = map toLower
 
