@@ -5,11 +5,12 @@ module Database.Relational.Schema.Oracle
     , columnsQuerySQL, primaryKeyQuerySQL
     ) where
 
-import Control.Applicative ((<|>))
+import Control.Applicative ((<|>), (<$>))
+import Data.ByteString (ByteString)
 import Data.Char (toLower)
-import Data.Int (Int32)
 import Data.Map (Map)
 import qualified Data.Map as Map
+import Data.Time (LocalTime)
 
 import Language.Haskell.TH (TypeQ)
 
@@ -27,15 +28,22 @@ import qualified Database.Relational.Schema.OracleDataDictionary.TabColumns as C
 -- | Mapping between type in Oracle DB and Haskell type.
 mapFromSqlDefault :: Map String TypeQ
 mapFromSqlDefault = Map.fromList
-    [ ("CHAR", [t|Char|])
-    -- , ("varchar", [t|String|])
+    [ ("CHAR", [t|String|])
+    , ("VARCHAR", [t|String|]) -- deprecated
     , ("VARCHAR2", [t|String|])
-    , ("NCHAR", [t|Char|])
-    -- , ("nvarchar", [t|String|])
+    , ("NCHAR", [t|String|])
     , ("NVARCHAR2", [t|String|])
-    , ("NUMBER", [t|Int32|]) -- Double?
-    , ("BINARY_FLOAT", [t|Float|])
+    -- , ("NUMBER", [t|Integer or Double|]) see 'getType'
+    , ("BINARY_FLOAT", [t|Double|]) -- Float don't work
     , ("BINARY_DOUBLE", [t|Double|])
+    , ("DATE", [t|LocalTime|])
+    , ("BLOB", [t|ByteString|])
+    , ("CLOB", [t|String|])
+    , ("NCLOB", [t|String|])
+    , ("LONG RAW", [t|ByteString|]) -- deprecated
+    , ("RAW", [t|ByteString|])
+    , ("ROWID", [t|String|])
+    , ("UROWID", [t|String|])
     ]
 
 -- | Normalize column name string to query Oracle DB system catalog.
@@ -52,12 +60,18 @@ getType :: Map String TypeQ -- ^ Type mapping specified by user
         -> Maybe (String, TypeQ) -- ^ Result normalized name and mapped Haskell type
 getType mapFromSql cols = do
     key <- Cols.dataType cols
-    typ <- Map.lookup key mapFromSql <|> Map.lookup key mapFromSqlDefault
+    typ <- if key == "NUMBER"
+        then return $ numberType $ Cols.dataScale cols
+        else Map.lookup key mapFromSql <|> Map.lookup key mapFromSqlDefault
     return (normalizeColumn $ Cols.columnName cols, mayNull typ)
   where
     mayNull typ
         | notNull cols = typ
         | otherwise = [t|Maybe $(typ)|]
+    numberType Nothing = [t|Integer|]
+    numberType (Just n)
+        | n <= 0 = [t|Integer|]
+        | otherwise = [t|Double|]
 
 -- | 'Relation' to query 'DbaTabColumns' from owner name and table name.
 columnsRelationFromTable :: Relation (String, String) DbaTabColumns
