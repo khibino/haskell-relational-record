@@ -26,7 +26,8 @@ import Data.List (find)
 -- | Type represent SQL keywords.
 data Keyword = SELECT | ALL | DISTINCT | ON
              | GROUP | COUNT | SUM | AVG | MAX | MIN | EVERY | ANY | SOME
-             | ORDER | BY | ASC | DESC | HAVING
+             | ORDER | BY | ASC | DESC
+             | CUBE | ROLLUP | GROUPING | SETS | HAVING
              | FOR
 
              | LIMIT
