@@ -24,6 +24,14 @@ module Database.Relational.Query.Component (
   -- * Types for aggregation
   AggregateTerm, AggregateTerms,
 
+  AggregateKey, AggregateElem,
+
+  aggregateTerm, aggregateEmpty,
+  aggregateRollup, aggregateCube, aggregateSets,
+
+
+  composeGroupBy,
+
   -- * Types for ordering
   Order (..), OrderColumn, OrderingTerm, OrderingTerms,
 
@@ -35,7 +43,8 @@ import qualified Database.Relational.Query.Context as Context
 import Database.Relational.Query.Expr (Expr)
 import Database.Relational.Query.Expr.Unsafe (showExpr)
 
-import Database.Relational.Query.Internal.String (showUnwordsSQL, showSpace)
+import Database.Relational.Query.Internal.String
+  (showUnwordsSQL, showWordSQL, showSpace, showParen', showSepBy)
 import Language.SQL.Keyword (Keyword(..))
 
 import qualified Language.SQL.Keyword as SQL
@@ -92,6 +101,51 @@ type AggregateTerm = ColumnSQL
 -- | Type for group-by terms
 type AggregateTerms = [AggregateTerm]
 
+-- | Type for group key.
+newtype AggregateKey = AggregateKey [AggregateTerm]
+
+-- | Type for group-by tree
+data AggregateElem = Term AggregateTerm
+                   | Rollup [AggregateKey]
+                   | Cube   [AggregateKey]
+                   | GroupingSets [[AggregateElem]]
+
+aggregateTerm :: AggregateTerm -> AggregateElem
+aggregateTerm =  Term
+
+aggregateRollup :: [AggregateKey] -> AggregateElem
+aggregateRollup =  Rollup
+
+aggregateCube :: [AggregateKey] -> AggregateElem
+aggregateCube =  Cube
+
+aggregateSets :: [[AggregateElem]] -> AggregateElem
+aggregateSets =  GroupingSets
+
+aggregateEmpty :: [AggregateElem]
+aggregateEmpty =  []
+
+comma :: ShowS
+comma =  showString ", "
+
+showsAggregateTerm :: AggregateTerm -> ShowS
+showsAggregateTerm =  showString . stringFromColumnSQL
+
+parenSepByComma :: (a -> ShowS) -> [a] -> ShowS
+parenSepByComma shows' = showParen' . (`showSepBy` comma) . map shows'
+
+showsAggregateKey :: AggregateKey -> ShowS
+showsAggregateKey (AggregateKey ts) = parenSepByComma showsAggregateTerm ts
+
+composeGroupBy :: [AggregateElem] -> ShowS
+composeGroupBy es = showUnwordsSQL [GROUP, BY] . showSpace . rec es  where
+  keyList op ss = showWordSQL op . parenSepByComma showsAggregateKey ss
+  rec = (`showSepBy` comma) . map d
+  d (Term t)          = showsAggregateTerm t
+  d (Rollup ss)       = keyList ROLLUP ss
+  d (Cube   ss)       = keyList CUBE   ss
+  d (GroupingSets ss) = showUnwordsSQL [GROUPING, SETS] . showSpace
+                        . parenSepByComma (showParen' . rec) ss
 
 -- | Order direction. Ascendant or Descendant.
 data Order = Asc | Desc  deriving Show
