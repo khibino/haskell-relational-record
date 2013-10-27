@@ -11,12 +11,12 @@
 -- which result is ShowS differential lists.
 module Database.Relational.Query.Internal.String (
   showUnwordsSQL, showWordSQL, showWordSQL',
-  showUnwords, showSpace, showParen',
+  showConcat, showSepBy, showUnwords, showSpace, showParen',
 
   paren, sqlRowString, sqlRowListString
   ) where
 
-import Data.List (intercalate)
+import Data.List (intersperse, intercalate)
 
 import qualified Language.SQL.Keyword as SQL
 
@@ -40,12 +40,17 @@ showParen' =  showParen True
 showWordSQL' :: SQL.Keyword -> ShowS
 showWordSQL' kw = showWordSQL kw . showSpace
 
+-- | 'ShowS' version of concat function.
+showConcat :: [ShowS] -> ShowS
+showConcat =  foldr (.) id
+
+-- | Separated 'ShowS' with delimitor.
+showSepBy :: [ShowS] -> ShowS -> ShowS
+showSepBy ts d = showConcat $ intersperse d ts
+
 -- | 'ShowS' version of unwords function.
 showUnwords :: [ShowS] -> ShowS
-showUnwords =  rec  where
-  rec []     = id
-  rec [s]    = s
-  rec (s:ss@(_:_)) = s . showSpace . rec ss
+showUnwords =  (`showSepBy` showSpace)
 
 -- | Parened String.
 paren :: String -> String
