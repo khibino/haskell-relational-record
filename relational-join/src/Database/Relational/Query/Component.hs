@@ -110,18 +110,23 @@ data AggregateElem = Term AggregateTerm
                    | Cube   [AggregateKey]
                    | GroupingSets [[AggregateElem]]
 
+-- | Single term aggregation element.
 aggregateTerm :: AggregateTerm -> AggregateElem
 aggregateTerm =  Term
 
+-- | Rollup aggregation element.
 aggregateRollup :: [AggregateKey] -> AggregateElem
 aggregateRollup =  Rollup
 
+-- | Cube aggregation element.
 aggregateCube :: [AggregateKey] -> AggregateElem
 aggregateCube =  Cube
 
+-- | Grouping sets aggregation.
 aggregateSets :: [[AggregateElem]] -> AggregateElem
 aggregateSets =  GroupingSets
 
+-- | Empty aggregation.
 aggregateEmpty :: [AggregateElem]
 aggregateEmpty =  []
 
@@ -137,6 +142,7 @@ parenSepByComma shows' = showParen' . (`showSepBy` comma) . map shows'
 showsAggregateKey :: AggregateKey -> ShowS
 showsAggregateKey (AggregateKey ts) = parenSepByComma showsAggregateTerm ts
 
+-- | Compose GROUP BY clause from AggregateElem list.
 composeGroupBy :: [AggregateElem] -> ShowS
 composeGroupBy es = showUnwordsSQL [GROUP, BY] . showSpace . rec es  where
   keyList op ss = showWordSQL op . parenSepByComma showsAggregateKey ss
