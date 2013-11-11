@@ -24,10 +24,10 @@ module Database.Relational.Query.Monad.Aggregate (
   toSubQuery
   ) where
 
-import Database.Relational.Query.Context (Flat, Aggregated, Group)
+import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
-import Database.Relational.Query.Component (QueryRestriction, AggregateTerms, OrderingTerms)
+import Database.Relational.Query.Component (QueryRestriction, AggregateElem, OrderingTerms)
 import Database.Relational.Query.Sub (SubQuery, aggregatedSubQuery, JoinProduct)
 import qualified Database.Relational.Query.Sub as SubQuery
 
@@ -37,17 +37,17 @@ import Database.Relational.Query.Monad.Trans.Join (join')
 import Database.Relational.Query.Monad.Trans.Restricting
   (Restrictings, restrictings, extractRestrict)
 import Database.Relational.Query.Monad.Trans.Aggregating
-  (Aggregatings, aggregatings, extractAggregateTerms)
+  (aggregatings, extractAggregateTerms, AggregatingSet)
 import Database.Relational.Query.Monad.Trans.Ordering
   (Orderings, orderings, OrderedQuery, extractOrderingTerms)
 import Database.Relational.Query.Monad.Type (ConfigureQuery, QueryCore, extractCore)
 
 
 -- | Aggregated query monad type.
-type QueryAggregate     = Orderings Aggregated (Restrictings Aggregated (Aggregatings Group QueryCore))
+type QueryAggregate     = Orderings Aggregated (Restrictings Aggregated (AggregatingSet QueryCore))
 
 -- | Aggregated query type. AggregatedQuery r == QueryAggregate (Projection Aggregated r).
-type AggregatedQuery  r = OrderedQuery Aggregated (Restrictings Aggregated (Aggregatings Group QueryCore)) r
+type AggregatedQuery  r = OrderedQuery Aggregated (Restrictings Aggregated (AggregatingSet QueryCore)) r
 
 -- | Lift from qualified table forms into 'QueryAggregate'.
 aggregatedQuery :: ConfigureQuery a -> QueryAggregate a
@@ -64,7 +64,7 @@ instance MonadQualify ConfigureQuery QueryAggregate where
 extract :: AggregatedQuery r
         -> ConfigureQuery (((((Projection Aggregated r, OrderingTerms),
                                  QueryRestriction Aggregated),
-                                AggregateTerms),
+                                [AggregateElem]),
                                QueryRestriction Flat),
                               JoinProduct)
 extract =  extractCore . extractAggregateTerms . extractRestrict . extractOrderingTerms

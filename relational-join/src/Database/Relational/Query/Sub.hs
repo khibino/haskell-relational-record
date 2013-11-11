@@ -49,7 +49,8 @@ import Database.Relational.Query.Component
   (ColumnSQL, columnSQL, sqlWordFromColumn, stringFromColumnSQL,
    Config, UnitProductSupport (UPSupported, UPNotSupported),
    QueryRestriction, composeWhere, composeHaving,
-   AggregateTerms, Order (Asc, Desc), OrderingTerms)
+   AggregateElem, composeGroupBy,
+   Order (Asc, Desc), OrderingTerms)
 import Database.Relational.Query.Table (Table, (!))
 import qualified Database.Relational.Query.Table as Table
 
@@ -74,7 +75,7 @@ data SubQuery = Table Table.Untyped
                 OrderingTerms
               | Aggregated Config
                 UntypedProjection JoinProduct (QueryRestriction Context.Flat)
-                AggregateTerms (QueryRestriction Context.Aggregated) OrderingTerms
+                [AggregateElem] (QueryRestriction Context.Aggregated) OrderingTerms
               | Bin BinOp SubQuery SubQuery
               deriving Show
 
@@ -97,7 +98,7 @@ aggregatedSubQuery :: Config
                    -> UntypedProjection
                    -> JoinProduct
                    -> QueryRestriction Context.Flat
-                   -> AggregateTerms
+                   -> [AggregateElem]
                    -> QueryRestriction Context.Aggregated
                    -> OrderingTerms
                    -> SubQuery
@@ -169,7 +170,7 @@ toSQLs =  d  where
         . composeOrderByes od
   d (Aggregated cf up pd rs ag grs od) = (showParen' q, q)  where
     q = selectPrefixSQL up . showsJoinProduct cf pd . composeWhere rs
-        . composeGroupBys ag . composeHaving grs . composeOrderByes od
+        . composeGroupBy ag . composeHaving grs . composeOrderByes od
 
 showUnitSQL :: SubQuery -> ShowS
 showUnitSQL =  fst . toSQLs
@@ -352,14 +353,6 @@ showsJoinProduct ups =  maybe (up ups) from  where
   from qp = showSpace . showWordSQL' FROM . showsQueryProduct qp
   up UPSupported    = id
   up UPNotSupported = error "relation: Unit product support mode is disabled!"
-
-
-composeGroupBys :: AggregateTerms -> ShowS
-composeGroupBys as = groupBys where
-  groupBys
-    | null gs   = id
-    | otherwise = showSpace . showUnwordsSQL [GROUP, BY, gs `SQL.sepBy` ", "]
-  gs = map sqlWordFromColumn as
 
 
 -- | Get SQL keyword from order attribute.

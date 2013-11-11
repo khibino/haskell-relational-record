@@ -17,6 +17,8 @@ module Database.Relational.Query.Monad.Trans.Aggregating (
   -- * Transformer into aggregated query
   Aggregatings, aggregatings,
 
+  AggregatingSet, AggregatingSetList, AggregatingPowerSet,
+
   -- * Result
   extractAggregateTerms
   ) where
@@ -26,90 +28,74 @@ import Control.Monad.Trans.State (StateT, runStateT, modify)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second, (>>>))
 
-import Database.Relational.Query.Context (Flat, Aggregated, Group, Cube)
-import Database.Relational.Query.Component (AggregateTerm, AggregateTerms)
-import Database.Relational.Query.Monad.Trans.AggregatingState
-  (AggregatingContext, primeAggregatingContext, aggregateTerms, addGroupBy)
+import Database.Relational.Query.Context (Flat, Aggregated, Set, Power, SetList)
+import Database.Relational.Query.Component
+  (AggregateElem, aggregateTerm, AggregateKey)
+import Database.Relational.Query.Monad.Trans.ListState
+  (TermsContext, primeTermsContext, appendTerm, termsList)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
 import Database.Relational.Query.Monad.Class
-  (MonadRestrict(..), MonadQuery(..), MonadAggregate(..), MonadCube(..))
+  (MonadRestrict(..), MonadQuery(..), MonadAggregate(..))
 
 
 -- | 'StateT' type to accumulate aggregating context.
-newtype Aggregatings ac m a =
-  Aggregatings { aggregatingState :: StateT AggregatingContext m a }
+newtype Aggregatings ac at m a =
+  Aggregatings { aggregatingState :: StateT (TermsContext at) m a }
   deriving (MonadTrans, Monad, Functor, Applicative)
 
 -- | Run 'Aggregatings' to expand context state.
-runAggregating :: Aggregatings ac m a          -- ^ Context to expand
-               -> AggregatingContext        -- ^ Initial context
-               -> m (a, AggregatingContext) -- ^ Expanded result
+runAggregating :: Aggregatings ac at m a -- ^ Context to expand
+               -> TermsContext at        -- ^ Initial context
+               -> m (a, TermsContext at) -- ^ Expanded result
 runAggregating =  runStateT . aggregatingState
 
 -- | Run 'Aggregatings' with primary empty context to expand context state.
-runAggregatingPrime :: Aggregatings ac m a          -- ^ Context to expand
-                    -> m (a, AggregatingContext) -- ^ Expanded result
-runAggregatingPrime =  (`runAggregating` primeAggregatingContext)
+runAggregatingPrime :: Aggregatings ac at m a          -- ^ Context to expand
+                    -> m (a, TermsContext at) -- ^ Expanded result
+runAggregatingPrime =  (`runAggregating` primeTermsContext)
 
 -- | Lift to 'Aggregatings'.
-aggregatings :: Monad m => m a -> Aggregatings ac m a
+aggregatings :: Monad m => m a -> Aggregatings ac at m a
 aggregatings =  lift
 
--- | Aggregated 'MonadRestrict'.
-instance MonadRestrict c m => MonadRestrict c (Aggregatings Group m) where
-  restrictContext =  aggregatings . restrictContext
+type AggregatingSet      = Aggregatings Set     AggregateElem
+type AggregatingSetList  = Aggregatings SetList [AggregateElem]
+type AggregatingPowerSet = Aggregatings Power   AggregateKey
 
--- | Aggregated 'MonadRestrict'. Has group by cube context.
-instance MonadRestrict c m => MonadRestrict c (Aggregatings Cube m) where
+-- | Aggregated 'MonadRestrict'.
+instance MonadRestrict c m => MonadRestrict c (AggregatingSet m) where
   restrictContext =  aggregatings . restrictContext
 
 -- | Aggregated 'MonadQuery'.
-instance MonadQuery m => MonadQuery (Aggregatings Group m) where
-  restrictJoin  =  aggregatings . restrictJoin
-  unsafeSubQuery na = aggregatings . unsafeSubQuery na
-
--- | Aggregated 'MonadQuery'. Has group by cube context.
-instance MonadQuery m => MonadQuery (Aggregatings Cube m) where
+instance MonadQuery m => MonadQuery (AggregatingSet m) where
   restrictJoin  =  aggregatings . restrictJoin
   unsafeSubQuery na = aggregatings . unsafeSubQuery na
 
 -- | Unsafely update aggregating context.
-updateAggregatingContext :: Monad m => (AggregatingContext -> AggregatingContext) -> Aggregatings ac m ()
+updateAggregatingContext :: Monad m => (TermsContext at -> TermsContext at) -> Aggregatings ac at m ()
 updateAggregatingContext =  Aggregatings . modify
 
 -- | Unsafely add not-typeful aggregating terms.
-addAggregating' :: Monad m => [AggregateTerm] -> Aggregatings ac m ()
-addAggregating' gbs = updateAggregatingContext . foldr (>>>) id $ map addGroupBy gbs
+addAggregating' :: Monad m => [at] -> Aggregatings ac at m ()
+addAggregating' gbs = updateAggregatingContext . foldr (>>>) id $ map appendTerm gbs
 
-aggregateWithProjection :: Monad m => Projection pc r -> Aggregatings ac m ()
-aggregateWithProjection =  addAggregating' . Projection.columns
+aggregateWithProjection :: Monad m => Projection pc r -> AggregatingSet m ()
+aggregateWithProjection =  addAggregating' . map aggregateTerm . Projection.columns
 
 -- | Add aggregating terms.
 addGroupBys :: MonadQuery m
             => Projection Flat r              -- ^ Group-by term to add
-            -> Aggregatings ac m (Projection Aggregated r) -- ^ Result aggregated context
+            -> AggregatingSet m (Projection Aggregated r) -- ^ Result aggregated context
 addGroupBys p = do
   aggregateWithProjection p
   return $ Projection.unsafeToAggregated p
 
 -- | Aggregated query instance.
-instance MonadQuery m => MonadAggregate (Aggregatings Group m) where
+instance MonadQuery m => MonadAggregate (AggregatingSet m) where
   aggregateKey = addGroupBys
 
--- | Add group-by-cube terms
-addGroupByCubes :: MonadQuery m
-                => Projection Flat r                                     -- ^ Cube term to add
-                -> Aggregatings Cube m (Projection Aggregated (Maybe r)) -- ^ Result aggregated context
-addGroupByCubes p = do
-  aggregateWithProjection p
-  return . Projection.unsafeToAggregated $ Projection.just p
-
--- | Aggregated query instance.
-instance MonadQuery m => MonadCube (Aggregatings Cube m) where
-  cubeKey = addGroupByCubes
-
 -- | Run 'Aggregatings' to get 'AggregateTerms'.
-extractAggregateTerms :: (Monad m, Functor m) => Aggregatings ac m a -> m (a, AggregateTerms)
-extractAggregateTerms q = second aggregateTerms <$> runAggregatingPrime q
+extractAggregateTerms :: (Monad m, Functor m) => Aggregatings ac at m a -> m (a, [at])
+extractAggregateTerms q = second termsList <$> runAggregatingPrime q
