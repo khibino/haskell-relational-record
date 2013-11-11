@@ -102,13 +102,14 @@ type AggregateTerm = ColumnSQL
 type AggregateTerms = [AggregateTerm]
 
 -- | Type for group key.
-newtype AggregateKey = AggregateKey [AggregateTerm]
+newtype AggregateKey = AggregateKey [AggregateTerm] deriving Show
 
 -- | Type for group-by tree
 data AggregateElem = Term AggregateTerm
                    | Rollup [AggregateKey]
                    | Cube   [AggregateKey]
                    | GroupingSets [[AggregateElem]]
+                   deriving Show
 
 -- | Single term aggregation element.
 aggregateTerm :: AggregateTerm -> AggregateElem
@@ -144,7 +145,7 @@ showsAggregateKey (AggregateKey ts) = parenSepByComma showsAggregateTerm ts
 
 -- | Compose GROUP BY clause from AggregateElem list.
 composeGroupBy :: [AggregateElem] -> ShowS
-composeGroupBy es = showUnwordsSQL [GROUP, BY] . showSpace . rec es  where
+composeGroupBy es = showSpace . showUnwordsSQL [GROUP, BY] . showSpace . rec es  where
   keyList op ss = showWordSQL op . parenSepByComma showsAggregateKey ss
   rec = (`showSepBy` comma) . map d
   d (Term t)          = showsAggregateTerm t
