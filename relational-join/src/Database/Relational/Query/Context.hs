@@ -13,7 +13,9 @@
 module Database.Relational.Query.Context (
   Flat, Aggregated, Exists,
 
-  Group, Cube, Partition
+  Set, SetList, Power, Partition,
+
+  Group, Cube
   ) where
 
 -- | Type tag for flat (not-aggregated) query
@@ -25,6 +27,15 @@ data Aggregated
 -- | Type tag for exists predicate
 data Exists
 
+
+-- | Type tag for normal aggregatings set
+data Set
+
+-- | Type tag for aggregatings GROUPING SETS
+data SetList
+
+-- | Type tag for aggregatings power set
+data Power
 
 -- | Type tag for normal aggregatings
 data Group
