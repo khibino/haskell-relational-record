@@ -167,10 +167,10 @@ toSQLs =  d  where
     q = showUnwords [normalizedSQL l, showWordSQL $ keywordBinOp op, normalizedSQL r]
   d (Flat cf up pd rs od)   = (showParen' q, q)  where
     q = selectPrefixSQL up . showsJoinProduct cf pd . composeWhere rs
-        . composeOrderByes od
+        . composeOrderBy od
   d (Aggregated cf up pd rs ag grs od) = (showParen' q, q)  where
     q = selectPrefixSQL up . showsJoinProduct cf pd . composeWhere rs
-        . composeGroupBy ag . composeHaving grs . composeOrderByes od
+        . composeGroupBy ag . composeHaving grs . composeOrderBy od
 
 showUnitSQL :: SubQuery -> ShowS
 showUnitSQL =  fst . toSQLs
@@ -360,8 +360,8 @@ order :: Order -> Keyword
 order Asc  = ASC
 order Desc = DESC
 
-composeOrderByes :: OrderingTerms -> ShowS
-composeOrderByes ots = orders  where
+composeOrderBy :: OrderingTerms -> ShowS
+composeOrderBy ots = orders  where
   orderList = foldr (\ (o, e) r -> [sqlWordFromColumn e, order o] `SQL.sepBy` " "  : r) [] ots
   orders | null orderList = id
          | otherwise      = showSpace . showUnwordsSQL [ORDER, BY, orderList `SQL.sepBy` ", "]
