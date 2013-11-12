@@ -60,8 +60,13 @@ runAggregatingPrime =  (`runAggregating` primeTermsContext)
 aggregatings :: Monad m => m a -> Aggregatings ac at m a
 aggregatings =  lift
 
+-- | Context type building one grouping set.
 type AggregatingSet      = Aggregatings Set     AggregateElem
+
+-- | Context type building grouping sets list.
 type AggregatingSetList  = Aggregatings SetList [AggregateElem]
+
+-- | Context type building power group set.
 type AggregatingPowerSet = Aggregatings Power   AggregateKey
 
 -- | Aggregated 'MonadRestrict'.

@@ -16,13 +16,17 @@ import Data.DList (DList, toList)
 import Data.Monoid (mempty, (<>))
 import Control.Applicative (pure)
 
+-- | Type to accumulate terms.
 type TermsContext = DList
 
+-- | Initial state for TermsContext.
 primeTermsContext :: TermsContext a
 primeTermsContext =  mempty
 
+-- | Append a new term.
 appendTerm :: a -> TermsContext a -> TermsContext a
 appendTerm at ctx = ctx <> pure at
 
+-- | Result term list.
 termsList :: TermsContext a -> [a]
 termsList =  toList
