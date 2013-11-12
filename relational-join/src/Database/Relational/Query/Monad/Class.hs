@@ -14,11 +14,10 @@
 module Database.Relational.Query.Monad.Class (
   -- * Query interface classes
   MonadQualify (..), MonadRestrict (..),
-  MonadQuery (..),
-  MonadAggregate (..), MonadCube (..),
+  MonadQuery (..), MonadAggregate (..),
 
   onE, on, wheresE, wheres,
-  groupBy, cubeBy, havingE, having
+  groupBy, havingE, having
   ) where
 
 import Database.Relational.Query.Context (Flat, Aggregated)
@@ -61,12 +60,6 @@ class MonadQuery m => MonadAggregate m where
   aggregateKey :: Projection Flat r           -- ^ Projection to add into group by
                -> m (Projection Aggregated r) -- ^ Result context and aggregated projection
 
--- | Aggregated query building interface extends 'MonadQuery'.
-class MonadQuery m => MonadCube m where
-  -- | Add /group by/ term into context and get aggregated projection.
-  cubeKey :: Projection Flat r                   -- ^ Projection to add into group by
-          -> m (Projection Aggregated (Maybe r)) -- ^ Result context and aggregated projection
-
 -- | Add restriction to last join.
 onE :: MonadQuery m => Expr Flat (Maybe Bool) -> m ()
 onE =  restrictJoin
@@ -88,12 +81,6 @@ groupBy :: MonadAggregate m
         => Projection Flat r      -- ^ Projection to add into group by
         -> m (Projection Aggregated r) -- ^ Result context and aggregated projection
 groupBy =  aggregateKey
-
--- | Add /GROUP BY CUBE/ term into context and get aggregated projection.
-cubeBy :: MonadCube m
-       => Projection Flat r                   -- ^ Projection to add into group by
-       -> m (Projection Aggregated (Maybe r)) -- ^ Result context and aggregated projection
-cubeBy =  cubeKey
 
 -- | Add restriction to this aggregated query.
 havingE :: MonadRestrict Aggregated m => Expr Aggregated (Maybe Bool) -> m ()
