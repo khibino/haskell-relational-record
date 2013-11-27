@@ -31,14 +31,18 @@ module Database.Relational.Query.Projection (
 
   -- * List Projection
   ListProjection, list, unsafeListProjectionFromSubQuery,
-  unsafeShowSqlListProjection
+  unsafeShowSqlListProjection,
+
+  -- * Aggregated element
+  AggregatedElements, aggregatedElements, runAggregatedElements,
+  unsafeToAggregatedElements
   ) where
 
 import Prelude hiding (pi)
 
 import Database.Relational.Query.Internal.String (paren, sqlRowListString)
 import Database.Relational.Query.Context (Aggregated, Flat)
-import Database.Relational.Query.Component (ColumnSQL)
+import Database.Relational.Query.Component (ColumnSQL, AggregateElem, aggregateTerm)
 import Database.Relational.Query.Table (Table)
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Pi (Pi)
@@ -161,3 +165,20 @@ unsafeShowSqlListProjection :: (p t -> String) -> ListProjection p t -> String
 unsafeShowSqlListProjection sf = d  where
   d (List ps) = sqlRowListString $ map sf ps
   d (Sub sub) = paren $ SubQuery.toSQL sub
+
+
+-- | Aggregated elements context and result.
+newtype AggregatedElements a = AggregatedElements (a, [AggregateElem])
+
+-- | Pack aggregated elements.
+aggregatedElements :: (a, [AggregateElem]) -> AggregatedElements a
+aggregatedElements =  AggregatedElements
+
+-- | Unpack aggregated elements.
+runAggregatedElements :: AggregatedElements a -> (a, [AggregateElem])
+runAggregatedElements (AggregatedElements p) = p
+
+-- | Unsafely make 'AggregatedElements' from flat 'Projection'.
+unsafeToAggregatedElements :: Projection Flat r -> AggregatedElements (Projection Aggregated r)
+unsafeToAggregatedElements p =
+  aggregatedElements (unsafeToAggregated p, map aggregateTerm . columns $ p)
