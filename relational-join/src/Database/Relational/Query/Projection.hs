@@ -1,3 +1,4 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 -- |
 -- Module      : Database.Relational.Query.Projection
 -- Copyright   : 2013 Kei Hibino
@@ -38,6 +39,7 @@ module Database.Relational.Query.Projection (
   unsafeToAggregatedElements
   ) where
 
+import Data.Tuple (swap)
 import Prelude hiding (pi)
 
 import Database.Relational.Query.Internal.String (paren, sqlRowListString)
@@ -168,15 +170,15 @@ unsafeShowSqlListProjection sf = d  where
 
 
 -- | Aggregated elements context and result.
-newtype AggregatedElements a = AggregatedElements (a, [AggregateElem])
+newtype AggregatedElements a = AggregatedElements ([AggregateElem], a) deriving Functor
 
 -- | Pack aggregated elements.
 aggregatedElements :: (a, [AggregateElem]) -> AggregatedElements a
-aggregatedElements =  AggregatedElements
+aggregatedElements =  AggregatedElements . swap
 
 -- | Unpack aggregated elements.
 runAggregatedElements :: AggregatedElements a -> (a, [AggregateElem])
-runAggregatedElements (AggregatedElements p) = p
+runAggregatedElements (AggregatedElements p) = swap p
 
 -- | Unsafely make 'AggregatedElements' from flat 'Projection'.
 unsafeToAggregatedElements :: Projection Flat r -> AggregatedElements (Projection Aggregated r)
