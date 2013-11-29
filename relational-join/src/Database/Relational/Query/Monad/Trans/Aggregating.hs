@@ -93,7 +93,7 @@ addGroupBys es0 = do
 
 -- | Aggregated query instance.
 instance MonadQuery m => MonadAggregate (AggregatingSet m) where
-  aggregateKey = addGroupBys
+  aggregateElement = addGroupBys
 
 -- | Run 'Aggregatings' to get 'AggregateTerms'.
 extractAggregateTerms :: (Monad m, Functor m) => Aggregatings ac at m a -> m (a, [at])

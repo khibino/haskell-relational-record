@@ -57,8 +57,8 @@ class (Functor q, Monad q, MonadQuery m) => MonadQualify q m where
 -- | Aggregated query building interface extends 'MonadQuery'.
 class MonadQuery m => MonadAggregate m where
   -- | Add /group by/ term into context and get aggregated projection.
-  aggregateKey :: AggregatedElements a -- ^ Projection to add into group by
-               -> m a                  -- ^ Result context and aggregated projection
+  aggregateElement :: AggregatedElements a -- ^ Projection to add into group by
+                   -> m a                  -- ^ Result context and aggregated projection
 
 -- | Add restriction to last join.
 onE :: MonadQuery m => Expr Flat (Maybe Bool) -> m ()
@@ -79,7 +79,7 @@ wheres =  restrictContext . expr
 groupBy' :: MonadAggregate m
          => AggregatedElements a
          -> m a
-groupBy' =  aggregateKey
+groupBy' =  aggregateElement
 
 -- | Add /GROUP BY/ term into context and get aggregated projection.
 groupBy :: MonadAggregate m
