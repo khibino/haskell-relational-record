@@ -27,7 +27,7 @@ module Database.Relational.Query.Component (
   AggregateKey, AggregateElem,
 
   aggregateTerm, aggregateEmpty,
-  aggregateRollup, aggregateCube, aggregateSets,
+  aggregatePowerKey, aggregateRollup, aggregateCube, aggregateSets,
 
 
   composeGroupBy,
@@ -114,6 +114,10 @@ data AggregateElem = Term AggregateTerm
 -- | Single term aggregation element.
 aggregateTerm :: AggregateTerm -> AggregateElem
 aggregateTerm =  Term
+
+-- | Key of aggregation power set.
+aggregatePowerKey :: [AggregateTerm] -> AggregateKey
+aggregatePowerKey =  AggregateKey
 
 -- | Rollup aggregation element.
 aggregateRollup :: [AggregateKey] -> AggregateElem
