@@ -73,7 +73,7 @@ instance MonadQuery m => MonadQuery (Orderings p m) where
 
 -- | 'MonadAggregate' with ordering.
 instance MonadAggregate m => MonadAggregate (Orderings p m) where
-  aggregateElement = orderings . aggregateElement
+  aggregateKey' = orderings . aggregateKey'
 
 -- | OrderedQuery type synonym. Projection must be the same as 'Orderings' type parameter 'p'
 type OrderedQuery p m r = Orderings p m (Projection p r)

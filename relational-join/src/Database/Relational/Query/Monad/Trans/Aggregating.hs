@@ -19,6 +19,8 @@ module Database.Relational.Query.Monad.Trans.Aggregating (
 
   AggregatingSet, AggregatingSetList, AggregatingPowerSet,
 
+  unsafeAggregateWithTerms,
+
   -- * Result
   extractAggregateTerms
   ) where
@@ -28,15 +30,16 @@ import Control.Monad.Trans.State (StateT, runStateT, modify)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second, (>>>))
 
-import Database.Relational.Query.Context (Set, Power, SetList)
+import Database.Relational.Query.Context (Flat, Aggregated, Set, Power, SetList)
 import Database.Relational.Query.Component
-  (AggregateElem, AggregateKey)
+  (AggregateElem, aggregateTerm, AggregateKey, aggregatePowerKey)
 import Database.Relational.Query.Monad.Trans.ListState
   (TermsContext, primeTermsContext, appendTerm, termsList)
-import Database.Relational.Query.Projection (AggregatedElements, runAggregatedElements)
+import Database.Relational.Query.Projection (Projection)
+import qualified Database.Relational.Query.Projection as Projection
 
 import Database.Relational.Query.Monad.Class
-  (MonadRestrict(..), MonadQuery(..), MonadAggregate(..))
+  (MonadRestrict(..), MonadQuery(..), MonadAggregate(..), MonadAggregateKey(..))
 
 
 -- | 'StateT' type to accumulate aggregating context.
@@ -82,18 +85,25 @@ updateAggregatingContext :: Monad m => (TermsContext at -> TermsContext at) -> A
 updateAggregatingContext =  Aggregatings . modify
 
 -- | Unsafely add not-typeful aggregating terms.
-addAggregating' :: Monad m => [at] -> Aggregatings ac at m ()
-addAggregating' gbs = updateAggregatingContext . foldr (>>>) id $ map appendTerm gbs
+unsafeAggregateWithTerms :: Monad m => [at] -> Aggregatings ac at m ()
+unsafeAggregateWithTerms gbs = updateAggregatingContext . foldr (>>>) id $ map appendTerm gbs
 
-addGroupBys :: Monad m => AggregatedElements a -> AggregatingSet m a
-addGroupBys es0 = do
-  addAggregating' es
-  return p
-    where (p, es) = runAggregatedElements es0
+-- | Add aggregating terms using projection.
+aggregateWithProjection :: Monad m
+                    => (Projection Flat r -> [at])                    -- ^ Get aggregating terms from Projection
+                    -> Projection Flat r                              -- ^ Group-by term to add
+                    -> Aggregatings ac at m (Projection Aggregated r) -- ^ Result aggregated context
+aggregateWithProjection terms p = do
+  unsafeAggregateWithTerms . terms $ p
+  return $ Projection.unsafeToAggregated p
 
 -- | Aggregated query instance.
 instance MonadQuery m => MonadAggregate (AggregatingSet m) where
-  aggregateElement = addGroupBys
+  aggregateKey' = aggregateWithProjection $ map aggregateTerm . Projection.columns
+
+-- | Aggregate key specify instance
+instance (Functor m, Monad m) => MonadAggregateKey (AggregatingPowerSet m) where
+  aggregateKey = fmap Projection.just . aggregateWithProjection ((:[]) . aggregatePowerKey . Projection.columns)
 
 -- | Run 'Aggregatings' to get 'AggregateTerms'.
 extractAggregateTerms :: (Monad m, Functor m) => Aggregatings ac at m a -> m (a, [at])

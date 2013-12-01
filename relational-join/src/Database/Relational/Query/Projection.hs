@@ -32,11 +32,7 @@ module Database.Relational.Query.Projection (
 
   -- * List Projection
   ListProjection, list, unsafeListProjectionFromSubQuery,
-  unsafeShowSqlListProjection,
-
-  -- * Aggregated element
-  AggregatedElements, aggregatedElements, runAggregatedElements,
-  unsafeToAggregatedElements
+  unsafeShowSqlListProjection
   ) where
 
 import Data.Tuple (swap)
@@ -167,20 +163,3 @@ unsafeShowSqlListProjection :: (p t -> String) -> ListProjection p t -> String
 unsafeShowSqlListProjection sf = d  where
   d (List ps) = sqlRowListString $ map sf ps
   d (Sub sub) = paren $ SubQuery.toSQL sub
-
-
--- | Aggregated elements context and result.
-newtype AggregatedElements a = AggregatedElements ([AggregateElem], a) deriving Functor
-
--- | Pack aggregated elements.
-aggregatedElements :: (a, [AggregateElem]) -> AggregatedElements a
-aggregatedElements =  AggregatedElements . swap
-
--- | Unpack aggregated elements.
-runAggregatedElements :: AggregatedElements a -> (a, [AggregateElem])
-runAggregatedElements (AggregatedElements p) = swap p
-
--- | Unsafely make 'AggregatedElements' from flat 'Projection'.
-unsafeToAggregatedElements :: Projection Flat r -> AggregatedElements (Projection Aggregated r)
-unsafeToAggregatedElements p =
-  aggregatedElements (unsafeToAggregated p, map aggregateTerm . columns $ p)

@@ -14,15 +14,15 @@
 module Database.Relational.Query.Monad.Class (
   -- * Query interface classes
   MonadQualify (..), MonadRestrict (..),
-  MonadQuery (..), MonadAggregate (..),
+  MonadQuery (..), MonadAggregate (..), MonadAggregateKey (..),
 
   onE, on, wheresE, wheres,
-  groupBy, havingE, having
+  groupBy, groupBy', by', havingE, having
   ) where
 
 import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Expr (Expr)
-import Database.Relational.Query.Projection (Projection, AggregatedElements, unsafeToAggregatedElements)
+import Database.Relational.Query.Projection (Projection)
 import Database.Relational.Query.Projectable (expr)
 import Database.Relational.Query.Sub (SubQuery, Qualified)
 
@@ -57,8 +57,12 @@ class (Functor q, Monad q, MonadQuery m) => MonadQualify q m where
 -- | Aggregated query building interface extends 'MonadQuery'.
 class MonadQuery m => MonadAggregate m where
   -- | Add /group by/ term into context and get aggregated projection.
-  aggregateElement :: AggregatedElements a -- ^ Projection to add into group by
-                   -> m a                  -- ^ Result context and aggregated projection
+  aggregateKey' :: Projection Flat r           -- ^ Projection to add into group by
+                -> m (Projection Aggregated r) -- ^ Result context and aggregated projection
+
+class Monad m => MonadAggregateKey m where
+  aggregateKey :: Projection Flat r                   -- ^ Projection to add into group by
+               -> m (Projection Aggregated (Maybe r)) -- ^ Result context and aggregated projection
 
 -- | Add restriction to last join.
 onE :: MonadQuery m => Expr Flat (Maybe Bool) -> m ()
@@ -76,16 +80,23 @@ wheresE =  restrictContext
 wheres :: MonadRestrict Flat m => Projection Flat (Maybe Bool) -> m ()
 wheres =  restrictContext . expr
 
+-- | Add /GROUP BY/ element into context and get aggregated projection.
 groupBy' :: MonadAggregate m
-         => AggregatedElements a
+         => m a
          -> m a
-groupBy' =  aggregateElement
+groupBy' =  id
 
 -- | Add /GROUP BY/ term into context and get aggregated projection.
 groupBy :: MonadAggregate m
-        => Projection Flat r      -- ^ Projection to add into group by
+        => Projection Flat r           -- ^ Projection to add into group by
         -> m (Projection Aggregated r) -- ^ Result context and aggregated projection
-groupBy =  groupBy' . unsafeToAggregatedElements
+groupBy =  aggregateKey'
+
+-- | Compose grouping set structure context and get aggregated projection.
+by' :: MonadAggregateKey m
+    => Projection Flat r                   -- ^ Projection to add into group by
+    -> m (Projection Aggregated (Maybe r)) -- ^ Result context and aggregated projection
+by' =  aggregateKey
 
 -- | Add restriction to this aggregated query.
 havingE :: MonadRestrict Aggregated m => Expr Aggregated (Maybe Bool) -> m ()
