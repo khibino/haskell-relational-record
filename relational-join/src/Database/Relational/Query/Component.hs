@@ -26,7 +26,7 @@ module Database.Relational.Query.Component (
 
   AggregateKey, AggregateSet, AggregateElem,
 
-  aggregateTerm, aggregateEmpty,
+  aggregateColumnRef, aggregateEmpty,
   aggregatePowerKey, aggregateGroupingSet,
   aggregateRollup, aggregateCube, aggregateSets,
 
@@ -112,8 +112,8 @@ data AggregateElem = ColumnRef AggregateColumnRef
                    deriving Show
 
 -- | Single term aggregation element.
-aggregateTerm :: AggregateColumnRef -> AggregateElem
-aggregateTerm =  ColumnRef
+aggregateColumnRef :: AggregateColumnRef -> AggregateElem
+aggregateColumnRef =  ColumnRef
 
 -- | Key of aggregation power set.
 aggregatePowerKey :: [AggregateColumnRef] -> AggregateKey

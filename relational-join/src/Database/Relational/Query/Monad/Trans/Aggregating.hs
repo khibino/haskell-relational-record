@@ -32,7 +32,7 @@ import Control.Arrow (second, (>>>))
 
 import Database.Relational.Query.Context (Flat, Aggregated, Set, Power, SetList)
 import Database.Relational.Query.Component
-  (AggregateElem, aggregateTerm, AggregateSet, AggregateKey, aggregatePowerKey)
+  (AggregateElem, aggregateColumnRef, AggregateSet, AggregateKey, aggregatePowerKey)
 import Database.Relational.Query.Monad.Trans.ListState
   (TermsContext, primeTermsContext, appendTerm, termsList)
 import Database.Relational.Query.Projection (Projection)
@@ -99,7 +99,7 @@ aggregateWithProjection terms p = do
 
 -- | Aggregated query instance.
 instance MonadQuery m => MonadAggregate (AggregatingSet m) where
-  aggregateKey' = aggregateWithProjection $ map aggregateTerm . Projection.columns
+  aggregateKey' = aggregateWithProjection $ map aggregateColumnRef . Projection.columns
 
 -- | Aggregate key specify instance
 instance (Functor m, Monad m) => MonadAggregateKey (AggregatingPowerSet m) where
