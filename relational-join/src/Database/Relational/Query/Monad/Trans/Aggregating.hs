@@ -105,6 +105,6 @@ instance MonadQuery m => MonadAggregate (AggregatingSet m) where
 instance (Functor m, Monad m) => MonadAggregateKey (AggregatingPowerSet m) where
   aggregateKey = fmap Projection.just . aggregateWithProjection ((:[]) . aggregatePowerKey . Projection.columns)
 
--- | Run 'Aggregatings' to get 'AggregateTerms'.
+-- | Run 'Aggregatings' to get terms list.
 extractAggregateTerms :: (Monad m, Functor m) => Aggregatings ac at m a -> m (a, [at])
 extractAggregateTerms q = second termsList <$> runAggregatingPrime q
