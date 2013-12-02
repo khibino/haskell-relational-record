@@ -44,7 +44,7 @@ import Database.Relational.Query.Expr (Expr)
 import Database.Relational.Query.Expr.Unsafe (showExpr)
 
 import Database.Relational.Query.Internal.String
-  (showUnwordsSQL, showWordSQL, showSpace, showParen', showSepBy)
+  (showUnwordsSQL, showWordSQL', showSpace, showParen', showSepBy)
 import Language.SQL.Keyword (Keyword(..))
 
 import qualified Language.SQL.Keyword as SQL
@@ -157,7 +157,7 @@ showsAggregateKey (AggregateKey ts) = parenSepByComma showsAggregateColumnRef ts
 -- | Compose GROUP BY clause from AggregateElem list.
 composeGroupBy :: [AggregateElem] -> ShowS
 composeGroupBy es = showSpace . showUnwordsSQL [GROUP, BY] . showSpace . rec es  where
-  keyList op ss = showWordSQL op . showSpace . parenSepByComma showsAggregateKey ss
+  keyList op ss = showWordSQL' op . parenSepByComma showsAggregateKey ss
   rec = (`showSepBy` comma) . map d
   showsGs (AggregateSet s) = rec s
   d (ColumnRef t)     = showsAggregateColumnRef t
@@ -165,6 +165,7 @@ composeGroupBy es = showSpace . showUnwordsSQL [GROUP, BY] . showSpace . rec es 
   d (Cube   ss)       = keyList CUBE   ss
   d (GroupingSets ss) = showUnwordsSQL [GROUPING, SETS] . showSpace
                         . parenSepByComma (showParen' . showsGs) ss
+
 
 -- | Order direction. Ascendant or Descendant.
 data Order = Asc | Desc  deriving Show
