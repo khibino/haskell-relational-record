@@ -22,7 +22,7 @@ module Database.Relational.Query.Component (
   QueryRestriction, composeWhere, composeHaving,
 
   -- * Types for aggregation
-  AggregateColumnRef, AggregateTerms,
+  AggregateColumnRef,
 
   AggregateKey, AggregateSet, AggregateElem,
 
@@ -97,9 +97,6 @@ composeHaving =  composeRestrict HAVING
 
 -- | Type for group-by term
 type AggregateColumnRef = ColumnSQL
-
--- | Type for group-by terms
-type AggregateTerms = [AggregateColumnRef]
 
 -- | Type for group key.
 newtype AggregateKey = AggregateKey [AggregateColumnRef] deriving Show
