@@ -32,7 +32,7 @@ import Control.Arrow (second, (>>>))
 
 import Database.Relational.Query.Context (Flat, Aggregated, Set, Power, SetList)
 import Database.Relational.Query.Component
-  (AggregateElem, aggregateTerm, AggregateKey, aggregatePowerKey)
+  (AggregateElem, aggregateTerm, AggregateSet, AggregateKey, aggregatePowerKey)
 import Database.Relational.Query.Monad.Trans.ListState
   (TermsContext, primeTermsContext, appendTerm, termsList)
 import Database.Relational.Query.Projection (Projection)
@@ -66,7 +66,7 @@ aggregatings =  lift
 type AggregatingSet      = Aggregatings Set     AggregateElem
 
 -- | Context type building grouping sets list.
-type AggregatingSetList  = Aggregatings SetList [AggregateElem]
+type AggregatingSetList  = Aggregatings SetList AggregateSet
 
 -- | Context type building power group set.
 type AggregatingPowerSet = Aggregatings Power   AggregateKey

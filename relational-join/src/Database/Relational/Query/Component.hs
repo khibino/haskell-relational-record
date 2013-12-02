@@ -24,11 +24,11 @@ module Database.Relational.Query.Component (
   -- * Types for aggregation
   AggregateColumnRef, AggregateTerms,
 
-  AggregateKey, AggregateElem,
+  AggregateKey, AggregateSet, AggregateElem,
 
   aggregateTerm, aggregateEmpty,
-  aggregatePowerKey, aggregateRollup, aggregateCube, aggregateSets,
-
+  aggregatePowerKey, aggregateGroupingSet,
+  aggregateRollup, aggregateCube, aggregateSets,
 
   composeGroupBy,
 
@@ -104,11 +104,14 @@ type AggregateTerms = [AggregateColumnRef]
 -- | Type for group key.
 newtype AggregateKey = AggregateKey [AggregateColumnRef] deriving Show
 
+-- | Type for grouping set
+newtype AggregateSet = AggregateSet [AggregateElem] deriving Show
+
 -- | Type for group-by tree
 data AggregateElem = ColumnRef AggregateColumnRef
                    | Rollup [AggregateKey]
                    | Cube   [AggregateKey]
-                   | GroupingSets [[AggregateElem]]
+                   | GroupingSets [AggregateSet]
                    deriving Show
 
 -- | Single term aggregation element.
@@ -119,6 +122,10 @@ aggregateTerm =  ColumnRef
 aggregatePowerKey :: [AggregateColumnRef] -> AggregateKey
 aggregatePowerKey =  AggregateKey
 
+-- | Single grouping set.
+aggregateGroupingSet :: [AggregateElem] -> AggregateSet
+aggregateGroupingSet =  AggregateSet
+
 -- | Rollup aggregation element.
 aggregateRollup :: [AggregateKey] -> AggregateElem
 aggregateRollup =  Rollup
@@ -128,7 +135,7 @@ aggregateCube :: [AggregateKey] -> AggregateElem
 aggregateCube =  Cube
 
 -- | Grouping sets aggregation.
-aggregateSets :: [[AggregateElem]] -> AggregateElem
+aggregateSets :: [AggregateSet] -> AggregateElem
 aggregateSets =  GroupingSets
 
 -- | Empty aggregation.
@@ -152,11 +159,12 @@ composeGroupBy :: [AggregateElem] -> ShowS
 composeGroupBy es = showSpace . showUnwordsSQL [GROUP, BY] . showSpace . rec es  where
   keyList op ss = showWordSQL op . parenSepByComma showsAggregateKey ss
   rec = (`showSepBy` comma) . map d
+  showsGs (AggregateSet s) = rec s
   d (ColumnRef t)     = showsAggregateColumnRef t
   d (Rollup ss)       = keyList ROLLUP ss
   d (Cube   ss)       = keyList CUBE   ss
   d (GroupingSets ss) = showUnwordsSQL [GROUPING, SETS] . showSpace
-                        . parenSepByComma (showParen' . rec) ss
+                        . parenSepByComma (showParen' . showsGs) ss
 
 -- | Order direction. Ascendant or Descendant.
 data Order = Asc | Desc  deriving Show
