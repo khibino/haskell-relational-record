@@ -157,7 +157,7 @@ showsAggregateKey (AggregateKey ts) = parenSepByComma showsAggregateColumnRef ts
 -- | Compose GROUP BY clause from AggregateElem list.
 composeGroupBy :: [AggregateElem] -> ShowS
 composeGroupBy es = showSpace . showUnwordsSQL [GROUP, BY] . showSpace . rec es  where
-  keyList op ss = showWordSQL op . parenSepByComma showsAggregateKey ss
+  keyList op ss = showWordSQL op . showSpace . parenSepByComma showsAggregateKey ss
   rec = (`showSepBy` comma) . map d
   showsGs (AggregateSet s) = rec s
   d (ColumnRef t)     = showsAggregateColumnRef t
