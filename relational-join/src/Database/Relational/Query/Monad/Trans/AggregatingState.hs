@@ -25,20 +25,20 @@ import qualified Data.DList as DList
 import Data.Monoid ((<>))
 import Control.Applicative (pure)
 
-import Database.Relational.Query.Component (AggregateTerm, AggregateTerms)
+import Database.Relational.Query.Component (AggregateColumnRef, AggregateTerms)
 
 
 -- | Context state of aggregated query.
 newtype AggregatingContext =
   AggregatingContext
-  { groupByTerms :: DList AggregateTerm }
+  { groupByTerms :: DList AggregateColumnRef }
 
 -- | Initial value of 'AggregatingContext'.
 primeAggregatingContext :: AggregatingContext
 primeAggregatingContext =  AggregatingContext DList.empty
 
 -- | Add group by term into 'AggregatingContext'.
-addGroupBy :: AggregateTerm -> AggregatingContext -> AggregatingContext
+addGroupBy :: AggregateColumnRef -> AggregatingContext -> AggregatingContext
 addGroupBy t c =  c { groupByTerms = groupByTerms c <> pure t }
 
 -- | Finalize context to extract accumulated aggregate terms state.

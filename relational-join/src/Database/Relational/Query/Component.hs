@@ -22,7 +22,7 @@ module Database.Relational.Query.Component (
   QueryRestriction, composeWhere, composeHaving,
 
   -- * Types for aggregation
-  AggregateTerm, AggregateTerms,
+  AggregateColumnRef, AggregateTerms,
 
   AggregateKey, AggregateElem,
 
@@ -96,27 +96,27 @@ composeHaving =  composeRestrict HAVING
 
 
 -- | Type for group-by term
-type AggregateTerm = ColumnSQL
+type AggregateColumnRef = ColumnSQL
 
 -- | Type for group-by terms
-type AggregateTerms = [AggregateTerm]
+type AggregateTerms = [AggregateColumnRef]
 
 -- | Type for group key.
-newtype AggregateKey = AggregateKey [AggregateTerm] deriving Show
+newtype AggregateKey = AggregateKey [AggregateColumnRef] deriving Show
 
 -- | Type for group-by tree
-data AggregateElem = Term AggregateTerm
+data AggregateElem = ColumnRef AggregateColumnRef
                    | Rollup [AggregateKey]
                    | Cube   [AggregateKey]
                    | GroupingSets [[AggregateElem]]
                    deriving Show
 
 -- | Single term aggregation element.
-aggregateTerm :: AggregateTerm -> AggregateElem
-aggregateTerm =  Term
+aggregateTerm :: AggregateColumnRef -> AggregateElem
+aggregateTerm =  ColumnRef
 
 -- | Key of aggregation power set.
-aggregatePowerKey :: [AggregateTerm] -> AggregateKey
+aggregatePowerKey :: [AggregateColumnRef] -> AggregateKey
 aggregatePowerKey =  AggregateKey
 
 -- | Rollup aggregation element.
@@ -138,21 +138,21 @@ aggregateEmpty =  []
 comma :: ShowS
 comma =  showString ", "
 
-showsAggregateTerm :: AggregateTerm -> ShowS
-showsAggregateTerm =  showString . stringFromColumnSQL
+showsAggregateColumnRef :: AggregateColumnRef -> ShowS
+showsAggregateColumnRef =  showString . stringFromColumnSQL
 
 parenSepByComma :: (a -> ShowS) -> [a] -> ShowS
 parenSepByComma shows' = showParen' . (`showSepBy` comma) . map shows'
 
 showsAggregateKey :: AggregateKey -> ShowS
-showsAggregateKey (AggregateKey ts) = parenSepByComma showsAggregateTerm ts
+showsAggregateKey (AggregateKey ts) = parenSepByComma showsAggregateColumnRef ts
 
 -- | Compose GROUP BY clause from AggregateElem list.
 composeGroupBy :: [AggregateElem] -> ShowS
 composeGroupBy es = showSpace . showUnwordsSQL [GROUP, BY] . showSpace . rec es  where
   keyList op ss = showWordSQL op . parenSepByComma showsAggregateKey ss
   rec = (`showSepBy` comma) . map d
-  d (Term t)          = showsAggregateTerm t
+  d (ColumnRef t)     = showsAggregateColumnRef t
   d (Rollup ss)       = keyList ROLLUP ss
   d (Cube   ss)       = keyList CUBE   ss
   d (GroupingSets ss) = showUnwordsSQL [GROUPING, SETS] . showSpace
