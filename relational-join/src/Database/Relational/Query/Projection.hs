@@ -35,12 +35,11 @@ module Database.Relational.Query.Projection (
   unsafeShowSqlListProjection
   ) where
 
-import Data.Tuple (swap)
 import Prelude hiding (pi)
 
 import Database.Relational.Query.Internal.String (paren, sqlRowListString)
 import Database.Relational.Query.Context (Aggregated, Flat)
-import Database.Relational.Query.Component (ColumnSQL, AggregateElem, aggregateTerm)
+import Database.Relational.Query.Component (ColumnSQL)
 import Database.Relational.Query.Table (Table)
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Pi (Pi)
