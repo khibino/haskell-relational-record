@@ -24,6 +24,7 @@ module Database.Relational.Query.Monad.Trans.Aggregating (
   -- * Result
   extractAggregateTerms,
 
+  key, key', set,
   AggregatingPowerSet, rollup, cube,
   AggregatingSetList, groupingSets
   ) where
@@ -37,7 +38,7 @@ import Data.Functor.Identity (Identity (runIdentity))
 
 import Database.Relational.Query.Context (Flat, Aggregated, Set, Power, SetList)
 import Database.Relational.Query.Component
-  (AggregateElem, AggregateSet, AggregateKey, aggregatePowerKey,
+  (AggregateElem, aggregateColumnRef, AggregateSet, aggregateGroupingSet, AggregateKey, aggregatePowerKey,
   aggregateRollup, aggregateCube, aggregateSets)
 import Database.Relational.Query.Monad.Trans.ListState
   (TermsContext, primeTermsContext, appendTerm, termsList)
@@ -97,7 +98,7 @@ unsafeAggregateWithTerm =  updateAggregatingContext . appendTerm
 instance MonadQuery m => MonadAggregate (AggregatingSetT m) where
   unsafeAddAggregateElement = unsafeAggregateWithTerm
 
--- | Specify key for rollup and cube aggregation.
+-- | Specify key of rollup and cube power set.
 by' :: Monad m
     => Projection Flat r
     -> AggregatingPowerSetT m (Projection Aggregated (Maybe r))
@@ -113,11 +114,39 @@ extractAggregateTerms q = second termsList <$> runAggregatingPrime q
 extractTermList :: Aggregatings ac at Identity a -> (a, [at])
 extractTermList =  runIdentity . extractAggregateTerms
 
+-- | Context monad type to build single grouping set.
+type AggregatingSet      = AggregatingSetT      Identity
+
 -- | Context monad type to build grouping power set.
 type AggregatingPowerSet = AggregatingPowerSetT Identity
 
 -- | Context monad type to build grouping set list.
 type AggregatingSetList  = AggregatingSetListT  Identity
+
+-- | Specify key of single grouping set from Projection.
+key :: Monad m
+    => Projection Flat r
+    -> AggregatingSet (Projection Aggregated (Maybe r))
+key p = do
+  mapM_ unsafeAggregateWithTerm [ aggregateColumnRef col | col <- Projection.columns p]
+  return . Projection.just $ Projection.unsafeToAggregated p
+
+-- | Specify key of single grouping set.
+key' :: Monad m
+     => (a, AggregateElem)
+     -> AggregatingSet a
+key' (p, c) = do
+  unsafeAggregateWithTerm c
+  return p
+
+-- | Finalize and specify single grouping set.
+set :: Monad m
+    => AggregatingSet a
+    -> AggregatingSetList a
+set s = do
+  let (p, c) = second aggregateGroupingSet . extractTermList $ s
+  unsafeAggregateWithTerm c
+  return p
 
 finalizePower :: ([AggregateKey] -> AggregateElem)
               -> AggregatingPowerSet a -> (a, AggregateElem)
