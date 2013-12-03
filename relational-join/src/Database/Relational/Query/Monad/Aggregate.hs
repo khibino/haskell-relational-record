@@ -46,8 +46,7 @@ import Database.Relational.Query.Monad.Trans.Restricting
   (Restrictings, restrictings, extractRestrict)
 import Database.Relational.Query.Monad.Trans.Aggregating
   (aggregatings, extractAggregateTerms, Aggregatings,
-   AggregatingSet, AggregatingPowerSet, AggregatingSetList,
-   unsafeAggregateWithTerms)
+   AggregatingSet, AggregatingPowerSet, AggregatingSetList)
 import Database.Relational.Query.Monad.Trans.Ordering
   (Orderings, orderings, OrderedQuery, extractOrderingTerms)
 import Database.Relational.Query.Monad.Type (ConfigureQuery, QueryCore, extractCore)
@@ -99,28 +98,21 @@ extractTermList =  runIdentity . extractAggregateTerms
 -- | Context monad type to build grouping power set.
 type AggregatePower = AggregatingPowerSet Identity
 
-finalizePower :: Monad m
-                 => ([AggregateKey] -> AggregateElem)
-                 -> AggregatePower a -> AggregatingSet m a
-finalizePower finalize pow = do
-  unsafeAggregateWithTerms [ae]
-  return p
-    where (p, ae) = second finalize . extractTermList $ pow
+finalizePower :: ([AggregateKey] -> AggregateElem)
+              -> AggregatePower a -> (a, AggregateElem)
+finalizePower finalize pow = second finalize . extractTermList $ pow
 
 -- | Finalize grouping power set as rollup power set.
-rollup :: Monad m => AggregatePower a -> AggregatingSet m a
+rollup :: AggregatePower a -> (a, AggregateElem)
 rollup =  finalizePower aggregateRollup
 
 -- | Finalize grouping power set as cube power set.
-cube   :: Monad m => AggregatePower a -> AggregatingSet m a
+cube   :: AggregatePower a -> (a, AggregateElem)
 cube   =  finalizePower aggregateCube
 
 -- | Context monad type to build grouping set list.
 type AggregateSetList = AggregatingSetList Identity
 
 -- | Finalize grouping set list.
-groupingSets :: Monad m => AggregateSetList a -> AggregatingSet m a
-groupingSets sets = do
-  unsafeAggregateWithTerms [ae]
-  return p
-    where (p, ae) = second aggregateSets . extractTermList $ sets
+groupingSets :: Monad m => AggregateSetList a -> (a, AggregateElem)
+groupingSets =  second aggregateSets . extractTermList

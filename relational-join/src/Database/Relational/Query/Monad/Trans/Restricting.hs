@@ -72,7 +72,7 @@ instance MonadQuery q => MonadQuery (Restrictings c q) where
 
 -- | Resticted 'MonadAggregate' instance.
 instance MonadAggregate m => MonadAggregate (Restrictings c m) where
-  aggregateKey' = restrictings . aggregateKey'
+  unsafeAddAggregateElement = restrictings . unsafeAddAggregateElement
 
 -- | Run 'Restrictings' to get 'QueryRestriction'
 extractRestrict :: (Monad m, Functor m) => Restrictings c m a -> m (a, QueryRestriction c)
