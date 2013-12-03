@@ -38,17 +38,17 @@ import Database.Relational.Query.Monad.Trans.Join (join')
 import Database.Relational.Query.Monad.Trans.Restricting
   (Restrictings, restrictings, extractRestrict)
 import Database.Relational.Query.Monad.Trans.Aggregating
-  (aggregatings, extractAggregateTerms, AggregatingSet)
+  (aggregatings, extractAggregateTerms, AggregatingSetT)
 import Database.Relational.Query.Monad.Trans.Ordering
   (Orderings, orderings, OrderedQuery, extractOrderingTerms)
 import Database.Relational.Query.Monad.Type (ConfigureQuery, QueryCore, extractCore)
 
 
 -- | Aggregated query monad type.
-type QueryAggregate     = Orderings Aggregated (Restrictings Aggregated (AggregatingSet QueryCore))
+type QueryAggregate     = Orderings Aggregated (Restrictings Aggregated (AggregatingSetT QueryCore))
 
 -- | Aggregated query type. AggregatedQuery r == QueryAggregate (Projection Aggregated r).
-type AggregatedQuery  r = OrderedQuery Aggregated (Restrictings Aggregated (AggregatingSet QueryCore)) r
+type AggregatedQuery  r = OrderedQuery Aggregated (Restrictings Aggregated (AggregatingSetT QueryCore)) r
 
 -- | Lift from qualified table forms into 'QueryAggregate'.
 aggregatedQuery :: ConfigureQuery a -> QueryAggregate a

@@ -17,15 +17,15 @@ module Database.Relational.Query.Monad.Trans.Aggregating (
   -- * Transformer into aggregated query
   Aggregatings, aggregatings,
 
-  AggregatingSet, AggregatingSetList, AggregatingPowerSet,
+  AggregatingSetT, AggregatingSetListT, AggregatingPowerSetT,
 
   by',
 
   -- * Result
   extractAggregateTerms,
 
-  AggregatePower, rollup, cube,
-  AggregateSetList, groupingSets
+  AggregatingPowerSet, rollup, cube,
+  AggregatingSetList, groupingSets
   ) where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
@@ -69,20 +69,20 @@ aggregatings :: Monad m => m a -> Aggregatings ac at m a
 aggregatings =  lift
 
 -- | Context type building one grouping set.
-type AggregatingSet      = Aggregatings Set     AggregateElem
+type AggregatingSetT      = Aggregatings Set     AggregateElem
 
 -- | Context type building grouping sets list.
-type AggregatingSetList  = Aggregatings SetList AggregateSet
+type AggregatingSetListT  = Aggregatings SetList AggregateSet
 
 -- | Context type building power group set.
-type AggregatingPowerSet = Aggregatings Power   AggregateKey
+type AggregatingPowerSetT = Aggregatings Power   AggregateKey
 
 -- | Aggregated 'MonadRestrict'.
-instance MonadRestrict c m => MonadRestrict c (AggregatingSet m) where
+instance MonadRestrict c m => MonadRestrict c (AggregatingSetT m) where
   restrictContext =  aggregatings . restrictContext
 
 -- | Aggregated 'MonadQuery'.
-instance MonadQuery m => MonadQuery (AggregatingSet m) where
+instance MonadQuery m => MonadQuery (AggregatingSetT m) where
   restrictJoin  =  aggregatings . restrictJoin
   unsafeSubQuery na = aggregatings . unsafeSubQuery na
 
@@ -94,13 +94,13 @@ unsafeAggregateWithTerm :: Monad m => at -> Aggregatings ac at m ()
 unsafeAggregateWithTerm =  updateAggregatingContext . appendTerm
 
 -- | Aggregated query instance.
-instance MonadQuery m => MonadAggregate (AggregatingSet m) where
+instance MonadQuery m => MonadAggregate (AggregatingSetT m) where
   unsafeAddAggregateElement = unsafeAggregateWithTerm
 
 -- | Specify key for rollup and cube aggregation.
 by' :: Monad m
     => Projection Flat r
-    -> AggregatingPowerSet m (Projection Aggregated (Maybe r))
+    -> AggregatingPowerSetT m (Projection Aggregated (Maybe r))
 by' p = do
   unsafeAggregateWithTerm . aggregatePowerKey $ Projection.columns p
   return . Projection.just $ Projection.unsafeToAggregated p
@@ -114,23 +114,23 @@ extractTermList :: Aggregatings ac at Identity a -> (a, [at])
 extractTermList =  runIdentity . extractAggregateTerms
 
 -- | Context monad type to build grouping power set.
-type AggregatePower = AggregatingPowerSet Identity
+type AggregatingPowerSet = AggregatingPowerSetT Identity
 
 -- | Context monad type to build grouping set list.
-type AggregateSetList = AggregatingSetList Identity
+type AggregatingSetList  = AggregatingSetListT  Identity
 
 finalizePower :: ([AggregateKey] -> AggregateElem)
-              -> AggregatePower a -> (a, AggregateElem)
+              -> AggregatingPowerSet a -> (a, AggregateElem)
 finalizePower finalize pow = second finalize . extractTermList $ pow
 
 -- | Finalize grouping power set as rollup power set.
-rollup :: AggregatePower a -> (a, AggregateElem)
+rollup :: AggregatingPowerSet a -> (a, AggregateElem)
 rollup =  finalizePower aggregateRollup
 
 -- | Finalize grouping power set as cube power set.
-cube   :: AggregatePower a -> (a, AggregateElem)
+cube   :: AggregatingPowerSet a -> (a, AggregateElem)
 cube   =  finalizePower aggregateCube
 
 -- | Finalize grouping set list.
-groupingSets :: Monad m => AggregateSetList a -> (a, AggregateElem)
+groupingSets :: Monad m => AggregatingSetList a -> (a, AggregateElem)
 groupingSets =  second aggregateSets . extractTermList
