@@ -22,7 +22,9 @@ module Database.Relational.Query.Monad.Trans.Aggregating (
   -- * Result
   extractAggregateTerms,
 
-  -- * Grouping sets supports
+  -- * Grouping sets support
+  AggregateKey,
+
   groupBy',
 
   AggregatingSet, AggregatingPowerSet,  AggregatingSetList,
@@ -104,11 +106,14 @@ extractAggregateTerms :: (Monad m, Functor m) => Aggregatings ac at m a -> m (a,
 extractAggregateTerms q = second termsList <$> runAggregatingPrime q
 
 
+-- | Typeful aggregate element.
+newtype AggregateKey a = AggregateKey (a, AggregateElem)
+
 -- | Add /GROUP BY/ element into context and get aggregated projection.
 groupBy' :: MonadAggregate m
-         => (a, AggregateElem)
+         => AggregateKey a
          -> m a
-groupBy' (p, c) = do
+groupBy' (AggregateKey (p, c)) = do
   unsafeAddAggregateElement c
   return p
 
@@ -134,9 +139,9 @@ key p = do
 
 -- | Specify key of single grouping set.
 key' :: Monad m
-     => (a, AggregateElem)
+     => AggregateKey a
      -> AggregatingSet a
-key' (p, c) = do
+key' (AggregateKey (p, c)) = do
   unsafeAggregateWithTerm c
   return p
 
@@ -158,17 +163,17 @@ bkey p = do
   return . Projection.just $ Projection.unsafeToAggregated p
 
 finalizePower :: ([AggregateBitKey] -> AggregateElem)
-              -> AggregatingPowerSet a -> (a, AggregateElem)
-finalizePower finalize pow = second finalize . extractTermList $ pow
+              -> AggregatingPowerSet a -> AggregateKey a
+finalizePower finalize pow = AggregateKey . second finalize . extractTermList $ pow
 
 -- | Finalize grouping power set as rollup power set.
-rollup :: AggregatingPowerSet a -> (a, AggregateElem)
+rollup :: AggregatingPowerSet a -> AggregateKey a
 rollup =  finalizePower aggregateRollup
 
 -- | Finalize grouping power set as cube power set.
-cube   :: AggregatingPowerSet a -> (a, AggregateElem)
+cube   :: AggregatingPowerSet a -> AggregateKey a
 cube   =  finalizePower aggregateCube
 
 -- | Finalize grouping set list.
-groupingSets :: Monad m => AggregatingSetList a -> (a, AggregateElem)
-groupingSets =  second aggregateSets . extractTermList
+groupingSets :: Monad m => AggregatingSetList a -> AggregateKey a
+groupingSets =  AggregateKey . second aggregateSets . extractTermList
