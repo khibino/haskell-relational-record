@@ -22,6 +22,9 @@ module Database.Relational.Query.Monad.Trans.Aggregating (
   -- * Result
   extractAggregateTerms,
 
+  -- * Grouping sets supports
+  groupBy',
+
   AggregatingSet, AggregatingPowerSet,  AggregatingSetList,
   key, key', set,
   bkey, rollup, cube, groupingSets
@@ -100,6 +103,14 @@ instance MonadQuery m => MonadAggregate (AggregatingSetT m) where
 extractAggregateTerms :: (Monad m, Functor m) => Aggregatings ac at m a -> m (a, [at])
 extractAggregateTerms q = second termsList <$> runAggregatingPrime q
 
+
+-- | Add /GROUP BY/ element into context and get aggregated projection.
+groupBy' :: MonadAggregate m
+         => (a, AggregateElem)
+         -> m a
+groupBy' (p, c) = do
+  unsafeAddAggregateElement c
+  return p
 
 extractTermList :: Aggregatings ac at Identity a -> (a, [at])
 extractTermList =  runIdentity . extractAggregateTerms

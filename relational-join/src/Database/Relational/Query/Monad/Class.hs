@@ -17,8 +17,8 @@ module Database.Relational.Query.Monad.Class (
   MonadQuery (..), MonadAggregate (..),
 
   onE, on, wheresE, wheres,
-  groupBy, groupBy',
-         havingE, having
+  groupBy,
+  havingE, having
   ) where
 
 import Database.Relational.Query.Context (Flat, Aggregated)
@@ -78,14 +78,6 @@ wheresE =  restrictContext
 -- | Add restriction to this query. Projection type version.
 wheres :: MonadRestrict Flat m => Projection Flat (Maybe Bool) -> m ()
 wheres =  restrictContext . expr
-
--- | Add /GROUP BY/ element into context and get aggregated projection.
-groupBy' :: MonadAggregate m
-         => (a, AggregateElem)
-         -> m a
-groupBy' (p, c) = do
-  unsafeAddAggregateElement c
-  return p
 
 -- | Add /GROUP BY/ term into context and get aggregated projection.
 groupBy :: MonadAggregate m
