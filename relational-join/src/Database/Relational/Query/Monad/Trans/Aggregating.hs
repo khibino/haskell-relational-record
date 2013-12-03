@@ -39,7 +39,7 @@ import Data.Functor.Identity (Identity (runIdentity))
 
 import Database.Relational.Query.Context (Flat, Aggregated, Set, Power, SetList)
 import Database.Relational.Query.Component
-  (AggregateElem, aggregateColumnRef, AggregateSet, aggregateGroupingSet, AggregateKey, aggregatePowerKey,
+  (AggregateElem, aggregateColumnRef, AggregateSet, aggregateGroupingSet, AggregateBitKey, aggregatePowerKey,
   aggregateRollup, aggregateCube, aggregateSets)
 import Database.Relational.Query.Monad.Trans.ListState
   (TermsContext, primeTermsContext, appendTerm, termsList)
@@ -77,7 +77,7 @@ type AggregatingSetT      = Aggregatings Set     AggregateElem
 type AggregatingSetListT  = Aggregatings SetList AggregateSet
 
 -- | Context type building power group set.
-type AggregatingPowerSetT = Aggregatings Power   AggregateKey
+type AggregatingPowerSetT = Aggregatings Power   AggregateBitKey
 
 -- | Aggregated 'MonadRestrict'.
 instance MonadRestrict c m => MonadRestrict c (AggregatingSetT m) where
@@ -157,7 +157,7 @@ bkey p = do
   unsafeAggregateWithTerm . aggregatePowerKey $ Projection.columns p
   return . Projection.just $ Projection.unsafeToAggregated p
 
-finalizePower :: ([AggregateKey] -> AggregateElem)
+finalizePower :: ([AggregateBitKey] -> AggregateElem)
               -> AggregatingPowerSet a -> (a, AggregateElem)
 finalizePower finalize pow = second finalize . extractTermList $ pow
 

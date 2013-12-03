@@ -24,7 +24,7 @@ module Database.Relational.Query.Component (
   -- * Types for aggregation
   AggregateColumnRef,
 
-  AggregateKey, AggregateSet, AggregateElem,
+  AggregateBitKey, AggregateSet, AggregateElem,
 
   aggregateColumnRef, aggregateEmpty,
   aggregatePowerKey, aggregateGroupingSet,
@@ -99,15 +99,15 @@ composeHaving =  composeRestrict HAVING
 type AggregateColumnRef = ColumnSQL
 
 -- | Type for group key.
-newtype AggregateKey = AggregateKey [AggregateColumnRef] deriving Show
+newtype AggregateBitKey = AggregateBitKey [AggregateColumnRef] deriving Show
 
 -- | Type for grouping set
 newtype AggregateSet = AggregateSet [AggregateElem] deriving Show
 
 -- | Type for group-by tree
 data AggregateElem = ColumnRef AggregateColumnRef
-                   | Rollup [AggregateKey]
-                   | Cube   [AggregateKey]
+                   | Rollup [AggregateBitKey]
+                   | Cube   [AggregateBitKey]
                    | GroupingSets [AggregateSet]
                    deriving Show
 
@@ -116,19 +116,19 @@ aggregateColumnRef :: AggregateColumnRef -> AggregateElem
 aggregateColumnRef =  ColumnRef
 
 -- | Key of aggregation power set.
-aggregatePowerKey :: [AggregateColumnRef] -> AggregateKey
-aggregatePowerKey =  AggregateKey
+aggregatePowerKey :: [AggregateColumnRef] -> AggregateBitKey
+aggregatePowerKey =  AggregateBitKey
 
 -- | Single grouping set.
 aggregateGroupingSet :: [AggregateElem] -> AggregateSet
 aggregateGroupingSet =  AggregateSet
 
 -- | Rollup aggregation element.
-aggregateRollup :: [AggregateKey] -> AggregateElem
+aggregateRollup :: [AggregateBitKey] -> AggregateElem
 aggregateRollup =  Rollup
 
 -- | Cube aggregation element.
-aggregateCube :: [AggregateKey] -> AggregateElem
+aggregateCube :: [AggregateBitKey] -> AggregateElem
 aggregateCube =  Cube
 
 -- | Grouping sets aggregation.
@@ -148,13 +148,13 @@ showsAggregateColumnRef =  showString . stringFromColumnSQL
 parenSepByComma :: (a -> ShowS) -> [a] -> ShowS
 parenSepByComma shows' = showParen' . (`showSepBy` comma) . map shows'
 
-showsAggregateKey :: AggregateKey -> ShowS
-showsAggregateKey (AggregateKey ts) = parenSepByComma showsAggregateColumnRef ts
+showsAggregateBitKey :: AggregateBitKey -> ShowS
+showsAggregateBitKey (AggregateBitKey ts) = parenSepByComma showsAggregateColumnRef ts
 
 -- | Compose GROUP BY clause from AggregateElem list.
 composeGroupBy :: [AggregateElem] -> ShowS
 composeGroupBy es = showSpace . showUnwordsSQL [GROUP, BY] . showSpace . rec es  where
-  keyList op ss = showWordSQL' op . parenSepByComma showsAggregateKey ss
+  keyList op ss = showWordSQL' op . parenSepByComma showsAggregateBitKey ss
   rec = (`showSepBy` comma) . map d
   showsGs (AggregateSet s) = rec s
   d (ColumnRef t)     = showsAggregateColumnRef t
