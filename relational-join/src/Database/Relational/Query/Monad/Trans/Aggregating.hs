@@ -22,7 +22,10 @@ module Database.Relational.Query.Monad.Trans.Aggregating (
   by',
 
   -- * Result
-  extractAggregateTerms
+  extractAggregateTerms,
+
+  AggregatePower, rollup, cube,
+  AggregateSetList, groupingSets
   ) where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
@@ -30,9 +33,12 @@ import Control.Monad.Trans.State (StateT, runStateT, modify)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second)
 
+import Data.Functor.Identity (Identity (runIdentity))
+
 import Database.Relational.Query.Context (Flat, Aggregated, Set, Power, SetList)
 import Database.Relational.Query.Component
-  (AggregateElem, AggregateSet, AggregateKey, aggregatePowerKey)
+  (AggregateElem, AggregateSet, AggregateKey, aggregatePowerKey,
+  aggregateRollup, aggregateCube, aggregateSets)
 import Database.Relational.Query.Monad.Trans.ListState
   (TermsContext, primeTermsContext, appendTerm, termsList)
 import Database.Relational.Query.Projection (Projection)
@@ -91,6 +97,7 @@ unsafeAggregateWithTerm =  updateAggregatingContext . appendTerm
 instance MonadQuery m => MonadAggregate (AggregatingSet m) where
   unsafeAddAggregateElement = unsafeAggregateWithTerm
 
+-- | Specify key for rollup and cube aggregation.
 by' :: Monad m
     => Projection Flat r
     -> AggregatingPowerSet m (Projection Aggregated (Maybe r))
@@ -101,3 +108,29 @@ by' p = do
 -- | Run 'Aggregatings' to get terms list.
 extractAggregateTerms :: (Monad m, Functor m) => Aggregatings ac at m a -> m (a, [at])
 extractAggregateTerms q = second termsList <$> runAggregatingPrime q
+
+
+extractTermList :: Aggregatings ac at Identity a -> (a, [at])
+extractTermList =  runIdentity . extractAggregateTerms
+
+-- | Context monad type to build grouping power set.
+type AggregatePower = AggregatingPowerSet Identity
+
+-- | Context monad type to build grouping set list.
+type AggregateSetList = AggregatingSetList Identity
+
+finalizePower :: ([AggregateKey] -> AggregateElem)
+              -> AggregatePower a -> (a, AggregateElem)
+finalizePower finalize pow = second finalize . extractTermList $ pow
+
+-- | Finalize grouping power set as rollup power set.
+rollup :: AggregatePower a -> (a, AggregateElem)
+rollup =  finalizePower aggregateRollup
+
+-- | Finalize grouping power set as cube power set.
+cube   :: AggregatePower a -> (a, AggregateElem)
+cube   =  finalizePower aggregateCube
+
+-- | Finalize grouping set list.
+groupingSets :: Monad m => AggregateSetList a -> (a, AggregateElem)
+groupingSets =  second aggregateSets . extractTermList

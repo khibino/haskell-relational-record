@@ -21,21 +21,14 @@ module Database.Relational.Query.Monad.Aggregate (
 
   toSQL,
 
-  toSubQuery,
-
-  AggregatePower, rollup, cube,
-  AggregateSetList, groupingSets
+  toSubQuery
   ) where
-
-import Control.Arrow (second)
-import Data.Functor.Identity (Identity (..), runIdentity)
 
 import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Component
-  (QueryRestriction, OrderingTerms, AggregateElem, AggregateKey,
-   aggregateRollup, aggregateCube, aggregateSets)
+  (QueryRestriction, OrderingTerms, AggregateElem)
 import Database.Relational.Query.Sub (SubQuery, aggregatedSubQuery, JoinProduct)
 import qualified Database.Relational.Query.Sub as SubQuery
 
@@ -45,8 +38,7 @@ import Database.Relational.Query.Monad.Trans.Join (join')
 import Database.Relational.Query.Monad.Trans.Restricting
   (Restrictings, restrictings, extractRestrict)
 import Database.Relational.Query.Monad.Trans.Aggregating
-  (aggregatings, extractAggregateTerms, Aggregatings,
-   AggregatingSet, AggregatingPowerSet, AggregatingSetList)
+  (aggregatings, extractAggregateTerms, AggregatingSet)
 import Database.Relational.Query.Monad.Trans.Ordering
   (Orderings, orderings, OrderedQuery, extractOrderingTerms)
 import Database.Relational.Query.Monad.Type (ConfigureQuery, QueryCore, extractCore)
@@ -90,29 +82,3 @@ toSubQuery q = do
   (((((pj, ot), grs), ag), rs), pd) <- extract q
   c <- askConfig
   return $ aggregatedSubQuery c (Projection.untype pj) pd rs ag grs ot
-
-
-extractTermList :: Aggregatings ac at Identity a -> (a, [at])
-extractTermList =  runIdentity . extractAggregateTerms
-
--- | Context monad type to build grouping power set.
-type AggregatePower = AggregatingPowerSet Identity
-
-finalizePower :: ([AggregateKey] -> AggregateElem)
-              -> AggregatePower a -> (a, AggregateElem)
-finalizePower finalize pow = second finalize . extractTermList $ pow
-
--- | Finalize grouping power set as rollup power set.
-rollup :: AggregatePower a -> (a, AggregateElem)
-rollup =  finalizePower aggregateRollup
-
--- | Finalize grouping power set as cube power set.
-cube   :: AggregatePower a -> (a, AggregateElem)
-cube   =  finalizePower aggregateCube
-
--- | Context monad type to build grouping set list.
-type AggregateSetList = AggregatingSetList Identity
-
--- | Finalize grouping set list.
-groupingSets :: Monad m => AggregateSetList a -> (a, AggregateElem)
-groupingSets =  second aggregateSets . extractTermList
