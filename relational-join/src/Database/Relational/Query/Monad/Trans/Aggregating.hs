@@ -19,14 +19,12 @@ module Database.Relational.Query.Monad.Trans.Aggregating (
 
   AggregatingSetT, AggregatingSetListT, AggregatingPowerSetT,
 
-  by',
-
   -- * Result
   extractAggregateTerms,
 
+  AggregatingSet, AggregatingPowerSet,  AggregatingSetList,
   key, key', set,
-  AggregatingPowerSet, rollup, cube,
-  AggregatingSetList, groupingSets
+  bkey, rollup, cube, groupingSets
   ) where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
@@ -98,14 +96,6 @@ unsafeAggregateWithTerm =  updateAggregatingContext . appendTerm
 instance MonadQuery m => MonadAggregate (AggregatingSetT m) where
   unsafeAddAggregateElement = unsafeAggregateWithTerm
 
--- | Specify key of rollup and cube power set.
-by' :: Monad m
-    => Projection Flat r
-    -> AggregatingPowerSetT m (Projection Aggregated (Maybe r))
-by' p = do
-  unsafeAggregateWithTerm . aggregatePowerKey $ Projection.columns p
-  return . Projection.just $ Projection.unsafeToAggregated p
-
 -- | Run 'Aggregatings' to get terms list.
 extractAggregateTerms :: (Monad m, Functor m) => Aggregatings ac at m a -> m (a, [at])
 extractAggregateTerms q = second termsList <$> runAggregatingPrime q
@@ -147,6 +137,14 @@ set s = do
   let (p, c) = second aggregateGroupingSet . extractTermList $ s
   unsafeAggregateWithTerm c
   return p
+
+-- | Specify key of rollup and cube power set.
+bkey :: Monad m
+    => Projection Flat r
+    -> AggregatingPowerSet (Projection Aggregated (Maybe r))
+bkey p = do
+  unsafeAggregateWithTerm . aggregatePowerKey $ Projection.columns p
+  return . Projection.just $ Projection.unsafeToAggregated p
 
 finalizePower :: ([AggregateKey] -> AggregateElem)
               -> AggregatingPowerSet a -> (a, AggregateElem)
