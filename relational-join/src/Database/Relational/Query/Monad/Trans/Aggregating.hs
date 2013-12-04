@@ -130,24 +130,21 @@ type AggregatingPowerSet = AggregatingPowerSetT Identity
 type AggregatingSetList  = AggregatingSetListT  Identity
 
 -- | Specify key of single grouping set from Projection.
-key :: Monad m
-    => Projection Flat r
+key :: Projection Flat r
     -> AggregatingSet (Projection Aggregated (Maybe r))
 key p = do
   mapM_ unsafeAggregateWithTerm [ aggregateColumnRef col | col <- Projection.columns p]
   return . Projection.just $ Projection.unsafeToAggregated p
 
 -- | Specify key of single grouping set.
-key' :: Monad m
-     => AggregateKey a
+key' :: AggregateKey a
      -> AggregatingSet a
 key' (AggregateKey (p, c)) = do
   unsafeAggregateWithTerm c
   return p
 
 -- | Finalize and specify single grouping set.
-set :: Monad m
-    => AggregatingSet a
+set :: AggregatingSet a
     -> AggregatingSetList a
 set s = do
   let (p, c) = second aggregateGroupingSet . extractTermList $ s
@@ -155,9 +152,8 @@ set s = do
   return p
 
 -- | Specify key of rollup and cube power set.
-bkey :: Monad m
-    => Projection Flat r
-    -> AggregatingPowerSet (Projection Aggregated (Maybe r))
+bkey :: Projection Flat r
+     -> AggregatingPowerSet (Projection Aggregated (Maybe r))
 bkey p = do
   unsafeAggregateWithTerm . aggregatePowerKey $ Projection.columns p
   return . Projection.just $ Projection.unsafeToAggregated p
@@ -175,5 +171,5 @@ cube   :: AggregatingPowerSet a -> AggregateKey a
 cube   =  finalizePower aggregateCube
 
 -- | Finalize grouping set list.
-groupingSets :: Monad m => AggregatingSetList a -> AggregateKey a
+groupingSets :: AggregatingSetList a -> AggregateKey a
 groupingSets =  AggregateKey . second aggregateSets . extractTermList
