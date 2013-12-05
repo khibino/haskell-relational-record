@@ -29,7 +29,10 @@ module Database.Relational.Query.ProjectableExtended (
 
   -- * Aggregate functions
   unsafeAggregateOp,
-  count, sum', avg, max', min', every, any', some',
+  count,
+  sum', sumMaybe, avg, avgMaybe,
+  max', maxMaybe, min', minMaybe,
+  every, any', some',
 
   -- * Zipping projection type trick
   ProjectableIdZip (leftId, rightId),
@@ -76,20 +79,36 @@ count :: SqlProjectable (p Aggregated) => Projection Flat a -> p Aggregated Int3
 count =  unsafeAggregateOp SQL.COUNT
 
 -- | Aggregation function SUM.
+sumMaybe  :: (Num a, SqlProjectable (p Aggregated)) => Projection Flat (Maybe a) -> p Aggregated (Maybe a)
+sumMaybe  =  unsafeAggregateOp SQL.SUM
+
+-- | Aggregation function SUM.
 sum'  :: (Num a, SqlProjectable (p Aggregated)) => Projection Flat a -> p Aggregated (Maybe a)
-sum'  =  unsafeAggregateOp SQL.SUM
+sum'  =  sumMaybe . Projection.just
+
+-- | Aggregation function AVG.
+avgMaybe   :: (Num a, Fractional b, SqlProjectable (p Aggregated))=> Projection Flat (Maybe a) -> p Aggregated (Maybe b)
+avgMaybe   =  unsafeAggregateOp SQL.AVG
 
 -- | Aggregation function AVG.
 avg   :: (Num a, Fractional b, SqlProjectable (p Aggregated))=> Projection Flat a -> p Aggregated (Maybe b)
-avg   =  unsafeAggregateOp SQL.AVG
+avg   =  avgMaybe . Projection.just
+
+-- | Aggregation function MAX.
+maxMaybe  :: (Ord a, SqlProjectable (p Aggregated)) => Projection Flat (Maybe a) -> p Aggregated (Maybe a)
+maxMaybe  =  unsafeAggregateOp SQL.MAX
 
 -- | Aggregation function MAX.
 max'  :: (Ord a, SqlProjectable (p Aggregated)) => Projection Flat a -> p Aggregated (Maybe a)
-max'  =  unsafeAggregateOp SQL.MAX
+max'  =  maxMaybe . Projection.just
+
+-- | Aggregation function MIN.
+minMaybe  :: (Ord a, SqlProjectable (p Aggregated)) => Projection Flat (Maybe a) -> p Aggregated (Maybe a)
+minMaybe  =  unsafeAggregateOp SQL.MIN
 
 -- | Aggregation function MIN.
 min'  :: (Ord a, SqlProjectable (p Aggregated)) => Projection Flat a -> p Aggregated (Maybe a)
-min'  =  unsafeAggregateOp SQL.MIN
+min'  =  minMaybe . Projection.just
 
 -- | Aggregation function EVERY.
 every :: (SqlProjectable (p Aggregated)) => Projection Flat (Maybe Bool) -> p Aggregated (Maybe Bool)
