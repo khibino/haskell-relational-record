@@ -42,8 +42,8 @@ module Database.Relational.Query.Projectable (
   isNull, isNotNull, not', exists,
 
   (.||.), (?||?),
-  (.+.), (.-.), (./.), (.*.),
-  (?+?), (?-?), (?/?), (?*?),
+  (.+.), (.-.), (./.), (.*.), negate',
+  (?+?), (?-?), (?/?), (?*?), negateMaybe,
 
   -- * Zipping projections
   ProjectableZip (projectZip), (><),
@@ -275,6 +275,11 @@ monoBinOp' = monoBinOp . sqlBinOp
   => p a -> p a -> p a
 (.*.) =  monoBinOp' "*"
 
+-- | Number negate uni-operator corresponding SQL /-/.
+negate' :: (SqlProjectable p, ProjectableShowSql p, Num a)
+        => p a -> p a
+negate' =  unsafeUniOp $ SQL.word "-"
+
 -- | Number operator corresponding SQL /+/ .
 (?+?) :: (SqlProjectable p, ProjectableShowSql p, Num a)
   => p (Maybe a) -> p (Maybe a) -> p (Maybe a)
@@ -294,6 +299,11 @@ monoBinOp' = monoBinOp . sqlBinOp
 (?*?) :: (SqlProjectable p, ProjectableShowSql p, Num a)
   => p (Maybe a) -> p (Maybe a) -> p (Maybe a)
 (?*?) =  monoBinOp' "*"
+
+-- | Number negate uni-operator corresponding SQL /-/.
+negateMaybe :: (SqlProjectable p, ProjectableShowSql p, Num a)
+            => p (Maybe a) -> p (Maybe a)
+negateMaybe =  unsafeUniOp $ SQL.word "-"
 
 -- | Binary operator corresponding SQL /IN/ .
 in' :: (SqlProjectable p, ProjectableShowSql p)
