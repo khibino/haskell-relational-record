@@ -3,7 +3,7 @@
 
 import Database.Record
 
-import Database.Relational.Query hiding (Group)
+import Database.Relational.Query
 import Database.HDBC (IConnection, SqlValue)
 import Data.Int (Int32)
 
