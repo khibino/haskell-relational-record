@@ -76,19 +76,19 @@ count :: SqlProjectable (p Aggregated) => Projection Flat a -> p Aggregated Int3
 count =  unsafeAggregateOp SQL.COUNT
 
 -- | Aggregation function SUM.
-sum'  :: (Num a, SqlProjectable (p Aggregated)) => Projection Flat a -> p Aggregated a
+sum'  :: (Num a, SqlProjectable (p Aggregated)) => Projection Flat a -> p Aggregated (Maybe a)
 sum'  =  unsafeAggregateOp SQL.SUM
 
 -- | Aggregation function AVG.
-avg   :: (Num a, Fractional b, SqlProjectable (p Aggregated))=> Projection Flat a -> p Aggregated b
+avg   :: (Num a, Fractional b, SqlProjectable (p Aggregated))=> Projection Flat a -> p Aggregated (Maybe b)
 avg   =  unsafeAggregateOp SQL.AVG
 
 -- | Aggregation function MAX.
-max'  :: (Ord a, SqlProjectable (p Aggregated)) => Projection Flat a -> p Aggregated a
+max'  :: (Ord a, SqlProjectable (p Aggregated)) => Projection Flat a -> p Aggregated (Maybe a)
 max'  =  unsafeAggregateOp SQL.MAX
 
 -- | Aggregation function MIN.
-min'  :: (Ord a, SqlProjectable (p Aggregated)) => Projection Flat a -> p Aggregated a
+min'  :: (Ord a, SqlProjectable (p Aggregated)) => Projection Flat a -> p Aggregated (Maybe a)
 min'  =  unsafeAggregateOp SQL.MIN
 
 -- | Aggregation function EVERY.
