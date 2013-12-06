@@ -153,10 +153,11 @@ showsAggregateBitKey (AggregateBitKey ts) = parenSepByComma showsAggregateColumn
 
 -- | Compose GROUP BY clause from AggregateElem list.
 composeGroupBy :: [AggregateElem] -> ShowS
-composeGroupBy es0 = showSpace . showUnwordsSQL [GROUP, BY] . showSpace . rec es0  where
+composeGroupBy =  d where
+  d []       = id
+  d es@(_:_) = showSpace . showUnwordsSQL [GROUP, BY] . showSpace . rec es
   keyList op ss = showWordSQL' op . parenSepByComma showsAggregateBitKey ss
-  rec []       = id
-  rec es@(_:_) = (`showSepBy` comma) . map showsE $ es
+  rec = (`showSepBy` comma) . map showsE
   showsGs (AggregateSet s) = showParen' $ rec s
   showsE (ColumnRef t)     = showsAggregateColumnRef t
   showsE (Rollup ss)       = keyList ROLLUP ss
