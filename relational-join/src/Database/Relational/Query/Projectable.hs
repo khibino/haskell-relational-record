@@ -37,7 +37,9 @@ module Database.Relational.Query.Projectable (
 
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
 
-  caseSearch, case', in', and', or',
+  casesOrElse, casesOrElse',
+  caseSearch, caseSearchMaybe, case', caseMaybe,
+  in', and', or',
 
   isNull, isNotNull, not', exists,
 
@@ -319,6 +321,19 @@ caseSearch cs e = unsafeProjectSql . SQL.unwordsSQL . concat
   when' p r = [SQL.WHEN, unsafeSqlWord p, SQL.THEN, unsafeSqlWord r]
   else'     = [SQL.ELSE, unsafeSqlWord e]
 
+-- | Same as 'caseSearch', but you can write like <when list> `casesOrElse` <else clause>.
+casesOrElse :: (SqlProjectable p, ProjectableShowSql p)
+            => [(p (Maybe Bool), p a)] -- ^ Each when clauses
+            -> p a                     -- ^ Else result projection
+            -> p a                     -- ^ Result projection
+casesOrElse = caseSearch
+
+-- | Null default version of 'caseSearch'.
+caseSearchMaybe :: (ProjectableShowSql p, SqlProjectable p)
+                => [(p (Maybe Bool), p (Maybe a))] -- ^ Each when clauses
+                -> p (Maybe a)                     -- ^ Result projection
+caseSearchMaybe cs = caseSearch cs unsafeValueNull
+
 -- | Simple case operator correnponding SQL simple /CASE/.
 --   Like, /CASE x WHEN v THEN a WHEN w THEN b ... ELSE c END/
 case' :: (SqlProjectable p, ProjectableShowSql p)
@@ -330,6 +345,20 @@ case' v cs e = unsafeProjectSql . SQL.unwordsSQL . concat
                $ [[SQL.CASE, unsafeSqlWord v]] ++ map (uncurry when') cs ++ [else', [SQL.END]] where
   when' p r = [SQL.WHEN, unsafeSqlWord p, SQL.THEN, unsafeSqlWord r]
   else'     = [SQL.ELSE, unsafeSqlWord e]
+
+-- | Uncurry version of 'case'', and you can write like ... `casesOrElse'` <else clause>.
+casesOrElse' :: (SqlProjectable p, ProjectableShowSql p)
+             => (p a, [(p a, p b)]) -- ^ Projection value to match and each when clauses list
+             -> p b                 -- ^ Else result projection
+             -> p b                 -- ^ Result projection
+casesOrElse' =  uncurry case'
+
+-- | Null default version of 'case''.
+caseMaybe :: (SqlProjectable p, ProjectableShowSql p, ProjectableMaybe p)
+          => p a                  -- ^ Projection value to match
+          -> [(p a, p (Maybe b))] -- ^ Each when clauses
+          -> p (Maybe b)          -- ^ Result projection
+caseMaybe v cs = case' v cs unsafeValueNull
 
 -- | Binary operator corresponding SQL /IN/ .
 in' :: (SqlProjectable p, ProjectableShowSql p)
