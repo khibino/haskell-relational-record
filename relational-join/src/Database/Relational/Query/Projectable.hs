@@ -316,8 +316,10 @@ caseSearch :: (SqlProjectable p, ProjectableShowSql p)
            => [(p (Maybe Bool), p a)] -- ^ Each when clauses
            -> p a                     -- ^ Else result projection
            -> p a                     -- ^ Result projection
-caseSearch cs e = unsafeProjectSql . SQL.unwordsSQL . concat
-                  $ [SQL.CASE] : map (uncurry when') cs ++ [else', [SQL.END]] where
+caseSearch cs0 e = d cs0 where
+  d []       = error "caseSearch: Empty when clauses!"
+  d cs@(_:_) = unsafeProjectSql . SQL.unwordsSQL . concat
+               $ [SQL.CASE] : map (uncurry when') cs ++ [else', [SQL.END]]
   when' p r = [SQL.WHEN, unsafeSqlWord p, SQL.THEN, unsafeSqlWord r]
   else'     = [SQL.ELSE, unsafeSqlWord e]
 
@@ -341,8 +343,10 @@ case' :: (SqlProjectable p, ProjectableShowSql p)
       -> [(p a, p b)] -- ^ Each when clauses
       -> p b          -- ^ Else result projection
       -> p b          -- ^ Result projection
-case' v cs e = unsafeProjectSql . SQL.unwordsSQL . concat
-               $ [[SQL.CASE, unsafeSqlWord v]] ++ map (uncurry when') cs ++ [else', [SQL.END]] where
+case' v cs0 e = d cs0 where
+  d []       = error "case': Empty when clauses!"
+  d cs@(_:_) = unsafeProjectSql . SQL.unwordsSQL . concat
+               $ [[SQL.CASE, unsafeSqlWord v]] ++ map (uncurry when') cs ++ [else', [SQL.END]]
   when' p r = [SQL.WHEN, unsafeSqlWord p, SQL.THEN, unsafeSqlWord r]
   else'     = [SQL.ELSE, unsafeSqlWord e]
 
