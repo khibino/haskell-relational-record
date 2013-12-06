@@ -37,7 +37,7 @@ module Database.Relational.Query.Projectable (
 
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
 
-  in', and', or',
+  caseSearch, case', in', and', or',
 
   isNull, isNotNull, not', exists,
 
@@ -304,6 +304,32 @@ negate' =  unsafeUniOp $ SQL.word "-"
 negateMaybe :: (SqlProjectable p, ProjectableShowSql p, Num a)
             => p (Maybe a) -> p (Maybe a)
 negateMaybe =  unsafeUniOp $ SQL.word "-"
+
+unsafeSqlWord :: ProjectableShowSql p => p a -> SQL.Keyword
+unsafeSqlWord =  SQL.word . unsafeShowSql
+
+-- | Search case operator correnponding SQL search /CASE/.
+--   Like, /CASE WHEN p0 THEN a WHEN p1 THEN b ... ELSE c END/
+caseSearch :: (SqlProjectable p, ProjectableShowSql p)
+           => [(p (Maybe Bool), p a)] -- ^ Each when clauses
+           -> p a                     -- ^ Else result projection
+           -> p a                     -- ^ Result projection
+caseSearch cs e = unsafeProjectSql . SQL.unwordsSQL . concat
+                  $ [SQL.CASE] : map (uncurry when') cs ++ [else'] where
+  when' p r = [SQL.WHEN, unsafeSqlWord p, SQL.THEN, unsafeSqlWord r]
+  else'     = [SQL.ELSE, unsafeSqlWord e]
+
+-- | Simple case operator correnponding SQL simple /CASE/.
+--   Like, /CASE x WHEN v THEN a WHEN w THEN b ... ELSE c END/
+case' :: (SqlProjectable p, ProjectableShowSql p)
+      => p a          -- ^ Projection value to match
+      -> [(p a, p b)] -- ^ Each when clauses
+      -> p b          -- ^ Else result projection
+      -> p b          -- ^ Result projection
+case' v cs e = unsafeProjectSql . SQL.unwordsSQL . concat
+               $ [[SQL.CASE, unsafeSqlWord v]] ++ map (uncurry when') cs ++ [else'] where
+  when' p r = [SQL.WHEN, unsafeSqlWord p, SQL.THEN, unsafeSqlWord r]
+  else'     = [SQL.ELSE, unsafeSqlWord e]
 
 -- | Binary operator corresponding SQL /IN/ .
 in' :: (SqlProjectable p, ProjectableShowSql p)
