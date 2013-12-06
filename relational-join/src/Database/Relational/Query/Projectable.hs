@@ -315,7 +315,7 @@ caseSearch :: (SqlProjectable p, ProjectableShowSql p)
            -> p a                     -- ^ Else result projection
            -> p a                     -- ^ Result projection
 caseSearch cs e = unsafeProjectSql . SQL.unwordsSQL . concat
-                  $ [SQL.CASE] : map (uncurry when') cs ++ [else'] where
+                  $ [SQL.CASE] : map (uncurry when') cs ++ [else', [SQL.END]] where
   when' p r = [SQL.WHEN, unsafeSqlWord p, SQL.THEN, unsafeSqlWord r]
   else'     = [SQL.ELSE, unsafeSqlWord e]
 
@@ -327,7 +327,7 @@ case' :: (SqlProjectable p, ProjectableShowSql p)
       -> p b          -- ^ Else result projection
       -> p b          -- ^ Result projection
 case' v cs e = unsafeProjectSql . SQL.unwordsSQL . concat
-               $ [[SQL.CASE, unsafeSqlWord v]] ++ map (uncurry when') cs ++ [else'] where
+               $ [[SQL.CASE, unsafeSqlWord v]] ++ map (uncurry when') cs ++ [else', [SQL.END]] where
   when' p r = [SQL.WHEN, unsafeSqlWord p, SQL.THEN, unsafeSqlWord r]
   else'     = [SQL.ELSE, unsafeSqlWord e]
 
