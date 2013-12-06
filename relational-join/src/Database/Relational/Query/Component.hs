@@ -153,15 +153,16 @@ showsAggregateBitKey (AggregateBitKey ts) = parenSepByComma showsAggregateColumn
 
 -- | Compose GROUP BY clause from AggregateElem list.
 composeGroupBy :: [AggregateElem] -> ShowS
-composeGroupBy es = showSpace . showUnwordsSQL [GROUP, BY] . showSpace . rec es  where
+composeGroupBy es0 = showSpace . showUnwordsSQL [GROUP, BY] . showSpace . rec es0  where
   keyList op ss = showWordSQL' op . parenSepByComma showsAggregateBitKey ss
-  rec = (`showSepBy` comma) . map d
-  showsGs (AggregateSet s) = rec s
-  d (ColumnRef t)     = showsAggregateColumnRef t
-  d (Rollup ss)       = keyList ROLLUP ss
-  d (Cube   ss)       = keyList CUBE   ss
-  d (GroupingSets ss) = showUnwordsSQL [GROUPING, SETS] . showSpace
-                        . parenSepByComma (showParen' . showsGs) ss
+  rec []       = id
+  rec es@(_:_) = (`showSepBy` comma) . map showsE $ es
+  showsGs (AggregateSet s) = showParen' $ rec s
+  showsE (ColumnRef t)     = showsAggregateColumnRef t
+  showsE (Rollup ss)       = keyList ROLLUP ss
+  showsE (Cube   ss)       = keyList CUBE   ss
+  showsE (GroupingSets ss) = showUnwordsSQL [GROUPING, SETS] . showSpace
+                             . parenSepByComma showsGs ss
 
 
 -- | Order direction. Ascendant or Descendant.
