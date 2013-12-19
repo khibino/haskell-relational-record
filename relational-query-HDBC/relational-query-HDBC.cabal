@@ -2,10 +2,10 @@
 name:                relational-query-HDBC
 version:             0.0.1.0
 synopsis:            HDBC instance of relational join and typed query for HDBC
-description:         This package contains HDBC instance of relational-join and 
+description:         This package contains HDBC instance of relational-query and 
                      typed query for HDBC.
                      Generating Database table definitions and functions for
-                     relational-join by reading table and index definitions
+                     relational-query by reading table and index definitions
                      from Database system catalogs.
 homepage:            http://twitter.com/khibino
 license:             BSD3
@@ -45,7 +45,7 @@ library
                        , template-haskell
                        , names-th
                        , persistable-record
-                       , relational-join
+                       , relational-query
                        , HDBC >=2
                        , HDBC-session
   hs-source-dirs:      src
