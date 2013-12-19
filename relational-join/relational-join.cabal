@@ -91,6 +91,6 @@ library
                        , template-haskell
                        , sql-words
                        , names-th
-                       , DB-record
+                       , persistable-record
   hs-source-dirs:      src
   ghc-options:         -Wall

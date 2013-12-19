@@ -19,7 +19,7 @@ Executable example1
   build-depends:         base <5
                        , template-haskell
                        , names-th
-                       , DB-record
+                       , persistable-record
                        , relational-join
                        , HDBC
                        , HDBC-session
@@ -38,7 +38,7 @@ Executable example2
   build-depends:         base <5
                        , template-haskell
                        , names-th
-                       , DB-record
+                       , persistable-record
                        , relational-join
                        , HDBC
                        , HDBC-session
@@ -54,7 +54,7 @@ Executable example3
   build-depends:         base <5
                        , template-haskell
                        , names-th
-                       , DB-record
+                       , persistable-record
                        , relational-join
                        , HDBC
                        , HDBC-session
@@ -70,7 +70,7 @@ Executable example4
   build-depends:         base <5
                        , template-haskell
                        , names-th
-                       , DB-record
+                       , persistable-record
                        , relational-join
                        , HDBC
                        , HDBC-session

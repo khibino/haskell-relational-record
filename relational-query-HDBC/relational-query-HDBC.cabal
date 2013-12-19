@@ -44,7 +44,7 @@ library
                        , convertible
                        , template-haskell
                        , names-th
-                       , DB-record
+                       , persistable-record
                        , relational-join
                        , HDBC >=2
                        , HDBC-session
