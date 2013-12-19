@@ -1,0 +1,96 @@
+name:                relational-query
+version:             0.0.1.0
+synopsis:            Typeful, Modular, Relational, algebraic query engine
+description:         This package contiains typeful relation structure,
+                     SQL query generator and some RDBMSs' schema templates.
+                     Supported query features are below:
+                     - Type safe query building
+                     - Restriction, Join, Aggregation
+                     - Modularized relations
+                     - Typed placeholders
+                     Supported RDBMS schemas are below:
+                     - IBM DB2
+                     - PostgreSQL
+homepage:            http://twitter.com/khibino
+license:             BSD3
+license-file:        LICENSE
+author:              Kei Hibino
+maintainer:          ex8k.hibino@gmail.com
+copyright:           Copyright (c) 2013 Kei Hibino
+category:            Database
+build-type:          Simple
+cabal-version:       >=1.8
+
+library
+  exposed-modules:
+                       Database.Relational.Query
+                       Database.Relational.Query.Table
+                       Database.Relational.Query.SQL
+                       Database.Relational.Query.Pi
+                       Database.Relational.Query.Pi.Unsafe
+                       Database.Relational.Query.Constraint
+                       Database.Relational.Query.Context
+                       Database.Relational.Query.Projectable
+                       Database.Relational.Query.ProjectableExtended
+                       Database.Relational.Query.Expr
+                       Database.Relational.Query.Expr.Unsafe
+                       Database.Relational.Query.Component
+                       Database.Relational.Query.Sub
+                       Database.Relational.Query.Projection
+                       Database.Relational.Query.Monad.Class
+                       Database.Relational.Query.Monad.Trans.Ordering
+                       Database.Relational.Query.Monad.Trans.Aggregating
+                       Database.Relational.Query.Monad.Trans.Restricting
+                       Database.Relational.Query.Monad.Trans.Join
+                       Database.Relational.Query.Monad.Trans.Config
+                       Database.Relational.Query.Monad.Trans.Assigning
+                       Database.Relational.Query.Monad.Type
+                       Database.Relational.Query.Monad.Simple
+                       Database.Relational.Query.Monad.Aggregate
+                       Database.Relational.Query.Monad.Restrict
+                       Database.Relational.Query.Monad.Target
+                       Database.Relational.Query.Relation
+                       Database.Relational.Query.Restriction
+                       Database.Relational.Query.Type
+                       Database.Relational.Query.Derives
+                       Database.Relational.Query.TH
+
+                       Database.Relational.Schema.DB2Syscat.Columns
+                       Database.Relational.Schema.IBMDB2
+
+                       Database.Relational.Schema.PgCatalog.PgAttribute
+                       Database.Relational.Schema.PgCatalog.PgType
+                       Database.Relational.Schema.PostgreSQL
+
+  other-modules:
+                       Database.Relational.Query.Internal.AliasId
+                       Database.Relational.Query.Internal.String
+                       Database.Relational.Query.Internal.Product
+                       Database.Relational.Query.Monad.Trans.ListState
+                       Database.Relational.Query.Monad.Trans.AssigningState
+                       Database.Relational.Query.Monad.Trans.JoinState
+                       Database.Relational.Query.Monad.Trans.RestrictingState
+                       Database.Relational.Query.Monad.Trans.OrderingState
+                       Database.Relational.Query.Monad.Qualify
+
+                       Database.Relational.Schema.DB2Syscat.Tabconst
+                       Database.Relational.Schema.DB2Syscat.Keycoluse
+
+                       Database.Relational.Schema.PgCatalog.PgNamespace
+                       Database.Relational.Schema.PgCatalog.PgClass
+                       Database.Relational.Schema.PgCatalog.PgConstraint
+
+  build-depends:         base <5
+                       , array
+                       , containers
+                       , transformers
+                       , time
+                       , bytestring
+                       , text
+                       , dlist
+                       , template-haskell
+                       , sql-words
+                       , names-th
+                       , persistable-record
+  hs-source-dirs:      src
+  ghc-options:         -Wall
