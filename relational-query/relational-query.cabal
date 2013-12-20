@@ -67,7 +67,6 @@ library
                        Database.Relational.Query.Internal.String
                        Database.Relational.Query.Internal.Product
                        Database.Relational.Query.Monad.Trans.ListState
-                       Database.Relational.Query.Monad.Trans.AssigningState
                        Database.Relational.Query.Monad.Trans.JoinState
                        Database.Relational.Query.Monad.Trans.RestrictingState
                        Database.Relational.Query.Monad.Qualify
