@@ -30,15 +30,18 @@ import Control.Monad.Trans.State (StateT, runStateT, modify)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow ((>>>), second)
 
-import Database.Relational.Query.Component (Assignments)
-import Database.Relational.Query.Monad.Trans.AssigningState
-  (AssigningContext, primeAssigningContext, updateAssignments, assignments)
+import Database.Relational.Query.Component (Assignment, Assignments)
+import Database.Relational.Query.Monad.Trans.ListState
+  (TermsContext, primeTermsContext, appendTerm, termsList)
 import Database.Relational.Query.Pi (Pi)
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
 import Database.Relational.Query.Monad.Class (MonadRestrict(..))
+
+
+type AssigningContext = TermsContext Assignment
 
 -- | Type to accumulate assigning context.
 --   Type 'r' is table record type.
@@ -55,7 +58,7 @@ runAssignings =  runStateT . assigningState
 -- | Run 'Assignings' with primary empty context to expand context state.
 runAssigningsPrime :: Assignings r m a        -- ^ Context to expand
                    -> m (a, AssigningContext) -- ^ Expanded result
-runAssigningsPrime q = runAssignings q $ primeAssigningContext
+runAssigningsPrime q = runAssignings q $ primeTermsContext
 
 -- | Lift to 'Assignings'
 assignings :: Monad m => m a -> Assignings r m a
@@ -79,7 +82,7 @@ targetProjection (AssignTarget (tbl, pi')) =
 -- | Add an assignment.
 assignTo :: Monad m => Projection Flat v ->  AssignTarget r v -> Assignings r m ()
 assignTo vp target = updateAssigningContext . foldr (>>>) id
-                     $ zipWith updateAssignments lefts rights  where
+                     $ zipWith (curry appendTerm) lefts rights  where
   lefts  = Projection.columns $ targetProjection target
   rights = Projection.columns vp
 
@@ -98,4 +101,4 @@ infix 4 <-#
 extractAssignments :: (Monad m, Functor m)
                    => Assignings r m a
                    -> m (a, Assignments)
-extractAssignments q = second assignments <$> runAssigningsPrime q
+extractAssignments q = second termsList <$> runAssigningsPrime q
