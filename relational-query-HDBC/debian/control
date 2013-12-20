@@ -1,14 +1,12 @@
 Source: haskell-relational-query-hdbc
-Priority: extra
-Section: haskell
 Maintainer: Kei Hibino <ex8k.hibino@gmail.com>
+Priority: optional
+Section: haskell
 Build-Depends: debhelper (>= 7.0)
                , haskell-devscripts (>= 0.8)
                , cdbs
                , ghc
                , ghc-prof
-               , libghc-db-record-dev
-               , libghc-db-record-prof
                , libghc-hdbc-dev (>= 2)
                , libghc-hdbc-prof (>= 2)
                , libghc-hdbc-session-dev
@@ -21,22 +19,22 @@ Build-Depends: debhelper (>= 7.0)
                , libghc-convertible-prof
                , libghc-names-th-dev
                , libghc-names-th-prof
-               , libghc-relational-join-dev
-               , libghc-relational-join-prof
+               , libghc-persistable-record-dev
+               , libghc-persistable-record-prof
+               , libghc-relational-query-dev
+               , libghc-relational-query-prof
                , libghc-template-haskell-dev | ghc
                , libghc-template-haskell-prof | ghc-prof
 Build-Depends-Indep: ghc-doc
-                     , libghc-db-record-doc
                      , libghc-hdbc-doc (>= 2)
                      , libghc-hdbc-session-doc
                      , libghc-base-doc (<< 5) | ghc-doc
                      , libghc-containers-doc | ghc-doc
                      , libghc-convertible-doc
                      , libghc-names-th-doc
-                     , libghc-relational-join-doc
+                     , libghc-persistable-record-doc
+                     , libghc-relational-query-doc
                      , libghc-template-haskell-doc | ghc-doc
-Standards-Version: 3.9.3
-Homepage: http://twitter.com/khibino
 
 Package: libghc-relational-query-hdbc-dev
 Architecture: any
@@ -45,53 +43,66 @@ Depends: ${shlibs:Depends}
          , ${misc:Depends}
 Recommends: ${haskell:Recommends}
 Suggests: ${haskell:Suggests}
+Conflicts: ${haskell:Conflicts}
 Provides: ${haskell:Provides}
+Replaces: ${haskell:Replaces}
 Description: HDBC instance of relational join and typed query for HDBC
- This package contains HDBC instance of relational-join and
+ This package contains HDBC instance of relational-query and
  typed query for HDBC.
  Generating Database table definitions and functions for
- relational-join by reading table and index definitions
+ relational-query by reading table and index definitions
  from Database system catalogs.
  .
   Author: Kei Hibino
   Upstream-Maintainer: ex8k.hibino@gmail.com
  .
- This package contains the normal library files.
+ This package provides a library for the Haskell programming language.
+ See http:///www.haskell.org/ for more information on Haskell.
 
 Package: libghc-relational-query-hdbc-prof
 Architecture: any
-Depends: ${haskell:Depends}
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
          , ${misc:Depends}
 Recommends: ${haskell:Recommends}
 Suggests: ${haskell:Suggests}
+Conflicts: ${haskell:Conflicts}
 Provides: ${haskell:Provides}
+Replaces: ${haskell:Replaces}
 Description: HDBC instance of relational join and typed query for HDBC
- This package contains HDBC instance of relational-join and
+ This package contains HDBC instance of relational-query and
  typed query for HDBC.
  Generating Database table definitions and functions for
- relational-join by reading table and index definitions
+ relational-query by reading table and index definitions
  from Database system catalogs.
  .
   Author: Kei Hibino
   Upstream-Maintainer: ex8k.hibino@gmail.com
  .
- This package contains the libraries compiled with profiling enabled.
+ This package provides a library for the Haskell programming language, compiled
+ for profiling.  See http:///www.haskell.org/ for more information on Haskell.
 
 Package: libghc-relational-query-hdbc-doc
 Architecture: all
 Section: doc
-Depends: ${haskell:Depends}
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
          , ${misc:Depends}
 Recommends: ${haskell:Recommends}
 Suggests: ${haskell:Suggests}
+Conflicts: ${haskell:Conflicts}
+Provides: ${haskell:Provides}
+Replaces: ${haskell:Replaces}
 Description: HDBC instance of relational join and typed query for HDBC
- This package contains HDBC instance of relational-join and
+ This package contains HDBC instance of relational-query and
  typed query for HDBC.
  Generating Database table definitions and functions for
- relational-join by reading table and index definitions
+ relational-query by reading table and index definitions
  from Database system catalogs.
  .
   Author: Kei Hibino
   Upstream-Maintainer: ex8k.hibino@gmail.com
  .
- This package contains the documentation files.
+ This package provides the documentation for a library for the Haskell
+ programming language.
+ See http:///www.haskell.org/ for more information on Haskell.
