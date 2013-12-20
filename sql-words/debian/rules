@@ -5,7 +5,3 @@ DEB_CABAL_PACKAGE = sql-words
 include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/hlibrary.mk
 
-
-# How to install an extra file into the documentation package
-#binary-fixup/libghc-sql-words-doc::
-#	echo "Some informative text" > debian/libghc-sql-words-doc/usr/share/doc/libghc-sql-words-doc/AnExtraDocFile
