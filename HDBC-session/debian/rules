@@ -5,7 +5,3 @@ DEB_CABAL_PACKAGE = hdbc-session
 include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/hlibrary.mk
 
-
-# How to install an extra file into the documentation package
-#binary-fixup/libghc-hdbc-session-doc::
-#	echo "Some informative text" > debian/libghc-hdbc-session-doc/usr/share/doc/libghc-hdbc-session-doc/AnExtraDocFile
