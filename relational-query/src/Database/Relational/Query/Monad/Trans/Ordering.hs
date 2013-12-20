@@ -30,15 +30,18 @@ import Control.Monad.Trans.State (StateT, runStateT, modify)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second, (>>>))
 
-import Database.Relational.Query.Component (Order(Asc, Desc), OrderColumn, OrderingTerms)
-import Database.Relational.Query.Monad.Trans.OrderingState
-  (OrderingContext, primeOrderingContext, updateOrderBy, orderingTerms)
+import Database.Relational.Query.Component
+  (Order(Asc, Desc), OrderColumn, OrderingTerm, OrderingTerms)
+import Database.Relational.Query.Monad.Trans.ListState
+  (TermsContext, primeTermsContext, appendTerm, termsList)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
 import Database.Relational.Query.Monad.Class
   (MonadRestrict(..), MonadQuery(..), MonadAggregate(..))
 
+
+type OrderingContext = TermsContext OrderingTerm
 
 -- | 'StateT' type to accumulate ordering context.
 --   Type 'p' is ordering term projection type.
@@ -55,7 +58,7 @@ runOrderings =  runStateT . orderingState
 -- | Run 'Orderings' with primary empty context to expand context state.
 runOrderingsPrime :: Orderings p m a        -- ^ Context to expand
                   -> m (a, OrderingContext) -- ^ Expanded result
-runOrderingsPrime q = runOrderings q $ primeOrderingContext
+runOrderingsPrime q = runOrderings q $ primeTermsContext
 
 -- | Lift to 'Orderings'.
 orderings :: Monad m => m a -> Orderings p m a
@@ -96,7 +99,7 @@ updateOrderBys :: (Monad m, ProjectableOrdering (Projection p))
                -> Projection p t   -- ^ Ordering terms to add
                -> Orderings p m () -- ^ Result context with ordering
 updateOrderBys order p = updateOrderingContext . foldr (>>>) id $ updates  where
-  updates = updateOrderBy order `map` orderTerms p
+  updates = curry appendTerm order `map` orderTerms p
 
 {-
 takeOrderBys :: Monad m => Orderings p m OrderBys
@@ -132,4 +135,4 @@ desc =  updateOrderBys Desc
 
 -- | Run 'Orderings' to get 'OrderingTerms'
 extractOrderingTerms :: (Monad m, Functor m) => Orderings p m a -> m (a, OrderingTerms)
-extractOrderingTerms q = second orderingTerms <$> runOrderingsPrime q
+extractOrderingTerms q = second termsList <$> runOrderingsPrime q
