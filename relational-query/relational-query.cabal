@@ -70,7 +70,6 @@ library
                        Database.Relational.Query.Monad.Trans.AssigningState
                        Database.Relational.Query.Monad.Trans.JoinState
                        Database.Relational.Query.Monad.Trans.RestrictingState
-                       Database.Relational.Query.Monad.Trans.OrderingState
                        Database.Relational.Query.Monad.Qualify
 
                        Database.Relational.Schema.DB2Syscat.Tabconst
