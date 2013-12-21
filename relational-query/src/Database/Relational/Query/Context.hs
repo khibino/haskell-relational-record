@@ -11,9 +11,9 @@
 --
 -- This module defines query context tag types.
 module Database.Relational.Query.Context (
-  Flat, Aggregated, Exists,
+  Flat, Aggregated, Exists, OverWindow,
 
-  Set, SetList, Power, Partition,
+  Set, SetList, Power,
   ) where
 
 -- | Type tag for flat (not-aggregated) query
@@ -25,6 +25,9 @@ data Aggregated
 -- | Type tag for exists predicate
 data Exists
 
+-- | Type tag for window function building
+data OverWindow
+
 
 -- | Type tag for normal aggregatings set
 data Set
@@ -34,6 +37,3 @@ data SetList
 
 -- | Type tag for aggregatings power set
 data Power
-
--- | Type tag for window
-data Partition
