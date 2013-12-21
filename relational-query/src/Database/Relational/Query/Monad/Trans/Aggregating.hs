@@ -17,7 +17,7 @@ module Database.Relational.Query.Monad.Trans.Aggregating (
   -- * Transformer into aggregated query
   Aggregatings, aggregatings,
 
-  AggregatingSetT, AggregatingSetListT, AggregatingPowerSetT,
+  AggregatingSetT, AggregatingSetListT, AggregatingPowerSetT, PartitioningSetT,
 
   -- * Result
   extractAggregateTerms,
@@ -27,7 +27,7 @@ module Database.Relational.Query.Monad.Trans.Aggregating (
 
   groupBy',
 
-  AggregatingSet, AggregatingPowerSet,  AggregatingSetList,
+  AggregatingSet, AggregatingPowerSet,  AggregatingSetList, PartitioningSet,
   key, key', set,
   bkey, rollup, cube, groupingSets
   ) where
@@ -41,15 +41,15 @@ import Data.Functor.Identity (Identity (runIdentity))
 
 import Database.Relational.Query.Context (Flat, Aggregated, Set, Power, SetList)
 import Database.Relational.Query.Component
-  (AggregateElem, aggregateColumnRef, AggregateSet, aggregateGroupingSet, AggregateBitKey, aggregatePowerKey,
-  aggregateRollup, aggregateCube, aggregateSets)
+  (AggregateColumnRef, AggregateElem, aggregateColumnRef, AggregateSet, aggregateGroupingSet,
+   AggregateBitKey, aggregatePowerKey, aggregateRollup, aggregateCube, aggregateSets)
 import Database.Relational.Query.Monad.Trans.ListState
   (TermsContext, primeTermsContext, appendTerm, termsList)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
 import Database.Relational.Query.Monad.Class
-  (MonadRestrict(..), MonadQuery(..), MonadAggregate(..))
+  (MonadRestrict(..), MonadQuery(..), MonadAggregate(..), MonadPartition(..))
 
 
 -- | 'StateT' type to accumulate aggregating context.
@@ -73,13 +73,16 @@ aggregatings :: Monad m => m a -> Aggregatings ac at m a
 aggregatings =  lift
 
 -- | Context type building one grouping set.
-type AggregatingSetT      = Aggregatings Set     AggregateElem
+type AggregatingSetT      = Aggregatings Set       AggregateElem
 
 -- | Context type building grouping sets list.
-type AggregatingSetListT  = Aggregatings SetList AggregateSet
+type AggregatingSetListT  = Aggregatings SetList   AggregateSet
 
 -- | Context type building power group set.
-type AggregatingPowerSetT = Aggregatings Power   AggregateBitKey
+type AggregatingPowerSetT = Aggregatings Power     AggregateBitKey
+
+-- | Context type building partition keys set.
+type PartitioningSetT c   = Aggregatings c         AggregateColumnRef
 
 -- | Aggregated 'MonadRestrict'.
 instance MonadRestrict c m => MonadRestrict c (AggregatingSetT m) where
@@ -100,6 +103,10 @@ unsafeAggregateWithTerm =  updateAggregatingContext . appendTerm
 -- | Aggregated query instance.
 instance MonadQuery m => MonadAggregate (AggregatingSetT m) where
   unsafeAddAggregateElement = unsafeAggregateWithTerm
+
+-- | Partition clause instance
+instance Monad m => MonadPartition (PartitioningSetT c m) where
+  unsafeAddPartitionKey = unsafeAggregateWithTerm
 
 -- | Run 'Aggregatings' to get terms list.
 extractAggregateTerms :: (Monad m, Functor m) => Aggregatings ac at m a -> m (a, [at])
@@ -128,6 +135,9 @@ type AggregatingPowerSet = AggregatingPowerSetT Identity
 
 -- | Context monad type to build grouping set list.
 type AggregatingSetList  = AggregatingSetListT  Identity
+
+-- | Context monad type to build partition keys set.
+type PartitioningSet c   = PartitioningSetT c   Identity
 
 -- | Specify key of single grouping set from Projection.
 key :: Projection Flat r

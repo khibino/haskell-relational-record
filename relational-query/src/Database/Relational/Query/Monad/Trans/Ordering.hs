@@ -38,7 +38,7 @@ import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
 import Database.Relational.Query.Monad.Class
-  (MonadRestrict(..), MonadQuery(..), MonadAggregate(..))
+  (MonadRestrict(..), MonadQuery(..), MonadAggregate(..), MonadPartition(..))
 
 
 type OrderingContext = TermsContext OrderingTerm
@@ -77,6 +77,10 @@ instance MonadQuery m => MonadQuery (Orderings c m) where
 -- | 'MonadAggregate' with ordering.
 instance MonadAggregate m => MonadAggregate (Orderings c m) where
   unsafeAddAggregateElement = orderings . unsafeAddAggregateElement
+
+-- | 'MonadPartition' with ordering.
+instance MonadPartition m => MonadPartition (Orderings c m) where
+  unsafeAddPartitionKey = orderings . unsafeAddPartitionKey
 
 -- | OrderedQuery type synonym. Projection must be the same as 'Orderings' type parameter 'p'
 type OrderedQuery c m r = Orderings c m (Projection c r)
