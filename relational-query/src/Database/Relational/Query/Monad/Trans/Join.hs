@@ -66,19 +66,10 @@ updateJoinRestriction e = updateContext (updateProduct d)  where
   d  Nothing  = error "on: Product is empty! Restrict target product is not found!"
   d (Just pt) = restrictProduct pt (fromJust e)
 
-{-
-takeProduct :: QueryJoin (Maybe QueryProductNode)
-takeProduct =  queryCore State.takeProduct
-
-restoreLeft :: QueryProductNode -> NodeAttr -> QueryJoin ()
-restoreLeft pL naR = updateContext $ State.restoreLeft pL naR
--}
-
 -- | Joinable query instance.
 instance (Monad q, Functor q) => MonadQuery (QueryJoin q) where
   restrictJoin  =  updateJoinRestriction
   unsafeSubQuery          = unsafeSubQueryWithAttr
-  -- unsafeMergeAnotherQuery = unsafeQueryMergeWithAttr
 
 -- | Unsafely join subquery with this query.
 unsafeSubQueryWithAttr :: Monad q
@@ -88,18 +79,6 @@ unsafeSubQueryWithAttr :: Monad q
 unsafeSubQueryWithAttr attr qsub = do
   updateContext (updateProduct (`growProduct` (attr, qsub)))
   return $ Projection.unsafeFromQualifiedSubQuery qsub
-
-{-
-unsafeMergeAnother :: NodeAttr -> QueryJoin a -> QueryJoin a
-unsafeMergeAnother naR qR = do
-  mayPL <- takeProduct
-  v     <- qR
-  maybe (return ()) (\pL -> restoreLeft pL naR) mayPL
-  return v
-
-unsafeQueryMergeWithAttr :: NodeAttr -> QueryJoin (Projection r) -> QueryJoin (Projection r)
-unsafeQueryMergeWithAttr =  unsafeMergeAnother
--}
 
 -- | Run 'QueryJoin' to get 'JoinProduct'
 extractProduct :: (Monad m, Functor m) => QueryJoin m a -> m (a, JoinProduct)

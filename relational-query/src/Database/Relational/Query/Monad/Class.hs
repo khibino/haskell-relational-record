@@ -42,14 +42,10 @@ class (Functor m, Monad m) => MonadQuery m where
   -- | Add restriction to last join.
   restrictJoin :: Expr Flat (Maybe Bool) -- ^ 'Expr' 'Projection' which represent restriction
                -> m ()                   -- ^ Restricted query context
-  -- -- | Add restriction to this query.
-  -- restrictQuery :: Expr Projection (Maybe Bool) -- ^ 'Expr' 'Projection' which represent restriction
-  --               -> m ()                         -- ^ Restricted query context
   -- | Unsafely join subquery with this query.
   unsafeSubQuery :: NodeAttr              -- ^ Attribute maybe or just
                  -> Qualified SubQuery    -- ^ 'SubQuery' to join
                  -> m (Projection Flat r) -- ^ Result joined context and 'SubQuery' result projection.
-  -- unsafeMergeAnotherQuery :: NodeAttr -> m (Projection r) -> m (Projection r)
 
 -- | Lift interface from base qualify monad.
 class (Functor q, Monad q, MonadQuery m) => MonadQualify q m where

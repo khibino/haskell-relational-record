@@ -105,25 +105,6 @@ updateOrderBys :: (Monad m, ProjectableOrdering (Projection c))
 updateOrderBys order p = updateOrderingContext . foldr (>>>) id $ updates  where
   updates = curry appendTerm order `map` orderTerms p
 
-{-
-takeOrderBys :: Monad m => Orderings p m OrderBys
-takeOrderBys =  Orderings $ state Context.takeOrderBys
-
-restoreLowOrderBys :: Monad m => Context.OrderBys -> Orderings p m ()
-restoreLowOrderBys ros = updateOrderingContext $ Context.restoreLowOrderBys ros
-unsafeMergeAnotherOrderBys :: UnsafeMonadQuery m
-                           => NodeAttr
-                           -> Orderings p m (Projection r)
-                           -> Orderings p m (Projection r)
-
-unsafeMergeAnotherOrderBys naR qR = do
-  ros   <- takeOrderBys
-  let qR' = fst <$> runOrderingsPrime qR
-  v     <- lift $ unsafeMergeAnotherQuery naR qR'
-  restoreLowOrderBys ros
-  return v
--}
-
 
 -- | Add ascendant ordering term.
 asc :: (Monad m, ProjectableOrdering (Projection c))
