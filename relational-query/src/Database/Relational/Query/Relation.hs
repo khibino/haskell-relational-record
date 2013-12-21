@@ -173,10 +173,10 @@ join' :: (qa -> QuerySimple (PlaceHolders pa, Projection Flat a))
       -> qb
       -> [JoinRestriction a b]
       -> Relation (pa, pb) (a, b)
-join' qL qR r0 r1 ons = relation' $ do
+join' qL qR r0 r1 rs = relation' $ do
   (ph0, pj0) <- qL r0
   (ph1, pj1) <- qR r1
-  sequence_ $ zipWith3 (\f a b -> on $ f a b) ons (repeat pj0) (repeat pj1)
+  sequence_ [ on $ f pj0 pj1 | f <- rs ]
   return $ (ph0 `projectZip` ph1, pj0 `projectZip` pj1)
 
 -- | Direct inner join with place-holder parameters.
@@ -214,10 +214,10 @@ join :: (qa -> QuerySimple (Projection Flat a))
      -> qb
      -> [JoinRestriction a b]
      -> Relation () (a, b)
-join qL qR r0 r1 ons = relation $ do
+join qL qR r0 r1 rs = relation $ do
   pj0 <- qL r0
   pj1 <- qR r1
-  sequence_ $ zipWith3 (\f a b -> on $ f a b) ons (repeat pj0) (repeat pj1)
+  sequence_ [ on $ f pj0 pj1 | f <- rs ]
   return $ pj0 `projectZip` pj1
 
 -- | Direct inner join.
