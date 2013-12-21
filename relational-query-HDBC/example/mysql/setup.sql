@@ -1,0 +1,2 @@
+USE test;
+CREATE TABLE user (id BIGINT PRIMARY KEY, name VARCHAR(32) NOT NULL, memo TEXT, created_at DATE NOT NULL);
