@@ -35,7 +35,7 @@ import Database.Relational.Query.Component
   (AggregateColumnRef, QueryRestriction, OrderingTerms, AggregateElem, composeOver)
 import Database.Relational.Query.Sub (SubQuery, aggregatedSubQuery, JoinProduct)
 import qualified Database.Relational.Query.Sub as SubQuery
-import Database.Relational.Query.Projectable (SqlProjectable (unsafeProjectSqlTerms), unsafeShowSql)
+import Database.Relational.Query.Projectable (SqlProjectable, unsafeProjectSql, unsafeShowSql)
 
 import Database.Relational.Query.Monad.Class (MonadRestrict(..), MonadQualify(..), MonadPartition (..))
 import Database.Relational.Query.Monad.Trans.Config (askConfig)
@@ -103,5 +103,5 @@ over :: SqlProjectable (Projection c)
      => Projection OverWindow a
      -> Window c ()
      -> Projection c a
-wp `over` win = unsafeProjectSqlTerms [unsafeShowSql wp ++ composeOver pt ot ""] where
+wp `over` win = unsafeProjectSql $ unsafeShowSql wp ++ composeOver pt ot "" where
   (((), ot), pt) = extractWindow win
