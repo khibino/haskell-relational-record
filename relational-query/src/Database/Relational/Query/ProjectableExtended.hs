@@ -24,9 +24,6 @@ module Database.Relational.Query.ProjectableExtended (
 
   (.!), (.?),
 
-  -- -- * Get weaken projection type
-  -- Projectable (project),
-
   -- * Aggregate functions
   unsafeAggregateOp,
   count,
@@ -46,7 +43,7 @@ import Data.Int (Int64)
 import qualified Language.SQL.Keyword as SQL
 
 import Database.Relational.Query.Internal.String (paren)
-import Database.Relational.Query.Context (Flat, Aggregated)
+import Database.Relational.Query.Context (Flat, Aggregated, OverWindow)
 import Database.Relational.Query.Expr (Expr, fromJust)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
@@ -69,57 +66,74 @@ type SqlUniOp = String -> String
 sqlUniOp :: SQL.Keyword -> SqlUniOp
 sqlUniOp kw = (SQL.wordShow kw ++) . (' ' :) . paren
 
+
+class AggregatedContext ac
+instance AggregatedContext Aggregated
+instance AggregatedContext OverWindow
+
 -- | Unsafely make aggregation uni-operator from SQL keyword.
-unsafeAggregateOp :: SqlProjectable (p Aggregated)
-                  => SQL.Keyword -> Projection Flat a -> p Aggregated b
+unsafeAggregateOp :: (AggregatedContext ac, SqlProjectable (p ac))
+                  => SQL.Keyword -> Projection Flat a -> p ac b
 unsafeAggregateOp op = unsafeProjectSql . sqlUniOp op . unsafeShowSql
 
 -- | Aggregation function COUNT.
-count :: SqlProjectable (p Aggregated) => Projection Flat a -> p Aggregated Int64
+count :: (AggregatedContext ac, SqlProjectable (p ac))
+      => Projection Flat a -> p ac Int64
 count =  unsafeAggregateOp SQL.COUNT
 
 -- | Aggregation function SUM.
-sumMaybe  :: (Num a, SqlProjectable (p Aggregated)) => Projection Flat (Maybe a) -> p Aggregated (Maybe a)
+sumMaybe :: (Num a, AggregatedContext ac, SqlProjectable (p ac))
+         => Projection Flat (Maybe a) -> p ac (Maybe a)
 sumMaybe  =  unsafeAggregateOp SQL.SUM
 
 -- | Aggregation function SUM.
-sum'  :: (Num a, SqlProjectable (p Aggregated)) => Projection Flat a -> p Aggregated (Maybe a)
+sum' :: (Num a, AggregatedContext ac, SqlProjectable (p ac))
+     => Projection Flat a -> p ac (Maybe a)
 sum'  =  sumMaybe . Projection.just
 
 -- | Aggregation function AVG.
-avgMaybe   :: (Num a, Fractional b, SqlProjectable (p Aggregated))=> Projection Flat (Maybe a) -> p Aggregated (Maybe b)
+avgMaybe :: (Num a, Fractional b, AggregatedContext ac, SqlProjectable (p ac))
+         => Projection Flat (Maybe a) -> p ac (Maybe b)
 avgMaybe   =  unsafeAggregateOp SQL.AVG
 
 -- | Aggregation function AVG.
-avg   :: (Num a, Fractional b, SqlProjectable (p Aggregated))=> Projection Flat a -> p Aggregated (Maybe b)
-avg   =  avgMaybe . Projection.just
+avg :: (Num a, Fractional b, AggregatedContext ac, SqlProjectable (p ac))
+    => Projection Flat a -> p ac (Maybe b)
+avg =  avgMaybe . Projection.just
 
 -- | Aggregation function MAX.
-maxMaybe  :: (Ord a, SqlProjectable (p Aggregated)) => Projection Flat (Maybe a) -> p Aggregated (Maybe a)
+maxMaybe :: (Ord a, AggregatedContext ac, SqlProjectable (p ac))
+         => Projection Flat (Maybe a) -> p ac (Maybe a)
 maxMaybe  =  unsafeAggregateOp SQL.MAX
 
 -- | Aggregation function MAX.
-max'  :: (Ord a, SqlProjectable (p Aggregated)) => Projection Flat a -> p Aggregated (Maybe a)
-max'  =  maxMaybe . Projection.just
+max' :: (Ord a, AggregatedContext ac, SqlProjectable (p ac))
+     => Projection Flat a -> p ac (Maybe a)
+max' =  maxMaybe . Projection.just
 
 -- | Aggregation function MIN.
-minMaybe  :: (Ord a, SqlProjectable (p Aggregated)) => Projection Flat (Maybe a) -> p Aggregated (Maybe a)
+minMaybe :: (Ord a, AggregatedContext ac, SqlProjectable (p ac))
+         => Projection Flat (Maybe a) -> p ac (Maybe a)
 minMaybe  =  unsafeAggregateOp SQL.MIN
 
 -- | Aggregation function MIN.
-min'  :: (Ord a, SqlProjectable (p Aggregated)) => Projection Flat a -> p Aggregated (Maybe a)
-min'  =  minMaybe . Projection.just
+min' :: (Ord a, AggregatedContext ac, SqlProjectable (p ac))
+     => Projection Flat a -> p ac (Maybe a)
+min' =  minMaybe . Projection.just
 
 -- | Aggregation function EVERY.
-every :: (SqlProjectable (p Aggregated)) => Projection Flat (Maybe Bool) -> p Aggregated (Maybe Bool)
+every :: (AggregatedContext ac, SqlProjectable (p ac))
+      => Projection Flat (Maybe Bool) -> p ac (Maybe Bool)
 every =  unsafeAggregateOp SQL.EVERY
 
 -- | Aggregation function ANY.
-any'  :: (SqlProjectable (p Aggregated)) => Projection Flat (Maybe Bool) -> p Aggregated (Maybe Bool)
+any' :: (AggregatedContext ac, SqlProjectable (p ac))
+     => Projection Flat (Maybe Bool) -> p ac (Maybe Bool)
 any'  =  unsafeAggregateOp SQL.ANY
 
 -- | Aggregation function SOME.
-some' :: (SqlProjectable (p Aggregated)) => Projection Flat (Maybe Bool) -> p Aggregated (Maybe Bool)
+some' :: (AggregatedContext ac, SqlProjectable (p ac))
+      => Projection Flat (Maybe Bool) -> p ac (Maybe Bool)
 some' =  unsafeAggregateOp SQL.SOME
 
 -- | Project from 'Projection' into 'Projection'.
