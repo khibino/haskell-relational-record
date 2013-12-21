@@ -63,6 +63,7 @@ class MonadQuery m => MonadAggregate m where
   unsafeAddAggregateElement :: AggregateElem -- ^ Grouping element to add into group by clause
                             -> m ()          -- ^ Result context
 
+-- | Window specification building interface.
 class Monad m => MonadPartition m where
   unsafeAddPartitionKey :: AggregateColumnRef -- ^ Partitioning key to add into partition by clause
                         -> m ()               -- ^ Result context
