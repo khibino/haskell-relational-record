@@ -5,7 +5,7 @@ import Database.Record
 
 import Database.Relational.Query
 import Database.HDBC (IConnection, SqlValue)
-import Data.Int (Int32)
+import Data.Int (Int32, Int64)
 
 import qualified User
 import User (User, user)
@@ -145,7 +145,7 @@ userGroup2E =
   ]
 
 -- Aggregation
-userGroupAggregate0 :: Relation () ((Maybe String, Int32), Maybe Bool)
+userGroupAggregate0 :: Relation () ((Maybe String, Int64), Maybe Bool)
 userGroupAggregate0 =
   aggregateRelation $
   [ g >< c >< every (uid .<. just (value 3))
@@ -166,7 +166,7 @@ user3 =
   , () <- wheres $ uid .<. value 3
   ]
 
-userGroupAggregate1 :: Relation () ((Maybe String, Int32), Maybe Bool)
+userGroupAggregate1 :: Relation () ((Maybe String, Int64), Maybe Bool)
 userGroupAggregate1 =
   aggregateRelation $
   [ g >< c >< every (uid `in'` us)
@@ -179,7 +179,7 @@ userGroupAggregate1 =
   , us  <- queryList user3
   ]
 
-userGroupAggregate2 :: Relation () ((Maybe String, Int32), Maybe Bool)
+userGroupAggregate2 :: Relation () ((Maybe String, Int64), Maybe Bool)
 userGroupAggregate2 =
   aggregateRelation $
   [ g >< c >< every (uid .<. just (value 3))
