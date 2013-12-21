@@ -262,6 +262,21 @@ userGroupU =
         g  = umg ! snd'
   ]
 
+windowRankByGroup :: Relation () (Int64, (Maybe String, Maybe String))
+windowRankByGroup =  relation $ do
+  u <- query user
+  m <- query membership
+  on $ u ! User.id' .=. m ! userId'
+  g <- query group
+  on $ g ! Group.id' .=. m ! groupId'
+
+  return (rank `over` do partitionBy $ g ! Group.id'
+                         asc $ u ! User.name'
+          ><
+          (u ! User.name'
+           ><
+           g ! Group.name'))
+
 runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a, ToSql SqlValue p)
             => conn -> Relation p a -> p -> IO ()
 runAndPrint conn rel param = do
@@ -289,6 +304,7 @@ run =  handleSqlError' $ withConnectionIO connect
            run' userGroup3 "Haskell"
            run' userGroupU ("Kei Hibino", "Haskell")
            run' userGroupStr ()
+           run' windowRankByGroup ()
            run' userGroup2Fail ()
        )
 
