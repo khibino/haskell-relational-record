@@ -50,6 +50,7 @@ data Keyword = SELECT | ALL | DISTINCT | ON
 
              | OVER | PARTITION
              | DENSE_RANK | RANK | ROW_NUMBER
+             | PERCENT_RANK | CUME_DIST
              | LAG | LEAD | FIRST_VALUE | LAST_VALUE
 
              | CASE | END | WHEN | ELSE | THEN
