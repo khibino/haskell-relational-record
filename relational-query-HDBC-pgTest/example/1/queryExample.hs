@@ -262,7 +262,7 @@ userGroupU =
         g  = umg ! snd'
   ]
 
-windowRankByGroup :: Relation () (Int64, (Maybe String, Maybe String))
+windowRankByGroup :: Relation () ((Int64, Maybe Int32), (Maybe String, Maybe String))
 windowRankByGroup =  relation $ do
   u <- query user
   m <- query membership
@@ -270,8 +270,12 @@ windowRankByGroup =  relation $ do
   g <- query group
   on $ g ! Group.id' .=. m ! groupId'
 
-  return (rank `over` do partitionBy $ g ! Group.id'
-                         asc $ u ! User.name'
+  let gwindow = do partitionBy $ g ! Group.id'
+                   asc $ u ! User.name'
+
+  return (rank `over` gwindow
+          ><
+          sum' (u ! User.id') `over` gwindow
           ><
           (u ! User.name'
            ><
