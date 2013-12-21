@@ -14,7 +14,7 @@
 module Database.Relational.Query.Monad.Class (
   -- * Query interface classes
   MonadQualify (..), MonadRestrict (..),
-  MonadQuery (..), MonadAggregate (..),
+  MonadQuery (..), MonadAggregate (..), MonadPartition (..),
 
   onE, on, wheresE, wheres,
   groupBy,
@@ -23,7 +23,7 @@ module Database.Relational.Query.Monad.Class (
 
 import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Expr (Expr)
-import Database.Relational.Query.Component (AggregateElem, aggregateColumnRef)
+import Database.Relational.Query.Component (AggregateElem, AggregateColumnRef, aggregateColumnRef)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable (expr)
@@ -62,6 +62,10 @@ class MonadQuery m => MonadAggregate m where
   -- | Add /group by/ term into context and get aggregated projection.
   unsafeAddAggregateElement :: AggregateElem -- ^ Grouping element to add into group by clause
                             -> m ()          -- ^ Result context
+
+class Monad m => MonadPartition m where
+  unsafeAddPartitionKey :: AggregateColumnRef -- ^ Partitioning key to add into partition by clause
+                        -> m ()               -- ^ Result context
 
 -- | Add restriction to last join.
 onE :: MonadQuery m => Expr Flat (Maybe Bool) -> m ()
