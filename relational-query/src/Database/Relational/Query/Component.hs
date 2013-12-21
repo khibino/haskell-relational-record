@@ -30,7 +30,7 @@ module Database.Relational.Query.Component (
   aggregatePowerKey, aggregateGroupingSet,
   aggregateRollup, aggregateCube, aggregateSets,
 
-  composeGroupBy,
+  composeGroupBy, composePartitionBy,
 
   -- * Types for ordering
   Order (..), OrderColumn, OrderingTerm, OrderingTerms,
@@ -165,6 +165,12 @@ composeGroupBy =  d where
   showsE (GroupingSets ss) = showUnwordsSQL [GROUPING, SETS] . showSpace
                              . parenSepByComma showsGs ss
 
+-- | Compose PARTITION BY clause from AggregateColumnRef list.
+composePartitionBy :: [AggregateColumnRef] -> ShowS
+composePartitionBy =  d where
+  d []       = id
+  d ts@(_:_) = showUnwordsSQL [PARTITION, BY] . showSpace
+               . (map showsAggregateColumnRef ts `showSepBy` comma)
 
 -- | Order direction. Ascendant or Descendant.
 data Order = Asc | Desc  deriving Show
