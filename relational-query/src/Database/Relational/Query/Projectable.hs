@@ -47,6 +47,9 @@ module Database.Relational.Query.Projectable (
   (.+.), (.-.), (./.), (.*.), negate',
   (?+?), (?-?), (?/?), (?*?), negateMaybe,
 
+  -- * Terms for Window function types
+  rank, dense_rank, row_number, percent_rank, cume_dist,
+
   -- * Zipping projections
   ProjectableZip (projectZip), (><),
   ProjectableIdZip (..),
@@ -57,6 +60,7 @@ module Database.Relational.Query.Projectable (
 
 import Prelude hiding (pi)
 
+import Data.Int (Int64)
 import Data.String (IsString)
 import Control.Applicative ((<$>))
 
@@ -66,7 +70,7 @@ import qualified Language.SQL.Keyword.ConcatString as SQLs
 import Database.Record (PersistableWidth, PersistableRecordWidth, derivedWidth)
 
 import Database.Relational.Query.Internal.String (paren, sqlRowString)
-import Database.Relational.Query.Context (Flat, Aggregated, Exists)
+import Database.Relational.Query.Context (Flat, Aggregated, Exists, OverWindow)
 import Database.Relational.Query.Component (columnSQL, stringFromColumnSQL)
 import Database.Relational.Query.Expr (Expr, ShowConstantSQL (showConstantSQL))
 import qualified Database.Relational.Query.Expr as Expr
@@ -109,6 +113,10 @@ instance SqlProjectable (Projection Flat) where
 
 -- | Unsafely make 'Projection' from SQL terms.
 instance SqlProjectable (Projection Aggregated) where
+  unsafeProjectSqlTerms = unsafeSqlTermsProjection
+
+-- | Unsafely make 'Projection' from SQL terms.
+instance SqlProjectable (Projection OverWindow) where
   unsafeProjectSqlTerms = unsafeSqlTermsProjection
 
 -- | Unsafely make 'Expr' from SQL terms.
@@ -379,6 +387,29 @@ isNull x = compareBinOp (SQLs.defineBinOp SQL.IS) x unsafeValueNull
 isNotNull :: (SqlProjectable p, ProjectableShowSql p)
           => p (Maybe t) -> p (Maybe Bool)
 isNotNull =  not' . isNull
+
+unsafeUniTermFunction :: SqlProjectable p => SQL.Keyword -> p t
+unsafeUniTermFunction =  unsafeProjectSql . (++ "()") . SQL.wordShow
+
+-- | /RANK()/ term.
+rank :: Projection OverWindow Int64
+rank =  unsafeUniTermFunction SQL.RANK
+
+-- | /DENSE_RANK()/ term.
+dense_rank :: Projection OverWindow Int64
+dense_rank =  unsafeUniTermFunction SQL.DENSE_RANK
+
+-- | /ROW_NUMBER()/ term.
+row_number :: Projection OverWindow Int64
+row_number =  unsafeUniTermFunction SQL.ROW_NUMBER
+
+-- | /PERCENT_RANK()/ term.
+percent_rank :: Projection OverWindow Double
+percent_rank =  unsafeUniTermFunction SQL.PERCENT_RANK
+
+-- | /CUME_DIST()/ term.
+cume_dist :: Projection OverWindow Double
+cume_dist =  unsafeUniTermFunction SQL.CUME_DIST
 
 -- | Placeholder parameter type which has real parameter type arguemnt 'p'.
 data PlaceHolders p = PlaceHolders
