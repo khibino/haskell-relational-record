@@ -41,7 +41,7 @@ module Database.Relational.Query.ProjectableExtended (
   )  where
 
 import Prelude hiding (pi)
-import Data.Int (Int32)
+import Data.Int (Int64)
 
 import qualified Language.SQL.Keyword as SQL
 
@@ -75,7 +75,7 @@ unsafeAggregateOp :: SqlProjectable (p Aggregated)
 unsafeAggregateOp op = unsafeProjectSql . sqlUniOp op . unsafeShowSql
 
 -- | Aggregation function COUNT.
-count :: SqlProjectable (p Aggregated) => Projection Flat a -> p Aggregated Int32
+count :: SqlProjectable (p Aggregated) => Projection Flat a -> p Aggregated Int64
 count =  unsafeAggregateOp SQL.COUNT
 
 -- | Aggregation function SUM.
