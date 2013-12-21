@@ -37,8 +37,11 @@ module Database.Relational.Query.Component (
   composeOrderBy,
 
   -- * Types for assignments
-  AssignColumn, AssignTerm, Assignment, Assignments, composeSets
-  ) where
+  AssignColumn, AssignTerm, Assignment, Assignments, composeSets,
+
+  -- * Compose window clause
+  composeOver
+) where
 
 import qualified Database.Relational.Query.Context as Context
 import Database.Relational.Query.Expr (Expr)
@@ -219,3 +222,9 @@ composeSets as = assigns  where
                [] as
   assigns | null assignList = error "Update assignment list is null!"
           | otherwise       = showSpace . showUnwordsSQL [SET, assignList `SQL.sepBy` ", "]
+
+
+-- | Compose /OVER (PARTITION BY ... )/ clause.
+composeOver :: [AggregateColumnRef] -> OrderingTerms -> ShowS
+composeOver pts ots =
+  showSpace . showWordSQL' OVER . showParen' (composePartitionBy pts . composeOrderBy ots)
