@@ -44,42 +44,42 @@ import Database.Relational.Query.Monad.Class
 type OrderingContext = TermsContext OrderingTerm
 
 -- | 'StateT' type to accumulate ordering context.
---   Type 'p' is ordering term projection type.
-newtype Orderings p m a =
+--   Type 'c' is ordering term projection context type.
+newtype Orderings c m a =
   Orderings { orderingState :: StateT OrderingContext m a }
   deriving (MonadTrans, Monad, Functor, Applicative)
 
 -- | Run 'Orderings' to expand context state.
-runOrderings :: Orderings p m a        -- ^ Context to expand
+runOrderings :: Orderings c m a        -- ^ Context to expand
              -> OrderingContext        -- ^ Initial context
              -> m (a, OrderingContext) -- ^ Expanded result
 runOrderings =  runStateT . orderingState
 
 -- | Run 'Orderings' with primary empty context to expand context state.
-runOrderingsPrime :: Orderings p m a        -- ^ Context to expand
+runOrderingsPrime :: Orderings c m a        -- ^ Context to expand
                   -> m (a, OrderingContext) -- ^ Expanded result
 runOrderingsPrime q = runOrderings q $ primeTermsContext
 
 -- | Lift to 'Orderings'.
-orderings :: Monad m => m a -> Orderings p m a
+orderings :: Monad m => m a -> Orderings c m a
 orderings =  lift
 
 -- | 'MonadRestrict' with ordering.
-instance MonadRestrict c m => MonadRestrict c (Orderings p m) where
+instance MonadRestrict rc m => MonadRestrict rc (Orderings c m) where
   restrictContext = orderings . restrictContext
 
 -- | 'MonadQuery' with ordering.
-instance MonadQuery m => MonadQuery (Orderings p m) where
+instance MonadQuery m => MonadQuery (Orderings c m) where
   restrictJoin  =  orderings . restrictJoin
   unsafeSubQuery na       = orderings . unsafeSubQuery na
   -- unsafeMergeAnotherQuery = unsafeMergeAnotherOrderBys
 
 -- | 'MonadAggregate' with ordering.
-instance MonadAggregate m => MonadAggregate (Orderings p m) where
+instance MonadAggregate m => MonadAggregate (Orderings c m) where
   unsafeAddAggregateElement = orderings . unsafeAddAggregateElement
 
 -- | OrderedQuery type synonym. Projection must be the same as 'Orderings' type parameter 'p'
-type OrderedQuery p m r = Orderings p m (Projection p r)
+type OrderedQuery c m r = Orderings c m (Projection c r)
 
 -- | Ordering term projection type interface.
 class ProjectableOrdering p where
@@ -94,10 +94,10 @@ updateOrderingContext :: Monad m => (OrderingContext -> OrderingContext) -> Orde
 updateOrderingContext =  Orderings . modify
 
 -- | Add ordering terms.
-updateOrderBys :: (Monad m, ProjectableOrdering (Projection p))
+updateOrderBys :: (Monad m, ProjectableOrdering (Projection c))
                => Order            -- ^ Order direction
-               -> Projection p t   -- ^ Ordering terms to add
-               -> Orderings p m () -- ^ Result context with ordering
+               -> Projection c t   -- ^ Ordering terms to add
+               -> Orderings c m () -- ^ Result context with ordering
 updateOrderBys order p = updateOrderingContext . foldr (>>>) id $ updates  where
   updates = curry appendTerm order `map` orderTerms p
 
@@ -122,17 +122,17 @@ unsafeMergeAnotherOrderBys naR qR = do
 
 
 -- | Add ascendant ordering term.
-asc :: (Monad m, ProjectableOrdering (Projection p))
-    => Projection p t   -- ^ Ordering terms to add
-    -> Orderings p m () -- ^ Result context with ordering
+asc :: (Monad m, ProjectableOrdering (Projection c))
+    => Projection c t   -- ^ Ordering terms to add
+    -> Orderings c m () -- ^ Result context with ordering
 asc  =  updateOrderBys Asc
 
 -- | Add descendant ordering term.
-desc :: (Monad m, ProjectableOrdering (Projection p))
-     => Projection p t   -- ^ Ordering terms to add
-     -> Orderings p m () -- ^ Result context with ordering
+desc :: (Monad m, ProjectableOrdering (Projection c))
+     => Projection c t   -- ^ Ordering terms to add
+     -> Orderings c m () -- ^ Result context with ordering
 desc =  updateOrderBys Desc
 
 -- | Run 'Orderings' to get 'OrderingTerms'
-extractOrderingTerms :: (Monad m, Functor m) => Orderings p m a -> m (a, OrderingTerms)
+extractOrderingTerms :: (Monad m, Functor m) => Orderings c m a -> m (a, OrderingTerms)
 extractOrderingTerms q = second termsList <$> runOrderingsPrime q
