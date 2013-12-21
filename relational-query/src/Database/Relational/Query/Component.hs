@@ -45,7 +45,7 @@ import Database.Relational.Query.Expr (Expr)
 import Database.Relational.Query.Expr.Unsafe (showExpr)
 
 import Database.Relational.Query.Internal.String
-  (showUnwordsSQL, showWordSQL', showSpace, showParen', showSepBy)
+  (showUnwordsSQL, showWordSQL, showWordSQL', showSpace, showParen', showSepBy)
 import Language.SQL.Keyword (Keyword(..))
 
 import qualified Language.SQL.Keyword as SQL
@@ -64,6 +64,9 @@ stringFromColumnSQL (ColumnSQL s) = s
 -- | SQL word from 'ColumnSQL'
 sqlWordFromColumn :: ColumnSQL -> SQL.Keyword
 sqlWordFromColumn =  SQL.word . stringFromColumnSQL
+
+showsColumnSQL :: ColumnSQL -> ShowS
+showsColumnSQL =  showString . stringFromColumnSQL
 
 instance Show ColumnSQL where
   show = stringFromColumnSQL
@@ -144,7 +147,7 @@ comma :: ShowS
 comma =  showString ", "
 
 showsAggregateColumnRef :: AggregateColumnRef -> ShowS
-showsAggregateColumnRef =  showString . stringFromColumnSQL
+showsAggregateColumnRef =  showsColumnSQL
 
 parenSepByComma :: (a -> ShowS) -> [a] -> ShowS
 parenSepByComma shows' = showParen' . (`showSepBy` comma) . map shows'
@@ -185,17 +188,15 @@ type OrderingTerm = (Order, OrderColumn)
 -- | Type for order-by terms
 type OrderingTerms = [OrderingTerm]
 
--- | Get SQL keyword from order attribute.
-order :: Order -> Keyword
-order Asc  = ASC
-order Desc = DESC
-
 -- | Compose ORDER BY clause from OrderingTerms
 composeOrderBy :: OrderingTerms -> ShowS
-composeOrderBy ots = orders  where
-  orderList = foldr (\ (o, e) r -> [sqlWordFromColumn e, order o] `SQL.sepBy` " "  : r) [] ots
-  orders | null orderList = id
-         | otherwise      = showSpace . showUnwordsSQL [ORDER, BY, orderList `SQL.sepBy` ", "]
+composeOrderBy =  d where
+  d []       = id
+  d ts@(_:_) = showSpace . showUnwordsSQL [ORDER, BY] . showSpace
+               . (map showsOt ts `showSepBy` comma)
+  showsOt (o, e) = showsColumnSQL e . showSpace . showWordSQL (order o)
+  order Asc  = ASC
+  order Desc = DESC
 
 
 -- | Column SQL String
