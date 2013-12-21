@@ -34,6 +34,7 @@ module Database.Relational.Query.Component (
 
   -- * Types for ordering
   Order (..), OrderColumn, OrderingTerm, OrderingTerms,
+  composeOrderBy,
 
   -- * Types for assignments
   AssignColumn, AssignTerm, Assignment, Assignments, composeSets
@@ -183,6 +184,18 @@ type OrderingTerm = (Order, OrderColumn)
 
 -- | Type for order-by terms
 type OrderingTerms = [OrderingTerm]
+
+-- | Get SQL keyword from order attribute.
+order :: Order -> Keyword
+order Asc  = ASC
+order Desc = DESC
+
+-- | Compose ORDER BY clause from OrderingTerms
+composeOrderBy :: OrderingTerms -> ShowS
+composeOrderBy ots = orders  where
+  orderList = foldr (\ (o, e) r -> [sqlWordFromColumn e, order o] `SQL.sepBy` " "  : r) [] ots
+  orders | null orderList = id
+         | otherwise      = showSpace . showUnwordsSQL [ORDER, BY, orderList `SQL.sepBy` ", "]
 
 
 -- | Column SQL String

@@ -50,7 +50,7 @@ import Database.Relational.Query.Component
    Config, UnitProductSupport (UPSupported, UPNotSupported),
    QueryRestriction, composeWhere, composeHaving,
    AggregateElem, composeGroupBy,
-   Order (Asc, Desc), OrderingTerms)
+   OrderingTerms, composeOrderBy)
 import Database.Relational.Query.Table (Table, (!))
 import qualified Database.Relational.Query.Table as Table
 
@@ -353,15 +353,3 @@ showsJoinProduct ups =  maybe (up ups) from  where
   from qp = showSpace . showWordSQL' FROM . showsQueryProduct qp
   up UPSupported    = id
   up UPNotSupported = error "relation: Unit product support mode is disabled!"
-
-
--- | Get SQL keyword from order attribute.
-order :: Order -> Keyword
-order Asc  = ASC
-order Desc = DESC
-
-composeOrderBy :: OrderingTerms -> ShowS
-composeOrderBy ots = orders  where
-  orderList = foldr (\ (o, e) r -> [sqlWordFromColumn e, order o] `SQL.sepBy` " "  : r) [] ots
-  orders | null orderList = id
-         | otherwise      = showSpace . showUnwordsSQL [ORDER, BY, orderList `SQL.sepBy` ", "]
