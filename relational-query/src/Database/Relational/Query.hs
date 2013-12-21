@@ -53,13 +53,14 @@ import Database.Relational.Query.Projectable
 import Database.Relational.Query.ProjectableExtended
 import Database.Relational.Query.Monad.Class
   (on, wheres, groupBy, having, onE, wheresE, havingE)
-import Database.Relational.Query.Monad.Trans.Aggregating (groupBy', key, key', set, bkey, rollup, cube, groupingSets)
+import Database.Relational.Query.Monad.Trans.Aggregating
+  (groupBy', key, key', set, bkey, rollup, cube, groupingSets)
 import Database.Relational.Query.Monad.Trans.Ordering (asc, desc)
 import Database.Relational.Query.Monad.Trans.Assigning (assignTo, (!#), (<-#))
 import Database.Relational.Query.Monad.Type
 import Database.Relational.Query.Monad.Simple (QuerySimple, SimpleQuery)
 import Database.Relational.Query.Monad.Aggregate
-  (QueryAggregate, AggregatedQuery)
+  (QueryAggregate, AggregatedQuery, Window, partitionBy, over)
 import Database.Relational.Query.Monad.Restrict (Restrict)
 import Database.Relational.Query.Monad.Target (Target)
 import Database.Relational.Query.Relation
