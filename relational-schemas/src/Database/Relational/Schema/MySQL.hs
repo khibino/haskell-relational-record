@@ -8,13 +8,15 @@ module Database.Relational.Schema.MySQL
     )
     where
 
-import           Data.Int               (Int16, Int32, Int64)
+import           Data.Int               (Int8, Int16, Int32, Int64)
 import           Data.Char              (toLower, toUpper)
 import           Data.Map               (Map, fromList)
 import qualified Data.Map               as Map
-import           Data.Time              (LocalTime, Day)
-import           Language.Haskell.TH    (TypeQ)
+import           Data.Time              (Day, LocalTime, TimeOfDay)
+import           Data.Time.Clock.POSIX  (POSIXTime)
+import           Data.ByteString        (ByteString)
 import           Control.Applicative    ((<|>))
+import           Language.Haskell.TH    (TypeQ)
 
 import Database.Relational.Query        ( Query
                                         , query
@@ -38,17 +40,25 @@ import qualified Database.Relational.Schema.MySQLInfo.KeyColumnUsage    as Keyco
 
 mapFromSqlDefault :: Map String TypeQ
 mapFromSqlDefault = fromList
-    [ ("VARCHAR",   [t|String|])
-    , ("TEXT",      [t|String|])
-    , ("CHAR",      [t|String|])
-    , ("CHARACTER", [t|String|])
-    , ("TIMESTAMP", [t|LocalTime|])
-    , ("DATE",      [t|Day|])
-    , ("SMALLINT",  [t|Int16|])
-    , ("INTEGER",   [t|Int32|])
-    , ("BIGINT",    [t|Int64|])
-    , ("BLOB",      [t|String|])
-    , ("CLOB",      [t|String|])
+    [ ("CHAR",       [t| String |])
+    , ("VARCHAR",    [t| String |])
+    , ("TINYTEXT",   [t| String |])
+    , ("TEXT",       [t| String |])
+    , ("MEDIUMTEXT", [t| String |])
+    , ("LONGTEXT",   [t| String |])
+    , ("TINYBLOB",   [t| ByteString |])
+    , ("BLOB",       [t| ByteString |])
+    , ("MEDIUMBLOB", [t| ByteString |])
+    , ("LONGBLOB",   [t| ByteString |])
+    , ("DATE",       [t| Day |])
+    , ("DATETIME",   [t| LocalTime |])
+    , ("TIME",       [t| TimeOfDay |])
+    , ("TIMESTAMP",  [t| POSIXTime |])
+    , ("TINYINT",    [t| Int8 |])
+    , ("SMALLINT",   [t| Int16 |])
+    , ("INT",        [t| Int32 |])
+    , ("INTEGER",    [t| Int32 |])
+    , ("BIGINT",     [t| Int64 |])
     ]
 
 normalizeColumn :: String -> String
