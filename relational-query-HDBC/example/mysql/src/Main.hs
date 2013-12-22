@@ -1,32 +1,22 @@
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE MonadComprehensions   #-}
-
 module Main where
 
-import Data.Int (Int64)
-import Prelude hiding (id)
+import Database.Relational.Query    ( query
+                                    , relation
+                                    , wheres
+                                    , (.=.)
+                                    , (!)
+                                    , value
+                                    , relationalQuery
+                                    , Relation
+                                    )
+import Database.HDBC.Session        (withConnectionIO, handleSqlError')
+import Database.HDBC.Record.Query   (runQuery)
 
-import Database.Relational.Query  ( query
-                                  , relation
-                                  , wheres
-                                  , (.=.)
-                                  , (!)
-                                  , value
-                                  , relationalQuery
-                                  , Relation
-                                  )
-import Database.HDBC.Session      ( withConnectionIO
-                                  , handleSqlError'
-                                  )
-import Database.HDBC.Record.Query ( runQuery
-                                  )
-import MySQLTestDataSource        (connect, defineTable)
-
-$(defineTable
-    []
-    "test" "user" [])
+import Data.Int                     (Int64)
+import MySQLTestDataSource          (connect)
+import User                         (user)
+import qualified User as U
 
 main :: IO ()
 main = handleSqlError' $ withConnectionIO connect $ \conn -> do
@@ -35,8 +25,8 @@ main = handleSqlError' $ withConnectionIO connect $ \conn -> do
     where
         test :: Relation () String
         test = relation
-            [ u ! name'
-            | u <- query user
-            , () <- wheres $ u ! id' .=. value (1 :: Int64)
+            [ u ! U.name'
+            | u  <- query user
+            , () <- wheres $ u ! U.id' .=. value (1 :: Int64)
             ]
 

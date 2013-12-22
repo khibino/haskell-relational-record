@@ -3,7 +3,7 @@
 
 name:                example
 version:             0.1.0.0
-synopsis:            mysql example
+synopsis:            mysql driver example
 -- description:         
 license:             BSD3
 license-file:        LICENSE
@@ -33,6 +33,7 @@ executable example
     , relational-query-HDBC
     , HDBC-mysql >=0.6 && <0.7
     , relational-mysql
+    , time
   hs-source-dirs:
     src
   default-language:
