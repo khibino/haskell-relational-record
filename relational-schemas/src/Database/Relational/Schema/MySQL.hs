@@ -1,5 +1,4 @@
 {-# LANGUAGE TemplateHaskell #-}
-
 module Database.Relational.Schema.MySQL
     ( normalizeColumn
     , notNull
@@ -53,10 +52,10 @@ mapFromSqlDefault = fromList
     ]
 
 normalizeColumn :: String -> String
-normalizeColumn =  map toLower
+normalizeColumn = map toLower
 
 notNull :: Columns -> Bool
-notNull =  (== "NO") . Columns.isNullable
+notNull = (== "NO") . Columns.isNullable
 
 getType :: Map String TypeQ
         -> Columns
@@ -73,9 +72,9 @@ getType mapFromSql rec = do
                       else [t|Maybe $(typ)|]
 
 columnsQuerySQL :: Query (String, String) Columns
-columnsQuerySQL =  relationalQuery columnsRelationFromTable
+columnsQuerySQL = relationalQuery columnsRelationFromTable
     where
-        columnsRelationFromTable =  relation' $ do
+        columnsRelationFromTable = relation' $ do
             c <- query columns
             (schemaP, ()) <- placeholder (\ph -> wheres $ c ! Columns.tableSchema' .=. ph)
             (nameP  , ()) <- placeholder (\ph -> wheres $ c ! Columns.tableName'   .=. ph)
@@ -83,12 +82,12 @@ columnsQuerySQL =  relationalQuery columnsRelationFromTable
             return (schemaP >< nameP, c)
 
 primaryKeyQuerySQL :: Query (String, String) String
-primaryKeyQuerySQL =  relationalQuery primaryKeyRelation
+primaryKeyQuerySQL = relationalQuery primaryKeyRelation
     where
-        primaryKeyRelation =  relation' $ do
-            cons  <- query tableConstraints
-            key   <- query keyColumnUsage
-            col   <- query columns
+        primaryKeyRelation = relation' $ do
+            cons <- query tableConstraints
+            key  <- query keyColumnUsage
+            col  <- query columns
 
             wheres $ cons ! Tabconst.tableSchema'    .=. col ! Columns.tableSchema'
             wheres $ cons ! Tabconst.tableName'      .=. col ! Columns.tableName'
@@ -101,6 +100,6 @@ primaryKeyQuerySQL =  relationalQuery primaryKeyRelation
             (schemaP, ()) <- placeholder (\ph -> wheres $ cons ! Tabconst.tableSchema' .=. ph)
             (nameP  , ()) <- placeholder (\ph -> wheres $ cons ! Tabconst.tableName'   .=. ph)
 
-            asc  $ key ! Keycoluse.ordinalPosition'
+            asc $ key ! Keycoluse.ordinalPosition'
 
-            return   (schemaP >< nameP, key ! Keycoluse.columnName')
+            return (schemaP >< nameP, key ! Keycoluse.columnName')
