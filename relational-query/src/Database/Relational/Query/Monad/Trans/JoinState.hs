@@ -11,15 +11,9 @@
 -- "Database.Relational.Query.Monad.Trans.Join".
 module Database.Relational.Query.Monad.Trans.JoinState (
   -- * Join context
-  JoinContext, primeJoinContext,
+  JoinContext, primeJoinContext, updateProduct, joinProduct,
 
-  updateProduct,
-
-  joinProduct,
-
-  setDistinct, setAll,
-
-  duplication
+  setDistinct, setAll, duplication
   ) where
 
 import Prelude hiding (product)
