@@ -17,25 +17,32 @@ module Database.Relational.Query.Monad.Trans.JoinState (
 
   updateProduct, -- takeProduct, restoreLeft,
 
-  joinProduct
+  joinProduct,
 
   -- composeFrom
+
+  setDistinct, setAll,
+
+  duplication
   ) where
 
 import Prelude hiding (product)
 
+import Database.Relational.Query.Component (Duplication (Distinct, All))
 import qualified Database.Relational.Query.Internal.Product as Product
 import Database.Relational.Query.Sub (QueryProductNode, JoinProduct)
 
 
 -- | JoinContext type for QueryJoin.
-newtype JoinContext =
+data JoinContext =
   JoinContext
-  { product :: Maybe QueryProductNode }
+  { product  :: Maybe QueryProductNode
+  , duplicationAttribute :: Duplication
+  }
 
 -- | Initial 'JoinContext'.
 primeJoinContext :: JoinContext
-primeJoinContext =  JoinContext Nothing
+primeJoinContext =  JoinContext Nothing All
 
 -- | Update product of 'JoinContext'.
 updateProduct' :: (Maybe QueryProductNode -> Maybe QueryProductNode) -> JoinContext -> JoinContext
@@ -54,3 +61,14 @@ updateProduct uf = updateProduct' (Just . uf)
 -- |  Finalize context to extract accumulated query product.
 joinProduct :: JoinContext -> JoinProduct
 joinProduct =  fmap Product.nodeTree . product
+
+-- | Set duplication attribute to Distinct.
+setDistinct :: JoinContext -> JoinContext
+setDistinct ctx = ctx { duplicationAttribute = Distinct }
+
+-- | Set duplication attribute to All.
+setAll :: JoinContext -> JoinContext
+setAll ctx = ctx { duplicationAttribute = All }
+
+duplication :: JoinContext -> Duplication
+duplication =  duplicationAttribute
