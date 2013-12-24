@@ -135,11 +135,10 @@ fromTableToSQL t =
 
 -- | Generate normalized column SQL from table.
 fromTableToNormalizedSQL :: Table.Untyped -> ShowS
-fromTableToNormalizedSQL t =
-  showUnwordsSQL
-  $ [SELECT, columns' `SQL.sepBy` ", ", FROM, SQL.word . Table.name' $ t]  where
+fromTableToNormalizedSQL t = showWordSQL' SELECT . (columns' `showSepBy` showComma)
+                             . showWordSQL' FROM . showString (Table.name' t)  where
   columns' = zipWith
-             (\f n -> sqlWordFromColumn f `asColumnN` n)
+             (\f n -> showString $ stringFromColumnSQL f `asColumnN'` n)
              (Table.columns' t)
              [(0 :: Int)..]
 
@@ -152,12 +151,12 @@ normalizedSQL =  d  where
   d sub@(Aggregated _ _ _ _ _ _ _ _) = showUnitSQL sub
 
 selectPrefixSQL :: UntypedProjection -> Duplication -> ShowS
-selectPrefixSQL up da =
-  showWordSQL SELECT . showsDuplication da . showSpace . (columns' `showSepBy` showComma)
-  where columns' = zipWith
-                   (\f n -> showString $ stringFromColumnSQL f `asColumnN'` n)
-                   (columnsOfUntypedProjection up)
-                   [(0 :: Int)..]
+selectPrefixSQL up da = showWordSQL SELECT . showsDuplication da
+                        . showSpace . (columns' `showSepBy` showComma)  where
+  columns' = zipWith
+             (\f n -> showString $ stringFromColumnSQL f `asColumnN'` n)
+             (columnsOfUntypedProjection up)
+             [(0 :: Int)..]
 
 -- | SQL string for nested-query and toplevel-SQL.
 toSQLs :: SubQuery
@@ -217,10 +216,6 @@ columnN i = columnSQL $ 'f' : show i
 -- | Renamed column in SQL expression.
 asColumnN' :: String -> Int -> String
 f `asColumnN'` n = f `SQLs.as` stringFromColumnSQL (columnN  n)
-
--- | Renamed column in SQL expression.
-asColumnN :: SQL.Keyword -> Int -> SQL.Keyword
-f `asColumnN` n = f `SQL.as` sqlWordFromColumn (columnN  n)
 
 -- | Alias string from qualifier
 showQualifier :: Qualifier -> String
