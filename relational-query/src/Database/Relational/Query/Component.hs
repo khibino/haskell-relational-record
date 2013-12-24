@@ -16,7 +16,7 @@ module Database.Relational.Query.Component (
 
   -- * Configuration type for query
   Config, defaultConfig,
-  UnitProductSupport (..),
+  UnitProductSupport (..), Duplication (..),
 
   -- * Query restriction
   QueryRestriction, composeWhere, composeHaving,
@@ -84,6 +84,15 @@ defaultConfig =  UPSupported
 
 -- | Unit product is supported or not.
 data UnitProductSupport = UPSupported | UPNotSupported  deriving Show
+
+
+-- | Result record duplication attribute
+data Duplication = All | Distinct  deriving Show
+
+-- | From duplication attribute into SQL word.
+duplication :: Duplication -> Keyword
+duplication All      = ALL
+duplication Distinct = DISTINCT
 
 
 -- | Type for restriction of query.
