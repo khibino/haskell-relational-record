@@ -1,4 +1,6 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 -- |
 -- Module      : Database.Relational.Query.Component
@@ -12,7 +14,7 @@
 -- This module provides untyped components for query.
 module Database.Relational.Query.Component (
   -- * Type for column SQL string
-  ColumnSQL, columnSQL, sqlWordFromColumn, stringFromColumnSQL,
+  ColumnSQL, columnSQL, sqlWordFromColumn, stringFromColumnSQL, showsColumnSQL,
 
   -- * Configuration type for query
   Config, defaultConfig,
@@ -46,6 +48,8 @@ module Database.Relational.Query.Component (
   composeOver
 ) where
 
+import Data.Functor.Identity (Identity (..))
+
 import qualified Database.Relational.Query.Context as Context
 import Database.Relational.Query.Expr (Expr)
 import Database.Relational.Query.Expr.Unsafe (showExpr)
@@ -57,15 +61,15 @@ import Language.SQL.Keyword (Keyword(..))
 import qualified Language.SQL.Keyword as SQL
 
 -- | Column SQL string type
-newtype ColumnSQL = ColumnSQL String
+type ColumnSQL = Identity String
 
 -- | 'ColumnSQL' from string
 columnSQL :: String -> ColumnSQL
-columnSQL =  ColumnSQL
+columnSQL =  Identity
 
 -- | String from ColumnSQL
 stringFromColumnSQL :: ColumnSQL -> String
-stringFromColumnSQL (ColumnSQL s) = s
+stringFromColumnSQL =  runIdentity
 
 -- | SQL word from 'ColumnSQL'
 sqlWordFromColumn :: ColumnSQL -> SQL.Keyword

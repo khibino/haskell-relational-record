@@ -46,7 +46,7 @@ import Database.Relational.Query.Internal.Product
   (NodeAttr(Just', Maybe), ProductTree (Leaf, Join),
    Node, nodeAttr, nodeTree)
 import Database.Relational.Query.Component
-  (ColumnSQL, columnSQL, sqlWordFromColumn, stringFromColumnSQL,
+  (ColumnSQL, columnSQL, sqlWordFromColumn, stringFromColumnSQL, showsColumnSQL,
    Config, UnitProductSupport (UPSupported, UPNotSupported),
    Duplication, showsDuplication, QueryRestriction, composeWhere, composeHaving,
    AggregateElem, composeGroupBy, OrderingTerms, composeOrderBy)
@@ -138,7 +138,7 @@ fromTableToNormalizedSQL :: Table.Untyped -> ShowS
 fromTableToNormalizedSQL t = showWordSQL' SELECT . (columns' `showSepBy` showComma)
                              . showWordSQL' FROM . showString (Table.name' t)  where
   columns' = zipWith
-             (\f n -> showString $ stringFromColumnSQL f `asColumnN'` n)
+             (\f n -> showsColumnSQL $ f `asColumnN` n)
              (Table.columns' t)
              [(0 :: Int)..]
 
@@ -154,7 +154,7 @@ selectPrefixSQL :: UntypedProjection -> Duplication -> ShowS
 selectPrefixSQL up da = showWordSQL SELECT . showsDuplication da
                         . showSpace . (columns' `showSepBy` showComma)  where
   columns' = zipWith
-             (\f n -> showString $ stringFromColumnSQL f `asColumnN'` n)
+             (\f n -> showsColumnSQL $ f `asColumnN` n)
              (columnsOfUntypedProjection up)
              [(0 :: Int)..]
 
@@ -213,9 +213,11 @@ qualify =  Qualified
 columnN :: Int -> ColumnSQL
 columnN i = columnSQL $ 'f' : show i
 
--- | Renamed column in SQL expression.
-asColumnN' :: String -> Int -> String
-f `asColumnN'` n = f `SQLs.as` stringFromColumnSQL (columnN  n)
+asColumnN :: ColumnSQL -> Int -> ColumnSQL
+c `asColumnN` n = do
+  c' <- c
+  cn <- columnN n
+  return $ c' `SQLs.as` cn
 
 -- | Alias string from qualifier
 showQualifier :: Qualifier -> String
