@@ -26,7 +26,7 @@ import Control.Arrow (second, (&&&))
 
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Monad.Trans.JoinState
-  (JoinContext, primeJoinContext, updateProduct, joinProduct, duplication)
+  (JoinContext, primeJoinContext, updateProduct, joinProduct, setDuplication, duplication)
 import Database.Relational.Query.Internal.Product (NodeAttr, restrictProduct, growProduct)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
@@ -69,8 +69,9 @@ updateJoinRestriction e = updateContext (updateProduct d)  where
 
 -- | Joinable query instance.
 instance (Monad q, Functor q) => MonadQuery (QueryJoin q) where
-  restrictJoin  =  updateJoinRestriction
-  unsafeSubQuery          = unsafeSubQueryWithAttr
+  specifyDuplication = updateContext . setDuplication
+  restrictJoin       = updateJoinRestriction
+  unsafeSubQuery     = unsafeSubQueryWithAttr
 
 -- | Unsafely join subquery with this query.
 unsafeSubQueryWithAttr :: Monad q

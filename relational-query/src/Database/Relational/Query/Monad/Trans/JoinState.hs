@@ -13,12 +13,12 @@ module Database.Relational.Query.Monad.Trans.JoinState (
   -- * Join context
   JoinContext, primeJoinContext, updateProduct, joinProduct,
 
-  setDistinct, setAll, duplication
+  setDuplication, duplication
   ) where
 
 import Prelude hiding (product)
 
-import Database.Relational.Query.Component (Duplication (Distinct, All))
+import Database.Relational.Query.Component (Duplication (All))
 import qualified Database.Relational.Query.Internal.Product as Product
 import Database.Relational.Query.Sub (QueryProductNode, JoinProduct)
 
@@ -46,13 +46,9 @@ updateProduct uf = updateProduct' (Just . uf)
 joinProduct :: JoinContext -> JoinProduct
 joinProduct =  fmap Product.nodeTree . product
 
--- | Set duplication attribute to Distinct.
-setDistinct :: JoinContext -> JoinContext
-setDistinct ctx = ctx { duplicationAttribute = Distinct }
-
--- | Set duplication attribute to All.
-setAll :: JoinContext -> JoinContext
-setAll ctx = ctx { duplicationAttribute = All }
+-- | Set duplication attribute.
+setDuplication :: Duplication -> JoinContext -> JoinContext
+setDuplication da ctx = ctx { duplicationAttribute = da }
 
 -- | Take duplication attribute.
 duplication :: JoinContext -> Duplication

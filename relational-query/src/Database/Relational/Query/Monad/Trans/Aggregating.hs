@@ -90,8 +90,9 @@ instance MonadRestrict c m => MonadRestrict c (AggregatingSetT m) where
 
 -- | Aggregated 'MonadQuery'.
 instance MonadQuery m => MonadQuery (AggregatingSetT m) where
-  restrictJoin  =  aggregatings . restrictJoin
-  unsafeSubQuery na = aggregatings . unsafeSubQuery na
+  specifyDuplication = aggregatings . specifyDuplication
+  restrictJoin       = aggregatings . restrictJoin
+  unsafeSubQuery na  = aggregatings . unsafeSubQuery na
 
 -- | Unsafely update aggregating context.
 updateAggregatingContext :: Monad m => (TermsContext at -> TermsContext at) -> Aggregatings ac at m ()

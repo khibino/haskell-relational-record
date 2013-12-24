@@ -67,8 +67,9 @@ instance (Monad q, Functor q) => MonadRestrict c (Restrictings c q) where
 
 -- | Restricted 'MonadQuery' instance.
 instance MonadQuery q => MonadQuery (Restrictings c q) where
-  restrictJoin     = restrictings . restrictJoin
-  unsafeSubQuery a = restrictings . unsafeSubQuery a
+  specifyDuplication = restrictings . specifyDuplication
+  restrictJoin       = restrictings . restrictJoin
+  unsafeSubQuery a   = restrictings . unsafeSubQuery a
 
 -- | Resticted 'MonadAggregate' instance.
 instance MonadAggregate m => MonadAggregate (Restrictings c m) where

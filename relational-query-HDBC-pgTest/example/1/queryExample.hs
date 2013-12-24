@@ -197,7 +197,8 @@ userGroupStr :: Relation () (Maybe String)
 userGroupStr =
   relation $
   [ u ?!? User.name' ?||? just (value " - ") ?||? g ?!? Group.name'
-  | ug <- query userGroup2
+  | () <- distinct
+  , ug <- query userGroup2
   , let u = ug ! fst'
         g = ug ! snd'
   ]

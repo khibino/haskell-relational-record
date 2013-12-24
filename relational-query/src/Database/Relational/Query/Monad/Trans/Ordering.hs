@@ -70,9 +70,9 @@ instance MonadRestrict rc m => MonadRestrict rc (Orderings c m) where
 
 -- | 'MonadQuery' with ordering.
 instance MonadQuery m => MonadQuery (Orderings c m) where
-  restrictJoin  =  orderings . restrictJoin
-  unsafeSubQuery na       = orderings . unsafeSubQuery na
-  -- unsafeMergeAnotherQuery = unsafeMergeAnotherOrderBys
+  specifyDuplication = orderings . specifyDuplication
+  restrictJoin       =  orderings . restrictJoin
+  unsafeSubQuery na  = orderings . unsafeSubQuery na
 
 -- | 'MonadAggregate' with ordering.
 instance MonadAggregate m => MonadAggregate (Orderings c m) where
