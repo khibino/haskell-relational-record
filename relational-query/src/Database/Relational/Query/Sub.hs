@@ -48,9 +48,8 @@ import Database.Relational.Query.Internal.Product
 import Database.Relational.Query.Component
   (ColumnSQL, columnSQL, sqlWordFromColumn, stringFromColumnSQL,
    Config, UnitProductSupport (UPSupported, UPNotSupported),
-   QueryRestriction, composeWhere, composeHaving,
-   AggregateElem, composeGroupBy,
-   OrderingTerms, composeOrderBy)
+   Duplication, showsDuplication, QueryRestriction, composeWhere, composeHaving,
+   AggregateElem, composeGroupBy, OrderingTerms, composeOrderBy)
 import Database.Relational.Query.Table (Table, (!))
 import qualified Database.Relational.Query.Table as Table
 
@@ -71,10 +70,10 @@ keywordBinOp = d  where
 -- | Sub-query type
 data SubQuery = Table Table.Untyped
               | Flat Config
-                UntypedProjection JoinProduct (QueryRestriction Context.Flat)
+                UntypedProjection Duplication JoinProduct (QueryRestriction Context.Flat)
                 OrderingTerms
               | Aggregated Config
-                UntypedProjection JoinProduct (QueryRestriction Context.Flat)
+                UntypedProjection Duplication JoinProduct (QueryRestriction Context.Flat)
                 [AggregateElem] (QueryRestriction Context.Aggregated) OrderingTerms
               | Bin BinOp SubQuery SubQuery
               deriving Show
@@ -87,6 +86,7 @@ fromTable =  Table . Table.unType
 -- | Unsafely generate flat 'SubQuery' from untyped components.
 flatSubQuery :: Config
              -> UntypedProjection
+             -> Duplication
              -> JoinProduct
              -> QueryRestriction Context.Flat
              -> OrderingTerms
@@ -96,6 +96,7 @@ flatSubQuery = Flat
 -- | Unsafely generate aggregated 'SubQuery' from untyped components.
 aggregatedSubQuery :: Config
                    -> UntypedProjection
+                   -> Duplication
                    -> JoinProduct
                    -> QueryRestriction Context.Flat
                    -> [AggregateElem]
@@ -119,10 +120,10 @@ intersect =  Bin Intersect
 -- | Width of 'SubQuery'.
 width :: SubQuery -> Int
 width =  d  where
-  d (Table u)                 = Table.width' u
-  d (Bin _ l _)                 = width l
-  d (Flat _ up _ _ _)           = widthOfUntypedProjection up
-  d (Aggregated _ up _ _ _ _ _) = widthOfUntypedProjection up
+  d (Table u)                     = Table.width' u
+  d (Bin _ l _)                   = width l
+  d (Flat _ up _ _ _ _)           = widthOfUntypedProjection up
+  d (Aggregated _ up _ _ _ _ _ _) = widthOfUntypedProjection up
 
 -- | SQL to query table.
 fromTableToSQL :: Table.Untyped -> ShowS
@@ -144,10 +145,10 @@ fromTableToNormalizedSQL t =
 -- | Normalized column SQL
 normalizedSQL :: SubQuery -> ShowS
 normalizedSQL =  d  where
-  d (Table t)                      = fromTableToNormalizedSQL t
-  d sub@(Bin _ _ _)                = showUnitSQL sub
-  d sub@(Flat _ _ _ _ _)           = showUnitSQL sub
-  d sub@(Aggregated _ _ _ _ _ _ _) = showUnitSQL sub
+  d (Table t)                        = fromTableToNormalizedSQL t
+  d sub@(Bin _ _ _)                  = showUnitSQL sub
+  d sub@(Flat _ _ _ _ _ _)           = showUnitSQL sub
+  d sub@(Aggregated _ _ _ _ _ _ _ _) = showUnitSQL sub
 
 -- | Generate select SQL. Seed SQL string append to this.
 selectPrefixSQL :: UntypedProjection -> ShowS
@@ -165,11 +166,11 @@ toSQLs =  d  where
   d (Table u)               = (showString $ Table.name' u, fromTableToSQL u)
   d (Bin op l r)            = (showParen' q, q)  where
     q = showUnwords [normalizedSQL l, showWordSQL $ keywordBinOp op, normalizedSQL r]
-  d (Flat cf up pd rs od)   = (showParen' q, q)  where
-    q = selectPrefixSQL up . showsJoinProduct cf pd . composeWhere rs
+  d (Flat cf up da pd rs od)   = (showParen' q, q)  where
+    q = selectPrefixSQL up . showsDuplication da . showsJoinProduct cf pd . composeWhere rs
         . composeOrderBy od
-  d (Aggregated cf up pd rs ag grs od) = (showParen' q, q)  where
-    q = selectPrefixSQL up . showsJoinProduct cf pd . composeWhere rs
+  d (Aggregated cf up da pd rs ag grs od) = (showParen' q, q)  where
+    q = selectPrefixSQL up . showsDuplication da . showsJoinProduct cf pd . composeWhere rs
         . composeGroupBy ag . composeHaving grs . composeOrderBy od
 
 showUnitSQL :: SubQuery -> ShowS
@@ -243,10 +244,10 @@ queryWidth =  width . unQualify
 column :: Qualified SubQuery -> Int -> ColumnSQL
 column qs =  d (unQualify qs)  where
   q = qualifier qs
-  d (Table u)         i           = q <.> (u ! i)
-  d (Bin _ _ _)       i           = q `columnFromId` i
-  d (Flat _ up _ _ _) i           = columnOfUntypedProjection up i
-  d (Aggregated _ up _ _ _ _ _) i = columnOfUntypedProjection up i
+  d (Table u)         i             = q <.> (u ! i)
+  d (Bin _ _ _)       i             = q `columnFromId` i
+  d (Flat _ up _ _ _ _) i           = columnOfUntypedProjection up i
+  d (Aggregated _ up _ _ _ _ _ _) i = columnOfUntypedProjection up i
 
 -- | Get qualified SQL string, like (SELECT ...) AS T0
 qualifiedForm :: Qualified SubQuery -> ShowS
@@ -275,11 +276,11 @@ untypedProjectionFromColumns =  unitUntypedProjection . projectionUnitFromColumn
 untypedProjectionFromSubQuery :: Qualified SubQuery -> UntypedProjection
 untypedProjectionFromSubQuery qs = d $ unQualify qs  where  --  unitUntypedProjection . Sub
   normalized = unitUntypedProjection . Normalized $ fmap width qs
-  d (Table _)                  = untypedProjectionFromColumns . map (column qs)
-                                 $ take (queryWidth qs) [0..]
-  d (Bin _ _ _)                = normalized
-  d (Flat _ _ _ _ _)           = normalized
-  d (Aggregated _ _ _ _ _ _ _) = normalized
+  d (Table _)                    = untypedProjectionFromColumns . map (column qs)
+                                   $ take (queryWidth qs) [0..]
+  d (Bin _ _ _)                  = normalized
+  d (Flat _ _ _ _ _ _)           = normalized
+  d (Aggregated _ _ _ _ _ _ _ _) = normalized
 
 -- | ProjectionUnit width.
 widthOfProjectionUnit :: ProjectionUnit -> Int

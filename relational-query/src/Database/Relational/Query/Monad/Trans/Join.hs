@@ -22,15 +22,16 @@ import Prelude hiding (product)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.State (modify, StateT, runStateT)
 import Control.Applicative (Applicative, (<$>))
-import Control.Arrow (second)
+import Control.Arrow (second, (&&&))
 
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Monad.Trans.JoinState
-  (JoinContext, primeJoinContext, updateProduct, joinProduct)
+  (JoinContext, primeJoinContext, updateProduct, joinProduct, duplication)
 import Database.Relational.Query.Internal.Product (NodeAttr, restrictProduct, growProduct)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Expr (Expr, fromJust)
+import Database.Relational.Query.Component (Duplication)
 import Database.Relational.Query.Sub (SubQuery, Qualified, JoinProduct)
 
 import Database.Relational.Query.Monad.Class (MonadQuery (..))
@@ -81,5 +82,5 @@ unsafeSubQueryWithAttr attr qsub = do
   return $ Projection.unsafeFromQualifiedSubQuery qsub
 
 -- | Run 'QueryJoin' to get 'JoinProduct'
-extractProduct :: (Monad m, Functor m) => QueryJoin m a -> m (a, JoinProduct)
-extractProduct q = second joinProduct <$> runQueryPrime q
+extractProduct :: (Monad m, Functor m) => QueryJoin m a -> m (a, (JoinProduct, Duplication))
+extractProduct q = second (joinProduct &&& duplication) <$> runQueryPrime q

@@ -13,7 +13,7 @@ module Database.Relational.Query.Monad.Type (
   ConfigureQuery, configureQuery, qualifyQuery, QueryCore, extractCore
   ) where
 
-import Database.Relational.Query.Component (Config, QueryRestriction)
+import Database.Relational.Query.Component (Config, Duplication, QueryRestriction)
 import Database.Relational.Query.Sub (Qualified, JoinProduct)
 import Database.Relational.Query.Context (Flat)
 import qualified Database.Relational.Query.Monad.Qualify as Qualify
@@ -38,5 +38,6 @@ qualifyQuery =  config . Qualify.qualifyQuery
 type QueryCore = Restrictings Flat (QueryJoin ConfigureQuery)
 
 -- | Extract 'QueryCore' computation.
-extractCore :: QueryCore a -> ConfigureQuery ((a, QueryRestriction Flat), JoinProduct)
+extractCore :: QueryCore a
+            -> ConfigureQuery ((a, QueryRestriction Flat), (JoinProduct, Duplication))
 extractCore =  extractProduct . extractRestrict

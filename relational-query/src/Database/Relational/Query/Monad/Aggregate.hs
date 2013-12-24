@@ -32,7 +32,7 @@ import Database.Relational.Query.Context (Flat, Aggregated, OverWindow)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Component
-  (AggregateColumnRef, QueryRestriction, OrderingTerms, AggregateElem, composeOver)
+  (AggregateColumnRef, Duplication, QueryRestriction, OrderingTerms, AggregateElem, composeOver)
 import Database.Relational.Query.Sub (SubQuery, aggregatedSubQuery, JoinProduct)
 import qualified Database.Relational.Query.Sub as SubQuery
 import Database.Relational.Query.Projectable (SqlProjectable, unsafeProjectSql, unsafeShowSql)
@@ -75,7 +75,7 @@ extract :: AggregatedQuery r
                                  QueryRestriction Aggregated),
                                 [AggregateElem]),
                                QueryRestriction Flat),
-                              JoinProduct)
+                              (JoinProduct, Duplication))
 extract =  extractCore . extractAggregateTerms . extractRestrict . extractOrderingTerms
 
 -- | Run 'AggregatedQuery' to get SQL with 'ConfigureQuery' computation.
@@ -87,9 +87,9 @@ toSQL =  fmap SubQuery.toSQL . toSubQuery
 toSubQuery :: AggregatedQuery r       -- ^ 'AggregatedQuery' to run
            -> ConfigureQuery SubQuery -- ^ Result 'SubQuery' with 'ConfigureQuery' computation
 toSubQuery q = do
-  (((((pj, ot), grs), ag), rs), pd) <- extract q
+  (((((pj, ot), grs), ag), rs), (pd, da)) <- extract q
   c <- askConfig
-  return $ aggregatedSubQuery c (Projection.untype pj) pd rs ag grs ot
+  return $ aggregatedSubQuery c (Projection.untype pj) da pd rs ag grs ot
 
 -- | Add /PARTITION BY/ term into context.
 partitionBy :: Projection c r -> Window c ()

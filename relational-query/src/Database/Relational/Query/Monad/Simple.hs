@@ -34,7 +34,7 @@ import Database.Relational.Query.Monad.Trans.Ordering
   (Orderings, orderings, OrderedQuery, extractOrderingTerms)
 import Database.Relational.Query.Monad.Type (ConfigureQuery, QueryCore, extractCore)
 
-import Database.Relational.Query.Component (QueryRestriction, OrderingTerms)
+import Database.Relational.Query.Component (Duplication, QueryRestriction, OrderingTerms)
 import Database.Relational.Query.Sub (SubQuery, flatSubQuery, JoinProduct)
 import qualified Database.Relational.Query.Sub as SubQuery
 
@@ -54,7 +54,8 @@ instance MonadQualify ConfigureQuery (Orderings Flat QueryCore) where
   liftQualify = simple
 
 extract :: SimpleQuery r
-        -> ConfigureQuery (((Projection Flat r, OrderingTerms), QueryRestriction Flat), JoinProduct)
+        -> ConfigureQuery (((Projection Flat r, OrderingTerms), QueryRestriction Flat),
+                           (JoinProduct, Duplication))
 extract =  extractCore . extractOrderingTerms
 
 -- | Run 'SimpleQuery' to get SQL string with 'Qualify' computation.
@@ -66,6 +67,6 @@ toSQL =  fmap SubQuery.toSQL . toSubQuery
 toSubQuery :: SimpleQuery r           -- ^ 'SimpleQuery' to run
            -> ConfigureQuery SubQuery -- ^ Result 'SubQuery' with 'Qualify' computation
 toSubQuery q = do
-   (((pj, ot), rs), pd) <- extract q
+   (((pj, ot), rs), (pd, da)) <- extract q
    c <- askConfig
-   return $ flatSubQuery c (Projection.untype pj) pd rs ot
+   return $ flatSubQuery c (Projection.untype pj) da pd rs ot
