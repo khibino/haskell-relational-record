@@ -54,5 +54,6 @@ setDistinct ctx = ctx { duplicationAttribute = Distinct }
 setAll :: JoinContext -> JoinContext
 setAll ctx = ctx { duplicationAttribute = All }
 
+-- | Take duplication attribute.
 duplication :: JoinContext -> Duplication
 duplication =  duplicationAttribute

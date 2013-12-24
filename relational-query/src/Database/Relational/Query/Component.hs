@@ -75,6 +75,7 @@ stringFromColumnSQL =  runIdentity
 sqlWordFromColumn :: ColumnSQL -> SQL.Keyword
 sqlWordFromColumn =  SQL.word . stringFromColumnSQL
 
+-- | ShowS from ColumnSQL
 showsColumnSQL :: ColumnSQL -> ShowS
 showsColumnSQL =  showString . stringFromColumnSQL
 

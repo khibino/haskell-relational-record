@@ -61,6 +61,7 @@ showUnwords =  (`showSepBy` showSpace)
 paren :: String -> String
 paren =  ('(' :) . (++[')'])
 
+-- | Row String of SQL values.
 showSqlRowString :: [ShowS] -> ShowS
 showSqlRowString =  d  where
   d ([])  = error $ "Projection: no columns."
