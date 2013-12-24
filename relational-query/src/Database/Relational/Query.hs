@@ -46,7 +46,8 @@ import Database.Relational.Query.Constraint
    Primary, Unique, NotNull)
 import Database.Relational.Query.Context
 import Database.Relational.Query.Expr hiding (fromJust, just)
-import Database.Relational.Query.Component (Config, defaultConfig, UnitProductSupport (..))
+import Database.Relational.Query.Component
+  (Config, defaultConfig, UnitProductSupport (..), Order (..))
 import Database.Relational.Query.Sub (SubQuery, unitSQL, queryWidth)
 import Database.Relational.Query.Projection (Projection, list)
 import Database.Relational.Query.Projectable
@@ -55,7 +56,7 @@ import Database.Relational.Query.Monad.Class
   (on, wheres, groupBy, having, onE, wheresE, havingE)
 import Database.Relational.Query.Monad.Trans.Aggregating
   (groupBy', key, key', set, bkey, rollup, cube, groupingSets)
-import Database.Relational.Query.Monad.Trans.Ordering (asc, desc)
+import Database.Relational.Query.Monad.Trans.Ordering (orderBy, asc, desc)
 import Database.Relational.Query.Monad.Trans.Assigning (assignTo, (!#), (<-#))
 import Database.Relational.Query.Monad.Type
 import Database.Relational.Query.Monad.Simple (QuerySimple, SimpleQuery)

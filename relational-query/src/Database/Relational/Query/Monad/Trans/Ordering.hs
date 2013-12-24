@@ -19,7 +19,7 @@ module Database.Relational.Query.Monad.Trans.Ordering (
   Orderings, orderings, OrderedQuery, OrderingTerms,
 
   -- * API of query with ordering
-  asc, desc,
+  orderBy, asc, desc,
 
   -- * Result
   extractOrderingTerms
@@ -105,6 +105,12 @@ updateOrderBys :: (Monad m, ProjectableOrdering (Projection c))
 updateOrderBys order p = updateOrderingContext . foldr (>>>) id $ updates  where
   updates = curry appendTerm order `map` orderTerms p
 
+-- | Add ordering terms.
+orderBy :: (Monad m, ProjectableOrdering (Projection c))
+        => Projection c t   -- ^ Ordering terms to add
+        -> Order            -- ^ Order direction
+        -> Orderings c m () -- ^ Result context with ordering
+orderBy = flip updateOrderBys
 
 -- | Add ascendant ordering term.
 asc :: (Monad m, ProjectableOrdering (Projection c))
