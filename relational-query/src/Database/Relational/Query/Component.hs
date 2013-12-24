@@ -14,7 +14,7 @@
 -- This module provides untyped components for query.
 module Database.Relational.Query.Component (
   -- * Type for column SQL string
-  ColumnSQL, columnSQL, sqlWordFromColumn, stringFromColumnSQL, showsColumnSQL,
+  ColumnSQL, columnSQL, sqlWordFromColumn, showsColumnSQL,
 
   -- * Configuration type for query
   Config, defaultConfig,

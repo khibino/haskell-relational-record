@@ -12,6 +12,7 @@
 module Database.Relational.Query.Internal.String (
   showUnwordsSQL, showWordSQL, showWordSQL',
   showConcat, showSepBy, showUnwords, showSpace, showComma, showParen',
+  showSqlRowString,
 
   paren, sqlRowString, sqlRowListString
   ) where
@@ -59,6 +60,12 @@ showUnwords =  (`showSepBy` showSpace)
 -- | Parened String.
 paren :: String -> String
 paren =  ('(' :) . (++[')'])
+
+showSqlRowString :: [ShowS] -> ShowS
+showSqlRowString =  d  where
+  d ([])  = error $ "Projection: no columns."
+  d ([c]) = c
+  d (cs) =  showParen' (cs `showSepBy` showComma)
 
 -- | Row String of SQL values.
 sqlRowString :: [String] -> String
