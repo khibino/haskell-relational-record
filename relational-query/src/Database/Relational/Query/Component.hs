@@ -94,7 +94,7 @@ data Duplication = All | Distinct  deriving Show
 
 -- | Compose duplication attribute string.
 showsDuplication :: Duplication -> ShowS
-showsDuplication =  showWordSQL' . dup where
+showsDuplication da = showSpace . (showWordSQL $ dup da) where
   dup All      = ALL
   dup Distinct = DISTINCT
 

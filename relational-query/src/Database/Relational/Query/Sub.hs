@@ -54,9 +54,10 @@ import Database.Relational.Query.Table (Table, (!))
 import qualified Database.Relational.Query.Table as Table
 
 import Database.Relational.Query.Internal.String
-  (showUnwordsSQL, showWordSQL, showWordSQL', showUnwords, showSpace, showParen')
+  (showUnwordsSQL, showWordSQL, showWordSQL', showUnwords, showSepBy, showSpace, showComma, showParen')
 import Language.SQL.Keyword (Keyword(..))
 import qualified Language.SQL.Keyword as SQL
+import qualified Language.SQL.Keyword.ConcatString as SQLs
 
 
 data BinOp = Union | Except | Intersect  deriving Show
@@ -150,12 +151,11 @@ normalizedSQL =  d  where
   d sub@(Flat _ _ _ _ _ _)           = showUnitSQL sub
   d sub@(Aggregated _ _ _ _ _ _ _ _) = showUnitSQL sub
 
--- | Generate select SQL. Seed SQL string append to this.
-selectPrefixSQL :: UntypedProjection -> ShowS
-selectPrefixSQL up =
-  showUnwordsSQL [SELECT, columns' `SQL.sepBy` ", "]
+selectPrefixSQL :: UntypedProjection -> Duplication -> ShowS
+selectPrefixSQL up da =
+  showWordSQL SELECT . showsDuplication da . showSpace . (columns' `showSepBy` showComma)
   where columns' = zipWith
-                   (\f n -> sqlWordFromColumn f `asColumnN` n)
+                   (\f n -> showString $ stringFromColumnSQL f `asColumnN'` n)
                    (columnsOfUntypedProjection up)
                    [(0 :: Int)..]
 
@@ -167,10 +167,10 @@ toSQLs =  d  where
   d (Bin op l r)            = (showParen' q, q)  where
     q = showUnwords [normalizedSQL l, showWordSQL $ keywordBinOp op, normalizedSQL r]
   d (Flat cf up da pd rs od)   = (showParen' q, q)  where
-    q = selectPrefixSQL up . showsDuplication da . showsJoinProduct cf pd . composeWhere rs
+    q = selectPrefixSQL up da . showsJoinProduct cf pd . composeWhere rs
         . composeOrderBy od
   d (Aggregated cf up da pd rs ag grs od) = (showParen' q, q)  where
-    q = selectPrefixSQL up . showsDuplication da . showsJoinProduct cf pd . composeWhere rs
+    q = selectPrefixSQL up da . showsJoinProduct cf pd . composeWhere rs
         . composeGroupBy ag . composeHaving grs . composeOrderBy od
 
 showUnitSQL :: SubQuery -> ShowS
@@ -213,6 +213,10 @@ qualify =  Qualified
 -- | Column name of projection index.
 columnN :: Int -> ColumnSQL
 columnN i = columnSQL $ 'f' : show i
+
+-- | Renamed column in SQL expression.
+asColumnN' :: String -> Int -> String
+f `asColumnN'` n = f `SQLs.as` stringFromColumnSQL (columnN  n)
 
 -- | Renamed column in SQL expression.
 asColumnN :: SQL.Keyword -> Int -> SQL.Keyword
