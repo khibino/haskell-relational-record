@@ -11,15 +11,11 @@
 -- "Database.Relational.Query.Monad.Trans.Join".
 module Database.Relational.Query.Monad.Trans.JoinState (
   -- * Join context
-  JoinContext,
+  JoinContext, primeJoinContext,
 
-  primeJoinContext,
-
-  updateProduct, -- takeProduct, restoreLeft,
+  updateProduct,
 
   joinProduct,
-
-  -- composeFrom
 
   setDistinct, setAll,
 
@@ -51,12 +47,6 @@ updateProduct' uf ctx = ctx { product = uf . product $ ctx }
 -- | Update product of 'JoinContext'.
 updateProduct :: (Maybe QueryProductNode -> QueryProductNode) -> JoinContext -> JoinContext
 updateProduct uf = updateProduct' (Just . uf)
-
--- takeProduct :: JoinContext -> (Maybe QueryProductNode, JoinContext)
--- takeProduct ctx = (product ctx, updateProduct' (const Nothing) ctx)
-
--- restoreLeft :: QueryProductNode -> Product.NodeAttr -> JoinContext -> JoinContext
--- restoreLeft pL naR ctx = updateProduct (Product.growLeft pL naR) ctx
 
 -- |  Finalize context to extract accumulated query product.
 joinProduct :: JoinContext -> JoinProduct
