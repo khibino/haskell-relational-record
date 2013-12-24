@@ -35,7 +35,10 @@ module Database.Relational.Query.Relation (
 
   -- * Relation append
   union, except, intersect,
-  union', except', intersect'
+  unionAll, exceptAll, intersectAll,
+
+  union', except', intersect',
+  unionAll', exceptAll', intersectAll'
   ) where
 
 import Database.Relational.Query.Context (Flat, Aggregated)
@@ -47,7 +50,7 @@ import qualified Database.Relational.Query.Monad.Simple as Simple
 import Database.Relational.Query.Monad.Aggregate (QueryAggregate, AggregatedQuery)
 import qualified Database.Relational.Query.Monad.Aggregate as Aggregate
 
-import Database.Relational.Query.Component (Config, defaultConfig)
+import Database.Relational.Query.Component (Config, defaultConfig, Duplication (Distinct, All))
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Internal.Product (NodeAttr(Just', Maybe))
 import Database.Relational.Query.Sub (SubQuery)
@@ -273,15 +276,27 @@ liftAppend = unsafeLiftAppend
 
 -- | Union of two relations.
 union     :: Relation () a -> Relation () a -> Relation () a
-union     =  liftAppend SubQuery.union
+union     =  liftAppend $ SubQuery.union Distinct
+
+-- | Union of two relations. Not distinct.
+unionAll  :: Relation () a -> Relation () a -> Relation () a
+unionAll  =  liftAppend $ SubQuery.union All
 
 -- | Subtraction of two relations.
 except    :: Relation () a -> Relation () a -> Relation () a
-except    =  liftAppend SubQuery.except
+except    =  liftAppend $ SubQuery.except Distinct
+
+-- | Subtraction of two relations. Not distinct.
+exceptAll :: Relation () a -> Relation () a -> Relation () a
+exceptAll =  liftAppend $ SubQuery.except All
 
 -- | Intersection of two relations.
 intersect :: Relation () a -> Relation () a -> Relation () a
-intersect =  liftAppend SubQuery.intersect
+intersect =  liftAppend $ SubQuery.intersect Distinct
+
+-- | Intersection of two relations. Not distinct.
+intersectAll :: Relation () a -> Relation () a -> Relation () a
+intersectAll =  liftAppend $ SubQuery.intersect All
 
 liftAppend' :: (SubQuery -> SubQuery -> SubQuery)
             -> Relation p a
@@ -291,17 +306,30 @@ liftAppend' = unsafeLiftAppend
 
 -- | Union of two relations with place-holder parameters.
 union'     :: Relation p a -> Relation q a -> Relation (p, q) a
-union'     =  liftAppend' SubQuery.union
+union'     =  liftAppend' $ SubQuery.union Distinct
+
+-- | Union of two relations with place-holder parameters. Not distinct.
+unionAll' :: Relation p a -> Relation q a -> Relation (p, q) a
+unionAll'  =  liftAppend' $ SubQuery.union All
 
 -- | Subtraction of two relations with place-holder parameters.
 except'    :: Relation p a -> Relation q a -> Relation (p, q) a
-except'    =  liftAppend' SubQuery.except
+except'    =  liftAppend' $ SubQuery.except Distinct
+
+-- | Subtraction of two relations with place-holder parameters. Not distinct.
+exceptAll' :: Relation p a -> Relation q a -> Relation (p, q) a
+exceptAll' =  liftAppend' $ SubQuery.except All
 
 -- | Intersection of two relations with place-holder parameters.
 intersect' :: Relation p a -> Relation q a -> Relation (p, q) a
-intersect' =  liftAppend' SubQuery.intersect
+intersect' =  liftAppend' $ SubQuery.intersect Distinct
 
-infixl 7 `union`, `except`, `intersect`, `union'`, `except'`, `intersect'`
+-- | Intersection of two relations with place-holder parameters. Not distinct.
+intersectAll' :: Relation p a -> Relation q a -> Relation (p, q) a
+intersectAll' =  liftAppend' $ SubQuery.intersect All
+
+infixl 7 `union`, `except`, `intersect`, `unionAll`, `exceptAll`, `intersectAll`
+infixl 7 `union'`, `except'`, `intersect'`, `unionAll'`, `exceptAll'`, `intersectAll'`
 
 -- | Generate SQL string from 'Relation' with configuration.
 sqlFromRelationWith :: Relation p r -> Config -> ShowS

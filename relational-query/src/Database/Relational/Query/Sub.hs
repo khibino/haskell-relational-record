@@ -60,10 +60,12 @@ import qualified Language.SQL.Keyword as SQL
 import qualified Language.SQL.Keyword.ConcatString as SQLs
 
 
-data BinOp = Union | Except | Intersect  deriving Show
+data SetOp = Union | Except | Intersect  deriving Show
 
-keywordBinOp :: BinOp -> Keyword
-keywordBinOp = d  where
+newtype BinOp = BinOp (SetOp, Duplication) deriving Show
+
+showsSetOp :: SetOp -> ShowS
+showsSetOp =  showWordSQL . d  where
   d Union     = UNION
   d Except    = EXCEPT
   d Intersect = INTERSECT
@@ -106,17 +108,20 @@ aggregatedSubQuery :: Config
                    -> SubQuery
 aggregatedSubQuery = Aggregated
 
+setBin :: SetOp -> Duplication -> SubQuery -> SubQuery -> SubQuery
+setBin op = Bin . BinOp . ((,) op)
+
 -- | Union binary operator on 'SubQuery'
-union     :: SubQuery -> SubQuery -> SubQuery
-union     =  Bin Union
+union     :: Duplication -> SubQuery -> SubQuery -> SubQuery
+union     =  setBin Union
 
 -- | Except binary operator on 'SubQuery'
-except    :: SubQuery -> SubQuery -> SubQuery
-except    =  Bin Except
+except    :: Duplication -> SubQuery -> SubQuery -> SubQuery
+except    =  setBin Except
 
 -- | Intersect binary operator on 'SubQuery'
-intersect :: SubQuery -> SubQuery -> SubQuery
-intersect =  Bin Intersect
+intersect :: Duplication -> SubQuery -> SubQuery -> SubQuery
+intersect =  setBin Intersect
 
 -- | Width of 'SubQuery'.
 width :: SubQuery -> Int
@@ -151,7 +156,7 @@ normalizedSQL =  d  where
   d sub@(Aggregated _ _ _ _ _ _ _ _) = showUnitSQL sub
 
 selectPrefixSQL :: UntypedProjection -> Duplication -> ShowS
-selectPrefixSQL up da = showWordSQL SELECT . showsDuplication da
+selectPrefixSQL up da = showWordSQL' SELECT . showsDuplication da
                         . showSpace . (columns' `showSepBy` showComma)  where
   columns' = zipWith
              (\f n -> showsColumnSQL $ f `asColumnN` n)
@@ -163,8 +168,8 @@ toSQLs :: SubQuery
        -> (ShowS, ShowS) -- ^ subquery SQL and top-level SQL
 toSQLs =  d  where
   d (Table u)               = (showString $ Table.name' u, fromTableToSQL u)
-  d (Bin op l r)            = (showParen' q, q)  where
-    q = showUnwords [normalizedSQL l, showWordSQL $ keywordBinOp op, normalizedSQL r]
+  d (Bin (BinOp (op, da)) l r) = (showParen' q, q)  where
+    q = showUnwords [normalizedSQL l, showsSetOp op, showsDuplication da, normalizedSQL r]
   d (Flat cf up da pd rs od)   = (showParen' q, q)  where
     q = selectPrefixSQL up da . showsJoinProduct cf pd . composeWhere rs
         . composeOrderBy od
