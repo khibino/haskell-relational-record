@@ -46,6 +46,7 @@ library
                        , names-th
                        , persistable-record
                        , relational-query
+                       , relational-schemas
                        , HDBC >=2
                        , HDBC-session
   hs-source-dirs:      src
