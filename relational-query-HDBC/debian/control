@@ -23,6 +23,8 @@ Build-Depends: debhelper (>= 7.0)
                , libghc-persistable-record-prof
                , libghc-relational-query-dev
                , libghc-relational-query-prof
+               , libghc-relational-schemas-dev
+               , libghc-relational-schemas-prof
                , libghc-template-haskell-dev | ghc
                , libghc-template-haskell-prof | ghc-prof
 Build-Depends-Indep: ghc-doc
@@ -34,6 +36,7 @@ Build-Depends-Indep: ghc-doc
                      , libghc-names-th-doc
                      , libghc-persistable-record-doc
                      , libghc-relational-query-doc
+                     , libghc-relational-schemas-doc
                      , libghc-template-haskell-doc | ghc-doc
 
 Package: libghc-relational-query-hdbc-dev
