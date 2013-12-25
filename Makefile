@@ -2,8 +2,8 @@
 lib_list = \
 	names-th \
 	sql-words \
-	DB-record \
-	relational-join \
+	persistable-record \
+	relational-query \
 	HDBC-session \
 	relational-query-HDBC
 
