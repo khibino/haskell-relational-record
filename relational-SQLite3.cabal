@@ -32,10 +32,10 @@ library
   build-depends:         base <5
                        , bytestring
                        , containers
-                       , DB-record
+                       , persistable-record
                        , HDBC >=2
                        , names-th
-                       , relational-join
+                       , relational-query
                        , relational-query-HDBC
                        , template-haskell
   hs-source-dirs:      src
