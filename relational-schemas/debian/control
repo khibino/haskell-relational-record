@@ -1,0 +1,96 @@
+Source: haskell-relational-schemas
+Maintainer: Kei Hibino <ex8k.hibino@gmail.com>
+Priority: optional
+Section: haskell
+Build-Depends: debhelper (>= 7.0)
+               , haskell-devscripts (>= 0.8)
+               , cdbs
+               , ghc
+               , ghc-prof
+               , libghc-base-dev (<< 5) | ghc
+               , libghc-base-prof (<< 5) | ghc-prof
+               , libghc-containers-dev | ghc
+               , libghc-containers-prof | ghc-prof
+               , libghc-persistable-record-dev
+               , libghc-persistable-record-prof
+               , libghc-relational-query-dev
+               , libghc-relational-query-prof
+               , libghc-template-haskell-dev | ghc
+               , libghc-template-haskell-prof | ghc-prof
+               , libghc-time-dev | ghc
+               , libghc-time-prof | ghc-prof
+Build-Depends-Indep: ghc-doc
+                     , libghc-base-doc (<< 5) | ghc-doc
+                     , libghc-containers-doc | ghc-doc
+                     , libghc-persistable-record-doc
+                     , libghc-relational-query-doc
+                     , libghc-template-haskell-doc | ghc-doc
+                     , libghc-time-doc | ghc-doc
+
+Package: libghc-relational-schemas-dev
+Architecture: any
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
+         , ${misc:Depends}
+Recommends: ${haskell:Recommends}
+Suggests: ${haskell:Suggests}
+Conflicts: ${haskell:Conflicts}
+Provides: ${haskell:Provides}
+Replaces: ${haskell:Replaces}
+Description: RDBMSs' schema templates for relational-query
+ This package contains some RDBMSs' schema structure definitions.
+ Supported RDBMS schemas are below:
+ - IBM DB2
+ - PostgreSQL
+ .
+  Author: Kei Hibino
+  Upstream-Maintainer: ex8k.hibino@gmail.com
+ .
+ This package provides a library for the Haskell programming language.
+ See http:///www.haskell.org/ for more information on Haskell.
+
+Package: libghc-relational-schemas-prof
+Architecture: any
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
+         , ${misc:Depends}
+Recommends: ${haskell:Recommends}
+Suggests: ${haskell:Suggests}
+Conflicts: ${haskell:Conflicts}
+Provides: ${haskell:Provides}
+Replaces: ${haskell:Replaces}
+Description: RDBMSs' schema templates for relational-query
+ This package contains some RDBMSs' schema structure definitions.
+ Supported RDBMS schemas are below:
+ - IBM DB2
+ - PostgreSQL
+ .
+  Author: Kei Hibino
+  Upstream-Maintainer: ex8k.hibino@gmail.com
+ .
+ This package provides a library for the Haskell programming language, compiled
+ for profiling.  See http:///www.haskell.org/ for more information on Haskell.
+
+Package: libghc-relational-schemas-doc
+Architecture: all
+Section: doc
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
+         , ${misc:Depends}
+Recommends: ${haskell:Recommends}
+Suggests: ${haskell:Suggests}
+Conflicts: ${haskell:Conflicts}
+Provides: ${haskell:Provides}
+Replaces: ${haskell:Replaces}
+Description: RDBMSs' schema templates for relational-query
+ This package contains some RDBMSs' schema structure definitions.
+ Supported RDBMS schemas are below:
+ - IBM DB2
+ - PostgreSQL
+ .
+  Author: Kei Hibino
+  Upstream-Maintainer: ex8k.hibino@gmail.com
+ .
+ This package provides the documentation for a library for the Haskell
+ programming language.
+ See http:///www.haskell.org/ for more information on Haskell.
