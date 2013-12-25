@@ -1,16 +1,14 @@
 name:                relational-query
 version:             0.0.1.0
 synopsis:            Typeful, Modular, Relational, algebraic query engine
-description:         This package contiains typeful relation structure,
-                     SQL query generator and some RDBMSs' schema templates.
+description:         This package contiains typeful relation structure and
+                     relational-algebraic query building DSL which can
+                     translate into SQL query.
                      Supported query features are below:
                      - Type safe query building
                      - Restriction, Join, Aggregation
                      - Modularized relations
                      - Typed placeholders
-                     Supported RDBMS schemas are below:
-                     - IBM DB2
-                     - PostgreSQL
 homepage:            http://twitter.com/khibino
 license:             BSD3
 license-file:        LICENSE
@@ -55,13 +53,6 @@ library
                        Database.Relational.Query.Derives
                        Database.Relational.Query.TH
 
-                       Database.Relational.Schema.DB2Syscat.Columns
-                       Database.Relational.Schema.IBMDB2
-
-                       Database.Relational.Schema.PgCatalog.PgAttribute
-                       Database.Relational.Schema.PgCatalog.PgType
-                       Database.Relational.Schema.PostgreSQL
-
   other-modules:
                        Database.Relational.Query.Internal.AliasId
                        Database.Relational.Query.Internal.String
@@ -70,13 +61,6 @@ library
                        Database.Relational.Query.Monad.Trans.JoinState
                        Database.Relational.Query.Monad.Trans.RestrictingState
                        Database.Relational.Query.Monad.Qualify
-
-                       Database.Relational.Schema.DB2Syscat.Tabconst
-                       Database.Relational.Schema.DB2Syscat.Keycoluse
-
-                       Database.Relational.Schema.PgCatalog.PgNamespace
-                       Database.Relational.Schema.PgCatalog.PgClass
-                       Database.Relational.Schema.PgCatalog.PgConstraint
 
   build-depends:         base <5
                        , array
@@ -90,5 +74,6 @@ library
                        , sql-words
                        , names-th
                        , persistable-record
+
   hs-source-dirs:      src
   ghc-options:         -Wall

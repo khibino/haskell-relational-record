@@ -152,7 +152,7 @@ columnRelation = relation' $ do
                                                 , 'S' -- String types
                                                 , 'T' -- typespan types
                                                 ]
- 
+
   asc $ att ! Attr.attnum'
 
   return (ph, att >< typ)
