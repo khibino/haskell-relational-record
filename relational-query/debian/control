@@ -56,16 +56,14 @@ Conflicts: ${haskell:Conflicts}
 Provides: ${haskell:Provides}
 Replaces: ${haskell:Replaces}
 Description: Typeful, Modular, Relational, algebraic query engine
- This package contiains typeful relation structure,
- SQL query generator and some RDBMSs' schema templates.
+ This package contiains typeful relation structure and
+ relational-algebraic query building DSL which can
+ translate into SQL query.
  Supported query features are below:
  - Type safe query building
  - Restriction, Join, Aggregation
  - Modularized relations
  - Typed placeholders
- Supported RDBMS schemas are below:
- - IBM DB2
- - PostgreSQL
  .
   Author: Kei Hibino
   Upstream-Maintainer: ex8k.hibino@gmail.com
@@ -84,16 +82,14 @@ Conflicts: ${haskell:Conflicts}
 Provides: ${haskell:Provides}
 Replaces: ${haskell:Replaces}
 Description: Typeful, Modular, Relational, algebraic query engine
- This package contiains typeful relation structure,
- SQL query generator and some RDBMSs' schema templates.
+ This package contiains typeful relation structure and
+ relational-algebraic query building DSL which can
+ translate into SQL query.
  Supported query features are below:
  - Type safe query building
  - Restriction, Join, Aggregation
  - Modularized relations
  - Typed placeholders
- Supported RDBMS schemas are below:
- - IBM DB2
- - PostgreSQL
  .
   Author: Kei Hibino
   Upstream-Maintainer: ex8k.hibino@gmail.com
@@ -113,16 +109,14 @@ Conflicts: ${haskell:Conflicts}
 Provides: ${haskell:Provides}
 Replaces: ${haskell:Replaces}
 Description: Typeful, Modular, Relational, algebraic query engine
- This package contiains typeful relation structure,
- SQL query generator and some RDBMSs' schema templates.
+ This package contiains typeful relation structure and
+ relational-algebraic query building DSL which can
+ translate into SQL query.
  Supported query features are below:
  - Type safe query building
  - Restriction, Join, Aggregation
  - Modularized relations
  - Typed placeholders
- Supported RDBMS schemas are below:
- - IBM DB2
- - PostgreSQL
  .
   Author: Kei Hibino
   Upstream-Maintainer: ex8k.hibino@gmail.com
