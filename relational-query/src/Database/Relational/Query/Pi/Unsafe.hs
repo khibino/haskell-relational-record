@@ -15,7 +15,7 @@ module Database.Relational.Query.Pi.Unsafe (
   -- * Projection path
   Pi,
 
-  piZip,
+  piZip, unsafeCastPi,
 
   width',
 
@@ -32,7 +32,7 @@ import Prelude hiding (pi)
 import Data.Array (listArray, (!))
 
 import Database.Record.Persistable
-  (PersistableRecordWidth, runPersistableRecordWidth, (<&>),
+  (PersistableRecordWidth, runPersistableRecordWidth, unsafePersistableRecordWidth, (<&>),
    PersistableWidth (persistableWidth), maybeWidth)
 
 -- | Projection path primary structure type.
@@ -62,6 +62,13 @@ unsafeExpandIndexes = d  where
   d (Pi (Map is) _)    = is
   d (Pi (Leftest i) w) = [ i .. i + width - 1 ]  where
     width = runPersistableRecordWidth w
+
+-- | Unsafely cast result type of Pi.
+unsafeCastPi :: Pi a b' -> Pi a b
+unsafeCastPi =  c  where
+  d (Leftest i) = Leftest i
+  d (Map m)     = Map m
+  c (Pi p w)    = Pi (d p) (unsafePersistableRecordWidth . runPersistableRecordWidth $ w)
 
 -- | Zipping two projection path.
 piZip :: Pi a b -> Pi a c -> Pi a (b, c)

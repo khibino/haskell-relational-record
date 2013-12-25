@@ -1,4 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
+
 -- |
 -- Module      : Database.Relational.Query.Projectable
 -- Copyright   : 2013 Kei Hibino
@@ -55,7 +57,12 @@ module Database.Relational.Query.Projectable (
   ProjectableIdZip (..),
 
   -- * 'Maybe' type projecitoins
-  ProjectableMaybe (just, flattenMaybe)
+  ProjectableMaybe (just, flattenMaybe),
+
+  -- * ProjectableFunctor and ProjectableApplicative
+  RecordConstructor (recordConstructor),
+
+  ProjectableFunctor (..), ProjectableApplicative (..), ipfmap
   ) where
 
 import Prelude hiding (pi)
@@ -77,6 +84,7 @@ import qualified Database.Relational.Query.Expr as Expr
 import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr
 
 import Database.Relational.Query.Pi (Pi, piZip)
+import Database.Relational.Query.Pi.Unsafe (unsafeCastPi)
 
 import Database.Relational.Query.Projection
   (Projection, unsafeFromColumns, columns,
@@ -499,10 +507,53 @@ instance ProjectableIdZip PlaceHolders where
   leftId  = unsafeCastPlaceHolders
   rightId = unsafeCastPlaceHolders
 
+-- | Specify record constructors which are allowed to define 'ProjectableFunctor'.
+class RecordConstructor r where
+  recordConstructor :: r
+
+-- | Weaken functor on projections.
+class ProjectableFunctor p where
+  -- | Method like 'fmap'.
+  (|$|) :: RecordConstructor (a -> b) => (a -> b) -> p a -> p b
+
+-- | Same as '|$|' other than using infered record constructor.
+ipfmap :: (ProjectableFunctor p, RecordConstructor (a -> b))
+       => p a -> p b
+ipfmap =  (|$|) recordConstructor
+
+-- | Weaken applicative functor on projections.
+class ProjectableFunctor p => ProjectableApplicative p where
+  -- | Method like '<*>'.
+  (|*|) :: p (a -> b) -> p a -> p b
+
+-- | Compose seed of record type 'PlaceHolders'.
+instance ProjectableFunctor PlaceHolders where
+  _ |$| PlaceHolders = PlaceHolders
+
+-- | Compose record type 'PlaceHolders' using applicative style.
+instance ProjectableApplicative PlaceHolders where
+  pf |*| pa = unsafeCastPlaceHolders (pf >< pa)
+
+-- | Compose seed of record type 'Projection'.
+instance ProjectableFunctor (Projection c) where
+  _ |$| p = Projection.unsafeCastProjection p
+
+-- | Compose record type 'Projection' using applicative style.
+instance ProjectableApplicative (Projection c) where
+  pf |*| pa = Projection.unsafeCastProjection $ pf >< pa
+
+-- | Compose seed of projection path 'Pi' which has record result type.
+instance ProjectableFunctor (Pi a) where
+  _ |$| p = unsafeCastPi p
+
+-- | Compose projection path 'Pi' which has record result type using applicative style.
+instance ProjectableApplicative (Pi a) where
+  pf |*| pa = unsafeCastPi $ pf >< pa
 
 infixl 7 .*., ./., ?*?, ?/?
 infixl 6 .+., .-., ?+?, ?-?
 infixl 5 .||., ?||?
+infixl 4 |$|, |*|
 infix  4 .=., .<>., .>., .>=., .<., .<=., `in'`
 infixr 3 `and'`
 infixr 2 `or'`

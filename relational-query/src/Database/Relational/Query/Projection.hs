@@ -26,7 +26,7 @@ module Database.Relational.Query.Projection (
 
   pi, piMaybe, piMaybe',
 
-  flattenMaybe, just,
+  flattenMaybe, just, unsafeCastProjection,
 
   unsafeToAggregated, unsafeToFlat,
 
@@ -132,6 +132,10 @@ flattenMaybe =  unsafeCast
 -- | Cast into 'Maybe' on projection phantom type.
 just :: Projection c r -> Projection c (Maybe r)
 just =  unsafeCast
+
+-- | Unsafely cast projection result type.
+unsafeCastProjection :: Projection c r -> Projection c r'
+unsafeCastProjection =  unsafeCast
 
 unsafeChangeContext :: Projection c r -> Projection c' r
 unsafeChangeContext =  typedProjection . untypeProjection

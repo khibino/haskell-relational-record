@@ -21,7 +21,7 @@ module Database.Relational.Query.Expr (
   valueExpr,
 
   -- * Type conversion
-  just, fromJust,
+  just, fromJust, unsafeCastExpr,
 
   exprAnd
   ) where
