@@ -36,6 +36,9 @@ append op = relation $ do
 u :: Relation () (Int32, String)
 u =  append union
 
+uAll :: Relation () (Int32, String)
+uAll =  append unionAll
+
 e :: Relation () (Int32, String)
 e =  append except
 
@@ -68,6 +71,7 @@ run =  handleSqlError' $ withConnectionIO connect
            run' qa ()
            run' qb ()
            run' u ()
+           run' uAll ()
            run' e ()
            run' i ()
            run' i2 ()
