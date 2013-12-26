@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell, MultiParamTypeClasses, FlexibleInstances #-}
 
 module Group where
 
@@ -8,4 +8,3 @@ import Database.Record.TH (derivingShow)
 
 $(defineTable []
   "EXAMPLE1" "group" [derivingShow])
-
