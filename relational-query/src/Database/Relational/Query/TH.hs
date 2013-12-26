@@ -56,21 +56,21 @@ import Data.List (foldl1')
 
 import Language.Haskell.TH
   (Q, reify, Info (VarI), TypeQ, Type (AppT, ConT), ExpQ,
-   tupleT, appT, Dec, stringE, listE)
+   tupleT, appT, arrowT, Dec, stringE, listE)
 import Language.Haskell.TH.Name.CamelCase
-  (VarName, varName, ConName, varNameWithPrefix, varCamelcaseName, toVarExp)
+  (VarName, varName, ConName, varNameWithPrefix, varCamelcaseName, toVarExp, toTypeCon, toDataCon)
 import Language.Haskell.TH.Lib.Extra
   (compileError, simpleValD, maybeD, integralE)
 
 import Database.Record.TH
-  (recordTypeDefault,
+  (recordTypeNameDefault, recordTypeDefault,
    defineRecordTypeDefault,
    defineHasColumnConstraintInstance)
 import qualified Database.Record.TH as Record
 import Database.Record.Instances ()
 
 import Database.Relational.Query
-  (Table, Pi, Relation, Config,
+  (Table, Pi, Relation, Config, RecordConstructor (..),
    sqlFromRelationWith, Query, relationalQuery, KeyUpdate, Insert,
    HasConstraintKey(constraintKey), projectionKey, Primary, NotNull)
 
@@ -243,6 +243,22 @@ relationVarExpDefault :: String -- ^ Table name string
                       -> ExpQ -- ^ Result var Exp
 relationVarExpDefault =  toVarExp . relationVarNameDefault
 
+-- | Make template for 'RecordConstructor' instance.
+defineRecordConstructorInstance :: TypeQ -> ExpQ -> [TypeQ] -> Q [Dec]
+defineRecordConstructorInstance recTypeQ recData colTypes =
+  [d| instance RecordConstructor $(foldr (appT . (arrowT `appT`)) recTypeQ colTypes) where
+        recordConstructor = $(recData)
+    |]
+
+-- | Make template for record 'RecordConstructor' instance using default naming rule.
+defineRecordConstructorInstanceDefault :: String -> [TypeQ] -> Q [Dec]
+defineRecordConstructorInstanceDefault table colTypes = do
+  let conName = recordTypeNameDefault table
+  defineRecordConstructorInstance
+    (toTypeCon conName)
+    (toDataCon conName)
+    colTypes
+
 -- | Make templates about table and column metadatas using default naming rule.
 defineTableTypesDefault :: String                           -- ^ Schema name
                         -> String                           -- ^ Table name
@@ -270,8 +286,9 @@ defineTableTypesAndRecordDefault :: String            -- ^ Schema name
                                  -> Q [Dec]           -- ^ Result declarations
 defineTableTypesAndRecordDefault schema table columns drives = do
   recD    <- defineRecordTypeDefault table columns drives
+  rconD   <- defineRecordConstructorInstanceDefault table [t | (_, t) <- columns]
   tableDs <- defineTableTypesDefault schema table [(c, Nothing) | c <- columns ]
-  return $ recD ++ tableDs
+  return $ recD ++ rconD ++ tableDs
 
 -- | Template of derived primary 'Query'.
 definePrimaryQuery :: VarName -- ^ Variable name of result declaration
