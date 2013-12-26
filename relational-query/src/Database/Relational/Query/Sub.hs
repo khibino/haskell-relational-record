@@ -141,7 +141,7 @@ fromTableToSQL t =
 -- | Generate normalized column SQL from table.
 fromTableToNormalizedSQL :: Table.Untyped -> ShowS
 fromTableToNormalizedSQL t = showWordSQL' SELECT . (columns' `showSepBy` showComma)
-                             . showWordSQL' FROM . showString (Table.name' t)  where
+                             . showSpace . showWordSQL' FROM . showString (Table.name' t)  where
   columns' = zipWith
              (\f n -> showsColumnSQL $ f `asColumnN` n)
              (Table.columns' t)
