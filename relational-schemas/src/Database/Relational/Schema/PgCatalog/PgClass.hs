@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 -- |
 -- Module      : Database.Relational.Schema.PgCatalog.PgClass

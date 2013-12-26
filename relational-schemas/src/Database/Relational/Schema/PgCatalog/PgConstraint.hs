@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 -- |
 -- Module      : Database.Relational.Schema.PgCatalog.PgConstraint
@@ -47,5 +48,3 @@ $(defineTableTypesAndRecordDefault
  -- consrc        | text         |
   ]
   [derivingShow])
-
-

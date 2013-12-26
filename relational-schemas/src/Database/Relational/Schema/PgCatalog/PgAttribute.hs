@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 -- |
 -- Module      : Database.HDBC.Schema.PgCatalog.PgAttribute
