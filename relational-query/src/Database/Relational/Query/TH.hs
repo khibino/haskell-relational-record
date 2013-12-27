@@ -70,7 +70,7 @@ import qualified Database.Record.TH as Record
 import Database.Record.Instances ()
 
 import Database.Relational.Query
-  (Table, Pi, Relation, Config, RecordConstructor (..),
+  (Table, Pi, Relation, Config, ProductConstructor (..),
    sqlFromRelationWith, Query, relationalQuery, KeyUpdate, Insert,
    HasConstraintKey(constraintKey), projectionKey, Primary, NotNull)
 
@@ -243,18 +243,18 @@ relationVarExpDefault :: String -- ^ Table name string
                       -> ExpQ -- ^ Result var Exp
 relationVarExpDefault =  toVarExp . relationVarNameDefault
 
--- | Make template for 'RecordConstructor' instance.
-defineRecordConstructorInstance :: TypeQ -> ExpQ -> [TypeQ] -> Q [Dec]
-defineRecordConstructorInstance recTypeQ recData colTypes =
-  [d| instance RecordConstructor $(foldr (appT . (arrowT `appT`)) recTypeQ colTypes) where
-        recordConstructor = $(recData)
+-- | Make template for 'ProductConstructor' instance.
+defineProductConstructorInstance :: TypeQ -> ExpQ -> [TypeQ] -> Q [Dec]
+defineProductConstructorInstance recTypeQ recData colTypes =
+  [d| instance ProductConstructor $(foldr (appT . (arrowT `appT`)) recTypeQ colTypes) where
+        productConstructor = $(recData)
     |]
 
--- | Make template for record 'RecordConstructor' instance using default naming rule.
-defineRecordConstructorInstanceDefault :: String -> [TypeQ] -> Q [Dec]
-defineRecordConstructorInstanceDefault table colTypes = do
+-- | Make template for record 'ProductConstructor' instance using default naming rule.
+defineProductConstructorInstanceDefault :: String -> [TypeQ] -> Q [Dec]
+defineProductConstructorInstanceDefault table colTypes = do
   let conName = recordTypeNameDefault table
-  defineRecordConstructorInstance
+  defineProductConstructorInstance
     (toTypeCon conName)
     (toDataCon conName)
     colTypes
@@ -286,7 +286,7 @@ defineTableTypesAndRecordDefault :: String            -- ^ Schema name
                                  -> Q [Dec]           -- ^ Result declarations
 defineTableTypesAndRecordDefault schema table columns drives = do
   recD    <- defineRecordTypeDefault table columns drives
-  rconD   <- defineRecordConstructorInstanceDefault table [t | (_, t) <- columns]
+  rconD   <- defineProductConstructorInstanceDefault table [t | (_, t) <- columns]
   tableDs <- defineTableTypesDefault schema table [(c, Nothing) | c <- columns ]
   return $ recD ++ rconD ++ tableDs
 

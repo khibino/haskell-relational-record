@@ -13,9 +13,9 @@
 module Database.Relational.Query.Pure (
 
   -- * Interface to specify record constructors.
-  RecordConstructor (..)
+  ProductConstructor (..)
   ) where
 
 -- | Specify tuple like record constructors which are allowed to define 'ProjectableFunctor'.
-class RecordConstructor r where
-  recordConstructor :: r
+class ProductConstructor r where
+  productConstructor :: r

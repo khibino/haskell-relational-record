@@ -84,7 +84,7 @@ import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr
 import Database.Relational.Query.Pi (Pi, piZip)
 import Database.Relational.Query.Pi.Unsafe (unsafeCastPi)
 
-import Database.Relational.Query.Pure (RecordConstructor (..))
+import Database.Relational.Query.Pure (ProductConstructor (..))
 import Database.Relational.Query.Projection
   (Projection, unsafeFromColumns, columns,
    ListProjection, unsafeShowSqlListProjection)
@@ -509,12 +509,12 @@ instance ProjectableIdZip PlaceHolders where
 -- | Weaken functor on projections.
 class ProjectableFunctor p where
   -- | Method like 'fmap'.
-  (|$|) :: RecordConstructor (a -> b) => (a -> b) -> p a -> p b
+  (|$|) :: ProductConstructor (a -> b) => (a -> b) -> p a -> p b
 
 -- | Same as '|$|' other than using infered record constructor.
-ipfmap :: (ProjectableFunctor p, RecordConstructor (a -> b))
+ipfmap :: (ProjectableFunctor p, ProductConstructor (a -> b))
        => p a -> p b
-ipfmap =  (|$|) recordConstructor
+ipfmap =  (|$|) productConstructor
 
 -- | Weaken applicative functor on projections.
 class ProjectableFunctor p => ProjectableApplicative p where
