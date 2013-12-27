@@ -18,7 +18,7 @@ module Database.Relational.Query.Expr (
   valueExpr,
 
   -- * Type conversion
-  just, fromJust, unsafeCastExpr,
+  just, fromJust,
 
   exprAnd
   ) where
