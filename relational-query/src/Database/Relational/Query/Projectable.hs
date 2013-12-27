@@ -77,10 +77,11 @@ import Database.Record (PersistableWidth, PersistableRecordWidth, derivedWidth)
 import Database.Relational.Query.Internal.String (paren, sqlRowString, showSqlRowString)
 import Database.Relational.Query.Context (Flat, Aggregated, Exists, OverWindow)
 import Database.Relational.Query.Component (columnSQL, showsColumnSQL)
-import Database.Relational.Query.Expr (Expr, ShowConstantSQL (showConstantSQL))
+import Database.Relational.Query.Expr (Expr)
 import qualified Database.Relational.Query.Expr as Expr
 import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr
 
+import Database.Relational.Query.Pure (ShowConstantSQL (showConstantSQL))
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi as Pi
 
