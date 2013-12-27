@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances #-}
 
 -- |
 -- Module      : Database.Relational.Query.Pure
@@ -19,3 +20,7 @@ module Database.Relational.Query.Pure (
 -- | Specify tuple like record constructors which are allowed to define 'ProjectableFunctor'.
 class ProductConstructor r where
   productConstructor :: r
+
+-- | ProductConstructor instance of pair.
+instance ProductConstructor (a -> b -> (a, b)) where
+  productConstructor = (,)
