@@ -24,8 +24,6 @@ module Database.Relational.Query.Projection (
   unsafeFromTable,
 
   -- * Projections
-  compose,
-
   pi, piMaybe, piMaybe',
 
   flattenMaybe, just,
@@ -95,10 +93,6 @@ unsafeFromQualifiedSubQuery =  typedProjection . untypedProjectionFromSubQuery
 unsafeFromTable :: Table r
                 -> Projection c r
 unsafeFromTable =  unsafeFromColumns . Table.columns
-
--- | Concatenate 'Projection'.
-compose :: Projection c a -> Projection c b -> Projection c (pair a b)
-compose a b = fromUnits $ units a ++ units b
 
 
 -- | Unsafely trace projection path.

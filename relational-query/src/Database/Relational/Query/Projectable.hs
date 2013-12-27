@@ -464,7 +464,7 @@ instance ProjectableZip PlaceHolders where
 
 -- | Zip 'Projection'.
 instance ProjectableZip (Projection c) where
-  projectZip = Projection.compose
+  pa `projectZip` pb = (,) |$| pa |*| pb
 
 -- | Zip 'Pi'
 instance ProjectableZip (Pi a) where
