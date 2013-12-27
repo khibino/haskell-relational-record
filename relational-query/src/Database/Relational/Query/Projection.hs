@@ -28,11 +28,11 @@ module Database.Relational.Query.Projection (
 
   pi, piMaybe, piMaybe',
 
-  flattenMaybe, just, unsafeCastProjection,
+  flattenMaybe, just,
 
   unsafeToAggregated, unsafeToFlat,
 
-  pfmap,
+  pfmap, pap,
 
   -- * List Projection
   ListProjection, list, unsafeListProjectionFromSubQuery,
@@ -138,10 +138,6 @@ flattenMaybe =  unsafeCast
 just :: Projection c r -> Projection c (Maybe r)
 just =  unsafeCast
 
--- | Unsafely cast projection result type.
-unsafeCastProjection :: Projection c r -> Projection c r'
-unsafeCastProjection =  unsafeCast
-
 unsafeChangeContext :: Projection c r -> Projection c' r
 unsafeChangeContext =  typedProjection . untypeProjection
 
@@ -157,6 +153,10 @@ unsafeToFlat =  unsafeChangeContext
 pfmap :: ProductConstructor (a -> b)
       => (a -> b) -> Projection c a -> Projection c b
 _ `pfmap` p = unsafeCast p
+
+-- | Projectable ap of 'Projection' type.
+pap :: Projection c (a -> b) -> Projection c a -> Projection c b
+pf `pap` pa = fromUnits $ units pf ++ units pa
 
 -- | Projection type for row list.
 data ListProjection p t = List [p t]

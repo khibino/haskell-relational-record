@@ -535,7 +535,7 @@ instance ProjectableFunctor (Projection c) where
 
 -- | Compose record type 'Projection' using applicative style.
 instance ProjectableApplicative (Projection c) where
-  pf |*| pa = Projection.unsafeCastProjection $ pf >< pa
+  (|*|) = Projection.pap
 
 -- | Compose seed of projection path 'Pi' which has record result type.
 instance ProjectableFunctor (Pi a) where
