@@ -24,6 +24,7 @@ library
                        Database.Relational.Query
                        Database.Relational.Query.Table
                        Database.Relational.Query.SQL
+                       Database.Relational.Query.Pure
                        Database.Relational.Query.Pi
                        Database.Relational.Query.Pi.Unsafe
                        Database.Relational.Query.Constraint

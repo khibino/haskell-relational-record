@@ -60,8 +60,6 @@ module Database.Relational.Query.Projectable (
   ProjectableMaybe (just, flattenMaybe),
 
   -- * ProjectableFunctor and ProjectableApplicative
-  RecordConstructor (recordConstructor),
-
   ProjectableFunctor (..), ProjectableApplicative (..), ipfmap
   ) where
 
@@ -86,6 +84,7 @@ import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr
 import Database.Relational.Query.Pi (Pi, piZip)
 import Database.Relational.Query.Pi.Unsafe (unsafeCastPi)
 
+import Database.Relational.Query.Pure (RecordConstructor (..))
 import Database.Relational.Query.Projection
   (Projection, unsafeFromColumns, columns,
    ListProjection, unsafeShowSqlListProjection)
@@ -506,10 +505,6 @@ class ProjectableZip p => ProjectableIdZip p where
 instance ProjectableIdZip PlaceHolders where
   leftId  = unsafeCastPlaceHolders
   rightId = unsafeCastPlaceHolders
-
--- | Specify record constructors which are allowed to define 'ProjectableFunctor'.
-class RecordConstructor r where
-  recordConstructor :: r
 
 -- | Weaken functor on projections.
 class ProjectableFunctor p where
