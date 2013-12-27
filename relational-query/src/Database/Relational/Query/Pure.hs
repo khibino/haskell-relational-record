@@ -16,8 +16,9 @@ module Database.Relational.Query.Pure (
   -- * Interface to specify record constructors.
   ProductConstructor (..),
 
-  -- * Constant SQL Expression
-  ShowConstantSQL (..)
+  -- * Constant SQL Terms
+  ShowConstantSQL (..),
+  ShowConstantTermsSQL (..)
   ) where
 
 import Data.Int (Int16, Int32, Int64)
@@ -26,8 +27,14 @@ import qualified Data.ByteString.Char8 as BS
 import Data.Text (Text)
 import qualified Data.Text as T
 
+import Database.Record
+  (PersistableWidth, persistableWidth, PersistableRecordWidth)
+import Database.Record.Persistable
+  (runPersistableRecordWidth)
+
 -- | Specify tuple like record constructors which are allowed to define 'ProjectableFunctor'.
 class ProductConstructor r where
+  -- | The constructor which has type 'r'.
   productConstructor :: r
 
 -- | ProductConstructor instance of pair.
@@ -94,3 +101,58 @@ instance ShowConstantSQL a => ShowConstantSQL (Maybe a) where
   showConstantSQL = d  where
     d (Just a)  = showConstantSQL a
     d (Nothing) = "NULL"
+
+
+-- | Interface for constant SQL term list.
+class ShowConstantTermsSQL a where
+  showConstantTermsSQL :: a -> [String]
+
+showSingleTerm :: ShowConstantSQL a => a -> [String]
+showSingleTerm =  (:[]) . showConstantSQL
+
+-- | Constant SQL terms of 'Int16'.
+instance ShowConstantTermsSQL Int16 where
+  showConstantTermsSQL = showSingleTerm
+
+-- | Constant SQL terms of 'Int32'.
+instance ShowConstantTermsSQL Int32 where
+  showConstantTermsSQL = showSingleTerm
+
+-- | Constant SQL terms of 'Int64'.
+instance ShowConstantTermsSQL Int64 where
+  showConstantTermsSQL = showSingleTerm
+
+-- | Constant SQL terms of 'String'.
+instance ShowConstantTermsSQL String where
+  showConstantTermsSQL = showSingleTerm
+
+-- | Constant SQL terms of 'ByteString'.
+instance ShowConstantTermsSQL ByteString where
+  showConstantTermsSQL = showSingleTerm
+
+-- | Constant SQL terms of 'Text'.
+instance ShowConstantTermsSQL Text where
+  showConstantTermsSQL = showSingleTerm
+
+-- | Constant SQL terms of 'Char'.
+instance ShowConstantTermsSQL Char where
+  showConstantTermsSQL = showSingleTerm
+
+-- | Constant SQL terms of 'Bool'.
+instance ShowConstantTermsSQL Bool where
+  showConstantTermsSQL = showSingleTerm
+
+showMaybeTerms :: ShowConstantTermsSQL a => PersistableRecordWidth a -> Maybe a -> [String]
+showMaybeTerms wa = d  where
+  d (Just a) = showConstantTermsSQL a
+  d Nothing  = replicate (runPersistableRecordWidth wa) "NULL"
+
+-- | Constant SQL terms of 'Maybe' type. Width inference is required.
+instance (PersistableWidth a, ShowConstantTermsSQL a)
+         => ShowConstantTermsSQL (Maybe a) where
+  showConstantTermsSQL = showMaybeTerms persistableWidth
+
+-- | Constant SQL terms of '(a, b)' type.
+instance (ShowConstantTermsSQL a, ShowConstantTermsSQL b)
+         => ShowConstantTermsSQL (a, b) where
+  showConstantTermsSQL (a, b) = showConstantTermsSQL a ++ showConstantTermsSQL b
