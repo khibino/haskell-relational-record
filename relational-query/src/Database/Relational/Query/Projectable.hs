@@ -531,7 +531,7 @@ instance ProjectableApplicative PlaceHolders where
 
 -- | Compose seed of record type 'Projection'.
 instance ProjectableFunctor (Projection c) where
-  _ |$| p = Projection.unsafeCastProjection p
+  (|$|) = Projection.pfmap
 
 -- | Compose record type 'Projection' using applicative style.
 instance ProjectableApplicative (Projection c) where

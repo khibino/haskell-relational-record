@@ -1,4 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE FlexibleContexts #-}
+
 -- |
 -- Module      : Database.Relational.Query.Projection
 -- Copyright   : 2013 Kei Hibino
@@ -30,6 +32,8 @@ module Database.Relational.Query.Projection (
 
   unsafeToAggregated, unsafeToFlat,
 
+  pfmap,
+
   -- * List Projection
   ListProjection, list, unsafeListProjectionFromSubQuery,
   unsafeShowSqlListProjection
@@ -42,6 +46,7 @@ import Database.Relational.Query.Context (Aggregated, Flat)
 import Database.Relational.Query.Component (ColumnSQL)
 import Database.Relational.Query.Table (Table)
 import qualified Database.Relational.Query.Table as Table
+import Database.Relational.Query.Pure (ProductConstructor (..))
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Relational.Query.Sub
@@ -148,6 +153,10 @@ unsafeToAggregated =  unsafeChangeContext
 unsafeToFlat :: Projection Aggregated r -> Projection Flat r
 unsafeToFlat =  unsafeChangeContext
 
+-- | Projectable fmap of 'Projection' type.
+pfmap :: ProductConstructor (a -> b)
+      => (a -> b) -> Projection c a -> Projection c b
+_ `pfmap` p = unsafeCast p
 
 -- | Projection type for row list.
 data ListProjection p t = List [p t]
