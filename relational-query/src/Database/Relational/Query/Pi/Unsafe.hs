@@ -1,4 +1,5 @@
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 -- |
 -- Module      : Database.Relational.Query.Pi.Unsafe
@@ -15,6 +16,7 @@ module Database.Relational.Query.Pi.Unsafe (
   -- * Projection path
   Pi,
 
+  pfmap,
   piZip, unsafeCastPi,
 
   width',
@@ -34,6 +36,8 @@ import Data.Array (listArray, (!))
 import Database.Record.Persistable
   (PersistableRecordWidth, runPersistableRecordWidth, unsafePersistableRecordWidth, (<&>),
    PersistableWidth (persistableWidth), maybeWidth)
+
+import Database.Relational.Query.Pure (ProductConstructor (..))
 
 -- | Projection path primary structure type.
 data Pi' r0 r1 = Leftest Int
@@ -63,12 +67,20 @@ unsafeExpandIndexes = d  where
   d (Pi (Leftest i) w) = [ i .. i + width - 1 ]  where
     width = runPersistableRecordWidth w
 
--- | Unsafely cast result type of Pi.
-unsafeCastPi :: Pi a b' -> Pi a b
-unsafeCastPi =  c  where
+unsafeCast :: Pi a b' -> Pi a b
+unsafeCast =  c  where
   d (Leftest i) = Leftest i
   d (Map m)     = Map m
   c (Pi p w)    = Pi (d p) (unsafePersistableRecordWidth . runPersistableRecordWidth $ w)
+
+-- | Unsafely cast result type of Pi.
+unsafeCastPi :: Pi a b' -> Pi a b
+unsafeCastPi =  unsafeCast
+
+-- | Projectable fmap of 'Pi' type.
+pfmap :: ProductConstructor (a -> b)
+      => (a -> b) -> Pi r a -> Pi r b
+_ `pfmap` p = unsafeCast p
 
 -- | Zipping two projection path.
 piZip :: Pi a b -> Pi a c -> Pi a (b, c)
