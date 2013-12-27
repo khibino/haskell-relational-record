@@ -17,7 +17,6 @@ module Database.Relational.Query.Pi.Unsafe (
   Pi,
 
   pfmap, pap,
-  piZip,
 
   width',
 
@@ -88,13 +87,6 @@ pap b@(Pi _ wb) c@(Pi _ wc) =
    Pi
    (Map $ unsafeExpandIndexes b ++ unsafeExpandIndexes c)
    (unsafeCastRecordWidth $ wb <&> wc)
-
--- | Zipping two projection path.
-piZip :: Pi a b -> Pi a c -> Pi a (b, c)
-piZip b@(Pi _ wb) c@(Pi _ wc) =
-   Pi
-   (Map $ unsafeExpandIndexes b ++ unsafeExpandIndexes c)
-   (wb <&> wc)
 
 -- | Get record width proof object.
 width' :: Pi r ct -> PersistableRecordWidth ct
