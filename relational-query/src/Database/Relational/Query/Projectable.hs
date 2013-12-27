@@ -53,7 +53,7 @@ module Database.Relational.Query.Projectable (
   rank, dense_rank, row_number, percent_rank, cume_dist,
 
   -- * Zipping projections
-  ProjectableZip (projectZip), (><),
+  projectZip, (><),
   ProjectableIdZip (..),
 
   -- * 'Maybe' type projecitoins
@@ -453,26 +453,13 @@ placeholder f = do
   return (ph, a)
 
 
--- | Interface to zip projections.
-class ProjectableZip p where
-  -- | Zip projections.
-  projectZip :: p a -> p b -> p (a, b)
-
--- | Zip placeholder parameters.
-instance ProjectableZip PlaceHolders where
-  projectZip PlaceHolders PlaceHolders = PlaceHolders
-
--- | Zip 'Projection'.
-instance ProjectableZip (Projection c) where
-  pa `projectZip` pb = (,) |$| pa |*| pb
-
--- | Zip 'Pi'
-instance ProjectableZip (Pi a) where
-  pa `projectZip` pb = (,) |$| pa |*| pb
+-- | Zipping projections.
+projectZip :: ProjectableApplicative p => p a -> p b -> p (a, b)
+projectZip pa pb = (,) |$| pa |*| pb
 
 -- | Binary operator the same as 'projectZip'.
-(><) ::ProjectableZip p => p a -> p b -> p (a, b)
-(><) = projectZip
+(><) :: ProjectableApplicative p => p a -> p b -> p (a, b)
+(><) =  projectZip
 
 -- | Interface to control 'Maybe' of phantom type in projections.
 class ProjectableMaybe p where
@@ -497,7 +484,7 @@ instance ProjectableMaybe (Expr p) where
   flattenMaybe = Expr.fromJust
 
 -- | Zipping except for identity element laws.
-class ProjectableZip p => ProjectableIdZip p where
+class ProjectableApplicative p => ProjectableIdZip p where
   leftId  :: p ((), a) -> p a
   rightId :: p (a, ()) -> p a
 
