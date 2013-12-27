@@ -16,8 +16,8 @@ module Database.Relational.Query.Pi.Unsafe (
   -- * Projection path
   Pi,
 
-  pfmap,
-  piZip, unsafeCastPi,
+  pfmap, pap,
+  piZip,
 
   width',
 
@@ -67,20 +67,27 @@ unsafeExpandIndexes = d  where
   d (Pi (Leftest i) w) = [ i .. i + width - 1 ]  where
     width = runPersistableRecordWidth w
 
+-- | Unsafely cast width proof object of record. Result record must be same width.
+unsafeCastRecordWidth :: PersistableRecordWidth a -> PersistableRecordWidth a'
+unsafeCastRecordWidth =  unsafePersistableRecordWidth . runPersistableRecordWidth
+
 unsafeCast :: Pi a b' -> Pi a b
 unsafeCast =  c  where
   d (Leftest i) = Leftest i
   d (Map m)     = Map m
-  c (Pi p w)    = Pi (d p) (unsafePersistableRecordWidth . runPersistableRecordWidth $ w)
-
--- | Unsafely cast result type of Pi.
-unsafeCastPi :: Pi a b' -> Pi a b
-unsafeCastPi =  unsafeCast
+  c (Pi p w)    = Pi (d p) (unsafeCastRecordWidth w)
 
 -- | Projectable fmap of 'Pi' type.
 pfmap :: ProductConstructor (a -> b)
       => (a -> b) -> Pi r a -> Pi r b
 _ `pfmap` p = unsafeCast p
+
+-- | Projectable ap of 'Pi' type.
+pap :: Pi r (a -> b) -> Pi r a -> Pi r b
+pap b@(Pi _ wb) c@(Pi _ wc) =
+   Pi
+   (Map $ unsafeExpandIndexes b ++ unsafeExpandIndexes c)
+   (unsafeCastRecordWidth $ wb <&> wc)
 
 -- | Zipping two projection path.
 piZip :: Pi a b -> Pi a c -> Pi a (b, c)

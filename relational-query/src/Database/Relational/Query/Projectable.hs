@@ -83,7 +83,6 @@ import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr
 
 import Database.Relational.Query.Pi (Pi, piZip)
 import qualified Database.Relational.Query.Pi as Pi
-import Database.Relational.Query.Pi.Unsafe (unsafeCastPi)
 
 import Database.Relational.Query.Pure (ProductConstructor (..))
 import Database.Relational.Query.Projection
@@ -544,7 +543,7 @@ instance ProjectableFunctor (Pi a) where
 
 -- | Compose projection path 'Pi' which has record result type using applicative style.
 instance ProjectableApplicative (Pi a) where
-  pf |*| pa = unsafeCastPi $ pf >< pa
+  (|*|) = Pi.pap
 
 infixl 7 .*., ./., ?*?, ?/?
 infixl 6 .+., .-., ?+?, ?-?
