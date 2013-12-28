@@ -20,7 +20,7 @@ module Database.Relational.Query.Pi.Unsafe (
 
   width',
 
-  (<.>), (<?.>), (<??.>),
+  (<.>), (<?.>), (<?.?>),
 
   pi,
 
@@ -101,10 +101,10 @@ width' (Pi _ w) = w
 (<?.>) = unsafePiAppend maybeWidth
 
 -- | Compose projection path.
-(<??.>) :: Pi a (Maybe b) -> Pi b (Maybe c) -> Pi a (Maybe c)
-(<??.>) = unsafePiAppend id
+(<?.?>) :: Pi a (Maybe b) -> Pi b (Maybe c) -> Pi a (Maybe c)
+(<?.?>) = unsafePiAppend id
 
-infixl 8 <.>, <?.>, <??.>
+infixl 8 <.>, <?.>, <?.?>
 
 -- | Unsafely project untyped value list.
 pi :: [a] -> Pi r0 r1 -> [a]
