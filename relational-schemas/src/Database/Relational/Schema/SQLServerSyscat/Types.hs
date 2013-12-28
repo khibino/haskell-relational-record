@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Database.Relational.Schema.SQLServerSyscat.Types where
 
@@ -44,4 +45,3 @@ $(defineTableTypesAndRecordDefault
     --("is_table_type", [t|Bool|])
   ]
   [derivingShow])
-

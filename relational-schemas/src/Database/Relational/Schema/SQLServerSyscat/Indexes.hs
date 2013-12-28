@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Database.Relational.Schema.SQLServerSyscat.Indexes where
 
@@ -51,4 +52,3 @@ $(defineTableTypesAndRecordDefault
     --("filter_definition", [t|Maybe ByteString|])
   ]
   [derivingShow])
-
