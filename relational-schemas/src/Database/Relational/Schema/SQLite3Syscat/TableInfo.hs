@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Database.Relational.Schema.SQLite3Syscat.TableInfo where
 
