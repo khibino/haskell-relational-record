@@ -26,16 +26,16 @@ module Database.Relational.Query.Expr (
 import Prelude hiding (and, or)
 
 import Database.Relational.Query.Expr.Unsafe (Expr(Expr), showExpr)
-import Database.Relational.Query.Pure (ShowConstantSQL (showConstantSQL))
+import Database.Relational.Query.Pure (ShowConstantTermsSQL (showConstantTermsSQL))
+import Database.Relational.Query.Internal.String (paren, sqlRowString)
 
-import Database.Relational.Query.Internal.String (paren)
 import qualified Language.SQL.Keyword as SQL
 import qualified Language.SQL.Keyword.ConcatString as SQLs
 
 
 -- | Typed constant SQL expression from Haskell value.
-valueExpr :: ShowConstantSQL ft => ft -> Expr p ft
-valueExpr =  Expr . showConstantSQL
+valueExpr :: ShowConstantTermsSQL ft => ft -> Expr p ft
+valueExpr =  Expr . sqlRowString . showConstantTermsSQL
 
 -- | Unsafely cast phantom type.
 unsafeCastExpr :: Expr p a -> Expr p b

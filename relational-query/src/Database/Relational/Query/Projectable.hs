@@ -81,7 +81,8 @@ import Database.Relational.Query.Expr (Expr)
 import qualified Database.Relational.Query.Expr as Expr
 import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr
 
-import Database.Relational.Query.Pure (ShowConstantSQL (showConstantSQL))
+import Database.Relational.Query.Pure
+  (ShowConstantTermsSQL (showConstantTermsSQL))
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi as Pi
 
@@ -140,8 +141,8 @@ unsafeValueNull :: SqlProjectable p => p (Maybe a)
 unsafeValueNull =  unsafeProjectSql "NULL"
 
 -- | Generate polymorphic projection of SQL constant values from Haskell value.
-value :: (ShowConstantSQL t, SqlProjectable p) => t -> p t
-value =  unsafeProjectSql . showConstantSQL
+value :: (ShowConstantTermsSQL t, SqlProjectable p) => t -> p t
+value =  unsafeProjectSqlTerms . showConstantTermsSQL
 
 -- | Polymorphic proejction of SQL true value.
 valueTrue  :: (SqlProjectable p, ProjectableMaybe p) => p (Maybe Bool)
@@ -152,7 +153,7 @@ valueFalse :: (SqlProjectable p, ProjectableMaybe p) => p (Maybe Bool)
 valueFalse =  just $ value False
 
 -- | Polymorphic proejction of SQL set value from Haskell list.
-values :: (SqlProjectable p, ShowConstantSQL t) => [t] -> ListProjection p t
+values :: (ShowConstantTermsSQL t, SqlProjectable p) => [t] -> ListProjection p t
 values =  Projection.list . map value
 
 
