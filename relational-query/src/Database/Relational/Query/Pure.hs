@@ -45,6 +45,9 @@ instance ProductConstructor (a -> b -> (a, b)) where
 intExprSQL :: (Show a, Integral a) => a -> String
 intExprSQL =  show
 
+intTermsSQL :: (Show a, Integral a) => a -> [String]
+intTermsSQL =  (:[]) . intExprSQL
+
 -- | Escape 'String' for constant SQL string expression.
 escapeStringToSqlExpr :: String -> String
 escapeStringToSqlExpr =  rec  where
@@ -56,90 +59,46 @@ escapeStringToSqlExpr =  rec  where
 stringExprSQL :: String -> String
 stringExprSQL =  ('\'':) . (++ "'") . escapeStringToSqlExpr
 
--- | Interface for constant SQL expression.
-class ShowConstantSQL a where
-  -- | Make constant SQL expression 'String' from Haskell type 'a'.
-  showConstantSQL :: a -> String
-
--- | Constant SQL expression of 'Int16'.
-instance ShowConstantSQL Int16 where
-  showConstantSQL = intExprSQL
-
--- | Constant SQL expression of 'Int32'.
-instance ShowConstantSQL Int32 where
-  showConstantSQL = intExprSQL
-
--- | Constant SQL expression of 'Int64'.
-instance ShowConstantSQL Int64 where
-  showConstantSQL = intExprSQL
-
--- | Constant SQL expression of 'String'.
-instance ShowConstantSQL String where
-  showConstantSQL = stringExprSQL
-
--- | Constant SQL expression of 'ByteString'.
-instance ShowConstantSQL ByteString where
-  showConstantSQL = stringExprSQL . BS.unpack
-
--- | Constant SQL expression of 'Text'.
-instance ShowConstantSQL Text where
-  showConstantSQL = stringExprSQL . T.unpack
-
--- | Constant SQL expression of 'Char'.
-instance ShowConstantSQL Char where
-  showConstantSQL = stringExprSQL . (:"")
-
--- | Constant SQL expression of 'Bool'.
-instance ShowConstantSQL Bool where
-  showConstantSQL = d  where
-    d True  = "(0=0)"
-    d False = "(0=1)"
-
--- | Inference rule for Constant SQL expression of 'Maybe' type.
-instance ShowConstantSQL a => ShowConstantSQL (Maybe a) where
-  showConstantSQL = d  where
-    d (Just a)  = showConstantSQL a
-    d (Nothing) = "NULL"
-
+stringTermsSQL :: String -> [String]
+stringTermsSQL =  (:[]) . stringExprSQL
 
 -- | Interface for constant SQL term list.
 class ShowConstantTermsSQL a where
   showConstantTermsSQL :: a -> [String]
 
-showSingleTerm :: ShowConstantSQL a => a -> [String]
-showSingleTerm =  (:[]) . showConstantSQL
-
 -- | Constant SQL terms of 'Int16'.
 instance ShowConstantTermsSQL Int16 where
-  showConstantTermsSQL = showSingleTerm
+  showConstantTermsSQL = intTermsSQL
 
 -- | Constant SQL terms of 'Int32'.
 instance ShowConstantTermsSQL Int32 where
-  showConstantTermsSQL = showSingleTerm
+  showConstantTermsSQL = intTermsSQL
 
 -- | Constant SQL terms of 'Int64'.
 instance ShowConstantTermsSQL Int64 where
-  showConstantTermsSQL = showSingleTerm
+  showConstantTermsSQL = intTermsSQL
 
 -- | Constant SQL terms of 'String'.
 instance ShowConstantTermsSQL String where
-  showConstantTermsSQL = showSingleTerm
+  showConstantTermsSQL = stringTermsSQL
 
 -- | Constant SQL terms of 'ByteString'.
 instance ShowConstantTermsSQL ByteString where
-  showConstantTermsSQL = showSingleTerm
+  showConstantTermsSQL = stringTermsSQL . BS.unpack  -- UTF-8 conversion needed?
 
 -- | Constant SQL terms of 'Text'.
 instance ShowConstantTermsSQL Text where
-  showConstantTermsSQL = showSingleTerm
+  showConstantTermsSQL = stringTermsSQL . T.unpack
 
 -- | Constant SQL terms of 'Char'.
 instance ShowConstantTermsSQL Char where
-  showConstantTermsSQL = showSingleTerm
+  showConstantTermsSQL = stringTermsSQL . (:"")
 
 -- | Constant SQL terms of 'Bool'.
 instance ShowConstantTermsSQL Bool where
-  showConstantTermsSQL = showSingleTerm
+  showConstantTermsSQL = (:[]) . d  where
+    d True  = "(0=0)"
+    d False = "(0=1)"
 
 showMaybeTerms :: ShowConstantTermsSQL a => PersistableRecordWidth a -> Maybe a -> [String]
 showMaybeTerms wa = d  where
