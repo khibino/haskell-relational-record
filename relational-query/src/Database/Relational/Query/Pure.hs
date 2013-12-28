@@ -17,7 +17,6 @@ module Database.Relational.Query.Pure (
   ProductConstructor (..),
 
   -- * Constant SQL Terms
-  ShowConstantSQL (..),
   ShowConstantTermsSQL (..)
   ) where
 
