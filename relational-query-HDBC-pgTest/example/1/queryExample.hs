@@ -263,6 +263,7 @@ userGroupU =
         g  = umg ! snd'
   ]
 
+-- Window funcions
 windowRankByGroup :: Relation () ((Int64, Maybe Int32), (Maybe String, Maybe String))
 windowRankByGroup =  relation $ do
   u <- query user
@@ -281,6 +282,19 @@ windowRankByGroup =  relation $ do
           (u ! User.name'
            ><
            g ! Group.name'))
+
+-- Composed Key
+userAndGroup :: Pi (Maybe User, Maybe Group) (Maybe String, Maybe String)
+userAndGroup = fst' <?.?> User.name'
+               ><
+               snd' <?.?> Group.name'
+
+-- Composed value
+specifiedUserAndGroup :: Relation () (Maybe User, Maybe Group)
+specifiedUserAndGroup =  relation $ do
+  ug <- query userGroup0
+  wheres $ ug ! userAndGroup .=. value (Just "Kei Hibino", Just "Haskell")
+  return ug
 
 runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a, ToSql SqlValue p)
             => conn -> Relation p a -> p -> IO ()
@@ -310,6 +324,7 @@ run =  handleSqlError' $ withConnectionIO connect
            run' userGroupU ("Kei Hibino", "Haskell")
            run' userGroupStr ()
            run' windowRankByGroup ()
+           run' specifiedUserAndGroup ()
            run' userGroup2Fail ()
        )
 
