@@ -105,7 +105,7 @@ class PersistableWidth ct => HasConstraintKey c r ct  where
 
 -- | Infered 'Unique' constraint 'Key'.
 --   Record type 'r' has unique key which type is 'ct' derived from primay key.
-derivedUniqueKey :: (HasConstraintKey Primary r ct) => Key Unique r ct
+derivedUniqueKey :: HasConstraintKey Primary r ct => Key Unique r ct
 derivedUniqueKey =  uniqueKey constraintKey
 
 -- -- | Infered 'NotNull' constraint 'Key'.
