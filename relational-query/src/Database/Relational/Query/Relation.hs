@@ -22,7 +22,7 @@ module Database.Relational.Query.Relation (
   UniqueRelation,
   unsafeUnique, unUnique,
 
-  uniqueRelation',
+  uniqueRelation', aggregatedUnique,
 
   dump,
 
@@ -65,11 +65,13 @@ import Database.Relational.Query.Sub (SubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
 
 import Database.Relational.Query.Scalar (ScalarDegree)
+import Database.Relational.Query.Pi (Pi)
 import Database.Relational.Query.Projection
   (Projection, ListProjection, unsafeListProjectionFromSubQuery)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable
   (PlaceHolders, addPlaceHolders, unsafePlaceHolders, projectZip)
+import Database.Relational.Query.ProjectableExtended ((!))
 
 
 -- | Relation type with place-holder parameter 'p' and query result type 'r'.
@@ -406,6 +408,14 @@ uniqueQueryMaybe' pr =  do
 uniqueRelation' :: QueryUnique (PlaceHolders p, Projection c r) -> UniqueRelation p c r
 uniqueRelation' =  unsafeUnique . SubQuery . Unique.toSubQuery . fmap snd
 
+-- | Aggregated 'UniqueRelation'.
+aggregatedUnique :: Relation ph r
+                 -> Pi r a
+                 -> (Projection Flat a -> Projection Aggregated b)
+                 -> UniqueRelation ph Flat b
+aggregatedUnique rel k ag = unsafeUnique . aggregateRelation' $ do
+  (ph, a) <- query' rel
+  return (ph, ag $ a ! k)
 
 -- | Scalar subQuery with place-holder parameter 'p'.
 queryScalar' :: (MonadQualify ConfigureQuery m, ScalarDegree r)
