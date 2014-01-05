@@ -30,6 +30,7 @@ import Database.HDBC.SqlValueExtra ()
 import Database.Record (PersistableWidth)
 import Database.Record.TH (deriveNotNullType)
 import Database.Record.Instances ()
+import Database.Relational.Query.TH (defineScalarDegree)
 
 import Database.HDBC.Record.TH (derivePersistableInstanceFromValue)
 
@@ -112,5 +113,7 @@ derivePersistableInstancesFromConvertibleSqlValues =  do
   wds <- persistableWidthTypes
   svs <- convertibleSqlValues
   ws <- mapInstanceD deriveNotNullType (toList $ Set.difference svs wds)
-  ps <- mapInstanceD derivePersistableInstanceFromValue (toList svs)
-  return $ ws ++ ps
+  let svl = toList svs
+  ps <- mapInstanceD derivePersistableInstanceFromValue svl
+  ss <- mapInstanceD defineScalarDegree svl
+  return $ ws ++ ps ++ ss
