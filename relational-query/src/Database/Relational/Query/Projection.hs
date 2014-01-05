@@ -28,7 +28,7 @@ module Database.Relational.Query.Projection (
 
   flattenMaybe, just,
 
-  unsafeToAggregated, unsafeToFlat,
+  unsafeToAggregated, unsafeToFlat, unsafeChangeContext,
 
   pfmap, pap,
 
@@ -132,6 +132,7 @@ flattenMaybe =  unsafeCast
 just :: Projection c r -> Projection c (Maybe r)
 just =  unsafeCast
 
+-- | Unsafely cast context type tag.
 unsafeChangeContext :: Projection c r -> Projection c' r
 unsafeChangeContext =  typedProjection . untypeProjection
 
