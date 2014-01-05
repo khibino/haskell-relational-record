@@ -5,7 +5,7 @@ import Database.Record
 
 import Database.Relational.Query
 import Database.HDBC (IConnection, SqlValue)
-import Data.Int (Int32)
+import Data.Int (Int32, Int64)
 
 import qualified Account
 import Account (Account(..), account)
@@ -182,7 +182,7 @@ union1' =
 --   ORDER BY open_emp_id
 -- @
 --
-group1 :: Relation () (Maybe Int32, Int32)
+group1 :: Relation () (Maybe Int32, Int64)
 group1 =
   aggregateRelation
   [ g >< count a
