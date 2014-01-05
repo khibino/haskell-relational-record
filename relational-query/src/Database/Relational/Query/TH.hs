@@ -30,6 +30,7 @@ module Database.Relational.Query.TH (
   defineHasPrimaryKeyInstanceDefault,
   defineHasNotNullKeyInstance,
   defineHasNotNullKeyInstanceDefault,
+  defineScalarDegree,
 
   -- * Column projections
   defineColumn, defineColumnDefault,
@@ -74,6 +75,7 @@ import Database.Relational.Query
    sqlFromRelationWith, Query, relationalQuery, KeyUpdate, Insert,
    HasConstraintKey(constraintKey), projectionKey, Primary, NotNull)
 
+import Database.Relational.Query.Scalar (defineScalarDegree)
 import Database.Relational.Query.Constraint (Key, unsafeDefineConstraintKey)
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Type (unsafeTypedQuery)
