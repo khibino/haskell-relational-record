@@ -19,12 +19,18 @@ module Database.Relational.Query.Relation (
   relation, relation',
   aggregateRelation, aggregateRelation',
 
+  UniqueRelation,
+  unsafeUnique, unUnique,
+
+  uniqueRelation',
+
   dump,
 
   sqlFromRelationWith, sqlFromRelation,
 
   -- * Query using relation
-  query, query', queryMaybe, queryMaybe', queryList, queryList',
+  query, query', queryMaybe, queryMaybe', queryList, queryList', queryScalar, queryScalar',
+  uniqueQuery', uniqueQueryMaybe',
 
   -- * Direct style join
   JoinRestriction,
@@ -38,24 +44,27 @@ module Database.Relational.Query.Relation (
   unionAll, exceptAll, intersectAll,
 
   union', except', intersect',
-  unionAll', exceptAll', intersectAll'
+  unionAll', exceptAll', intersectAll',
   ) where
 
 import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Monad.Type (ConfigureQuery, configureQuery, qualifyQuery)
 import Database.Relational.Query.Monad.Class
-  (MonadQualify (liftQualify), MonadQuery (unsafeSubQuery), on)
+  (MonadQualify (liftQualify), MonadQualifyUnique (liftQualifyUnique), MonadQuery (unsafeSubQuery), on)
 import Database.Relational.Query.Monad.Simple (QuerySimple, SimpleQuery)
 import qualified Database.Relational.Query.Monad.Simple as Simple
 import Database.Relational.Query.Monad.Aggregate (QueryAggregate, AggregatedQuery)
 import qualified Database.Relational.Query.Monad.Aggregate as Aggregate
+import Database.Relational.Query.Monad.Unique (QueryUnique)
+import qualified Database.Relational.Query.Monad.Unique as Unique
 
-import Database.Relational.Query.Component (Config, defaultConfig, Duplication (Distinct, All))
+import Database.Relational.Query.Component (columnSQL, Config, defaultConfig, Duplication (Distinct, All))
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Internal.Product (NodeAttr(Just', Maybe))
 import Database.Relational.Query.Sub (SubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
 
+import Database.Relational.Query.Scalar (ScalarDegree)
 import Database.Relational.Query.Projection
   (Projection, ListProjection, unsafeListProjectionFromSubQuery)
 import qualified Database.Relational.Query.Projection as Projection
@@ -355,3 +364,59 @@ width =  SubQuery.width . subQueryFromRelation
 nested :: Relation p r -> Relation p r
 nested =  SubQuery . subQueryFromRelation
 -}
+
+-- | Unique relation type to compose scalar queries.
+newtype UniqueRelation p c r =  Unique (Relation p r)
+
+-- | Unsafely specify unique relation.
+unsafeUnique :: Relation p r -> UniqueRelation p c r
+unsafeUnique =  Unique
+
+-- | Discard unique attribute.
+unUnique :: UniqueRelation p c r -> Relation p r
+unUnique (Unique r) = r
+
+-- | Basic monadic join operation using 'MonadQuery'.
+uniqueQueryWithAttr :: MonadQualifyUnique ConfigureQuery m
+                    => NodeAttr
+                    -> UniqueRelation p c r
+                    -> m (PlaceHolders p, Projection c r)
+uniqueQueryWithAttr attr = addPlaceHolders . run where
+  run rel = do
+    q <- liftQualifyUnique $ do
+      sq <- subQueryQualifyFromRelation (unUnique rel)
+      qualifyQuery sq
+    fmap Projection.unsafeChangeContext $ unsafeSubQuery attr q
+
+-- | Join unique subquery with place-holder parameter 'p'.
+uniqueQuery' :: MonadQualifyUnique ConfigureQuery m
+             => UniqueRelation p c r
+             -> m (PlaceHolders p, Projection c r)
+uniqueQuery' = uniqueQueryWithAttr Just'
+
+-- | Join unique subquery with place-holder parameter 'p'. Query result is 'Maybe'.
+uniqueQueryMaybe' :: MonadQualifyUnique ConfigureQuery m
+                  => UniqueRelation p c r
+                  -> m (PlaceHolders p, Projection c (Maybe r))
+uniqueQueryMaybe' pr =  do
+  (ph, pj) <- uniqueQueryWithAttr Maybe pr
+  return (ph, Projection.just pj)
+
+-- | Finalize 'QueryUnique' monad and generate 'UniqueRelation'.
+uniqueRelation' :: QueryUnique (PlaceHolders p, Projection c r) -> UniqueRelation p c r
+uniqueRelation' =  unsafeUnique . SubQuery . Unique.toSubQuery . fmap snd
+
+
+-- | Scalar subQuery with place-holder parameter 'p'.
+queryScalar' :: (MonadQualify ConfigureQuery m, ScalarDegree r)
+             => UniqueRelation p c r
+             -> m (PlaceHolders p, Projection c r)
+queryScalar' ur = addPlaceHolders . liftQualify $ do
+  subQueryQualifyFromRelation (unUnique ur)
+    >>= return . Projection.unsafeFromColumns . (:[]) . columnSQL . SubQuery.unitSQL
+
+-- | Scalar subQuery.
+queryScalar :: (MonadQualify ConfigureQuery m, ScalarDegree r)
+            => UniqueRelation () c r
+            -> m (Projection c r)
+queryScalar =  fmap snd . queryScalar'
