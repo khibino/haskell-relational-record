@@ -30,17 +30,22 @@ module Database.Relational.Query.Derives (
   specifyTableDerivation', specifyTableDerivation,
 
   TableDerivable (..),
-  derivedTable, derivedRelation, derivedInsert
+  derivedTable, derivedRelation, derivedInsert,
+
+  derivedUniqueRelation
   ) where
 
 import Database.Record (PersistableWidth, ToSql (recordToSql))
 import Database.Record.ToSql (unsafeUpdateValuesWithIndexes)
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Pi.Unsafe (Pi, unsafeExpandIndexes)
+import Database.Relational.Query.Projection (Projection)
+import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable (placeholder, (.=.))
 import Database.Relational.Query.ProjectableExtended ((!))
 import Database.Relational.Query.Monad.Class (wheres)
-import Database.Relational.Query.Relation (Relation, relation', query, table)
+import Database.Relational.Query.Relation
+  (Relation, relation, relation', query, table, UniqueRelation, unsafeUnique)
 import Database.Relational.Query.Constraint
    (Key, Primary, Unique, projectionKey, uniqueKey,
     HasConstraintKey(constraintKey))
@@ -140,3 +145,13 @@ derivedRelation =  derivedRelation' tableDerivation
 -- | Infered 'Insert'.
 derivedInsert :: TableDerivable r => Insert r
 derivedInsert =  derivedInsert' tableDerivation
+
+-- | 'UniqueRelation' infered from table.
+derivedUniqueRelation :: TableDerivable r
+                      => Key Unique r k        -- ^ Unique key proof object which record type is 'a' and key type is 'p'.
+                      -> Projection c k        -- ^ Unique key value to specify.
+                      -> UniqueRelation () c r -- ^ Result restricted 'Relation'
+derivedUniqueRelation uk kp = unsafeUnique . relation $ do
+  r <- query derivedRelation
+  wheres $ r ! projectionKey uk .=. Projection.unsafeChangeContext kp
+  return r
