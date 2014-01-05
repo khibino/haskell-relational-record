@@ -296,6 +296,24 @@ specifiedUserAndGroup =  relation $ do
   wheres $ ug ! userAndGroup .=. value (Just "Kei Hibino", Just "Haskell")
   return ug
 
+userPrimaryUnique :: Key Unique User Int32
+userPrimaryUnique =  derivedUniqueKey
+
+groupPrimaryUnique :: Key Unique Group Int32
+groupPrimaryUnique =  derivedUniqueKey
+
+-- Scalar queries
+userGroupScalar :: Relation () (Maybe String, Maybe String)
+userGroupScalar =  relation $ do
+  m  <- query membership
+  un <- queryScalar . uniqueRelation'
+       $ do (uph, u) <- uniqueQuery' $ derivedUniqueRelation userPrimaryUnique (m ! userId')
+            return (uph, u ! User.name')
+  gn <- queryScalar . uniqueRelation'
+       $ do (uph, g) <- uniqueQuery' $ derivedUniqueRelation groupPrimaryUnique (m ! groupId')
+            return (uph, g ! Group.name')
+  return $ un >< gn
+
 runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a, ToSql SqlValue p)
             => conn -> Relation p a -> p -> IO ()
 runAndPrint conn rel param = do
@@ -325,6 +343,7 @@ run =  handleSqlError' $ withConnectionIO connect
            run' userGroupStr ()
            run' windowRankByGroup ()
            run' specifiedUserAndGroup ()
+           run' userGroupScalar ()
            run' userGroup2Fail ()
        )
 
