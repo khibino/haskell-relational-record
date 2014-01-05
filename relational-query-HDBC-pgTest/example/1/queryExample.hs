@@ -314,6 +314,12 @@ userGroupScalar =  relation $ do
             return (uph, g ! Group.name')
   return $ un >< gn
 
+groups :: Relation () (Group, Int64)
+groups =  relation $ do
+  g  <- query group
+  gc <- queryScalar $ aggregatedUnique group Group.id' count
+  return $ g >< gc
+
 runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a, ToSql SqlValue p)
             => conn -> Relation p a -> p -> IO ()
 runAndPrint conn rel param = do
@@ -344,6 +350,7 @@ run =  handleSqlError' $ withConnectionIO connect
            run' windowRankByGroup ()
            run' specifiedUserAndGroup ()
            run' userGroupScalar ()
+           run' groups ()
            run' userGroup2Fail ()
        )
 
