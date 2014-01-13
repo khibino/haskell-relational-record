@@ -25,11 +25,15 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as BS
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Time (FormatTime, Day, TimeOfDay, LocalTime, formatTime)
+import System.Locale (defaultTimeLocale)
 
+import Language.SQL.Keyword (Keyword (..), wordShow)
 import Database.Record
   (PersistableWidth, persistableWidth, PersistableRecordWidth)
 import Database.Record.Persistable
   (runPersistableRecordWidth)
+
 
 -- | Specify tuple like record constructors which are allowed to define 'ProjectableFunctor'.
 class ProductConstructor r where
@@ -99,6 +103,19 @@ instance ShowConstantTermsSQL Bool where
   showConstantTermsSQL = (:[]) . d  where
     d True  = "(0=0)"
     d False = "(0=1)"
+
+constantTimeTerms :: FormatTime t => Keyword -> String -> t -> [String]
+constantTimeTerms kw fmt t = [unwords [wordShow kw,
+                                       stringExprSQL $ formatTime defaultTimeLocale fmt t]]
+
+instance ShowConstantTermsSQL Day where
+  showConstantTermsSQL = constantTimeTerms DATE "%Y-%m-%d"
+
+instance ShowConstantTermsSQL TimeOfDay where
+  showConstantTermsSQL = constantTimeTerms TIME "%H:%M:%S"
+
+instance ShowConstantTermsSQL LocalTime where
+  showConstantTermsSQL = constantTimeTerms TIMESTAMP "%Y-%m-%d %H:%M:%S"
 
 showMaybeTerms :: ShowConstantTermsSQL a => PersistableRecordWidth a -> Maybe a -> [String]
 showMaybeTerms wa = d  where

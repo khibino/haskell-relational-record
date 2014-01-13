@@ -70,6 +70,7 @@ library
                        , containers
                        , transformers
                        , time
+                       , old-locale
                        , bytestring
                        , text
                        , dlist
