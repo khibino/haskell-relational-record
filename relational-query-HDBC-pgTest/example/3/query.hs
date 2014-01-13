@@ -9,8 +9,9 @@ import Data.Int (Int32)
 
 import SetA (SetA (SetA), setA)
 import qualified SetA
-import SetB (SetB, setB)
+import SetB (setB)
 import qualified SetB
+import History (History (History), history)
 
 import PgTestDataSource (connect)
 import Database.HDBC.Record.Query (runQuery)
@@ -69,6 +70,10 @@ i2 =  relation $ do
 
   return qu
 
+oldest :: Relation () History
+oldest =  relation $ do
+  return $ History |$| value 0 |*| value (read "2012-12-01 00:00:00") |*| value "oldest"
+
 runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a, ToSql SqlValue p)
             => conn -> Relation p a -> p -> IO ()
 runAndPrint conn rel param = do
@@ -90,6 +95,7 @@ run =  handleSqlError' $ withConnectionIO connect
            run' e ()
            run' i ()
            run' i2 ()
+           run' (history `union` oldest) ()
        )
 
 main :: IO ()
