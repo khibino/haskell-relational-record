@@ -19,6 +19,8 @@ Build-Depends: debhelper (>= 7.0)
                , libghc-dlist-prof
                , libghc-names-th-dev
                , libghc-names-th-prof
+               , libghc-old-locale-dev | ghc
+               , libghc-old-locale-prof | ghc-prof
                , libghc-persistable-record-dev
                , libghc-persistable-record-prof
                , libghc-sql-words-dev
@@ -38,6 +40,7 @@ Build-Depends-Indep: ghc-doc
                      , libghc-containers-doc | ghc-doc
                      , libghc-dlist-doc
                      , libghc-names-th-doc
+                     , libghc-old-locale-doc | ghc-doc
                      , libghc-persistable-record-doc
                      , libghc-sql-words-doc
                      , libghc-template-haskell-doc | ghc-doc
