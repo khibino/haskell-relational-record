@@ -61,6 +61,8 @@ data Keyword = SELECT | ALL | DISTINCT | ON
 
              | IS | NULL | IN
 
+             | DATE | TIME | TIMESTAMP | INTERVAL
+
              | Sequence String
              deriving (Read, Show)
 
