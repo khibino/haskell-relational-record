@@ -6,6 +6,7 @@ import Database.Record
 import Database.Relational.Query
 import Database.HDBC.Record.Query
 import Database.HDBC.Record.Insert
+import Database.HDBC.Record.InsertQuery
 import Database.HDBC.Record.Update
 import Database.HDBC.Record.KeyUpdate
 import Database.HDBC.Record.Delete
@@ -36,6 +37,19 @@ runInsertStocks ss = handleConnectionIO connect $ \conn -> do
 
 runInsertStocks0 :: IO ()
 runInsertStocks0 =  runInsertStocks stocks0
+
+
+pine :: Relation () Stock
+pine =  relation $ do
+  return $ Stock |$| value 6 |*| value "Pine" |*| value 300 |*| value 3
+
+insertPine :: InsertQuery ()
+insertPine =  typedInsertQuery tableOfStock pine
+
+runInsertPine :: IO ()
+runInsertPine = handleConnectionIO connect $ \conn -> do
+  _ <- runInsertQuery conn insertPine ()
+  commit conn
 
 riseOfBanana :: Update ()
 riseOfBanana =  typedUpdate tableOfStock . updateTarget $ \tbl proj -> do
@@ -93,6 +107,7 @@ runDeleteStocks d xs = handleConnectionIO connect $ \conn -> do
 run :: IO ()
 run = do
   runInsertStocks0
+  runInsertPine
   runUpdateAndPrint riseOfBanana ()
   runUpdateAndPrint updateCherry (newCherry, (4, "Cherry"))
   runKeyUpdateAndPrint keyUpdateUidName newOrange
