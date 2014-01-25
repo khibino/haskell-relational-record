@@ -72,7 +72,7 @@ import Database.Record.Instances ()
 
 import Database.Relational.Query
   (Table, Pi, Relation, Config, ProductConstructor (..),
-   sqlFromRelationWith, Query, relationalQuery, KeyUpdate, Insert, InsertQuery,
+   sqlFromRelationWith, Query, relationalQuery, KeyUpdate, Insert,
    HasConstraintKey(constraintKey), projectionKey, Primary, NotNull)
 
 import Database.Relational.Query.Scalar (defineScalarDegree)
