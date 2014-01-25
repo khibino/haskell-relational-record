@@ -77,6 +77,7 @@ import Database.Relational.Query.Type
    Update, untypeUpdate, typedUpdate, targetUpdate,
    typedUpdateAllColumn, restricredUpdateAllColumn,
    Insert, untypeInsert, typedInsert,
+   InsertQuery, untypeInsertQuery, typedInsertQuery,
    Delete, untypeDelete, typedDelete, restrictedDelete)
 import Database.Relational.Query.Restriction
 import Database.Relational.Query.Derives

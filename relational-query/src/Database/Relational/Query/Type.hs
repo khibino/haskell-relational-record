@@ -21,6 +21,7 @@ module Database.Relational.Query.Type (
 
   -- * Typed insert statement
   Insert (..), unsafeTypedInsert, typedInsert,
+  InsertQuery (..), unsafeTypedInsertQuery, typedInsertQuery,
 
   -- * Typed delete statement
   Delete (..), unsafeTypedDelete, typedDelete, restrictedDelete
@@ -37,7 +38,7 @@ import Database.Relational.Query.Pi (Pi)
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.SQL
   (QuerySuffix, showsQuerySuffix,
-   updateOtherThanKeySQL, insertSQL, updatePrefixSQL, deleteSQL)
+   updateOtherThanKeySQL, insertPrefixSQL, insertSQL, updatePrefixSQL, deleteSQL)
 
 
 -- | Query type with place-holder parameter 'p' and query result type 'a'.
@@ -127,13 +128,28 @@ newtype Insert a   = Insert { untypeInsert :: String }
 unsafeTypedInsert :: String -> Insert a
 unsafeTypedInsert =  Insert
 
--- | Make typed 'Insert' from 'Table'
+-- | Make typed 'Insert' from 'Table'.
 typedInsert :: Table r -> Insert r
 typedInsert =  unsafeTypedInsert . insertSQL
 
--- | Show insert SQL string
+-- | Show insert SQL string.
 instance Show (Insert a) where
   show = untypeInsert
+
+-- | InsertQuery type.
+newtype InsertQuery p = InsertQuery { untypeInsertQuery :: String }
+
+-- | Unsafely make typed 'InsertQuery' from SQL string.
+unsafeTypedInsertQuery :: String -> InsertQuery p
+unsafeTypedInsertQuery =  InsertQuery
+
+-- | Make typed 'InsertQuery' from 'Table' and 'Relation'.
+typedInsertQuery :: Table r -> Relation p r -> InsertQuery p
+typedInsertQuery tbl rel = unsafeTypedInsertQuery . insertPrefixSQL tbl . sqlFromRelation rel $ ""
+
+-- | Show insert SQL string.
+instance Show (InsertQuery p) where
+  show = untypeInsertQuery
 
 
 -- | Delete type with place-holder parameter 'p'.

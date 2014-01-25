@@ -20,7 +20,7 @@ module Database.Relational.Query.SQL (
   updateOtherThanKeySQL', updateOtherThanKeySQL,
 
   -- * Insert SQL
-  insertSQL', insertSQL,
+  insertPrefixSQL, insertSQL,
 
   -- * Delete SQL
   deleteSQL', deleteSQL
@@ -31,10 +31,11 @@ import Data.Array (listArray, (!))
 import Language.SQL.Keyword (Keyword(..), (.=.))
 import qualified Language.SQL.Keyword as SQL
 import Database.Record.ToSql (untypedUpdateValuesIndex)
-import Database.Relational.Query.Internal.String (showUnwordsSQL, showSpace)
+import Database.Relational.Query.Internal.String
+  (showUnwordsSQL, showWordSQL', showSpace, showSqlRowString)
 import Database.Relational.Query.Pi.Unsafe (Pi, unsafeExpandIndexes)
-import Database.Relational.Query.Component (ColumnSQL, sqlWordFromColumn)
-import Database.Relational.Query.Table (Table, name, columns)
+import Database.Relational.Query.Component (ColumnSQL, sqlWordFromColumn, showsColumnSQL)
+import Database.Relational.Query.Table (Table, name, columns, width)
 
 
 -- | Type for query suffix words
@@ -46,7 +47,7 @@ showsQuerySuffix =  d  where
   d []       = ("" ++)
   d qs@(_:_) = showSpace . showUnwordsSQL qs
 
--- | Generate update SQL. Seed SQL string append to this.
+-- | Generate prefix string of update SQL.
 updatePrefixSQL :: Table r -> ShowS
 updatePrefixSQL table = showUnwordsSQL [UPDATE, SQL.word $ name table]
 
@@ -74,9 +75,9 @@ updateOtherThanKeySQL' :: String      -- ^ Table name
 updateOtherThanKeySQL' table cols ixs =
   updateSQL' table updColumns keyColumns
   where
-    width = length cols
-    cols' = listArray (0, width -1) cols
-    otherThanKey = untypedUpdateValuesIndex ixs width
+    width' = length cols
+    cols' = listArray (0, width' -1) cols
+    otherThanKey = untypedUpdateValuesIndex ixs width'
     columns' is = [ cols' ! i | i <- is ]
     updColumns = columns' otherThanKey
     keyColumns = columns' ixs
@@ -88,21 +89,18 @@ updateOtherThanKeySQL :: Table r -- ^ Table metadata
 updateOtherThanKeySQL tbl key =
   updateOtherThanKeySQL' (name tbl) (columns tbl) (unsafeExpandIndexes key)
 
--- | Generate insert SQL.
-insertSQL' :: String      -- ^ Table name
-           -> [ColumnSQL] -- ^ Column name list
-           -> String      -- ^ Result SQL
-insertSQL' table cols =
-  SQL.unwordsSQL
-  $ [INSERT, INTO, SQL.word table, cols' `SQL.parenSepBy` ", ",
-     VALUES, pfs `SQL.parenSepBy` ", "]
-  where cols' = map sqlWordFromColumn cols
-        pfs   = replicate (length cols) "?"
+-- | Generate prefix string of insert SQL.
+insertPrefixSQL :: Table r -> ShowS
+insertPrefixSQL table =
+  showUnwordsSQL [INSERT, INTO, SQL.word tn] . showSpace
+  . showSqlRowString [ showsColumnSQL c | c <- cols ] . showSpace  where
+    tn = name table
+    cols = columns table
 
 -- | Generate insert SQL.
 insertSQL :: Table r -- ^ Table metadata
           -> String  -- ^ Result SQL
-insertSQL tbl = insertSQL' (name tbl) (columns tbl)
+insertSQL tbl = insertPrefixSQL tbl . showWordSQL' VALUES . showSqlRowString (replicate (width tbl) $ showString "?") $ ""
 
 -- | Generate all column delete SQL by specified table. Untyped table version.
 deleteSQL' :: String -> ShowS
