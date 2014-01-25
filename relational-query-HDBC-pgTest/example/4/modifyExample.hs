@@ -46,9 +46,16 @@ pine =  relation $ do
 insertPine :: InsertQuery ()
 insertPine =  typedInsertQuery tableOfStock pine
 
-runInsertPine :: IO ()
-runInsertPine = handleConnectionIO connect $ \conn -> do
-  _ <- runInsertQuery conn insertPine ()
+fig :: Relation () Stock
+fig =  relation $ do
+  return $ Stock |$| value 7 |*| value "Fig" |*| value 200 |*| value 13
+
+insertFig :: InsertQuery ()
+insertFig =  insertQueryStock fig
+
+runInsertQuery1 :: InsertQuery () -> IO ()
+runInsertQuery1 ins = handleConnectionIO connect $ \conn -> do
+  _ <- runInsertQuery conn ins ()
   commit conn
 
 riseOfBanana :: Update ()
@@ -107,7 +114,8 @@ runDeleteStocks d xs = handleConnectionIO connect $ \conn -> do
 run :: IO ()
 run = do
   runInsertStocks0
-  runInsertPine
+  runInsertQuery1 insertPine
+  runInsertQuery1 insertFig
   runUpdateAndPrint riseOfBanana ()
   runUpdateAndPrint updateCherry (newCherry, (4, "Cherry"))
   runKeyUpdateAndPrint keyUpdateUidName newOrange
