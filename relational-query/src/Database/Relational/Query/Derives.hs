@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts, Rank2Types #-}
 
 -- |
 -- Module      : Database.Relational.Query.Derives
@@ -30,7 +30,7 @@ module Database.Relational.Query.Derives (
   specifyTableDerivation', specifyTableDerivation,
 
   TableDerivable (..),
-  derivedTable, derivedRelation, derivedInsert,
+  derivedTable, derivedRelation, derivedInsert, DerivedInsertQuery, derivedInsertQuery,
 
   derivedUniqueRelation
   ) where
@@ -50,7 +50,8 @@ import Database.Relational.Query.Constraint
    (Key, Primary, Unique, projectionKey, uniqueKey,
     HasConstraintKey(constraintKey))
 import qualified Database.Relational.Query.Constraint as Constraint
-import Database.Relational.Query.Type (KeyUpdate, typedKeyUpdate, Insert, typedInsert)
+import Database.Relational.Query.Type
+  (KeyUpdate, typedKeyUpdate, Insert, typedInsert, InsertQuery, typedInsertQuery)
 
 
 -- | Query restricted with specified key.
@@ -114,21 +115,28 @@ primaryUpdate :: (HasConstraintKey Primary r p)
 primaryUpdate table' = updateByConstraintKey table' (uniqueKey constraintKey)
 
 
+type DerivedInsertQuery r = forall p . Relation p r -> InsertQuery p
+
 -- | Capabilities derived from table.
 data TableDerivation r =
   TableDerivation
-  { derivedTable'    :: Table r
-  , derivedRelation' :: Relation () r
-  , derivedInsert'   :: Insert r
+  { derivedTable'       :: Table r
+  , derivedRelation'    :: Relation () r
+  , derivedInsert'      :: Insert r
+  , derivedInsertQuery' :: DerivedInsertQuery r
   }
 
 -- | Specify properties derived from table.
-specifyTableDerivation' :: Table r -> Relation () r -> Insert r -> TableDerivation r
+specifyTableDerivation' :: Table r
+                        -> Relation () r
+                        -> Insert r
+                        -> DerivedInsertQuery r
+                        -> TableDerivation r
 specifyTableDerivation' =  TableDerivation
 
 -- | Specify properties derived from table.
 specifyTableDerivation :: Table r -> TableDerivation r
-specifyTableDerivation t = specifyTableDerivation' t (table t) (typedInsert t)
+specifyTableDerivation t = specifyTableDerivation' t (table t) (typedInsert t) (typedInsertQuery t)
 
 -- | Inference rule for 'TableDerivation'.
 class TableDerivable r where
@@ -145,6 +153,10 @@ derivedRelation =  derivedRelation' tableDerivation
 -- | Infered 'Insert'.
 derivedInsert :: TableDerivable r => Insert r
 derivedInsert =  derivedInsert' tableDerivation
+
+-- | Infered 'Insert'.
+derivedInsertQuery :: TableDerivable r => DerivedInsertQuery r
+derivedInsertQuery =  derivedInsertQuery' tableDerivation
 
 -- | 'UniqueRelation' infered from table.
 derivedUniqueRelation :: TableDerivable r

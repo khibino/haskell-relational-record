@@ -72,7 +72,7 @@ import Database.Record.Instances ()
 
 import Database.Relational.Query
   (Table, Pi, Relation, Config, ProductConstructor (..),
-   sqlFromRelationWith, Query, relationalQuery, KeyUpdate, Insert,
+   sqlFromRelationWith, Query, relationalQuery, KeyUpdate, Insert, InsertQuery,
    HasConstraintKey(constraintKey), projectionKey, Primary, NotNull)
 
 import Database.Relational.Query.Scalar (defineScalarDegree)
@@ -81,8 +81,8 @@ import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Type (unsafeTypedQuery)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Relational.Query.Derives
-  (primary, primaryUpdate, TableDerivable (..), TableDerivation,
-   specifyTableDerivation, derivedTable, derivedRelation, derivedInsert)
+  (primary, primaryUpdate, TableDerivable (..), TableDerivation, DerivedInsertQuery,
+   specifyTableDerivation, derivedTable, derivedRelation, derivedInsert, derivedInsertQuery)
 
 
 -- | Rule template to infer constraint key.
@@ -187,9 +187,10 @@ defineTableDerivations :: VarName -- ^ TableDerivation declaration variable name
                        -> VarName -- ^ Table declaration variable name
                        -> VarName -- ^ Relation declaration variable name
                        -> VarName -- ^ Insert statement declaration variable name
+                       -> VarName -- ^ InsertQuery statement declaration variable name
                        -> TypeQ   -- ^ Record type
                        -> Q [Dec] -- ^ Table and Relation declaration
-defineTableDerivations derivationVar' tableVar' relVar' insVar' recordType = do
+defineTableDerivations derivationVar' tableVar' relVar' insVar' insQVar' recordType = do
   let derivationVar = varName derivationVar'
   derivationDs <- simpleValD derivationVar [t| TableDerivation $recordType |]
                   [| tableDerivation |]
@@ -199,23 +200,27 @@ defineTableDerivations derivationVar' tableVar' relVar' insVar' recordType = do
   let relVar   = varName relVar'
   relDs   <- simpleValD relVar   [t| Relation () $recordType |]
              [| derivedRelation |]
-  let insVar = varName insVar'
+  let insVar   = varName insVar'
   insDs   <- simpleValD insVar   [t| Insert $recordType |]
              [| derivedInsert |]
-  return $ concat [derivationDs, tableDs, relDs, insDs]
+  let insQVar  = varName insQVar'
+  insQDs  <- simpleValD insQVar  [t| DerivedInsertQuery $recordType |]
+             [| derivedInsertQuery |]
+  return $ concat [derivationDs, tableDs, relDs, insDs, insQDs]
 
 -- | 'Table' and 'Relation' templates.
 defineTableTypes :: VarName  -- ^ TableDerivation declaration variable name
                  -> VarName  -- ^ Table declaration variable name
                  -> VarName  -- ^ Relation declaration variable name
                  -> VarName  -- ^ Insert statement declaration variable name
+                 -> VarName  -- ^ InsertQuery statement declaration variable name
                  -> TypeQ    -- ^ Record type
                  -> String   -- ^ Table name in SQL ex. FOO_SCHEMA.table0
                  -> [String] -- ^ Column names
                  -> Q [Dec]  -- ^ Table and Relation declaration
-defineTableTypes derivationVar' tableVar' relVar' insVar' recordType table columns = do
+defineTableTypes derivationVar' tableVar' relVar' insVar' insQVar' recordType table columns = do
   iDs <- defineTableDerivableInstance recordType table columns
-  dDs <- defineTableDerivations derivationVar' tableVar' relVar' insVar' recordType
+  dDs <- defineTableDerivations derivationVar' tableVar' relVar' insVar' insQVar' recordType
   return $ iDs ++ dDs
 
 tableSQL :: String -> String -> String
@@ -273,6 +278,7 @@ defineTableTypesDefault schema table columns = do
              (tableVarNameDefault table)
              (relationVarNameDefault table)
              (table `varNameWithPrefix` "insert")
+             (table `varNameWithPrefix` "insertQuery")
              recordType
              (tableSQL schema table)
              (map (fst . fst) columns)
