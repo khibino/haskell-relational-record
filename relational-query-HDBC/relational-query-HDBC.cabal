@@ -28,6 +28,7 @@ library
                        Database.HDBC.Record.Query
                        Database.HDBC.Record.Update
                        Database.HDBC.Record.Insert
+                       Database.HDBC.Record.InsertQuery
                        Database.HDBC.Record.Delete
                        Database.HDBC.Record.KeyUpdate
                        Database.HDBC.Query.TH
