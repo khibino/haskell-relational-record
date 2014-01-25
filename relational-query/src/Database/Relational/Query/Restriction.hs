@@ -48,15 +48,15 @@ newtype Restriction p r = Restriction (Projection Flat r -> Restrict ())
 type RestrictionContext p r = RestrictedStatement r (PlaceHolders p)
 
 -- | Finalize 'Restrict' monad and generate 'Restriction'.
-restriction :: (Projection Flat r -> Restrict ()) -> Restriction () r
+restriction :: RestrictedStatement r () -> Restriction () r
 restriction =  Restriction
 
 -- | Finalize 'Restrict' monad and generate 'Restriction' with place-holder parameter 'p'
-restriction' :: RestrictionContext p r -> Restriction p r
+restriction' :: RestrictedStatement r (PlaceHolders p) -> Restriction p r
 restriction' =  Restriction . (fmap (const ()) .)
 
 runRestriction :: Restriction p r
-               -> RestrictionContext p r
+               -> RestrictedStatement r (PlaceHolders p)
 runRestriction (Restriction qf) =
   fmap fst . addPlaceHolders . qf
 
@@ -74,23 +74,23 @@ newtype UpdateTarget p r =
 type UpdateTargetContext p r = TargetStatement r (PlaceHolders p)
 
 -- | Finalize 'Target' monad and generate 'UpdateTarget'.
-updateTarget :: (Table r -> Projection Flat r -> Target r ())
+updateTarget :: TargetStatement r ()
              -> UpdateTarget () r
 updateTarget =  UpdateTarget
 
 -- | Finalize 'Target' monad and generate 'UpdateTarget' with place-holder parameter 'p'.
-updateTarget' :: UpdateTargetContext p r
+updateTarget' :: TargetStatement r (PlaceHolders p)
               -> UpdateTarget p r
 updateTarget' qf = UpdateTarget $ \t -> fmap (const ()) . qf t
 
 _runUpdateTarget :: UpdateTarget p r
-                 -> UpdateTargetContext p r
+                 -> TargetStatement r (PlaceHolders p)
 _runUpdateTarget (UpdateTarget qf) tbl =
   fmap fst . addPlaceHolders . qf tbl
 
 updateAllColumn :: PersistableWidth r
                 => Restriction p r
-                -> UpdateTargetContext (r, p) r
+                -> TargetStatement r (PlaceHolders (r, p))
 updateAllColumn rs tbl proj = do
   (ph0, ()) <- placeholder (\ph -> tbl !# id' <-# ph)
   ph1       <- assignings $ runRestriction rs proj
@@ -110,13 +110,13 @@ liftTargetAllColumn' rs = updateTarget' $ updateAllColumn rs
 
 -- | Finalize 'Restrict' monad and generate 'UpdateTarget'. Update target columns are all.
 updateTargetAllColumn :: PersistableWidth r
-                      => (Projection Flat r -> Restrict ())
+                      => RestrictedStatement r ()
                       -> UpdateTarget r r
 updateTargetAllColumn = liftTargetAllColumn . restriction
 
 -- | Finalize 'Restrict' monad and generate 'UpdateTarget'. Update target columns are all. With placefolder type 'p'.
 updateTargetAllColumn' :: PersistableWidth r
-                       => (Projection Flat r -> Restrict (PlaceHolders p))
+                       => RestrictedStatement r (PlaceHolders p)
                        -> UpdateTarget (r, p) r
 updateTargetAllColumn' = liftTargetAllColumn' . restriction'
 
