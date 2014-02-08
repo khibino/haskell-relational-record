@@ -212,16 +212,16 @@ defineRecordConstructFunction sqlValType funName' typeName' width = do
   var <- funD funName
          [ clause
            [listP (map varP names)]
-            (normalB . appsE $ conE typeName : map fromSqlE names)
-            [],
-            clause [wildP]
-            (normalB
-             [| error
-                $(stringE
-                  $ "Generated code of 'defineRecordConstructFunction': Fail to pattern match in: "
-                  ++ show funName
-                  ++ ", count of columns is " ++ show width) |])
-            [] ]
+           (normalB . appsE $ conE typeName : map fromSqlE names)
+           [],
+           clause [wildP]
+           (normalB
+            [| error
+               $(stringE
+                 $ "Generated code of 'defineRecordConstructFunction': Fail to pattern match in: "
+                 ++ show funName
+                 ++ ", count of columns is " ++ show width) |])
+           [] ]
   return [sig, var]
 
 -- | Record decomposition function template.
