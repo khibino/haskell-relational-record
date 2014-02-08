@@ -62,7 +62,7 @@ import Language.Haskell.TH
    TypeQ, conT, Con (RecC),
    Dec(DataD), dataD, sigD, funD,
    appsE, conE, varE, listE, stringE,
-   listP, varP, wildP,
+   listP, varP, conP, wildP,
    normalB, recC, clause, cxt,
    varStrictType, strictType, isStrict)
 import Language.Haskell.TH.Syntax (VarStrictType)
@@ -225,18 +225,19 @@ defineRecordConstructFunction sqlValType funName' typeName' width = do
   return [sig, var]
 
 -- | Record decomposition function template.
-defineRecordDecomposeFunction :: TypeQ     -- ^ SQL value type.
-                              -> VarName   -- ^ Name of record decompose function.
-                              -> TypeQ     -- ^ Name of record type.
-                              -> [VarName] -- ^ List of column names of record.
-                              -> Q [Dec]   -- ^ Declaration of record construct function from SQL values.
-defineRecordDecomposeFunction sqlValType funName' typeCon columns = do
+defineRecordDecomposeFunction :: TypeQ   -- ^ SQL value type.
+                              -> VarName -- ^ Name of record decompose function.
+                              -> ConName -- ^ Name of record type.
+                              -> Int     -- ^ Count of record columns.
+                              -> Q [Dec] -- ^ Declaration of record construct function from SQL values.
+defineRecordDecomposeFunction sqlValType funName' typeName' width = do
   let funName = varName funName'
-      accessors = map toVarExp columns
-      recVar = mkName "rec"
+      typeCon = toTypeCon typeName'
   sig <- sigD funName [t| $typeCon -> [$(sqlValType)] |]
-  var <- funD funName [ clause [varP recVar]
-                        (normalB . listE $ [ [| toSql ($a $(varE recVar)) |] | a <- accessors ])
+  let typeName = conName typeName'
+      names = map (mkName . ('f':) . show) [1 .. width]
+  var <- funD funName [ clause [conP typeName [ varP n | n <- names ] ]
+                        (normalB . listE $ [ [| toSql $(varE n) |] | n <- names ])
                         [] ]
   return [sig, var]
 
@@ -274,7 +275,7 @@ defineRecordWithSqlType
   let width = length columns
       typeCon = toTypeCon tyC
   fromSQL  <- defineRecordConstructFunction sqlValueType cF tyC width
-  toSQL    <- defineRecordDecomposeFunction sqlValueType dF typeCon (map fst columns)
+  toSQL    <- defineRecordDecomposeFunction sqlValueType dF tyC width
   instSQL  <- definePersistableInstance sqlValueType typeCon cF dF width
   return $ fromSQL ++ toSQL ++ instSQL
 
