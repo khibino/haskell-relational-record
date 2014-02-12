@@ -307,15 +307,17 @@ recordInfo =  d  where
 -- | All templates depending on SQL value type. Defined record type information is used.
 defineRecordWithSqlTypeFromDefined :: TypeQ              -- ^ SQL value type
                                    -> (VarName, VarName) -- ^ Constructor function name and decompose function name
-                                   -> ConName            -- ^ Record type name
+                                   -> ConName            -- ^ Record type constructor name
                                    -> Q [Dec]            -- ^ Result declarations
 defineRecordWithSqlTypeFromDefined sqlValueType fnames recTypeName' = do
   let recTypeName = conName recTypeName'
-  recInfo <- reify recTypeName
-  case recordInfo recInfo of
-    Nothing -> compileError $ "Defined record type not found: " ++ show recTypeName
-    Just vs -> defineRecordWithSqlType sqlValueType fnames recTypeName'
-               [ (VarName n, return ty) | (n, _s, ty)  <- vs ]
+  tyConInfo <- reify recTypeName
+  vs        <- maybe
+               (compileError $ "Defined record type constructor not found: " ++ show recTypeName)
+               return
+               (recordInfo tyConInfo)
+  defineRecordWithSqlType sqlValueType fnames recTypeName'
+    [ (VarName n, return ty) | (n, _s, ty)  <- vs ]
 
 -- | All templates depending on SQL value type with default names. Defined record type information is used.
 defineRecordWithSqlTypeDefaultFromDefined :: TypeQ   -- ^ SQL value type
