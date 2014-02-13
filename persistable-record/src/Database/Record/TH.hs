@@ -53,7 +53,7 @@ module Database.Record.TH (
 
 
 import Language.Haskell.TH.Name.CamelCase
-  (ConName(conName), VarName(varName, VarName),
+  (ConName(conName), VarName(varName),
    conCamelcaseName, varCamelcaseName, varNameWithPrefix,
    toTypeCon, toVarExp)
 import Language.Haskell.TH.Lib.Extra (integralE, compileError)
@@ -266,14 +266,13 @@ definePersistableInstance sqlType typeCon consFunName' decompFunName' width = do
 defineRecordWithSqlType :: TypeQ              -- ^ SQL value type
                         -> (VarName, VarName) -- ^ Constructor function name and decompose function name
                         -> ConName            -- ^ Record type name
-                        -> [(VarName, TypeQ)] -- ^ Column schema
+                        -> Int                -- ^ Record width
                         -> Q [Dec]            -- ^ Result declarations
 defineRecordWithSqlType
   sqlValueType
   (cF, dF) tyC
-  columns = do
-  let width = length columns
-      typeCon = toTypeCon tyC
+  width = do
+  let typeCon = toTypeCon tyC
   fromSQL  <- defineRecordConstructFunction sqlValueType cF tyC width
   toSQL    <- defineRecordDecomposeFunction sqlValueType dF tyC width
   instSQL  <- definePersistableInstance sqlValueType typeCon cF dF width
@@ -297,7 +296,7 @@ defineRecordWithSqlTypeDefault sqlValueType table columns = do
     sqlValueType
     (fromSqlNameDefault table, toSqlNameDefault table)
     (recordTypeNameDefault table)
-    [ columnDefault n t | (n, t) <- columns ]
+    (length columns)
 
 recordInfo :: Info -> Maybe [VarStrictType]
 recordInfo =  d  where
@@ -316,8 +315,7 @@ defineRecordWithSqlTypeFromDefined sqlValueType fnames recTypeName' = do
                (compileError $ "Defined record type constructor not found: " ++ show recTypeName)
                return
                (recordInfo tyConInfo)
-  defineRecordWithSqlType sqlValueType fnames recTypeName'
-    [ (VarName n, return ty) | (n, _s, ty)  <- vs ]
+  defineRecordWithSqlType sqlValueType fnames recTypeName' (length vs)
 
 -- | All templates depending on SQL value type with default names. Defined record type information is used.
 defineRecordWithSqlTypeDefaultFromDefined :: TypeQ   -- ^ SQL value type
@@ -342,7 +340,7 @@ defineRecord
   columns drvs = do
 
   typ     <- defineRecordType tyC columns drvs
-  withSql <- defineRecordWithSqlType sqlValueType fnames tyC columns
+  withSql <- defineRecordWithSqlType sqlValueType fnames tyC $ length columns
   return $ typ ++ withSql
 
 -- | All templates for record type with default names.
