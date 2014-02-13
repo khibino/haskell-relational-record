@@ -288,16 +288,16 @@ toSqlNameDefault :: String -> VarName
 toSqlNameDefault =  (`varNameWithPrefix` "toSqlOf")
 
 -- | All templates depending on SQL value type with default names.
-defineRecordWithSqlTypeDefault :: TypeQ             -- ^ SQL value type
-                               -> String            -- ^ Table name of database
-                               -> [(String, TypeQ)] -- ^ Column names and types
-                               -> Q [Dec]           -- ^ Result declarations
-defineRecordWithSqlTypeDefault sqlValueType table columns = do
+defineRecordWithSqlTypeDefault :: TypeQ   -- ^ SQL value type
+                               -> String  -- ^ Table name of database
+                               -> Int     -- ^ Count of record columns
+                               -> Q [Dec] -- ^ Result declarations
+defineRecordWithSqlTypeDefault sqlValueType table width = do
   defineRecordWithSqlType
     sqlValueType
     (fromSqlNameDefault table, toSqlNameDefault table)
     (recordTypeDefault table, toDataCon . recordTypeNameDefault $ table)
-    (length columns)
+    width
 
 recordInfo :: Info -> Maybe ((TypeQ, ExpQ), Int)
 recordInfo =  d  where
@@ -352,7 +352,7 @@ defineRecordDefault :: TypeQ             -- ^ SQL value type
                     -> Q [Dec]           -- ^ Result declarations
 defineRecordDefault sqlValueType table columns derives = do
   typ     <- defineRecordTypeDefault table columns derives
-  withSql <- defineRecordWithSqlTypeDefault sqlValueType table columns
+  withSql <- defineRecordWithSqlTypeDefault sqlValueType table $ length columns
   return $ typ ++ withSql
 
 
