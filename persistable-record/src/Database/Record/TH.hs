@@ -55,17 +55,16 @@ module Database.Record.TH (
 import Language.Haskell.TH.Name.CamelCase
   (ConName(conName), VarName(varName),
    conCamelcaseName, varCamelcaseName, varNameWithPrefix,
-   toTypeCon, toVarExp)
+   toTypeCon, toDataCon, toVarExp)
 import Language.Haskell.TH.Lib.Extra (integralE, compileError)
 import Language.Haskell.TH
-  (Q, mkName, reify, Info(TyConI),
+  (Q, mkName, reify, Info(TyConI), Name,
    TypeQ, conT, Con (RecC),
    Dec(DataD), dataD, sigD, funD,
-   appsE, conE, varE, listE, stringE,
+   ExpQ, Exp(ConE), appsE, conE, varE, listE, stringE,
    listP, varP, conP, wildP,
    normalB, recC, clause, cxt,
    varStrictType, strictType, isStrict)
-import Language.Haskell.TH.Syntax (VarStrictType)
 
 import Database.Record
   (HasColumnConstraint(columnConstraint), Primary, NotNull,
@@ -198,21 +197,20 @@ defineRecordTypeDefault table columns =
 
 
 -- | Record construction function template.
-defineRecordConstructFunction :: TypeQ     -- ^ SQL value type.
-                              -> VarName   -- ^ Name of record construct function.
-                              -> ConName   -- ^ Name of record type.
-                              -> Int       -- ^ Count of record columns.
-                              -> Q [Dec]   -- ^ Declaration of record construct function from SQL values.
-defineRecordConstructFunction sqlValType funName' typeName' width = do
+defineRecordConstructFunction :: TypeQ         -- ^ SQL value type.
+                              -> VarName       -- ^ Name of record construct function.
+                              -> (TypeQ, ExpQ) -- ^ Record type constructor and data constructor.
+                              -> Int           -- ^ Count of record columns.
+                              -> Q [Dec]       -- ^ Declaration of record construct function from SQL values.
+defineRecordConstructFunction sqlValType funName' (tyCon, dataCon) width = do
   let funName = varName funName'
-      typeName = conName typeName'
       names = map (mkName . ('f':) . show) [1 .. width]
       fromSqlE n = [| fromSql $(varE n) |]
-  sig <- sigD funName [t| [$(sqlValType)] -> $(conT typeName) |]
+  sig <- sigD funName [t| [ $sqlValType ] -> $tyCon |]
   var <- funD funName
          [ clause
            [listP (map varP names)]
-           (normalB . appsE $ conE typeName : map fromSqlE names)
+           (normalB . appsE $ dataCon : map fromSqlE names)
            [],
            clause [wildP]
            (normalB
@@ -224,19 +222,23 @@ defineRecordConstructFunction sqlValType funName' typeName' width = do
            [] ]
   return [sig, var]
 
+dataConInfo :: Exp -> Q Name
+dataConInfo =  d  where
+  d (ConE n) = return n
+  d e        = compileError $ "Not record data constructor: " ++ show e
+
 -- | Record decomposition function template.
-defineRecordDecomposeFunction :: TypeQ   -- ^ SQL value type.
-                              -> VarName -- ^ Name of record decompose function.
-                              -> ConName -- ^ Name of record type.
-                              -> Int     -- ^ Count of record columns.
-                              -> Q [Dec] -- ^ Declaration of record construct function from SQL values.
-defineRecordDecomposeFunction sqlValType funName' typeName' width = do
+defineRecordDecomposeFunction :: TypeQ         -- ^ SQL value type.
+                              -> VarName       -- ^ Name of record decompose function.
+                              -> (TypeQ, ExpQ) -- ^ Record type constructor and data constructor.
+                              -> Int           -- ^ Count of record columns.
+                              -> Q [Dec]       -- ^ Declaration of record construct function from SQL values.
+defineRecordDecomposeFunction sqlValType funName' (tyCon, dataCon) width = do
   let funName = varName funName'
-      typeCon = toTypeCon typeName'
-  sig <- sigD funName [t| $typeCon -> [$(sqlValType)] |]
-  let typeName = conName typeName'
-      names = map (mkName . ('f':) . show) [1 .. width]
-  var <- funD funName [ clause [conP typeName [ varP n | n <- names ] ]
+  sig <- sigD funName [t| $tyCon -> [ $sqlValType ] |]
+  let names = map (mkName . ('f':) . show) [1 .. width]
+  dcn <- dataCon >>= dataConInfo
+  var <- funD funName [ clause [conP dcn [ varP n | n <- names ] ]
                         (normalB . listE $ [ [| toSql $(varE n) |] | n <- names ])
                         [] ]
   return [sig, var]
@@ -265,17 +267,16 @@ definePersistableInstance sqlType typeCon consFunName' decompFunName' width = do
 -- | All templates depending on SQL value type.
 defineRecordWithSqlType :: TypeQ              -- ^ SQL value type
                         -> (VarName, VarName) -- ^ Constructor function name and decompose function name
-                        -> ConName            -- ^ Record type name
+                        -> (TypeQ, ExpQ)      -- ^ Record type constructor and data constructor.
                         -> Int                -- ^ Record width
                         -> Q [Dec]            -- ^ Result declarations
 defineRecordWithSqlType
   sqlValueType
-  (cF, dF) tyC
+  (cF, dF) conPair@(tyCon, _)
   width = do
-  let typeCon = toTypeCon tyC
-  fromSQL  <- defineRecordConstructFunction sqlValueType cF tyC width
-  toSQL    <- defineRecordDecomposeFunction sqlValueType dF tyC width
-  instSQL  <- definePersistableInstance sqlValueType typeCon cF dF width
+  fromSQL  <- defineRecordConstructFunction sqlValueType cF conPair width
+  toSQL    <- defineRecordDecomposeFunction sqlValueType dF conPair width
+  instSQL  <- definePersistableInstance sqlValueType tyCon cF dF width
   return $ fromSQL ++ toSQL ++ instSQL
 
 -- | Default name of record construction function from SQL table name.
@@ -295,13 +296,13 @@ defineRecordWithSqlTypeDefault sqlValueType table columns = do
   defineRecordWithSqlType
     sqlValueType
     (fromSqlNameDefault table, toSqlNameDefault table)
-    (recordTypeNameDefault table)
+    (recordTypeDefault table, toDataCon . recordTypeNameDefault $ table)
     (length columns)
 
-recordInfo :: Info -> Maybe [VarStrictType]
+recordInfo :: Info -> Maybe ((TypeQ, ExpQ), Int)
 recordInfo =  d  where
-  d (TyConI (DataD _cxt _n _bs [RecC _dn vs] _ds)) = Just vs
-  d _                                              = Nothing
+  d (TyConI (DataD _cxt tcn _bs [RecC dcn vs] _ds)) = Just ((conT tcn, conE dcn), length vs)
+  d _                                               = Nothing
 
 -- | All templates depending on SQL value type. Defined record type information is used.
 defineRecordWithSqlTypeFromDefined :: TypeQ              -- ^ SQL value type
@@ -310,12 +311,12 @@ defineRecordWithSqlTypeFromDefined :: TypeQ              -- ^ SQL value type
                                    -> Q [Dec]            -- ^ Result declarations
 defineRecordWithSqlTypeFromDefined sqlValueType fnames recTypeName' = do
   let recTypeName = conName recTypeName'
-  tyConInfo <- reify recTypeName
-  vs        <- maybe
-               (compileError $ "Defined record type constructor not found: " ++ show recTypeName)
-               return
-               (recordInfo tyConInfo)
-  defineRecordWithSqlType sqlValueType fnames recTypeName' (length vs)
+  tyConInfo    <- reify recTypeName
+  (conPair, w) <- maybe
+                  (compileError $ "Defined record type constructor not found: " ++ show recTypeName)
+                  return
+                  (recordInfo tyConInfo)
+  defineRecordWithSqlType sqlValueType fnames conPair w
 
 -- | All templates depending on SQL value type with default names. Defined record type information is used.
 defineRecordWithSqlTypeDefaultFromDefined :: TypeQ   -- ^ SQL value type
@@ -340,7 +341,7 @@ defineRecord
   columns drvs = do
 
   typ     <- defineRecordType tyC columns drvs
-  withSql <- defineRecordWithSqlType sqlValueType fnames tyC $ length columns
+  withSql <- defineRecordWithSqlType sqlValueType fnames (toTypeCon tyC, toDataCon tyC) $ length columns
   return $ typ ++ withSql
 
 -- | All templates for record type with default names.
