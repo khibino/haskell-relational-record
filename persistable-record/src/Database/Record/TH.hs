@@ -167,6 +167,12 @@ derivingData = conCamelcaseName "Data"
 derivingTypable :: ConName
 derivingTypable = conCamelcaseName "Typable"
 
+definePersistableWidth :: Integral a => TypeQ -> a -> Q [Dec]
+definePersistableWidth typeCon width =
+  [d| instance PersistableWidth $typeCon where
+        persistableWidth = unsafePersistableRecordWidth $(integralE width)
+    |]
+
 -- | Record type declaration template.
 defineRecordType :: ConName            -- ^ Name of the data type of table record type.
                  -> [(VarName, TypeQ)] -- ^ List of columns in the table. Must be legal, properly cased record columns.
@@ -177,10 +183,7 @@ defineRecordType typeName' columns derives = do
       fld (n, tq) = varStrictType (varName n) (strictType isStrict tq)
   rec <- dataD (cxt []) typeName [] [recC typeName (map fld columns)] (map conName derives)
   let typeCon = toTypeCon typeName'
-  ins <- [d| instance PersistableWidth $typeCon where
-               persistableWidth = unsafePersistableRecordWidth $(integralE $ length columns)
-
-           |]
+  ins <- definePersistableWidth typeCon $ length columns
   return $ rec : ins
 
 -- | Generate column name from 'String'.
