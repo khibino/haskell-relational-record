@@ -41,6 +41,7 @@ module Database.Record.TH (
   defineRecordTemplatesDefaultFromDefined,
   defineRecordWithSqlTypeFromDefined,
   defineRecordWithSqlTypeDefaultFromDefined,
+  definePersistableWidthFromDefined,
 
   defineRecordConstructFunction,
   defineRecordDecomposeFunction,
@@ -171,10 +172,10 @@ derivingTypable :: ConName
 derivingTypable = conCamelcaseName "Typable"
 
 -- | 'PersistableWidth' instance declaration.
-definePersistableWidth :: TypeQ   -- ^ Record type constructor.
-                       -> Int     -- ^ Count of record columns.
-                       -> Q [Dec] -- ^ Declaration of 'PersistableWidth' instance.
-definePersistableWidth typeCon width =
+definePersistableWidthFromDefined :: TypeQ   -- ^ Record type constructor.
+                                  -> Int     -- ^ Count of record columns.
+                                  -> Q [Dec] -- ^ Declaration of 'PersistableWidth' instance.
+definePersistableWidthFromDefined typeCon width =
   [d| instance PersistableWidth $typeCon where
         persistableWidth = unsafePersistableRecordWidth $(integralE width) |]
 
@@ -188,7 +189,7 @@ defineRecordType typeName' columns derives = do
       fld (n, tq) = varStrictType (varName n) (strictType isStrict tq)
   rec <- dataD (cxt []) typeName [] [recC typeName (map fld columns)] (map conName derives)
   let typeCon = toTypeCon typeName'
-  ins <- definePersistableWidth typeCon $ length columns
+  ins <- definePersistableWidthFromDefined typeCon $ length columns
   return $ rec : ins
 
 -- | Generate column name from 'String'.
@@ -330,7 +331,7 @@ defineRecordTemplates :: TypeQ              -- ^ SQL value type.
                       -> Int                -- ^ Count of record columns.
                       -> Q [Dec]            -- ^ Result declarations.
 defineRecordTemplates sqlValueType fnames conPair@(tyCon, _) width = do
-  pw   <- definePersistableWidth tyCon width
+  pw   <- definePersistableWidthFromDefined tyCon width
   wst  <- defineRecordWithSqlType sqlValueType fnames conPair width
   return $ pw ++ wst
 
