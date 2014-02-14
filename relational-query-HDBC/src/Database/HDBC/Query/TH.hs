@@ -46,7 +46,7 @@ defineTableDefault' :: String            -- ^ Schema name
                     -> Q [Dec]           -- ^ Result declaration
 defineTableDefault' schema table columns derives = do
   modelD <- Relational.defineTableTypesAndRecordDefault schema table columns derives
-  sqlvD  <- defineRecordWithSqlTypeDefault [t| SqlValue |] table columns
+  sqlvD  <- defineRecordWithSqlTypeDefault [t| SqlValue |] table $ length columns
   return $ modelD ++ sqlvD
 
 -- | Generate all DHBC templates about table using default naming rule.
@@ -59,7 +59,7 @@ defineTableDefault :: String            -- ^ Schema name
                    -> Q [Dec]           -- ^ Result declaration
 defineTableDefault schema table columns derives primary notNull = do
   modelD <- Relational.defineTableDefault schema table columns derives primary notNull
-  sqlvD  <- defineRecordWithSqlTypeDefault [t| SqlValue |] table columns
+  sqlvD  <- defineRecordWithSqlTypeDefault [t| SqlValue |] table $ length columns
   return $ modelD ++ sqlvD
 
 putLog :: String -> IO ()
