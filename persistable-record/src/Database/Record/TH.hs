@@ -36,6 +36,9 @@ module Database.Record.TH (
   defineRecordWithSqlType,
   defineRecordWithSqlTypeDefault,
 
+  -- * Function declarations against defined record types
+  defineRecordTemplatesFromDefined,
+  defineRecordTemplatesDefaultFromDefined,
   defineRecordWithSqlTypeFromDefined,
   defineRecordWithSqlTypeDefaultFromDefined,
 
@@ -58,7 +61,7 @@ import Language.Haskell.TH.Name.CamelCase
    toTypeCon, toDataCon, toVarExp)
 import Language.Haskell.TH.Lib.Extra (integralE, compileError)
 import Language.Haskell.TH
-  (Q, mkName, reify, Info(TyConI), Name,
+  (Q, mkName, nameBase, reify, Info(TyConI), Name,
    TypeQ, conT, Con (RecC),
    Dec(DataD), dataD, sigD, funD,
    ExpQ, Exp(ConE), appsE, conE, varE, listE, stringE,
@@ -302,34 +305,64 @@ defineRecordWithSqlTypeDefault sqlValueType table width = do
     (recordTypeDefault table, toDataCon . recordTypeNameDefault $ table)
     width
 
-recordInfo :: Info -> Maybe ((TypeQ, ExpQ), Int)
-recordInfo =  d  where
+recordInfo' :: Info -> Maybe ((TypeQ, ExpQ), Int)
+recordInfo' =  d  where
   d (TyConI (DataD _cxt tcn _bs [RecC dcn vs] _ds)) = Just ((conT tcn, conE dcn), length vs)
   d _                                               = Nothing
+
+recordInfo :: Name -> Q ((TypeQ, ExpQ), Int)
+recordInfo recTypeName = do
+  tyConInfo   <- reify recTypeName
+  maybe
+    (compileError $ "Defined record type constructor not found: " ++ show recTypeName)
+    return
+    (recordInfo' tyConInfo)
+
+constructorNames :: Name -> (VarName, VarName)
+constructorNames recTypeName = (fromSqlNameDefault bn, toSqlNameDefault bn)  where
+  bn = nameBase recTypeName
+
+defineRecordTemplates :: TypeQ              -- ^ SQL value type
+                      -> (VarName, VarName) -- ^ Constructor function name and decompose function name
+                      -> (TypeQ, ExpQ)      -- ^ Record type constructor and data constructor.
+                      -> Int                -- ^ Record width
+                      -> Q [Dec]            -- ^ Result declarations
+defineRecordTemplates sqlValueType fnames conPair@(tyCon, _) width = do
+  pw   <- definePersistableWidth tyCon width
+  wst  <- defineRecordWithSqlType sqlValueType fnames conPair width
+  return $ pw ++ wst
+
+-- | All templates against record type. Defined record type information is used.
+defineRecordTemplatesFromDefined :: TypeQ              -- ^ SQL value type
+                                 -> (VarName, VarName) -- ^ Constructor function name and decompose function name
+                                 -> Name               -- ^ Record type constructor name
+                                 -> Q [Dec]            -- ^ Result declarations
+defineRecordTemplatesFromDefined sqlValueType fnames recTypeName = do
+  (conPair, width) <- recordInfo recTypeName
+  defineRecordTemplates sqlValueType fnames conPair width
+
+-- | All templates against record type with default names. Defined record type information is used.
+defineRecordTemplatesDefaultFromDefined :: TypeQ   -- ^ SQL value type
+                                        -> Name    -- ^ Record type constructor name
+                                        -> Q [Dec] -- ^ Result declarations
+defineRecordTemplatesDefaultFromDefined sqlValueType recTypeName =
+  defineRecordTemplatesFromDefined sqlValueType (constructorNames recTypeName) recTypeName
 
 -- | All templates depending on SQL value type. Defined record type information is used.
 defineRecordWithSqlTypeFromDefined :: TypeQ              -- ^ SQL value type
                                    -> (VarName, VarName) -- ^ Constructor function name and decompose function name
-                                   -> ConName            -- ^ Record type constructor name
+                                   -> Name               -- ^ Record type constructor name
                                    -> Q [Dec]            -- ^ Result declarations
-defineRecordWithSqlTypeFromDefined sqlValueType fnames recTypeName' = do
-  let recTypeName = conName recTypeName'
-  tyConInfo    <- reify recTypeName
-  (conPair, w) <- maybe
-                  (compileError $ "Defined record type constructor not found: " ++ show recTypeName)
-                  return
-                  (recordInfo tyConInfo)
-  defineRecordWithSqlType sqlValueType fnames conPair w
+defineRecordWithSqlTypeFromDefined sqlValueType fnames recTypeName = do
+  (conPair, width) <- recordInfo recTypeName
+  defineRecordWithSqlType sqlValueType fnames conPair width
 
 -- | All templates depending on SQL value type with default names. Defined record type information is used.
 defineRecordWithSqlTypeDefaultFromDefined :: TypeQ   -- ^ SQL value type
-                                          -> String  -- ^ Table name of database
+                                          -> Name    -- ^ Record type constructor name
                                           -> Q [Dec] -- ^ Result declarations
-defineRecordWithSqlTypeDefaultFromDefined sqlValueType table =
-  defineRecordWithSqlTypeFromDefined sqlValueType
-  (fromSqlNameDefault table, toSqlNameDefault table)
-  (recordTypeNameDefault table)
-
+defineRecordWithSqlTypeDefaultFromDefined sqlValueType recTypeName =
+  defineRecordWithSqlTypeFromDefined sqlValueType (constructorNames recTypeName) recTypeName
 
 -- | All templates for record type.
 defineRecord :: TypeQ              -- ^ SQL value type
