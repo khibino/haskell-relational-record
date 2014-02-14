@@ -38,7 +38,7 @@ import Database.HDBC.Record.Persistable ()
 import Database.HDBC.Schema.Driver (Driver, getFields, getPrimaryKey)
 
 
--- | Generate all DHBC templates about table except for constraint keys using default naming rule.
+-- | Generate all HDBC templates about table except for constraint keys using default naming rule.
 defineTableDefault' :: String            -- ^ Schema name
                     -> String            -- ^ Table name
                     -> [(String, TypeQ)] -- ^ List of column name and type
@@ -49,7 +49,7 @@ defineTableDefault' schema table columns derives = do
   sqlvD  <- defineRecordWithSqlTypeDefault [t| SqlValue |] table $ length columns
   return $ modelD ++ sqlvD
 
--- | Generate all DHBC templates about table using default naming rule.
+-- | Generate all HDBC templates about table using default naming rule.
 defineTableDefault :: String            -- ^ Schema name
                    -> String            -- ^ Table name
                    -> [(String, TypeQ)] -- ^ List of column name and type
@@ -65,7 +65,7 @@ defineTableDefault schema table columns derives primary notNull = do
 putLog :: String -> IO ()
 putLog =  putStrLn
 
--- | Generate all DHBC templates using system catalog informations.
+-- | Generate all HDBC templates using system catalog informations.
 defineTableFromDB :: IConnection conn
                   => IO conn     -- ^ Connect action to system catalog database
                   -> Driver conn -- ^ Driver definition
