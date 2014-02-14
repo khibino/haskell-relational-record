@@ -30,7 +30,7 @@ import Database.HDBC (IConnection, SqlValue)
 import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
 
-import Database.Record.TH (defineRecordWithSqlTypeDefaultFromDefined)
+import Database.Record.TH (makeRecordPersistableWithSqlTypeDefaultFromDefined)
 
 import Database.Relational.Schema.IBMDB2
   (normalizeColumn, notNull, getType, columnsQuerySQL, primaryKeyQuerySQL)
@@ -42,7 +42,7 @@ import Database.HDBC.Schema.Driver
 
 
 -- Specify type constructor and data constructor from same table name.
-$(defineRecordWithSqlTypeDefaultFromDefined
+$(makeRecordPersistableWithSqlTypeDefaultFromDefined
   [t| SqlValue |] ''Columns)
 
 logPrefix :: String -> String

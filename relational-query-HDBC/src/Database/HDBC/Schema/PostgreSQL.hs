@@ -25,7 +25,7 @@ import Data.Map (fromList)
 
 import Database.HDBC (IConnection, SqlValue)
 
-import Database.Record.TH (defineRecordWithSqlTypeDefaultFromDefined)
+import Database.Record.TH (makeRecordPersistableWithSqlTypeDefaultFromDefined)
 
 import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
@@ -41,10 +41,10 @@ import Database.HDBC.Schema.Driver
   (TypeMap, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
 
 
-$(defineRecordWithSqlTypeDefaultFromDefined
+$(makeRecordPersistableWithSqlTypeDefaultFromDefined
   [t| SqlValue |] ''PgAttribute)
 
-$(defineRecordWithSqlTypeDefaultFromDefined
+$(makeRecordPersistableWithSqlTypeDefaultFromDefined
   [t| SqlValue |] ''PgType)
 
 logPrefix :: String -> String
