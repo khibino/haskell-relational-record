@@ -63,7 +63,7 @@ import Language.Haskell.TH.Name.CamelCase
 import Language.Haskell.TH.Lib.Extra (integralE, compileError)
 import Language.Haskell.TH
   (Q, mkName, nameBase, reify, Info(TyConI), Name,
-   TypeQ, conT, Con (RecC),
+   TypeQ, conT, Con (NormalC, RecC),
    Dec(DataD), dataD, sigD, funD,
    ExpQ, Exp(ConE), appsE, conE, varE, listE, stringE,
    listP, varP, conP, wildP,
@@ -310,8 +310,11 @@ defineRecordWithSqlTypeDefault sqlValueType table width = do
 
 recordInfo' :: Info -> Maybe ((TypeQ, ExpQ), Int)
 recordInfo' =  d  where
-  d (TyConI (DataD _cxt tcn _bs [RecC dcn vs] _ds)) = Just ((conT tcn, conE dcn), length vs)
-  d _                                               = Nothing
+  d (TyConI (DataD _cxt tcn _bs [r] _ds)) = case r of
+    NormalC dcn ts     -> Just ((conT tcn, conE dcn), length ts)
+    RecC    dcn vts    -> Just ((conT tcn, conE dcn), length vts)
+    _                  -> Nothing
+  d _                  =  Nothing
 
 recordInfo :: Name -> Q ((TypeQ, ExpQ), Int)
 recordInfo recTypeName = do
