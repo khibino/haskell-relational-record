@@ -15,6 +15,8 @@
 -- This module contains templates to generate Haskell record types
 -- and HDBC instances correspond to RDB table schema.
 module Database.HDBC.Query.TH (
+  makeRecordPersistable,
+
   defineTableDefault',
   defineTableDefault,
 
@@ -27,9 +29,9 @@ import qualified Data.Map as Map
 import Database.HDBC (IConnection, SqlValue)
 
 import Language.Haskell.TH.Name.CamelCase (ConName)
-import Language.Haskell.TH (Q, runIO, TypeQ, Dec)
+import Language.Haskell.TH (Q, runIO, Name, TypeQ, Dec)
 
-import Database.Record.TH (makeRecordPersistableWithSqlTypeDefault)
+import Database.Record.TH (makeRecordPersistableDefaultFromDefined, makeRecordPersistableWithSqlTypeDefault)
 import qualified Database.Relational.Query.TH as Relational
 
 import Database.HDBC.Session (withConnectionIO)
@@ -37,6 +39,11 @@ import Database.HDBC.Record.Persistable ()
 
 import Database.HDBC.Schema.Driver (Driver, getFields, getPrimaryKey)
 
+
+-- | Generate all persistable templates against defined record like type constructor.
+makeRecordPersistable :: Name    -- ^ Type constructor name
+                      -> Q [Dec] -- ^ Resutl declaration
+makeRecordPersistable =  makeRecordPersistableDefaultFromDefined [t| SqlValue |]
 
 -- | Generate all HDBC templates about table except for constraint keys using default naming rule.
 defineTableDefault' :: String            -- ^ Schema name
