@@ -170,11 +170,13 @@ derivingData = conCamelcaseName "Data"
 derivingTypable :: ConName
 derivingTypable = conCamelcaseName "Typable"
 
-definePersistableWidth :: Integral a => TypeQ -> a -> Q [Dec]
+-- | 'PersistableWidth' instance declaration.
+definePersistableWidth :: TypeQ   -- ^ Record type constructor.
+                       -> Int     -- ^ Count of record columns.
+                       -> Q [Dec] -- ^ Declaration of 'PersistableWidth' instance.
 definePersistableWidth typeCon width =
   [d| instance PersistableWidth $typeCon where
-        persistableWidth = unsafePersistableRecordWidth $(integralE width)
-    |]
+        persistableWidth = unsafePersistableRecordWidth $(integralE width) |]
 
 -- | Record type declaration template.
 defineRecordType :: ConName            -- ^ Name of the data type of table record type.
@@ -250,12 +252,12 @@ defineRecordDecomposeFunction sqlValType funName' (tyCon, dataCon) width = do
   return [sig, var]
 
 -- | Instance templates for converting between list of SQL type and Haskell record type.
-definePersistableInstance :: TypeQ   -- ^ SQL value type
-                          -> TypeQ   -- ^ Record type
-                          -> VarName -- ^ Construct function name
-                          -> VarName -- ^ Decompose function name
-                          -> Int     -- ^ Record width
-                          -> Q [Dec] -- ^ Instance declarations for 'Persistable'
+definePersistableInstance :: TypeQ   -- ^ SQL value type.
+                          -> TypeQ   -- ^ Record type constructor.
+                          -> VarName -- ^ Construct function name.
+                          -> VarName -- ^ Decompose function name.
+                          -> Int     -- ^ Count of record columns.
+                          -> Q [Dec] -- ^ Instance declarations for 'Persistable'.
 definePersistableInstance sqlType typeCon consFunName' decompFunName' width = do
   [d| instance Persistable $sqlType $typeCon where
         persistable = persistableRecord
@@ -271,11 +273,11 @@ definePersistableInstance sqlType typeCon consFunName' decompFunName' width = do
     |]
 
 -- | All templates depending on SQL value type.
-defineRecordWithSqlType :: TypeQ              -- ^ SQL value type
-                        -> (VarName, VarName) -- ^ Constructor function name and decompose function name
+defineRecordWithSqlType :: TypeQ              -- ^ SQL value type.
+                        -> (VarName, VarName) -- ^ Constructor function name and decompose function name.
                         -> (TypeQ, ExpQ)      -- ^ Record type constructor and data constructor.
-                        -> Int                -- ^ Record width
-                        -> Q [Dec]            -- ^ Result declarations
+                        -> Int                -- ^ Count of record columns.
+                        -> Q [Dec]            -- ^ Result declarations.
 defineRecordWithSqlType
   sqlValueType
   (cF, dF) conPair@(tyCon, _)
@@ -322,11 +324,11 @@ constructorNames :: Name -> (VarName, VarName)
 constructorNames recTypeName = (fromSqlNameDefault bn, toSqlNameDefault bn)  where
   bn = nameBase recTypeName
 
-defineRecordTemplates :: TypeQ              -- ^ SQL value type
-                      -> (VarName, VarName) -- ^ Constructor function name and decompose function name
+defineRecordTemplates :: TypeQ              -- ^ SQL value type.
+                      -> (VarName, VarName) -- ^ Constructor function name and decompose function name.
                       -> (TypeQ, ExpQ)      -- ^ Record type constructor and data constructor.
-                      -> Int                -- ^ Record width
-                      -> Q [Dec]            -- ^ Result declarations
+                      -> Int                -- ^ Count of record columns.
+                      -> Q [Dec]            -- ^ Result declarations.
 defineRecordTemplates sqlValueType fnames conPair@(tyCon, _) width = do
   pw   <- definePersistableWidth tyCon width
   wst  <- defineRecordWithSqlType sqlValueType fnames conPair width
