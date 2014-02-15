@@ -22,19 +22,18 @@ import           Database.HDBC.Schema.Driver        ( TypeMap
                                                     , getPrimaryKey
                                                     , emptyDriver
                                                     )
-import           Database.Record.TH                 (defineRecordWithSqlTypeDefaultFromDefined)
-import qualified Database.Relational.Query.Table    as Table
+import           Database.Record.TH                 (makeRecordPersistableWithSqlTypeDefaultFromDefined)
 import           Database.Relational.Schema.MySQL   ( normalizeColumn
-                                                    , notNull 
+                                                    , notNull
                                                     , getType
                                                     , columnsQuerySQL
                                                     , primaryKeyQuerySQL
                                                     )
 
-import           Database.Relational.Schema.MySQLInfo.Columns (Columns(Columns), tableOfColumns)
+import           Database.Relational.Schema.MySQLInfo.Columns (Columns)
 import qualified Database.Relational.Schema.MySQLInfo.Columns as Columns
 
-$(defineRecordWithSqlTypeDefaultFromDefined [t| SqlValue |] (Table.shortName tableOfColumns))
+$(makeRecordPersistableWithSqlTypeDefaultFromDefined [t| SqlValue |] ''Columns)
 
 logPrefix :: String -> String
 logPrefix = ("MySQL: " ++)
