@@ -15,8 +15,7 @@ import qualified Language.Haskell.TH.Lib.Extra as TH
 import Database.HDBC (IConnection, SqlValue)
 import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
-import Database.Record.TH (defineRecordWithSqlTypeDefaultFromDefined)
-import Database.Relational.Query.Table (shortName)
+import Database.Record.TH (makeRecordPersistableWithSqlTypeDefaultFromDefined)
 import Database.HDBC.Schema.Driver
     ( TypeMap, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver
     )
@@ -25,12 +24,12 @@ import Database.Relational.Schema.Oracle
     ( normalizeColumn, notNull, getType
     , columnsQuerySQL, primaryKeyQuerySQL
     )
-import Database.Relational.Schema.OracleDataDictionary.TabColumns (DbaTabColumns (DbaTabColumns))
+import Database.Relational.Schema.OracleDataDictionary.TabColumns (DbaTabColumns)
 import qualified Database.Relational.Schema.OracleDataDictionary.TabColumns as Cols
 
-$(defineRecordWithSqlTypeDefaultFromDefined
+$(makeRecordPersistableWithSqlTypeDefaultFromDefined
     [t|SqlValue|]
-    (shortName Cols.tableOfDbaTabColumns))
+    ''DbaTabColumns)
 
 logPrefix :: String -> String
 logPrefix = ("Oracle: " ++)
