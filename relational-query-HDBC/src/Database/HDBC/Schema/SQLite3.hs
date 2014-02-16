@@ -14,7 +14,6 @@ module Database.HDBC.Schema.SQLite3 (
   driverSQLite3
   ) where
 
-import qualified Database.Relational.Query.Table as Table
 import qualified Language.Haskell.TH.Lib.Extra as TH
 import qualified Database.Relational.Schema.SQLite3Syscat.IndexInfo as IndexInfo
 import qualified Database.Relational.Schema.SQLite3Syscat.IndexList as IndexList
@@ -26,22 +25,22 @@ import Database.HDBC (IConnection, SqlValue)
 import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
 import Database.HDBC.Schema.Driver (TypeMap, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
-import Database.Record.TH (defineRecordWithSqlTypeDefaultFromDefined)
+import Database.Record.TH (makeRecordPersistableWithSqlTypeDefaultFromDefined)
 import Database.Relational.Schema.SQLite3 (getType, indexInfoQuerySQL, indexListQuerySQL, normalizeColumn,
                                            normalizeType, notNull, tableInfoQuerySQL)
-import Database.Relational.Schema.SQLite3Syscat.IndexInfo (IndexInfo(IndexInfo))
-import Database.Relational.Schema.SQLite3Syscat.IndexList (IndexList(IndexList))
-import Database.Relational.Schema.SQLite3Syscat.TableInfo (TableInfo(TableInfo))
+import Database.Relational.Schema.SQLite3Syscat.IndexInfo (IndexInfo)
+import Database.Relational.Schema.SQLite3Syscat.IndexList (IndexList)
+import Database.Relational.Schema.SQLite3Syscat.TableInfo (TableInfo)
 import Language.Haskell.TH (TypeQ)
 
-$(defineRecordWithSqlTypeDefaultFromDefined
-  [t| SqlValue |] (Table.shortName TableInfo.tableOfTableInfo))
+$(makeRecordPersistableWithSqlTypeDefaultFromDefined
+  [t| SqlValue |] ''TableInfo)
 
-$(defineRecordWithSqlTypeDefaultFromDefined
-  [t| SqlValue |] (Table.shortName IndexList.tableOfIndexList))
+$(makeRecordPersistableWithSqlTypeDefaultFromDefined
+  [t| SqlValue |] ''IndexList)
 
-$(defineRecordWithSqlTypeDefaultFromDefined
-  [t| SqlValue |] (Table.shortName IndexInfo.tableOfIndexInfo))
+$(makeRecordPersistableWithSqlTypeDefaultFromDefined
+  [t| SqlValue |] ''IndexInfo)
 
 logPrefix :: String -> String
 logPrefix = ("SQLite3: " ++)
