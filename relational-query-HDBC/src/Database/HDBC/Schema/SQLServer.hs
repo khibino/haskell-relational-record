@@ -14,7 +14,6 @@ module Database.HDBC.Schema.SQLServer (
   driverSQLServer,
   ) where
 
-import qualified Database.Relational.Query.Table as Table
 import qualified Database.Relational.Schema.SQLServerSyscat.Columns as Columns
 import qualified Database.Relational.Schema.SQLServerSyscat.Types as Types
 import qualified Language.Haskell.TH.Lib.Extra as TH
@@ -25,18 +24,18 @@ import Database.HDBC (IConnection, SqlValue)
 import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
 import Database.HDBC.Schema.Driver (TypeMap, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
-import Database.Record.TH (defineRecordWithSqlTypeDefaultFromDefined)
+import Database.Record.TH (makeRecordPersistableWithSqlTypeDefaultFromDefined)
 import Database.Relational.Schema.SQLServer (columnTypeQuerySQL, getType, normalizeColumn,
                                             notNull, primaryKeyQuerySQL)
-import Database.Relational.Schema.SQLServerSyscat.Columns (Columns(Columns))
-import Database.Relational.Schema.SQLServerSyscat.Types (Types(Types))
+import Database.Relational.Schema.SQLServerSyscat.Columns (Columns)
+import Database.Relational.Schema.SQLServerSyscat.Types (Types)
 import Language.Haskell.TH (TypeQ)
 
-$(defineRecordWithSqlTypeDefaultFromDefined
-  [t| SqlValue |] (Table.shortName Columns.tableOfColumns))
+$(makeRecordPersistableWithSqlTypeDefaultFromDefined
+  [t| SqlValue |] ''Columns)
 
-$(defineRecordWithSqlTypeDefaultFromDefined
-  [t| SqlValue |] (Table.shortName Types.tableOfTypes))
+$(makeRecordPersistableWithSqlTypeDefaultFromDefined
+  [t| SqlValue |] ''Types)
 
 logPrefix :: String -> String
 logPrefix = ("SQLServer: " ++)
