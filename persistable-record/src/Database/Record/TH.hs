@@ -277,10 +277,10 @@ definePersistableInstance sqlType typeCon consFunName' decompFunName' width = do
 
 -- | All templates depending on SQL value type.
 makeRecordPersistableWithSqlType :: TypeQ              -- ^ SQL value type.
-                        -> (VarName, VarName) -- ^ Constructor function name and decompose function name.
-                        -> (TypeQ, ExpQ)      -- ^ Record type constructor and data constructor.
-                        -> Int                -- ^ Count of record columns.
-                        -> Q [Dec]            -- ^ Result declarations.
+                                 -> (VarName, VarName) -- ^ Constructor function name and decompose function name.
+                                 -> (TypeQ, ExpQ)      -- ^ Record type constructor and data constructor.
+                                 -> Int                -- ^ Count of record columns.
+                                 -> Q [Dec]            -- ^ Result declarations.
 makeRecordPersistableWithSqlType
   sqlValueType
   (cF, dF) conPair@(tyCon, _)
@@ -300,9 +300,9 @@ toSqlNameDefault =  (`varNameWithPrefix` "toSqlOf")
 
 -- | All templates depending on SQL value type with default names.
 makeRecordPersistableWithSqlTypeDefault :: TypeQ   -- ^ SQL value type
-                               -> String  -- ^ Table name of database
-                               -> Int     -- ^ Count of record columns
-                               -> Q [Dec] -- ^ Result declarations
+                                        -> String  -- ^ Table name of database
+                                        -> Int     -- ^ Count of record columns
+                                        -> Q [Dec] -- ^ Result declarations
 makeRecordPersistableWithSqlTypeDefault sqlValueType table width = do
   makeRecordPersistableWithSqlType
     sqlValueType
