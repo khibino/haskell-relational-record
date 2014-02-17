@@ -31,7 +31,8 @@ import Database.HDBC (IConnection, SqlValue)
 import Language.Haskell.TH.Name.CamelCase (ConName)
 import Language.Haskell.TH (Q, runIO, Name, TypeQ, Dec)
 
-import Database.Record.TH (makeRecordPersistableDefaultFromDefined, makeRecordPersistableWithSqlTypeDefault)
+import Database.Record.TH (makeRecordPersistableWithSqlTypeDefault)
+import qualified Database.Record.TH as Record
 import qualified Database.Relational.Query.TH as Relational
 
 import Database.HDBC.Session (withConnectionIO)
@@ -43,7 +44,13 @@ import Database.HDBC.Schema.Driver (Driver, getFields, getPrimaryKey)
 -- | Generate all persistable templates against defined record like type constructor.
 makeRecordPersistableDefault :: Name    -- ^ Type constructor name
                              -> Q [Dec] -- ^ Resutl declaration
-makeRecordPersistableDefault =  makeRecordPersistableDefaultFromDefined [t| SqlValue |]
+makeRecordPersistableDefault recTypeName = do
+  (pair@(tyCon, dataCon), cts) <- Record.reifyRecordType recTypeName
+  let width = length cts
+  pw <- Record.definePersistableWidthInstance tyCon width
+  ps <- Record.makeRecordPersistableWithSqlType [t| SqlValue |] (Record.persistableFunctionNamesDefault recTypeName) pair width
+  pc <- Relational.defineProductConstructorInstance tyCon dataCon cts
+  return $ pw ++ ps ++ pc
 
 -- | Generate all HDBC templates about table except for constraint keys using default naming rule.
 defineTableDefault' :: String            -- ^ Schema name
