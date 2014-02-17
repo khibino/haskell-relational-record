@@ -115,6 +115,7 @@ primaryUpdate :: (HasConstraintKey Primary r p)
 primaryUpdate table' = updateByConstraintKey table' (uniqueKey constraintKey)
 
 
+-- | Type for insert qeury.
 type DerivedInsertQuery r = forall p . Relation p r -> InsertQuery p
 
 -- | Capabilities derived from table.
