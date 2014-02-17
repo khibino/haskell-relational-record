@@ -48,6 +48,8 @@ module Database.Record.TH (
 
   definePersistableInstance,
 
+  reifyRecordType,
+
   -- * Record type name
   recordTypeNameDefault, recordTypeDefault,
 
@@ -316,8 +318,9 @@ recordInfo' =  d  where
     _                  -> Nothing
   d _                  =  Nothing
 
-recordInfo :: Name -> Q ((TypeQ, ExpQ), [TypeQ])
-recordInfo recTypeName = do
+-- | Low-level reify interface for record type name.
+reifyRecordType :: Name -> Q ((TypeQ, ExpQ), [TypeQ])
+reifyRecordType recTypeName = do
   tyConInfo   <- reify recTypeName
   maybe
     (compileError $ "Defined record type constructor not found: " ++ show recTypeName)
@@ -344,7 +347,7 @@ makeRecordPersistableFromDefined :: TypeQ              -- ^ SQL value type
                                  -> Name               -- ^ Record type constructor name
                                  -> Q [Dec]            -- ^ Result declarations
 makeRecordPersistableFromDefined sqlValueType fnames recTypeName = do
-  (conPair, cts) <- recordInfo recTypeName
+  (conPair, cts) <- reifyRecordType recTypeName
   makeRecordPersistable sqlValueType fnames conPair $ length cts
 
 -- | All templates against record type with default names. Defined record type information is used.
@@ -360,7 +363,7 @@ makeRecordPersistableWithSqlTypeFromDefined :: TypeQ              -- ^ SQL value
                                    -> Name               -- ^ Record type constructor name
                                    -> Q [Dec]            -- ^ Result declarations
 makeRecordPersistableWithSqlTypeFromDefined sqlValueType fnames recTypeName = do
-  (conPair, cts) <- recordInfo recTypeName
+  (conPair, cts) <- reifyRecordType recTypeName
   makeRecordPersistableWithSqlType sqlValueType fnames conPair $ length cts
 
 -- | All templates depending on SQL value type with default names. Defined record type information is used.
