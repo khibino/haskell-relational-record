@@ -16,9 +16,10 @@ import Database.HDBC.Record.Query   (runQuery)
 
 import Data.Int                     (Int64)
 import Data.Time                    (Day)
-import MySQLTestDataSource          (connect)
-import User                         (user)
-import qualified User as U
+
+import Example.DataSource           (connect)
+import Example.User                 (user)
+import qualified Example.User as U
 
 main :: IO ()
 main = handleSqlError' $ withConnectionIO connect $ \conn -> do

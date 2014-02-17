@@ -1,10 +1,10 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-module User where
+module Example.User where
 
 import Prelude hiding (id)
-import MySQLTestDataSource (defineTable)
+import Example.DataSource (defineTable)
 
 $(defineTable
     []

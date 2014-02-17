@@ -1,4 +1,4 @@
-module MySQLTestDataSource
+module Example.DataSource
     (
       config
     , connect
