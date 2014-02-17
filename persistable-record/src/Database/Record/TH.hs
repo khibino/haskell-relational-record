@@ -41,7 +41,7 @@ module Database.Record.TH (
   makeRecordPersistableDefaultFromDefined,
   makeRecordPersistableWithSqlTypeFromDefined,
   makeRecordPersistableWithSqlTypeDefaultFromDefined,
-  definePersistableWidthFromDefined,
+  definePersistableWidthInstance,
 
   defineRecordConstructFunction,
   defineRecordDecomposeFunction,
@@ -174,10 +174,10 @@ derivingTypable :: ConName
 derivingTypable = conCamelcaseName "Typable"
 
 -- | 'PersistableWidth' instance declaration.
-definePersistableWidthFromDefined :: TypeQ   -- ^ Record type constructor.
-                                  -> Int     -- ^ Count of record columns.
-                                  -> Q [Dec] -- ^ Declaration of 'PersistableWidth' instance.
-definePersistableWidthFromDefined typeCon width =
+definePersistableWidthInstance :: TypeQ   -- ^ Record type constructor.
+                               -> Int     -- ^ Count of record columns.
+                               -> Q [Dec] -- ^ Declaration of 'PersistableWidth' instance.
+definePersistableWidthInstance typeCon width =
   [d| instance PersistableWidth $typeCon where
         persistableWidth = unsafePersistableRecordWidth $(integralE width) |]
 
@@ -191,7 +191,7 @@ defineRecordType typeName' columns derives = do
       fld (n, tq) = varStrictType (varName n) (strictType isStrict tq)
   rec <- dataD (cxt []) typeName [] [recC typeName (map fld columns)] (map conName derives)
   let typeCon = toTypeCon typeName'
-  ins <- definePersistableWidthFromDefined typeCon $ length columns
+  ins <- definePersistableWidthInstance typeCon $ length columns
   return $ rec : ins
 
 -- | Generate column name from 'String'.
@@ -337,7 +337,7 @@ makeRecordPersistable :: TypeQ              -- ^ SQL value type.
                       -> Int                -- ^ Count of record columns.
                       -> Q [Dec]            -- ^ Result declarations.
 makeRecordPersistable sqlValueType fnames conPair@(tyCon, _) width = do
-  pw   <- definePersistableWidthFromDefined tyCon width
+  pw   <- definePersistableWidthInstance tyCon width
   wst  <- makeRecordPersistableWithSqlType sqlValueType fnames conPair width
   return $ pw ++ wst
 
