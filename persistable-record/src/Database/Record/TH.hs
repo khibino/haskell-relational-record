@@ -327,8 +327,8 @@ reifyRecordType recTypeName = do
     return
     (recordInfo' tyConInfo)
 
-constructorNames :: Name -> (VarName, VarName)
-constructorNames recTypeName = (fromSqlNameDefault bn, toSqlNameDefault bn)  where
+persistableFuncNamesDefault :: Name -> (VarName, VarName)
+persistableFuncNamesDefault recTypeName = (fromSqlNameDefault bn, toSqlNameDefault bn)  where
   bn = nameBase recTypeName
 
 makeRecordPersistable :: TypeQ              -- ^ SQL value type.
@@ -355,7 +355,7 @@ makeRecordPersistableDefaultFromDefined :: TypeQ   -- ^ SQL value type
                                         -> Name    -- ^ Record type constructor name
                                         -> Q [Dec] -- ^ Result declarations
 makeRecordPersistableDefaultFromDefined sqlValueType recTypeName =
-  makeRecordPersistableFromDefined sqlValueType (constructorNames recTypeName) recTypeName
+  makeRecordPersistableFromDefined sqlValueType (persistableFuncNamesDefault recTypeName) recTypeName
 
 -- | All templates depending on SQL value type. Defined record type information is used.
 makeRecordPersistableWithSqlTypeFromDefined :: TypeQ              -- ^ SQL value type
@@ -371,7 +371,7 @@ makeRecordPersistableWithSqlTypeDefaultFromDefined :: TypeQ   -- ^ SQL value typ
                                           -> Name    -- ^ Record type constructor name
                                           -> Q [Dec] -- ^ Result declarations
 makeRecordPersistableWithSqlTypeDefaultFromDefined sqlValueType recTypeName =
-  makeRecordPersistableWithSqlTypeFromDefined sqlValueType (constructorNames recTypeName) recTypeName
+  makeRecordPersistableWithSqlTypeFromDefined sqlValueType (persistableFuncNamesDefault recTypeName) recTypeName
 
 -- | All templates for record type.
 defineRecord :: TypeQ              -- ^ SQL value type
