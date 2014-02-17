@@ -306,7 +306,7 @@ makeRecordPersistableWithSqlTypeDefault :: TypeQ   -- ^ SQL value type
 makeRecordPersistableWithSqlTypeDefault sqlValueType table width = do
   makeRecordPersistableWithSqlType
     sqlValueType
-    (fromSqlNameDefault table, toSqlNameDefault table)
+    (persistableFuncNamesDefault . conName . conCamelcaseName $ table)
     (recordTypeDefault table, toDataCon . recordTypeNameDefault $ table)
     width
 
