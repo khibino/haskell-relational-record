@@ -308,15 +308,15 @@ makeRecordPersistableWithSqlTypeDefault sqlValueType table width = do
     (recordTypeDefault table, toDataCon . recordTypeNameDefault $ table)
     width
 
-recordInfo' :: Info -> Maybe ((TypeQ, ExpQ), Int)
+recordInfo' :: Info -> Maybe ((TypeQ, ExpQ), [TypeQ])
 recordInfo' =  d  where
   d (TyConI (DataD _cxt tcn _bs [r] _ds)) = case r of
-    NormalC dcn ts     -> Just ((conT tcn, conE dcn), length ts)
-    RecC    dcn vts    -> Just ((conT tcn, conE dcn), length vts)
+    NormalC dcn ts     -> Just ((conT tcn, conE dcn), [return t | (_, t) <- ts])
+    RecC    dcn vts    -> Just ((conT tcn, conE dcn), [return t | (_, _, t) <- vts])
     _                  -> Nothing
   d _                  =  Nothing
 
-recordInfo :: Name -> Q ((TypeQ, ExpQ), Int)
+recordInfo :: Name -> Q ((TypeQ, ExpQ), [TypeQ])
 recordInfo recTypeName = do
   tyConInfo   <- reify recTypeName
   maybe
@@ -344,8 +344,8 @@ makeRecordPersistableFromDefined :: TypeQ              -- ^ SQL value type
                                  -> Name               -- ^ Record type constructor name
                                  -> Q [Dec]            -- ^ Result declarations
 makeRecordPersistableFromDefined sqlValueType fnames recTypeName = do
-  (conPair, width) <- recordInfo recTypeName
-  makeRecordPersistable sqlValueType fnames conPair width
+  (conPair, cts) <- recordInfo recTypeName
+  makeRecordPersistable sqlValueType fnames conPair $ length cts
 
 -- | All templates against record type with default names. Defined record type information is used.
 makeRecordPersistableDefaultFromDefined :: TypeQ   -- ^ SQL value type
@@ -360,8 +360,8 @@ makeRecordPersistableWithSqlTypeFromDefined :: TypeQ              -- ^ SQL value
                                    -> Name               -- ^ Record type constructor name
                                    -> Q [Dec]            -- ^ Result declarations
 makeRecordPersistableWithSqlTypeFromDefined sqlValueType fnames recTypeName = do
-  (conPair, width) <- recordInfo recTypeName
-  makeRecordPersistableWithSqlType sqlValueType fnames conPair width
+  (conPair, cts) <- recordInfo recTypeName
+  makeRecordPersistableWithSqlType sqlValueType fnames conPair $ length cts
 
 -- | All templates depending on SQL value type with default names. Defined record type information is used.
 makeRecordPersistableWithSqlTypeDefaultFromDefined :: TypeQ   -- ^ SQL value type
