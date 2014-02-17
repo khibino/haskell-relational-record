@@ -50,6 +50,9 @@ module Database.Relational.Query.TH (
   -- * Derived SQL templates from table definitions
   defineSqlsWithPrimaryKey,
   defineSqlsWithPrimaryKeyDefault,
+
+  -- * Add type class instance against record type
+  defineProductConstructorInstance
   ) where
 
 import Data.Char (toUpper, toLower)
