@@ -53,6 +53,8 @@ module Database.Record.TH (
   -- * Record type name
   recordTypeNameDefault, recordTypeDefault,
 
+  persistableFunctionNamesDefault,
+
   -- * Not nullable single column type
   deriveNotNullType
   ) where
@@ -306,7 +308,7 @@ makeRecordPersistableWithSqlTypeDefault :: TypeQ   -- ^ SQL value type
 makeRecordPersistableWithSqlTypeDefault sqlValueType table width = do
   makeRecordPersistableWithSqlType
     sqlValueType
-    (persistableFuncNamesDefault . conName . conCamelcaseName $ table)
+    (persistableFunctionNamesDefault . conName . conCamelcaseName $ table)
     (recordTypeDefault table, toDataCon . recordTypeNameDefault $ table)
     width
 
@@ -327,8 +329,9 @@ reifyRecordType recTypeName = do
     return
     (recordInfo' tyConInfo)
 
-persistableFuncNamesDefault :: Name -> (VarName, VarName)
-persistableFuncNamesDefault recTypeName = (fromSqlNameDefault bn, toSqlNameDefault bn)  where
+-- | Generate persistable function symbol names using default rule.
+persistableFunctionNamesDefault :: Name -> (VarName, VarName)
+persistableFunctionNamesDefault recTypeName = (fromSqlNameDefault bn, toSqlNameDefault bn)  where
   bn = nameBase recTypeName
 
 makeRecordPersistable :: TypeQ              -- ^ SQL value type.
@@ -355,7 +358,7 @@ makeRecordPersistableDefaultFromDefined :: TypeQ   -- ^ SQL value type
                                         -> Name    -- ^ Record type constructor name
                                         -> Q [Dec] -- ^ Result declarations
 makeRecordPersistableDefaultFromDefined sqlValueType recTypeName =
-  makeRecordPersistableFromDefined sqlValueType (persistableFuncNamesDefault recTypeName) recTypeName
+  makeRecordPersistableFromDefined sqlValueType (persistableFunctionNamesDefault recTypeName) recTypeName
 
 -- | All templates depending on SQL value type. Defined record type information is used.
 makeRecordPersistableWithSqlTypeFromDefined :: TypeQ              -- ^ SQL value type
@@ -371,7 +374,7 @@ makeRecordPersistableWithSqlTypeDefaultFromDefined :: TypeQ   -- ^ SQL value typ
                                                    -> Name    -- ^ Record type constructor name
                                                    -> Q [Dec] -- ^ Result declarations
 makeRecordPersistableWithSqlTypeDefaultFromDefined sqlValueType recTypeName =
-  makeRecordPersistableWithSqlTypeFromDefined sqlValueType (persistableFuncNamesDefault recTypeName) recTypeName
+  makeRecordPersistableWithSqlTypeFromDefined sqlValueType (persistableFunctionNamesDefault recTypeName) recTypeName
 
 -- | All templates for record type.
 defineRecord :: TypeQ              -- ^ SQL value type
