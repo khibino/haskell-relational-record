@@ -8,7 +8,7 @@ module Database.Relational.Schema.MySQL
     )
     where
 
-import           Data.Int               (Int8, Int16, Int32, Int64)
+import           Data.Int               (Int32, Int64)
 import           Data.Char              (toLower, toUpper)
 import           Data.Map               (Map, fromList)
 import qualified Data.Map               as Map
@@ -54,8 +54,8 @@ mapFromSqlDefault = fromList
     , ("DATETIME",   [t| LocalTime |])
     , ("TIME",       [t| TimeOfDay |])
     , ("TIMESTAMP",  [t| POSIXTime |])
-    , ("TINYINT",    [t| Int8 |])
-    , ("SMALLINT",   [t| Int16 |])
+    , ("TINYINT",    [t| Int32 |])
+    , ("SMALLINT",   [t| Int32 |])
     , ("INT",        [t| Int32 |])
     , ("INTEGER",    [t| Int32 |])
     , ("BIGINT",     [t| Int64 |])
