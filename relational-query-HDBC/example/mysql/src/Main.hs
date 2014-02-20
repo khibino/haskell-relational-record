@@ -5,6 +5,7 @@ import Database.Relational.Query    ( query
                                     , relation
                                     , wheres
                                     , (.=.)
+                                    , (.>=.)
                                     , (!)
                                     , (><)
                                     , value
@@ -14,8 +15,7 @@ import Database.Relational.Query    ( query
 import Database.HDBC.Session        (withConnectionIO, handleSqlError')
 import Database.HDBC.Record.Query   (runQuery)
 
-import Data.Int                     (Int64)
-import Data.Time                    (Day)
+import Data.Time                    (Day, fromGregorian)
 
 import Example.DataSource           (connect)
 import Example.User                 (user)
@@ -23,13 +23,25 @@ import qualified Example.User as U
 
 main :: IO ()
 main = handleSqlError' $ withConnectionIO connect $ \conn -> do
-    r <- runQuery conn (relationalQuery test) ()
-    print r
+    printResults conn sample1
+    printResults conn sample2
     where
-        test :: Relation () (String, Day)
-        test = relation
+        printResults c q = runQuery c (relationalQuery q) () >>= print
+
+        sample1 :: Relation () (String, Day)
+        sample1 = relation
             [ u ! U.name' >< u ! U.createdAt'
             | u  <- query user
-            , () <- wheres $ u ! U.id' .=. value (1 :: Int64)
+            , () <- wheres $ u ! U.completed' .=. value 1
             ]
+
+        sample2 :: Relation () (String, Day)
+        sample2 = relation
+            [ u ! U.email' >< u ! U.createdAt'
+            | u  <- query user
+            , () <- wheres $ u ! U.completed' .=.  value 1
+            , () <- wheres $ u ! U.createdAt' .>=. value (day 2014 2 10)
+            ]
+
+        day = fromGregorian
 
