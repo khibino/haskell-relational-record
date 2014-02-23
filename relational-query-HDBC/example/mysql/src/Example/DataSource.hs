@@ -6,7 +6,7 @@ module Example.DataSource
     )
     where
 
-import Language.Haskell.TH                  (Q, Dec, TypeQ)
+import Language.Haskell.TH                  (Q, Dec, TypeQ, runQ, runIO)
 import Language.Haskell.TH.Name.CamelCase   (ConName)
 
 import Database.HDBC.Query.TH               (defineTableFromDB)
@@ -16,6 +16,7 @@ import Database.HDBC.MySQL                  ( Connection
                                             , connectMySQL
                                             , MySQLConnectInfo(..)
                                             , defaultMySQLConnectInfo
+                                            , withRTSSignalsBlocked
                                             )
 
 {-# ANN module "HLint: ignore Eta reduce" #-}
@@ -32,5 +33,5 @@ connect :: IO Connection
 connect = connectMySQL config
 
 defineTable :: [(String, TypeQ)] -> String -> String -> [ConName] -> Q [Dec]
-defineTable tmap scm tbl derives =
+defineTable tmap scm tbl derives = runIO $ withRTSSignalsBlocked $ runQ $
     defineTableFromDB connect (driverMySQL { typeMap = tmap }) scm tbl derives
