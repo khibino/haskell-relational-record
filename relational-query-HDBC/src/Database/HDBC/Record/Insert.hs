@@ -14,7 +14,7 @@
 module Database.HDBC.Record.Insert (
   PreparedInsert, prepare, prepareInsert,
 
-  runPreparedInsert, runInsert
+  runPreparedInsert, runInsert, mapInsert
   ) where
 
 import Database.HDBC (IConnection, SqlValue)
@@ -23,7 +23,7 @@ import Database.Relational.Query (Insert)
 import Database.Record (ToSql)
 
 import Database.HDBC.Record.Statement
-  (prepareNoFetch, PreparedStatement, runPreparedNoFetch, runNoFetch)
+  (prepareNoFetch, PreparedStatement, runPreparedNoFetch, runNoFetch, mapNoFetch)
 
 
 -- | Typed prepared insert type.
@@ -58,3 +58,11 @@ runInsert :: (IConnection conn, ToSql SqlValue a)
           -> a
           -> IO Integer
 runInsert =  runNoFetch
+
+-- | Prepare and insert each record.
+mapInsert :: (IConnection conn, ToSql SqlValue a)
+          => conn
+          -> Insert a
+          -> [a]
+          -> IO [Integer]
+mapInsert = mapNoFetch

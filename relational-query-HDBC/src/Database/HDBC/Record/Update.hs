@@ -14,7 +14,7 @@
 module Database.HDBC.Record.Update (
   PreparedUpdate, prepare, prepareUpdate,
 
-  runPreparedUpdate, runUpdate
+  runPreparedUpdate, runUpdate, mapUpdate
   ) where
 
 import Database.HDBC (IConnection, SqlValue)
@@ -23,7 +23,7 @@ import Database.Relational.Query (Update)
 import Database.Record (ToSql)
 
 import Database.HDBC.Record.Statement
-  (prepareNoFetch, PreparedStatement, runPreparedNoFetch, runNoFetch)
+  (prepareNoFetch, PreparedStatement, runPreparedNoFetch, runNoFetch, mapNoFetch)
 
 
 -- | Typed prepared update type.
@@ -58,3 +58,11 @@ runUpdate :: (IConnection conn, ToSql SqlValue p)
           -> p
           -> IO Integer
 runUpdate =  runNoFetch
+
+-- | Prepare and update with each parameter list.
+mapUpdate :: (IConnection conn, ToSql SqlValue a)
+          => conn
+          -> Update a
+          -> [a]
+          -> IO [Integer]
+mapUpdate = mapNoFetch
