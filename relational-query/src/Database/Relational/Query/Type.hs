@@ -67,7 +67,7 @@ relationalQuery =  (`relationalQuery'` [])
 
 -- | Update type with key type 'p' and update record type 'a'.
 --   Columns to update are record columns other than key columns,
---   So all place-holder correspond to record type 'a' columns.
+--   So place-holder parameter type is the same as record type 'a'.
 data KeyUpdate p a = KeyUpdate { updateKey :: Pi a p
                                , untypeKeyUpdate :: String
                                }
