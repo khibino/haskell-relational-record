@@ -19,11 +19,11 @@ module Database.HDBC.Record.Update (
 
 import Database.HDBC (IConnection, SqlValue)
 
-import Database.Relational.Query (Update, untypeUpdate)
+import Database.Relational.Query (Update)
 import Database.Record (ToSql)
 
 import Database.HDBC.Record.Statement
-  (unsafePrepare, PreparedStatement, runPreparedNoFetch)
+  (prepareNoFetch, PreparedStatement, runPreparedNoFetch, runNoFetch)
 
 
 -- | Typed prepared update type.
@@ -34,7 +34,7 @@ prepare :: IConnection conn
         => conn
         -> Update p
         -> IO (PreparedUpdate p)
-prepare conn = unsafePrepare conn . untypeUpdate
+prepare =  prepareNoFetch
 
 -- | Same as 'prepare'.
 prepareUpdate :: IConnection conn
@@ -57,4 +57,4 @@ runUpdate :: (IConnection conn, ToSql SqlValue p)
           -> Update p
           -> p
           -> IO Integer
-runUpdate conn q p = prepareUpdate conn q >>= (`runPreparedUpdate` p)
+runUpdate =  runNoFetch

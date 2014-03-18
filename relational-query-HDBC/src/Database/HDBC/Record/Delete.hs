@@ -19,11 +19,11 @@ module Database.HDBC.Record.Delete (
 
 import Database.HDBC (IConnection, SqlValue)
 
-import Database.Relational.Query (Delete, untypeDelete)
+import Database.Relational.Query (Delete)
 import Database.Record (ToSql)
 
 import Database.HDBC.Record.Statement
-  (unsafePrepare, PreparedStatement, runPreparedNoFetch)
+  (prepareNoFetch, PreparedStatement, runPreparedNoFetch, runNoFetch)
 
 
 -- | Typed prepared delete type.
@@ -34,7 +34,7 @@ prepare :: IConnection conn
         => conn
         -> Delete p
         -> IO (PreparedDelete p)
-prepare conn = unsafePrepare conn . untypeDelete
+prepare =  prepareNoFetch
 
 -- | Same as 'prepare'.
 prepareDelete :: IConnection conn
@@ -57,4 +57,4 @@ runDelete :: (IConnection conn, ToSql SqlValue p)
           -> Delete p
           -> p
           -> IO Integer
-runDelete conn q p =  prepareDelete conn q >>= (`runPreparedDelete` p)
+runDelete =  runNoFetch
