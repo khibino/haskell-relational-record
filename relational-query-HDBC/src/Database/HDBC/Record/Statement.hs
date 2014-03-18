@@ -18,9 +18,10 @@ module Database.HDBC.Record.Statement (
 
   ExecutedStatement, executed, result, execute,
 
-  executeNoFetch, runPreparedNoFetch
+  prepareNoFetch, executeNoFetch, runPreparedNoFetch, runNoFetch, mapNoFetch
   ) where
 
+import Database.Relational.Query (UntypeableNoFetch (untypeNoFetch))
 import Database.HDBC (IConnection, Statement, SqlValue)
 import qualified Database.HDBC as HDBC
 
@@ -60,6 +61,13 @@ unsafePrepare :: IConnection conn
               -> IO (PreparedStatement p a) -- ^ Result typed prepared query with parameter type 'p' and result type 'a'
 unsafePrepare conn = fmap PreparedStatement . HDBC.prepare conn
 
+-- | Generalized prepare inferred from 'UntypeableNoFetch' instance.
+prepareNoFetch :: (UntypeableNoFetch s, IConnection conn)
+               => conn
+               -> s p
+               -> IO (PreparedStatement p ())
+prepareNoFetch conn = unsafePrepare conn . untypeNoFetch
+
 -- | Typed operation to bind parameters.
 bind' :: RecordToSql SqlValue p -- ^ Proof object to convert from parameter type 'p' into 'SqlValue' list.
       -> PreparedStatement p a  -- ^ Prepared query to bind to
@@ -92,3 +100,20 @@ runPreparedNoFetch :: ToSql SqlValue a
                   -> a
                   -> IO Integer
 runPreparedNoFetch p = executeNoFetch . (p `bind`)
+
+runNoFetch :: (UntypeableNoFetch s, IConnection conn, ToSql SqlValue a)
+           => conn
+           -> s a
+           -> a
+           -> IO Integer
+runNoFetch conn s p = prepareNoFetch conn s >>= (`runPreparedNoFetch` p)
+
+-- | Prepare and run it against each parameter list.
+mapNoFetch :: (UntypeableNoFetch s, IConnection conn, ToSql SqlValue a)
+           => conn
+           -> s a
+           -> [a]
+           -> IO [Integer]
+mapNoFetch conn s rs = do
+  ps <- prepareNoFetch conn s
+  mapM (runPreparedNoFetch ps) rs
