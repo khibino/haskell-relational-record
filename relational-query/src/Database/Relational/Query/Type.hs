@@ -24,7 +24,10 @@ module Database.Relational.Query.Type (
   InsertQuery (..), unsafeTypedInsertQuery, typedInsertQuery,
 
   -- * Typed delete statement
-  Delete (..), unsafeTypedDelete, typedDelete, restrictedDelete
+  Delete (..), unsafeTypedDelete, typedDelete, restrictedDelete,
+
+  -- * Generalized interfaces
+  UntypableNofetch (..)
   ) where
 
 import Database.Record (PersistableWidth)
@@ -173,3 +176,18 @@ restrictedDelete tbl = typedDelete tbl . restriction'
 -- | Show delete SQL string
 instance Show (Delete p) where
   show = untypeDelete
+
+
+-- | Untype interface for typed no-result type statments
+--   with single type parameter which represents place-holder parameter 'p'.
+class UntypableNofetch s where
+  untypeNofetch :: s p -> String
+
+instance UntypableNofetch Insert where
+  untypeNofetch = untypeInsert
+
+instance UntypableNofetch Update where
+  untypeNofetch = untypeUpdate
+
+instance UntypableNofetch Delete where
+  untypeNofetch = untypeDelete
