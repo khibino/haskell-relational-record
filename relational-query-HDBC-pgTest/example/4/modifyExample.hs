@@ -30,8 +30,7 @@ runInsertStocks :: [Stock] -> IO ()
 runInsertStocks ss = handleConnectionIO connect $ \conn -> do
   let q =  insertStock
   putStrLn $ "SQL: " ++ show q
-  ps   <- prepareInsert conn q
-  rvs  <- mapM (runPreparedInsert ps) ss
+  rvs  <- mapInsert conn q ss
   print rvs
   commit conn
 
