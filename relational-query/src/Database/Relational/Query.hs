@@ -78,7 +78,8 @@ import Database.Relational.Query.Type
    typedUpdateAllColumn, restricredUpdateAllColumn,
    Insert, untypeInsert, typedInsert,
    InsertQuery, untypeInsertQuery, typedInsertQuery,
-   Delete, untypeDelete, typedDelete, restrictedDelete)
+   Delete, untypeDelete, typedDelete, restrictedDelete,
+   UntypeableNoFetch (..))
 import Database.Relational.Query.Restriction
 import Database.Relational.Query.Derives
   hiding (specifyTableDerivation', specifyTableDerivation)
