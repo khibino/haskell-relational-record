@@ -101,6 +101,7 @@ runPreparedNoFetch :: ToSql SqlValue a
                   -> IO Integer
 runPreparedNoFetch p = executeNoFetch . (p `bind`)
 
+-- | Prepare and run sequence for polymorphic no-fetch statement.
 runNoFetch :: (UntypeableNoFetch s, IConnection conn, ToSql SqlValue a)
            => conn
            -> s a
