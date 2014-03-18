@@ -41,7 +41,7 @@ prepareUpdate :: IConnection conn
               => conn
               -> Update p
               -> IO (PreparedUpdate p)
-prepareUpdate = prepare
+prepareUpdate =  prepare
 
 -- | Bind parameters, execute statement and get execution result.
 runPreparedUpdate :: ToSql SqlValue p

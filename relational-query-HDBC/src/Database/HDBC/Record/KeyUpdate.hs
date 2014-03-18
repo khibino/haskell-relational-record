@@ -57,7 +57,7 @@ prepareKeyUpdate :: IConnection conn
                  => conn
                  -> KeyUpdate p a
                  -> IO (PreparedKeyUpdate p a)
-prepareKeyUpdate = prepare
+prepareKeyUpdate =  prepare
 
 -- | Typed operation to bind parameters for 'PreparedKeyUpdate' type.
 bindKeyUpdate :: ToSql SqlValue a

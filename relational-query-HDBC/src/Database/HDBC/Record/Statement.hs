@@ -55,9 +55,9 @@ data ExecutedStatement a =
 
 -- | Run prepare and unsafely make Typed prepared statement.
 unsafePrepare :: IConnection conn
-        => conn                   -- ^ Database connection
-        -> String              -- ^ Raw SQL String
-        -> IO (PreparedStatement p a) -- ^ Result typed prepared query with parameter type 'p' and result type 'a'
+              => conn                       -- ^ Database connection
+              -> String                     -- ^ Raw SQL String
+              -> IO (PreparedStatement p a) -- ^ Result typed prepared query with parameter type 'p' and result type 'a'
 unsafePrepare conn = fmap PreparedStatement . HDBC.prepare conn
 
 -- | Typed operation to bind parameters.
