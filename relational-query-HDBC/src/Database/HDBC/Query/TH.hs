@@ -20,19 +20,24 @@ module Database.HDBC.Query.TH (
   defineTableDefault',
   defineTableDefault,
 
-  defineTableFromDB
+  defineTableFromDB,
+
+  inlineVerifiedQuery
   ) where
 
 import Data.Maybe (listToMaybe, isJust, catMaybes)
 import qualified Data.Map as Map
 
-import Database.HDBC (IConnection, SqlValue)
+import Database.HDBC (IConnection, SqlValue, prepare)
 
 import Language.Haskell.TH.Name.CamelCase (ConName)
 import Language.Haskell.TH (Q, runIO, Name, TypeQ, Dec)
+import Language.Haskell.TH.Name.CamelCase (varCamelcaseName)
 
 import Database.Record.TH (makeRecordPersistableWithSqlTypeDefault)
 import qualified Database.Record.TH as Record
+import Database.Relational.Query (Relation, Config, sqlFromRelationWith)
+import Database.Relational.Query.SQL (QuerySuffix, showsQuerySuffix)
 import qualified Database.Relational.Query.TH as Relational
 
 import Database.HDBC.Session (withConnectionIO)
@@ -113,3 +118,21 @@ defineTableFromDB connect drv scm tbl derives = do
 
   (cols, notNullIdxs, primaryIxs) <- runIO getDBinfo
   defineTableDefault scm tbl cols derives primaryIxs (listToMaybe notNullIdxs)
+
+-- | Verify composed 'Query' and inline it in compile type.
+inlineVerifiedQuery :: IConnection conn
+                    => IO conn      -- ^ Connect action to system catalog database
+                    -> Name         -- ^ Top-level variable name which has 'Relation' type
+                    -> Relation p r -- ^ Object which has 'Relation' type
+                    -> Config       -- ^ Configuration to generate SQL
+                    -> QuerySuffix  -- ^ suffix SQL words
+                    -> String       -- ^ Variable name to define as inlined query
+                    -> Q [Dec]      -- ^ Result declarations
+inlineVerifiedQuery connect relVar rel config sufs qns = do
+  (p, r) <- Relational.reifyRelation relVar
+  let sql = sqlFromRelationWith rel config . showsQuerySuffix sufs $ ""
+  runIO $ withConnectionIO connect
+    (\conn -> do
+        _ <- prepare conn sql
+        return ())
+  Relational.unsafeInlineQuery (return p) (return r) (sqlFromRelationWith rel config . showsQuerySuffix sufs $ "") (varCamelcaseName qns)
