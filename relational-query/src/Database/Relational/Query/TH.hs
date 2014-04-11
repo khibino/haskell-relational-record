@@ -20,6 +20,7 @@ module Database.Relational.Query.TH (
   defineTableDefault,
 
   -- * Inlining typed 'Query'
+  unsafeInlineQuery,
   inlineQuery,
 
   -- * Column projections and basic 'Relation' for Haskell record
@@ -52,14 +53,17 @@ module Database.Relational.Query.TH (
   defineSqlsWithPrimaryKeyDefault,
 
   -- * Add type class instance against record type
-  defineProductConstructorInstance
+  defineProductConstructorInstance,
+
+  -- * Reify
+  reifyRelation
   ) where
 
 import Data.Char (toUpper, toLower)
 import Data.List (foldl1')
 
 import Language.Haskell.TH
-  (Q, reify, Info (VarI), TypeQ, Type (AppT, ConT), ExpQ,
+  (Name, Q, reify, Info (VarI), TypeQ, Type (AppT, ConT), ExpQ,
    tupleT, appT, arrowT, Dec, stringE, listE)
 import Language.Haskell.TH.Name.CamelCase
   (VarName, varName, ConName, varNameWithPrefix, varCamelcaseName, toVarExp, toTypeCon, toDataCon)
@@ -81,6 +85,7 @@ import Database.Relational.Query
 import Database.Relational.Query.Scalar (defineScalarDegree)
 import Database.Relational.Query.Constraint (Key, unsafeDefineConstraintKey)
 import qualified Database.Relational.Query.Table as Table
+import Database.Relational.Query.SQL (QuerySuffix, showsQuerySuffix)
 import Database.Relational.Query.Type (unsafeTypedQuery)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Relational.Query.Derives
@@ -388,21 +393,35 @@ defineTableDefault schema table columns derives primaryIxs mayNotNullIdx = do
   return $ tblD ++ primD ++ nnD
 
 
--- | Inlining composed 'Query' in compile type.
-inlineQuery :: VarName      -- ^ Top-level variable name which has 'Relation' type
-            -> Relation p r -- ^ Object which has 'Relation' type
-            -> Config       -- ^ Configuration to generate SQL
-            -> VarName      -- ^ Variable name for inlined query
-            -> Q [Dec]      -- ^ Result declarations
-inlineQuery relVar' rel config qVar' =  do
-  let relVar = varName relVar'
-      qVar   = varName qVar'
+-- | Unsafely inlining SQL string 'Query' in compile type.
+unsafeInlineQuery :: TypeQ   -- ^ Query parameter type
+                  -> TypeQ   -- ^ Query result type
+                  -> String  -- ^ SQL string query to inline
+                  -> VarName -- ^ Variable name for inlined query
+                  -> Q [Dec] -- ^ Result declarations
+unsafeInlineQuery p r sql qVar' =
+  simpleValD (varName qVar')
+    [t| Query $p $r |]
+    [|  unsafeTypedQuery $(stringE sql) |]
+
+-- | Extract param type and result type from defined Relation
+reifyRelation :: Name           -- ^ Variable name which has Relation type
+              -> Q (Type, Type) -- ^ Extracted param type and result type from Relation type
+reifyRelation relVar = do
   relInfo <- reify relVar
   case relInfo of
     VarI _ (AppT (AppT (ConT prn) p) r) _ _
-      | prn == ''Relation    -> do
-        simpleValD qVar
-          [t| Query $(return p) $(return r) |]
-          [|  unsafeTypedQuery $(stringE . sqlFromRelationWith rel config $ "") |]
-    _                             ->
+      | prn == ''Relation    ->  return (p, r)
+    _                        ->
       compileError $ "expandRelation: Variable must have Relation type: " ++ show relVar
+
+-- | Inlining composed 'Query' in compile type.
+inlineQuery :: Name         -- ^ Top-level variable name which has 'Relation' type
+            -> Relation p r -- ^ Object which has 'Relation' type
+            -> Config       -- ^ Configuration to generate SQL
+            -> QuerySuffix  -- ^ suffix SQL words
+            -> String       -- ^ Variable name to define as inlined query
+            -> Q [Dec]      -- ^ Result declarations
+inlineQuery relVar rel config sufs qns = do
+  (p, r) <- reifyRelation relVar
+  unsafeInlineQuery (return p) (return r) (sqlFromRelationWith rel config . showsQuerySuffix sufs $ "") (varCamelcaseName qns)
