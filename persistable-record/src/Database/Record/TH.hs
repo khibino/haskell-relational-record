@@ -46,6 +46,7 @@ module Database.Record.TH (
 
   definePersistableInstance,
 
+  -- * Reify
   reifyRecordType,
 
   -- * Record type name
