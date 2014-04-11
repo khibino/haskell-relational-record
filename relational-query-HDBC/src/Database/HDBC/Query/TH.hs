@@ -131,8 +131,8 @@ inlineVerifiedQuery :: IConnection conn
 inlineVerifiedQuery connect relVar rel config sufs qns = do
   (p, r) <- Relational.reifyRelation relVar
   let sql = sqlFromRelationWith rel config . showsQuerySuffix sufs $ ""
-  runIO $ withConnectionIO connect
-    (\conn -> do
-        _ <- prepare conn sql
-        return ())
-  Relational.unsafeInlineQuery (return p) (return r) (sqlFromRelationWith rel config . showsQuerySuffix sufs $ "") (varCamelcaseName qns)
+  _ <- runIO $ withConnectionIO connect
+       (\conn -> do
+           putLog $ "Verify with prepare: " ++ sql
+           prepare conn sql)
+  Relational.unsafeInlineQuery (return p) (return r) sql (varCamelcaseName qns)
