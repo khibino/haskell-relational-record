@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleContexts #-}
 
 import QueryExample
@@ -16,7 +17,13 @@ import Database.HDBC.Record.Statement
 import Database.HDBC.Record.Query
   (runQuery, prepare, fetchUnique, fetchUnique')
 import Database.HDBC.Session (withConnectionIO, handleSqlError')
+import Database.HDBC.Query.TH (inlineVerifiedQuery)
 
+
+-- HDBC.PostgreSQL driver doesn't call DB check.
+$(inlineVerifiedQuery connect
+  'userGroup2Fail userGroup2Fail
+  defaultConfig [] "queryUserGroup2Fail")
 
 runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a, ToSql SqlValue p)
             => conn -> Relation p a -> p -> IO ()
