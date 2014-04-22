@@ -27,7 +27,8 @@ Executable example1
                        User
                        Group
                        Membership
-  main-is:             queryExample.hs
+                       QueryExample
+  main-is:             run.hs
   hs-source-dirs:      example/1, example
   ghc-options:         -Wall
 
