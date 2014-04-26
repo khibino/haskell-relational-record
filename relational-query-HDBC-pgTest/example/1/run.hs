@@ -12,10 +12,9 @@ import User (User)
 import Group (Group)
 
 import PgTestDataSource (connect)
-import Database.HDBC.Record.Statement
-  (ExecutedStatement, bindTo, execute)
-import Database.HDBC.Record.Query
-  (runQuery, prepare, fetchUnique, fetchUnique')
+import Database.HDBC.Record
+  (ExecutedStatement, bindTo, execute
+  ,runQuery, prepareQuery, fetchUnique, fetchUnique')
 import Database.HDBC.Session (withConnectionIO, handleSqlError')
 import Database.HDBC.Query.TH (inlineVerifiedQuery)
 
@@ -63,7 +62,7 @@ runU :: Show a => (ExecutedStatement (User, Group) -> IO a) -> IO ()
 runU f = handleSqlError' $ withConnectionIO connect
         (\conn -> do
             putStrLn $ "SQL: " ++ show userGroupU
-            pq <- prepare conn (relationalQuery userGroupU)
+            pq <- prepareQuery conn (relationalQuery userGroupU)
             let bs = ("Kei Hibino", "Haskell") `bindTo` pq
             es <- execute bs
             r  <- f es
