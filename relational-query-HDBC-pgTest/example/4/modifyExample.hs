@@ -4,12 +4,7 @@ import Prelude hiding (seq)
 import Database.HDBC (IConnection, SqlValue, commit)
 import Database.Record
 import Database.Relational.Query
-import Database.HDBC.Record.Query
-import Database.HDBC.Record.Insert
-import Database.HDBC.Record.InsertQuery
-import Database.HDBC.Record.Update
-import Database.HDBC.Record.KeyUpdate
-import Database.HDBC.Record.Delete
+import Database.HDBC.Record
 import Database.HDBC.Session
 import Stock
 import PgTestDataSource
