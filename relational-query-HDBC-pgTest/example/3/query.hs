@@ -14,7 +14,7 @@ import qualified SetB
 import History (History (History), history)
 
 import PgTestDataSource (connect)
-import Database.HDBC.Record.Query (runQuery)
+import Database.HDBC.Record (runQuery)
 import Database.HDBC.Session (withConnectionIO, handleSqlError')
 
 qa' :: Relation () (Int32, String)
