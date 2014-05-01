@@ -27,6 +27,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy as LT
+import Text.Printf (PrintfArg, printf)
 import Data.Time (FormatTime, Day, TimeOfDay, LocalTime, formatTime)
 import System.Locale (defaultTimeLocale)
 
@@ -113,6 +114,20 @@ instance ShowConstantTermsSQL Bool where
   showConstantTermsSQL = (:[]) . d  where
     d True  = "(0=0)"
     d False = "(0=1)"
+
+floatTerms :: (PrintfArg a, Ord a, Num a)=> a -> [String]
+floatTerms f = (:[]) $ printf fmt f  where
+  fmt
+    | f >= 0    = "%f"
+    | otherwise = "(%f)"
+
+-- | Constant SQL terms of 'Float'. Caution for floating-point error rate.
+instance ShowConstantTermsSQL Float where
+  showConstantTermsSQL = floatTerms
+
+-- | Constant SQL terms of 'Double'. Caution for floating-point error rate.
+instance ShowConstantTermsSQL Double where
+  showConstantTermsSQL = floatTerms
 
 constantTimeTerms :: FormatTime t => Keyword -> String -> t -> [String]
 constantTimeTerms kw fmt t = [unwords [wordShow kw,
