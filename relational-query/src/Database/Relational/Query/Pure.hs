@@ -133,12 +133,15 @@ constantTimeTerms :: FormatTime t => Keyword -> String -> t -> [String]
 constantTimeTerms kw fmt t = [unwords [wordShow kw,
                                        stringExprSQL $ formatTime defaultTimeLocale fmt t]]
 
+-- | Constant SQL terms of 'Day'.
 instance ShowConstantTermsSQL Day where
   showConstantTermsSQL = constantTimeTerms DATE "%Y-%m-%d"
 
+-- | Constant SQL terms of 'TimeOfDay'.
 instance ShowConstantTermsSQL TimeOfDay where
   showConstantTermsSQL = constantTimeTerms TIME "%H:%M:%S"
 
+-- | Constant SQL terms of 'LocalTime'.
 instance ShowConstantTermsSQL LocalTime where
   showConstantTermsSQL = constantTimeTerms TIMESTAMP "%Y-%m-%d %H:%M:%S"
 
