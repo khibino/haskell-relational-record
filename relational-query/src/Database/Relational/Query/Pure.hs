@@ -22,9 +22,11 @@ module Database.Relational.Query.Pure (
 
 import Data.Int (Int16, Int32, Int64)
 import Data.ByteString (ByteString)
+import qualified Data.ByteString.Lazy as LB
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import qualified Data.Text.Lazy as LT
 import Data.Time (FormatTime, Day, TimeOfDay, LocalTime, formatTime)
 import System.Locale (defaultTimeLocale)
 
@@ -90,9 +92,17 @@ instance ShowConstantTermsSQL String where
 instance ShowConstantTermsSQL ByteString where
   showConstantTermsSQL = stringTermsSQL . T.unpack . T.decodeUtf8
 
+-- | Constant SQL terms of 'LB.ByteString'.
+instance ShowConstantTermsSQL LB.ByteString where
+  showConstantTermsSQL = showConstantTermsSQL . LB.toStrict
+
 -- | Constant SQL terms of 'Text'.
 instance ShowConstantTermsSQL Text where
   showConstantTermsSQL = stringTermsSQL . T.unpack
+
+-- | Constant SQL terms of 'LT.Text'.
+instance ShowConstantTermsSQL LT.Text where
+  showConstantTermsSQL = showConstantTermsSQL . LT.toStrict
 
 -- | Constant SQL terms of 'Char'.
 instance ShowConstantTermsSQL Char where
