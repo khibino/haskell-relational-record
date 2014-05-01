@@ -22,9 +22,9 @@ module Database.Relational.Query.Pure (
 
 import Data.Int (Int16, Int32, Int64)
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as BS
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import Data.Time (FormatTime, Day, TimeOfDay, LocalTime, formatTime)
 import System.Locale (defaultTimeLocale)
 
@@ -88,7 +88,7 @@ instance ShowConstantTermsSQL String where
 
 -- | Constant SQL terms of 'ByteString'.
 instance ShowConstantTermsSQL ByteString where
-  showConstantTermsSQL = stringTermsSQL . BS.unpack  -- UTF-8 conversion needed?
+  showConstantTermsSQL = stringTermsSQL . T.unpack . T.decodeUtf8
 
 -- | Constant SQL terms of 'Text'.
 instance ShowConstantTermsSQL Text where
