@@ -29,7 +29,6 @@ import Database.Relational.Query.Expr.Unsafe (Expr(Expr), showExpr)
 import Database.Relational.Query.Pure (ShowConstantTermsSQL (showConstantTermsSQL))
 import Database.Relational.Query.Internal.String (paren, sqlRowString)
 
-import qualified Language.SQL.Keyword as SQL
 import qualified Language.SQL.Keyword.ConcatString as SQLs
 
 
@@ -53,4 +52,4 @@ fromJust =  unsafeCastExpr
 
 -- | AND operator for 'Expr'.
 exprAnd :: Expr p Bool -> Expr p Bool -> Expr p Bool
-exprAnd a b = Expr . paren $ SQLs.defineBinOp SQL.AND (showExpr a) (showExpr b)
+exprAnd a b = Expr . paren $ SQLs.and (showExpr a) (showExpr b)
