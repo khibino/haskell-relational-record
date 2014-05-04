@@ -1,7 +1,7 @@
 #! /bin/sh
 
-create_stock_table='
-CREATE TABLE EXAMPLE4.stock (
+create_stock_goods_table='
+CREATE TABLE EXAMPLE4.stock_goods (
  seq  INTEGER NOT NULL,
  name VARCHAR(30) NOT NULL,
  unit INTEGER NOT NULL,
@@ -14,4 +14,4 @@ CREATE TABLE EXAMPLE4.stock (
 set -x
 
 psql -c "CREATE SCHEMA EXAMPLE4" testdb
-psql -c "$create_stock_table" testdb
+psql -c "$create_stock_goods_table" testdb

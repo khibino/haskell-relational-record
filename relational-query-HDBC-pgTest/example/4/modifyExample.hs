@@ -6,24 +6,24 @@ import Database.Record
 import Database.Relational.Query
 import Database.HDBC.Record
 import Database.HDBC.Session
-import Stock
+import StockGoods
 import PgTestDataSource
 
 import Data.Int (Int32)
 
-stocks0 :: [Stock]
-stocks0 =  [ Stock 1 "Apple"  110 40
-           , Stock 2 "Orange" 150 30
-           , Stock 3 "Banana" 90  15
-           , Stock 4 "Cherry" 200 5
+stocks0 :: [StockGoods]
+stocks0 =  [ StockGoods 1 "Apple"  110 40
+           , StockGoods 2 "Orange" 150 30
+           , StockGoods 3 "Banana" 90  15
+           , StockGoods 4 "Cherry" 200 5
            ]
 
 handleConnectionIO :: IConnection conn => IO conn -> (conn -> IO a) -> IO a
 handleConnectionIO c p = handleSqlError' $ withConnectionIO c p
 
-runInsertStocks :: [Stock] -> IO ()
+runInsertStocks :: [StockGoods] -> IO ()
 runInsertStocks ss = handleConnectionIO connect $ \conn -> do
-  let q =  insertStock
+  let q =  insertStockGoods
   putStrLn $ "SQL: " ++ show q
   rvs  <- mapInsert conn q ss
   print rvs
@@ -33,19 +33,19 @@ runInsertStocks0 :: IO ()
 runInsertStocks0 =  runInsertStocks stocks0
 
 
-pine :: Relation () Stock
+pine :: Relation () StockGoods
 pine =  relation $ do
-  return $ Stock |$| value 6 |*| value "Pine" |*| value 300 |*| value 3
+  return $ StockGoods |$| value 6 |*| value "Pine" |*| value 300 |*| value 3
 
 insertPine :: InsertQuery ()
-insertPine =  typedInsertQuery tableOfStock pine
+insertPine =  typedInsertQuery tableOfStockGoods pine
 
-fig :: Relation () Stock
+fig :: Relation () StockGoods
 fig =  relation $ do
-  return $ Stock |$| value 7 |*| value "Fig" |*| value 200 |*| value 13
+  return $ StockGoods |$| value 7 |*| value "Fig" |*| value 200 |*| value 13
 
 insertFig :: InsertQuery ()
-insertFig =  insertQueryStock fig
+insertFig =  insertQueryStockGoods fig
 
 runInsertQuery1 :: InsertQuery () -> IO ()
 runInsertQuery1 ins = handleConnectionIO connect $ \conn -> do
@@ -53,16 +53,16 @@ runInsertQuery1 ins = handleConnectionIO connect $ \conn -> do
   commit conn
 
 riseOfBanana :: Update ()
-riseOfBanana =  typedUpdate tableOfStock . updateTarget $ \tbl proj -> do
+riseOfBanana =  typedUpdate tableOfStockGoods . updateTarget $ \tbl proj -> do
   tbl !# unit' <-# proj ! unit' .*. value 2
   wheres $ proj ! name' .=. value "Banana"
 
 
-newCherry :: Stock
-newCherry =  Stock 5 "Black Cherry" 190 50
+newCherry :: StockGoods
+newCherry =  StockGoods 5 "Black Cherry" 190 50
 
-updateCherry :: Update (Stock, (Int32, String))
-updateCherry =  typedUpdate tableOfStock . updateTargetAllColumn' $ \proj -> do
+updateCherry :: Update (StockGoods, (Int32, String))
+updateCherry =  typedUpdate tableOfStockGoods . updateTargetAllColumn' $ \proj -> do
   (ph', ()) <- placeholder (\ph -> wheres $ proj ! (seq' >< name') .=. ph)
   return ph'
 
@@ -73,11 +73,11 @@ runUpdateAndPrint u p = handleConnectionIO connect $ \conn -> do
   print rv
   commit conn
 
-newOrange :: Stock
-newOrange =  Stock 2 "Orange" 150 10
+newOrange :: StockGoods
+newOrange =  StockGoods 2 "Orange" 150 10
 
-keyUpdateUidName :: KeyUpdate (Int32, String) Stock
-keyUpdateUidName =  typedKeyUpdate tableOfStock (seq' >< name')
+keyUpdateUidName :: KeyUpdate (Int32, String) StockGoods
+keyUpdateUidName =  typedKeyUpdate tableOfStockGoods (seq' >< name')
 
 runKeyUpdateAndPrint :: ToSql SqlValue a => KeyUpdate p a -> a -> IO ()
 runKeyUpdateAndPrint ku r = handleConnectionIO connect $ \conn -> do
@@ -86,14 +86,14 @@ runKeyUpdateAndPrint ku r = handleConnectionIO connect $ \conn -> do
   print rv
   commit conn
 
-allStock :: IO [Stock]
+allStock :: IO [StockGoods]
 allStock =  handleConnectionIO connect $ \conn -> do
   let q = stock
   putStrLn $ "SQL: " ++ show q
   runQuery' conn (relationalQuery q) ()
 
 deleteStock :: Delete Int32
-deleteStock =  typedDelete tableOfStock . restriction' $ \proj -> do
+deleteStock =  typedDelete tableOfStockGoods . restriction' $ \proj -> do
   (ph', ()) <- placeholder (\ph -> wheres $ proj ! seq' .=. ph)
   return ph'
 
