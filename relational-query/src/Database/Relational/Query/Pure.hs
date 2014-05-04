@@ -22,9 +22,12 @@ module Database.Relational.Query.Pure (
 
 import Data.Int (Int16, Int32, Int64)
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.Lazy as LB
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
+import qualified Data.Text.Lazy as LT
+import Text.Printf (PrintfArg, printf)
 import Data.Time (FormatTime, Day, TimeOfDay, LocalTime, formatTime)
 import System.Locale (defaultTimeLocale)
 
@@ -88,11 +91,19 @@ instance ShowConstantTermsSQL String where
 
 -- | Constant SQL terms of 'ByteString'.
 instance ShowConstantTermsSQL ByteString where
-  showConstantTermsSQL = stringTermsSQL . BS.unpack  -- UTF-8 conversion needed?
+  showConstantTermsSQL = stringTermsSQL . T.unpack . T.decodeUtf8
+
+-- | Constant SQL terms of 'LB.ByteString'.
+instance ShowConstantTermsSQL LB.ByteString where
+  showConstantTermsSQL = showConstantTermsSQL . LB.toStrict
 
 -- | Constant SQL terms of 'Text'.
 instance ShowConstantTermsSQL Text where
   showConstantTermsSQL = stringTermsSQL . T.unpack
+
+-- | Constant SQL terms of 'LT.Text'.
+instance ShowConstantTermsSQL LT.Text where
+  showConstantTermsSQL = showConstantTermsSQL . LT.toStrict
 
 -- | Constant SQL terms of 'Char'.
 instance ShowConstantTermsSQL Char where
@@ -104,16 +115,33 @@ instance ShowConstantTermsSQL Bool where
     d True  = "(0=0)"
     d False = "(0=1)"
 
+floatTerms :: (PrintfArg a, Ord a, Num a)=> a -> [String]
+floatTerms f = (:[]) $ printf fmt f  where
+  fmt
+    | f >= 0    = "%f"
+    | otherwise = "(%f)"
+
+-- | Constant SQL terms of 'Float'. Caution for floating-point error rate.
+instance ShowConstantTermsSQL Float where
+  showConstantTermsSQL = floatTerms
+
+-- | Constant SQL terms of 'Double'. Caution for floating-point error rate.
+instance ShowConstantTermsSQL Double where
+  showConstantTermsSQL = floatTerms
+
 constantTimeTerms :: FormatTime t => Keyword -> String -> t -> [String]
 constantTimeTerms kw fmt t = [unwords [wordShow kw,
                                        stringExprSQL $ formatTime defaultTimeLocale fmt t]]
 
+-- | Constant SQL terms of 'Day'.
 instance ShowConstantTermsSQL Day where
   showConstantTermsSQL = constantTimeTerms DATE "%Y-%m-%d"
 
+-- | Constant SQL terms of 'TimeOfDay'.
 instance ShowConstantTermsSQL TimeOfDay where
   showConstantTermsSQL = constantTimeTerms TIME "%H:%M:%S"
 
+-- | Constant SQL terms of 'LocalTime'.
 instance ShowConstantTermsSQL LocalTime where
   showConstantTermsSQL = constantTimeTerms TIMESTAMP "%Y-%m-%d %H:%M:%S"
 

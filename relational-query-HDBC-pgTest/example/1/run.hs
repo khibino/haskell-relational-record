@@ -55,6 +55,8 @@ run =  handleSqlError' $ withConnectionIO connect
            run' specifiedUserAndGroup ()
            run' userGroupScalar ()
            run' groups ()
+           run' doubleValue1 ()
+           run' doubleValue2 ()
            run' userGroup2Fail ()
        )
 

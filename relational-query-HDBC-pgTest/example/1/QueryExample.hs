@@ -313,3 +313,11 @@ groups =  relation $ do
   g  <- query group
   gc <- queryScalar $ aggregatedUnique group Group.id' count
   return $ g >< gc
+
+doubleValue1 :: Relation () Double
+doubleValue1 =  relation $ do
+  return $ value 0.1 .+. value 0.1 .+. value 0.1
+
+doubleValue2 :: Relation () Double
+doubleValue2 =  relation $ do
+  return . value $ 0.1 + 0.1 + 0.1
