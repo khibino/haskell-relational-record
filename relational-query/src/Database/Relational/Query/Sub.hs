@@ -55,6 +55,7 @@ import qualified Database.Relational.Query.Table as Table
 
 import Database.Relational.Query.Internal.String
   (showUnwordsSQL, showWordSQL, showWordSQL', showUnwords, showSepBy, showSpace, showComma, showParen')
+import Database.Relational.Query.Internal.SQL (StringSQL)
 import Language.SQL.Keyword (Keyword(..))
 import qualified Language.SQL.Keyword as SQL
 import qualified Language.SQL.Keyword.ConcatString as SQLs
@@ -64,7 +65,7 @@ data SetOp = Union | Except | Intersect  deriving Show
 
 newtype BinOp = BinOp (SetOp, Duplication) deriving Show
 
-showsSetOp :: SetOp -> ShowS
+showsSetOp :: SetOp -> StringSQL
 showsSetOp =  showWordSQL . d  where
   d Union     = UNION
   d Except    = EXCEPT
@@ -132,14 +133,14 @@ width =  d  where
   d (Aggregated _ up _ _ _ _ _ _) = widthOfUntypedProjection up
 
 -- | SQL to query table.
-fromTableToSQL :: Table.Untyped -> ShowS
+fromTableToSQL :: Table.Untyped -> StringSQL
 fromTableToSQL t =
   showUnwordsSQL
   $ [SELECT, map sqlWordFromColumn (Table.columns' t) `SQL.sepBy` ", ",
      FROM, SQL.word $ Table.name' t]
 
 -- | Generate normalized column SQL from table.
-fromTableToNormalizedSQL :: Table.Untyped -> ShowS
+fromTableToNormalizedSQL :: Table.Untyped -> StringSQL
 fromTableToNormalizedSQL t = showWordSQL' SELECT . (columns' `showSepBy` showComma)
                              . showSpace . showWordSQL' FROM . showString (Table.name' t)  where
   columns' = zipWith
@@ -148,14 +149,14 @@ fromTableToNormalizedSQL t = showWordSQL' SELECT . (columns' `showSepBy` showCom
              [(0 :: Int)..]
 
 -- | Normalized column SQL
-normalizedSQL :: SubQuery -> ShowS
+normalizedSQL :: SubQuery -> StringSQL
 normalizedSQL =  d  where
   d (Table t)                        = fromTableToNormalizedSQL t
   d sub@(Bin _ _ _)                  = showUnitSQL sub
   d sub@(Flat _ _ _ _ _ _)           = showUnitSQL sub
   d sub@(Aggregated _ _ _ _ _ _ _ _) = showUnitSQL sub
 
-selectPrefixSQL :: UntypedProjection -> Duplication -> ShowS
+selectPrefixSQL :: UntypedProjection -> Duplication -> StringSQL
 selectPrefixSQL up da = showWordSQL' SELECT . showsDuplication da
                         . showSpace . (columns' `showSepBy` showComma)  where
   columns' = zipWith
@@ -165,7 +166,7 @@ selectPrefixSQL up da = showWordSQL' SELECT . showsDuplication da
 
 -- | SQL string for nested-query and toplevel-SQL.
 toSQLs :: SubQuery
-       -> (ShowS, ShowS) -- ^ subquery SQL and top-level SQL
+       -> (StringSQL, StringSQL) -- ^ subquery SQL and top-level SQL
 toSQLs =  d  where
   d (Table u)               = (showString $ Table.name' u, fromTableToSQL u)
   d (Bin (BinOp (op, da)) l r) = (showParen' q, q)  where
@@ -177,15 +178,15 @@ toSQLs =  d  where
     q = selectPrefixSQL up da . showsJoinProduct cf pd . composeWhere rs
         . composeGroupBy ag . composeHaving grs . composeOrderBy od
 
-showUnitSQL :: SubQuery -> ShowS
+showUnitSQL :: SubQuery -> StringSQL
 showUnitSQL =  fst . toSQLs
 
 -- | SQL string for nested-qeury.
 unitSQL :: SubQuery -> String
 unitSQL =  ($ "") . showUnitSQL
 
--- | SQL ShowS for toplevel-SQL.
-showSQL :: SubQuery -> ShowS
+-- | SQL StringSQL for toplevel-SQL.
+showSQL :: SubQuery -> StringSQL
 showSQL = snd . toSQLs
 
 -- | SQL string for toplevel-SQL.
@@ -239,7 +240,7 @@ columnFromId :: Qualifier -> Int -> ColumnSQL
 columnFromId qi i = qi <.> columnN i
 
 -- | From 'Qualified' SQL string into 'String'.
-qualifiedSQLas :: Qualified ShowS -> ShowS
+qualifiedSQLas :: Qualified StringSQL -> StringSQL
 qualifiedSQLas q =
   showUnwords
   [unQualify q, (showQualifier (qualifier q) ++)]
@@ -258,7 +259,7 @@ column qs =  d (unQualify qs)  where
   d (Aggregated _ up _ _ _ _ _ _) i = columnOfUntypedProjection up i
 
 -- | Get qualified SQL string, like (SELECT ...) AS T0
-qualifiedForm :: Qualified SubQuery -> ShowS
+qualifiedForm :: Qualified SubQuery -> StringSQL
 qualifiedForm =  qualifiedSQLas . fmap showUnitSQL
 
 
@@ -333,8 +334,8 @@ type QueryProduct = ProductTree (Qualified SubQuery)
 -- | Product node specialized by 'SubQuery'.
 type QueryProductNode = Node (Qualified SubQuery)
 
--- | Show product tree of query into SQL. ShowS result.
-showsQueryProduct :: QueryProduct -> ShowS
+-- | Show product tree of query into SQL. StringSQL result.
+showsQueryProduct :: QueryProduct -> StringSQL
 showsQueryProduct =  rec  where
   joinType Just' Just' = INNER
   joinType Just' Maybe = LEFT
@@ -357,7 +358,7 @@ showsQueryProduct =  rec  where
 type JoinProduct = Maybe QueryProduct
 
 -- | Shows join product of query.
-showsJoinProduct :: UnitProductSupport -> JoinProduct -> ShowS
+showsJoinProduct :: UnitProductSupport -> JoinProduct -> StringSQL
 showsJoinProduct ups =  maybe (up ups) from  where
   from qp = showSpace . showWordSQL' FROM . showsQueryProduct qp
   up UPSupported    = id
