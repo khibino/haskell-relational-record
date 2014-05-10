@@ -31,6 +31,7 @@ import Data.Array (listArray, (!))
 import Language.SQL.Keyword (Keyword(..), (.=.))
 import qualified Language.SQL.Keyword as SQL
 import Database.Record.ToSql (untypedUpdateValuesIndex)
+import Database.Relational.Query.Internal.SQL (StringSQL)
 import Database.Relational.Query.Internal.String
   (showUnwordsSQL, showWordSQL', showSpace, showSqlRowString)
 import Database.Relational.Query.Pi.Unsafe (Pi, unsafeExpandIndexes)
@@ -42,13 +43,13 @@ import Database.Relational.Query.Table (Table, name, columns, width)
 type QuerySuffix = [Keyword]
 
 -- | Expand query suffix words
-showsQuerySuffix :: QuerySuffix -> ShowS
+showsQuerySuffix :: QuerySuffix -> StringSQL
 showsQuerySuffix =  d  where
   d []       = ("" ++)
   d qs@(_:_) = showSpace . showUnwordsSQL qs
 
 -- | Generate prefix string of update SQL.
-updatePrefixSQL :: Table r -> ShowS
+updatePrefixSQL :: Table r -> StringSQL
 updatePrefixSQL table = showUnwordsSQL [UPDATE, SQL.word $ name table]
 
 -- | Generate update SQL by specified key and table.
@@ -90,7 +91,7 @@ updateOtherThanKeySQL tbl key =
   updateOtherThanKeySQL' (name tbl) (columns tbl) (unsafeExpandIndexes key)
 
 -- | Generate prefix string of insert SQL.
-insertPrefixSQL :: Table r -> ShowS
+insertPrefixSQL :: Table r -> StringSQL
 insertPrefixSQL table =
   showUnwordsSQL [INSERT, INTO, SQL.word tn] . showSpace
   . showSqlRowString [ showsColumnSQL c | c <- cols ] . showSpace  where
@@ -103,10 +104,10 @@ insertSQL :: Table r -- ^ Table metadata
 insertSQL tbl = insertPrefixSQL tbl . showWordSQL' VALUES . showSqlRowString (replicate (width tbl) $ showString "?") $ ""
 
 -- | Generate all column delete SQL by specified table. Untyped table version.
-deleteSQL' :: String -> ShowS
+deleteSQL' :: String -> StringSQL
 deleteSQL' table = (SQL.unwordsSQL [DELETE, FROM, SQL.word table] ++)
 
 -- | Generate all column delete SQL by specified table.
-deleteSQL :: Table r -- ^ Table metadata
-          -> ShowS   -- ^ Result SQL
+deleteSQL :: Table r   -- ^ Table metadata
+          -> StringSQL -- ^ Result SQL
 deleteSQL = deleteSQL' . name

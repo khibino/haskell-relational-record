@@ -25,6 +25,7 @@ module Database.Relational.Query.Restriction (
 
 import Database.Record (PersistableWidth)
 
+import Database.Relational.Query.Internal.SQL (StringSQL)
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Pi (id')
 import Database.Relational.Query.Table (Table)
@@ -60,8 +61,8 @@ runRestriction :: Restriction p r
 runRestriction (Restriction qf) =
   fmap fst . addPlaceHolders . qf
 
--- | SQL WHERE clause 'ShowS' string from 'Restriction'.
-sqlWhereFromRestriction :: Table r -> Restriction p r -> ShowS
+-- | SQL WHERE clause 'StringSQL' string from 'Restriction'.
+sqlWhereFromRestriction :: Table r -> Restriction p r -> StringSQL
 sqlWhereFromRestriction tbl (Restriction q) = composeWhere rs
   where (_ph, rs) = Restrict.extract (q $ Projection.unsafeFromTable tbl)
 
@@ -121,7 +122,7 @@ updateTargetAllColumn' :: PersistableWidth r
 updateTargetAllColumn' = liftTargetAllColumn' . restriction'
 
 
--- | SQL SET clause and WHERE clause 'ShowS' string from 'UpdateTarget'
-sqlFromUpdateTarget :: Table r -> UpdateTarget p r -> ShowS
+-- | SQL SET clause and WHERE clause 'StringSQL' string from 'UpdateTarget'
+sqlFromUpdateTarget :: Table r -> UpdateTarget p r -> StringSQL
 sqlFromUpdateTarget tbl (UpdateTarget q) = composeSets as . composeWhere rs
   where ((_ph, as), rs) = Target.extract (q tbl (Projection.unsafeFromTable tbl))

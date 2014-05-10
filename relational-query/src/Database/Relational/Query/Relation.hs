@@ -60,6 +60,7 @@ import qualified Database.Relational.Query.Monad.Unique as Unique
 
 import Database.Relational.Query.Component (columnSQL, Config, defaultConfig, Duplication (Distinct, All))
 import Database.Relational.Query.Table (Table)
+import Database.Relational.Query.Internal.SQL (StringSQL)
 import Database.Relational.Query.Internal.Product (NodeAttr(Just', Maybe))
 import Database.Relational.Query.Sub (SubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
@@ -343,11 +344,11 @@ infixl 7 `union`, `except`, `intersect`, `unionAll`, `exceptAll`, `intersectAll`
 infixl 7 `union'`, `except'`, `intersect'`, `unionAll'`, `exceptAll'`, `intersectAll'`
 
 -- | Generate SQL string from 'Relation' with configuration.
-sqlFromRelationWith :: Relation p r -> Config -> ShowS
+sqlFromRelationWith :: Relation p r -> Config -> StringSQL
 sqlFromRelationWith (SubQuery qsub) =  configureQuery $ fmap SubQuery.showSQL qsub
 
 -- | SQL string from 'Relation'.
-sqlFromRelation :: Relation p r -> ShowS
+sqlFromRelation :: Relation p r -> StringSQL
 sqlFromRelation =  (`sqlFromRelationWith` defaultConfig)
 
 -- | Dump internal structure tree.
