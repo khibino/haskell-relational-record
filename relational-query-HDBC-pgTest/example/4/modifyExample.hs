@@ -88,7 +88,7 @@ runKeyUpdateAndPrint ku r = handleConnectionIO connect $ \conn -> do
 
 allStock :: IO [StockGoods]
 allStock =  handleConnectionIO connect $ \conn -> do
-  let q = stock
+  let q = stockGoods
   putStrLn $ "SQL: " ++ show q
   runQuery' conn (relationalQuery q) ()
 
