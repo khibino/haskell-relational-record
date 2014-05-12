@@ -32,6 +32,9 @@ dString =  DString . (++)
 showDString :: DString -> String
 showDString (DString f) = f []
 
+isEmptyDString :: DString -> Bool
+isEmptyDString = null . showDString
+
 instance Show DString where
   show = showDString
 
@@ -120,7 +123,11 @@ instance IsString Keyword where
 -- | 'Keyword' default concatination separate by space.
 instance Monoid Keyword where
   mempty  = fromDString mempty
-  a `mappend` b = fromDString $ toDString a <> dspace <> toDString b
+  a `mappend` b = fromDString $ toDString a `append'` toDString b  where
+    append' p q
+      | isEmptyDString p = q
+      | isEmptyDString q = p
+      | otherwise        = p <> dspace <> q
 
 
 -- | Show 'Keyword'
