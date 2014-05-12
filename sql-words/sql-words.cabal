@@ -20,6 +20,9 @@ library
                         Language.SQL.Keyword
                         Language.SQL.Keyword.ConcatString
 
+  other-modules:
+                        Language.SQL.Keyword.Internal.Type
+
   build-depends:          base <5
   hs-source-dirs:       src
   ghc-options:          -Wall
