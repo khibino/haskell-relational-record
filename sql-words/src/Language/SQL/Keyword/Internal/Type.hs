@@ -100,9 +100,11 @@ data Keyword = SELECT | ALL | DISTINCT | ON
              -}
 
 
+-- | Wrap 'DString' into 'Keyword'
 fromDString :: DString -> Keyword
 fromDString =  Sequence
 
+-- | Unwrap 'Keyword' into 'DString'
 toDString :: Keyword -> DString
 toDString = d  where
   d (Sequence ds) = ds
