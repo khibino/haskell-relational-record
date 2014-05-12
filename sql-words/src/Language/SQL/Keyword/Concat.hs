@@ -21,14 +21,14 @@ module Language.SQL.Keyword.Concat (
   -- $binaryOperators
   defineBinOp,
 
-  as, (<.>),
+  as, (<.>), (|*|),
 
   (.||.),
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
   and, or, in',
 
   -- * Unary operator
-  defineUniOp
+  defineUniOp, paren,
   ) where
 
 import Prelude hiding (and, or, not)
@@ -66,10 +66,13 @@ ws `parenSepBy` d = concatStr $ "(" : (ws `sepBy'` d) ++ [")"]
 Binary operators on SQL. Result is concatinated into one 'Keyword'.
 -}
 
+concat' :: [Keyword] -> Keyword
+concat' =  fromDString . mconcat . map toDString
+
 -- | Define binary operator on 'Keyword' type.
 --   Result is not delimited by whitespace like concat on 'String' list.
 defineBinOp' :: Keyword -> Keyword -> Keyword -> Keyword
-defineBinOp' op a b = fromDString $ mconcat [toDString w | w <- [a, op, b]]
+defineBinOp' op a b = concat' [a, op, b]
 
 -- | Define binary operator on 'Keyword' type.
 --   Result is delimited by whitespace like unwords on 'String' list.
@@ -79,6 +82,10 @@ defineBinOp op a b = mconcat [a, op, b]
 -- | Binary operator to create qualified name on SQL.
 (<.>) :: Keyword -> Keyword -> Keyword
 (<.>)  =  defineBinOp' "."
+
+-- | Binary operator to create comma separated words.
+(|*|) :: Keyword -> Keyword -> Keyword
+(|*|)  =  defineBinOp' ", "
 
 -- | Binary operator for SQL string expression concatination.
 (.||.) :: Keyword -> Keyword -> Keyword
@@ -125,6 +132,10 @@ or     =  defineBinOp OR
 defineUniOp :: Keyword -> Keyword -> Keyword
 defineUniOp op e = mconcat [op, e]
 
+-- | Uni operator to create Parend words.
+paren :: Keyword -> Keyword
+paren w = concat' ["(", w, ")"]
+
 -- | Binary `IN` operator for SQL.
 in' :: Keyword -> Keyword -> Keyword
 in'    =  defineBinOp IN
@@ -134,3 +145,4 @@ infixr 4 .=., .<., .<=., .>., .>=., .<>.
 infix  4 `in'`
 infixr 3 `and`
 infixr 2 `or`
+infixr 1 |*|
