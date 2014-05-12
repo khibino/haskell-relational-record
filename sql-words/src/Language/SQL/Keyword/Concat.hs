@@ -50,16 +50,16 @@ unwords' :: [Keyword] -> Keyword
 unwords' =  word . unwordsSQL
 
 -- | Concatinate 'String' list into one 'Keyword'.
-concat' :: [String] -> Keyword
-concat' =  word . concat
+concatStr :: [String] -> Keyword
+concatStr =  word . concat
 
 -- | Separate 'Keyword' list with delimiter 'Keyword' and concatinate into one 'Keyword'.
 sepBy :: [Keyword] -> Keyword -> Keyword
-ws `sepBy` d = concat' $ ws `sepBy'` d
+ws `sepBy` d = concatStr $ ws `sepBy'` d
 
 -- | Do 'sepBy' and enclose by paren
 parenSepBy :: [Keyword] -> Keyword -> Keyword
-ws `parenSepBy` d = concat' $ "(" : (ws `sepBy'` d) ++ [")"]
+ws `parenSepBy` d = concatStr $ "(" : (ws `sepBy'` d) ++ [")"]
 
 {- $binaryOperators
 Binary operators on SQL. Result is concatinated into one 'Keyword'.
@@ -68,7 +68,7 @@ Binary operators on SQL. Result is concatinated into one 'Keyword'.
 -- | Define binary operator on 'Keyword' type.
 --   Result is not delimited by whitespace like concat on 'String' list.
 defineBinOp' :: Keyword -> Keyword -> Keyword -> Keyword
-defineBinOp' op a b = concat' $ [a, b] `sepBy'` op
+defineBinOp' op a b = concatStr $ [a, b] `sepBy'` op
 
 -- | Define binary operator on 'Keyword' type.
 --   Result is delimited by whitespace like unwords on 'String' list.
