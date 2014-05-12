@@ -21,6 +21,7 @@ module Language.SQL.Keyword.Type (
 
 import Data.String (IsString(fromString))
 import Data.List (find)
+import Data.Monoid (Monoid (..), (<>))
 
 
 newtype DString = DString (String -> String)
@@ -36,6 +37,13 @@ instance Show DString where
 
 instance Read DString where
   readsPrec _ s = [(dString s, [])]
+
+instance Monoid DString where
+  mempty  = DString id
+  DString f `mappend` DString g = DString $ f . g
+
+dspace :: DString
+dspace =  dString " "
 
 -- | Type represent SQL keywords.
 data Keyword = SELECT | ALL | DISTINCT | ON
@@ -87,9 +95,17 @@ data Keyword = SELECT | ALL | DISTINCT | ON
              -}
 
 
+fromDString :: DString -> Keyword
+fromDString =  Sequence
+
+toDString :: Keyword -> DString
+toDString = d  where
+  d (Sequence ds) = ds
+  d  w            = dString $ show w
+
 -- | Make 'Keyword' from String
 word :: String -> Keyword
-word =  Sequence . dString
+word =  fromDString . dString
 
 -- | 'Keyword' type with OverloadedString extension,
 --   can be involved same list with string literals.
@@ -100,6 +116,12 @@ instance IsString Keyword where
   fromString s' = found (find ((== "") . snd) (reads s')) s'  where
    found  Nothing      s = word s
    found (Just (w, _)) _ = w
+
+-- | 'Keyword' default concatination separate by space.
+instance Monoid Keyword where
+  mempty  = fromDString mempty
+  a `mappend` b = fromDString $ toDString a <> dspace <> toDString b
+
 
 -- | Show 'Keyword'
 wordShow :: Keyword -> String
