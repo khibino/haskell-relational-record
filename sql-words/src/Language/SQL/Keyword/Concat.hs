@@ -33,8 +33,9 @@ module Language.SQL.Keyword.Concat (
 
 import Prelude hiding (and, or, not)
 import Data.List (intersperse)
+import Data.Monoid (mconcat)
 
-import Language.SQL.Keyword.Type (Keyword (..), word, wordShow, unwordsSQL)
+import Language.SQL.Keyword.Internal.Type (Keyword (..), word, wordShow, toDString, fromDString)
 
 
 {- $listConcatination
@@ -47,7 +48,7 @@ ws `sepBy'` d =  map wordShow . intersperse d $ ws
 
 -- | Concatinate 'Keyword' list like unwords on 'String' list.
 unwords' :: [Keyword] -> Keyword
-unwords' =  word . unwordsSQL
+unwords' =  mconcat
 
 -- | Concatinate 'String' list into one 'Keyword'.
 concatStr :: [String] -> Keyword
@@ -68,12 +69,12 @@ Binary operators on SQL. Result is concatinated into one 'Keyword'.
 -- | Define binary operator on 'Keyword' type.
 --   Result is not delimited by whitespace like concat on 'String' list.
 defineBinOp' :: Keyword -> Keyword -> Keyword -> Keyword
-defineBinOp' op a b = concatStr $ [a, b] `sepBy'` op
+defineBinOp' op a b = fromDString $ mconcat [toDString w | w <- [a, op, b]]
 
 -- | Define binary operator on 'Keyword' type.
 --   Result is delimited by whitespace like unwords on 'String' list.
 defineBinOp :: Keyword -> Keyword -> Keyword -> Keyword
-defineBinOp op a b = word . unwords $ [a, b] `sepBy'` op
+defineBinOp op a b = mconcat [a, op, b]
 
 -- | Binary operator to create qualified name on SQL.
 (<.>) :: Keyword -> Keyword -> Keyword
@@ -122,7 +123,7 @@ or     =  defineBinOp OR
 -- | Define unary operator on 'Keyword' type represeted by specified 'Keyword'.
 --   Result is delimited by whitespace like unwords on 'String' list.
 defineUniOp :: Keyword -> Keyword -> Keyword
-defineUniOp op e = unwords' [op, e]
+defineUniOp op e = mconcat [op, e]
 
 -- | Binary `IN` operator for SQL.
 in' :: Keyword -> Keyword -> Keyword
