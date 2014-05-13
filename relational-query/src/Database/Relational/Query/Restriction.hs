@@ -23,6 +23,8 @@ module Database.Relational.Query.Restriction (
   sqlFromUpdateTarget
   ) where
 
+import Data.Monoid ((<>))
+
 import Database.Record (PersistableWidth)
 
 import Database.Relational.Query.Internal.SQL (StringSQL)
@@ -124,5 +126,5 @@ updateTargetAllColumn' = liftTargetAllColumn' . restriction'
 
 -- | SQL SET clause and WHERE clause 'StringSQL' string from 'UpdateTarget'
 sqlFromUpdateTarget :: Table r -> UpdateTarget p r -> StringSQL
-sqlFromUpdateTarget tbl (UpdateTarget q) = composeSets as . composeWhere rs
+sqlFromUpdateTarget tbl (UpdateTarget q) = composeSets as <> composeWhere rs
   where ((_ph, as), rs) = Target.extract (q tbl (Projection.unsafeFromTable tbl))

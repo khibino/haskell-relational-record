@@ -74,7 +74,8 @@ import qualified Language.SQL.Keyword.ConcatString as SQLs
 
 import Database.Record (PersistableWidth, PersistableRecordWidth, derivedWidth)
 
-import Database.Relational.Query.Internal.String (paren, sqlRowString, showSqlRowString)
+import Database.Relational.Query.Internal.SQL (showStringSQL, rowStringSQL)
+import Database.Relational.Query.Internal.String (paren, sqlRowString)
 import Database.Relational.Query.Context (Flat, Aggregated, Exists, OverWindow)
 import Database.Relational.Query.Component (columnSQL, showsColumnSQL)
 import Database.Relational.Query.Expr (Expr)
@@ -95,7 +96,7 @@ import qualified Database.Relational.Query.Projection as Projection
 
 -- | Unsafely get SQL term from 'Proejction'.
 unsafeShowSqlProjection :: Projection c r -> String
-unsafeShowSqlProjection =  ($ "") . showSqlRowString . map showsColumnSQL . columns
+unsafeShowSqlProjection =  showStringSQL . rowStringSQL . map showsColumnSQL . columns
 
 -- | 'Expr' from 'Projection'
 exprOfProjection :: Projection c r -> Expr c r

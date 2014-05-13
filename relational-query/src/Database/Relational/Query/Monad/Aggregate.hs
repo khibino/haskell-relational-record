@@ -28,6 +28,7 @@ module Database.Relational.Query.Monad.Aggregate (
 
 import Data.Functor.Identity (Identity (runIdentity))
 
+import Database.Relational.Query.Internal.SQL (showStringSQL)
 import Database.Relational.Query.Context (Flat, Aggregated, OverWindow)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
@@ -103,5 +104,5 @@ over :: SqlProjectable (Projection c)
      => Projection OverWindow a
      -> Window c ()
      -> Projection c a
-wp `over` win = unsafeProjectSql $ unsafeShowSql wp ++ composeOver pt ot "" where
+wp `over` win = unsafeProjectSql $ unwords [unsafeShowSql wp, showStringSQL (composeOver pt ot)]  where
   (((), ot), pt) = extractWindow win

@@ -47,6 +47,7 @@ module Database.Relational.Query.Relation (
   unionAll', exceptAll', intersectAll',
   ) where
 
+import Database.Relational.Query.Internal.SQL (showStringSQL)
 import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Monad.Type (ConfigureQuery, configureQuery, qualifyQuery)
 import Database.Relational.Query.Monad.Class
@@ -356,7 +357,7 @@ dump :: Relation p r -> String
 dump =  show . (`configureQuery` defaultConfig) . subQueryQualifyFromRelation
 
 instance Show (Relation p r) where
-  show = ($ "") . sqlFromRelation
+  show = showStringSQL . sqlFromRelation
 
 {-
 -- | Get projection width from 'Relation'.
