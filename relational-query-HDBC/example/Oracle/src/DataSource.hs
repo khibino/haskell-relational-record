@@ -1,6 +1,7 @@
 module DataSource where
 
 import Control.Applicative ((<$>), (<*>))
+import System.IO (stdin, stdout, hSetBuffering, hPutStr, hGetLine, BufferMode (NoBuffering))
 import System.IO.Unsafe (unsafePerformIO)
 
 import Database.HDBC.ODBC (Connection, connectODBC)
@@ -18,10 +19,15 @@ instance Show Option where
         , "PWD=", p
         ]
 
+get :: String -> IO String
+get str = do
+    hSetBuffering stdin NoBuffering
+    hSetBuffering stdout NoBuffering
+    hPutStr stdout str
+    hGetLine stdin
+
 getOption :: IO Option
 getOption = Option <$> get "DSN: " <*> get "UID: " <*> get "PWD: "
-  where
-    get str = putStr str >> getLine
 
 connect :: IO Connection
 connect = do
@@ -29,6 +35,4 @@ connect = do
     connectODBC $ show option
 
 owner :: String
-owner = unsafePerformIO $ do
-    putStr "OWNER: "
-    getLine
+owner = unsafePerformIO $ get "OWNER: "
