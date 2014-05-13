@@ -78,8 +78,7 @@ import qualified Language.SQL.Keyword as SQL
 
 import Database.Record (PersistableWidth, PersistableRecordWidth, derivedWidth)
 
-import Database.Relational.Query.Internal.SQL (showStringSQL, rowStringSQL)
-import Database.Relational.Query.Internal.String (sqlRowString)
+import Database.Relational.Query.Internal.SQL (showStringSQL, rowStringSQL, rowStringString)
 import Database.Relational.Query.Context (Flat, Aggregated, Exists, OverWindow)
 import Database.Relational.Query.Component (columnSQL, showsColumnSQL)
 import Database.Relational.Query.Expr (Expr)
@@ -135,7 +134,7 @@ instance SqlProjectable (Projection OverWindow) where
 
 -- | Unsafely make 'Expr' from SQL terms.
 instance SqlProjectable (Expr p) where
-  unsafeProjectSqlTerms = UnsafeExpr.Expr . sqlRowString
+  unsafeProjectSqlTerms = UnsafeExpr.Expr . rowStringString
 
 -- | Unsafely Project single SQL term.
 unsafeProjectSql :: SqlProjectable p => String -> p t

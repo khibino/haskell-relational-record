@@ -39,7 +39,9 @@ module Database.Relational.Query.Projection (
 
 import Prelude hiding (pi)
 
-import Database.Relational.Query.Internal.String (paren, sqlRowListString)
+import qualified Language.SQL.Keyword as SQL
+
+import Database.Relational.Query.Internal.SQL (rowListStringString)
 import Database.Relational.Query.Context (Aggregated, Flat)
 import Database.Relational.Query.Component (ColumnSQL)
 import Database.Relational.Query.Table (Table)
@@ -168,5 +170,5 @@ unsafeListProjectionFromSubQuery =  Sub
 -- | Map projection show operatoions and concatinate to single SQL expression.
 unsafeShowSqlListProjection :: (p t -> String) -> ListProjection p t -> String
 unsafeShowSqlListProjection sf = d  where
-  d (List ps) = sqlRowListString $ map sf ps
-  d (Sub sub) = paren $ SubQuery.toSQL sub
+  d (List ps) = rowListStringString $ map sf ps
+  d (Sub sub) = SQL.wordShow . SQL.paren $ SubQuery.showSQL sub

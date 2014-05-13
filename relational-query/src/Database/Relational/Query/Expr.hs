@@ -27,14 +27,14 @@ import Prelude hiding (and, or)
 
 import Database.Relational.Query.Expr.Unsafe (Expr(Expr), showExpr)
 import Database.Relational.Query.Pure (ShowConstantTermsSQL (showConstantTermsSQL))
-import Database.Relational.Query.Internal.String (paren, sqlRowString)
+import Database.Relational.Query.Internal.SQL (rowStringString)
 
-import qualified Language.SQL.Keyword.ConcatString as SQLs
+import qualified Language.SQL.Keyword as SQL
 
 
 -- | Typed constant SQL expression from Haskell value.
 valueExpr :: ShowConstantTermsSQL ft => ft -> Expr p ft
-valueExpr =  Expr . sqlRowString . showConstantTermsSQL
+valueExpr =  Expr . rowStringString . showConstantTermsSQL
 
 -- | Unsafely cast phantom type.
 unsafeCastExpr :: Expr p a -> Expr p b
@@ -52,4 +52,4 @@ fromJust =  unsafeCastExpr
 
 -- | AND operator for 'Expr'.
 exprAnd :: Expr p Bool -> Expr p Bool -> Expr p Bool
-exprAnd a b = Expr . paren $ SQLs.and (showExpr a) (showExpr b)
+exprAnd a b = Expr $ SQL.strBinOp (\x y -> SQL.paren $ SQL.and x y) (showExpr a) (showExpr b)
