@@ -57,7 +57,6 @@ import qualified Database.Relational.Query.Table as Table
 
 import Language.SQL.Keyword (Keyword(..), (|*|))
 import qualified Language.SQL.Keyword as SQL
-import qualified Language.SQL.Keyword.ConcatString as SQLs
 
 
 data SetOp = Union | Except | Intersect  deriving Show
@@ -141,8 +140,7 @@ fromTableToSQL t =
 fromTableToNormalizedSQL :: Table.Untyped -> StringSQL
 fromTableToNormalizedSQL t = SELECT <> SQL.fold (|*|) columns' <>
                              FROM <> stringSQL (Table.name' t)  where
-  columns' = zipWith
-             (\f n -> showsColumnSQL $ f `asColumnN` n)
+  columns' = zipWith asColumnN
              (Table.columns' t)
              [(0 :: Int)..]
 
@@ -157,8 +155,7 @@ normalizedSQL =  d  where
 selectPrefixSQL :: UntypedProjection -> Duplication -> StringSQL
 selectPrefixSQL up da = SELECT <> showsDuplication da <>
                         SQL.fold (|*|) columns'  where
-  columns' = zipWith
-             (\f n -> showsColumnSQL $ f `asColumnN` n)
+  columns' = zipWith asColumnN
              (columnsOfUntypedProjection up)
              [(0 :: Int)..]
 
@@ -217,11 +214,8 @@ qualify =  Qualified
 columnN :: Int -> ColumnSQL
 columnN i = columnSQL $ 'f' : show i
 
-asColumnN :: ColumnSQL -> Int -> ColumnSQL
-c `asColumnN` n = do
-  c' <- c
-  cn <- columnN n
-  return $ c' `SQLs.as` cn
+asColumnN :: ColumnSQL -> Int -> StringSQL
+c `asColumnN` n = showsColumnSQL c `SQL.as` showsColumnSQL (columnN n)
 
 -- | Alias string from qualifier
 showQualifier :: Qualifier -> String
