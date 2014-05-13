@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 -- |
 -- Module      : Database.Relational.Query.Projectable
@@ -182,11 +183,7 @@ instance ProjectableShowSql (Projection c) where
 
 
 -- | Binary operator type for SQL String.
-type SqlBinOp = String -> String -> String
-
--- | Binary operator from SQL operator string.
-sqlBinOp :: String -> SqlBinOp
-sqlBinOp =  SQLs.defineBinOp . SQL.word
+type SqlBinOp = Keyword -> Keyword -> Keyword
 
 -- | Unsafely make projection unary operator from SQL keyword.
 unsafeUniOp :: (ProjectableShowSql p0, SqlProjectable p1)
@@ -201,8 +198,8 @@ unsafeFlatUniOp kw = unsafeUniOp (SQL.paren . SQL.defineUniOp kw)
 unsafeBinOp :: (SqlProjectable p, ProjectableShowSql p)
             => SqlBinOp
             -> p a -> p b -> p c
-unsafeBinOp op a b = unsafeProjectSql . paren
-                     $ op (unsafeShowSql a) (unsafeShowSql b)
+unsafeBinOp op a b = unsafeProjectSql . SQL.wordShow . SQL.paren
+                     $ op (SQL.word $ unsafeShowSql a) (SQL.word $ unsafeShowSql b)
 
 -- | Unsafely make compare projection binary operator from string binary operator.
 compareBinOp :: (SqlProjectable p, ProjectableShowSql p)
@@ -220,42 +217,42 @@ monoBinOp =  unsafeBinOp
 -- | Compare operator corresponding SQL /=/ .
 (.=.)  :: (SqlProjectable p, ProjectableShowSql p)
   => p ft -> p ft -> p (Maybe Bool)
-(.=.)  =  compareBinOp (SQLs..=.)
+(.=.)  =  compareBinOp (SQL..=.)
 
 -- | Compare operator corresponding SQL /</ .
 (.<.)  :: (SqlProjectable p, ProjectableShowSql p)
   => p ft -> p ft -> p (Maybe Bool)
-(.<.)  =  compareBinOp (SQLs..<.)
+(.<.)  =  compareBinOp (SQL..<.)
 
 -- | Compare operator corresponding SQL /<=/ .
 (.<=.)  :: (SqlProjectable p, ProjectableShowSql p)
   => p ft -> p ft -> p (Maybe Bool)
-(.<=.)  =  compareBinOp (SQLs..<=.)
+(.<=.)  =  compareBinOp (SQL..<=.)
 
 -- | Compare operator corresponding SQL />/ .
 (.>.)  :: (SqlProjectable p, ProjectableShowSql p)
   => p ft -> p ft -> p (Maybe Bool)
-(.>.)  =  compareBinOp (SQLs..>.)
+(.>.)  =  compareBinOp (SQL..>.)
 
 -- | Compare operator corresponding SQL />=/ .
 (.>=.)  :: (SqlProjectable p, ProjectableShowSql p)
   => p ft -> p ft -> p (Maybe Bool)
-(.>=.)  =  compareBinOp (SQLs..>=.)
+(.>=.)  =  compareBinOp (SQL..>=.)
 
 -- | Compare operator corresponding SQL /<>/ .
 (.<>.) :: (SqlProjectable p, ProjectableShowSql p)
   => p ft -> p ft -> p (Maybe Bool)
-(.<>.) =  compareBinOp (SQLs..<>.)
+(.<>.) =  compareBinOp (SQL..<>.)
 
 -- | Logical operator corresponding SQL /AND/ .
 and' :: (SqlProjectable p, ProjectableShowSql p)
      => p ft -> p ft -> p (Maybe Bool)
-and' =  compareBinOp SQLs.and
+and' =  compareBinOp SQL.and
 
 -- | Logical operator corresponding SQL /OR/ .
 or' :: (SqlProjectable p, ProjectableShowSql p)
     => p ft -> p ft -> p (Maybe Bool)
-or'  =  compareBinOp SQLs.or
+or'  =  compareBinOp SQL.or
 
 -- | Logical operator corresponding SQL /NOT/ .
 not' :: (SqlProjectable p, ProjectableShowSql p)
@@ -271,17 +268,17 @@ exists =  unsafeProjectSql . paren . SQLs.defineUniOp SQL.EXISTS
 -- | Concatinate operator corresponding SQL /||/ .
 (.||.) :: (SqlProjectable p, ProjectableShowSql p, IsString a)
        => p a -> p a -> p a
-(.||.) =  unsafeBinOp (SQLs..||.)
+(.||.) =  unsafeBinOp (SQL..||.)
 
 -- | Concatinate operator corresponding SQL /||/ . Maybe type version.
 (?||?) :: (SqlProjectable p, ProjectableShowSql p, IsString a)
        => p (Maybe a) -> p (Maybe a) -> p (Maybe a)
-(?||?) =  unsafeBinOp (SQLs..||.)
+(?||?) =  unsafeBinOp (SQL..||.)
 
 -- | Unsafely make number projection binary operator from SQL operator string.
 monoBinOp' :: (SqlProjectable p, ProjectableShowSql p)
-          => String -> p a -> p a -> p a
-monoBinOp' = monoBinOp . sqlBinOp
+          => Keyword -> p a -> p a -> p a
+monoBinOp' = monoBinOp . SQL.defineBinOp
 
 -- | Number operator corresponding SQL /+/ .
 (.+.) :: (SqlProjectable p, ProjectableShowSql p, Num a)
@@ -410,7 +407,7 @@ in' a lp = unsafeProjectSql . paren
 -- | Operator corresponding SQL /IS NULL/ .
 isNull :: (SqlProjectable p, ProjectableShowSql p)
        => p (Maybe t) -> p (Maybe Bool)
-isNull x = compareBinOp (SQLs.defineBinOp SQL.IS) x unsafeValueNull
+isNull x = compareBinOp (SQL.defineBinOp SQL.IS) x unsafeValueNull
 
 -- | Operator corresponding SQL /NOT (... IS NULL)/ .
 isNotNull :: (SqlProjectable p, ProjectableShowSql p)
