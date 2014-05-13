@@ -90,7 +90,7 @@ data Keyword = SELECT | ALL | DISTINCT | ON
 
              | DATE | TIME | TIMESTAMP | INTERVAL
 
-             | Sequence DString
+             | Sequence !DString
              deriving (Read, Show)
 
              {-
