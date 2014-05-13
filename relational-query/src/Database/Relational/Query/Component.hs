@@ -53,7 +53,7 @@ import Data.Monoid (mempty, (<>))
 
 import qualified Database.Relational.Query.Context as Context
 import Database.Relational.Query.Expr (Expr)
-import Database.Relational.Query.Expr.Unsafe (showExpr)
+import Database.Relational.Query.Expr.Unsafe (sqlExpr)
 
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL)
 import Language.SQL.Keyword (Keyword(..), (|*|), (.=.))
@@ -109,7 +109,7 @@ type QueryRestriction c = Maybe (Expr c Bool)
 
 -- | Compose SQL String from 'QueryRestriction'.
 composeRestrict :: Keyword -> QueryRestriction c -> StringSQL
-composeRestrict k = maybe mempty (\e -> k <> stringSQL (showExpr e))
+composeRestrict k = maybe mempty (\e -> k <> sqlExpr e)
 
 -- | Compose WHERE clause from 'QueryRestriction'.
 composeWhere :: QueryRestriction Context.Flat -> StringSQL

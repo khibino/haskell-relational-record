@@ -25,20 +25,20 @@ module Database.Relational.Query.Expr (
 
 import Prelude hiding (and, or)
 
-import Database.Relational.Query.Expr.Unsafe (Expr(Expr), showExpr)
+import Database.Relational.Query.Expr.Unsafe (Expr(Expr), sqlExpr)
 import Database.Relational.Query.Pure (ShowConstantTermsSQL (showConstantTermsSQL))
-import Database.Relational.Query.Internal.SQL (rowStringString)
+import Database.Relational.Query.Internal.SQL (stringSQL, rowStringSQL)
 
 import qualified Language.SQL.Keyword as SQL
 
 
 -- | Typed constant SQL expression from Haskell value.
 valueExpr :: ShowConstantTermsSQL ft => ft -> Expr p ft
-valueExpr =  Expr . rowStringString . showConstantTermsSQL
+valueExpr =  Expr . rowStringSQL . map stringSQL . showConstantTermsSQL
 
 -- | Unsafely cast phantom type.
 unsafeCastExpr :: Expr p a -> Expr p b
-unsafeCastExpr =  Expr . showExpr
+unsafeCastExpr =  Expr . sqlExpr
 
 -- | Convert phantom type into 'Maybe'.
 just :: Expr p ft -> Expr p (Maybe ft)
@@ -52,4 +52,4 @@ fromJust =  unsafeCastExpr
 
 -- | AND operator for 'Expr'.
 exprAnd :: Expr p Bool -> Expr p Bool -> Expr p Bool
-exprAnd a b = Expr $ SQL.strBinOp (\x y -> SQL.paren $ SQL.and x y) (showExpr a) (showExpr b)
+exprAnd a b = Expr . SQL.paren $ SQL.and (sqlExpr a) (sqlExpr b)
