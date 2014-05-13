@@ -67,6 +67,7 @@ import Prelude hiding (pi)
 
 import Data.Int (Int64)
 import Data.String (IsString)
+import Data.Monoid ((<>), mconcat)
 import Control.Applicative ((<$>))
 
 import qualified Language.SQL.Keyword as SQL
@@ -338,18 +339,24 @@ fromIntegralMaybe =  unsafeProjectSql . unsafeShowSql
 unsafeSqlWord :: ProjectableShowSql p => p a -> SQL.Keyword
 unsafeSqlWord =  SQL.word . unsafeShowSql
 
+whensClause :: (SqlProjectable p, ProjectableShowSql p)
+            => String       -- ^ Error tag
+            -> [(p a, p b)] -- ^ Each when clauses
+            -> p b          -- ^ Else result projection
+            -> SQL.Keyword  -- ^ Result projection
+whensClause eTag cs0 e = d cs0  where
+  d []       = error $ eTag ++ ": Empty when clauses!"
+  d cs@(_:_) = mconcat [when' p r | (p, r) <- cs] <> else' <> SQL.END
+  when' p r = SQL.WHEN <> unsafeSqlWord p <> SQL.THEN <> unsafeSqlWord r
+  else'     = SQL.ELSE <> unsafeSqlWord e
+
 -- | Search case operator correnponding SQL search /CASE/.
 --   Like, /CASE WHEN p0 THEN a WHEN p1 THEN b ... ELSE c END/
 caseSearch :: (SqlProjectable p, ProjectableShowSql p)
            => [(p (Maybe Bool), p a)] -- ^ Each when clauses
            -> p a                     -- ^ Else result projection
            -> p a                     -- ^ Result projection
-caseSearch cs0 e = d cs0 where
-  d []       = error "caseSearch: Empty when clauses!"
-  d cs@(_:_) = unsafeProjectSql . SQL.unwordsSQL . concat
-               $ [SQL.CASE] : map (uncurry when') cs ++ [else', [SQL.END]]
-  when' p r = [SQL.WHEN, unsafeSqlWord p, SQL.THEN, unsafeSqlWord r]
-  else'     = [SQL.ELSE, unsafeSqlWord e]
+caseSearch cs e = unsafeProjectSql . SQL.wordShow $ SQL.CASE <> whensClause "caseSearch" cs e
 
 -- | Same as 'caseSearch', but you can write like <when list> `casesOrElse` <else clause>.
 casesOrElse :: (SqlProjectable p, ProjectableShowSql p)
@@ -371,12 +378,7 @@ case' :: (SqlProjectable p, ProjectableShowSql p)
       -> [(p a, p b)] -- ^ Each when clauses
       -> p b          -- ^ Else result projection
       -> p b          -- ^ Result projection
-case' v cs0 e = d cs0 where
-  d []       = error "case': Empty when clauses!"
-  d cs@(_:_) = unsafeProjectSql . SQL.unwordsSQL . concat
-               $ [[SQL.CASE, unsafeSqlWord v]] ++ map (uncurry when') cs ++ [else', [SQL.END]]
-  when' p r = [SQL.WHEN, unsafeSqlWord p, SQL.THEN, unsafeSqlWord r]
-  else'     = [SQL.ELSE, unsafeSqlWord e]
+case' v cs e = unsafeProjectSql . SQL.wordShow $ SQL.CASE <> unsafeSqlWord v <> whensClause "case'" cs e
 
 -- | Uncurry version of 'case'', and you can write like ... `casesOrElse'` <else clause>.
 casesOrElse' :: (SqlProjectable p, ProjectableShowSql p)

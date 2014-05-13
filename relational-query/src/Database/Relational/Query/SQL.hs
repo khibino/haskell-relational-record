@@ -29,7 +29,7 @@ module Database.Relational.Query.SQL (
 import Data.Array (listArray, (!))
 import Data.Monoid (mconcat, (<>))
 
-import Language.SQL.Keyword (Keyword(..), (.=.))
+import Language.SQL.Keyword (Keyword(..), (.=.), (|*|))
 import qualified Language.SQL.Keyword as SQL
 import Database.Record.ToSql (untypedUpdateValuesIndex)
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL, rowStringSQL)
@@ -56,9 +56,9 @@ updateSQL' :: String      -- ^ Table name
            -> [ColumnSQL] -- ^ Key column name list
            -> String      -- ^ Result SQL
 updateSQL' table cols key =
-  SQL.unwordsSQL
-  $ [UPDATE, stringSQL table, SET, updAssigns `SQL.sepBy` ", ",
-     WHERE, keyAssigns `SQL.sepBy` " AND " ]
+  SQL.wordShow $ mconcat
+  [UPDATE, stringSQL table, SET, SQL.fold (|*|) updAssigns,
+   WHERE, SQL.fold SQL.and keyAssigns]
   where
     assigns cs = [ sqlWordFromColumn c .=. "?" | c <- cs ]
     updAssigns = assigns cols
