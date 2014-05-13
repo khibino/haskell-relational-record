@@ -23,17 +23,16 @@ module Database.Relational.Query.SQL (
   insertPrefixSQL, insertSQL,
 
   -- * Delete SQL
-  deleteSQL', deleteSQL
+  deletePrefixSQL', deletePrefixSQL
   ) where
 
 import Data.Array (listArray, (!))
+import Data.Monoid (mconcat, (<>))
 
 import Language.SQL.Keyword (Keyword(..), (.=.))
 import qualified Language.SQL.Keyword as SQL
 import Database.Record.ToSql (untypedUpdateValuesIndex)
-import Database.Relational.Query.Internal.SQL (StringSQL)
-import Database.Relational.Query.Internal.String
-  (showUnwordsSQL, showWordSQL', showSpace, showSqlRowString)
+import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL, rowStringSQL)
 import Database.Relational.Query.Pi.Unsafe (Pi, unsafeExpandIndexes)
 import Database.Relational.Query.Component (ColumnSQL, sqlWordFromColumn, showsColumnSQL)
 import Database.Relational.Query.Table (Table, name, columns, width)
@@ -44,13 +43,11 @@ type QuerySuffix = [Keyword]
 
 -- | Expand query suffix words
 showsQuerySuffix :: QuerySuffix -> StringSQL
-showsQuerySuffix =  d  where
-  d []       = ("" ++)
-  d qs@(_:_) = showSpace . showUnwordsSQL qs
+showsQuerySuffix =  mconcat
 
 -- | Generate prefix string of update SQL.
 updatePrefixSQL :: Table r -> StringSQL
-updatePrefixSQL table = showUnwordsSQL [UPDATE, SQL.word $ name table]
+updatePrefixSQL table = UPDATE <> stringSQL (name table)
 
 -- | Generate update SQL by specified key and table.
 --   Columns name list of table are also required.
@@ -60,7 +57,7 @@ updateSQL' :: String      -- ^ Table name
            -> String      -- ^ Result SQL
 updateSQL' table cols key =
   SQL.unwordsSQL
-  $ [UPDATE, SQL.word table, SET, updAssigns `SQL.sepBy` ", ",
+  $ [UPDATE, stringSQL table, SET, updAssigns `SQL.sepBy` ", ",
      WHERE, keyAssigns `SQL.sepBy` " AND " ]
   where
     assigns cs = [ sqlWordFromColumn c .=. "?" | c <- cs ]
@@ -93,21 +90,20 @@ updateOtherThanKeySQL tbl key =
 -- | Generate prefix string of insert SQL.
 insertPrefixSQL :: Table r -> StringSQL
 insertPrefixSQL table =
-  showUnwordsSQL [INSERT, INTO, SQL.word tn] . showSpace
-  . showSqlRowString [ showsColumnSQL c | c <- cols ] . showSpace  where
+  INSERT <> INTO <> stringSQL tn <> rowStringSQL [ showsColumnSQL c | c <- cols ]  where
     tn = name table
     cols = columns table
 
 -- | Generate insert SQL.
 insertSQL :: Table r -- ^ Table metadata
           -> String  -- ^ Result SQL
-insertSQL tbl = insertPrefixSQL tbl . showWordSQL' VALUES . showSqlRowString (replicate (width tbl) $ showString "?") $ ""
+insertSQL tbl = showStringSQL $ insertPrefixSQL tbl <> VALUES <> rowStringSQL (replicate (width tbl) "?")
 
 -- | Generate all column delete SQL by specified table. Untyped table version.
-deleteSQL' :: String -> StringSQL
-deleteSQL' table = (SQL.unwordsSQL [DELETE, FROM, SQL.word table] ++)
+deletePrefixSQL' :: String -> StringSQL
+deletePrefixSQL' table = DELETE <> FROM <> stringSQL table
 
 -- | Generate all column delete SQL by specified table.
-deleteSQL :: Table r   -- ^ Table metadata
-          -> StringSQL -- ^ Result SQL
-deleteSQL = deleteSQL' . name
+deletePrefixSQL :: Table r   -- ^ Table metadata
+                -> StringSQL -- ^ Result SQL
+deletePrefixSQL = deletePrefixSQL' . name

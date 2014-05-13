@@ -14,34 +14,46 @@ module Database.Relational.Query.Type (
 
   relationalQuery', relationalQuery,
 
+  relationalQuerySQL,
+
   -- * Typed update statement
   KeyUpdate (..), unsafeTypedKeyUpdate, typedKeyUpdate,
   Update (..), unsafeTypedUpdate, typedUpdate, targetUpdate,
   typedUpdateAllColumn, restricredUpdateAllColumn,
 
+  updateSQL,
+
   -- * Typed insert statement
   Insert (..), unsafeTypedInsert, typedInsert,
   InsertQuery (..), unsafeTypedInsertQuery, typedInsertQuery,
 
+  insertQuerySQL,
+
   -- * Typed delete statement
   Delete (..), unsafeTypedDelete, typedDelete, restrictedDelete,
+
+  deleteSQL,
 
   -- * Generalized interfaces
   UntypeableNoFetch (..)
   ) where
 
+import Data.Monoid ((<>))
+
 import Database.Record (PersistableWidth)
 
-import Database.Relational.Query.Relation (Relation, sqlFromRelation)
+import Database.Relational.Query.Internal.SQL (showStringSQL)
+import Database.Relational.Query.Relation (Relation, sqlFromRelationWith)
 import Database.Relational.Query.Restriction
   (Restriction, RestrictionContext, restriction',
    UpdateTarget, UpdateTargetContext, updateTarget', liftTargetAllColumn',
    sqlWhereFromRestriction, sqlFromUpdateTarget)
 import Database.Relational.Query.Pi (Pi)
+import Database.Relational.Query.Component (Config, defaultConfig)
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.SQL
   (QuerySuffix, showsQuerySuffix,
-   updateOtherThanKeySQL, insertPrefixSQL, insertSQL, updatePrefixSQL, deleteSQL)
+   updateOtherThanKeySQL, insertPrefixSQL, insertSQL, updatePrefixSQL, deletePrefixSQL)
 
 
 -- | Query type with place-holder parameter 'p' and query result type 'a'.
@@ -56,9 +68,13 @@ unsafeTypedQuery =  Query
 instance Show (Query p a) where
   show = untypeQuery
 
+-- | From 'Relation' into untyped SQL query string.
+relationalQuerySQL :: Config -> Relation p r -> QuerySuffix -> String
+relationalQuerySQL config rel qsuf = showStringSQL $ sqlFromRelationWith rel config <> showsQuerySuffix qsuf
+
 -- | From 'Relation' into typed 'Query' with suffix SQL words.
 relationalQuery' :: Relation p r -> QuerySuffix -> Query p r
-relationalQuery' rel qsuf = unsafeTypedQuery . sqlFromRelation rel . showsQuerySuffix qsuf $ ""
+relationalQuery' rel qsuf = unsafeTypedQuery $ relationalQuerySQL defaultConfig rel qsuf
 
 -- | From 'Relation' into typed 'Query'.
 relationalQuery :: Relation p r -> Query p r
@@ -92,10 +108,13 @@ newtype Update p = Update { untypeUpdate :: String }
 unsafeTypedUpdate :: String -> Update p
 unsafeTypedUpdate =  Update
 
+-- | Make untyped update SQL string from 'Table' and 'Restriction'.
+updateSQL :: Table r -> UpdateTarget p r -> String
+updateSQL tbl ut = showStringSQL $ updatePrefixSQL tbl <> sqlFromUpdateTarget tbl ut
+
 -- | Make typed 'Update' from 'Table' and 'Restriction'.
 typedUpdate :: Table r -> UpdateTarget p r -> Update p
-typedUpdate tbl ut = unsafeTypedUpdate . updatePrefixSQL tbl
-                     . sqlFromUpdateTarget tbl ut $ ""
+typedUpdate tbl ut = unsafeTypedUpdate $ updateSQL tbl ut
 
 -- | Directly make typed 'Update' from 'Table' and 'Target' monad context.
 targetUpdate :: Table r
@@ -146,9 +165,13 @@ newtype InsertQuery p = InsertQuery { untypeInsertQuery :: String }
 unsafeTypedInsertQuery :: String -> InsertQuery p
 unsafeTypedInsertQuery =  InsertQuery
 
+-- | Make untyped insert select SQL string from 'Table' and 'Relation'.
+insertQuerySQL :: Config -> Table r -> Relation p r -> String
+insertQuerySQL config tbl rel = showStringSQL $ insertPrefixSQL tbl <> sqlFromRelationWith rel config
+
 -- | Make typed 'InsertQuery' from 'Table' and 'Relation'.
 typedInsertQuery :: Table r -> Relation p r -> InsertQuery p
-typedInsertQuery tbl rel = unsafeTypedInsertQuery . insertPrefixSQL tbl . sqlFromRelation rel $ ""
+typedInsertQuery tbl rel = unsafeTypedInsertQuery $ insertQuerySQL defaultConfig tbl rel
 
 -- | Show insert SQL string.
 instance Show (InsertQuery p) where
@@ -162,10 +185,13 @@ newtype Delete p = Delete { untypeDelete :: String }
 unsafeTypedDelete :: String -> Delete p
 unsafeTypedDelete =  Delete
 
+-- | Make untyped delete SQL string from 'Table' and 'Restriction'.
+deleteSQL :: Table r -> Restriction p r -> String
+deleteSQL tbl r = showStringSQL $ deletePrefixSQL tbl <> sqlWhereFromRestriction tbl r
+
 -- | Make typed 'Delete' from 'Table' and 'Restriction'.
 typedDelete :: Table r -> Restriction p r -> Delete p
-typedDelete tbl r = unsafeTypedDelete . deleteSQL tbl
-                    . sqlWhereFromRestriction tbl r $ ""
+typedDelete tbl r = unsafeTypedDelete $ deleteSQL tbl r
 
 -- | Directly make typed 'Delete' from 'Table' and 'Restrict' monad context.
 restrictedDelete :: Table r
