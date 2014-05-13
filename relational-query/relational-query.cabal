@@ -58,7 +58,6 @@ library
 
   other-modules:
                        Database.Relational.Query.Internal.AliasId
-                       Database.Relational.Query.Internal.String
                        Database.Relational.Query.Internal.SQL
                        Database.Relational.Query.Internal.Product
                        Database.Relational.Query.Monad.Trans.ListState
