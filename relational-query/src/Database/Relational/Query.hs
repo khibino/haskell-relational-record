@@ -72,13 +72,13 @@ import Database.Relational.Query.Monad.Target (Target)
 import Database.Relational.Query.Relation
 import Database.Relational.Query.Scalar (ScalarDegree)
 import Database.Relational.Query.Type
-  (Query, untypeQuery, relationalQuery', relationalQuery,
+  (Query, untypeQuery, relationalQuery', relationalQuery, relationalQuerySQL,
    KeyUpdate, updateKey, untypeKeyUpdate, typedKeyUpdate,
-   Update, untypeUpdate, typedUpdate, targetUpdate,
+   Update, untypeUpdate, typedUpdate, targetUpdate, updateSQL,
    typedUpdateAllColumn, restricredUpdateAllColumn,
    Insert, untypeInsert, typedInsert,
-   InsertQuery, untypeInsertQuery, typedInsertQuery,
-   Delete, untypeDelete, typedDelete, restrictedDelete,
+   InsertQuery, untypeInsertQuery, typedInsertQuery, insertQuerySQL,
+   Delete, untypeDelete, typedDelete, restrictedDelete, deleteSQL,
    UntypeableNoFetch (..))
 import Database.Relational.Query.Restriction
 import Database.Relational.Query.Derives
