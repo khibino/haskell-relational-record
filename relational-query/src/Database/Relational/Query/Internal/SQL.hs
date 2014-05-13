@@ -9,7 +9,11 @@
 --
 -- This module provides SQL string wrap interfaces.
 module Database.Relational.Query.Internal.SQL (
-  StringSQL, stringSQL, showStringSQL, rowStringSQL
+  StringSQL, stringSQL, showStringSQL,
+
+  rowStringSQL, rowStringString,
+
+  rowListStringSQL, rowListStringString
   ) where
 
 import Language.SQL.Keyword (Keyword, word, wordShow, fold, (|*|), paren)
@@ -32,3 +36,15 @@ rowStringSQL =  d  where
   d []  = error "Projection: no columns."
   d [c] = c
   d cs  = paren $ fold (|*|) cs
+
+-- | Row String of SQL values. String type version.
+rowStringString :: [String] -> String
+rowStringString =  wordShow . rowStringSQL . map word
+
+-- | Rows String of SQL.
+rowListStringSQL :: [StringSQL] -> StringSQL
+rowListStringSQL =  paren . fold (|*|)
+
+-- | Rows String of SQL. String type version.
+rowListStringString :: [String] -> String
+rowListStringString =  wordShow . rowListStringSQL . map word
