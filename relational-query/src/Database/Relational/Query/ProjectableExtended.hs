@@ -39,18 +39,18 @@ module Database.Relational.Query.ProjectableExtended (
 
 import Prelude hiding (pi)
 import Data.Int (Int64)
+import Data.Monoid ((<>))
 
 import qualified Language.SQL.Keyword as SQL
 
-import Database.Relational.Query.Internal.String (paren)
 import Database.Relational.Query.Context (Flat, Aggregated, OverWindow)
 import Database.Relational.Query.Expr (Expr, fromJust)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable
-  (expr, PlaceHolders,
+  (expr, PlaceHolders, unsafeUniOp,
    ProjectableMaybe (flattenMaybe), ProjectableIdZip (leftId, rightId),
-   SqlProjectable, unsafeProjectSql, ProjectableShowSql (unsafeShowSql))
+   SqlProjectable)
 import Database.Relational.Query.Pi (Pi)
 
 
@@ -58,13 +58,6 @@ import Database.Relational.Query.Pi (Pi)
 class Projectable p0 p1 where
   -- ｜ Project from projection type 'p0' into weaken projection types 'p1'.
   project :: p0 c a -> p1 c a
-
--- | Uni-operator type for SQL String
-type SqlUniOp = String -> String
-
--- | Uni-operator from SQL keyword.
-sqlUniOp :: SQL.Keyword -> SqlUniOp
-sqlUniOp kw = (SQL.wordShow kw ++) . (' ' :) . paren
 
 
 class AggregatedContext ac
@@ -74,7 +67,7 @@ instance AggregatedContext OverWindow
 -- | Unsafely make aggregation uni-operator from SQL keyword.
 unsafeAggregateOp :: (AggregatedContext ac, SqlProjectable (p ac))
                   => SQL.Keyword -> Projection Flat a -> p ac b
-unsafeAggregateOp op = unsafeProjectSql . sqlUniOp op . unsafeShowSql
+unsafeAggregateOp op = unsafeUniOp ((op <>) . SQL.paren)
 
 -- | Aggregation function COUNT.
 count :: (AggregatedContext ac, SqlProjectable (p ac))

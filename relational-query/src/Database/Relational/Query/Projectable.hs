@@ -33,9 +33,11 @@ module Database.Relational.Query.Projectable (
   unsafeShowSqlProjection,
   ProjectableShowSql (unsafeShowSql),
 
-  -- * Binary Operators
+  -- * Operators
   SqlBinOp,
   unsafeBinOp,
+
+  unsafeUniOp,
 
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
 
@@ -187,9 +189,13 @@ sqlBinOp :: String -> SqlBinOp
 sqlBinOp =  SQLs.defineBinOp . SQL.word
 
 -- | Unsafely make projection unary operator from SQL keyword.
+unsafeUniOp :: (ProjectableShowSql p0, SqlProjectable p1)
+             => (Keyword -> Keyword) -> p0 a -> p1 b
+unsafeUniOp u = unsafeProjectSql . SQL.wordShow . u . SQL.word . unsafeShowSql
+
 unsafeFlatUniOp :: (SqlProjectable p, ProjectableShowSql p)
                => Keyword -> p a -> p b
-unsafeFlatUniOp kw = unsafeProjectSql . paren . SQLs.defineUniOp kw . unsafeShowSql
+unsafeFlatUniOp kw = unsafeUniOp (SQL.paren . SQL.defineUniOp kw)
 
 -- | Unsafely make projection binary operator from string binary operator.
 unsafeBinOp :: (SqlProjectable p, ProjectableShowSql p)
