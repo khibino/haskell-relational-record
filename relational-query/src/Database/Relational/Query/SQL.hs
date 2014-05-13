@@ -34,7 +34,7 @@ import qualified Language.SQL.Keyword as SQL
 import Database.Record.ToSql (untypedUpdateValuesIndex)
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL, rowStringSQL)
 import Database.Relational.Query.Pi.Unsafe (Pi, unsafeExpandIndexes)
-import Database.Relational.Query.Component (ColumnSQL, sqlWordFromColumn, showsColumnSQL)
+import Database.Relational.Query.Component (ColumnSQL, showsColumnSQL, showsColumnSQL)
 import Database.Relational.Query.Table (Table, name, columns, width)
 
 
@@ -56,11 +56,11 @@ updateSQL' :: String      -- ^ Table name
            -> [ColumnSQL] -- ^ Key column name list
            -> String      -- ^ Result SQL
 updateSQL' table cols key =
-  SQL.wordShow $ mconcat
+  showStringSQL $ mconcat
   [UPDATE, stringSQL table, SET, SQL.fold (|*|) updAssigns,
    WHERE, SQL.fold SQL.and keyAssigns]
   where
-    assigns cs = [ sqlWordFromColumn c .=. "?" | c <- cs ]
+    assigns cs = [ showsColumnSQL c .=. "?" | c <- cs ]
     updAssigns = assigns cols
     keyAssigns = assigns key
 

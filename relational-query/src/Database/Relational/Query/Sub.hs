@@ -48,7 +48,7 @@ import Database.Relational.Query.Internal.Product
   (NodeAttr(Just', Maybe), ProductTree (Leaf, Join),
    Node, nodeAttr, nodeTree)
 import Database.Relational.Query.Component
-  (ColumnSQL, columnSQL, sqlWordFromColumn, showsColumnSQL,
+  (ColumnSQL, columnSQL, showsColumnSQL,
    Config, UnitProductSupport (UPSupported, UPNotSupported),
    Duplication, showsDuplication, QueryRestriction, composeWhere, composeHaving,
    AggregateElem, composeGroupBy, OrderingTerms, composeOrderBy)
@@ -134,7 +134,7 @@ width =  d  where
 -- | SQL to query table.
 fromTableToSQL :: Table.Untyped -> StringSQL
 fromTableToSQL t =
-  SELECT <> SQL.fold (|*|) [sqlWordFromColumn c | c <- Table.columns' t] <>
+  SELECT <> SQL.fold (|*|) [showsColumnSQL c | c <- Table.columns' t] <>
   FROM <> stringSQL (Table.name' t)
 
 -- | Generate normalized column SQL from table.

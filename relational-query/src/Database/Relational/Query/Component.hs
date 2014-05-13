@@ -14,7 +14,7 @@
 -- This module provides untyped components for query.
 module Database.Relational.Query.Component (
   -- * Type for column SQL string
-  ColumnSQL, columnSQL, sqlWordFromColumn, showsColumnSQL,
+  ColumnSQL, columnSQL, showsColumnSQL,
 
   -- * Configuration type for query
   Config, defaultConfig,
@@ -70,10 +70,6 @@ columnSQL =  Identity
 -- | String from ColumnSQL
 stringFromColumnSQL :: ColumnSQL -> String
 stringFromColumnSQL =  runIdentity
-
--- | SQL word from 'ColumnSQL'
-sqlWordFromColumn :: ColumnSQL -> SQL.Keyword
-sqlWordFromColumn =  SQL.word . stringFromColumnSQL
 
 -- | StringSQL from ColumnSQL
 showsColumnSQL :: ColumnSQL -> StringSQL
@@ -233,7 +229,7 @@ type Assignments = [Assignment]
 composeSets :: Assignments -> StringSQL
 composeSets as = assigns  where
   assignList = foldr (\ (col, term) r ->
-                       (sqlWordFromColumn col .=. sqlWordFromColumn term) : r)
+                       (showsColumnSQL col .=. showsColumnSQL term) : r)
                [] as
   assigns | null assignList = error "Update assignment list is null!"
           | otherwise       = SET <> commaed assignList
