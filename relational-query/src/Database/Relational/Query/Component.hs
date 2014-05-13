@@ -49,15 +49,14 @@ module Database.Relational.Query.Component (
 ) where
 
 import Data.Functor.Identity (Identity (..))
+import Data.Monoid (mempty, (<>))
 
 import qualified Database.Relational.Query.Context as Context
 import Database.Relational.Query.Expr (Expr)
 import Database.Relational.Query.Expr.Unsafe (showExpr)
 
-import Database.Relational.Query.Internal.String
-  (showUnwordsSQL, showWordSQL, showWordSQL', showSpace, showParen', showSepBy)
-import Database.Relational.Query.Internal.SQL (StringSQL)
-import Language.SQL.Keyword (Keyword(..))
+import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL)
+import Language.SQL.Keyword (Keyword(..), (|*|), (.=.))
 
 import qualified Language.SQL.Keyword as SQL
 
@@ -78,7 +77,7 @@ sqlWordFromColumn =  SQL.word . stringFromColumnSQL
 
 -- | StringSQL from ColumnSQL
 showsColumnSQL :: ColumnSQL -> StringSQL
-showsColumnSQL =  showString . stringFromColumnSQL
+showsColumnSQL =  stringSQL . stringFromColumnSQL
 
 instance Show ColumnSQL where
   show = stringFromColumnSQL
@@ -100,7 +99,7 @@ data Duplication = All | Distinct  deriving Show
 
 -- | Compose duplication attribute string.
 showsDuplication :: Duplication -> StringSQL
-showsDuplication =  showWordSQL . dup  where
+showsDuplication =  dup  where
   dup All      = ALL
   dup Distinct = DISTINCT
 
@@ -110,7 +109,7 @@ type QueryRestriction c = Maybe (Expr c Bool)
 
 -- | Compose SQL String from 'QueryRestriction'.
 composeRestrict :: Keyword -> QueryRestriction c -> StringSQL
-composeRestrict k = maybe id (\e -> showSpace . showUnwordsSQL [k, SQL.word . showExpr $ e])
+composeRestrict k = maybe mempty (\e -> k <> stringSQL (showExpr e))
 
 -- | Compose WHERE clause from 'QueryRestriction'.
 composeWhere :: QueryRestriction Context.Flat -> StringSQL
@@ -165,38 +164,36 @@ aggregateSets =  GroupingSets
 aggregateEmpty :: [AggregateElem]
 aggregateEmpty =  []
 
-comma :: StringSQL
-comma =  showString ", "
-
 showsAggregateColumnRef :: AggregateColumnRef -> StringSQL
 showsAggregateColumnRef =  showsColumnSQL
 
-parenSepByComma :: (a -> StringSQL) -> [a] -> StringSQL
-parenSepByComma shows' = showParen' . (`showSepBy` comma) . map shows'
+commaed :: [StringSQL] -> StringSQL
+commaed =  SQL.fold (|*|)
+
+pComma :: (a -> StringSQL) -> [a] -> StringSQL
+pComma qshow =  SQL.paren . commaed . map qshow
 
 showsAggregateBitKey :: AggregateBitKey -> StringSQL
-showsAggregateBitKey (AggregateBitKey ts) = parenSepByComma showsAggregateColumnRef ts
+showsAggregateBitKey (AggregateBitKey ts) = pComma showsAggregateColumnRef ts
 
 -- | Compose GROUP BY clause from AggregateElem list.
 composeGroupBy :: [AggregateElem] -> StringSQL
 composeGroupBy =  d where
-  d []       = id
-  d es@(_:_) = showSpace . showUnwordsSQL [GROUP, BY] . showSpace . rec es
-  keyList op ss = showWordSQL' op . parenSepByComma showsAggregateBitKey ss
-  rec = (`showSepBy` comma) . map showsE
-  showsGs (AggregateSet s) = showParen' $ rec s
+  d []       = mempty
+  d es@(_:_) = GROUP <> BY <> rec es
+  keyList op ss = op <> pComma showsAggregateBitKey ss
+  rec = commaed . map showsE
+  showsGs (AggregateSet s) = SQL.paren $ rec s
   showsE (ColumnRef t)     = showsAggregateColumnRef t
   showsE (Rollup ss)       = keyList ROLLUP ss
   showsE (Cube   ss)       = keyList CUBE   ss
-  showsE (GroupingSets ss) = showUnwordsSQL [GROUPING, SETS] . showSpace
-                             . parenSepByComma showsGs ss
+  showsE (GroupingSets ss) = GROUPING <> SETS <> pComma showsGs ss
 
 -- | Compose PARTITION BY clause from AggregateColumnRef list.
 composePartitionBy :: [AggregateColumnRef] -> StringSQL
 composePartitionBy =  d where
-  d []       = id
-  d ts@(_:_) = showUnwordsSQL [PARTITION, BY] . showSpace
-               . (map showsAggregateColumnRef ts `showSepBy` comma)
+  d []       = mempty
+  d ts@(_:_) = PARTITION <> BY <> commaed (map showsAggregateColumnRef ts)
 
 -- | Order direction. Ascendant or Descendant.
 data Order = Asc | Desc  deriving Show
@@ -213,10 +210,9 @@ type OrderingTerms = [OrderingTerm]
 -- | Compose ORDER BY clause from OrderingTerms
 composeOrderBy :: OrderingTerms -> StringSQL
 composeOrderBy =  d where
-  d []       = id
-  d ts@(_:_) = showSpace . showUnwordsSQL [ORDER, BY] . showSpace
-               . (map showsOt ts `showSepBy` comma)
-  showsOt (o, e) = showsColumnSQL e . showSpace . showWordSQL (order o)
+  d []       = mempty
+  d ts@(_:_) = ORDER <> BY <> commaed (map showsOt ts)
+  showsOt (o, e) = showsColumnSQL e <> order o
   order Asc  = ASC
   order Desc = DESC
 
@@ -237,13 +233,13 @@ type Assignments = [Assignment]
 composeSets :: Assignments -> StringSQL
 composeSets as = assigns  where
   assignList = foldr (\ (col, term) r ->
-                       [sqlWordFromColumn col, sqlWordFromColumn term] `SQL.sepBy` " = "  : r)
+                       (sqlWordFromColumn col .=. sqlWordFromColumn term) : r)
                [] as
   assigns | null assignList = error "Update assignment list is null!"
-          | otherwise       = showSpace . showUnwordsSQL [SET, assignList `SQL.sepBy` ", "]
+          | otherwise       = SET <> commaed assignList
 
 
 -- | Compose /OVER (PARTITION BY ... )/ clause.
 composeOver :: [AggregateColumnRef] -> OrderingTerms -> StringSQL
 composeOver pts ots =
-  showSpace . showWordSQL' OVER . showParen' (composePartitionBy pts . composeOrderBy ots)
+  OVER <> SQL.paren (composePartitionBy pts <> composeOrderBy ots)

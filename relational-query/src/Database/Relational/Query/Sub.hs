@@ -38,10 +38,12 @@ module Database.Relational.Query.Sub (
 import Data.Maybe (fromMaybe)
 import Data.Array (Array, listArray)
 import qualified Data.Array as Array
+import Data.Monoid (mempty, (<>), mconcat)
 
 import qualified Database.Relational.Query.Context as Context
 import Database.Relational.Query.Expr (valueExpr)
 import Database.Relational.Query.Expr.Unsafe (showExpr)
+import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL)
 import Database.Relational.Query.Internal.Product
   (NodeAttr(Just', Maybe), ProductTree (Leaf, Join),
    Node, nodeAttr, nodeTree)
@@ -53,10 +55,7 @@ import Database.Relational.Query.Component
 import Database.Relational.Query.Table (Table, (!))
 import qualified Database.Relational.Query.Table as Table
 
-import Database.Relational.Query.Internal.String
-  (showUnwordsSQL, showWordSQL, showWordSQL', showUnwords, showSepBy, showSpace, showComma, showParen')
-import Database.Relational.Query.Internal.SQL (StringSQL)
-import Language.SQL.Keyword (Keyword(..))
+import Language.SQL.Keyword (Keyword(..), (|*|))
 import qualified Language.SQL.Keyword as SQL
 import qualified Language.SQL.Keyword.ConcatString as SQLs
 
@@ -66,7 +65,7 @@ data SetOp = Union | Except | Intersect  deriving Show
 newtype BinOp = BinOp (SetOp, Duplication) deriving Show
 
 showsSetOp :: SetOp -> StringSQL
-showsSetOp =  showWordSQL . d  where
+showsSetOp =  d  where
   d Union     = UNION
   d Except    = EXCEPT
   d Intersect = INTERSECT
@@ -135,14 +134,13 @@ width =  d  where
 -- | SQL to query table.
 fromTableToSQL :: Table.Untyped -> StringSQL
 fromTableToSQL t =
-  showUnwordsSQL
-  $ [SELECT, map sqlWordFromColumn (Table.columns' t) `SQL.sepBy` ", ",
-     FROM, SQL.word $ Table.name' t]
+  SELECT <> SQL.fold (|*|) [sqlWordFromColumn c | c <- Table.columns' t] <>
+  FROM <> stringSQL (Table.name' t)
 
 -- | Generate normalized column SQL from table.
 fromTableToNormalizedSQL :: Table.Untyped -> StringSQL
-fromTableToNormalizedSQL t = showWordSQL' SELECT . (columns' `showSepBy` showComma)
-                             . showSpace . showWordSQL' FROM . showString (Table.name' t)  where
+fromTableToNormalizedSQL t = SELECT <> SQL.fold (|*|) columns' <>
+                             FROM <> stringSQL (Table.name' t)  where
   columns' = zipWith
              (\f n -> showsColumnSQL $ f `asColumnN` n)
              (Table.columns' t)
@@ -157,8 +155,8 @@ normalizedSQL =  d  where
   d sub@(Aggregated _ _ _ _ _ _ _ _) = showUnitSQL sub
 
 selectPrefixSQL :: UntypedProjection -> Duplication -> StringSQL
-selectPrefixSQL up da = showWordSQL' SELECT . showsDuplication da
-                        . showSpace . (columns' `showSepBy` showComma)  where
+selectPrefixSQL up da = SELECT <> showsDuplication da <>
+                        SQL.fold (|*|) columns'  where
   columns' = zipWith
              (\f n -> showsColumnSQL $ f `asColumnN` n)
              (columnsOfUntypedProjection up)
@@ -168,22 +166,22 @@ selectPrefixSQL up da = showWordSQL' SELECT . showsDuplication da
 toSQLs :: SubQuery
        -> (StringSQL, StringSQL) -- ^ subquery SQL and top-level SQL
 toSQLs =  d  where
-  d (Table u)               = (showString $ Table.name' u, fromTableToSQL u)
-  d (Bin (BinOp (op, da)) l r) = (showParen' q, q)  where
-    q = showUnwords [normalizedSQL l, showsSetOp op, showsDuplication da, normalizedSQL r]
-  d (Flat cf up da pd rs od)   = (showParen' q, q)  where
-    q = selectPrefixSQL up da . showsJoinProduct cf pd . composeWhere rs
-        . composeOrderBy od
-  d (Aggregated cf up da pd rs ag grs od) = (showParen' q, q)  where
-    q = selectPrefixSQL up da . showsJoinProduct cf pd . composeWhere rs
-        . composeGroupBy ag . composeHaving grs . composeOrderBy od
+  d (Table u)               = (stringSQL $ Table.name' u, fromTableToSQL u)
+  d (Bin (BinOp (op, da)) l r) = (SQL.paren q, q)  where
+    q = mconcat [normalizedSQL l, showsSetOp op, showsDuplication da, normalizedSQL r]
+  d (Flat cf up da pd rs od)   = (SQL.paren q, q)  where
+    q = selectPrefixSQL up da <> showsJoinProduct cf pd <> composeWhere rs
+        <> composeOrderBy od
+  d (Aggregated cf up da pd rs ag grs od) = (SQL.paren q, q)  where
+    q = selectPrefixSQL up da <> showsJoinProduct cf pd <> composeWhere rs
+        <> composeGroupBy ag <> composeHaving grs <> composeOrderBy od
 
 showUnitSQL :: SubQuery -> StringSQL
 showUnitSQL =  fst . toSQLs
 
 -- | SQL string for nested-qeury.
 unitSQL :: SubQuery -> String
-unitSQL =  ($ "") . showUnitSQL
+unitSQL =  showStringSQL . showUnitSQL
 
 -- | SQL StringSQL for toplevel-SQL.
 showSQL :: SubQuery -> StringSQL
@@ -191,7 +189,7 @@ showSQL = snd . toSQLs
 
 -- | SQL string for toplevel-SQL.
 toSQL :: SubQuery -> String
-toSQL =  ($ "") . showSQL
+toSQL =  showStringSQL . showSQL
 
 -- | Qualifier type.
 newtype Qualifier = Qualifier Int  deriving Show
@@ -242,8 +240,7 @@ columnFromId qi i = qi <.> columnN i
 -- | From 'Qualified' SQL string into 'String'.
 qualifiedSQLas :: Qualified StringSQL -> StringSQL
 qualifiedSQLas q =
-  showUnwords
-  [unQualify q, (showQualifier (qualifier q) ++)]
+  unQualify q <> stringSQL (showQualifier $ qualifier q)
 
 -- | Width of 'Qualified' 'SubQUery'.
 queryWidth :: Qualified SubQuery -> Int
@@ -343,15 +340,15 @@ showsQueryProduct =  rec  where
   joinType Maybe Maybe = FULL
   urec n = case nodeTree n of
     p@(Leaf _)     -> rec p
-    p@(Join _ _ _) -> showParen True (rec p)
+    p@(Join _ _ _) -> SQL.paren (rec p)
   rec (Leaf q)               = qualifiedForm q
   rec (Join left' right' rs) =
-    showUnwords
+    mconcat
     [urec left',
-     showUnwordsSQL [joinType (nodeAttr left') (nodeAttr right'), JOIN],
+     joinType (nodeAttr left') (nodeAttr right'), JOIN,
      urec right',
-     showWordSQL ON,
-     showString . showExpr
+     ON,
+     stringSQL . showExpr
      . fromMaybe (valueExpr True) {- or error on compile -}  $ rs]
 
 -- | Type for join product of query.
@@ -360,6 +357,6 @@ type JoinProduct = Maybe QueryProduct
 -- | Shows join product of query.
 showsJoinProduct :: UnitProductSupport -> JoinProduct -> StringSQL
 showsJoinProduct ups =  maybe (up ups) from  where
-  from qp = showSpace . showWordSQL' FROM . showsQueryProduct qp
-  up UPSupported    = id
+  from qp = FROM <> showsQueryProduct qp
+  up UPSupported    = mempty
   up UPNotSupported = error "relation: Unit product support mode is disabled!"
