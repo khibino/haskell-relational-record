@@ -48,7 +48,7 @@ import Database.Relational.Query.Internal.Product
   (NodeAttr(Just', Maybe), ProductTree (Leaf, Join),
    Node, nodeAttr, nodeTree)
 import Database.Relational.Query.Component
-  (ColumnSQL, columnSQL, columnSQL', showsColumnSQL,
+  (ColumnSQL, columnSQL', showsColumnSQL,
    Config, UnitProductSupport (UPSupported, UPNotSupported),
    Duplication, showsDuplication, QueryRestriction, composeWhere, composeHaving,
    AggregateElem, composeGroupBy, OrderingTerms, composeOrderBy)
@@ -210,12 +210,11 @@ unQualify (Qualified a _) = a
 qualify :: a -> Qualifier -> Qualified a
 qualify =  Qualified
 
--- | Column name of projection index.
-columnN :: Int -> ColumnSQL
-columnN i = columnSQL $ 'f' : show i
+columnN :: Int -> StringSQL
+columnN i = stringSQL $ 'f' : show i
 
 asColumnN :: ColumnSQL -> Int -> StringSQL
-c `asColumnN` n = showsColumnSQL c `SQL.as` showsColumnSQL (columnN n)
+c `asColumnN` n = showsColumnSQL c `SQL.as` columnN n
 
 -- | Alias string from qualifier
 showQualifier :: Qualifier -> StringSQL
@@ -223,16 +222,15 @@ showQualifier (Qualifier i) = stringSQL $ 'T' : show i
 
 -- | Binary operator to qualify.
 (<.>) :: Qualifier -> ColumnSQL -> ColumnSQL
-i <.> n = columnSQL' $ showQualifier i SQL.<.> showsColumnSQL n
+i <.> n = fmap (showQualifier i SQL.<.>) n
 
 -- | Qualified expression from qualifier and projection index.
 columnFromId :: Qualifier -> Int -> ColumnSQL
-columnFromId qi i = qi <.> columnN i
+columnFromId qi i = qi <.> columnSQL' (columnN i)
 
 -- | From 'Qualified' SQL string into 'String'.
 qualifiedSQLas :: Qualified StringSQL -> StringSQL
-qualifiedSQLas q =
-  unQualify q <> showQualifier (qualifier q)
+qualifiedSQLas q = unQualify q <> showQualifier (qualifier q)
 
 -- | Width of 'Qualified' 'SubQUery'.
 queryWidth :: Qualified SubQuery -> Int
