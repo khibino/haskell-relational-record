@@ -61,23 +61,23 @@ import Language.SQL.Keyword (Keyword(..), (|*|), (.=.))
 import qualified Language.SQL.Keyword as SQL
 
 -- | Column SQL string type
-type ColumnSQL = Identity String
+type ColumnSQL = Identity StringSQL
 
 -- | 'ColumnSQL' from string
 columnSQL :: String -> ColumnSQL
-columnSQL =  Identity
+columnSQL =  columnSQL' . stringSQL
 
 -- | 'ColumnSQL' from 'StringSQL'
 columnSQL' :: StringSQL -> ColumnSQL
-columnSQL' =  columnSQL . showStringSQL
+columnSQL' =  Identity
 
 -- | String from ColumnSQL
 stringFromColumnSQL :: ColumnSQL -> String
-stringFromColumnSQL =  runIdentity
+stringFromColumnSQL =  showStringSQL . showsColumnSQL
 
 -- | StringSQL from ColumnSQL
 showsColumnSQL :: ColumnSQL -> StringSQL
-showsColumnSQL =  stringSQL . stringFromColumnSQL
+showsColumnSQL =  runIdentity
 
 instance Show ColumnSQL where
   show = stringFromColumnSQL
