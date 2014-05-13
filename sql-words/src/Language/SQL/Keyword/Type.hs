@@ -19,12 +19,13 @@ module Language.SQL.Keyword.Type (
   stringMap
   ) where
 
+import Data.Monoid (mconcat)
 import Language.SQL.Keyword.Internal.Type (Keyword (..), word, wordShow)
 
 
 -- | Concatinate keywords into 'String' like unwords
 unwordsSQL :: [Keyword] -> String
-unwordsSQL =  unwords . map wordShow
+unwordsSQL =  wordShow . mconcat
 
 -- | Make SQL string expression. No escape logic, so this is unsafe function.
 unsafeString :: String -> Keyword
