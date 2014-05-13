@@ -79,13 +79,13 @@ import Database.Record.Instances ()
 
 import Database.Relational.Query
   (Table, Pi, Relation, Config, ProductConstructor (..),
-   sqlFromRelationWith, Query, relationalQuery, KeyUpdate, Insert,
+   relationalQuerySQL, Query, relationalQuery, KeyUpdate, Insert,
    HasConstraintKey(constraintKey), projectionKey, Primary, NotNull)
 
 import Database.Relational.Query.Scalar (defineScalarDegree)
 import Database.Relational.Query.Constraint (Key, unsafeDefineConstraintKey)
 import qualified Database.Relational.Query.Table as Table
-import Database.Relational.Query.SQL (QuerySuffix, showsQuerySuffix)
+import Database.Relational.Query.SQL (QuerySuffix)
 import Database.Relational.Query.Type (unsafeTypedQuery)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Relational.Query.Derives
@@ -424,4 +424,6 @@ inlineQuery :: Name         -- ^ Top-level variable name which has 'Relation' ty
             -> Q [Dec]      -- ^ Result declarations
 inlineQuery relVar rel config sufs qns = do
   (p, r) <- reifyRelation relVar
-  unsafeInlineQuery (return p) (return r) (sqlFromRelationWith rel config . showsQuerySuffix sufs $ "") (varCamelcaseName qns)
+  unsafeInlineQuery (return p) (return r)
+    (relationalQuerySQL config rel sufs)
+    (varCamelcaseName qns)

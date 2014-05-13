@@ -36,8 +36,8 @@ import Language.Haskell.TH.Name.CamelCase (varCamelcaseName)
 
 import Database.Record.TH (makeRecordPersistableWithSqlTypeDefault)
 import qualified Database.Record.TH as Record
-import Database.Relational.Query (Relation, Config, sqlFromRelationWith)
-import Database.Relational.Query.SQL (QuerySuffix, showsQuerySuffix)
+import Database.Relational.Query (Relation, Config, relationalQuerySQL)
+import Database.Relational.Query.SQL (QuerySuffix)
 import qualified Database.Relational.Query.TH as Relational
 
 import Database.HDBC.Session (withConnectionIO)
@@ -130,7 +130,7 @@ inlineVerifiedQuery :: IConnection conn
                     -> Q [Dec]      -- ^ Result declarations
 inlineVerifiedQuery connect relVar rel config sufs qns = do
   (p, r) <- Relational.reifyRelation relVar
-  let sql = sqlFromRelationWith rel config . showsQuerySuffix sufs $ ""
+  let sql = relationalQuerySQL config rel sufs
   _ <- runIO $ withConnectionIO connect
        (\conn -> do
            putLog $ "Verify with prepare: " ++ sql
