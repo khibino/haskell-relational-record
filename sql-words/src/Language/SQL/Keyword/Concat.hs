@@ -21,6 +21,8 @@ module Language.SQL.Keyword.Concat (
   -- $binaryOperators
   defineBinOp,
 
+  strBinOp,
+
   as, (<.>), (|*|),
 
   (.||.),
@@ -31,6 +33,7 @@ module Language.SQL.Keyword.Concat (
 
   -- * Unary operator
   defineUniOp, paren,
+  strUniOp
   ) where
 
 import Prelude hiding (and, or, not)
@@ -156,3 +159,9 @@ infix  4 `in'`
 infixr 3 `and`
 infixr 2 `or`
 infixr 1 |*|
+
+strUniOp :: (Keyword -> Keyword) -> String -> String
+strUniOp u = wordShow . u . word
+
+strBinOp :: (Keyword -> Keyword -> Keyword) -> String -> String -> String
+strBinOp op a b = wordShow $ op (word a) (word b)
