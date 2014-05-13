@@ -70,6 +70,7 @@ import Data.String (IsString)
 import Data.Monoid ((<>), mconcat)
 import Control.Applicative ((<$>))
 
+import Language.SQL.Keyword (Keyword)
 import qualified Language.SQL.Keyword as SQL
 import qualified Language.SQL.Keyword.ConcatString as SQLs
 
@@ -186,9 +187,9 @@ sqlBinOp :: String -> SqlBinOp
 sqlBinOp =  SQLs.defineBinOp . SQL.word
 
 -- | Unsafely make projection unary operator from SQL keyword.
-unsafeUniOp :: (SqlProjectable p, ProjectableShowSql p)
-            => SQL.Keyword -> p a -> p b
-unsafeUniOp kw = unsafeProjectSql . paren . SQLs.defineUniOp kw . unsafeShowSql
+unsafeFlatUniOp :: (SqlProjectable p, ProjectableShowSql p)
+               => Keyword -> p a -> p b
+unsafeFlatUniOp kw = unsafeProjectSql . paren . SQLs.defineUniOp kw . unsafeShowSql
 
 -- | Unsafely make projection binary operator from string binary operator.
 unsafeBinOp :: (SqlProjectable p, ProjectableShowSql p)
@@ -253,7 +254,7 @@ or'  =  compareBinOp SQLs.or
 -- | Logical operator corresponding SQL /NOT/ .
 not' :: (SqlProjectable p, ProjectableShowSql p)
     => p (Maybe Bool) -> p (Maybe Bool)
-not' =  unsafeUniOp SQL.NOT
+not' =  unsafeFlatUniOp SQL.NOT
 
 -- | Logical operator corresponding SQL /EXISTS/ .
 exists :: (SqlProjectable p, ProjectableShowSql p)
@@ -299,7 +300,7 @@ monoBinOp' = monoBinOp . sqlBinOp
 -- | Number negate uni-operator corresponding SQL /-/.
 negate' :: (SqlProjectable p, ProjectableShowSql p, Num a)
         => p a -> p a
-negate' =  unsafeUniOp $ SQL.word "-"
+negate' =  unsafeFlatUniOp $ SQL.word "-"
 
 -- | Number fromIntegral uni-operator.
 fromIntegral' :: (SqlProjectable p, ProjectableShowSql p, Integral a, Num b)
@@ -329,21 +330,21 @@ fromIntegral' =  unsafeProjectSql . unsafeShowSql
 -- | Number negate uni-operator corresponding SQL /-/.
 negateMaybe :: (SqlProjectable p, ProjectableShowSql p, Num a)
             => p (Maybe a) -> p (Maybe a)
-negateMaybe =  unsafeUniOp $ SQL.word "-"
+negateMaybe =  unsafeFlatUniOp $ SQL.word "-"
 
 -- | Number fromIntegral uni-operator.
 fromIntegralMaybe :: (SqlProjectable p, ProjectableShowSql p, Integral a, Num b)
                   => p (Maybe a) -> p (Maybe b)
 fromIntegralMaybe =  unsafeProjectSql . unsafeShowSql
 
-unsafeSqlWord :: ProjectableShowSql p => p a -> SQL.Keyword
+unsafeSqlWord :: ProjectableShowSql p => p a -> Keyword
 unsafeSqlWord =  SQL.word . unsafeShowSql
 
 whensClause :: (SqlProjectable p, ProjectableShowSql p)
             => String       -- ^ Error tag
             -> [(p a, p b)] -- ^ Each when clauses
             -> p b          -- ^ Else result projection
-            -> SQL.Keyword  -- ^ Result projection
+            -> Keyword      -- ^ Result projection
 whensClause eTag cs0 e = d cs0  where
   d []       = error $ eTag ++ ": Empty when clauses!"
   d cs@(_:_) = mconcat [when' p r | (p, r) <- cs] <> else' <> SQL.END
@@ -410,7 +411,7 @@ isNotNull :: (SqlProjectable p, ProjectableShowSql p)
           => p (Maybe t) -> p (Maybe Bool)
 isNotNull =  not' . isNull
 
-unsafeUniTermFunction :: SqlProjectable p => SQL.Keyword -> p t
+unsafeUniTermFunction :: SqlProjectable p => Keyword -> p t
 unsafeUniTermFunction =  unsafeProjectSql . (++ "()") . SQL.wordShow
 
 -- | /RANK()/ term.
