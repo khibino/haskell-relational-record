@@ -218,12 +218,12 @@ asColumnN :: ColumnSQL -> Int -> StringSQL
 c `asColumnN` n = showsColumnSQL c `SQL.as` showsColumnSQL (columnN n)
 
 -- | Alias string from qualifier
-showQualifier :: Qualifier -> String
-showQualifier (Qualifier i) = 'T' : show i
+showQualifier :: Qualifier -> StringSQL
+showQualifier (Qualifier i) = stringSQL $ 'T' : show i
 
 -- | Binary operator to qualify.
 (<.>) :: Qualifier -> ColumnSQL -> ColumnSQL
-i <.> n = columnSQL' $ stringSQL (showQualifier i) SQL.<.> showsColumnSQL n
+i <.> n = columnSQL' $ showQualifier i SQL.<.> showsColumnSQL n
 
 -- | Qualified expression from qualifier and projection index.
 columnFromId :: Qualifier -> Int -> ColumnSQL
@@ -232,7 +232,7 @@ columnFromId qi i = qi <.> columnN i
 -- | From 'Qualified' SQL string into 'String'.
 qualifiedSQLas :: Qualified StringSQL -> StringSQL
 qualifiedSQLas q =
-  unQualify q <> stringSQL (showQualifier $ qualifier q)
+  unQualify q <> showQualifier (qualifier q)
 
 -- | Width of 'Qualified' 'SubQUery'.
 queryWidth :: Qualified SubQuery -> Int
