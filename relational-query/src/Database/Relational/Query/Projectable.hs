@@ -75,12 +75,11 @@ import Control.Applicative ((<$>))
 
 import Language.SQL.Keyword (Keyword)
 import qualified Language.SQL.Keyword as SQL
-import qualified Language.SQL.Keyword.ConcatString as SQLs
 
 import Database.Record (PersistableWidth, PersistableRecordWidth, derivedWidth)
 
 import Database.Relational.Query.Internal.SQL (showStringSQL, rowStringSQL)
-import Database.Relational.Query.Internal.String (paren, sqlRowString)
+import Database.Relational.Query.Internal.String (sqlRowString)
 import Database.Relational.Query.Context (Flat, Aggregated, Exists, OverWindow)
 import Database.Relational.Query.Component (columnSQL, showsColumnSQL)
 import Database.Relational.Query.Expr (Expr)
@@ -188,18 +187,21 @@ type SqlBinOp = Keyword -> Keyword -> Keyword
 -- | Unsafely make projection unary operator from SQL keyword.
 unsafeUniOp :: (ProjectableShowSql p0, SqlProjectable p1)
              => (Keyword -> Keyword) -> p0 a -> p1 b
-unsafeUniOp u = unsafeProjectSql . SQL.wordShow . u . SQL.word . unsafeShowSql
+unsafeUniOp u = unsafeProjectSql . SQL.strUniOp u . unsafeShowSql
 
 unsafeFlatUniOp :: (SqlProjectable p, ProjectableShowSql p)
                => Keyword -> p a -> p b
 unsafeFlatUniOp kw = unsafeUniOp (SQL.paren . SQL.defineUniOp kw)
 
+parenBin :: SqlBinOp -> SqlBinOp
+parenBin op x y = SQL.paren $ op x y
+
 -- | Unsafely make projection binary operator from string binary operator.
 unsafeBinOp :: (SqlProjectable p, ProjectableShowSql p)
             => SqlBinOp
             -> p a -> p b -> p c
-unsafeBinOp op a b = unsafeProjectSql . SQL.wordShow . SQL.paren
-                     $ op (SQL.word $ unsafeShowSql a) (SQL.word $ unsafeShowSql b)
+unsafeBinOp op a b = unsafeProjectSql
+                     $ SQL.strBinOp (parenBin op) (unsafeShowSql a) (unsafeShowSql b)
 
 -- | Unsafely make compare projection binary operator from string binary operator.
 compareBinOp :: (SqlProjectable p, ProjectableShowSql p)
@@ -262,7 +264,7 @@ not' =  unsafeFlatUniOp SQL.NOT
 -- | Logical operator corresponding SQL /EXISTS/ .
 exists :: (SqlProjectable p, ProjectableShowSql p)
        => ListProjection (Projection Exists) r -> p (Maybe Bool)
-exists =  unsafeProjectSql . paren . SQLs.defineUniOp SQL.EXISTS
+exists =  unsafeProjectSql . SQL.strUniOp (SQL.paren . SQL.defineUniOp SQL.EXISTS)
           . unsafeShowSqlListProjection unsafeShowSql
 
 -- | Concatinate operator corresponding SQL /||/ .
@@ -401,8 +403,8 @@ caseMaybe v cs = case' v cs unsafeValueNull
 -- | Binary operator corresponding SQL /IN/ .
 in' :: (SqlProjectable p, ProjectableShowSql p)
     => p t -> ListProjection p t -> p (Maybe Bool)
-in' a lp = unsafeProjectSql . paren
-           $ SQLs.in' (unsafeShowSql a) (unsafeShowSqlListProjection unsafeShowSql lp)
+in' a lp = unsafeProjectSql
+           $ SQL.strBinOp (parenBin SQL.in') (unsafeShowSql a) (unsafeShowSqlListProjection unsafeShowSql lp)
 
 -- | Operator corresponding SQL /IS NULL/ .
 isNull :: (SqlProjectable p, ProjectableShowSql p)
