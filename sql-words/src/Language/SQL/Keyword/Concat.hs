@@ -27,13 +27,15 @@ module Language.SQL.Keyword.Concat (
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
   and, or, in',
 
+  fold,
+
   -- * Unary operator
   defineUniOp, paren,
   ) where
 
 import Prelude hiding (and, or, not)
 import Data.List (intersperse)
-import Data.Monoid (mconcat)
+import Data.Monoid (mempty, mconcat)
 
 import Language.SQL.Keyword.Internal.Type (Keyword (..), word, wordShow, toDString, fromDString)
 
@@ -126,6 +128,14 @@ and    =  defineBinOp AND
 -- | Binary `OR` operator for SQL boolean expression.
 or :: Keyword -> Keyword -> Keyword
 or     =  defineBinOp OR
+
+-- | Fold operation using binary operator with empty result of zero length case.
+fold :: (Keyword -> Keyword -> Keyword) -- ^ Binary operator used in fold
+     -> [Keyword]                       -- ^ List to fold
+     -> Keyword                         -- ^ Result
+fold op =  d  where
+  d []       = mempty
+  d xs@(_:_) = foldr1 op xs
 
 -- | Define unary operator on 'Keyword' type represeted by specified 'Keyword'.
 --   Result is delimited by whitespace like unwords on 'String' list.
