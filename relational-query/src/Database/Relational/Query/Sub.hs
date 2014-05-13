@@ -48,7 +48,7 @@ import Database.Relational.Query.Internal.Product
   (NodeAttr(Just', Maybe), ProductTree (Leaf, Join),
    Node, nodeAttr, nodeTree)
 import Database.Relational.Query.Component
-  (ColumnSQL, columnSQL, showsColumnSQL,
+  (ColumnSQL, columnSQL, columnSQL', showsColumnSQL,
    Config, UnitProductSupport (UPSupported, UPNotSupported),
    Duplication, showsDuplication, QueryRestriction, composeWhere, composeHaving,
    AggregateElem, composeGroupBy, OrderingTerms, composeOrderBy)
@@ -223,9 +223,7 @@ showQualifier (Qualifier i) = 'T' : show i
 
 -- | Binary operator to qualify.
 (<.>) :: Qualifier -> ColumnSQL -> ColumnSQL
-i <.> n = do
-  n' <- n
-  return $ showQualifier i ++ '.' : n'
+i <.> n = columnSQL' $ stringSQL (showQualifier i) SQL.<.> showsColumnSQL n
 
 -- | Qualified expression from qualifier and projection index.
 columnFromId :: Qualifier -> Int -> ColumnSQL

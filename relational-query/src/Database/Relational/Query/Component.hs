@@ -14,7 +14,7 @@
 -- This module provides untyped components for query.
 module Database.Relational.Query.Component (
   -- * Type for column SQL string
-  ColumnSQL, columnSQL, showsColumnSQL,
+  ColumnSQL, columnSQL, columnSQL', showsColumnSQL,
 
   -- * Configuration type for query
   Config, defaultConfig,
@@ -55,7 +55,7 @@ import qualified Database.Relational.Query.Context as Context
 import Database.Relational.Query.Expr (Expr)
 import Database.Relational.Query.Expr.Unsafe (showExpr)
 
-import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL)
+import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL)
 import Language.SQL.Keyword (Keyword(..), (|*|), (.=.))
 
 import qualified Language.SQL.Keyword as SQL
@@ -66,6 +66,10 @@ type ColumnSQL = Identity String
 -- | 'ColumnSQL' from string
 columnSQL :: String -> ColumnSQL
 columnSQL =  Identity
+
+-- | 'ColumnSQL' from 'StringSQL'
+columnSQL' :: StringSQL -> ColumnSQL
+columnSQL' =  columnSQL . showStringSQL
 
 -- | String from ColumnSQL
 stringFromColumnSQL :: ColumnSQL -> String
