@@ -19,7 +19,7 @@ module Database.Relational.Query.Type (
   -- * Typed update statement
   KeyUpdate (..), unsafeTypedKeyUpdate, typedKeyUpdate,
   Update (..), unsafeTypedUpdate, typedUpdate, targetUpdate,
-  typedUpdateAllColumn, restricredUpdateAllColumn,
+  typedUpdateAllColumn, restrictedUpdateAllColumn,
 
   updateSQL,
 
@@ -132,11 +132,11 @@ typedUpdateAllColumn tbl r = typedUpdate tbl $ liftTargetAllColumn' r
 
 -- | Directly make typed 'Update' from 'Table' and 'Restrict' monad context.
 --   Update target is all column.
-restricredUpdateAllColumn :: PersistableWidth r
+restrictedUpdateAllColumn :: PersistableWidth r
                            => Table r
-                           -> RestrictionContext p r
+                           -> RestrictionContext p r -- ^ 'Restrict' monad context
                            -> Update (r, p)
-restricredUpdateAllColumn tbl = typedUpdateAllColumn tbl . restriction'
+restrictedUpdateAllColumn tbl = typedUpdateAllColumn tbl . restriction'
 
 -- | Show update SQL string
 instance Show (Update p) where

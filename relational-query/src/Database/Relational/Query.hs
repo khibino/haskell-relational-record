@@ -75,7 +75,7 @@ import Database.Relational.Query.Type
   (Query, untypeQuery, relationalQuery', relationalQuery, relationalQuerySQL,
    KeyUpdate, updateKey, untypeKeyUpdate, typedKeyUpdate,
    Update, untypeUpdate, typedUpdate, targetUpdate, updateSQL,
-   typedUpdateAllColumn, restricredUpdateAllColumn,
+   typedUpdateAllColumn, restrictedUpdateAllColumn,
    Insert, untypeInsert, typedInsert,
    InsertQuery, untypeInsertQuery, typedInsertQuery, insertQuerySQL,
    Delete, untypeDelete, typedDelete, restrictedDelete, deleteSQL,
