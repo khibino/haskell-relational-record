@@ -15,7 +15,7 @@ module Database.Relational.Query.Relation (
   -- * Relation type
   Relation,
 
-  table, derivedRelation,
+  table, derivedRelation, tableOf,
   relation, relation',
   aggregateRelation, aggregateRelation',
 
@@ -87,6 +87,10 @@ table =  SubQuery . return . SubQuery.fromTable
 -- | Infered 'Relation'.
 derivedRelation :: TableDerivable r => Relation () r
 derivedRelation =  table derivedTable
+
+-- | Interface to derive 'Table' type object.
+tableOf :: TableDerivable r => Relation () r -> Table r
+tableOf =  const derivedTable
 
 placeHoldersFromRelation :: Relation p r -> PlaceHolders p
 placeHoldersFromRelation =  const unsafePlaceHolders

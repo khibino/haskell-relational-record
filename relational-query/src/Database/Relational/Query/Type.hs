@@ -17,9 +17,9 @@ module Database.Relational.Query.Type (
   relationalQuerySQL,
 
   -- * Typed update statement
-  KeyUpdate (..), unsafeTypedKeyUpdate, typedKeyUpdate,
-  Update (..), unsafeTypedUpdate, typedUpdate, targetUpdate,
-  typedUpdateAllColumn, restrictedUpdateAllColumn,
+  KeyUpdate (..), unsafeTypedKeyUpdate, typedKeyUpdate, typedKeyUpdateTable,
+  Update (..), unsafeTypedUpdate, typedUpdate, typedUpdateTable, targetUpdate, targetUpdateTable,
+  typedUpdateAllColumn, restrictedUpdateAllColumn, restrictedUpdateTableAllColumn,
 
   updateSQL,
 
@@ -43,7 +43,7 @@ import Data.Monoid ((<>))
 import Database.Record (PersistableWidth)
 
 import Database.Relational.Query.Internal.SQL (showStringSQL)
-import Database.Relational.Query.Relation (Relation, sqlFromRelationWith)
+import Database.Relational.Query.Relation (Relation, sqlFromRelationWith, tableOf)
 import Database.Relational.Query.Restriction
   (Restriction, RestrictionContext, restriction',
    UpdateTarget, UpdateTargetContext, updateTarget', liftTargetAllColumn',
@@ -96,6 +96,10 @@ unsafeTypedKeyUpdate =  KeyUpdate
 typedKeyUpdate :: Table a -> Pi a p -> KeyUpdate p a
 typedKeyUpdate tbl key = unsafeTypedKeyUpdate key $ updateOtherThanKeySQL tbl key
 
+-- | Make typed 'KeyUpdate' object using derived info specified by 'Relation' type.
+typedKeyUpdateTable :: TableDerivable r => Relation () r -> Pi r p -> KeyUpdate p r
+typedKeyUpdateTable =  typedKeyUpdate . tableOf
+
 -- | Show update SQL string
 instance Show (KeyUpdate p a) where
   show = untypeKeyUpdate
@@ -116,11 +120,22 @@ updateSQL tbl ut = showStringSQL $ updatePrefixSQL tbl <> sqlFromUpdateTarget tb
 typedUpdate :: Table r -> UpdateTarget p r -> Update p
 typedUpdate tbl ut = unsafeTypedUpdate $ updateSQL tbl ut
 
+-- | Make typed 'Update' object using derived info specified by 'Relation' type.
+typedUpdateTable :: TableDerivable r => Relation () r -> UpdateTarget p r -> Update p
+typedUpdateTable =  typedUpdate . tableOf
+
 -- | Directly make typed 'Update' from 'Table' and 'Target' monad context.
 targetUpdate :: Table r
              -> UpdateTargetContext p r -- ^ 'Target' monad context
              -> Update p
 targetUpdate tbl = typedUpdate tbl . updateTarget'
+
+-- | Directly make typed 'Update' from 'Relation' and 'Target' monad context.
+targetUpdateTable :: TableDerivable r
+                  => Relation () r
+                  -> UpdateTargetContext p r -- ^ 'Target' monad context
+                  -> Update p
+targetUpdateTable =  targetUpdate . tableOf
 
 -- | Make typed 'Update' from 'Table' and 'Restriction'.
 --   Update target is all column.
@@ -137,6 +152,14 @@ restrictedUpdateAllColumn :: PersistableWidth r
                            -> RestrictionContext p r -- ^ 'Restrict' monad context
                            -> Update (r, p)
 restrictedUpdateAllColumn tbl = typedUpdateAllColumn tbl . restriction'
+
+-- | Directly make typed 'Update' from 'Table' and 'Restrict' monad context.
+--   Update target is all column.
+restrictedUpdateTableAllColumn :: (PersistableWidth r, TableDerivable r)
+                               => Relation () r
+                               -> RestrictionContext p r
+                               -> Update (r, p)
+restrictedUpdateTableAllColumn =  restrictedUpdateAllColumn . tableOf
 
 -- | Show update SQL string
 instance Show (Update p) where
