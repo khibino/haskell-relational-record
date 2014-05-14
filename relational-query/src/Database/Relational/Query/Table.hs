@@ -14,6 +14,9 @@ module Database.Relational.Query.Table (
 
   -- * Phantom typed table type
   Table, unType, name, shortName, width, columns, index, table, toMaybe,
+
+  -- * Table existence inference
+  TableDerivable (..)
   ) where
 
 import Data.Array (Array, listArray, elems)
@@ -86,3 +89,7 @@ table :: String -> [String] -> Table r
 table n f = Table $ Untyped n w fa  where
   w  = length f
   fa = listArray (0, w - 1) $ map columnSQL f
+
+-- | Inference rule of 'Table' existence.
+class TableDerivable r where
+  derivedTable :: Table r

@@ -15,7 +15,7 @@ module Database.Relational.Query.Relation (
   -- * Relation type
   Relation,
 
-  table,
+  table, derivedRelation,
   relation, relation',
   aggregateRelation, aggregateRelation',
 
@@ -60,7 +60,7 @@ import Database.Relational.Query.Monad.Unique (QueryUnique)
 import qualified Database.Relational.Query.Monad.Unique as Unique
 
 import Database.Relational.Query.Component (columnSQL, Config, defaultConfig, Duplication (Distinct, All))
-import Database.Relational.Query.Table (Table)
+import Database.Relational.Query.Table (Table, TableDerivable, derivedTable)
 import Database.Relational.Query.Internal.SQL (StringSQL)
 import Database.Relational.Query.Internal.Product (NodeAttr(Just', Maybe))
 import Database.Relational.Query.Sub (SubQuery)
@@ -83,6 +83,10 @@ newtype Relation p r = SubQuery (ConfigureQuery SubQuery)
 -- | Simple 'Relation' from 'Table'.
 table :: Table r -> Relation () r
 table =  SubQuery . return . SubQuery.fromTable
+
+-- | Infered 'Relation'.
+derivedRelation :: TableDerivable r => Relation () r
+derivedRelation =  table derivedTable
 
 placeHoldersFromRelation :: Relation p r -> PlaceHolders p
 placeHoldersFromRelation =  const unsafePlaceHolders

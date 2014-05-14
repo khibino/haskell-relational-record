@@ -38,7 +38,7 @@ module Database.Relational.Query (
   module Database.Relational.Query.Derives
   ) where
 
-import Database.Relational.Query.Table (Table)
+import Database.Relational.Query.Table (Table, TableDerivable (..))
 import Database.Relational.Query.SQL (updateOtherThanKeySQL, insertSQL)
 import Database.Relational.Query.Pure
 import Database.Relational.Query.Pi
@@ -76,10 +76,9 @@ import Database.Relational.Query.Type
    KeyUpdate, updateKey, untypeKeyUpdate, typedKeyUpdate,
    Update, untypeUpdate, typedUpdate, targetUpdate, updateSQL,
    typedUpdateAllColumn, restrictedUpdateAllColumn,
-   Insert, untypeInsert, typedInsert,
-   InsertQuery, untypeInsertQuery, typedInsertQuery, insertQuerySQL,
+   Insert, untypeInsert, typedInsert, derivedInsert,
+   InsertQuery, untypeInsertQuery, typedInsertQuery, insertQuerySQL, derivedInsertQuery,
    Delete, untypeDelete, typedDelete, restrictedDelete, deleteSQL,
    UntypeableNoFetch (..))
 import Database.Relational.Query.Restriction
 import Database.Relational.Query.Derives
-  hiding (specifyTableDerivation', specifyTableDerivation)

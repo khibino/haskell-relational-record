@@ -1,6 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ExplicitForAll #-}
 
 -- |
 -- Module      : Database.Relational.Query.TH
@@ -79,18 +80,18 @@ import Database.Record.Instances ()
 
 import Database.Relational.Query
   (Table, Pi, Relation, Config, ProductConstructor (..),
-   relationalQuerySQL, Query, relationalQuery, KeyUpdate, Insert,
-   HasConstraintKey(constraintKey), projectionKey, Primary, NotNull)
+   relationalQuerySQL, Query, relationalQuery, KeyUpdate,
+   Insert, derivedInsert, InsertQuery, derivedInsertQuery,
+   HasConstraintKey(constraintKey), projectionKey, Primary, NotNull, primary, primaryUpdate)
 
 import Database.Relational.Query.Scalar (defineScalarDegree)
 import Database.Relational.Query.Constraint (Key, unsafeDefineConstraintKey)
+import Database.Relational.Query.Table (TableDerivable (..))
 import qualified Database.Relational.Query.Table as Table
+import Database.Relational.Query.Relation (derivedRelation)
 import Database.Relational.Query.SQL (QuerySuffix)
 import Database.Relational.Query.Type (unsafeTypedQuery)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
-import Database.Relational.Query.Derives
-  (primary, primaryUpdate, TableDerivable (..), TableDerivation, DerivedInsertQuery,
-   specifyTableDerivation, derivedTable, derivedRelation, derivedInsert, derivedInsertQuery)
 
 
 -- | Rule template to infer constraint key.
@@ -186,22 +187,17 @@ defineColumnDefault mayConstraint recType name =
 defineTableDerivableInstance :: TypeQ -> String -> [String] -> Q [Dec]
 defineTableDerivableInstance recordType table columns =
   [d| instance TableDerivable $recordType where
-        tableDerivation = specifyTableDerivation
-                          (Table.table $(stringE table) $(listE $ map stringE columns))
+        derivedTable = Table.table $(stringE table) $(listE $ map stringE columns)
     |]
 
 -- | Template to define infered entries from table type.
-defineTableDerivations :: VarName -- ^ TableDerivation declaration variable name
-                       -> VarName -- ^ Table declaration variable name
+defineTableDerivations :: VarName -- ^ Table declaration variable name
                        -> VarName -- ^ Relation declaration variable name
                        -> VarName -- ^ Insert statement declaration variable name
                        -> VarName -- ^ InsertQuery statement declaration variable name
                        -> TypeQ   -- ^ Record type
                        -> Q [Dec] -- ^ Table and Relation declaration
-defineTableDerivations derivationVar' tableVar' relVar' insVar' insQVar' recordType = do
-  let derivationVar = varName derivationVar'
-  derivationDs <- simpleValD derivationVar [t| TableDerivation $recordType |]
-                  [| tableDerivation |]
+defineTableDerivations tableVar' relVar' insVar' insQVar' recordType = do
   let tableVar = varName tableVar'
   tableDs <- simpleValD tableVar [t| Table $recordType |]
              [| derivedTable |]
@@ -212,13 +208,12 @@ defineTableDerivations derivationVar' tableVar' relVar' insVar' insQVar' recordT
   insDs   <- simpleValD insVar   [t| Insert $recordType |]
              [| derivedInsert |]
   let insQVar  = varName insQVar'
-  insQDs  <- simpleValD insQVar  [t| DerivedInsertQuery $recordType |]
+  insQDs  <- simpleValD insQVar  [t| forall p . Relation p $recordType -> InsertQuery p |]
              [| derivedInsertQuery |]
-  return $ concat [derivationDs, tableDs, relDs, insDs, insQDs]
+  return $ concat [tableDs, relDs, insDs, insQDs]
 
 -- | 'Table' and 'Relation' templates.
-defineTableTypes :: VarName  -- ^ TableDerivation declaration variable name
-                 -> VarName  -- ^ Table declaration variable name
+defineTableTypes :: VarName  -- ^ Table declaration variable name
                  -> VarName  -- ^ Relation declaration variable name
                  -> VarName  -- ^ Insert statement declaration variable name
                  -> VarName  -- ^ InsertQuery statement declaration variable name
@@ -226,9 +221,9 @@ defineTableTypes :: VarName  -- ^ TableDerivation declaration variable name
                  -> String   -- ^ Table name in SQL ex. FOO_SCHEMA.table0
                  -> [String] -- ^ Column names
                  -> Q [Dec]  -- ^ Table and Relation declaration
-defineTableTypes derivationVar' tableVar' relVar' insVar' insQVar' recordType table columns = do
+defineTableTypes tableVar' relVar' insVar' insQVar' recordType table columns = do
   iDs <- defineTableDerivableInstance recordType table columns
-  dDs <- defineTableDerivations derivationVar' tableVar' relVar' insVar' insQVar' recordType
+  dDs <- defineTableDerivations tableVar' relVar' insVar' insQVar' recordType
   return $ iDs ++ dDs
 
 tableSQL :: String -> String -> String
@@ -282,7 +277,6 @@ defineTableTypesDefault :: String                           -- ^ Schema name
 defineTableTypesDefault schema table columns = do
   let recordType = recordTypeDefault table
   tableDs <- defineTableTypes
-             (derivationVarNameDefault table)
              (tableVarNameDefault table)
              (relationVarNameDefault table)
              (table `varNameWithPrefix` "insert")

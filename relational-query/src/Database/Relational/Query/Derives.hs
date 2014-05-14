@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, Rank2Types #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 -- |
 -- Module      : Database.Relational.Query.Derives
@@ -26,18 +26,12 @@ module Database.Relational.Query.Derives (
   updateValuesWithKey,
 
   -- * Derived objects from table
-  TableDerivation (..),
-  specifyTableDerivation', specifyTableDerivation,
-
-  TableDerivable (..),
-  derivedTable, derivedRelation, derivedInsert, DerivedInsertQuery, derivedInsertQuery,
-
   derivedUniqueRelation
   ) where
 
 import Database.Record (PersistableWidth, ToSql (recordToSql))
 import Database.Record.ToSql (unsafeUpdateValuesWithIndexes)
-import Database.Relational.Query.Table (Table)
+import Database.Relational.Query.Table (Table, TableDerivable)
 import Database.Relational.Query.Pi.Unsafe (Pi, unsafeExpandIndexes)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
@@ -45,13 +39,12 @@ import Database.Relational.Query.Projectable (placeholder, (.=.))
 import Database.Relational.Query.ProjectableExtended ((!))
 import Database.Relational.Query.Monad.Class (wheres)
 import Database.Relational.Query.Relation
-  (Relation, relation, relation', query, table, UniqueRelation, unsafeUnique)
+  (Relation, derivedRelation, relation, relation', query, UniqueRelation, unsafeUnique)
 import Database.Relational.Query.Constraint
    (Key, Primary, Unique, projectionKey, uniqueKey,
     HasConstraintKey(constraintKey))
 import qualified Database.Relational.Query.Constraint as Constraint
-import Database.Relational.Query.Type
-  (KeyUpdate, typedKeyUpdate, Insert, typedInsert, InsertQuery, typedInsertQuery)
+import Database.Relational.Query.Type (KeyUpdate, typedKeyUpdate)
 
 
 -- | Query restricted with specified key.
@@ -113,51 +106,6 @@ primaryUpdate :: (HasConstraintKey Primary r p)
               => Table r       -- ^ 'Table' to update
               -> KeyUpdate p r -- ^ Result typed 'Update'
 primaryUpdate table' = updateByConstraintKey table' (uniqueKey constraintKey)
-
-
--- | Type for insert qeury.
-type DerivedInsertQuery r = forall p . Relation p r -> InsertQuery p
-
--- | Capabilities derived from table.
-data TableDerivation r =
-  TableDerivation
-  { derivedTable'       :: Table r
-  , derivedRelation'    :: Relation () r
-  , derivedInsert'      :: Insert r
-  , derivedInsertQuery' :: DerivedInsertQuery r
-  }
-
--- | Specify properties derived from table.
-specifyTableDerivation' :: Table r
-                        -> Relation () r
-                        -> Insert r
-                        -> DerivedInsertQuery r
-                        -> TableDerivation r
-specifyTableDerivation' =  TableDerivation
-
--- | Specify properties derived from table.
-specifyTableDerivation :: Table r -> TableDerivation r
-specifyTableDerivation t = specifyTableDerivation' t (table t) (typedInsert t) (typedInsertQuery t)
-
--- | Inference rule for 'TableDerivation'.
-class TableDerivable r where
-  tableDerivation :: TableDerivation r
-
--- | Infered 'Table'.
-derivedTable :: TableDerivable r => Table r
-derivedTable =  derivedTable' tableDerivation
-
--- | Infered 'Relation'.
-derivedRelation :: TableDerivable r => Relation () r
-derivedRelation =  derivedRelation' tableDerivation
-
--- | Infered 'Insert'.
-derivedInsert :: TableDerivable r => Insert r
-derivedInsert =  derivedInsert' tableDerivation
-
--- | Infered 'Insert'.
-derivedInsertQuery :: TableDerivable r => DerivedInsertQuery r
-derivedInsertQuery =  derivedInsertQuery' tableDerivation
 
 -- | 'UniqueRelation' infered from table.
 derivedUniqueRelation :: TableDerivable r

@@ -24,8 +24,8 @@ module Database.Relational.Query.Type (
   updateSQL,
 
   -- * Typed insert statement
-  Insert (..), unsafeTypedInsert, typedInsert,
-  InsertQuery (..), unsafeTypedInsertQuery, typedInsertQuery,
+  Insert (..), unsafeTypedInsert, typedInsert, derivedInsert,
+  InsertQuery (..), unsafeTypedInsertQuery, typedInsertQuery, derivedInsertQuery,
 
   insertQuerySQL,
 
@@ -50,7 +50,7 @@ import Database.Relational.Query.Restriction
    sqlWhereFromRestriction, sqlFromUpdateTarget)
 import Database.Relational.Query.Pi (Pi)
 import Database.Relational.Query.Component (Config, defaultConfig)
-import Database.Relational.Query.Table (Table)
+import Database.Relational.Query.Table (Table, TableDerivable, derivedTable)
 import Database.Relational.Query.SQL
   (QuerySuffix, showsQuerySuffix,
    updateOtherThanKeySQL, insertPrefixSQL, insertSQL, updatePrefixSQL, deletePrefixSQL)
@@ -154,6 +154,10 @@ unsafeTypedInsert =  Insert
 typedInsert :: Table r -> Insert r
 typedInsert =  unsafeTypedInsert . insertSQL
 
+-- | Infered 'Insert'.
+derivedInsert :: TableDerivable r => Insert r
+derivedInsert =  typedInsert derivedTable
+
 -- | Show insert SQL string.
 instance Show (Insert a) where
   show = untypeInsert
@@ -172,6 +176,10 @@ insertQuerySQL config tbl rel = showStringSQL $ insertPrefixSQL tbl <> sqlFromRe
 -- | Make typed 'InsertQuery' from 'Table' and 'Relation'.
 typedInsertQuery :: Table r -> Relation p r -> InsertQuery p
 typedInsertQuery tbl rel = unsafeTypedInsertQuery $ insertQuerySQL defaultConfig tbl rel
+
+-- | Infered 'InsertQuery'.
+derivedInsertQuery :: TableDerivable r => Relation p r -> InsertQuery p
+derivedInsertQuery =  typedInsertQuery derivedTable
 
 -- | Show insert SQL string.
 instance Show (InsertQuery p) where
