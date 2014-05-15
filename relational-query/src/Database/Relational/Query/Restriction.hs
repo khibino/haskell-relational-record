@@ -27,10 +27,10 @@ import Data.Monoid ((<>))
 
 import Database.Record (PersistableWidth)
 
-import Database.Relational.Query.Internal.SQL (StringSQL)
+import Database.Relational.Query.Internal.SQL (StringSQL, showStringSQL)
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Pi (id')
-import Database.Relational.Query.Table (Table)
+import Database.Relational.Query.Table (Table, TableDerivable, derivedTable)
 import Database.Relational.Query.Component (composeWhere, composeSets)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
@@ -68,6 +68,9 @@ sqlWhereFromRestriction :: Table r -> Restriction p r -> StringSQL
 sqlWhereFromRestriction tbl (Restriction q) = composeWhere rs
   where (_ph, rs) = Restrict.extract (q $ Projection.unsafeFromTable tbl)
 
+-- | Show where clause.
+instance TableDerivable r => Show (Restriction p r) where
+  show = showStringSQL . sqlWhereFromRestriction derivedTable
 
 -- | UpdateTarget type with place-holder parameter 'p' and projection record type 'r'.
 newtype UpdateTarget p r =
