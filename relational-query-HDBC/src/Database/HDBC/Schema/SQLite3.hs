@@ -14,7 +14,6 @@ module Database.HDBC.Schema.SQLite3 (
   driverSQLite3
   ) where
 
-import qualified Database.Relational.Query.Table as Table
 import qualified Language.Haskell.TH.Lib.Extra as TH
 import qualified Database.Relational.Schema.SQLite3Syscat.IndexInfo as IndexInfo
 import qualified Database.Relational.Schema.SQLite3Syscat.IndexList as IndexList
@@ -29,9 +28,9 @@ import Database.HDBC.Schema.Driver (TypeMap, Driver, getFieldsWithMap, getPrimar
 import Database.Record.TH (makeRecordPersistableWithSqlTypeDefaultFromDefined)
 import Database.Relational.Schema.SQLite3 (getType, indexInfoQuerySQL, indexListQuerySQL, normalizeColumn,
                                            normalizeType, notNull, tableInfoQuerySQL)
-import Database.Relational.Schema.SQLite3Syscat.IndexInfo (IndexInfo(IndexInfo))
-import Database.Relational.Schema.SQLite3Syscat.IndexList (IndexList(IndexList))
-import Database.Relational.Schema.SQLite3Syscat.TableInfo (TableInfo(TableInfo))
+import Database.Relational.Schema.SQLite3Syscat.IndexInfo (IndexInfo)
+import Database.Relational.Schema.SQLite3Syscat.IndexList (IndexList)
+import Database.Relational.Schema.SQLite3Syscat.TableInfo (TableInfo)
 import Language.Haskell.TH (TypeQ)
 
 $(makeRecordPersistableWithSqlTypeDefaultFromDefined
