@@ -22,6 +22,8 @@ module Database.Relational.Query.Table (
 import Data.Array (Array, listArray, elems)
 import qualified Data.Array as Array
 
+import Database.Record (PersistableWidth)
+
 import Database.Relational.Query.Component (ColumnSQL, columnSQL)
 
 
@@ -91,5 +93,5 @@ table n f = Table $ Untyped n w fa  where
   fa = listArray (0, w - 1) $ map columnSQL f
 
 -- | Inference rule of 'Table' existence.
-class TableDerivable r where
+class PersistableWidth r => TableDerivable r where
   derivedTable :: Table r
