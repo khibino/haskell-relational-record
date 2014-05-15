@@ -38,7 +38,7 @@ pine =  relation $ do
   return $ StockGoods |$| value 6 |*| value "Pine" |*| value 300 |*| value 3
 
 insertPine :: InsertQuery ()
-insertPine =  typedInsertQuery tableOfStockGoods pine
+insertPine =  derivedInsertQuery pine
 
 fig :: Relation () StockGoods
 fig =  relation $ do
