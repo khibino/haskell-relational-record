@@ -31,11 +31,16 @@ import Data.Monoid (mconcat, (<>))
 
 import Language.SQL.Keyword (Keyword(..), (.=.), (|*|))
 import qualified Language.SQL.Keyword as SQL
+
+import Database.Record.Persistable (runPersistableRecordWidth)
 import Database.Record.ToSql (untypedUpdateValuesIndex)
+
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL, rowStringSQL)
-import Database.Relational.Query.Pi.Unsafe (Pi, unsafeExpandIndexes)
+import Database.Relational.Query.Pi (Pi)
+import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Relational.Query.Component (ColumnSQL, showsColumnSQL, showsColumnSQL)
-import Database.Relational.Query.Table (Table, name, columns, width)
+import Database.Relational.Query.Table (Table, name, columns)
+import qualified Database.Relational.Query.Projection as Projection
 
 
 -- | Type for query suffix words
@@ -85,19 +90,20 @@ updateOtherThanKeySQL :: Table r -- ^ Table metadata
           -> Pi r p  -- ^ Key columns
           -> String  -- ^ Result SQL
 updateOtherThanKeySQL tbl key =
-  updateOtherThanKeySQL' (name tbl) (columns tbl) (unsafeExpandIndexes key)
+  updateOtherThanKeySQL' (name tbl) (columns tbl) (UnsafePi.unsafeExpandIndexes key)
 
 -- | Generate prefix string of insert SQL.
-insertPrefixSQL :: Table r -> StringSQL
-insertPrefixSQL table =
-  INSERT <> INTO <> stringSQL tn <> rowStringSQL [ showsColumnSQL c | c <- cols ]  where
-    tn = name table
-    cols = columns table
+insertPrefixSQL :: Pi r r' -> Table r -> StringSQL
+insertPrefixSQL pi' table =
+  INSERT <> INTO <> stringSQL (name table) <> rowStringSQL [showsColumnSQL c | c <- cols]  where
+    cols = Projection.columns . Projection.pi (Projection.unsafeFromTable table) $ pi'
 
 -- | Generate insert SQL.
-insertSQL :: Table r -- ^ Table metadata
+insertSQL :: Pi r r' -- ^ Columns selector to insert
+          -> Table r -- ^ Table metadata
           -> String  -- ^ Result SQL
-insertSQL tbl = showStringSQL $ insertPrefixSQL tbl <> VALUES <> rowStringSQL (replicate (width tbl) "?")
+insertSQL pi' tbl = showStringSQL $ insertPrefixSQL pi' tbl <> VALUES <> rowStringSQL (replicate w "?")
+  where w = runPersistableRecordWidth $ UnsafePi.width' pi'
 
 -- | Generate all column delete SQL by specified table. Untyped table version.
 deletePrefixSQL' :: String -> StringSQL

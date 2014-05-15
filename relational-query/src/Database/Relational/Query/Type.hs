@@ -49,6 +49,7 @@ import Database.Relational.Query.Restriction
    UpdateTarget, UpdateTargetContext, updateTarget', liftTargetAllColumn',
    sqlWhereFromRestriction, sqlFromUpdateTarget)
 import Database.Relational.Query.Pi (Pi)
+import qualified Database.Relational.Query.Pi as Pi
 import Database.Relational.Query.Component (Config, defaultConfig)
 import Database.Relational.Query.Table (Table, TableDerivable, derivedTable)
 import Database.Relational.Query.SQL
@@ -173,13 +174,13 @@ newtype Insert a   = Insert { untypeInsert :: String }
 unsafeTypedInsert :: String -> Insert a
 unsafeTypedInsert =  Insert
 
--- | Make typed 'Insert' from 'Table'.
-typedInsert :: Table r -> Insert r
-typedInsert =  unsafeTypedInsert . insertSQL
+-- | Make typed 'Insert' from columns selector 'Pi' and 'Table'.
+typedInsert :: Pi r r' -> Table r -> Insert r'
+typedInsert pi' =  unsafeTypedInsert . insertSQL pi'
 
 -- | Infered 'Insert'.
 derivedInsert :: TableDerivable r => Insert r
-derivedInsert =  typedInsert derivedTable
+derivedInsert =  typedInsert Pi.id' derivedTable
 
 -- | Show insert SQL string.
 instance Show (Insert a) where
@@ -193,16 +194,16 @@ unsafeTypedInsertQuery :: String -> InsertQuery p
 unsafeTypedInsertQuery =  InsertQuery
 
 -- | Make untyped insert select SQL string from 'Table' and 'Relation'.
-insertQuerySQL :: Config -> Table r -> Relation p r -> String
-insertQuerySQL config tbl rel = showStringSQL $ insertPrefixSQL tbl <> sqlFromRelationWith rel config
+insertQuerySQL :: Config -> Pi r r' -> Table r -> Relation p r' -> String
+insertQuerySQL config pi' tbl rel = showStringSQL $ insertPrefixSQL pi' tbl <> sqlFromRelationWith rel config
 
--- | Make typed 'InsertQuery' from 'Table' and 'Relation'.
-typedInsertQuery :: Table r -> Relation p r -> InsertQuery p
-typedInsertQuery tbl rel = unsafeTypedInsertQuery $ insertQuerySQL defaultConfig tbl rel
+-- | Make typed 'InsertQuery' from columns selector 'Pi' and 'Table' and 'Relation'.
+typedInsertQuery :: Pi r r' -> Table r -> Relation p r' -> InsertQuery p
+typedInsertQuery pi' tbl rel = unsafeTypedInsertQuery $ insertQuerySQL defaultConfig pi' tbl rel
 
 -- | Infered 'InsertQuery'.
 derivedInsertQuery :: TableDerivable r => Relation p r -> InsertQuery p
-derivedInsertQuery =  typedInsertQuery derivedTable
+derivedInsertQuery =  typedInsertQuery Pi.id' derivedTable
 
 -- | Show insert SQL string.
 instance Show (InsertQuery p) where
