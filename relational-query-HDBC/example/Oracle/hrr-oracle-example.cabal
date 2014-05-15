@@ -12,11 +12,11 @@ executable hrr-oracle-example
   other-modules:     DataSource
   -- other-extensions:
   build-depends:       base <5
-                     , DB-record
+                     , persistable-record
                      , HDBC
                      , HDBC-odbc
                      , HDBC-session
-                     , relational-join
+                     , relational-query
                      , relational-query-HDBC
                      , relational-Oracle
                      , template-haskell
