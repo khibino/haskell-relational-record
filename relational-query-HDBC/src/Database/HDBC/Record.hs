@@ -18,7 +18,7 @@ module Database.HDBC.Record (
   module Database.HDBC.Record.KeyUpdate,
   module Database.HDBC.Record.Delete,
   module Database.HDBC.Record.Statement
-                            ) where
+  ) where
 
 import Database.HDBC.Record.Query hiding (prepare)
 import Database.HDBC.Record.Insert hiding (prepare)
