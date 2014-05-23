@@ -49,8 +49,8 @@ module Database.Relational.Query.Projectable (
   isNull, isNotNull, not', exists,
 
   (.||.), (?||?),
-  (.+.), (.-.), (./.), (.*.), negate', fromIntegral',
-  (?+?), (?-?), (?/?), (?*?), negateMaybe, fromIntegralMaybe,
+  (.+.), (.-.), (./.), (.*.), negate', fromIntegral', showNum,
+  (?+?), (?-?), (?/?), (?*?), negateMaybe, fromIntegralMaybe, showNumMaybe,
 
   -- * Terms for Window function types
   rank, dense_rank, row_number, percent_rank, cume_dist,
@@ -306,10 +306,19 @@ negate' :: (SqlProjectable p, ProjectableShowSql p, Num a)
         => p a -> p a
 negate' =  unsafeFlatUniOp $ SQL.word "-"
 
+unsafeCastProjectable :: (SqlProjectable p, ProjectableShowSql p)
+                           => p a -> p b
+unsafeCastProjectable = unsafeProjectSql . unsafeShowSql
+
 -- | Number fromIntegral uni-operator.
 fromIntegral' :: (SqlProjectable p, ProjectableShowSql p, Integral a, Num b)
               => p a -> p b
-fromIntegral' =  unsafeProjectSql . unsafeShowSql
+fromIntegral' =  unsafeCastProjectable
+
+-- | Unsafely show number into string-like type in projections.
+showNum :: (SqlProjectable p, ProjectableShowSql p, Num a, IsString b)
+              => p a -> p b
+showNum =  unsafeCastProjectable
 
 -- | Number operator corresponding SQL /+/ .
 (?+?) :: (SqlProjectable p, ProjectableShowSql p, Num a)
@@ -339,7 +348,12 @@ negateMaybe =  unsafeFlatUniOp $ SQL.word "-"
 -- | Number fromIntegral uni-operator.
 fromIntegralMaybe :: (SqlProjectable p, ProjectableShowSql p, Integral a, Num b)
                   => p (Maybe a) -> p (Maybe b)
-fromIntegralMaybe =  unsafeProjectSql . unsafeShowSql
+fromIntegralMaybe =  unsafeCastProjectable
+
+-- | Unsafely show number into string-like type in projections.
+showNumMaybe :: (SqlProjectable p, ProjectableShowSql p, Num a, IsString b)
+                   => p (Maybe a) -> p (Maybe b)
+showNumMaybe = unsafeCastProjectable
 
 unsafeSqlWord :: ProjectableShowSql p => p a -> Keyword
 unsafeSqlWord =  SQL.word . unsafeShowSql
