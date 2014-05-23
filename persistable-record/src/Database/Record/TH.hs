@@ -311,16 +311,17 @@ makeRecordPersistableWithSqlTypeDefault sqlValueType table width = do
     (recordTypeDefault table, toDataCon . recordTypeNameDefault $ table)
     width
 
-recordInfo' :: Info -> Maybe ((TypeQ, ExpQ), [TypeQ])
+recordInfo' :: Info -> Maybe ((TypeQ, ExpQ), (Maybe [Name], [TypeQ]))
 recordInfo' =  d  where
   d (TyConI (DataD _cxt tcn _bs [r] _ds)) = case r of
-    NormalC dcn ts     -> Just ((conT tcn, conE dcn), [return t | (_, t) <- ts])
-    RecC    dcn vts    -> Just ((conT tcn, conE dcn), [return t | (_, _, t) <- vts])
+    NormalC dcn ts     -> Just ((conT tcn, conE dcn), (Nothing, [return t | (_, t) <- ts]))
+    RecC    dcn vts    -> Just ((conT tcn, conE dcn), (Just ns, ts))
+      where (ns, ts) = unzip [(n, return t) | (n, _, t) <- vts]
     _                  -> Nothing
   d _                  =  Nothing
 
 -- | Low-level reify interface for record type name.
-reifyRecordType :: Name -> Q ((TypeQ, ExpQ), [TypeQ])
+reifyRecordType :: Name -> Q ((TypeQ, ExpQ), (Maybe [Name], [TypeQ]))
 reifyRecordType recTypeName = do
   tyConInfo   <- reify recTypeName
   maybe
@@ -339,7 +340,7 @@ makeRecordPersistableWithSqlTypeFromDefined :: TypeQ              -- ^ SQL value
                                             -> Name               -- ^ Record type constructor name
                                             -> Q [Dec]            -- ^ Result declarations
 makeRecordPersistableWithSqlTypeFromDefined sqlValueType fnames recTypeName = do
-  (conPair, cts) <- reifyRecordType recTypeName
+  (conPair, (_, cts)) <- reifyRecordType recTypeName
   makeRecordPersistableWithSqlType sqlValueType fnames conPair $ length cts
 
 -- | All templates depending on SQL value type with default names. Defined record type information is used.

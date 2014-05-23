@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ParallelListComp #-}
 
 -- |
 -- Module      : Database.HDBC.Query.TH
@@ -31,7 +32,7 @@ import qualified Data.Map as Map
 import Database.HDBC (IConnection, SqlValue, prepare)
 
 import Language.Haskell.TH.Name.CamelCase (ConName)
-import Language.Haskell.TH (Q, runIO, Name, TypeQ, Dec)
+import Language.Haskell.TH (Q, runIO, Name, nameBase, TypeQ, Dec)
 import Language.Haskell.TH.Name.CamelCase (varCamelcaseName)
 
 import Database.Record.TH (makeRecordPersistableWithSqlTypeDefault)
@@ -50,12 +51,18 @@ import Database.HDBC.Schema.Driver (Driver, getFields, getPrimaryKey)
 makeRecordPersistableDefault :: Name    -- ^ Type constructor name
                              -> Q [Dec] -- ^ Resutl declaration
 makeRecordPersistableDefault recTypeName = do
-  (pair@(tyCon, dataCon), cts) <- Record.reifyRecordType recTypeName
+  (pair@(tyCon, dataCon), (mayNs, cts)) <- Record.reifyRecordType recTypeName
   let width = length cts
   pw <- Record.definePersistableWidthInstance tyCon width
   ps <- Record.makeRecordPersistableWithSqlType [t| SqlValue |] (Record.persistableFunctionNamesDefault recTypeName) pair width
+  cs <- maybe
+        (return [])
+        (\ns -> fmap concat . sequence $
+                [ Relational.defineColumnDefault Nothing tyCon (nameBase n) i ct
+                | n  <- ns  | i  <- [0 ..]  | ct <- cts ])
+        mayNs
   pc <- Relational.defineProductConstructorInstance tyCon dataCon cts
-  return $ pw ++ ps ++ pc
+  return $ concat [pw, ps, cs, pc]
 
 -- | Generate all HDBC templates about table except for constraint keys using default naming rule.
 defineTableDefault' :: String            -- ^ Schema name
