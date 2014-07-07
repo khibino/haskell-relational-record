@@ -20,6 +20,7 @@ module Database.Relational.Query.Pure (
   ShowConstantTermsSQL (..)
   ) where
 
+import Data.Monoid (mconcat)
 import Data.Int (Int16, Int32, Int64)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as LB
@@ -95,7 +96,7 @@ instance ShowConstantTermsSQL ByteString where
 
 -- | Constant SQL terms of 'LB.ByteString'.
 instance ShowConstantTermsSQL LB.ByteString where
-  showConstantTermsSQL = showConstantTermsSQL . LB.toStrict
+  showConstantTermsSQL = showConstantTermsSQL . mconcat . LB.toChunks
 
 -- | Constant SQL terms of 'Text'.
 instance ShowConstantTermsSQL Text where
