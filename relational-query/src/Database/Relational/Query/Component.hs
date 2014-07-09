@@ -48,7 +48,6 @@ module Database.Relational.Query.Component (
   composeOver
 ) where
 
-import Data.Functor.Identity (Identity (..))
 import Data.Monoid (mempty, (<>))
 
 import qualified Database.Relational.Query.Context as Context
@@ -60,8 +59,15 @@ import Language.SQL.Keyword (Keyword(..), (|*|), (.=.))
 
 import qualified Language.SQL.Keyword as SQL
 
+
+-- | Simple wrap type
+newtype ColumnSQL' a = ColumnSQL a
+
+instance Functor ColumnSQL' where
+  fmap f (ColumnSQL c) = ColumnSQL $ f c
+
 -- | Column SQL string type
-type ColumnSQL = Identity StringSQL
+type ColumnSQL = ColumnSQL' StringSQL
 
 -- | 'ColumnSQL' from string
 columnSQL :: String -> ColumnSQL
@@ -69,7 +75,7 @@ columnSQL =  columnSQL' . stringSQL
 
 -- | 'ColumnSQL' from 'StringSQL'
 columnSQL' :: StringSQL -> ColumnSQL
-columnSQL' =  Identity
+columnSQL' =  ColumnSQL
 
 -- | String from ColumnSQL
 stringFromColumnSQL :: ColumnSQL -> String
@@ -77,7 +83,7 @@ stringFromColumnSQL =  showStringSQL . showsColumnSQL
 
 -- | StringSQL from ColumnSQL
 showsColumnSQL :: ColumnSQL -> StringSQL
-showsColumnSQL =  runIdentity
+showsColumnSQL (ColumnSQL c) = c
 
 instance Show ColumnSQL where
   show = stringFromColumnSQL
