@@ -28,6 +28,8 @@ library
                         , template-haskell
                         , array
                         , containers
+                        , transformers
+                        , dlist
                         , names-th
   hs-source-dirs:       src
   ghc-options:          -Wall
