@@ -41,7 +41,7 @@ import Control.Applicative ((<$>), Applicative(pure, (<*>)))
 
 {- $recordFromSql
 Structure of 'RecordFromSql' 'q' 'a' is similar to parser.
-While running 'RecordFromSql' behavior is the same as parser 
+While running 'RecordFromSql' behavior is the same as parser
 which parse list of SQL type ['q'] stream.
 
 So, 'RecordFromSql' 'q' is 'Monad' and 'Applicative' instance like parser monad.
