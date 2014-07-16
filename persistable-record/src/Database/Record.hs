@@ -49,7 +49,7 @@ import Database.Record.FromSql
    runTakeRecord, takeRecord, runToRecord, toRecord)
 import Database.Record.ToSql
   (RecordToSql, ToSql(..), recordToSql',
-   runFromRecord, fromRecord,
+   runFromRecord, wrapToSql, putRecord, fromRecord,
    updateValuesByUnique, updateValuesByPrimary)
 
 {- $concepts

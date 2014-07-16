@@ -24,7 +24,7 @@ module Database.Record.ToSql (
 
   -- * Inference rules of 'RecordToSql' conversion
   ToSql (recordToSql), recordToSql',
-  fromRecord,
+  putRecord, fromRecord, wrapToSql,
 
   -- * Make parameter list for updating with key
   updateValuesByUnique',
@@ -50,22 +50,31 @@ import Database.Record.KeyConstraint
 import qualified Database.Record.Persistable as Persistable
 
 
--- | Proof object type to convert from Haskell type 'a' into list of SQL type ['q'].
-newtype RecordToSql q a = RecordToSql (a -> Writer (DList q) ())
+-- | Context type to convert SQL type list.
+type ToSqlM q a = Writer (DList q) a
 
-runToSql :: RecordToSql q a -> a -> Writer (DList q) ()
+runToSqlM :: ToSqlM q a -> [q]
+runToSqlM =  DList.toList . execWriter
+
+-- | Proof object type to convert from Haskell type 'a' into list of SQL type ['q'].
+newtype RecordToSql q a = RecordToSql (a -> ToSqlM q ())
+
+runToSql :: RecordToSql q a -> a -> ToSqlM q ()
 runToSql (RecordToSql f) = f
+
+wrapToSql :: (a -> ToSqlM q ()) -> RecordToSql q a
+wrapToSql =  RecordToSql
 
 -- | Run 'RecordToSql' proof object. Convert from Haskell type 'a' into list of SQL type ['q'].
 runFromRecord :: RecordToSql q a -- ^ Proof object which has capability to convert
               -> a               -- ^ Haskell type
               -> [q]             -- ^ list of SQL type
-runFromRecord (RecordToSql f) = DList.toList . execWriter . f
+runFromRecord r = runToSqlM . runToSql r
 
 -- | Axiom of 'RecordToSql' for SQL type 'q' and Haksell type 'a'.
 createRecordToSql :: (a -> [q])      -- ^ Convert function body
                   -> RecordToSql q a -- ^ Result proof object
-createRecordToSql f =  RecordToSql $ tell . DList.fromList . f
+createRecordToSql f =  wrapToSql $ tell . DList.fromList . f
 
 -- | Derive 'RecordToSql' proof object from 'PersistableRecord'.
 recordSerializer :: PersistableRecord q a -> RecordToSql q a
@@ -83,7 +92,7 @@ ra <&> rb = RecordToSql $ \(a, b) -> do
 
 -- | Derivation rule of 'RecordToSql' proof object for Haskell 'Maybe' type.
 maybeRecord :: PersistableSqlType q -> PersistableRecordWidth a -> RecordToSql q a -> RecordToSql q (Maybe a)
-maybeRecord qt w ra =  RecordToSql d  where
+maybeRecord qt w ra =  wrapToSql d  where
   d (Just r) = runToSql ra r
   d Nothing  = tell $ DList.replicate (runPersistableRecordWidth w) (runPersistableNullValue qt)
 
@@ -108,12 +117,17 @@ instance (PersistableType q, PersistableWidth a, ToSql q a) => ToSql q (Maybe a)
 -- | Inference rule of 'RecordToSql' proof object which can convert
 --   from Haskell unit () type into /empty/ list of SQL type ['q'].
 instance ToSql q () where
-  recordToSql = RecordToSql $ \() -> tell DList.empty
+  recordToSql = wrapToSql $ \() -> tell DList.empty
+
+-- | Run inferred 'RecordToSql' proof object.
+--   Context to convert haskell record type 'a' into SQL type 'q' list.
+putRecord :: ToSql q a => a -> ToSqlM q ()
+putRecord =  runToSql recordToSql
 
 -- | Run inferred 'RecordToSql' proof object.
 --   Convert from haskell type 'a' into list of SQL type ['q'].
 fromRecord :: ToSql q a => a -> [q]
-fromRecord =  runFromRecord recordToSql
+fromRecord =  runToSqlM . putRecord
 
 -- | Make untyped indexes to update column from key indexes and record width.
 --   Expected by update form like
