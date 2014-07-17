@@ -62,6 +62,7 @@ newtype RecordToSql q a = RecordToSql (a -> ToSqlM q ())
 runRecordToSql :: RecordToSql q a -> a -> ToSqlM q ()
 runRecordToSql (RecordToSql f) = f
 
+-- | Finalize 'RecordToSql' record printer.
 wrapToSql :: (a -> ToSqlM q ()) -> RecordToSql q a
 wrapToSql =  RecordToSql
 
