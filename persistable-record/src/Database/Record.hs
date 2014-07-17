@@ -48,8 +48,8 @@ import Database.Record.FromSql
   (RecordFromSql, FromSql(..), recordFromSql',
    runTakeRecord, takeRecord, runToRecord, toRecord)
 import Database.Record.ToSql
-  (RecordToSql, ToSql(..), recordToSql',
-   runFromRecord, wrapToSql, putRecord, fromRecord,
+  (ToSqlM, RecordToSql, ToSql(..), recordToSql',
+   runFromRecord, wrapToSql, putRecord, putEmpty, fromRecord,
    updateValuesByUnique, updateValuesByPrimary)
 
 {- $concepts

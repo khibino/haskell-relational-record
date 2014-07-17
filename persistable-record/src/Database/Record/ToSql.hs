@@ -15,7 +15,7 @@
 -- from Haskell type into list of SQL type.
 module Database.Record.ToSql (
   -- * Conversion from record type into list of SQL type
-  RecordToSql, runFromRecord,
+  ToSqlM, RecordToSql, runFromRecord,
   createRecordToSql,
 
   recordSerializer,
@@ -24,7 +24,7 @@ module Database.Record.ToSql (
 
   -- * Inference rules of 'RecordToSql' conversion
   ToSql (recordToSql), recordToSql',
-  putRecord, fromRecord, wrapToSql,
+  putRecord, putEmpty, fromRecord, wrapToSql,
 
   -- * Make parameter list for updating with key
   updateValuesByUnique',
@@ -124,6 +124,10 @@ instance ToSql q () where
 --   Context to convert haskell record type 'a' into SQL type 'q' list.
 putRecord :: ToSql q a => a -> ToSqlM q ()
 putRecord =  runRecordToSql recordToSql
+
+-- | Run 'RecordToSql' empty printer.
+putEmpty :: () -> ToSqlM q ()
+putEmpty =  putRecord
 
 -- | Run inferred 'RecordToSql' proof object.
 --   Convert from haskell type 'a' into list of SQL type ['q'].
