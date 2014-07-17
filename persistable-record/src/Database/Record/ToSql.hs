@@ -59,8 +59,8 @@ runToSqlM =  DList.toList . execWriter
 -- | Proof object type to convert from Haskell type 'a' into list of SQL type ['q'].
 newtype RecordToSql q a = RecordToSql (a -> ToSqlM q ())
 
-runToSql :: RecordToSql q a -> a -> ToSqlM q ()
-runToSql (RecordToSql f) = f
+runRecordToSql :: RecordToSql q a -> a -> ToSqlM q ()
+runRecordToSql (RecordToSql f) = f
 
 wrapToSql :: (a -> ToSqlM q ()) -> RecordToSql q a
 wrapToSql =  RecordToSql
@@ -69,7 +69,7 @@ wrapToSql =  RecordToSql
 runFromRecord :: RecordToSql q a -- ^ Proof object which has capability to convert
               -> a               -- ^ Haskell type
               -> [q]             -- ^ list of SQL type
-runFromRecord r = runToSqlM . runToSql r
+runFromRecord r = runToSqlM . runRecordToSql r
 
 -- | Axiom of 'RecordToSql' for SQL type 'q' and Haksell type 'a'.
 createRecordToSql :: (a -> [q])      -- ^ Convert function body
@@ -87,13 +87,13 @@ recordToSql' =  recordSerializer persistable
 -- | Derivation rule of 'RecordToSql' proof object for Haskell tuple (,) type.
 (<&>) :: RecordToSql q a -> RecordToSql q b -> RecordToSql q (a, b)
 ra <&> rb = RecordToSql $ \(a, b) -> do
-  runToSql ra a
-  runToSql rb b
+  runRecordToSql ra a
+  runRecordToSql rb b
 
 -- | Derivation rule of 'RecordToSql' proof object for Haskell 'Maybe' type.
 maybeRecord :: PersistableSqlType q -> PersistableRecordWidth a -> RecordToSql q a -> RecordToSql q (Maybe a)
 maybeRecord qt w ra =  wrapToSql d  where
-  d (Just r) = runToSql ra r
+  d (Just r) = runRecordToSql ra r
   d Nothing  = tell $ DList.replicate (runPersistableRecordWidth w) (runPersistableNullValue qt)
 
 infixl 4 <&>
@@ -122,7 +122,7 @@ instance ToSql q () where
 -- | Run inferred 'RecordToSql' proof object.
 --   Context to convert haskell record type 'a' into SQL type 'q' list.
 putRecord :: ToSql q a => a -> ToSqlM q ()
-putRecord =  runToSql recordToSql
+putRecord =  runRecordToSql recordToSql
 
 -- | Run inferred 'RecordToSql' proof object.
 --   Convert from haskell type 'a' into list of SQL type ['q'].
