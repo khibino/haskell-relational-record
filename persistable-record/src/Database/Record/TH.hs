@@ -70,20 +70,20 @@ import Language.Haskell.TH
   (Q, newName, nameBase, reify, Info(TyConI), Name,
    TypeQ, conT, Con (NormalC, RecC),
    Dec(DataD), dataD, sigD, valD,
-   ExpQ, Exp(ConE), conE, varE, lamE, listE,
+   ExpQ, Exp(ConE), conE, varE, lamE, listE, sigE,
    varP, conP, normalB, recC,
    cxt, varStrictType, strictType, isStrict)
 
 import Database.Record
   (HasColumnConstraint(columnConstraint), Primary, NotNull,
    HasKeyConstraint(keyConstraint), derivedCompositePrimary,
-   PersistableWidth(persistableWidth),
+   PersistableRecordWidth, PersistableWidth(persistableWidth),
    FromSql(recordFromSql), RecordFromSql,
    ToSql(recordToSql), RecordToSql, wrapToSql, putRecord, putEmpty)
 
 import Database.Record.KeyConstraint
   (unsafeSpecifyColumnConstraint, unsafeSpecifyNotNullValue, unsafeSpecifyKeyConstraint)
-import Database.Record.Persistable (unsafePersistableRecordWidth)
+import Database.Record.Persistable (unsafePersistableRecordWidth, runPersistableRecordWidth)
 import qualified Database.Record.Persistable as Persistable
 
 
@@ -175,11 +175,15 @@ derivingTypable = conCamelcaseName "Typable"
 
 -- | 'PersistableWidth' instance declaration.
 definePersistableWidthInstance :: TypeQ   -- ^ Record type constructor.
-                               -> Int     -- ^ Count of record columns.
+                               -> [TypeQ] -- ^ Types of record columns.
                                -> Q [Dec] -- ^ Declaration of 'PersistableWidth' instance.
-definePersistableWidthInstance typeCon width =
+definePersistableWidthInstance typeCon tys = do
+  let wdt ty = [| runPersistableRecordWidth
+                  $(sigE [| persistableWidth |] [t| PersistableRecordWidth $(ty) |])
+                |]
   [d| instance PersistableWidth $typeCon where
-        persistableWidth = unsafePersistableRecordWidth $(integralE width) |]
+        persistableWidth = unsafePersistableRecordWidth $ foldl' (+) 0 $(listE $ map wdt tys)
+    |]
 
 -- | Record type declaration template.
 defineRecordType :: ConName            -- ^ Name of the data type of table record type.
@@ -191,7 +195,7 @@ defineRecordType typeName' columns derives = do
       fld (n, tq) = varStrictType (varName n) (strictType isStrict tq)
   rec <- dataD (cxt []) typeName [] [recC typeName (map fld columns)] (map conName derives)
   let typeCon = toTypeCon typeName'
-  ins <- definePersistableWidthInstance typeCon $ length columns
+  ins <- definePersistableWidthInstance typeCon $ map snd columns
   return $ rec : ins
 
 -- | Generate column name from 'String'.

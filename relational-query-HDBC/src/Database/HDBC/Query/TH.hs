@@ -53,7 +53,7 @@ makeRecordPersistableDefault :: Name    -- ^ Type constructor name
 makeRecordPersistableDefault recTypeName = do
   (pair@(tyCon, dataCon), (mayNs, cts)) <- Record.reifyRecordType recTypeName
   let width = length cts
-  pw <- Record.definePersistableWidthInstance tyCon width
+  pw <- Record.definePersistableWidthInstance tyCon cts
   ps <- Record.makeRecordPersistableWithSqlType [t| SqlValue |] (Record.persistableFunctionNamesDefault recTypeName) pair width
   cs <- maybe
         (return [])
