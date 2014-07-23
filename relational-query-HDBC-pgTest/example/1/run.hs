@@ -39,6 +39,7 @@ run =  handleSqlError' $ withConnectionIO connect
                     => Relation p a -> p -> IO ()
                run' = runAndPrint conn
            run' userGroup0 ()
+           run' userGroup0' ()
            run' userGroup0E ()
            run' haskellUser ()
            run' userGroup1 ()

@@ -1,11 +1,13 @@
 {-# LANGUAGE MonadComprehensions #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module QueryExample where
 
 import Database.Record
 
 import Database.Relational.Query
+import Database.HDBC.Query.TH (makeRecordPersistableDefault)
 import Data.Int (Int32, Int64)
 
 import qualified User
@@ -45,6 +47,24 @@ userGroup0 =
 
   , ()  <- asc $ u ?! User.id'
   ]
+
+data UserOrGroup = UserOrGroup { mayUser :: Maybe User, mayGroup :: Maybe Group }
+                   deriving Show
+
+$(makeRecordPersistableDefault ''UserOrGroup)
+
+userGroup0' :: Relation () UserOrGroup
+userGroup0' =
+  relation $
+  [ UserOrGroup |$| u |*| mg ?! snd'
+  | u   <- queryMaybe user
+  , mg  <- queryMaybe groupMemberShip
+
+  , ()  <- on  $ u ?! User.id' .=. mg ?!? fst' ?! userId'
+
+  , ()  <- asc $ u ?! User.id'
+  ]
+
 
 userGroup0E :: Relation () (Maybe User, Maybe Group)
 userGroup0E =
