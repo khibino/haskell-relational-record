@@ -41,8 +41,8 @@ module Database.Record.TH (
   makeRecordPersistableWithSqlTypeDefaultFromDefined,
   definePersistableWidthInstance,
 
-  defineRecordConstructFunction,
-  defineRecordDecomposeFunction,
+  defineRecordParser,
+  defineRecordPrinter,
 
   definePersistableInstance,
 
@@ -59,32 +59,31 @@ module Database.Record.TH (
   ) where
 
 
+import Control.Applicative (pure, (<*>))
+import Data.List (foldl')
 import Language.Haskell.TH.Name.CamelCase
   (ConName(conName), VarName(varName),
    conCamelcaseName, varCamelcaseName, varNameWithPrefix,
    toTypeCon, toDataCon, toVarExp)
 import Language.Haskell.TH.Lib.Extra (integralE, compileError)
 import Language.Haskell.TH
-  (Q, mkName, nameBase, reify, Info(TyConI), Name,
+  (Q, newName, nameBase, reify, Info(TyConI), Name,
    TypeQ, conT, Con (NormalC, RecC),
-   Dec(DataD), dataD, sigD, funD,
-   ExpQ, Exp(ConE), appsE, conE, varE, listE, stringE,
-   listP, varP, conP, wildP,
-   normalB, recC, clause, cxt,
-   varStrictType, strictType, isStrict)
+   Dec(DataD), dataD, sigD, valD,
+   ExpQ, Exp(ConE), conE, varE, lamE, listE,
+   varP, conP, normalB, recC,
+   cxt, varStrictType, strictType, isStrict)
 
 import Database.Record
   (HasColumnConstraint(columnConstraint), Primary, NotNull,
    HasKeyConstraint(keyConstraint), derivedCompositePrimary,
-   Persistable(persistable), PersistableWidth(persistableWidth),
-   fromSql, toSql,
-   FromSql(recordFromSql), recordFromSql',
-   ToSql(recordToSql), recordToSql')
+   PersistableWidth(persistableWidth),
+   FromSql(recordFromSql), RecordFromSql,
+   ToSql(recordToSql), RecordToSql, wrapToSql, putRecord, putEmpty)
 
 import Database.Record.KeyConstraint
   (unsafeSpecifyColumnConstraint, unsafeSpecifyNotNullValue, unsafeSpecifyKeyConstraint)
-import Database.Record.Persistable
-  (persistableRecord, unsafePersistableRecordWidth)
+import Database.Record.Persistable (unsafePersistableRecordWidth)
 import qualified Database.Record.Persistable as Persistable
 
 
@@ -208,30 +207,21 @@ defineRecordTypeDefault table columns =
   [ columnDefault n t | (n, t) <- columns ]
 
 
--- | Record construction function template.
-defineRecordConstructFunction :: TypeQ         -- ^ SQL value type.
-                              -> VarName       -- ^ Name of record construct function.
-                              -> (TypeQ, ExpQ) -- ^ Record type constructor and data constructor.
-                              -> Int           -- ^ Count of record columns.
-                              -> Q [Dec]       -- ^ Declaration of record construct function from SQL values.
-defineRecordConstructFunction sqlValType funName' (tyCon, dataCon) width = do
-  let funName = varName funName'
-      names = map (mkName . ('f':) . show) [1 .. width]
-      fromSqlE n = [| fromSql $(varE n) |]
-  sig <- sigD funName [t| [ $sqlValType ] -> $tyCon |]
-  var <- funD funName
-         [ clause
-           [listP (map varP names)]
-           (normalB . appsE $ dataCon : map fromSqlE names)
-           [],
-           clause [wildP]
-           (normalB
-            [| error
-               $(stringE
-                 $ "Generated code of 'defineRecordConstructFunction': Fail to pattern match in: "
-                 ++ show funName
-                 ++ ", count of columns is " ++ show width) |])
-           [] ]
+-- | Record parser template.
+defineRecordParser :: TypeQ         -- ^ SQL value type.
+                   -> VarName       -- ^ Name of record parser.
+                   -> (TypeQ, ExpQ) -- ^ Record type constructor and data constructor.
+                   -> Int           -- ^ Count of record columns.
+                   -> Q [Dec]       -- ^ Declaration of record construct function from SQL values.
+defineRecordParser sqlValType name' (tyCon, dataCon) width = do
+  let name = varName name'
+  sig <- sigD name [t| RecordFromSql $sqlValType $tyCon |]
+  var <- valD (varP name)
+         (normalB
+          (foldl' (\a x -> [| $a <*> $x |]) [| pure $dataCon |]
+           $ replicate width [| recordFromSql |])
+         )
+         []
   return [sig, var]
 
 dataConInfo :: Exp -> Q Name
@@ -239,41 +229,40 @@ dataConInfo =  d  where
   d (ConE n) = return n
   d e        = compileError $ "Not record data constructor: " ++ show e
 
--- | Record decomposition function template.
-defineRecordDecomposeFunction :: TypeQ         -- ^ SQL value type.
-                              -> VarName       -- ^ Name of record decompose function.
-                              -> (TypeQ, ExpQ) -- ^ Record type constructor and data constructor.
-                              -> Int           -- ^ Count of record columns.
-                              -> Q [Dec]       -- ^ Declaration of record construct function from SQL values.
-defineRecordDecomposeFunction sqlValType funName' (tyCon, dataCon) width = do
-  let funName = varName funName'
-  sig <- sigD funName [t| $tyCon -> [ $sqlValType ] |]
-  let names = map (mkName . ('f':) . show) [1 .. width]
+-- | Record printer template.
+defineRecordPrinter :: TypeQ         -- ^ SQL value type.
+                    -> VarName       -- ^ Name of record printer.
+                    -> (TypeQ, ExpQ) -- ^ Record type constructor and data constructor.
+                    -> Int           -- ^ Count of record columns.
+                    -> Q [Dec]       -- ^ Declaration of record construct function from SQL values.
+defineRecordPrinter sqlValType name' (tyCon, dataCon) width = do
+  let name = varName name'
+  sig <- sigD name [t| RecordToSql $sqlValType $tyCon |]
+  names <- mapM (newName . ('f':) . show) [1 .. width]
   dcn <- dataCon >>= dataConInfo
-  var <- funD funName [ clause [conP dcn [ varP n | n <- names ] ]
-                        (normalB . listE $ [ [| toSql $(varE n) |] | n <- names ])
-                        [] ]
+  var <- valD (varP name)
+         (normalB [| wrapToSql
+                     $(lamE
+                       [ conP dcn [ varP n | n <- names ] ]
+                       (foldr (\a x -> [| $a >> $x |]) [| putEmpty () |]
+                        [ [| putRecord $(varE n) |] | n <- names ])) |])
+         []
   return [sig, var]
 
--- | Instance templates for converting between list of SQL type and Haskell record type.
+-- | Record parser and printer instance templates for converting
+--   between list of SQL type and Haskell record type.
 definePersistableInstance :: TypeQ   -- ^ SQL value type.
-                          -> TypeQ   -- ^ Record type constructor.
-                          -> VarName -- ^ Construct function name.
-                          -> VarName -- ^ Decompose function name.
-                          -> Int     -- ^ Count of record columns.
-                          -> Q [Dec] -- ^ Instance declarations for 'Persistable'.
-definePersistableInstance sqlType typeCon consFunName' decompFunName' width = do
-  [d| instance Persistable $sqlType $typeCon where
-        persistable = persistableRecord
-                      persistableWidth
-                      $(toVarExp consFunName')
-                      $(toVarExp decompFunName')
-
-      instance FromSql $sqlType $typeCon where
-        recordFromSql = recordFromSql'
+                           -> TypeQ   -- ^ Record type constructor.
+                           -> VarName -- ^ Record parser name.
+                           -> VarName -- ^ Record printer name.
+                           -> Int     -- ^ Count of record columns.
+                           -> Q [Dec] -- ^ Instance declarations for 'Persistable'.
+definePersistableInstance sqlType typeCon parserName printerName _width = do
+  [d| instance FromSql $sqlType $typeCon where
+        recordFromSql = $(toVarExp parserName)
 
       instance ToSql $sqlType $typeCon where
-        recordToSql = recordToSql'
+        recordToSql = $(toVarExp printerName)
     |]
 
 -- | All templates depending on SQL value type.
@@ -286,8 +275,8 @@ makeRecordPersistableWithSqlType
   sqlValueType
   (cF, dF) conPair@(tyCon, _)
   width = do
-  fromSQL  <- defineRecordConstructFunction sqlValueType cF conPair width
-  toSQL    <- defineRecordDecomposeFunction sqlValueType dF conPair width
+  fromSQL  <- defineRecordParser sqlValueType cF conPair width
+  toSQL    <- defineRecordPrinter sqlValueType dF conPair width
   instSQL  <- definePersistableInstance sqlValueType tyCon cF dF width
   return $ fromSQL ++ toSQL ++ instSQL
 
