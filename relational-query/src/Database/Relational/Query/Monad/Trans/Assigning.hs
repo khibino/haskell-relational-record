@@ -29,9 +29,9 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Writer (WriterT, runWriterT, tell)
 import Control.Applicative (Applicative, pure, (<$>))
 import Control.Arrow (second)
+import Data.DList (DList, toList)
 
 import Database.Relational.Query.Component (Assignment, Assignments)
-import Database.Relational.Query.Monad.Trans.ListState (TermsContext, termsList)
 import Database.Relational.Query.Pi (Pi)
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Projection (Projection)
@@ -40,12 +40,10 @@ import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Monad.Class (MonadRestrict(..))
 
 
-type AssigningContext = TermsContext Assignment
-
 -- | Type to accumulate assigning context.
 --   Type 'r' is table record type.
 newtype Assignings r m a =
-  Assignings (WriterT AssigningContext m a)
+  Assignings (WriterT (DList Assignment) m a)
   deriving (MonadTrans, Monad, Functor, Applicative)
 
 -- | Lift to 'Assignings'
@@ -85,4 +83,4 @@ infix 4 <-#
 extractAssignments :: (Monad m, Functor m)
                    => Assignings r m a
                    -> m (a, Assignments)
-extractAssignments (Assignings ac) = second termsList <$> runWriterT ac
+extractAssignments (Assignings ac) = second toList <$> runWriterT ac

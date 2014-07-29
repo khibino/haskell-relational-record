@@ -36,6 +36,7 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Writer (WriterT, runWriterT, tell)
 import Control.Applicative (Applicative, pure, (<$>))
 import Control.Arrow (second)
+import Data.DList (DList, toList)
 
 import Data.Functor.Identity (Identity (runIdentity))
 
@@ -43,7 +44,6 @@ import Database.Relational.Query.Context (Flat, Aggregated, Set, Power, SetList)
 import Database.Relational.Query.Component
   (AggregateColumnRef, AggregateElem, aggregateColumnRef, AggregateSet, aggregateGroupingSet,
    AggregateBitKey, aggregatePowerKey, aggregateRollup, aggregateCube, aggregateSets)
-import Database.Relational.Query.Monad.Trans.ListState (TermsContext, termsList)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
@@ -56,7 +56,7 @@ import Database.Relational.Query.Monad.Class
 --   aggregating key sets set building and partition key set building.
 --   Type 'at' is aggregating term type.
 newtype Aggregatings ac at m a =
-  Aggregatings (WriterT (TermsContext at) m a)
+  Aggregatings (WriterT (DList at) m a)
   deriving (MonadTrans, Monad, Functor, Applicative)
 
 -- | Lift to 'Aggregatings'.
@@ -98,7 +98,7 @@ instance Monad m => MonadPartition (PartitioningSetT c m) where
 
 -- | Run 'Aggregatings' to get terms list.
 extractAggregateTerms :: (Monad m, Functor m) => Aggregatings ac at m a -> m (a, [at])
-extractAggregateTerms (Aggregatings ac) = second termsList <$> runWriterT ac
+extractAggregateTerms (Aggregatings ac) = second toList <$> runWriterT ac
 
 
 -- | Typeful aggregate element.

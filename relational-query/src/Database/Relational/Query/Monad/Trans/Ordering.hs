@@ -29,10 +29,10 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Writer (WriterT, runWriterT, tell)
 import Control.Applicative (Applicative, pure, (<$>))
 import Control.Arrow (second)
+import Data.DList (DList, toList)
 
 import Database.Relational.Query.Component
   (Order(Asc, Desc), OrderColumn, OrderingTerm, OrderingTerms)
-import Database.Relational.Query.Monad.Trans.ListState (TermsContext, termsList)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
@@ -40,12 +40,10 @@ import Database.Relational.Query.Monad.Class
   (MonadRestrict(..), MonadQuery(..), MonadAggregate(..), MonadPartition(..))
 
 
-type OrderingContext = TermsContext OrderingTerm
-
 -- | Type to accumulate ordering context.
 --   Type 'c' is ordering term projection context type.
 newtype Orderings c m a =
-  Orderings (WriterT OrderingContext m a)
+  Orderings (WriterT (DList OrderingTerm) m a)
   deriving (MonadTrans, Monad, Functor, Applicative)
 
 -- | Lift to 'Orderings'.
@@ -110,4 +108,4 @@ desc =  updateOrderBys Desc
 
 -- | Run 'Orderings' to get 'OrderingTerms'
 extractOrderingTerms :: (Monad m, Functor m) => Orderings c m a -> m (a, OrderingTerms)
-extractOrderingTerms (Orderings oc) = second termsList <$> runWriterT oc
+extractOrderingTerms (Orderings oc) = second toList <$> runWriterT oc
