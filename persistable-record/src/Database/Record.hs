@@ -42,13 +42,12 @@ import Database.Record.Persistable
   (PersistableSqlType, PersistableType(..), sqlNullValue,
    PersistableSqlValue, PersistableValue(..), fromSql, toSql,
    PersistableRecordWidth, PersistableWidth(..), derivedWidth,
-   PersistableRecord, Persistable(..),
-   derivedPersistableValueRecord)
+   PersistableRecord, derivedPersistableValueRecord)
 import Database.Record.FromSql
-  (RecordFromSql, FromSql(..), recordFromSql', valueFromSql,
+  (RecordFromSql, FromSql(..), valueFromSql,
    runTakeRecord, takeRecord, runToRecord, toRecord)
 import Database.Record.ToSql
-  (ToSqlM, RecordToSql, ToSql(..), recordToSql', valueToSql,
+  (ToSqlM, RecordToSql, ToSql(..), valueToSql,
    runFromRecord, wrapToSql, putRecord, putEmpty, fromRecord,
    updateValuesByUnique, updateValuesByPrimary)
 
