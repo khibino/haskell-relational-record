@@ -26,6 +26,8 @@ module Database.Record.ToSql (
   ToSql (recordToSql), recordToSql',
   putRecord, putEmpty, fromRecord, wrapToSql,
 
+  valueToSql,
+
   -- * Make parameter list for updating with key
   updateValuesByUnique',
   updateValuesByUnique,
@@ -37,6 +39,7 @@ module Database.Record.ToSql (
 
 import Data.Array (listArray, (!))
 import Data.Set (toList, fromList, (\\))
+import Control.Applicative (pure)
 import Control.Monad.Trans.Writer (Writer, execWriter, tell)
 import Data.DList (DList)
 import qualified Data.DList as DList
@@ -44,7 +47,7 @@ import qualified Data.DList as DList
 import Database.Record.Persistable
   (PersistableSqlType, runPersistableNullValue, PersistableType (persistableType),
    PersistableRecordWidth, runPersistableRecordWidth, PersistableWidth(persistableWidth),
-   PersistableRecord, Persistable(persistable))
+   PersistableRecord, Persistable(persistable), PersistableValue, persistableValue, fromValue)
 import Database.Record.KeyConstraint
   (Primary, Unique, KeyConstraint, HasKeyConstraint(keyConstraint), unique, indexes)
 import qualified Database.Record.Persistable as Persistable
@@ -133,6 +136,10 @@ putEmpty =  putRecord
 --   Convert from haskell type 'a' into list of SQL type ['q'].
 fromRecord :: ToSql q a => a -> [q]
 fromRecord =  runToSqlM . putRecord
+
+-- | Derived 'RecordToSql' from persistable value.
+valueToSql :: PersistableValue q a => RecordToSql q a
+valueToSql =  RecordToSql $ tell . pure . fromValue persistableValue
 
 -- | Make untyped indexes to update column from key indexes and record width.
 --   Expected by update form like

@@ -26,12 +26,15 @@ module Database.Record.FromSql (
 
   -- * Inference rules of 'RecordFromSql' conversion
   FromSql (recordFromSql), recordFromSql',
-  takeRecord, toRecord
+  takeRecord, toRecord,
+
+  valueFromSql
   ) where
 
 import Database.Record.Persistable
   (PersistableRecord,
-   Persistable(persistable), PersistableType)
+   Persistable(persistable), PersistableType,
+   PersistableValue, persistableValue, toValue)
 import qualified Database.Record.Persistable as Persistable
 import Database.Record.KeyConstraint
   (HasColumnConstraint(columnConstraint), ColumnConstraint, NotNull, index)
@@ -163,3 +166,7 @@ takeRecord =  runTakeRecord recordFromSql
 --   Convert from list of SQL type ['q'] into haskell type 'a'.
 toRecord :: FromSql q a => [q] -> a
 toRecord =  runToRecord recordFromSql
+
+-- | Derived 'RecordFromSql' from persistable value.
+valueFromSql :: PersistableValue q a => RecordFromSql q a
+valueFromSql =  RecordFromSql $ \qs -> (toValue persistableValue $ head qs, tail qs)

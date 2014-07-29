@@ -45,10 +45,10 @@ import Database.Record.Persistable
    PersistableRecord, Persistable(..),
    derivedPersistableValueRecord)
 import Database.Record.FromSql
-  (RecordFromSql, FromSql(..), recordFromSql',
+  (RecordFromSql, FromSql(..), recordFromSql', valueFromSql,
    runTakeRecord, takeRecord, runToRecord, toRecord)
 import Database.Record.ToSql
-  (ToSqlM, RecordToSql, ToSql(..), recordToSql',
+  (ToSqlM, RecordToSql, ToSql(..), recordToSql', valueToSql,
    runFromRecord, wrapToSql, putRecord, putEmpty, fromRecord,
    updateValuesByUnique, updateValuesByPrimary)
 
