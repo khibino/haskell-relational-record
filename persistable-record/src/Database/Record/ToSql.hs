@@ -18,8 +18,6 @@ module Database.Record.ToSql (
   ToSqlM, RecordToSql, runFromRecord,
   createRecordToSql,
 
-  recordSerializer,
-
   (<&>),
 
   -- * Inference rules of 'RecordToSql' conversion
@@ -47,10 +45,9 @@ import qualified Data.DList as DList
 import Database.Record.Persistable
   (PersistableSqlType, runPersistableNullValue, PersistableType (persistableType),
    PersistableRecordWidth, runPersistableRecordWidth, PersistableWidth(persistableWidth),
-   PersistableRecord, PersistableValue, persistableValue, fromValue)
+   PersistableValue, persistableValue, fromValue)
 import Database.Record.KeyConstraint
   (Primary, Unique, KeyConstraint, HasKeyConstraint(keyConstraint), unique, indexes)
-import qualified Database.Record.Persistable as Persistable
 
 
 -- | Context type to convert SQL type list.
@@ -79,10 +76,6 @@ runFromRecord r = runToSqlM . runRecordToSql r
 createRecordToSql :: (a -> [q])      -- ^ Convert function body
                   -> RecordToSql q a -- ^ Result proof object
 createRecordToSql f =  wrapToSql $ tell . DList.fromList . f
-
--- | Derive 'RecordToSql' proof object from 'PersistableRecord'.
-recordSerializer :: PersistableRecord q a -> RecordToSql q a
-recordSerializer =  createRecordToSql . Persistable.fromRecord
 
 -- | Derivation rule of 'RecordToSql' proof object for Haskell tuple (,) type.
 (<&>) :: RecordToSql q a -> RecordToSql q b -> RecordToSql q (a, b)

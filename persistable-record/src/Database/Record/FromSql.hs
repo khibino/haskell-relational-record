@@ -19,8 +19,6 @@ module Database.Record.FromSql (
   RecordFromSql, runTakeRecord, runToRecord,
   createRecordFromSql,
 
-  recordDeSerializer,
-
   (<&>),
   maybeRecord,
 
@@ -32,8 +30,7 @@ module Database.Record.FromSql (
   ) where
 
 import Database.Record.Persistable
-  (PersistableType, PersistableRecord,
-   PersistableValue, persistableValue, toValue)
+  (PersistableType, PersistableValue, persistableValue, toValue)
 import qualified Database.Record.Persistable as Persistable
 import Database.Record.KeyConstraint
   (HasColumnConstraint(columnConstraint), ColumnConstraint, NotNull, index)
@@ -84,10 +81,6 @@ runTakeRecord (RecordFromSql f) = f
 createRecordFromSql :: ([q] -> (a, [q])) -- ^ Convert function body
                     -> RecordFromSql q a -- ^ Result proof object
 createRecordFromSql =  RecordFromSql
-
--- | Derive 'RecordFromSql' proof object from 'PersistableRecord'.
-recordDeSerializer :: PersistableRecord q a -> RecordFromSql q a
-recordDeSerializer =  createRecordFromSql . Persistable.takeRecord
 
 -- | Run 'RecordFromSql' proof object. Convert from list of SQL type ['q'] into  Haskell type 'a'.
 runToRecord :: RecordFromSql q a -- ^ Proof object which has capability to convert
