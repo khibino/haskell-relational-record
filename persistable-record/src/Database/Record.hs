@@ -41,8 +41,7 @@ import Database.Record.KeyConstraint
 import Database.Record.Persistable
   (PersistableSqlType, PersistableType(..), sqlNullValue,
    PersistableSqlValue, PersistableValue(..), fromSql, toSql,
-   PersistableRecordWidth, PersistableWidth(..), derivedWidth,
-   PersistableRecord, derivedPersistableValueRecord)
+   PersistableRecordWidth, PersistableWidth(..), derivedWidth)
 import Database.Record.FromSql
   (RecordFromSql, FromSql(..), valueFromSql,
    runTakeRecord, takeRecord, runToRecord, toRecord)
