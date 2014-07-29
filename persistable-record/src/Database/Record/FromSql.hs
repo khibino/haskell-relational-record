@@ -155,7 +155,7 @@ instance (HasColumnConstraint NotNull a, FromSql q a, PersistableType q)
 -- | Inference rule of 'RecordFromSql' proof object which can convert
 --   from /empty/ list of SQL type ['q'] into Haskell unit () type.
 instance FromSql q () where
-  recordFromSql = recordFromSql'
+  recordFromSql = RecordFromSql (\qs -> ((), qs))
 
 -- | Run inferred 'RecordFromSql' proof object.
 --   Convert from list of SQL type ['q'] into haskell type 'a' and rest of list ['q'].
