@@ -18,21 +18,16 @@ module Database.HDBC.Record.TH (
 import Language.Haskell.TH (Q, Dec, Type)
 import Database.HDBC (SqlValue)
 import Database.HDBC.SqlValueExtra ()
-import Database.Record
-  (Persistable(persistable), derivedPersistableValueRecord,
-   FromSql(recordFromSql), recordFromSql', ToSql(recordToSql), recordToSql')
+import Database.Record (FromSql(..), valueFromSql, ToSql(..), valueToSql)
 
 
 -- | Template to declare HDBC instances of DB-record against single value type.
 derivePersistableInstanceFromValue :: Q Type  -- ^ Type to implement instances
                                    -> Q [Dec] -- ^ Result declarations
 derivePersistableInstanceFromValue typ =
-  [d| instance Persistable SqlValue $(typ)  where
-        persistable = derivedPersistableValueRecord
-
-      instance FromSql SqlValue $(typ)  where
-        recordFromSql = recordFromSql'
+  [d| instance FromSql SqlValue $(typ)  where
+        recordFromSql = valueFromSql
 
       instance ToSql SqlValue $(typ)  where
-        recordToSql = recordToSql'
+        recordToSql = valueToSql
     |]
