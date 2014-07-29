@@ -21,10 +21,9 @@ module Database.Relational.Query.Monad.Trans.Restricting (
   ) where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
-import Control.Monad.Trans.State (modify, StateT, runStateT)
+import Control.Monad.Trans.Writer (WriterT, runWriterT, tell)
 import Control.Applicative (Applicative, pure, (<$>))
 import Control.Arrow (second)
-import Data.Monoid (mempty, (<>))
 import Data.DList (DList, toList)
 
 import Database.Relational.Query.Expr (Expr, fromJust)
@@ -33,35 +32,18 @@ import Database.Relational.Query.Component (QueryRestriction)
 import Database.Relational.Query.Monad.Class (MonadRestrict(..), MonadQuery (..), MonadAggregate(..))
 
 
-type RestrictContext c = DList (Expr c Bool)
-
 -- | 'StateT' type to accumulate join product context.
 newtype Restrictings c m a =
-  Restrictings { queryState :: StateT (RestrictContext c) m a }
+  Restrictings (WriterT (DList (Expr c Bool)) m a)
   deriving (MonadTrans, Monad, Functor, Applicative)
-
--- | Run 'Restrictings' to expand context state.
-runRestrictings :: Restrictings c m a       -- ^ RestrictContext to expand
-                -> RestrictContext c        -- ^ Initial context
-                -> m (a, RestrictContext c) -- ^ Expanded result
-runRestrictings =  runStateT . queryState
-
--- | Run 'Restrictings' with primary empty context to expand context state.
-runRestrictingsPrime :: Restrictings c m a       -- ^ RestrictContext to expand
-                     -> m (a, RestrictContext c) -- ^ Expanded result
-runRestrictingsPrime q = runRestrictings q mempty
 
 -- | Lift to 'Restrictings'
 restrictings :: Monad m => m a -> Restrictings c m a
 restrictings =  lift
 
--- | Unsafely update join product context.
-updateRestrictContext :: Monad m => (RestrictContext c -> RestrictContext c) -> Restrictings c m ()
-updateRestrictContext =  Restrictings . modify
-
 -- | Add whole query restriction.
 updateRestriction :: Monad m => Expr c (Maybe Bool) -> Restrictings c m ()
-updateRestriction e = updateRestrictContext (<> pure (fromJust e))
+updateRestriction =  Restrictings . tell . pure . fromJust
 
 -- | 'MonadRestrict' instance.
 instance (Monad q, Functor q) => MonadRestrict c (Restrictings c q) where
@@ -79,4 +61,4 @@ instance MonadAggregate m => MonadAggregate (Restrictings c m) where
 
 -- | Run 'Restrictings' to get 'QueryRestriction'
 extractRestrict :: (Monad m, Functor m) => Restrictings c m a -> m (a, QueryRestriction c)
-extractRestrict q = second toList <$> runRestrictingsPrime q
+extractRestrict (Restrictings rc) = second toList <$> runWriterT rc
