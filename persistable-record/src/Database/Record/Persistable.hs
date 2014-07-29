@@ -34,8 +34,7 @@ module Database.Record.Persistable (
   PersistableType(..), sqlNullValue,
   PersistableValue (..), fromSql, toSql,
   derivedPersistableValueRecord,
-  PersistableWidth (..), derivedWidth,
-  Persistable (..)
+  PersistableWidth (..), derivedWidth
   ) where
 
 
@@ -147,10 +146,6 @@ persistableFromValue :: PersistableRecordWidth a -> PersistableSqlValue q a -> P
 persistableFromValue pw pv =
   persistableRecord pw (toValue pv . head) ((:[]) . fromValue pv)
 
--- | Axiom of 'PersistableRecord' for Haskell unit () type.
-persistableVoid :: PersistableRecord q ()
-persistableVoid =  persistableRecord voidWidth (const ()) (const [])
-
 
 -- | Interface of inference rule for 'PersistableSqlType' proof object
 class Eq q => PersistableType q where
@@ -199,13 +194,3 @@ toSql =  fromValue persistableValue
 -- | Inferred 'PersistableRecord' when Haskell type 'a' is single column type.
 derivedPersistableValueRecord :: (PersistableWidth a, PersistableValue q a) => PersistableRecord q a
 derivedPersistableValueRecord =  persistableFromValue persistableWidth persistableValue
-
-
--- | Interface of inference rule for 'PersistableRecord' proof object
-class PersistableWidth a => Persistable q a where
-  -- | Infer 'PersistableRecord' proof object.
-  persistable :: PersistableRecord q a
-
--- | Axiom of 'PersistableRecord' for Haskell unit () type.
-instance Persistable q () where
-  persistable = persistableVoid
