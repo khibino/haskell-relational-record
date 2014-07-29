@@ -33,8 +33,8 @@ module Database.Relational.Query.Monad.Trans.Aggregating (
   ) where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
-import Control.Monad.Trans.State (StateT, runStateT, modify)
-import Control.Applicative (Applicative, (<$>))
+import Control.Monad.Trans.Writer (WriterT, runWriterT, tell)
+import Control.Applicative (Applicative, pure, (<$>))
 import Control.Arrow (second)
 
 import Data.Functor.Identity (Identity (runIdentity))
@@ -43,8 +43,7 @@ import Database.Relational.Query.Context (Flat, Aggregated, Set, Power, SetList)
 import Database.Relational.Query.Component
   (AggregateColumnRef, AggregateElem, aggregateColumnRef, AggregateSet, aggregateGroupingSet,
    AggregateBitKey, aggregatePowerKey, aggregateRollup, aggregateCube, aggregateSets)
-import Database.Relational.Query.Monad.Trans.ListState
-  (TermsContext, primeTermsContext, appendTerm, termsList)
+import Database.Relational.Query.Monad.Trans.ListState (TermsContext, termsList)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
@@ -54,19 +53,13 @@ import Database.Relational.Query.Monad.Class
 
 -- | 'StateT' type to accumulate aggregating context.
 newtype Aggregatings ac at m a =
-  Aggregatings { aggregatingState :: StateT (TermsContext at) m a }
+  Aggregatings { aggregatingState ::WriterT (TermsContext at) m a }
   deriving (MonadTrans, Monad, Functor, Applicative)
 
 -- | Run 'Aggregatings' to expand context state.
 runAggregating :: Aggregatings ac at m a -- ^ Context to expand
-               -> TermsContext at        -- ^ Initial context
                -> m (a, TermsContext at) -- ^ Expanded result
-runAggregating =  runStateT . aggregatingState
-
--- | Run 'Aggregatings' with primary empty context to expand context state.
-runAggregatingPrime :: Aggregatings ac at m a          -- ^ Context to expand
-                    -> m (a, TermsContext at) -- ^ Expanded result
-runAggregatingPrime =  (`runAggregating` primeTermsContext)
+runAggregating =  runWriterT . aggregatingState
 
 -- | Lift to 'Aggregatings'.
 aggregatings :: Monad m => m a -> Aggregatings ac at m a
@@ -94,12 +87,8 @@ instance MonadQuery m => MonadQuery (AggregatingSetT m) where
   restrictJoin       = aggregatings . restrictJoin
   unsafeSubQuery na  = aggregatings . unsafeSubQuery na
 
--- | Unsafely update aggregating context.
-updateAggregatingContext :: Monad m => (TermsContext at -> TermsContext at) -> Aggregatings ac at m ()
-updateAggregatingContext =  Aggregatings . modify
-
 unsafeAggregateWithTerm :: Monad m => at -> Aggregatings ac at m ()
-unsafeAggregateWithTerm =  updateAggregatingContext . appendTerm
+unsafeAggregateWithTerm =  Aggregatings . tell . pure
 
 -- | Aggregated query instance.
 instance MonadQuery m => MonadAggregate (AggregatingSetT m) where
@@ -111,7 +100,7 @@ instance Monad m => MonadPartition (PartitioningSetT c m) where
 
 -- | Run 'Aggregatings' to get terms list.
 extractAggregateTerms :: (Monad m, Functor m) => Aggregatings ac at m a -> m (a, [at])
-extractAggregateTerms q = second termsList <$> runAggregatingPrime q
+extractAggregateTerms q = second termsList <$> runAggregating q
 
 
 -- | Typeful aggregate element.

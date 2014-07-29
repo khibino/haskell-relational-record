@@ -26,13 +26,12 @@ module Database.Relational.Query.Monad.Trans.Assigning (
 
 import Database.Relational.Query.Context (Flat)
 import Control.Monad.Trans.Class (MonadTrans (lift))
-import Control.Monad.Trans.State (StateT, runStateT, modify)
-import Control.Applicative (Applicative, (<$>))
-import Control.Arrow ((>>>), second)
+import Control.Monad.Trans.Writer (WriterT, runWriterT, tell)
+import Control.Applicative (Applicative, pure, (<$>))
+import Control.Arrow (second)
 
 import Database.Relational.Query.Component (Assignment, Assignments)
-import Database.Relational.Query.Monad.Trans.ListState
-  (TermsContext, primeTermsContext, appendTerm, termsList)
+import Database.Relational.Query.Monad.Trans.ListState (TermsContext, termsList)
 import Database.Relational.Query.Pi (Pi)
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Projection (Projection)
@@ -46,27 +45,17 @@ type AssigningContext = TermsContext Assignment
 -- | Type to accumulate assigning context.
 --   Type 'r' is table record type.
 newtype Assignings r m a =
-  Assignings { assigningState :: StateT AssigningContext m a }
+  Assignings { assigningState :: WriterT AssigningContext m a }
   deriving (MonadTrans, Monad, Functor, Applicative)
 
 -- | Run 'Assignings' to expand context state.
 runAssignings :: Assignings r m a        -- ^ Context to expand
-              -> AssigningContext        -- ^ Initial context
               -> m (a, AssigningContext) -- ^ Expanded result
-runAssignings =  runStateT . assigningState
-
--- | Run 'Assignings' with primary empty context to expand context state.
-runAssigningsPrime :: Assignings r m a        -- ^ Context to expand
-                   -> m (a, AssigningContext) -- ^ Expanded result
-runAssigningsPrime q = runAssignings q $ primeTermsContext
+runAssignings =  runWriterT . assigningState
 
 -- | Lift to 'Assignings'
 assignings :: Monad m => m a -> Assignings r m a
 assignings =  lift
-
--- | Unsafely update assigning context.
-updateAssigningContext :: Monad m => (AssigningContext -> AssigningContext) -> Assignings r m ()
-updateAssigningContext =  Assignings . modify
 
 -- | 'MonadRestrict' with ordering.
 instance MonadRestrict c m => MonadRestrict c (Assignings r m) where
@@ -81,8 +70,8 @@ targetProjection (AssignTarget (tbl, pi')) =
 
 -- | Add an assignment.
 assignTo :: Monad m => Projection Flat v ->  AssignTarget r v -> Assignings r m ()
-assignTo vp target = updateAssigningContext . foldr (>>>) id
-                     $ zipWith (curry appendTerm) lefts rights  where
+assignTo vp target = Assignings . mapM_ tell
+                     $ zipWith (curry pure) lefts rights  where
   lefts  = Projection.columns $ targetProjection target
   rights = Projection.columns vp
 
@@ -101,4 +90,4 @@ infix 4 <-#
 extractAssignments :: (Monad m, Functor m)
                    => Assignings r m a
                    -> m (a, Assignments)
-extractAssignments q = second termsList <$> runAssigningsPrime q
+extractAssignments q = second termsList <$> runAssignings q

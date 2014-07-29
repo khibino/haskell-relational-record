@@ -26,14 +26,13 @@ module Database.Relational.Query.Monad.Trans.Ordering (
   ) where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
-import Control.Monad.Trans.State (StateT, runStateT, modify)
-import Control.Applicative (Applicative, (<$>))
-import Control.Arrow (second, (>>>))
+import Control.Monad.Trans.Writer (WriterT, runWriterT, tell)
+import Control.Applicative (Applicative, pure, (<$>))
+import Control.Arrow (second)
 
 import Database.Relational.Query.Component
   (Order(Asc, Desc), OrderColumn, OrderingTerm, OrderingTerms)
-import Database.Relational.Query.Monad.Trans.ListState
-  (TermsContext, primeTermsContext, appendTerm, termsList)
+import Database.Relational.Query.Monad.Trans.ListState (TermsContext, termsList)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
@@ -46,19 +45,13 @@ type OrderingContext = TermsContext OrderingTerm
 -- | 'StateT' type to accumulate ordering context.
 --   Type 'c' is ordering term projection context type.
 newtype Orderings c m a =
-  Orderings { orderingState :: StateT OrderingContext m a }
+  Orderings { orderingState :: WriterT OrderingContext m a }
   deriving (MonadTrans, Monad, Functor, Applicative)
 
 -- | Run 'Orderings' to expand context state.
 runOrderings :: Orderings c m a        -- ^ Context to expand
-             -> OrderingContext        -- ^ Initial context
              -> m (a, OrderingContext) -- ^ Expanded result
-runOrderings =  runStateT . orderingState
-
--- | Run 'Orderings' with primary empty context to expand context state.
-runOrderingsPrime :: Orderings c m a        -- ^ Context to expand
-                  -> m (a, OrderingContext) -- ^ Expanded result
-runOrderingsPrime q = runOrderings q $ primeTermsContext
+runOrderings =  runWriterT . orderingState
 
 -- | Lift to 'Orderings'.
 orderings :: Monad m => m a -> Orderings c m a
@@ -93,17 +86,13 @@ class ProjectableOrdering p where
 instance ProjectableOrdering (Projection c) where
   orderTerms = Projection.columns
 
--- | Unsafely update ordering context.
-updateOrderingContext :: Monad m => (OrderingContext -> OrderingContext) -> Orderings p m ()
-updateOrderingContext =  Orderings . modify
-
 -- | Add ordering terms.
 updateOrderBys :: (Monad m, ProjectableOrdering (Projection c))
                => Order            -- ^ Order direction
                -> Projection c t   -- ^ Ordering terms to add
                -> Orderings c m () -- ^ Result context with ordering
-updateOrderBys order p = updateOrderingContext . foldr (>>>) id $ updates  where
-  updates = curry appendTerm order `map` orderTerms p
+updateOrderBys order p = Orderings . mapM_ tell $ terms  where
+  terms = curry pure order `map` orderTerms p
 
 -- | Add ordering terms.
 orderBy :: (Monad m, ProjectableOrdering (Projection c))
@@ -126,4 +115,4 @@ desc =  updateOrderBys Desc
 
 -- | Run 'Orderings' to get 'OrderingTerms'
 extractOrderingTerms :: (Monad m, Functor m) => Orderings c m a -> m (a, OrderingTerms)
-extractOrderingTerms q = second termsList <$> runOrderingsPrime q
+extractOrderingTerms q = second termsList <$> runOrderings q
