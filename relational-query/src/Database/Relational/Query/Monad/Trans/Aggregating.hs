@@ -53,13 +53,8 @@ import Database.Relational.Query.Monad.Class
 
 -- | 'StateT' type to accumulate aggregating context.
 newtype Aggregatings ac at m a =
-  Aggregatings { aggregatingState ::WriterT (TermsContext at) m a }
+  Aggregatings (WriterT (TermsContext at) m a)
   deriving (MonadTrans, Monad, Functor, Applicative)
-
--- | Run 'Aggregatings' to expand context state.
-runAggregating :: Aggregatings ac at m a -- ^ Context to expand
-               -> m (a, TermsContext at) -- ^ Expanded result
-runAggregating =  runWriterT . aggregatingState
 
 -- | Lift to 'Aggregatings'.
 aggregatings :: Monad m => m a -> Aggregatings ac at m a
@@ -100,7 +95,7 @@ instance Monad m => MonadPartition (PartitioningSetT c m) where
 
 -- | Run 'Aggregatings' to get terms list.
 extractAggregateTerms :: (Monad m, Functor m) => Aggregatings ac at m a -> m (a, [at])
-extractAggregateTerms q = second termsList <$> runAggregating q
+extractAggregateTerms (Aggregatings ac) = second termsList <$> runWriterT ac
 
 
 -- | Typeful aggregate element.

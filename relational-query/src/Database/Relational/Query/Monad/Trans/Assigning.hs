@@ -45,13 +45,8 @@ type AssigningContext = TermsContext Assignment
 -- | Type to accumulate assigning context.
 --   Type 'r' is table record type.
 newtype Assignings r m a =
-  Assignings { assigningState :: WriterT AssigningContext m a }
+  Assignings (WriterT AssigningContext m a)
   deriving (MonadTrans, Monad, Functor, Applicative)
-
--- | Run 'Assignings' to expand context state.
-runAssignings :: Assignings r m a        -- ^ Context to expand
-              -> m (a, AssigningContext) -- ^ Expanded result
-runAssignings =  runWriterT . assigningState
 
 -- | Lift to 'Assignings'
 assignings :: Monad m => m a -> Assignings r m a
@@ -90,4 +85,4 @@ infix 4 <-#
 extractAssignments :: (Monad m, Functor m)
                    => Assignings r m a
                    -> m (a, Assignments)
-extractAssignments q = second termsList <$> runAssignings q
+extractAssignments (Assignings ac) = second termsList <$> runWriterT ac

@@ -45,13 +45,8 @@ type OrderingContext = TermsContext OrderingTerm
 -- | 'StateT' type to accumulate ordering context.
 --   Type 'c' is ordering term projection context type.
 newtype Orderings c m a =
-  Orderings { orderingState :: WriterT OrderingContext m a }
+  Orderings (WriterT OrderingContext m a)
   deriving (MonadTrans, Monad, Functor, Applicative)
-
--- | Run 'Orderings' to expand context state.
-runOrderings :: Orderings c m a        -- ^ Context to expand
-             -> m (a, OrderingContext) -- ^ Expanded result
-runOrderings =  runWriterT . orderingState
 
 -- | Lift to 'Orderings'.
 orderings :: Monad m => m a -> Orderings c m a
@@ -115,4 +110,4 @@ desc =  updateOrderBys Desc
 
 -- | Run 'Orderings' to get 'OrderingTerms'
 extractOrderingTerms :: (Monad m, Functor m) => Orderings c m a -> m (a, OrderingTerms)
-extractOrderingTerms q = second termsList <$> runOrderings q
+extractOrderingTerms (Orderings oc) = second termsList <$> runWriterT oc
