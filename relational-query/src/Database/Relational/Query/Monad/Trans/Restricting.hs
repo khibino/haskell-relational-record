@@ -32,7 +32,9 @@ import Database.Relational.Query.Component (QueryRestriction)
 import Database.Relational.Query.Monad.Class (MonadRestrict(..), MonadQuery (..), MonadAggregate(..))
 
 
--- | 'StateT' type to accumulate join product context.
+-- | Type to accumulate query restrictions.
+--   Type 'c' is context tag of restriction building like
+--   Flat (where) or Aggregated (having).
 newtype Restrictings c m a =
   Restrictings (WriterT (DList (Expr c Bool)) m a)
   deriving (MonadTrans, Monad, Functor, Applicative)
