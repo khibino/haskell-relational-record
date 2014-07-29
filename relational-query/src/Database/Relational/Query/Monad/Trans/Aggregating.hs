@@ -51,7 +51,10 @@ import Database.Relational.Query.Monad.Class
   (MonadRestrict(..), MonadQuery(..), MonadAggregate(..), MonadPartition(..))
 
 
--- | 'StateT' type to accumulate aggregating context.
+-- | Type to accumulate aggregating context.
+--   Type 'ac' is aggregating-context type like aggregating key set building,
+--   aggregating key sets set building and partition key set building.
+--   Type 'at' is aggregating term type.
 newtype Aggregatings ac at m a =
   Aggregatings (WriterT (TermsContext at) m a)
   deriving (MonadTrans, Monad, Functor, Applicative)

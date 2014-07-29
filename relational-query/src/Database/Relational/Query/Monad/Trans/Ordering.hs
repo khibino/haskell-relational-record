@@ -42,7 +42,7 @@ import Database.Relational.Query.Monad.Class
 
 type OrderingContext = TermsContext OrderingTerm
 
--- | 'StateT' type to accumulate ordering context.
+-- | Type to accumulate ordering context.
 --   Type 'c' is ordering term projection context type.
 newtype Orderings c m a =
   Orderings (WriterT OrderingContext m a)
