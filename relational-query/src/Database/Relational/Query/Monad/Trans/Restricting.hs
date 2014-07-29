@@ -22,16 +22,18 @@ module Database.Relational.Query.Monad.Trans.Restricting (
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.State (modify, StateT, runStateT)
-import Control.Applicative (Applicative, (<$>))
+import Control.Applicative (Applicative, pure, (<$>))
 import Control.Arrow (second)
+import Data.Monoid (mempty, (<>))
+import Data.DList (DList, toList)
 
-import Database.Relational.Query.Monad.Trans.RestrictingState
-  (RestrictContext, primeRestrictContext, addRestriction, restriction)
-import Database.Relational.Query.Expr (Expr)
+import Database.Relational.Query.Expr (Expr, fromJust)
 import Database.Relational.Query.Component (QueryRestriction)
 
 import Database.Relational.Query.Monad.Class (MonadRestrict(..), MonadQuery (..), MonadAggregate(..))
 
+
+type RestrictContext c = DList (Expr c Bool)
 
 -- | 'StateT' type to accumulate join product context.
 newtype Restrictings c m a =
@@ -47,7 +49,7 @@ runRestrictings =  runStateT . queryState
 -- | Run 'Restrictings' with primary empty context to expand context state.
 runRestrictingsPrime :: Restrictings c m a       -- ^ RestrictContext to expand
                      -> m (a, RestrictContext c) -- ^ Expanded result
-runRestrictingsPrime q = runRestrictings q primeRestrictContext
+runRestrictingsPrime q = runRestrictings q mempty
 
 -- | Lift to 'Restrictings'
 restrictings :: Monad m => m a -> Restrictings c m a
@@ -59,7 +61,7 @@ updateRestrictContext =  Restrictings . modify
 
 -- | Add whole query restriction.
 updateRestriction :: Monad m => Expr c (Maybe Bool) -> Restrictings c m ()
-updateRestriction e = updateRestrictContext (addRestriction e)
+updateRestriction e = updateRestrictContext (<> pure (fromJust e))
 
 -- | 'MonadRestrict' instance.
 instance (Monad q, Functor q) => MonadRestrict c (Restrictings c q) where
@@ -77,4 +79,4 @@ instance MonadAggregate m => MonadAggregate (Restrictings c m) where
 
 -- | Run 'Restrictings' to get 'QueryRestriction'
 extractRestrict :: (Monad m, Functor m) => Restrictings c m a -> m (a, QueryRestriction c)
-extractRestrict q = second restriction <$> runRestrictingsPrime q
+extractRestrict q = second toList <$> runRestrictingsPrime q

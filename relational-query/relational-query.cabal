@@ -61,7 +61,6 @@ library
                        Database.Relational.Query.Internal.SQL
                        Database.Relational.Query.Internal.Product
                        Database.Relational.Query.Monad.Trans.JoinState
-                       Database.Relational.Query.Monad.Trans.RestrictingState
                        Database.Relational.Query.Monad.Qualify
 
   build-depends:         base <5

@@ -51,7 +51,7 @@ module Database.Relational.Query.Component (
 import Data.Monoid (mempty, (<>))
 
 import qualified Database.Relational.Query.Context as Context
-import Database.Relational.Query.Expr (Expr)
+import Database.Relational.Query.Expr (Expr, exprAnd)
 import Database.Relational.Query.Expr.Unsafe (sqlExpr)
 
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL)
@@ -111,11 +111,13 @@ showsDuplication =  dup  where
 
 
 -- | Type for restriction of query.
-type QueryRestriction c = Maybe (Expr c Bool)
+type QueryRestriction c = [Expr c Bool]
 
 -- | Compose SQL String from 'QueryRestriction'.
 composeRestrict :: Keyword -> QueryRestriction c -> StringSQL
-composeRestrict k = maybe mempty (\e -> k <> sqlExpr e)
+composeRestrict k = d  where
+  d    []    =  mempty
+  d e@(_:_)  =  k <> sqlExpr (foldr1 exprAnd e)
 
 -- | Compose WHERE clause from 'QueryRestriction'.
 composeWhere :: QueryRestriction Context.Flat -> StringSQL
