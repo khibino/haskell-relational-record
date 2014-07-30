@@ -25,43 +25,30 @@ import Database.Relational.Query.Sub (Qualified)
 import qualified Database.Relational.Query.Sub as SubQuery
 
 
--- | Type for 'Qualify' monad state.
-newtype AliasIdContext = AliasIdContext { currentAliasId :: AliasId }
-
--- | Initial state.
-primeAliasIdContext :: AliasIdContext
-primeAliasIdContext =  AliasIdContext primeAlias
-
--- | Update state function.
-nextAlias :: AliasIdContext -> (AliasId, AliasIdContext)
-nextAlias s = (cur, s { currentAliasId =  newAliasId cur })  where
-  cur = currentAliasId s
-
-
 -- | Monad type to qualify SQL table forms.
 newtype Qualify a =
-  Qualify { runQualify' :: State AliasIdContext a }
+  Qualify { runQualify' :: State AliasId a }
   deriving (Monad, Functor, Applicative)
 
 -- | Run qualify monad.
-runQualify :: Qualify a -> AliasIdContext -> (a, AliasIdContext)
+runQualify :: Qualify a -> AliasId -> (a, AliasId)
 runQualify =  runState . runQualify'
 
 -- | Run qualify monad with initial state.
-runQualifyPrime :: Qualify a -> (a, AliasIdContext)
-runQualifyPrime q = runQualify q primeAliasIdContext
+runQualifyPrime :: Qualify a -> (a, AliasId)
+runQualifyPrime q = runQualify q primeAlias
 
 -- | Run qualify monad with initial state to get only result.
 evalQualifyPrime :: Qualify a -> a
 evalQualifyPrime =  fst . runQualifyPrime
 
 -- | Make qualify monad from update state function.
-qualifyState :: (AliasIdContext -> (a, AliasIdContext)) -> Qualify a
+qualifyState :: (AliasId -> (a, AliasId)) -> Qualify a
 qualifyState =  Qualify . state
 
 -- | Generated new qualifier on internal state.
 newAlias :: Qualify AliasId
-newAlias =  qualifyState nextAlias
+newAlias =  qualifyState $ \ai -> (ai, newAliasId ai)
 
 unsafeQualifierFromAliasId :: AliasId -> SubQuery.Qualifier
 unsafeQualifierFromAliasId =  SubQuery.Qualifier . AliasId.unsafeExtractAliasId
