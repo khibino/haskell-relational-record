@@ -16,7 +16,7 @@ module Database.Relational.Query.Monad.Qualify (
   evalQualifyPrime, qualifyQuery
   ) where
 
-import Control.Monad.Trans.State (State, state, runState)
+import Control.Monad.Trans.State (State, runState, get, modify)
 import Control.Applicative (Applicative)
 
 import Database.Relational.Query.Internal.AliasId (primeAlias, AliasId, newAliasId)
@@ -42,13 +42,12 @@ runQualifyPrime q = runQualify q primeAlias
 evalQualifyPrime :: Qualify a -> a
 evalQualifyPrime =  fst . runQualifyPrime
 
--- | Make qualify monad from update state function.
-qualifyState :: (AliasId -> (a, AliasId)) -> Qualify a
-qualifyState =  Qualify . state
-
 -- | Generated new qualifier on internal state.
 newAlias :: Qualify AliasId
-newAlias =  qualifyState $ \ai -> (ai, newAliasId ai)
+newAlias =  Qualify $ do
+  ai <- get
+  modify newAliasId
+  return ai
 
 unsafeQualifierFromAliasId :: AliasId -> SubQuery.Qualifier
 unsafeQualifierFromAliasId =  SubQuery.Qualifier . AliasId.unsafeExtractAliasId
