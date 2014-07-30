@@ -57,7 +57,6 @@ library
                        Database.Relational.Query.TH
 
   other-modules:
-                       Database.Relational.Query.Internal.AliasId
                        Database.Relational.Query.Internal.SQL
                        Database.Relational.Query.Internal.Product
                        Database.Relational.Query.Monad.Trans.JoinState
