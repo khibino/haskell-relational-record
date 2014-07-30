@@ -27,20 +27,12 @@ import qualified Database.Relational.Query.Sub as SubQuery
 
 -- | Monad type to qualify SQL table forms.
 newtype Qualify a =
-  Qualify { runQualify' :: State AliasId a }
+  Qualify (State AliasId a)
   deriving (Monad, Functor, Applicative)
-
--- | Run qualify monad.
-runQualify :: Qualify a -> AliasId -> (a, AliasId)
-runQualify =  runState . runQualify'
-
--- | Run qualify monad with initial state.
-runQualifyPrime :: Qualify a -> (a, AliasId)
-runQualifyPrime q = runQualify q primeAlias
 
 -- | Run qualify monad with initial state to get only result.
 evalQualifyPrime :: Qualify a -> a
-evalQualifyPrime =  fst . runQualifyPrime
+evalQualifyPrime (Qualify s) = fst $ runState s primeAlias
 
 -- | Generated new qualifier on internal state.
 newAlias :: Qualify AliasId
