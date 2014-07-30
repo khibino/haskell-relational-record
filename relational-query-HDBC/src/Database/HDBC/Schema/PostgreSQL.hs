@@ -78,13 +78,13 @@ getPrimaryKey' conn scm' tbl' = do
       putLog $ "getPrimaryKey: Fail to detect primary key. Something wrong."
       return []
 
-getFields' :: IConnection conn
+getColumns' :: IConnection conn
           => TypeMap
           -> conn
           -> String
           -> String
           -> IO ([(String, TypeQ)], [Int])
-getFields' tmap conn scm' tbl' = do
+getColumns' tmap conn scm' tbl' = do
   let scm = map toLower scm'
       tbl = map toLower tbl'
   cols <- runQuery' conn columnQuerySQL (scm, tbl)
@@ -108,5 +108,5 @@ getFields' tmap conn scm' tbl' = do
 -- | Driver implementation
 driverPostgreSQL :: IConnection conn => Driver conn
 driverPostgreSQL =
-  emptyDriver { getFieldsWithMap = getFields' }
+  emptyDriver { getFieldsWithMap = getColumns' }
               { getPrimaryKey    = getPrimaryKey' }

@@ -68,13 +68,13 @@ getPrimaryKey' conn scm' tbl' = do
 
   return primaryKeyCols
 
-getFields' :: IConnection conn
+getColumns' :: IConnection conn
           => TypeMap
           -> conn
           -> String
           -> String
           -> IO ([(String, TypeQ)], [Int])
-getFields' tmap conn scm' tbl' = do
+getColumns' tmap conn scm' tbl' = do
   let tbl = map toUpper tbl'
       scm = map toUpper scm'
 
@@ -99,5 +99,5 @@ getFields' tmap conn scm' tbl' = do
 -- | Driver implementation
 driverIBMDB2 :: IConnection conn => Driver conn
 driverIBMDB2 =
-  emptyDriver { getFieldsWithMap = getFields' }
+  emptyDriver { getFieldsWithMap = getColumns' }
               { getPrimaryKey    = getPrimaryKey' }
