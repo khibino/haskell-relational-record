@@ -19,11 +19,11 @@ module Database.Relational.Query.Monad.Qualify (
 import Control.Monad.Trans.State (State, runState, get, modify)
 import Control.Applicative (Applicative)
 
-import Database.Relational.Query.Internal.AliasId (primeAlias, AliasId, newAliasId)
-import qualified Database.Relational.Query.Internal.AliasId as AliasId
 import Database.Relational.Query.Sub (Qualified)
 import qualified Database.Relational.Query.Sub as SubQuery
 
+
+type AliasId = Int
 
 -- | Monad type to qualify SQL table forms.
 newtype Qualify a =
@@ -32,21 +32,18 @@ newtype Qualify a =
 
 -- | Run qualify monad with initial state to get only result.
 evalQualifyPrime :: Qualify a -> a
-evalQualifyPrime (Qualify s) = fst $ runState s primeAlias
+evalQualifyPrime (Qualify s) = fst $ runState s 0 {- primary alias id -}
 
 -- | Generated new qualifier on internal state.
 newAlias :: Qualify AliasId
 newAlias =  Qualify $ do
   ai <- get
-  modify newAliasId
+  modify (+ 1)
   return ai
-
-unsafeQualifierFromAliasId :: AliasId -> SubQuery.Qualifier
-unsafeQualifierFromAliasId =  SubQuery.Qualifier . AliasId.unsafeExtractAliasId
 
 -- | Get qualifyed table form query.
 qualifyQuery :: query                     -- ^ Query to qualify
              -> Qualify (Qualified query) -- ^ Result with updated state
 qualifyQuery query =
   do n <- newAlias
-     return . SubQuery.qualify query $ unsafeQualifierFromAliasId n
+     return . SubQuery.qualify query $ SubQuery.Qualifier n
