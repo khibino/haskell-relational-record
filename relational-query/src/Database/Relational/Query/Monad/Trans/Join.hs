@@ -39,19 +39,8 @@ import Database.Relational.Query.Monad.Class (MonadQuery (..))
 
 -- | 'StateT' type to accumulate join product context.
 newtype QueryJoin m a =
-  QueryJoin { queryState :: StateT JoinContext m a }
+  QueryJoin (StateT JoinContext m a)
   deriving (MonadTrans, Monad, Functor, Applicative)
-
--- | Run 'QueryJoin' to expand context state.
-runQueryJoin :: QueryJoin m a  -- ^ Context to expand
-             -> JoinContext        -- ^ Initial context
-             -> m (a, JoinContext) -- ^ Expanded result
-runQueryJoin =  runStateT . queryState
-
--- | Run 'QueryJoin' with primary empty context to expand context state.
-runQueryPrime :: QueryJoin m a  -- ^ Context to expand
-              -> m (a, JoinContext) -- ^ Expanded result
-runQueryPrime q = runQueryJoin q primeJoinContext
 
 -- | Lift to 'QueryJoin'
 join' :: Monad m => m a -> QueryJoin m a
@@ -84,4 +73,4 @@ unsafeSubQueryWithAttr attr qsub = do
 
 -- | Run 'QueryJoin' to get 'JoinProduct'
 extractProduct :: (Monad m, Functor m) => QueryJoin m a -> m (a, (JoinProduct, Duplication))
-extractProduct q = second (joinProduct &&& duplication) <$> runQueryPrime q
+extractProduct (QueryJoin s) = second (joinProduct &&& duplication) <$> runStateT s primeJoinContext
