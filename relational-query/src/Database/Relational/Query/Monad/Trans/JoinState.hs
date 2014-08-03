@@ -11,28 +11,24 @@
 -- "Database.Relational.Query.Monad.Trans.Join".
 module Database.Relational.Query.Monad.Trans.JoinState (
   -- * Join context
-  JoinContext, primeJoinContext, updateProduct, joinProduct,
-
-  setDuplication, duplication
+  JoinContext, primeJoinContext, updateProduct, joinProduct
   ) where
 
 import Prelude hiding (product)
 
-import Database.Relational.Query.Component (Duplication (All))
 import qualified Database.Relational.Query.Internal.Product as Product
 import Database.Relational.Query.Sub (QueryProductNode, JoinProduct)
 
 
 -- | JoinContext type for QueryJoin.
-data JoinContext =
+newtype JoinContext =
   JoinContext
   { product  :: Maybe QueryProductNode
-  , duplicationAttribute :: Duplication
   }
 
 -- | Initial 'JoinContext'.
 primeJoinContext :: JoinContext
-primeJoinContext =  JoinContext Nothing All
+primeJoinContext =  JoinContext Nothing
 
 -- | Update product of 'JoinContext'.
 updateProduct' :: (Maybe QueryProductNode -> Maybe QueryProductNode) -> JoinContext -> JoinContext
@@ -45,11 +41,3 @@ updateProduct uf = updateProduct' (Just . uf)
 -- |  Finalize context to extract accumulated query product.
 joinProduct :: JoinContext -> JoinProduct
 joinProduct =  fmap Product.nodeTree . product
-
--- | Set duplication attribute.
-setDuplication :: Duplication -> JoinContext -> JoinContext
-setDuplication da ctx = ctx { duplicationAttribute = da }
-
--- | Take duplication attribute.
-duplication :: JoinContext -> Duplication
-duplication =  duplicationAttribute

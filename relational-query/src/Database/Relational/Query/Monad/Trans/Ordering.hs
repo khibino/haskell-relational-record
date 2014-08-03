@@ -56,7 +56,7 @@ instance MonadRestrict rc m => MonadRestrict rc (Orderings c m) where
 
 -- | 'MonadQuery' with ordering.
 instance MonadQuery m => MonadQuery (Orderings c m) where
-  specifyDuplication = orderings . specifyDuplication
+  distinct           = orderings distinct
   restrictJoin       =  orderings . restrictJoin
   unsafeSubQuery na  = orderings . unsafeSubQuery na
 

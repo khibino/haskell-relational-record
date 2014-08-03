@@ -81,7 +81,7 @@ instance MonadRestrict c m => MonadRestrict c (AggregatingSetT m) where
 
 -- | Aggregated 'MonadQuery'.
 instance MonadQuery m => MonadQuery (AggregatingSetT m) where
-  specifyDuplication = aggregatings . specifyDuplication
+  distinct           = aggregatings distinct
   restrictJoin       = aggregatings . restrictJoin
   unsafeSubQuery na  = aggregatings . unsafeSubQuery na
 

@@ -39,5 +39,5 @@ type QueryCore = Restrictings Flat (QueryJoin ConfigureQuery)
 
 -- | Extract 'QueryCore' computation.
 extractCore :: QueryCore a
-            -> ConfigureQuery ((a, QueryRestriction Flat), (JoinProduct, Duplication))
+            -> ConfigureQuery (((a, QueryRestriction Flat), JoinProduct), Duplication)
 extractCore =  extractProduct . extractRestrict

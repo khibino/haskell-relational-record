@@ -46,13 +46,13 @@ instance MonadQualifyUnique ConfigureQuery QueryUnique where
   liftQualifyUnique = queryUnique
 
 extract :: QueryUnique a
-        -> ConfigureQuery ((a, QueryRestriction Flat), (JoinProduct, Duplication))
+        -> ConfigureQuery (((a, QueryRestriction Flat), JoinProduct), Duplication)
 extract (QueryUnique c) = extractCore c
 
 -- | Run 'SimpleQuery' to get 'SubQuery' with 'Qualify' computation.
 toSubQuery :: QueryUnique (Projection c r) -- ^ 'QueryUnique' to run
            -> ConfigureQuery SubQuery      -- ^ Result 'SubQuery' with 'Qualify' computation
 toSubQuery q = do
-   ((pj, rs), (pd, da)) <- extract q
-   c <- askConfig
-   return $ flatSubQuery c (Projection.untype pj) da pd rs []
+  (((pj, rs), pd), da) <- extract q
+  c <- askConfig
+  return $ flatSubQuery c (Projection.untype pj) da pd rs []

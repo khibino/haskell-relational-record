@@ -16,7 +16,7 @@ module Database.Relational.Query.Monad.Class (
   MonadQualify (..), MonadQualifyUnique(..), MonadRestrict (..),
   MonadQuery (..), MonadAggregate (..), MonadPartition (..),
 
-  distinct, all',
+  all',
   onE, on, wheresE, wheres,
   groupBy,
   havingE, having
@@ -25,7 +25,7 @@ module Database.Relational.Query.Monad.Class (
 import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Expr (Expr)
 import Database.Relational.Query.Component
-  (Duplication (Distinct, All), AggregateElem, AggregateColumnRef, aggregateColumnRef)
+  (AggregateElem, AggregateColumnRef, aggregateColumnRef)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable (expr)
@@ -41,8 +41,8 @@ class (Functor m, Monad m) => MonadRestrict c m where
 
 -- | Query building interface.
 class (Functor m, Monad m) => MonadQuery m where
-  -- | Specify duplication attribute.
-  specifyDuplication :: Duplication -> m ()
+  -- | Specify DISTINCT attribute to query context. ALL attribute is default.
+  distinct :: m ()
   -- | Add restriction to last join.
   restrictJoin :: Expr Flat (Maybe Bool) -- ^ 'Expr' 'Projection' which represent restriction
                -> m ()                   -- ^ Restricted query context
@@ -74,13 +74,9 @@ class Monad m => MonadPartition m where
   unsafeAddPartitionKey :: AggregateColumnRef -- ^ Partitioning key to add into partition by clause
                         -> m ()               -- ^ Result context
 
--- | Specify distinct attribute to query context.
-distinct :: MonadQuery m => m ()
-distinct =  specifyDuplication Distinct
-
--- | Specify all attribute to query context.
+-- | ALL is default, so 'all'' is no-op.
 all' :: MonadQuery m => m ()
-all' =  specifyDuplication All
+all' =  return ()
 
 -- | Add restriction to last join.
 onE :: MonadQuery m => Expr Flat (Maybe Bool) -> m ()

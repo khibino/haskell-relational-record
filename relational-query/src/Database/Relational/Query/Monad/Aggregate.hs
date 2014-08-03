@@ -72,11 +72,11 @@ instance MonadQualify ConfigureQuery QueryAggregate where
   liftQualify = aggregatedQuery
 
 extract :: AggregatedQuery r
-        -> ConfigureQuery (((((Projection Aggregated r, OrderingTerms),
-                                 QueryRestriction Aggregated),
-                                [AggregateElem]),
-                               QueryRestriction Flat),
-                              (JoinProduct, Duplication))
+        -> ConfigureQuery ((((((Projection Aggregated r, OrderingTerms),
+                               QueryRestriction Aggregated),
+                              [AggregateElem]),
+                             QueryRestriction Flat),
+                            JoinProduct), Duplication)
 extract =  extractCore . extractAggregateTerms . extractRestrict . extractOrderingTerms
 
 -- | Run 'AggregatedQuery' to get SQL with 'ConfigureQuery' computation.
@@ -88,7 +88,7 @@ toSQL =  fmap SubQuery.toSQL . toSubQuery
 toSubQuery :: AggregatedQuery r       -- ^ 'AggregatedQuery' to run
            -> ConfigureQuery SubQuery -- ^ Result 'SubQuery' with 'ConfigureQuery' computation
 toSubQuery q = do
-  (((((pj, ot), grs), ag), rs), (pd, da)) <- extract q
+  ((((((pj, ot), grs), ag), rs), pd), da) <- extract q
   c <- askConfig
   return $ aggregatedSubQuery c (Projection.untype pj) da pd rs ag grs ot
 

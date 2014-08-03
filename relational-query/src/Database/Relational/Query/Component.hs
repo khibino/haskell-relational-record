@@ -48,7 +48,7 @@ module Database.Relational.Query.Component (
   composeOver
 ) where
 
-import Data.Monoid (mempty, (<>))
+import Data.Monoid (Monoid (..), (<>))
 
 import qualified Database.Relational.Query.Context as Context
 import Database.Relational.Query.Expr (Expr, exprAnd)
@@ -102,6 +102,12 @@ data UnitProductSupport = UPSupported | UPNotSupported  deriving Show
 
 -- | Result record duplication attribute
 data Duplication = All | Distinct  deriving Show
+
+instance Monoid Duplication where
+  mempty  = All        -- SELECT statement default
+  mappend = (<+>)  where
+    All      <+> x  = x
+    Distinct <+> _  = Distinct
 
 -- | Compose duplication attribute string.
 showsDuplication :: Duplication -> StringSQL

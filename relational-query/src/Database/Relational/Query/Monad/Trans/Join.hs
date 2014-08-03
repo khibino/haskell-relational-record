@@ -20,18 +20,19 @@ module Database.Relational.Query.Monad.Trans.Join (
 
 import Prelude hiding (product)
 import Control.Monad.Trans.Class (MonadTrans (lift))
+import Control.Monad.Trans.Writer (WriterT, runWriterT, tell)
 import Control.Monad.Trans.State (modify, StateT, runStateT)
 import Control.Applicative (Applicative, (<$>))
-import Control.Arrow (second, (&&&))
+import Control.Arrow (first, second)
 
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Monad.Trans.JoinState
-  (JoinContext, primeJoinContext, updateProduct, joinProduct, setDuplication, duplication)
+  (JoinContext, primeJoinContext, updateProduct, joinProduct)
 import Database.Relational.Query.Internal.Product (NodeAttr, restrictProduct, growProduct)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Expr (Expr, fromJust)
-import Database.Relational.Query.Component (Duplication)
+import Database.Relational.Query.Component (Duplication (Distinct))
 import Database.Relational.Query.Sub (SubQuery, Qualified, JoinProduct)
 
 import Database.Relational.Query.Monad.Class (MonadQuery (..))
@@ -39,12 +40,12 @@ import Database.Relational.Query.Monad.Class (MonadQuery (..))
 
 -- | 'StateT' type to accumulate join product context.
 newtype QueryJoin m a =
-  QueryJoin (StateT JoinContext m a)
-  deriving (MonadTrans, Monad, Functor, Applicative)
+  QueryJoin (StateT JoinContext (WriterT Duplication m) a)
+  deriving (Monad, Functor, Applicative)
 
 -- | Lift to 'QueryJoin'
 join' :: Monad m => m a -> QueryJoin m a
-join' =  lift
+join' =  QueryJoin . lift . lift
 
 -- | Unsafely update join product context.
 updateContext :: Monad m => (JoinContext -> JoinContext) -> QueryJoin m ()
@@ -58,7 +59,7 @@ updateJoinRestriction e = updateContext (updateProduct d)  where
 
 -- | Joinable query instance.
 instance (Monad q, Functor q) => MonadQuery (QueryJoin q) where
-  specifyDuplication = updateContext . setDuplication
+  distinct           = QueryJoin . lift $ tell Distinct
   restrictJoin       = updateJoinRestriction
   unsafeSubQuery     = unsafeSubQueryWithAttr
 
@@ -72,5 +73,5 @@ unsafeSubQueryWithAttr attr qsub = do
   return $ Projection.unsafeFromQualifiedSubQuery qsub
 
 -- | Run 'QueryJoin' to get 'JoinProduct'
-extractProduct :: (Monad m, Functor m) => QueryJoin m a -> m (a, (JoinProduct, Duplication))
-extractProduct (QueryJoin s) = second (joinProduct &&& duplication) <$> runStateT s primeJoinContext
+extractProduct :: Functor m => QueryJoin m a -> m ((a, JoinProduct), Duplication)
+extractProduct (QueryJoin s) = first (second joinProduct) <$> runWriterT (runStateT s primeJoinContext)
