@@ -1,5 +1,0 @@
-version=3
-opts="downloadurlmangle=s|archive/([\w\d_-]+)/([\d\.]+)/|archive/$1/$2/$1-$2.tar.gz|,\
-filenamemangle=s|(.*)/$|HDBC-session-$1.tar.gz|" \
-    http://hackage.haskell.org/package/HDBC-session \
-    ([\d\.]*\d)/

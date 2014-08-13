@@ -1,7 +1,0 @@
-#!/usr/bin/make -f
-
-DEB_CABAL_PACKAGE = relational-query-hdbc
-
-include /usr/share/cdbs/1/rules/debhelper.mk
-include /usr/share/cdbs/1/class/hlibrary.mk
-
