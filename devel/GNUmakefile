@@ -20,5 +20,5 @@ wc:
 
 clean:
 	cabal clean
-	[ ! -d .dWork ] || rm -r .dWork
+	[ ! -d .debian-build ] || rm -r .debian-build
 	test ! -d src || find src \( -name '*.o' -o -name '*.hi' \) -exec rm {} \;
