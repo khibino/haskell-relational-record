@@ -23,10 +23,10 @@ import Database.HDBC.MySQL                  ( Connection
 
 config :: MySQLConnectInfo
 config = defaultMySQLConnectInfo {
-              mysqlUser     = "***" -- TODO
+              mysqlUser     = "hrr-tester"
             , mysqlPassword = ""
             , mysqlDatabase = "TEST"
-            , mysqlHost     = "***" -- TODO: your mysql host
+            , mysqlHost     = "127.0.0.1"
             }
 
 connect :: IO Connection
