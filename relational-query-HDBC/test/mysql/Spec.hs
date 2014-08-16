@@ -5,9 +5,9 @@
 
 import Test.Hspec
 
-import Prelude hiding (id)
 import Language.Haskell.TH          (runQ)
-
+import Data.Int                     (Int32)
+import Data.Time                    (LocalTime)
 import Database.HDBC.Session        (withConnectionIO)
 import Database.HDBC.Record.Query   (runQuery')
 import Database.Record.TH           (derivingShow)
@@ -19,9 +19,10 @@ import Database.Relational.Query    ( query
                                     , value
                                     , relationalQuery
                                     )
-import Database.HDBC.Schema.Driver  (getPrimaryKey)
+import Database.HDBC.Schema.Driver  (getPrimaryKey, getFieldsWithMap)
 import Database.HDBC.Schema.MySQL   (driverMySQL)
 
+import Prelude hiding (id)
 import qualified DB.Source as DB
 
 -- TODO: get and define
@@ -38,6 +39,16 @@ main = hspec $ do
         it "returns two primary keys" $ do
             keys <- withConnectionIO DB.connect $ \c -> getPrimaryKey driverMySQL c "TEST" "test_pk2"
             keys `shouldBe` ["a", "b"]
+
+    describe "getFieldsWithMap" $ do
+        it "returns 'NOT NULL' column positions" $ do
+            ( _, ps) <- withConnectionIO DB.connect $ \c -> getFieldsWithMap driverMySQL [] c "TEST" "test_nn1"
+            ps `shouldBe` [0, 2, 4]
+        it "returns column types" $ do
+            (tm,  _) <- withConnectionIO DB.connect $ \c -> getFieldsWithMap driverMySQL [] c "TEST" "test_nn1"
+            types  <- mapM (runQ . snd) tm
+            expect <- mapM runQ [[t|Int32|], [t|Maybe Int32|], [t|String|], [t|Maybe String|], [t|LocalTime|]]
+            types  `shouldBe` expect
 
     describe "basic tests" $
         it "returns data types" $ do
