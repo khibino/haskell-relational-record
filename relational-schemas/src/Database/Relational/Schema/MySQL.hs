@@ -97,18 +97,14 @@ primaryKeyQuerySQL = relationalQuery primaryKeyRelation
         primaryKeyRelation = relation' $ do
             cons <- query tableConstraints
             key  <- query keyColumnUsage
-            col  <- query columns
 
-            wheres $ cons ! Tabconst.tableSchema'    .=. col ! Columns.tableSchema'
-            wheres $ cons ! Tabconst.tableName'      .=. col ! Columns.tableName'
-            wheres $ key  ! Keycoluse.columnName'    .=. col ! Columns.columnName'
+            wheres $ cons ! Tabconst.tableSchema'    .=. key ! Keycoluse.tableSchema'
+            wheres $ cons ! Tabconst.tableName'      .=. key ! Keycoluse.tableName'
             wheres $ cons ! Tabconst.constraintName' .=. key ! Keycoluse.constraintName'
-
-            wheres $ col  ! Columns.isNullable'      .=. value "NO"
-            wheres $ cons ! Tabconst.constraintType' .=. value "PRIMARY KEY"
 
             (schemaP, ()) <- placeholder (\ph -> wheres $ cons ! Tabconst.tableSchema' .=. ph)
             (nameP  , ()) <- placeholder (\ph -> wheres $ cons ! Tabconst.tableName'   .=. ph)
+            wheres $ cons ! Tabconst.constraintType' .=. value "PRIMARY KEY"
 
             asc $ key ! Keycoluse.ordinalPosition'
 

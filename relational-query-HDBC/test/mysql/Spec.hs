@@ -19,6 +19,9 @@ import Database.Relational.Query    ( query
                                     , value
                                     , relationalQuery
                                     )
+import Database.HDBC.Schema.Driver  (getPrimaryKey)
+import Database.HDBC.Schema.MySQL   (driverMySQL)
+
 import qualified DB.Source as DB
 
 -- TODO: get and define
@@ -28,13 +31,21 @@ $(DB.defineTable
 
 main :: IO ()
 main = hspec $ do
+    describe "getPrimaryKey" $ do
+        it "returns one primary key" $ do
+            keys <- withConnectionIO DB.connect $ \c -> getPrimaryKey driverMySQL c "TEST" "test_pk1"
+            keys `shouldBe` ["a"]
+        it "returns two primary keys" $ do
+            keys <- withConnectionIO DB.connect $ \c -> getPrimaryKey driverMySQL c "TEST" "test_pk2"
+            keys `shouldBe` ["a", "b"]
+
     describe "basic tests" $
-        it "should generate data types" $ do
+        it "returns data types" $ do
             decs <- runQ $ DB.defineTable [] "TEST" "user" []
             decs `shouldSatisfy` not . null
 
     describe "run query" $
-        it "should get a record" $ do
+        it "returns some records" $ do
             let test1 = relation $ do
                     u  <- query user
                     wheres $ u ! id' .=. value 1
