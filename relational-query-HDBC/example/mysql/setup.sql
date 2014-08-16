@@ -4,7 +4,7 @@ CREATE TABLE TEST.user (
       id            BIGINT PRIMARY KEY
     , name          VARCHAR(32) NOT NULL
     , email         VARCHAR(255) NOT NULL UNIQUE
-    , passwd_hath   VARCHAR(512) NOT NULL
+    , passwd_hash   VARCHAR(512) NOT NULL
     , completed     TINYINT(1) NOT NULL DEFAULT 0
     , deleted       TINYINT(1) NOT NULL DEFAULT 0
     , frozen        TINYINT(1) NOT NULL DEFAULT 0
@@ -14,7 +14,7 @@ CREATE TABLE TEST.user (
 );
 
 INSERT INTO TEST.user
-    (id, name, email, passwd_hath, completed, deleted, frozen, memo, created_at, updated_at)
+    (id, name, email, passwd_hash, completed, deleted, frozen, memo, created_at, updated_at)
     VALUES
     (1, 'krdlab', 'krdlab@gmail.com', 'dummy hashed password 1', 1, 0, 0, '', '2014-02-01', '2014-02-01'),
     (2, 'foo',    'foo@example.com',  'dummy hashed password 2', 0, 0, 0, '', '2014-02-10', '2014-02-10'),
