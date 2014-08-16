@@ -1,5 +1,6 @@
 CREATE DATABASE IF NOT EXISTS TEST DEFAULT CHARACTER SET UTF8;
 
+DROP TABLE IF EXISTS TEST.user;
 CREATE TABLE TEST.user (
       id            BIGINT PRIMARY KEY
     , name          VARCHAR(32) NOT NULL
@@ -20,3 +21,5 @@ INSERT INTO TEST.user
     (2, 'foo',    'foo@example.com',  'dummy hashed password 2', 0, 0, 0, '', '2014-02-10', '2014-02-10'),
     (3, 'bar',    'bar@example.com',  'dummy hashed password 3', 1, 0, 1, 'limit exceeded', '2014-02-11', '2014-02-20')
     ;
+
+GRANT ALL PRIVILEGES ON TEST.user TO 'hrr-tester'@'127.0.0.1';
