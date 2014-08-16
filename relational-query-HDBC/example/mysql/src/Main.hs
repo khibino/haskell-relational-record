@@ -1,4 +1,4 @@
-{-# LANGUAGE MonadComprehensions   #-}
+{-# LANGUAGE MonadComprehensions #-}
 module Main where
 
 import Database.Relational.Query    ( query
@@ -13,7 +13,7 @@ import Database.Relational.Query    ( query
                                     , Relation
                                     )
 import Database.HDBC.Session        (withConnectionIO, handleSqlError')
-import Database.HDBC.Record.Query   (runQuery)
+import Database.HDBC.Record.Query   (runQuery')
 
 import Data.Time                    (Day, fromGregorian)
 
@@ -26,7 +26,7 @@ main = handleSqlError' $ withConnectionIO connect $ \conn -> do
     printResults conn sample1
     printResults conn sample2
     where
-        printResults c q = runQuery c (relationalQuery q) () >>= print
+        printResults c q = runQuery' c (relationalQuery q) () >>= print
 
         completed = relation
             [ u
