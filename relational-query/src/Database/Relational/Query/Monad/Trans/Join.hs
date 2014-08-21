@@ -23,7 +23,8 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Writer (WriterT, runWriterT, tell)
 import Control.Monad.Trans.State (modify, StateT, runStateT)
 import Control.Applicative (Applicative, (<$>))
-import Control.Arrow (first, second)
+import Control.Arrow (second, (***))
+import Data.Monoid (Endo (Endo, appEndo))
 
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Monad.Trans.JoinState
@@ -32,7 +33,7 @@ import Database.Relational.Query.Internal.Product (NodeAttr, restrictProduct, gr
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Expr (Expr, fromJust)
-import Database.Relational.Query.Component (Duplication (Distinct))
+import Database.Relational.Query.Component (Duplication (All))
 import Database.Relational.Query.Sub (SubQuery, Qualified, JoinProduct)
 
 import Database.Relational.Query.Monad.Class (MonadQuery (..))
@@ -40,7 +41,7 @@ import Database.Relational.Query.Monad.Class (MonadQuery (..))
 
 -- | 'StateT' type to accumulate join product context.
 newtype QueryJoin m a =
-  QueryJoin (StateT JoinContext (WriterT Duplication m) a)
+  QueryJoin (StateT JoinContext (WriterT (Endo Duplication) m) a)
   deriving (Monad, Functor, Applicative)
 
 -- | Lift to 'QueryJoin'
@@ -59,7 +60,7 @@ updateJoinRestriction e = updateContext (updateProduct d)  where
 
 -- | Joinable query instance.
 instance (Monad q, Functor q) => MonadQuery (QueryJoin q) where
-  distinct           = QueryJoin . lift $ tell Distinct
+  setDuplication     = QueryJoin . lift . tell . Endo . const
   restrictJoin       = updateJoinRestriction
   unsafeSubQuery     = unsafeSubQueryWithAttr
 
@@ -74,4 +75,5 @@ unsafeSubQueryWithAttr attr qsub = do
 
 -- | Run 'QueryJoin' to get 'JoinProduct'
 extractProduct :: Functor m => QueryJoin m a -> m ((a, JoinProduct), Duplication)
-extractProduct (QueryJoin s) = first (second joinProduct) <$> runWriterT (runStateT s primeJoinContext)
+extractProduct (QueryJoin s) = (second joinProduct *** (`appEndo` All))
+                               <$> runWriterT (runStateT s primeJoinContext)

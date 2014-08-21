@@ -103,12 +103,6 @@ data UnitProductSupport = UPSupported | UPNotSupported  deriving Show
 -- | Result record duplication attribute
 data Duplication = All | Distinct  deriving Show
 
-instance Monoid Duplication where
-  mempty  = All        -- SELECT statement default
-  mappend = (<+>)  where
-    All      <+> x  = x
-    Distinct <+> _  = Distinct
-
 -- | Compose duplication attribute string.
 showsDuplication :: Duplication -> StringSQL
 showsDuplication =  dup  where

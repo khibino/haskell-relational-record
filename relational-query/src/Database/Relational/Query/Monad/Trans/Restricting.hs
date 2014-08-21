@@ -53,7 +53,7 @@ instance (Monad q, Functor q) => MonadRestrict c (Restrictings c q) where
 
 -- | Restricted 'MonadQuery' instance.
 instance MonadQuery q => MonadQuery (Restrictings c q) where
-  distinct           = restrictings distinct
+  setDuplication     = restrictings . setDuplication
   restrictJoin       = restrictings . restrictJoin
   unsafeSubQuery a   = restrictings . unsafeSubQuery a
 
