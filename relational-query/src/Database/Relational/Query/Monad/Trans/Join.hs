@@ -24,7 +24,7 @@ import Control.Monad.Trans.Writer (WriterT, runWriterT, tell)
 import Control.Monad.Trans.State (modify, StateT, runStateT)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second, (***))
-import Data.Monoid (Endo (Endo, appEndo))
+import Data.Monoid (Last (Last, getLast))
 
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Monad.Trans.JoinState
@@ -41,7 +41,7 @@ import Database.Relational.Query.Monad.Class (MonadQuery (..))
 
 -- | 'StateT' type to accumulate join product context.
 newtype QueryJoin m a =
-  QueryJoin (StateT JoinContext (WriterT (Endo Duplication) m) a)
+  QueryJoin (StateT JoinContext (WriterT (Last Duplication) m) a)
   deriving (Monad, Functor, Applicative)
 
 -- | Lift to 'QueryJoin'
@@ -60,7 +60,7 @@ updateJoinRestriction e = updateContext (updateProduct d)  where
 
 -- | Joinable query instance.
 instance (Monad q, Functor q) => MonadQuery (QueryJoin q) where
-  setDuplication     = QueryJoin . lift . tell . Endo . const
+  setDuplication     = QueryJoin . lift . tell . Last . Just
   restrictJoin       = updateJoinRestriction
   unsafeSubQuery     = unsafeSubQueryWithAttr
 
@@ -75,5 +75,5 @@ unsafeSubQueryWithAttr attr qsub = do
 
 -- | Run 'QueryJoin' to get 'JoinProduct'
 extractProduct :: Functor m => QueryJoin m a -> m ((a, JoinProduct), Duplication)
-extractProduct (QueryJoin s) = (second joinProduct *** (`appEndo` All))
+extractProduct (QueryJoin s) = (second joinProduct *** (maybe All id . getLast))
                                <$> runWriterT (runStateT s primeJoinContext)
