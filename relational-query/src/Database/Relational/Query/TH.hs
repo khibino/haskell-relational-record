@@ -82,7 +82,7 @@ import Database.Relational.Query
   (Table, Pi, Relation, Config, ProductConstructor (..),
    relationalQuerySQL, Query, relationalQuery, KeyUpdate,
    Insert, derivedInsert, InsertQuery, derivedInsertQuery,
-   HasConstraintKey(constraintKey), projectionKey, Primary, NotNull, primary, primaryUpdate)
+   HasConstraintKey(constraintKey), Primary, NotNull, primary, primaryUpdate)
 
 import Database.Relational.Query.Scalar (defineScalarDegree)
 import Database.Relational.Query.Constraint (Key, unsafeDefineConstraintKey)
@@ -159,17 +159,14 @@ defineColumn :: Maybe (TypeQ, VarName) -- ^ May Constraint type and constraint o
              -> TypeQ                  -- ^ Column type
              -> Q [Dec]                -- ^ Column projection path declaration
 defineColumn mayConstraint recType var' i colType = do
-  maybe
-    (defineColumn' recType var' i colType)
+  col <- defineColumn' recType var' i colType
+  cr  <- maybe
+    (return [])
     ( \(constraint, cname') -> do
-         let cname = varName cname'
-         ck  <- simpleValD cname [t| Key $constraint $recType $colType |]
-                [| unsafeDefineConstraintKey $(integralE i) |]
-
-         col <- simpleValD (varName var') [t| Pi $recType $colType |]
-                [| projectionKey $(toVarExp cname') |]
-         return $ ck ++ col)
+         simpleValD (varName cname') [t| Key $constraint $recType $colType |]
+           [| unsafeDefineConstraintKey $(integralE i) |] )
     mayConstraint
+  return $ col ++ cr
 
 -- | Make column projection path and constraint key template using default naming rule.
 defineColumnDefault :: Maybe TypeQ -- ^ May Constraint type
