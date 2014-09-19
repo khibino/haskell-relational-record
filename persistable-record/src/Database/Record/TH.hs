@@ -41,6 +41,8 @@ module Database.Record.TH (
   makeRecordPersistableWithSqlTypeDefaultFromDefined,
   definePersistableWidthInstance,
 
+  recordWidthTemplate,
+
   defineRecordParser,
   defineRecordPrinter,
 
@@ -173,16 +175,21 @@ derivingData = conCamelcaseName "Data"
 derivingTypable :: ConName
 derivingTypable = conCamelcaseName "Typable"
 
+-- | Record type width expression template.
+recordWidthTemplate :: TypeQ -- ^ Record type constructor.
+                    -> ExpQ  -- ^ Expression to get record width.
+recordWidthTemplate ty =
+  [| runPersistableRecordWidth
+     $(sigE [| persistableWidth |] [t| PersistableRecordWidth $(ty) |])
+   |]
+
 -- | 'PersistableWidth' instance declaration.
 definePersistableWidthInstance :: TypeQ   -- ^ Record type constructor.
                                -> [TypeQ] -- ^ Types of record columns.
                                -> Q [Dec] -- ^ Declaration of 'PersistableWidth' instance.
 definePersistableWidthInstance typeCon tys = do
-  let wdt ty = [| runPersistableRecordWidth
-                  $(sigE [| persistableWidth |] [t| PersistableRecordWidth $(ty) |])
-                |]
   [d| instance PersistableWidth $typeCon where
-        persistableWidth = unsafePersistableRecordWidth $ foldl' (+) 0 $(listE $ map wdt tys)
+        persistableWidth = unsafePersistableRecordWidth $ foldl' (+) 0 $(listE $ map recordWidthTemplate tys)
     |]
 
 -- | Record type declaration template.
