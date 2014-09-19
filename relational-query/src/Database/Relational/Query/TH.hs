@@ -178,7 +178,7 @@ defineColumnDefault :: Maybe TypeQ -- ^ May Constraint type
 defineColumnDefault mayConstraint recType name =
   defineColumn (fmap withCName mayConstraint) recType varN
   where varN        = varCamelcaseName (name ++ "'")
-        withCName t = (t, varCamelcaseName (name ++ "_constraint"))
+        withCName t = (t, varCamelcaseName ("constraint_key_" ++ name))
 
 -- | Rule template to infer table derivations.
 defineTableDerivableInstance :: TypeQ -> String -> [String] -> Q [Dec]
