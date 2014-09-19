@@ -57,9 +57,8 @@ makeRecordPersistableDefault recTypeName = do
   ps <- Record.makeRecordPersistableWithSqlType [t| SqlValue |] (Record.persistableFunctionNamesDefault recTypeName) pair width
   cs <- maybe
         (return [])
-        (\ns -> fmap concat . sequence $
-                [ Relational.defineColumnDefault Nothing tyCon (nameBase n) i ct
-                | n  <- ns  | i  <- [0 ..]  | ct <- cts ])
+        (\ns -> Relational.defineColumnsDefault tyCon
+                [ ((nameBase n, ct), Nothing) | n  <- ns  | ct <- cts ])
         mayNs
   pc <- Relational.defineProductConstructorInstance tyCon dataCon cts
   return $ concat [pw, ps, cs, pc]

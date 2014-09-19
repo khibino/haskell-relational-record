@@ -35,7 +35,7 @@ module Database.Relational.Query.TH (
   defineScalarDegree,
 
   -- * Column projections
-  defineColumn, defineColumnDefault,
+  defineColumns, defineColumnsDefault,
 
   -- * Table metadata type and basic 'Relation'
   defineTableTypes, defineTableTypesDefault,
@@ -72,7 +72,7 @@ import Language.Haskell.TH.Lib.Extra
   (compileError, simpleValD, maybeD, integralE)
 
 import Database.Record.TH
-  (recordTypeNameDefault, recordTypeDefault,
+  (recordTypeNameDefault, recordTypeDefault, recordWidthTemplate,
    defineRecordTypeDefault,
    defineHasColumnConstraintInstance)
 import qualified Database.Record.TH as Record
@@ -141,44 +141,51 @@ defineHasNotNullKeyInstanceDefault =
 
 
 -- | Column projection path 'Pi' template.
-defineColumn' :: TypeQ   -- ^ Record type
+columnTemplate' :: TypeQ   -- ^ Record type
               -> VarName -- ^ Column declaration variable name
-              -> Int     -- ^ Column index in record (begin with 0)
+              -> ExpQ    -- ^ Column index in record (begin with 0)
               -> TypeQ   -- ^ Column type
               -> Q [Dec] -- ^ Column projection path declaration
-defineColumn' recType var' i colType = do
+columnTemplate' recType var' iExp colType = do
   let var = varName var'
   simpleValD var [t| Pi $recType $colType |]
-    [| UnsafePi.definePi $(integralE i) |]
+    [| UnsafePi.definePi $(iExp) |]
 
 -- | Column projection path 'Pi' and constraint key template.
-defineColumn :: Maybe (TypeQ, VarName) -- ^ May Constraint type and constraint object name
+columnTemplate :: Maybe (TypeQ, VarName) -- ^ May Constraint type and constraint object name
              -> TypeQ                  -- ^ Record type
              -> VarName                -- ^ Column declaration variable name
-             -> Int                    -- ^ Column index in record (begin with 0)
+             -> ExpQ                   -- ^ Column index in record (begin with 0)
              -> TypeQ                  -- ^ Column type
              -> Q [Dec]                -- ^ Column projection path declaration
-defineColumn mayConstraint recType var' i colType = do
-  col <- defineColumn' recType var' i colType
+columnTemplate mayConstraint recType var' iExp colType = do
+  col <- columnTemplate' recType var' iExp colType
   cr  <- maybe
     (return [])
     ( \(constraint, cname') -> do
          simpleValD (varName cname') [t| Key $constraint $recType $colType |]
-           [| unsafeDefineConstraintKey $(integralE i) |] )
+           [| unsafeDefineConstraintKey $(iExp) |] )
     mayConstraint
   return $ col ++ cr
 
--- | Make column projection path and constraint key template using default naming rule.
-defineColumnDefault :: Maybe TypeQ -- ^ May Constraint type
-                    -> TypeQ       -- ^ Record type
-                    -> String      -- ^ Column name
-                    -> Int         -- ^ Column index in record (begin with 0)
-                    -> TypeQ       -- ^ Column type
-                    -> Q [Dec]     -- ^ Column declaration
-defineColumnDefault mayConstraint recType name =
-  defineColumn (fmap withCName mayConstraint) recType varN
-  where varN        = varCamelcaseName (name ++ "'")
-        withCName t = (t, varCamelcaseName ("constraint_key_" ++ name))
+-- | Column projection path 'Pi' templates.
+defineColumns :: TypeQ                                        -- ^ Record type
+              -> [((VarName, TypeQ), Maybe (TypeQ, VarName))] -- ^ Column info list
+              -> Q [Dec]                                      -- ^ Column projection path declarations
+defineColumns recType cols = do
+  let defC ((cn, ct), mayCon) iExp = columnTemplate mayCon recType cn iExp ct
+      ixs = scanl (\ix ty -> [| $(ix) + $(recordWidthTemplate ty) :: Int |] ) [| 0 :: Int |]
+            . snd . unzip . fst $ unzip cols
+  fmap concat . sequence $ zipWith defC cols ixs
+
+-- | Make column projection path and constraint key templates using default naming rule.
+defineColumnsDefault :: TypeQ                            -- ^ Record type
+                     -> [((String, TypeQ), Maybe TypeQ)] -- ^ Column info list
+                     -> Q [Dec]                          -- ^ Column projection path declarations
+defineColumnsDefault recType cols =
+  defineColumns recType [((varN n, ct), fmap (withCName n) mayC) | ((n, ct), mayC) <- cols]
+  where varN      name   = varCamelcaseName (name ++ "'")
+        withCName name t = (t, varCamelcaseName ("constraint_key_" ++ name))
 
 -- | Rule template to infer table derivations.
 defineTableDerivableInstance :: TypeQ -> String -> [String] -> Q [Dec]
@@ -281,8 +288,7 @@ defineTableTypesDefault schema table columns = do
              recordType
              (tableSQL schema table)
              (map (fst . fst) columns)
-  let defCol i ((name, typ), constraint) = defineColumnDefault constraint recordType name i typ
-  colsDs  <- fmap concat . sequence . zipWith defCol [0..] $ columns
+  colsDs <- defineColumnsDefault recordType columns
   return $ tableDs ++ colsDs
 
 -- | Make templates about table, column and haskell record using default naming rule.
