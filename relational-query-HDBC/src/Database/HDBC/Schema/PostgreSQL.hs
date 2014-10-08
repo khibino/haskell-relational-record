@@ -25,10 +25,10 @@ import Data.Map (fromList)
 
 import Database.HDBC (IConnection, SqlValue)
 
-import Database.Record.TH (makeRecordPersistableWithSqlTypeDefaultFromDefined)
-
 import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
+
+import Database.Record.TH (makeRecordPersistableWithSqlTypeDefaultFromDefined)
 
 import Database.Relational.Schema.PostgreSQL
   (normalizeColumn, notNull, getType, columnQuerySQL,

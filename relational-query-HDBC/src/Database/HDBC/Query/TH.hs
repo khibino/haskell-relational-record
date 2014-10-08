@@ -31,9 +31,8 @@ import qualified Data.Map as Map
 
 import Database.HDBC (IConnection, SqlValue, prepare)
 
-import Language.Haskell.TH.Name.CamelCase (ConName)
 import Language.Haskell.TH (Q, runIO, Name, nameBase, TypeQ, Dec)
-import Language.Haskell.TH.Name.CamelCase (varCamelcaseName)
+import Language.Haskell.TH.Name.CamelCase (ConName, varCamelcaseName)
 
 import Database.Record.TH (makeRecordPersistableWithSqlTypeDefault)
 import qualified Database.Record.TH as Record
