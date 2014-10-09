@@ -22,6 +22,7 @@ import qualified Language.Haskell.TH.Lib.Extra as TH
 
 import Data.Char (toLower)
 import Data.Map (fromList)
+import Control.Monad (when)
 
 import Database.HDBC (IConnection, SqlValue)
 
@@ -88,10 +89,8 @@ getColumns' tmap conn scm' tbl' = do
   let scm = map toLower scm'
       tbl = map toLower tbl'
   cols <- runQuery' conn columnQuerySQL (scm, tbl)
-  case cols of
-    [] ->  compileErrorIO
-           $ "getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl
-    _  ->  return ()
+  when (null cols) . compileErrorIO
+    $ "getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl
 
   let notNullIdxs = map fst . filter (notNull . snd) . zip [0..] $ cols
   putLog
