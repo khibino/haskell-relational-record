@@ -28,6 +28,7 @@ module Database.HDBC.Query.TH (
 
 import Data.Maybe (listToMaybe, isJust, catMaybes)
 import qualified Data.Map as Map
+import Control.Monad (when)
 
 import Database.HDBC (IConnection, SqlValue, prepare)
 
@@ -106,11 +107,10 @@ defineTableFromDB connect drv scm tbl derives = do
 
             let colIxMap = Map.fromList $ zip [c | (c, _) <- cols] [(0 :: Int) .. ]
                 lookup' k = do
-                  case Map.lookup k colIxMap of
-                    Just i  -> return $ Just i
-                    Nothing -> do
-                      putLog $ "defineTableFromDB: fail to find index of pkey - " ++ k ++ ". Something wrong!!"
-                      return Nothing
+                  let found = Map.lookup k colIxMap
+                  when (found == Nothing) . putLog
+                    $ "defineTableFromDB: fail to find index of pkey - " ++ k ++ ". Something wrong!!"
+                  return found
 
             primaryIxs <- case primCols of
               _:_ -> do
