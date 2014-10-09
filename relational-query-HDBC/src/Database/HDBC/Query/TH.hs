@@ -26,8 +26,9 @@ module Database.HDBC.Query.TH (
   inlineVerifiedQuery
   ) where
 
-import Data.Maybe (listToMaybe, isJust, catMaybes)
+import Data.Maybe (listToMaybe, fromMaybe)
 import qualified Data.Map as Map
+import Control.Applicative ((<$>))
 import Control.Monad (when)
 
 import Database.HDBC (IConnection, SqlValue, prepare)
@@ -112,13 +113,8 @@ defineTableFromDB connect drv scm tbl derives = do
                     $ "defineTableFromDB: fail to find index of pkey - " ++ k ++ ". Something wrong!!"
                   return found
 
-            primaryIxs <- case primCols of
-              _:_ -> do
-                founds <- mapM lookup' primCols
-                if all isJust founds
-                  then return $ catMaybes founds
-                  else return []
-              []  ->   return []
+            primaryIxs <- fromMaybe [] . sequence <$> mapM lookup' primCols
+
             return (cols, notNullIdxs, primaryIxs) )
 
   (cols, notNullIdxs, primaryIxs) <- runIO getDBinfo
