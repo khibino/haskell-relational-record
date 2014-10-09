@@ -25,12 +25,11 @@ module Language.Haskell.TH.Lib.Extra (
   ) where
 
 import Language.Haskell.TH
-  (Ppr, ppr, Q, runQ, runIO,
+  (Ppr, ppr, Q, runQ,
    Name, Dec, sigD, valD, TypeQ, varP, normalB,
    ExpQ, litE, integerL)
 import Language.Haskell.TH.PprLib (Doc)
 import Language.Haskell.TH.Syntax (Quasi)
-
 
 {- $extraTemplateFunctions
 Extra functions to generate haskell templates.
@@ -65,9 +64,10 @@ which generating haskell templates.
 -}
 
 -- | Raise compile error from TH code.
-compileError :: String -> Q a
-compileError =  runIO . compileErrorIO
+compileError :: Quasi m => String -> m a
+compileError =  runQ . fail
 
 -- | 'IO' version of 'compileError'.
 compileErrorIO :: String -> IO a
-compileErrorIO =  ioError . userError
+compileErrorIO =  compileError
+{-# DEPRECATED compileErrorIO "Use compileError instead of this" #-}
