@@ -53,7 +53,7 @@ putLog :: String -> IO ()
 putLog =  putStrLn . logPrefix
 
 compileErrorIO :: String -> IO a
-compileErrorIO =  TH.compileErrorIO . logPrefix
+compileErrorIO =  TH.compileError . logPrefix
 
 getPrimaryKey' :: IConnection conn
               => conn
