@@ -23,7 +23,6 @@ import qualified Data.Set as Set
 import Language.Haskell.TH
   (Q, Dec (InstanceD), Type(AppT, ConT),
    Info (ClassI), reify)
-import Language.Haskell.TH.Lib.Extra (compileError)
 import Data.Convertible (Convertible)
 import Database.HDBC (SqlValue)
 import Database.HDBC.SqlValueExtra ()
@@ -66,8 +65,8 @@ sqlValueType =  [t| SqlValue |]
 convertibleSqlValues' :: Q [(Type, Type)]
 convertibleSqlValues' =  cvInfo >>= d0  where
   cvInfo = reify ''Convertible
-  unknownDeclaration = compileError
-                       . ("convertibleSqlValues: Unknown declaration pattern: " ++)
+  unknownDeclaration =
+    fail . ("convertibleSqlValues: Unknown declaration pattern: " ++)
   d0 (ClassI _ is) = fmap catMaybes . sequence . map d1 $ is  where
     d1 (InstanceD _cxt (AppT (AppT (ConT _n) a) b) _ds)
       = do qvt <- sqlValueType
@@ -94,8 +93,8 @@ convertibleSqlValues =  do
 persistableWidthTypes :: Q TConSet
 persistableWidthTypes =  cvInfo >>= d0  where
   cvInfo = reify ''PersistableWidth
-  unknownDeclaration = compileError
-                       . ("persistableWidthTypes: Unknown declaration pattern: " ++)
+  unknownDeclaration =
+    fail . ("persistableWidthTypes: Unknown declaration pattern: " ++)
   d0 (ClassI _ is) = fmap fromList . sequence . map d1 $ is  where
     d1 (InstanceD _cxt (AppT (ConT _n) a) _ds) = return a
     d1 decl                                    = unknownDeclaration $ show decl

@@ -68,8 +68,7 @@ import Language.Haskell.TH
    tupleT, appT, arrowT, Dec, stringE, listE)
 import Language.Haskell.TH.Name.CamelCase
   (VarName, varName, ConName, varNameWithPrefix, varCamelcaseName, toVarExp, toTypeCon, toDataCon)
-import Language.Haskell.TH.Lib.Extra
-  (compileError, simpleValD, maybeD, integralE)
+import Language.Haskell.TH.Lib.Extra (simpleValD, maybeD, integralE)
 
 import Database.Record.TH
   (recordTypeNameDefault, recordTypeDefault, recordWidthTemplate,
@@ -410,7 +409,7 @@ reifyRelation relVar = do
     VarI _ (AppT (AppT (ConT prn) p) r) _ _
       | prn == ''Relation    ->  return (p, r)
     _                        ->
-      compileError $ "expandRelation: Variable must have Relation type: " ++ show relVar
+      fail $ "expandRelation: Variable must have Relation type: " ++ show relVar
 
 -- | Inlining composed 'Query' in compile type.
 inlineQuery :: Name         -- ^ Top-level variable name which has 'Relation' type

@@ -67,7 +67,7 @@ import Language.Haskell.TH.Name.CamelCase
   (ConName(conName), VarName(varName),
    conCamelcaseName, varCamelcaseName, varNameWithPrefix,
    toTypeCon, toDataCon, toVarExp)
-import Language.Haskell.TH.Lib.Extra (integralE, compileError)
+import Language.Haskell.TH.Lib.Extra (integralE)
 import Language.Haskell.TH
   (Q, newName, nameBase, reify, Info(TyConI), Name,
    TypeQ, conT, Con (NormalC, RecC),
@@ -238,7 +238,7 @@ defineRecordParser sqlValType name' (tyCon, dataCon) width = do
 dataConInfo :: Exp -> Q Name
 dataConInfo =  d  where
   d (ConE n) = return n
-  d e        = compileError $ "Not record data constructor: " ++ show e
+  d e        = fail $ "Not record data constructor: " ++ show e
 
 -- | Record printer template.
 defineRecordPrinter :: TypeQ         -- ^ SQL value type.
@@ -325,7 +325,7 @@ reifyRecordType :: Name -> Q ((TypeQ, ExpQ), (Maybe [Name], [TypeQ]))
 reifyRecordType recTypeName = do
   tyConInfo   <- reify recTypeName
   maybe
-    (compileError $ "Defined record type constructor not found: " ++ show recTypeName)
+    (fail $ "Defined record type constructor not found: " ++ show recTypeName)
     return
     (recordInfo' tyConInfo)
 
