@@ -28,7 +28,6 @@ module Database.HDBC.Query.TH (
 
 import Data.Maybe (listToMaybe, fromMaybe)
 import qualified Data.Map as Map
-import Control.Applicative ((<$>))
 import Control.Monad (when)
 
 import Database.HDBC (IConnection, SqlValue, prepare)
@@ -111,13 +110,12 @@ defineTableFromDB connect drv scm tbl derives = do
     $ "getPrimaryKey: Primary key not found for table: " ++ scm ++ "." ++ tbl
 
   let colIxMap = Map.fromList $ zip [c | (c, _) <- cols] [(0 :: Int) .. ]
-      lookup' k = do
-        let found = Map.lookup k colIxMap
-        when (found == Nothing) . reportWarning
-          $ "defineTableFromDB: fail to find index of pkey - " ++ k ++ ". Something wrong!!"
-        return found
-
-  primaryIxs <- fromMaybe [] . sequence <$> mapM lookup' primaryCols
+      ixLookups = [ (k, Map.lookup k colIxMap) | k <- primaryCols ]
+      warnLk k = maybe
+                 (reportWarning $ "defineTableFromDB: fail to find index of pkey - " ++ k ++ ". Something wrong!!")
+                 (const $ return ())
+      primaryIxs = fromMaybe [] . sequence $ map snd ixLookups
+  mapM_ (uncurry warnLk) ixLookups
 
   defineTableDefault scm tbl cols derives primaryIxs (listToMaybe notNullIdxs)
 
