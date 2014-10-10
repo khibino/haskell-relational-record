@@ -107,6 +107,9 @@ defineTableFromDB connect drv scm tbl derives = do
             return (cols, notNullIdxs, primCols) )
 
   (cols, notNullIdxs, primaryCols) <- runIO getDBinfo
+  when (null primaryCols) . reportWarning
+    $ "getPrimaryKey: Primary key not found for table: " ++ scm ++ "." ++ tbl
+
   let colIxMap = Map.fromList $ zip [c | (c, _) <- cols] [(0 :: Int) .. ]
       lookup' k = do
         let found = Map.lookup k colIxMap
