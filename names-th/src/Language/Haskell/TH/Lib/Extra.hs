@@ -20,15 +20,20 @@ module Language.Haskell.TH.Lib.Extra (
 
   -- * Functions to raise compile error
   -- $compileMessage
+  reportMessage, reportWarning, reportError,
+
   compileError, compileErrorIO
   ) where
 
+import System.IO (hPutStrLn, stderr)
+import System.Environment (lookupEnv)
+
 import Language.Haskell.TH
-  (Ppr, ppr, Q, runQ,
+  (Ppr, ppr, Q, runQ, runIO,
    Name, Dec, sigD, valD, TypeQ, varP, normalB,
    ExpQ, litE, integerL)
 import Language.Haskell.TH.PprLib (Doc)
-import Language.Haskell.TH.Syntax (Quasi)
+import Language.Haskell.TH.Syntax (Quasi, qReport)
 
 {- $extraTemplateFunctions
 Extra functions to generate haskell templates.
@@ -69,7 +74,29 @@ are handled by ghc loggers.
 
 > -- Not handled by ghc logger
 > runIO . runQ $ qReport False "Foo"
--}
+ -}
+
+-- | Print compile message from TH code.
+--   Only display when TH_EXTRA_MESSAGE_OUTPUT environment variable is set.
+--   When variable value string is 'as_warn' or 'as_warning' and
+--   using 'Q' monad action, Output is put into ghc logger as warning.
+--   Other cases are normal standard error output.
+reportMessage :: Quasi m => String -> m ()
+reportMessage s = runQ . runIO $ do
+  mayOut <- lookupEnv "TH_EXTRA_MESSAGE_OUTPUT"
+  case mayOut of
+    Just out
+      | out `elem` ["as_warn", "as_warning"]  ->  qReport False s
+      | otherwise                             ->  hPutStrLn stderr s
+    Nothing                                   ->  return ()
+
+-- | Print compile warnings from TH code.
+reportWarning :: String -> Q ()
+reportWarning =  qReport False
+
+-- | Print compile errors from TH code.
+reportError :: String -> Q ()
+reportError =  qReport True
 
 -- | Raise compile error from TH code.
 compileError :: String -> Q a
