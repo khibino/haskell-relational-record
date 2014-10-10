@@ -35,6 +35,7 @@ import Database.HDBC (IConnection, SqlValue, prepare)
 
 import Language.Haskell.TH (Q, runIO, Name, nameBase, TypeQ, Dec)
 import Language.Haskell.TH.Name.CamelCase (ConName, varCamelcaseName)
+import Language.Haskell.TH.Lib.Extra (reportWarning, reportMessage)
 
 import Database.Record.TH (makeRecordPersistableWithSqlTypeDefault)
 import qualified Database.Record.TH as Record
@@ -88,9 +89,6 @@ defineTableDefault schema table columns derives primary notNull = do
   sqlvD  <- makeRecordPersistableWithSqlTypeDefault [t| SqlValue |] table $ length columns
   return $ modelD ++ sqlvD
 
-putLog :: String -> IO ()
-putLog =  putStrLn
-
 -- | Generate all HDBC templates using system catalog informations.
 defineTableFromDB :: IConnection conn
                   => IO conn     -- ^ Connect action to system catalog database
@@ -106,18 +104,18 @@ defineTableFromDB connect drv scm tbl derives = do
             (cols, notNullIdxs) <- getFields drv conn scm tbl
             primCols            <- getPrimaryKey drv conn scm tbl
 
-            let colIxMap = Map.fromList $ zip [c | (c, _) <- cols] [(0 :: Int) .. ]
-                lookup' k = do
-                  let found = Map.lookup k colIxMap
-                  when (found == Nothing) . putLog
-                    $ "defineTableFromDB: fail to find index of pkey - " ++ k ++ ". Something wrong!!"
-                  return found
+            return (cols, notNullIdxs, primCols) )
 
-            primaryIxs <- fromMaybe [] . sequence <$> mapM lookup' primCols
+  (cols, notNullIdxs, primaryCols) <- runIO getDBinfo
+  let colIxMap = Map.fromList $ zip [c | (c, _) <- cols] [(0 :: Int) .. ]
+      lookup' k = do
+        let found = Map.lookup k colIxMap
+        when (found == Nothing) . reportWarning
+          $ "defineTableFromDB: fail to find index of pkey - " ++ k ++ ". Something wrong!!"
+        return found
 
-            return (cols, notNullIdxs, primaryIxs) )
+  primaryIxs <- fromMaybe [] . sequence <$> mapM lookup' primaryCols
 
-  (cols, notNullIdxs, primaryIxs) <- runIO getDBinfo
   defineTableDefault scm tbl cols derives primaryIxs (listToMaybe notNullIdxs)
 
 -- | Verify composed 'Query' and inline it in compile type.
@@ -134,6 +132,6 @@ inlineVerifiedQuery connect relVar rel config sufs qns = do
   let sql = relationalQuerySQL config rel sufs
   _ <- runIO $ withConnectionIO connect
        (\conn -> do
-           putLog $ "Verify with prepare: " ++ sql
+           reportMessage $ "Verify with prepare: " ++ sql
            prepare conn sql)
   Relational.unsafeInlineQuery (return p) (return r) sql (varCamelcaseName qns)
