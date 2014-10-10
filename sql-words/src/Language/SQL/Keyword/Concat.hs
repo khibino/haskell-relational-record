@@ -160,8 +160,10 @@ infixr 3 `and`
 infixr 2 `or`
 infixr 1 |*|
 
+-- | Define uni operator of string from 'Keyword' uni operator.
 strUniOp :: (Keyword -> Keyword) -> String -> String
 strUniOp u = wordShow . u . word
 
+-- | Define binary operator of string from 'Keyword' binary operator.
 strBinOp :: (Keyword -> Keyword -> Keyword) -> String -> String -> String
 strBinOp op a b = wordShow $ op (word a) (word b)
