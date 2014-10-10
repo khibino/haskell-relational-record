@@ -20,7 +20,6 @@ module Database.HDBC.Schema.IBMDB2 (
 import Prelude hiding (length)
 
 import Language.Haskell.TH (TypeQ)
-import qualified Language.Haskell.TH.Lib.Extra as TH
 
 import qualified Data.List as List
 import Data.Char (toUpper)
@@ -54,7 +53,7 @@ putLog :: String -> IO ()
 putLog =  putStrLn . logPrefix
 
 compileErrorIO :: String -> IO a
-compileErrorIO =  TH.compileError . logPrefix
+compileErrorIO =  fail . logPrefix
 
 getPrimaryKey' :: IConnection conn
               => conn
