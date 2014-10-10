@@ -28,6 +28,8 @@ import Control.Monad (when)
 
 import Database.HDBC (IConnection, SqlValue)
 
+import Language.Haskell.TH.Lib.Extra (reportMessage)
+
 import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
 
@@ -50,7 +52,7 @@ logPrefix :: String -> String
 logPrefix =  ("IBMDB2: " ++)
 
 putLog :: String -> IO ()
-putLog =  putStrLn . logPrefix
+putLog =  reportMessage . logPrefix
 
 compileErrorIO :: String -> IO a
 compileErrorIO =  fail . logPrefix
