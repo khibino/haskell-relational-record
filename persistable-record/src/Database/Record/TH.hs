@@ -39,6 +39,8 @@ module Database.Record.TH (
   -- * Function declarations against defined record types
   makeRecordPersistableWithSqlTypeFromDefined,
   makeRecordPersistableWithSqlTypeDefaultFromDefined,
+  defineColumnOffsets,
+
   definePersistableWidthInstance,
 
   recordWidthTemplate,
@@ -51,8 +53,10 @@ module Database.Record.TH (
   -- * Reify
   reifyRecordType,
 
-  -- * Record type name
+  -- * Templates about record type name
   recordTypeNameDefault, recordTypeDefault,
+
+  columnOffsetsVarNameDefault,
 
   persistableFunctionNamesDefault,
 
@@ -63,11 +67,12 @@ module Database.Record.TH (
 
 import Control.Applicative (pure, (<*>))
 import Data.List (foldl')
+import Data.Array (Array, listArray, (!))
 import Language.Haskell.TH.Name.CamelCase
   (ConName(conName), VarName(varName),
    conCamelcaseName, varCamelcaseName, varNameWithPrefix,
    toTypeCon, toDataCon, toVarExp)
-import Language.Haskell.TH.Lib.Extra (integralE)
+import Language.Haskell.TH.Lib.Extra (integralE, simpleValD)
 import Language.Haskell.TH
   (Q, newName, nameBase, reify, Info(TyConI), Name,
    TypeQ, conT, Con (NormalC, RecC),
@@ -99,6 +104,11 @@ recordTypeNameDefault =  conCamelcaseName
 recordTypeDefault :: String -- ^ Table name in SQL
                   -> TypeQ  -- ^ Result type template
 recordTypeDefault =  toTypeCon . recordTypeNameDefault
+
+-- | Variable expression of record column offset array.
+columnOffsetsVarNameDefault :: Name    -- ^ Table type name
+                            -> VarName -- ^ Result expression variable name
+columnOffsetsVarNameDefault =  (`varNameWithPrefix` "columnOffsets") . nameBase
 
 -- | Template of 'HasColumnConstraint' instance.
 defineHasColumnConstraintInstance :: TypeQ   -- ^ Type which represent constraint type
@@ -183,6 +193,21 @@ recordWidthTemplate ty =
      $(sigE [| persistableWidth |] [t| PersistableRecordWidth $(ty) |])
    |]
 
+-- | Column offset array and 'PersistableWidth' instance declaration.
+defineColumnOffsets :: ConName -- ^ Record type constructor.
+                    -> [TypeQ] -- ^ Types of record columns.
+                    -> Q [Dec] -- ^ Declaration of 'PersistableWidth' instance.
+defineColumnOffsets typeName' tys = do
+  let ofsVar = columnOffsetsVarNameDefault $ conName typeName'
+      widthIxE = integralE $ length tys
+  ar <- simpleValD (varName ofsVar) [t| Array Int Int |]
+        [| listArray (0 :: Int, $widthIxE) $
+           scanl (+) (0 :: Int) $(listE $ map recordWidthTemplate tys) |]
+  pw <- [d| instance PersistableWidth $(toTypeCon typeName') where
+              persistableWidth = unsafePersistableRecordWidth $ $(toVarExp ofsVar) ! $widthIxE
+          |]
+  return $ ar ++ pw
+
 -- | 'PersistableWidth' instance declaration.
 definePersistableWidthInstance :: TypeQ   -- ^ Record type constructor.
                                -> [TypeQ] -- ^ Types of record columns.
@@ -191,6 +216,7 @@ definePersistableWidthInstance typeCon tys = do
   [d| instance PersistableWidth $typeCon where
         persistableWidth = unsafePersistableRecordWidth $ foldl' (+) 0 $(listE $ map recordWidthTemplate tys)
     |]
+{-# DEPRECATED definePersistableWidthInstance "Use defineColumnOffsets instead of this." #-}
 
 -- | Record type declaration template.
 defineRecordType :: ConName            -- ^ Name of the data type of table record type.
@@ -200,10 +226,9 @@ defineRecordType :: ConName            -- ^ Name of the data type of table recor
 defineRecordType typeName' columns derives = do
   let typeName = conName typeName'
       fld (n, tq) = varStrictType (varName n) (strictType isStrict tq)
-  rec <- dataD (cxt []) typeName [] [recC typeName (map fld columns)] (map conName derives)
-  let typeCon = toTypeCon typeName'
-  ins <- definePersistableWidthInstance typeCon $ map snd columns
-  return $ rec : ins
+  rec  <- dataD (cxt []) typeName [] [recC typeName (map fld columns)] (map conName derives)
+  offs <- defineColumnOffsets typeName' [ty | (_, ty) <- columns]
+  return $ rec : offs
 
 -- | Generate column name from 'String'.
 columnDefault :: String -> TypeQ -> (VarName, TypeQ)
