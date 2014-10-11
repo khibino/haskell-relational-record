@@ -33,7 +33,7 @@ import Control.Monad (when)
 import Database.HDBC (IConnection, SqlValue, prepare)
 
 import Language.Haskell.TH (Q, runIO, Name, nameBase, TypeQ, Dec)
-import Language.Haskell.TH.Name.CamelCase (ConName, varCamelcaseName)
+import Language.Haskell.TH.Name.CamelCase (ConName (ConName), varCamelcaseName)
 import Language.Haskell.TH.Lib.Extra (reportWarning, reportMessage)
 
 import Database.Record.TH (makeRecordPersistableWithSqlTypeDefault)
@@ -52,13 +52,14 @@ import Database.HDBC.Schema.Driver (Driver, getFields, getPrimaryKey)
 makeRecordPersistableDefault :: Name    -- ^ Type constructor name
                              -> Q [Dec] -- ^ Resutl declaration
 makeRecordPersistableDefault recTypeName = do
+  let recTypeConName = ConName recTypeName
   (pair@(tyCon, dataCon), (mayNs, cts)) <- Record.reifyRecordType recTypeName
   let width = length cts
-  pw <- Record.definePersistableWidthInstance tyCon cts
+  pw <- Record.defineColumnOffsets recTypeConName cts
   ps <- Record.makeRecordPersistableWithSqlType [t| SqlValue |] (Record.persistableFunctionNamesDefault recTypeName) pair width
   cs <- maybe
         (return [])
-        (\ns -> Relational.defineColumnsDefault tyCon
+        (\ns -> Relational.defineColumnsDefault recTypeConName
                 [ ((nameBase n, ct), Nothing) | n  <- ns  | ct <- cts ])
         mayNs
   pc <- Relational.defineProductConstructorInstance tyCon dataCon cts
