@@ -41,8 +41,6 @@ module Database.Record.TH (
   makeRecordPersistableWithSqlTypeDefaultFromDefined,
   defineColumnOffsets,
 
-  definePersistableWidthInstance,
-
   recordWidthTemplate,
 
   defineRecordParser,
@@ -207,16 +205,6 @@ defineColumnOffsets typeName' tys = do
               persistableWidth = unsafePersistableRecordWidth $ $(toVarExp ofsVar) ! $widthIxE
           |]
   return $ ar ++ pw
-
--- | 'PersistableWidth' instance declaration.
-definePersistableWidthInstance :: TypeQ   -- ^ Record type constructor.
-                               -> [TypeQ] -- ^ Types of record columns.
-                               -> Q [Dec] -- ^ Declaration of 'PersistableWidth' instance.
-definePersistableWidthInstance typeCon tys = do
-  [d| instance PersistableWidth $typeCon where
-        persistableWidth = unsafePersistableRecordWidth $ foldl' (+) 0 $(listE $ map recordWidthTemplate tys)
-    |]
-{-# DEPRECATED definePersistableWidthInstance "Use defineColumnOffsets instead of this." #-}
 
 -- | Record type declaration template.
 defineRecordType :: ConName            -- ^ Name of the data type of table record type.
