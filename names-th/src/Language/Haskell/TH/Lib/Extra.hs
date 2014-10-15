@@ -26,7 +26,7 @@ module Language.Haskell.TH.Lib.Extra (
   ) where
 
 import System.IO (hPutStrLn, stderr)
-import System.Environment (lookupEnv)
+import System.Environment (getEnvironment)
 
 import Language.Haskell.TH
   (Ppr, ppr, Q, runQ, runIO,
@@ -83,6 +83,7 @@ are handled by ghc loggers.
 --   Other cases are normal standard error output.
 reportMessage :: Quasi m => String -> m ()
 reportMessage s = runQ . runIO $ do
+  let lookupEnv n = lookup n `fmap` getEnvironment  {- for base-4.5 -}
   mayOut <- lookupEnv "TH_EXTRA_MESSAGE_OUTPUT"
   case mayOut of
     Just out
