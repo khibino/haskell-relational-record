@@ -1,0 +1,81 @@
+Source: haskell-persistable-record
+Maintainer: Kei Hibino <ex8k.hibino@gmail.com>
+Priority: optional
+Section: haskell
+Build-Depends: debhelper (>= 7.0)
+               , haskell-devscripts (>= 0.8)
+               , cdbs
+               , ghc
+               , ghc-prof
+               , libghc-dlist-dev
+               , libghc-dlist-prof
+               , libghc-names-th-dev
+               , libghc-names-th-prof
+               , libghc-transformers-dev
+               , libghc-transformers-prof
+Build-Depends-Indep: ghc-doc
+                     , libghc-dlist-doc
+                     , libghc-names-th-doc
+                     , libghc-transformers-doc
+
+Package: libghc-persistable-record-dev
+Architecture: any
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
+         , ${misc:Depends}
+Recommends: ${haskell:Recommends}
+Suggests: ${haskell:Suggests}
+Conflicts: ${haskell:Conflicts}
+Provides: ${haskell:Provides}
+Replaces: ${haskell:Replaces}
+Description: Binding between SQL database values and haskell records.
+ This package contiains types to represent table constraints and
+ interfaces to bind between SQL database values and Haskell records.
+ .
+  Author: Kei Hibino
+  Upstream-Maintainer: ex8k.hibino@gmail.com
+ .
+ This package provides a library for the Haskell programming language.
+ See http:///www.haskell.org/ for more information on Haskell.
+
+Package: libghc-persistable-record-prof
+Architecture: any
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
+         , ${misc:Depends}
+Recommends: ${haskell:Recommends}
+Suggests: ${haskell:Suggests}
+Conflicts: ${haskell:Conflicts}
+Provides: ${haskell:Provides}
+Replaces: ${haskell:Replaces}
+Description: Binding between SQL database values and haskell records.
+ This package contiains types to represent table constraints and
+ interfaces to bind between SQL database values and Haskell records.
+ .
+  Author: Kei Hibino
+  Upstream-Maintainer: ex8k.hibino@gmail.com
+ .
+ This package provides a library for the Haskell programming language, compiled
+ for profiling.  See http:///www.haskell.org/ for more information on Haskell.
+
+Package: libghc-persistable-record-doc
+Architecture: all
+Section: doc
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
+         , ${misc:Depends}
+Recommends: ${haskell:Recommends}
+Suggests: ${haskell:Suggests}
+Conflicts: ${haskell:Conflicts}
+Provides: ${haskell:Provides}
+Replaces: ${haskell:Replaces}
+Description: Binding between SQL database values and haskell records.
+ This package contiains types to represent table constraints and
+ interfaces to bind between SQL database values and Haskell records.
+ .
+  Author: Kei Hibino
+  Upstream-Maintainer: ex8k.hibino@gmail.com
+ .
+ This package provides the documentation for a library for the Haskell
+ programming language.
+ See http:///www.haskell.org/ for more information on Haskell.

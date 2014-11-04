@@ -1,0 +1,72 @@
+Source: haskell-sql-words
+Maintainer: Kei Hibino <ex8k.hibino@gmail.com>
+Priority: optional
+Section: haskell
+Build-Depends: debhelper (>= 7.0)
+               , haskell-devscripts (>= 0.8)
+               , cdbs
+               , ghc
+               , ghc-prof
+Build-Depends-Indep: ghc-doc
+
+Package: libghc-sql-words-dev
+Architecture: any
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
+         , ${misc:Depends}
+Recommends: ${haskell:Recommends}
+Suggests: ${haskell:Suggests}
+Conflicts: ${haskell:Conflicts}
+Provides: ${haskell:Provides}
+Replaces: ${haskell:Replaces}
+Description: Simple idea SQL keywords data constructor into OverloadedString
+ This package contiains SQL keywords constructors defined as
+ OverloadedString literals and helper functions to concate these.
+ .
+  Author: Kei Hibino
+  Upstream-Maintainer: ex8k.hibino@gmail.com
+ .
+ This package provides a library for the Haskell programming language.
+ See http:///www.haskell.org/ for more information on Haskell.
+
+Package: libghc-sql-words-prof
+Architecture: any
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
+         , ${misc:Depends}
+Recommends: ${haskell:Recommends}
+Suggests: ${haskell:Suggests}
+Conflicts: ${haskell:Conflicts}
+Provides: ${haskell:Provides}
+Replaces: ${haskell:Replaces}
+Description: Simple idea SQL keywords data constructor into OverloadedString
+ This package contiains SQL keywords constructors defined as
+ OverloadedString literals and helper functions to concate these.
+ .
+  Author: Kei Hibino
+  Upstream-Maintainer: ex8k.hibino@gmail.com
+ .
+ This package provides a library for the Haskell programming language, compiled
+ for profiling.  See http:///www.haskell.org/ for more information on Haskell.
+
+Package: libghc-sql-words-doc
+Architecture: all
+Section: doc
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
+         , ${misc:Depends}
+Recommends: ${haskell:Recommends}
+Suggests: ${haskell:Suggests}
+Conflicts: ${haskell:Conflicts}
+Provides: ${haskell:Provides}
+Replaces: ${haskell:Replaces}
+Description: Simple idea SQL keywords data constructor into OverloadedString
+ This package contiains SQL keywords constructors defined as
+ OverloadedString literals and helper functions to concate these.
+ .
+  Author: Kei Hibino
+  Upstream-Maintainer: ex8k.hibino@gmail.com
+ .
+ This package provides the documentation for a library for the Haskell
+ programming language.
+ See http:///www.haskell.org/ for more information on Haskell.

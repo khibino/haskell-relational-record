@@ -1,0 +1,72 @@
+Source: haskell-names-th
+Maintainer: Kei Hibino <ex8k.hibino@gmail.com>
+Priority: optional
+Section: haskell
+Build-Depends: debhelper (>= 7.0)
+               , haskell-devscripts (>= 0.8)
+               , cdbs
+               , ghc
+               , ghc-prof
+Build-Depends-Indep: ghc-doc
+
+Package: libghc-names-th-dev
+Architecture: any
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
+         , ${misc:Depends}
+Recommends: ${haskell:Recommends}
+Suggests: ${haskell:Suggests}
+Conflicts: ${haskell:Conflicts}
+Provides: ${haskell:Provides}
+Replaces: ${haskell:Replaces}
+Description: Manipulate name strings for TH
+ This package includes functions to manipulate name string
+ and extra library functions for Template Haskell.
+ .
+  Author: Kei Hibino
+  Upstream-Maintainer: ex8k.hibino@gmail.com
+ .
+ This package provides a library for the Haskell programming language.
+ See http:///www.haskell.org/ for more information on Haskell.
+
+Package: libghc-names-th-prof
+Architecture: any
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
+         , ${misc:Depends}
+Recommends: ${haskell:Recommends}
+Suggests: ${haskell:Suggests}
+Conflicts: ${haskell:Conflicts}
+Provides: ${haskell:Provides}
+Replaces: ${haskell:Replaces}
+Description: Manipulate name strings for TH
+ This package includes functions to manipulate name string
+ and extra library functions for Template Haskell.
+ .
+  Author: Kei Hibino
+  Upstream-Maintainer: ex8k.hibino@gmail.com
+ .
+ This package provides a library for the Haskell programming language, compiled
+ for profiling.  See http:///www.haskell.org/ for more information on Haskell.
+
+Package: libghc-names-th-doc
+Architecture: all
+Section: doc
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
+         , ${misc:Depends}
+Recommends: ${haskell:Recommends}
+Suggests: ${haskell:Suggests}
+Conflicts: ${haskell:Conflicts}
+Provides: ${haskell:Provides}
+Replaces: ${haskell:Replaces}
+Description: Manipulate name strings for TH
+ This package includes functions to manipulate name string
+ and extra library functions for Template Haskell.
+ .
+  Author: Kei Hibino
+  Upstream-Maintainer: ex8k.hibino@gmail.com
+ .
+ This package provides the documentation for a library for the Haskell
+ programming language.
+ See http:///www.haskell.org/ for more information on Haskell.

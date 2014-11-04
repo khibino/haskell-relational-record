@@ -1,0 +1,75 @@
+Source: haskell-hdbc-session
+Maintainer: Kei Hibino <ex8k.hibino@gmail.com>
+Priority: optional
+Section: haskell
+Build-Depends: debhelper (>= 7.0)
+               , haskell-devscripts (>= 0.8)
+               , cdbs
+               , ghc
+               , ghc-prof
+               , libghc-hdbc-dev
+               , libghc-hdbc-prof
+Build-Depends-Indep: ghc-doc
+                     , libghc-hdbc-doc
+
+Package: libghc-hdbc-session-dev
+Architecture: any
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
+         , ${misc:Depends}
+Recommends: ${haskell:Recommends}
+Suggests: ${haskell:Suggests}
+Conflicts: ${haskell:Conflicts}
+Provides: ${haskell:Provides}
+Replaces: ${haskell:Replaces}
+Description: Bracketed connection for HDBC
+ This package contains a base bracketed function
+ to call close correctly against opend DB connection.
+ .
+  Author: Kei Hibino
+  Upstream-Maintainer: ex8k.hibino@gmail.com
+ .
+ This package provides a library for the Haskell programming language.
+ See http:///www.haskell.org/ for more information on Haskell.
+
+Package: libghc-hdbc-session-prof
+Architecture: any
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
+         , ${misc:Depends}
+Recommends: ${haskell:Recommends}
+Suggests: ${haskell:Suggests}
+Conflicts: ${haskell:Conflicts}
+Provides: ${haskell:Provides}
+Replaces: ${haskell:Replaces}
+Description: Bracketed connection for HDBC
+ This package contains a base bracketed function
+ to call close correctly against opend DB connection.
+ .
+  Author: Kei Hibino
+  Upstream-Maintainer: ex8k.hibino@gmail.com
+ .
+ This package provides a library for the Haskell programming language, compiled
+ for profiling.  See http:///www.haskell.org/ for more information on Haskell.
+
+Package: libghc-hdbc-session-doc
+Architecture: all
+Section: doc
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
+         , ${misc:Depends}
+Recommends: ${haskell:Recommends}
+Suggests: ${haskell:Suggests}
+Conflicts: ${haskell:Conflicts}
+Provides: ${haskell:Provides}
+Replaces: ${haskell:Replaces}
+Description: Bracketed connection for HDBC
+ This package contains a base bracketed function
+ to call close correctly against opend DB connection.
+ .
+  Author: Kei Hibino
+  Upstream-Maintainer: ex8k.hibino@gmail.com
+ .
+ This package provides the documentation for a library for the Haskell
+ programming language.
+ See http:///www.haskell.org/ for more information on Haskell.
