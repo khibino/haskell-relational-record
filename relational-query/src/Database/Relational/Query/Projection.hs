@@ -29,6 +29,7 @@ module Database.Relational.Query.Projection (
   flattenMaybe, just,
 
   unsafeToAggregated, unsafeToFlat, unsafeChangeContext,
+  unsafeShowSqlNotNullMaybeProjection,
 
   pfmap, pap,
 
@@ -40,6 +41,9 @@ module Database.Relational.Query.Projection (
 import Prelude hiding (pi)
 
 import qualified Language.SQL.Keyword as SQL
+
+import Database.Record (HasColumnConstraint, NotNull, NotNullColumnConstraint)
+import qualified Database.Record.KeyConstraint as KeyConstraint
 
 import Database.Relational.Query.Internal.SQL (rowListStringString)
 import Database.Relational.Query.Context (Aggregated, Flat)
@@ -145,6 +149,13 @@ unsafeToAggregated =  unsafeChangeContext
 -- | Unsafely down to flat context.
 unsafeToFlat :: Projection Aggregated r -> Projection Flat r
 unsafeToFlat =  unsafeChangeContext
+
+notNullMaybeConstraint :: HasColumnConstraint NotNull r => Projection c (Maybe r) -> NotNullColumnConstraint r
+notNullMaybeConstraint =  const KeyConstraint.columnConstraint
+
+-- | Unsafely get SQL string expression of not null key projection.
+unsafeShowSqlNotNullMaybeProjection :: HasColumnConstraint NotNull r => Projection c (Maybe r) -> String
+unsafeShowSqlNotNullMaybeProjection p = show . (!!  KeyConstraint.index (notNullMaybeConstraint p)) . columns $ p
 
 -- | Projectable fmap of 'Projection' type.
 pfmap :: ProductConstructor (a -> b)

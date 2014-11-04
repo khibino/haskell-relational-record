@@ -46,7 +46,7 @@ module Database.Relational.Query.Projectable (
   caseSearch, caseSearchMaybe, case', caseMaybe,
   in', and', or',
 
-  isNull, isNotNull, not', exists,
+  isNull, isNotNull, fromMaybe', not', exists,
 
   (.||.), (?||?),
   (.+.), (.-.), (./.), (.*.), negate', fromIntegral', showNum,
@@ -76,7 +76,9 @@ import Control.Applicative ((<$>))
 import Language.SQL.Keyword (Keyword)
 import qualified Language.SQL.Keyword as SQL
 
-import Database.Record (PersistableWidth, PersistableRecordWidth, derivedWidth)
+import Database.Record
+  (PersistableWidth, PersistableRecordWidth, derivedWidth,
+   HasColumnConstraint, NotNull)
 
 import Database.Relational.Query.Internal.SQL (stringSQL, showStringSQL, rowStringSQL)
 import Database.Relational.Query.Context (Flat, Aggregated, Exists, OverWindow)
@@ -419,15 +421,22 @@ in' :: (SqlProjectable p, ProjectableShowSql p)
 in' a lp = unsafeProjectSql
            $ SQL.strBinOp (parenBin SQL.in') (unsafeShowSql a) (unsafeShowSqlListProjection unsafeShowSql lp)
 
--- | Operator corresponding SQL /IS NULL/ .
-isNull :: (SqlProjectable p, ProjectableShowSql p)
-       => p (Maybe t) -> p (Maybe Bool)
-isNull x = compareBinOp (SQL.defineBinOp SQL.IS) x unsafeValueNull
+-- | Operator corresponding SQL /IS NULL/ , and extended against record types.
+isNull :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
+        => Projection c (Maybe r) -> Projection c (Maybe Bool)
+isNull mr = unsafeProjectSql . SQL.wordShow $
+            SQL.defineBinOp
+            SQL.IS (SQL.word $ Projection.unsafeShowSqlNotNullMaybeProjection mr) SQL.NULL
 
--- | Operator corresponding SQL /NOT (... IS NULL)/ .
-isNotNull :: (SqlProjectable p, ProjectableShowSql p)
-          => p (Maybe t) -> p (Maybe Bool)
+-- | Operator corresponding SQL /NOT (... IS NULL)/ , and extended against record type.
+isNotNull :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
+          => Projection c (Maybe r) -> Projection c (Maybe Bool)
 isNotNull =  not' . isNull
+
+-- | Operator from maybe type using record extended 'isNull'.
+fromMaybe' :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
+           => Projection c r -> Projection c (Maybe r) -> Projection c r
+fromMaybe' d p = [ (isNotNull p, unsafeCastProjectable p) ] `casesOrElse` d
 
 unsafeUniTermFunction :: SqlProjectable p => Keyword -> p t
 unsafeUniTermFunction =  unsafeProjectSql . (++ "()") . SQL.wordShow
