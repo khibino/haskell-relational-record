@@ -46,7 +46,8 @@ module Database.Relational.Query.Projectable (
   caseSearch, caseSearchMaybe, case', caseMaybe,
   in', and', or',
 
-  isNull, isNotNull, fromMaybe', not', exists,
+  isNothing, isJust, isNull, isNotNull,
+  fromMaybe', not', exists,
 
   (.||.), (?||?),
   (.+.), (.-.), (./.), (.*.), negate', fromIntegral', showNum,
@@ -422,16 +423,28 @@ in' a lp = unsafeProjectSql
            $ SQL.strBinOp (parenBin SQL.in') (unsafeShowSql a) (unsafeShowSqlListProjection unsafeShowSql lp)
 
 -- | Operator corresponding SQL /IS NULL/ , and extended against record types.
-isNull :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
-        => Projection c (Maybe r) -> Projection c (Maybe Bool)
-isNull mr = unsafeProjectSql . SQL.wordShow $
+isNothing :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
+          => Projection c (Maybe r) -> Projection c (Maybe Bool)
+isNothing mr = unsafeProjectSql . SQL.wordShow $
             SQL.defineBinOp
             SQL.IS (SQL.word $ Projection.unsafeShowSqlNotNullMaybeProjection mr) SQL.NULL
 
+{-# DEPRECATED isNull "Use isNothing instead of this." #-}
+-- | Same as 'isNothing'.
+isNull :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
+       => Projection c (Maybe r) -> Projection c (Maybe Bool)
+isNull =  isNothing
+
 -- | Operator corresponding SQL /NOT (... IS NULL)/ , and extended against record type.
+isJust :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
+          => Projection c (Maybe r) -> Projection c (Maybe Bool)
+isJust =  not' . isNothing
+
+{-# DEPRECATED isNotNull "Use isJust instead of this." #-}
+-- | Same as 'isJust'.
 isNotNull :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
           => Projection c (Maybe r) -> Projection c (Maybe Bool)
-isNotNull =  not' . isNull
+isNotNull =  isJust
 
 -- | Operator from maybe type using record extended 'isNull'.
 fromMaybe' :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
