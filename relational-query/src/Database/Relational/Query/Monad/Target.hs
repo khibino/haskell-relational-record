@@ -36,5 +36,5 @@ type TargetStatement r a = Table r -> Projection Flat r -> Target r a
 -- updateStatement =  assignings . restrictings . Identity
 
 -- | Run 'Target'.
-extract :: Target r a -> ((a, Assignments), QueryRestriction Flat)
+extract :: Target r a -> ((a, Table r -> Assignments), QueryRestriction Flat)
 extract =  Restrict.extract . extractAssignments

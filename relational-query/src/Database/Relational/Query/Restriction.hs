@@ -129,5 +129,5 @@ updateTargetAllColumn' = liftTargetAllColumn' . restriction'
 
 -- | SQL SET clause and WHERE clause 'StringSQL' string from 'UpdateTarget'
 sqlFromUpdateTarget :: Table r -> UpdateTarget p r -> StringSQL
-sqlFromUpdateTarget tbl (UpdateTarget q) = composeSets as <> composeWhere rs
-  where ((_ph, as), rs) = Target.extract (q tbl (Projection.unsafeFromTable tbl))
+sqlFromUpdateTarget tbl (UpdateTarget q) = composeSets (asR tbl) <> composeWhere rs
+  where ((_ph, asR), rs) = Target.extract (q tbl (Projection.unsafeFromTable tbl))
