@@ -40,7 +40,7 @@ import Database.Relational.Query.Projectable
 import Database.Relational.Query.Monad.Trans.Assigning (assignings, (!#), (<-#))
 import Database.Relational.Query.Monad.Restrict (Restrict, RestrictedStatement)
 import qualified Database.Relational.Query.Monad.Restrict as Restrict
-import Database.Relational.Query.Monad.Target (Target, TargetStatement)
+import Database.Relational.Query.Monad.Target (TargetStatement)
 import qualified Database.Relational.Query.Monad.Target as Target
 
 
@@ -73,8 +73,7 @@ instance TableDerivable r => Show (Restriction p r) where
   show = showStringSQL . sqlWhereFromRestriction derivedTable
 
 -- | UpdateTarget type with place-holder parameter 'p' and projection record type 'r'.
-newtype UpdateTarget p r =
-  UpdateTarget (Table r -> Projection Flat r -> Target r ())
+newtype UpdateTarget p r = UpdateTarget (TargetStatement r ())
 
 -- | Not finalized 'Target' monad type.
 type UpdateTargetContext p r = TargetStatement r (PlaceHolders p)
