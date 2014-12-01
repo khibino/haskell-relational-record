@@ -68,6 +68,7 @@ assignTo vp target = Assignings . tell
   leftsR = Projection.columns . targetProjection target
   rights = Projection.columns vp
 
+{-# DEPRECATED (!#) "Use projection path directly instead of this." #-}
 -- | Specify target of assignment.
 (!#) :: Table r -> Pi r v -> AssignTarget r v
 _ !# pi' = pi'
