@@ -37,7 +37,7 @@ import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable
   (PlaceHolders, placeholder, addPlaceHolders, (><), rightId)
 
-import Database.Relational.Query.Monad.Trans.Assigning (assignings, (!#), (<-#))
+import Database.Relational.Query.Monad.Trans.Assigning (assignings, (<-#))
 import Database.Relational.Query.Monad.Restrict (Restrict, RestrictedStatement)
 import qualified Database.Relational.Query.Monad.Restrict as Restrict
 import Database.Relational.Query.Monad.Target (TargetStatement)
@@ -86,18 +86,18 @@ updateTarget =  UpdateTarget
 -- | Finalize 'Target' monad and generate 'UpdateTarget' with place-holder parameter 'p'.
 updateTarget' :: TargetStatement r (PlaceHolders p)
               -> UpdateTarget p r
-updateTarget' qf = UpdateTarget $ \t -> fmap (const ()) . qf t
+updateTarget' qf = UpdateTarget $ fmap (const ()) . qf
 
 _runUpdateTarget :: UpdateTarget p r
                  -> TargetStatement r (PlaceHolders p)
-_runUpdateTarget (UpdateTarget qf) tbl =
-  fmap fst . addPlaceHolders . qf tbl
+_runUpdateTarget (UpdateTarget qf) =
+  fmap fst . addPlaceHolders . qf
 
 updateAllColumn :: PersistableWidth r
                 => Restriction p r
                 -> TargetStatement r (PlaceHolders (r, p))
-updateAllColumn rs tbl proj = do
-  (ph0, ()) <- placeholder (\ph -> tbl !# id' <-# ph)
+updateAllColumn rs proj = do
+  (ph0, ()) <- placeholder (\ph -> id' <-# ph)
   ph1       <- assignings $ runRestriction rs proj
   return $ ph0 >< ph1
 
@@ -105,7 +105,7 @@ updateAllColumn rs tbl proj = do
 liftTargetAllColumn :: PersistableWidth r
                      => Restriction () r
                      -> UpdateTarget r r
-liftTargetAllColumn rs = updateTarget' $ \tbl proj -> fmap rightId $ updateAllColumn rs tbl proj
+liftTargetAllColumn rs = updateTarget' $ \proj -> fmap rightId $ updateAllColumn rs proj
 
 -- | Lift 'Restriction' to 'UpdateTarget'. Update target columns are all. With placefolder type 'p'.
 liftTargetAllColumn' :: PersistableWidth r
@@ -129,4 +129,4 @@ updateTargetAllColumn' = liftTargetAllColumn' . restriction'
 -- | SQL SET clause and WHERE clause 'StringSQL' string from 'UpdateTarget'
 sqlFromUpdateTarget :: Table r -> UpdateTarget p r -> StringSQL
 sqlFromUpdateTarget tbl (UpdateTarget q) = composeSets (asR tbl) <> composeWhere rs
-  where ((_ph, asR), rs) = Target.extract (q tbl (Projection.unsafeFromTable tbl))
+  where ((_ph, asR), rs) = Target.extract (q (Projection.unsafeFromTable tbl))
