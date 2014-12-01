@@ -18,7 +18,7 @@ module Database.Relational.Query.Monad.Trans.Assigning (
   Assignings, assignings,
 
   -- * API of context with assignments
-  assignTo, (!#), (<-#), AssignTarget,
+  assignTo, (<-#), AssignTarget,
 
   -- * Result SQL set clause
   extractAssignments
@@ -68,16 +68,10 @@ assignTo vp target = Assignings . tell
   leftsR = Projection.columns . targetProjection target
   rights = Projection.columns vp
 
-{-# DEPRECATED (!#) "Use projection path directly instead of this." #-}
--- | Specify target of assignment.
-(!#) :: Table r -> Pi r v -> AssignTarget r v
-_ !# pi' = pi'
-
 -- | Add and assginment.
 (<-#) :: Monad m => AssignTarget r v -> Projection Flat v -> Assignings r m ()
 (<-#) =  flip assignTo
 
-infix 8 !#
 infix 4 <-#
 
 -- | Run 'Assignings' to get 'Assignments'

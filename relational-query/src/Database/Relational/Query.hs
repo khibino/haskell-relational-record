@@ -62,7 +62,7 @@ import Database.Relational.Query.Monad.Class
 import Database.Relational.Query.Monad.Trans.Aggregating
   (groupBy', key, key', set, bkey, rollup, cube, groupingSets)
 import Database.Relational.Query.Monad.Trans.Ordering (orderBy, asc, desc)
-import Database.Relational.Query.Monad.Trans.Assigning (assignTo, (!#), (<-#))
+import Database.Relational.Query.Monad.Trans.Assigning (assignTo, (<-#))
 import Database.Relational.Query.Monad.Type
 import Database.Relational.Query.Monad.Simple (QuerySimple, SimpleQuery)
 import Database.Relational.Query.Monad.Aggregate
