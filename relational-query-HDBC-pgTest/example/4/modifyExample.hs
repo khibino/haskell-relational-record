@@ -53,8 +53,8 @@ runInsertQuery1 ins = handleConnectionIO connect $ \conn -> do
   commit conn
 
 riseOfBanana :: Update ()
-riseOfBanana =  typedUpdate tableOfStockGoods . updateTarget $ \tbl proj -> do
-  tbl !# unit' <-# proj ! unit' .*. value 2
+riseOfBanana =  typedUpdate tableOfStockGoods . updateTarget $ \proj -> do
+  unit' <-# proj ! unit' .*. value 2
   wheres $ proj ! name' .=. value "Banana"
 
 
