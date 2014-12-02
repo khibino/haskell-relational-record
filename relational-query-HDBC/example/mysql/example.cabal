@@ -24,8 +24,8 @@ executable example
     , MultiParamTypeClasses
     , MonadComprehensions
   build-depends:
-      base >=4.6 && <4.7
-    , template-haskell >=2.8 && <2.9
+      base >=4.6 && <5
+    , template-haskell >=2.8
     , HDBC-mysql >=0.6 && <0.7
     , HDBC-session
     , names-th
