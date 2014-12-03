@@ -26,6 +26,7 @@ executable example
   build-depends:
       base >=4.6 && <5
     , template-haskell >=2.8
+    , HDBC >=2.3
     , HDBC-mysql >=0.6 && <0.7
     , HDBC-session
     , names-th
