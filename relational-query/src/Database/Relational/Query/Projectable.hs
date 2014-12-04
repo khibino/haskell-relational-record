@@ -426,8 +426,8 @@ in' a lp = unsafeProjectSql
 isNothing :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
           => Projection c (Maybe r) -> Projection c (Maybe Bool)
 isNothing mr = unsafeProjectSql . SQL.wordShow $
-            SQL.defineBinOp
-            SQL.IS (SQL.word $ Projection.unsafeShowSqlNotNullMaybeProjection mr) SQL.NULL
+               parenBin (SQL.defineBinOp SQL.IS)
+               (SQL.word $ Projection.unsafeShowSqlNotNullMaybeProjection mr) SQL.NULL
 
 {-# DEPRECATED isNull "Use isNothing instead of this." #-}
 -- | Same as 'isNothing'.
