@@ -39,7 +39,6 @@ import qualified Database.Relational.Query.Sub as SubQuery
 import Database.Relational.Query.Projectable (SqlProjectable, unsafeProjectSql, unsafeShowSql)
 
 import Database.Relational.Query.Monad.Class (MonadRestrict(..), MonadQualify(..), MonadPartition (..))
-import Database.Relational.Query.Monad.Trans.Config (askConfig)
 import Database.Relational.Query.Monad.Trans.Join (join')
 import Database.Relational.Query.Monad.Trans.Restricting
   (Restrictings, restrictings, extractRestrict)
@@ -47,7 +46,7 @@ import Database.Relational.Query.Monad.Trans.Aggregating
   (aggregatings, extractAggregateTerms, AggregatingSetT, PartitioningSet)
 import Database.Relational.Query.Monad.Trans.Ordering
   (Orderings, orderings, OrderedQuery, extractOrderingTerms)
-import Database.Relational.Query.Monad.Type (ConfigureQuery, QueryCore, extractCore)
+import Database.Relational.Query.Monad.Type (ConfigureQuery, askConfig, QueryCore, extractCore)
 
 
 -- | Aggregated query monad type.

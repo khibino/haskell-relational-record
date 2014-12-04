@@ -12,10 +12,11 @@
 -- This module defines monad structure to qualify uniquely SQL table forms.
 module Database.Relational.Query.Monad.Qualify (
   -- * Qualify monad
-  Qualify,
+  Qualify, qualify,
   evalQualifyPrime, qualifyQuery
   ) where
 
+import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.State (StateT, runStateT, get, modify)
 import Control.Applicative (Applicative)
 import Control.Monad (liftM)
@@ -41,6 +42,10 @@ newAlias =  Qualify $ do
   ai <- get
   modify (+ 1)
   return ai
+
+-- | Lift to 'Qualify'
+qualify :: Monad m => m a -> Qualify m a
+qualify =  Qualify . lift
 
 -- | Get qualifyed table form query.
 qualifyQuery :: Monad m

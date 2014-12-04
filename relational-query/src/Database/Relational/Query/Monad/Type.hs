@@ -10,7 +10,7 @@
 -- This module defines core query type.
 module Database.Relational.Query.Monad.Type (
   -- * Core query monad
-  ConfigureQuery, configureQuery, qualifyQuery, QueryCore, extractCore
+  ConfigureQuery, configureQuery, qualifyQuery, askConfig, QueryCore, extractCore
   ) where
 
 import Data.Functor.Identity (Identity, runIdentity)
@@ -19,22 +19,27 @@ import Database.Relational.Query.Component (Config, Duplication, QueryRestrictio
 import Database.Relational.Query.Sub (Qualified, JoinProduct)
 import Database.Relational.Query.Context (Flat)
 import qualified Database.Relational.Query.Monad.Qualify as Qualify
-import Database.Relational.Query.Monad.Qualify (Qualify, evalQualifyPrime)
-import Database.Relational.Query.Monad.Trans.Config (QueryConfig, runQueryConfig, config)
+import Database.Relational.Query.Monad.Qualify (Qualify, qualify, evalQualifyPrime)
+import Database.Relational.Query.Monad.Trans.Config (QueryConfig, runQueryConfig)
+import qualified Database.Relational.Query.Monad.Trans.Config as Config
 import Database.Relational.Query.Monad.Trans.Join (QueryJoin, extractProduct)
 import Database.Relational.Query.Monad.Trans.Restricting (Restrictings, extractRestrict)
 
 
 -- | Thin monad type for untyped structure.
-type ConfigureQuery = QueryConfig (Qualify Identity)
+type ConfigureQuery = Qualify (QueryConfig Identity)
 
 -- | Run 'ConfigureQuery' monad with initial state to get only result.
-configureQuery :: ConfigureQuery c -> Config -> c
-configureQuery c = runIdentity . evalQualifyPrime . runQueryConfig c
+configureQuery :: ConfigureQuery q -> Config -> q
+configureQuery cq c = runIdentity $ runQueryConfig (evalQualifyPrime cq) c
 
 -- | Get qualifyed table form query.
 qualifyQuery :: a -> ConfigureQuery (Qualified a)
-qualifyQuery =  config . Qualify.qualifyQuery
+qualifyQuery =  Qualify.qualifyQuery
+
+-- | Read configuration.
+askConfig :: ConfigureQuery Config
+askConfig =  qualify Config.askConfig
 
 -- | Core query monad type used from flat(not-aggregated) query and aggregated query.
 type QueryCore = Restrictings Flat (QueryJoin ConfigureQuery)
