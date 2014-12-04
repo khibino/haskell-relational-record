@@ -20,8 +20,7 @@ import Database.Relational.Query.Sub (Qualified, JoinProduct)
 import Database.Relational.Query.Context (Flat)
 import qualified Database.Relational.Query.Monad.Qualify as Qualify
 import Database.Relational.Query.Monad.Qualify (Qualify, qualify, evalQualifyPrime)
-import Database.Relational.Query.Monad.Trans.Config (QueryConfig, runQueryConfig)
-import qualified Database.Relational.Query.Monad.Trans.Config as Config
+import Database.Relational.Query.Monad.Trans.Config (QueryConfig, runQueryConfig, askQueryConfig)
 import Database.Relational.Query.Monad.Trans.Join (QueryJoin, extractProduct)
 import Database.Relational.Query.Monad.Trans.Restricting (Restrictings, extractRestrict)
 
@@ -39,7 +38,7 @@ qualifyQuery =  Qualify.qualifyQuery
 
 -- | Read configuration.
 askConfig :: ConfigureQuery Config
-askConfig =  qualify Config.askConfig
+askConfig =  qualify askQueryConfig
 
 -- | Core query monad type used from flat(not-aggregated) query and aggregated query.
 type QueryCore = Restrictings Flat (QueryJoin ConfigureQuery)

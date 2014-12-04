@@ -13,7 +13,7 @@
 module Database.Relational.Query.Monad.Trans.Config (
   -- * Transformer into query with configuration
   QueryConfig, config,
-  runQueryConfig, askConfig
+  runQueryConfig, askQueryConfig
   ) where
 
 import Control.Monad.Trans.Class (lift)
@@ -37,5 +37,5 @@ config :: Monad m => m a -> QueryConfig m a
 config =  QueryConfig . lift
 
 -- | Read configuration.
-askConfig :: Monad m => QueryConfig m Config
-askConfig =  QueryConfig ask
+askQueryConfig :: Monad m => QueryConfig m Config
+askQueryConfig =  QueryConfig ask
