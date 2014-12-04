@@ -40,7 +40,7 @@ import Database.Relational.Query.Projectable
 import Database.Relational.Query.Monad.Trans.Assigning (assignings, (<-#))
 import Database.Relational.Query.Monad.Restrict (Restrict, RestrictedStatement)
 import qualified Database.Relational.Query.Monad.Restrict as Restrict
-import Database.Relational.Query.Monad.Target (TargetAssignStatement)
+import Database.Relational.Query.Monad.Target (AssignStatement)
 import qualified Database.Relational.Query.Monad.Target as Target
 
 
@@ -73,29 +73,29 @@ instance TableDerivable r => Show (Restriction p r) where
   show = showStringSQL . sqlWhereFromRestriction derivedTable
 
 -- | UpdateTarget type with place-holder parameter 'p' and projection record type 'r'.
-newtype UpdateTarget p r = UpdateTarget (TargetAssignStatement r ())
+newtype UpdateTarget p r = UpdateTarget (AssignStatement r ())
 
 -- | Not finalized 'Target' monad type.
-type UpdateTargetContext p r = TargetAssignStatement r (PlaceHolders p)
+type UpdateTargetContext p r = AssignStatement r (PlaceHolders p)
 
 -- | Finalize 'Target' monad and generate 'UpdateTarget'.
-updateTarget :: TargetAssignStatement r ()
+updateTarget :: AssignStatement r ()
              -> UpdateTarget () r
 updateTarget =  UpdateTarget
 
 -- | Finalize 'Target' monad and generate 'UpdateTarget' with place-holder parameter 'p'.
-updateTarget' :: TargetAssignStatement r (PlaceHolders p)
+updateTarget' :: AssignStatement r (PlaceHolders p)
               -> UpdateTarget p r
 updateTarget' qf = UpdateTarget $ fmap (const ()) . qf
 
 _runUpdateTarget :: UpdateTarget p r
-                 -> TargetAssignStatement r (PlaceHolders p)
+                 -> AssignStatement r (PlaceHolders p)
 _runUpdateTarget (UpdateTarget qf) =
   fmap fst . addPlaceHolders . qf
 
 updateAllColumn :: PersistableWidth r
                 => Restriction p r
-                -> TargetAssignStatement r (PlaceHolders (r, p))
+                -> AssignStatement r (PlaceHolders (r, p))
 updateAllColumn rs proj = do
   (ph0, ()) <- placeholder (\ph -> id' <-# ph)
   ph1       <- assignings $ runRestriction rs proj

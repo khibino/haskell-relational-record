@@ -10,7 +10,7 @@
 -- This module contains definitions about restrict context with assignment monad type.
 module Database.Relational.Query.Monad.Target (
   -- * Monad to restrict target records with assignment.
-  TargetAssign, TargetAssignStatement,
+  Assign, AssignStatement,
   -- updateStatement,
   extract,
   ) where
@@ -24,18 +24,18 @@ import qualified Database.Relational.Query.Monad.Restrict as Restrict
 import Database.Relational.Query.Monad.Trans.Assigning (Assignings, extractAssignments)
 
 -- | Target update monad type used from update statement and merge statement.
-type TargetAssign r = Assignings r Restrict
+type Assign r = Assignings r Restrict
 
--- | TargetAssignStatement type synonym.
+-- | AssignStatement type synonym.
 --   Specifying assignments and restrictions like update statement.
 --   Projection record type must be
 --   the same as 'Target' type parameter 'r'.
-type TargetAssignStatement r a = Projection Flat r -> TargetAssign r a
+type AssignStatement r a = Projection Flat r -> Assign r a
 
 -- -- | 'return' of 'Update'
 -- updateStatement :: a -> Assignings r (Restrictings Identity) a
 -- updateStatement =  assignings . restrictings . Identity
 
--- | Run 'TargetAssign'.
-extract :: TargetAssign r a -> ((a, Table r -> Assignments), QueryRestriction Flat)
+-- | Run 'Assign'.
+extract :: Assign r a -> ((a, Table r -> Assignments), QueryRestriction Flat)
 extract =  Restrict.extract . extractAssignments
