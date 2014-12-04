@@ -16,7 +16,7 @@ module Database.Relational.Query.Monad.Trans.Config (
   runQueryConfig, askConfig
   ) where
 
-import Control.Monad.Trans.Class (MonadTrans (lift))
+import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Reader (ReaderT, runReaderT, ask)
 import Control.Applicative (Applicative)
 
@@ -26,7 +26,7 @@ import Database.Relational.Query.Component (Config)
 -- | 'ReaderT' type to require query generate configuration.
 newtype QueryConfig m a =
   QueryConfig { queryConfig :: ReaderT Config m a }
-  deriving (MonadTrans, Monad, Functor, Applicative)
+  deriving (Monad, Functor, Applicative)
 
 -- | Run 'QueryConfig' to expand with configuration
 runQueryConfig :: QueryConfig m a -> Config -> m a
@@ -34,8 +34,8 @@ runQueryConfig =  runReaderT . queryConfig
 
 -- | Lift to 'QueryConfig'.
 config :: Monad m => m a -> QueryConfig m a
-config =  lift
+config =  QueryConfig . lift
 
 -- | Read configuration.
 askConfig :: Monad m => QueryConfig m Config
-askConfig =  QueryConfig $ ask
+askConfig =  QueryConfig ask
