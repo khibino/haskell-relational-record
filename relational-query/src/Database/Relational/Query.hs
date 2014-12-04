@@ -69,7 +69,7 @@ import Database.Relational.Query.Monad.Aggregate
   (QueryAggregate, AggregatedQuery, Window, partitionBy, over)
 import Database.Relational.Query.Monad.Unique (QueryUnique)
 import Database.Relational.Query.Monad.Restrict (Restrict)
-import Database.Relational.Query.Monad.Target (Target)
+import Database.Relational.Query.Monad.Target (TargetAssign)
 import Database.Relational.Query.Relation
 import Database.Relational.Query.Scalar (ScalarDegree)
 import Database.Relational.Query.Type hiding
