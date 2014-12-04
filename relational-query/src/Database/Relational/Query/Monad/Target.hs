@@ -12,7 +12,7 @@ module Database.Relational.Query.Monad.Target (
   -- * Monad to restrict target records with assignment.
   TargetAssign, TargetAssignStatement,
   -- updateStatement,
-  extract
+  extract,
   ) where
 
 import Database.Relational.Query.Component (QueryRestriction, Assignments)
@@ -27,7 +27,8 @@ import Database.Relational.Query.Monad.Trans.Assigning (Assignings, extractAssig
 type TargetAssign r = Assignings r Restrict
 
 -- | TargetAssignStatement type synonym.
---   Table and projection record type must be
+--   Specifying assignments and restrictions like update statement.
+--   Projection record type must be
 --   the same as 'Target' type parameter 'r'.
 type TargetAssignStatement r a = Projection Flat r -> TargetAssign r a
 
@@ -35,6 +36,6 @@ type TargetAssignStatement r a = Projection Flat r -> TargetAssign r a
 -- updateStatement :: a -> Assignings r (Restrictings Identity) a
 -- updateStatement =  assignings . restrictings . Identity
 
--- | Run 'Target'.
+-- | Run 'TargetAssign'.
 extract :: TargetAssign r a -> ((a, Table r -> Assignments), QueryRestriction Flat)
 extract =  Restrict.extract . extractAssignments
