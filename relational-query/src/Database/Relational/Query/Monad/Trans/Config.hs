@@ -12,7 +12,7 @@
 -- This module defines monad transformer which requires query generate configuration.
 module Database.Relational.Query.Monad.Trans.Config (
   -- * Transformer into query with configuration
-  QueryConfig, config,
+  QueryConfig, queryConfig,
   runQueryConfig, askQueryConfig
   ) where
 
@@ -33,8 +33,8 @@ runQueryConfig :: QueryConfig m a -> Config -> m a
 runQueryConfig (QueryConfig r) = runReaderT r
 
 -- | Lift to 'QueryConfig'.
-config :: Monad m => m a -> QueryConfig m a
-config =  QueryConfig . lift
+queryConfig :: Monad m => m a -> QueryConfig m a
+queryConfig =  QueryConfig . lift
 
 -- | Read configuration.
 askQueryConfig :: Monad m => QueryConfig m Config
