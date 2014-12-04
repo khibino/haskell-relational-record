@@ -25,12 +25,12 @@ import Database.Relational.Query.Component (Config)
 
 -- | 'ReaderT' type to require query generate configuration.
 newtype QueryConfig m a =
-  QueryConfig { queryConfig :: ReaderT Config m a }
+  QueryConfig (ReaderT Config m a)
   deriving (Monad, Functor, Applicative)
 
 -- | Run 'QueryConfig' to expand with configuration
 runQueryConfig :: QueryConfig m a -> Config -> m a
-runQueryConfig =  runReaderT . queryConfig
+runQueryConfig (QueryConfig r) = runReaderT r
 
 -- | Lift to 'QueryConfig'.
 config :: Monad m => m a -> QueryConfig m a
