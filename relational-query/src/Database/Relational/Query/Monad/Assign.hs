@@ -1,5 +1,5 @@
 -- |
--- Module      : Database.Relational.Query.Monad.Target
+-- Module      : Database.Relational.Query.Monad.Assign
 -- Copyright   : 2013 Kei Hibino
 -- License     : BSD3
 --
@@ -8,7 +8,7 @@
 -- Portability : unknown
 --
 -- This module contains definitions about restrict context with assignment monad type.
-module Database.Relational.Query.Monad.Target (
+module Database.Relational.Query.Monad.Assign (
   -- * Monad to restrict target records with assignment.
   Assign, AssignStatement,
   -- updateStatement,

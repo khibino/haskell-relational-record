@@ -48,7 +48,7 @@ library
                        Database.Relational.Query.Monad.Aggregate
                        Database.Relational.Query.Monad.Unique
                        Database.Relational.Query.Monad.Restrict
-                       Database.Relational.Query.Monad.Target
+                       Database.Relational.Query.Monad.Assign
                        Database.Relational.Query.Relation
                        Database.Relational.Query.Restriction
                        Database.Relational.Query.Scalar

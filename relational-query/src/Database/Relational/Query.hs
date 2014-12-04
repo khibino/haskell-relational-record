@@ -30,7 +30,7 @@ module Database.Relational.Query (
   module Database.Relational.Query.Monad.Aggregate,
   module Database.Relational.Query.Monad.Unique,
   module Database.Relational.Query.Monad.Restrict,
-  module Database.Relational.Query.Monad.Target,
+  module Database.Relational.Query.Monad.Assign,
   module Database.Relational.Query.Relation,
   module Database.Relational.Query.Scalar,
   module Database.Relational.Query.Type,
@@ -69,7 +69,7 @@ import Database.Relational.Query.Monad.Aggregate
   (QueryAggregate, AggregatedQuery, Window, partitionBy, over)
 import Database.Relational.Query.Monad.Unique (QueryUnique)
 import Database.Relational.Query.Monad.Restrict (Restrict)
-import Database.Relational.Query.Monad.Target (Assign)
+import Database.Relational.Query.Monad.Assign (Assign)
 import Database.Relational.Query.Relation
 import Database.Relational.Query.Scalar (ScalarDegree)
 import Database.Relational.Query.Type hiding

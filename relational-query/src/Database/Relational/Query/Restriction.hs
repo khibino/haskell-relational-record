@@ -40,8 +40,8 @@ import Database.Relational.Query.Projectable
 import Database.Relational.Query.Monad.Trans.Assigning (assignings, (<-#))
 import Database.Relational.Query.Monad.Restrict (Restrict, RestrictedStatement)
 import qualified Database.Relational.Query.Monad.Restrict as Restrict
-import Database.Relational.Query.Monad.Target (AssignStatement)
-import qualified Database.Relational.Query.Monad.Target as Target
+import Database.Relational.Query.Monad.Assign (AssignStatement)
+import qualified Database.Relational.Query.Monad.Assign as Assign
 
 
 -- | Restriction type with place-holder parameter 'p' and projection record type 'r'.
@@ -129,4 +129,4 @@ updateTargetAllColumn' = liftTargetAllColumn' . restriction'
 -- | SQL SET clause and WHERE clause 'StringSQL' string from 'UpdateTarget'
 sqlFromUpdateTarget :: Table r -> UpdateTarget p r -> StringSQL
 sqlFromUpdateTarget tbl (UpdateTarget q) = composeSets (asR tbl) <> composeWhere rs
-  where ((_ph, asR), rs) = Target.extract (q (Projection.unsafeFromTable tbl))
+  where ((_ph, asR), rs) = Assign.extract (q (Projection.unsafeFromTable tbl))
