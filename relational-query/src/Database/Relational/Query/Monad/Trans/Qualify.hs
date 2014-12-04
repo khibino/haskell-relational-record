@@ -1,7 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 -- |
--- Module      : Database.Relational.Query.Monad.Qualify
+-- Module      : Database.Relational.Query.Monad.Trans.Qualify
 -- Copyright   : 2013 Kei Hibino
 -- License     : BSD3
 --
@@ -9,8 +9,8 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- This module defines monad structure to qualify uniquely SQL table forms.
-module Database.Relational.Query.Monad.Qualify (
+-- This module defines monad transformer which qualify uniquely SQL table forms.
+module Database.Relational.Query.Monad.Trans.Qualify (
   -- * Qualify monad
   Qualify, qualify,
   evalQualifyPrime, qualifyQuery

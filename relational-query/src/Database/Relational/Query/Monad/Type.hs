@@ -18,8 +18,8 @@ import Data.Functor.Identity (Identity, runIdentity)
 import Database.Relational.Query.Component (Config, Duplication, QueryRestriction)
 import Database.Relational.Query.Sub (Qualified, JoinProduct)
 import Database.Relational.Query.Context (Flat)
-import qualified Database.Relational.Query.Monad.Qualify as Qualify
-import Database.Relational.Query.Monad.Qualify (Qualify, qualify, evalQualifyPrime)
+import qualified Database.Relational.Query.Monad.Trans.Qualify as Qualify
+import Database.Relational.Query.Monad.Trans.Qualify (Qualify, qualify, evalQualifyPrime)
 import Database.Relational.Query.Monad.Trans.Config (QueryConfig, runQueryConfig, askQueryConfig)
 import Database.Relational.Query.Monad.Trans.Join (QueryJoin, extractProduct)
 import Database.Relational.Query.Monad.Trans.Restricting (Restrictings, extractRestrict)
