@@ -195,15 +195,15 @@ unsafeFlatUniOp :: (SqlProjectable p, ProjectableShowSql p)
                => Keyword -> p a -> p b
 unsafeFlatUniOp kw = unsafeUniOp (SQL.paren . SQL.defineUniOp kw)
 
-parenBin :: SqlBinOp -> SqlBinOp
-parenBin op x y = SQL.paren $ op x y
+parenBinStr :: SqlBinOp -> String -> String -> String
+parenBinStr op = SQL.strBinOp $ \x y -> SQL.paren $ op x y
 
 -- | Unsafely make projection binary operator from string binary operator.
 unsafeBinOp :: (SqlProjectable p, ProjectableShowSql p)
             => SqlBinOp
             -> p a -> p b -> p c
 unsafeBinOp op a b = unsafeProjectSql
-                     $ SQL.strBinOp (parenBin op) (unsafeShowSql a) (unsafeShowSql b)
+                     $ parenBinStr op (unsafeShowSql a) (unsafeShowSql b)
 
 -- | Unsafely make compare projection binary operator from string binary operator.
 compareBinOp :: (SqlProjectable p, ProjectableShowSql p)
@@ -420,14 +420,14 @@ caseMaybe v cs = case' v cs unsafeValueNull
 in' :: (SqlProjectable p, ProjectableShowSql p)
     => p t -> ListProjection p t -> p (Maybe Bool)
 in' a lp = unsafeProjectSql
-           $ SQL.strBinOp (parenBin SQL.in') (unsafeShowSql a) (unsafeShowSqlListProjection unsafeShowSql lp)
+           $ parenBinStr SQL.in' (unsafeShowSql a) (unsafeShowSqlListProjection unsafeShowSql lp)
 
 -- | Operator corresponding SQL /IS NULL/ , and extended against record types.
 isNothing :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
           => Projection c (Maybe r) -> Projection c (Maybe Bool)
-isNothing mr = unsafeProjectSql . SQL.wordShow $
-               parenBin (SQL.defineBinOp SQL.IS)
-               (SQL.word $ Projection.unsafeShowSqlNotNullMaybeProjection mr) SQL.NULL
+isNothing mr = unsafeProjectSql $
+               parenBinStr (SQL.defineBinOp SQL.IS)
+               (Projection.unsafeShowSqlNotNullMaybeProjection mr) (SQL.wordShow SQL.NULL)
 
 {-# DEPRECATED isNull "Use isNothing instead of this." #-}
 -- | Same as 'isNothing'.
