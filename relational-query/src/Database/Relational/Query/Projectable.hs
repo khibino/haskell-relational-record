@@ -449,7 +449,7 @@ isNotNull =  isJust
 -- | Operator from maybe type using record extended 'isNull'.
 fromMaybe' :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
            => Projection c r -> Projection c (Maybe r) -> Projection c r
-fromMaybe' d p = [ (isJust p, unsafeCastProjectable p) ] `casesOrElse` d
+fromMaybe' d p = [ (isNothing p, d) ] `casesOrElse` unsafeCastProjectable p
 
 unsafeUniTermFunction :: SqlProjectable p => Keyword -> p t
 unsafeUniTermFunction =  unsafeProjectSql . (++ "()") . SQL.wordShow
