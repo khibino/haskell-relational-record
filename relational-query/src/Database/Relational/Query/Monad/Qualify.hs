@@ -16,8 +16,9 @@ module Database.Relational.Query.Monad.Qualify (
   evalQualifyPrime, qualifyQuery
   ) where
 
-import Control.Monad.Trans.State (State, runState, get, modify)
+import Control.Monad.Trans.State (StateT, runStateT, get, modify)
 import Control.Applicative (Applicative)
+import Control.Monad (liftM)
 
 import Database.Relational.Query.Sub (Qualified)
 import qualified Database.Relational.Query.Sub as SubQuery
@@ -26,24 +27,25 @@ import qualified Database.Relational.Query.Sub as SubQuery
 type AliasId = Int
 
 -- | Monad type to qualify SQL table forms.
-newtype Qualify a =
-  Qualify (State AliasId a)
+newtype Qualify m a =
+  Qualify (StateT AliasId m a)
   deriving (Monad, Functor, Applicative)
 
 -- | Run qualify monad with initial state to get only result.
-evalQualifyPrime :: Qualify a -> a
-evalQualifyPrime (Qualify s) = fst $ runState s 0 {- primary alias id -}
+evalQualifyPrime :: Monad m => Qualify m a -> m a
+evalQualifyPrime (Qualify s) = fst `liftM` runStateT s 0 {- primary alias id -}
 
 -- | Generated new qualifier on internal state.
-newAlias :: Qualify AliasId
+newAlias :: Monad m => Qualify m AliasId
 newAlias =  Qualify $ do
   ai <- get
   modify (+ 1)
   return ai
 
 -- | Get qualifyed table form query.
-qualifyQuery :: query                     -- ^ Query to qualify
-             -> Qualify (Qualified query) -- ^ Result with updated state
+qualifyQuery :: Monad m
+             => query                       -- ^ Query to qualify
+             -> Qualify m (Qualified query) -- ^ Result with updated state
 qualifyQuery query =
   do n <- newAlias
      return . SubQuery.qualify query $ SubQuery.Qualifier n

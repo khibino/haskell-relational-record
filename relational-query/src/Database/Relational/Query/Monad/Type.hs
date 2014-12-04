@@ -13,6 +13,8 @@ module Database.Relational.Query.Monad.Type (
   ConfigureQuery, configureQuery, qualifyQuery, QueryCore, extractCore
   ) where
 
+import Data.Functor.Identity (Identity, runIdentity)
+
 import Database.Relational.Query.Component (Config, Duplication, QueryRestriction)
 import Database.Relational.Query.Sub (Qualified, JoinProduct)
 import Database.Relational.Query.Context (Flat)
@@ -24,11 +26,11 @@ import Database.Relational.Query.Monad.Trans.Restricting (Restrictings, extractR
 
 
 -- | Thin monad type for untyped structure.
-type ConfigureQuery = QueryConfig Qualify
+type ConfigureQuery = QueryConfig (Qualify Identity)
 
 -- | Run 'ConfigureQuery' monad with initial state to get only result.
 configureQuery :: ConfigureQuery c -> Config -> c
-configureQuery c = evalQualifyPrime . runQueryConfig c
+configureQuery c = runIdentity . evalQualifyPrime . runQueryConfig c
 
 -- | Get qualifyed table form query.
 qualifyQuery :: a -> ConfigureQuery (Qualified a)
