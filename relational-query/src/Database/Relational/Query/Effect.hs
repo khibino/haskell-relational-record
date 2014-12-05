@@ -7,8 +7,8 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- This module defines simple restriction
--- for update and delete statement.
+-- This module defines effect statements
+-- like update and delete.
 module Database.Relational.Query.Effect (
   -- * Object to express simple restriction.
   Restriction, RestrictionContext, restriction, restriction',
