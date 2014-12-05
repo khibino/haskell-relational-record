@@ -1,5 +1,5 @@
 -- |
--- Module      : Database.Relational.Query.Relation
+-- Module      : Database.Relational.Query.Effect
 -- Copyright   : 2013 Kei Hibino
 -- License     : BSD3
 --
@@ -9,7 +9,7 @@
 --
 -- This module defines simple restriction
 -- for update and delete statement.
-module Database.Relational.Query.Restriction (
+module Database.Relational.Query.Effect (
   -- * Object to express simple restriction.
   Restriction, RestrictionContext, restriction, restriction',
 

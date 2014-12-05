@@ -34,7 +34,7 @@ module Database.Relational.Query (
   module Database.Relational.Query.Relation,
   module Database.Relational.Query.Scalar,
   module Database.Relational.Query.Type,
-  module Database.Relational.Query.Restriction,
+  module Database.Relational.Query.Effect,
   module Database.Relational.Query.Derives
   ) where
 
@@ -75,5 +75,5 @@ import Database.Relational.Query.Scalar (ScalarDegree)
 import Database.Relational.Query.Type hiding
   (unsafeTypedQuery, unsafeTypedKeyUpdate, unsafeTypedUpdate,
    unsafeTypedInsert, unsafeTypedInsertQuery, unsafeTypedDelete)
-import Database.Relational.Query.Restriction
+import Database.Relational.Query.Effect
 import Database.Relational.Query.Derives

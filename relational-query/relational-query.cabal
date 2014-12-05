@@ -50,7 +50,7 @@ library
                        Database.Relational.Query.Monad.Restrict
                        Database.Relational.Query.Monad.Assign
                        Database.Relational.Query.Relation
-                       Database.Relational.Query.Restriction
+                       Database.Relational.Query.Effect
                        Database.Relational.Query.Scalar
                        Database.Relational.Query.Type
                        Database.Relational.Query.Derives
