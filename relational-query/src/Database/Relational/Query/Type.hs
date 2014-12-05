@@ -194,16 +194,16 @@ unsafeTypedInsertQuery :: String -> InsertQuery p
 unsafeTypedInsertQuery =  InsertQuery
 
 -- | Make untyped insert select SQL string from 'Table' and 'Relation'.
-insertQuerySQL :: Config -> Pi r r' -> Table r -> Relation p r' -> String
-insertQuerySQL config pi' tbl rel = showStringSQL $ insertPrefixSQL pi' tbl <> sqlFromRelationWith rel config
+insertQuerySQL :: TableDerivable r => Config -> Pi r r' -> Relation p r' -> String
+insertQuerySQL config pi' rel = showStringSQL $ insertPrefixSQL pi' derivedTable <> sqlFromRelationWith rel config
 
 -- | Make typed 'InsertQuery' from columns selector 'Pi' and 'Table' and 'Relation'.
-typedInsertQuery :: Pi r r' -> Table r -> Relation p r' -> InsertQuery p
-typedInsertQuery pi' tbl rel = unsafeTypedInsertQuery $ insertQuerySQL defaultConfig pi' tbl rel
+typedInsertQuery :: TableDerivable r => Pi r r' -> Relation p r' -> InsertQuery p
+typedInsertQuery pi' rel = unsafeTypedInsertQuery $ insertQuerySQL defaultConfig pi' rel
 
 -- | Infered 'InsertQuery'.
 derivedInsertQuery :: TableDerivable r => Relation p r -> InsertQuery p
-derivedInsertQuery =  typedInsertQuery Pi.id' derivedTable
+derivedInsertQuery =  typedInsertQuery Pi.id'
 
 -- | Show insert SQL string.
 instance Show (InsertQuery p) where
