@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ExplicitForAll #-}
+{-# LANGUAGE ParallelListComp #-}
 
 -- |
 -- Module      : Database.Relational.Query.TH
@@ -57,7 +58,8 @@ module Database.Relational.Query.TH (
   defineProductConstructorInstance,
 
   -- * Reify
-  reifyRelation
+  makeRelationalRecordDefault,
+  reifyRelation,
   ) where
 
 import Data.Char (toUpper, toLower)
@@ -65,10 +67,10 @@ import Data.List (foldl1')
 import Data.Array.IArray ((!))
 
 import Language.Haskell.TH
-  (Name, Q, reify, Info (VarI), TypeQ, Type (AppT, ConT), ExpQ,
+  (Name, nameBase, Q, reify, Info (VarI), TypeQ, Type (AppT, ConT), ExpQ,
    tupleT, appT, arrowT, Dec, stringE, listE)
 import Language.Haskell.TH.Name.CamelCase
-  (VarName, varName, ConName, conName, varNameWithPrefix, varCamelcaseName, toVarExp, toTypeCon, toDataCon)
+  (VarName, varName, ConName (ConName), conName, varNameWithPrefix, varCamelcaseName, toVarExp, toTypeCon, toDataCon)
 import Language.Haskell.TH.Lib.Extra (simpleValD, maybeD, integralE)
 
 import Database.Record.TH
@@ -422,3 +424,19 @@ inlineQuery relVar rel config sufs qns = do
   unsafeInlineQuery (return p) (return r)
     (relationalQuerySQL config rel sufs)
     (varCamelcaseName qns)
+
+-- | Generate all templates against defined record like type constructor
+--   other than depending on sql-value type.
+makeRelationalRecordDefault :: Name    -- ^ Type constructor name
+                             -> Q [Dec] -- ^ Resutl declaration
+makeRelationalRecordDefault recTypeName = do
+  let recTypeConName = ConName recTypeName
+  ((tyCon, dataCon), (mayNs, cts)) <- Record.reifyRecordType recTypeName
+  pw <- Record.defineColumnOffsets recTypeConName cts
+  cs <- maybe
+        (return [])
+        (\ns -> defineColumnsDefault recTypeConName
+                [ ((nameBase n, ct), Nothing) | n  <- ns  | ct <- cts ])
+        mayNs
+  pc <- defineProductConstructorInstance tyCon dataCon cts
+  return $ concat [pw, cs, pc]
