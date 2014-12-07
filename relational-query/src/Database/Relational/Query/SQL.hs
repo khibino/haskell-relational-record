@@ -20,7 +20,7 @@ module Database.Relational.Query.SQL (
   updateOtherThanKeySQL', updateOtherThanKeySQL,
 
   -- * Insert SQL
-  insertPrefixSQL, insertSQL,
+  insertPrefixSQL, insertSQL, insertSizedChunkSQL,
 
   -- * Delete SQL
   deletePrefixSQL', deletePrefixSQL
@@ -97,12 +97,29 @@ insertPrefixSQL pi' table =
   INSERT <> INTO <> stringSQL (name table) <> rowStringSQL [showsColumnSQL c | c <- cols]  where
     cols = Projection.columns . Projection.pi (Projection.unsafeFromTable table) $ pi'
 
+-- | Generate records chunk insert SQL.
+insertChunkSQL :: Int     -- ^ Records count to insert
+               -> Pi r r' -- ^ Columns selector to insert
+               -> Table r -- ^ Table metadata
+               -> String  -- ^ Result SQL
+insertChunkSQL n pi' tbl = showStringSQL $ insertPrefixSQL pi' tbl <> VALUES <> vs  where
+  w = UnsafePi.width pi'
+  vs = SQL.fold (|*|) . replicate n $ rowStringSQL (replicate w "?")
+
+-- | Generate size measured records chunk insert SQL.
+insertSizedChunkSQL :: Pi r r' -- ^ Columns selector to insert
+                    -> Table r -- ^ Table metadata
+                    -> Int     -- ^ Chunk size threshold (column count)
+                    -> String  -- ^ Result SQL
+insertSizedChunkSQL pi' tbl th = insertChunkSQL n pi' tbl  where
+  w = UnsafePi.width pi'
+  n = th `quot` w + 1
+
 -- | Generate insert SQL.
 insertSQL :: Pi r r' -- ^ Columns selector to insert
           -> Table r -- ^ Table metadata
           -> String  -- ^ Result SQL
-insertSQL pi' tbl = showStringSQL $ insertPrefixSQL pi' tbl <> VALUES <> rowStringSQL (replicate w "?")
-  where w = UnsafePi.width pi'
+insertSQL =  insertChunkSQL 1
 
 -- | Generate all column delete SQL by specified table. Untyped table version.
 deletePrefixSQL' :: String -> StringSQL
