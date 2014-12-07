@@ -18,7 +18,7 @@ module Database.Relational.Query.Pi.Unsafe (
 
   pfmap, pap,
 
-  width',
+  width', width,
 
   (<.>), (<?.>), (<?.?>),
 
@@ -63,8 +63,8 @@ unsafePiAppend f (Pi p0 _) (Pi p1 w) =
 unsafeExpandIndexes :: Pi a b -> [Int]
 unsafeExpandIndexes = d  where
   d (Pi (Map is) _)    = is
-  d (Pi (Leftest i) w) = [ i .. i + width - 1 ]  where
-    width = runPersistableRecordWidth w
+  d (Pi (Leftest i) w) = [ i .. i + w' - 1 ]  where
+    w' = runPersistableRecordWidth w
 
 -- | Unsafely cast width proof object of record. Result record must be same width.
 unsafeCastRecordWidth :: PersistableRecordWidth a -> PersistableRecordWidth a'
@@ -91,6 +91,10 @@ pap b@(Pi _ wb) c@(Pi _ wc) =
 -- | Get record width proof object.
 width' :: Pi r ct -> PersistableRecordWidth ct
 width' (Pi _ w) = w
+
+-- | Get record width.
+width :: Pi r a -> Int
+width =  runPersistableRecordWidth . width'
 
 -- | Compose projection path.
 (<.>) :: Pi a b -> Pi b c -> Pi a c

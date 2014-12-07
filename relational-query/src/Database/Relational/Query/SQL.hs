@@ -32,7 +32,6 @@ import Data.Monoid (mconcat, (<>))
 import Language.SQL.Keyword (Keyword(..), (.=.), (|*|))
 import qualified Language.SQL.Keyword as SQL
 
-import Database.Record.Persistable (runPersistableRecordWidth)
 import Database.Record.ToSql (untypedUpdateValuesIndex)
 
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL, rowStringSQL)
@@ -103,7 +102,7 @@ insertSQL :: Pi r r' -- ^ Columns selector to insert
           -> Table r -- ^ Table metadata
           -> String  -- ^ Result SQL
 insertSQL pi' tbl = showStringSQL $ insertPrefixSQL pi' tbl <> VALUES <> rowStringSQL (replicate w "?")
-  where w = runPersistableRecordWidth $ UnsafePi.width' pi'
+  where w = UnsafePi.width pi'
 
 -- | Generate all column delete SQL by specified table. Untyped table version.
 deletePrefixSQL' :: String -> StringSQL
