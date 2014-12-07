@@ -11,7 +11,7 @@
 module Database.Relational.Query.Internal.SQL (
   StringSQL, stringSQL, showStringSQL,
 
-  rowStringSQL,
+  rowStringSQL, rowPlaceHolderStringSQL,
 
   rowListStringSQL, rowListStringString
   ) where
@@ -36,6 +36,10 @@ rowStringSQL =  d  where
   d []  = error "Projection: no columns."
   d [c] = c
   d cs  = paren $ fold (|*|) cs
+
+-- | Place holder row String of SQL.
+rowPlaceHolderStringSQL :: Int -> StringSQL
+rowPlaceHolderStringSQL =  rowStringSQL . (`replicate` stringSQL "?")
 
 -- | Rows String of SQL.
 rowListStringSQL :: [StringSQL] -> StringSQL
