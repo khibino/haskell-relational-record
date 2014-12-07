@@ -107,11 +107,11 @@ insertChunkSQL n pi' tbl = showStringSQL $ insertPrefixSQL pi' tbl <> VALUES <> 
   vs = SQL.fold (|*|) . replicate n $ rowStringSQL (replicate w "?")
 
 -- | Generate size measured records chunk insert SQL.
-insertSizedChunkSQL :: Pi r r' -- ^ Columns selector to insert
-                    -> Table r -- ^ Table metadata
-                    -> Int     -- ^ Chunk size threshold (column count)
-                    -> String  -- ^ Result SQL
-insertSizedChunkSQL pi' tbl th = insertChunkSQL n pi' tbl  where
+insertSizedChunkSQL :: Pi r r'       -- ^ Columns selector to insert
+                    -> Table r       -- ^ Table metadata
+                    -> Int           -- ^ Chunk size threshold (column count)
+                    -> (String, Int) -- ^ Result SQL and records count of chunk
+insertSizedChunkSQL pi' tbl th = (insertChunkSQL n pi' tbl, n)  where
   w = UnsafePi.width pi'
   n = th `quot` w + 1
 
