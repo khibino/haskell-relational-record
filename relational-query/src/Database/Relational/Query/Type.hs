@@ -53,8 +53,8 @@ import qualified Database.Relational.Query.Pi as Pi
 import Database.Relational.Query.Component (Config, defaultConfig)
 import Database.Relational.Query.Table (Table, TableDerivable, derivedTable)
 import Database.Relational.Query.SQL
-  (QuerySuffix, showsQuerySuffix,
-   updateOtherThanKeySQL, insertPrefixSQL, insertSQL, updatePrefixSQL, deletePrefixSQL)
+  (QuerySuffix, showsQuerySuffix, insertPrefixSQL, insertSQL, insertSizedChunkSQL,
+   updateOtherThanKeySQL, updatePrefixSQL, deletePrefixSQL)
 
 
 -- | Query type with place-holder parameter 'p' and query result type 'a'.
@@ -168,15 +168,22 @@ instance Show (Update p) where
 
 
 -- | Insert type to insert record type 'a'.
-newtype Insert a   = Insert { untypeInsert :: String }
+data Insert a   =
+  Insert
+  { untypeInsert :: String
+  , untypeChunkInsert :: String
+  , chunkSizeOfInsert :: Int
+  }
 
 -- | Unsafely make typed 'Insert' from SQL string.
-unsafeTypedInsert :: String -> Insert a
+unsafeTypedInsert :: String -> String -> Int -> Insert a
 unsafeTypedInsert =  Insert
 
 -- | Make typed 'Insert' from columns selector 'Pi' and 'Table'.
 typedInsert :: Pi r r' -> Table r -> Insert r'
-typedInsert pi' =  unsafeTypedInsert . insertSQL pi'
+typedInsert pi' tbl = unsafeTypedInsert (insertSQL pi' tbl) ci n  where
+  (ci, n) = insertSizedChunkSQL pi' tbl chunkRecCount
+  chunkRecCount = 256
 
 -- | Infered 'Insert'.
 derivedInsert :: TableDerivable r => Insert r
