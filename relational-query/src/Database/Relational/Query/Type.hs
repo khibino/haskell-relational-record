@@ -24,7 +24,7 @@ module Database.Relational.Query.Type (
   updateSQL,
 
   -- * Typed insert statement
-  Insert (..), unsafeTypedInsert, typedInsert, derivedInsert,
+  Insert (..), unsafeTypedInsert', unsafeTypedInsert, typedInsert, derivedInsert,
   InsertQuery (..), unsafeTypedInsertQuery, typedInsertQuery, derivedInsertQuery,
 
   insertQuerySQL,
@@ -175,13 +175,17 @@ data Insert a   =
   , chunkSizeOfInsert :: Int
   }
 
--- | Unsafely make typed 'Insert' from SQL string.
-unsafeTypedInsert :: String -> String -> Int -> Insert a
-unsafeTypedInsert =  Insert
+-- | Unsafely make typed 'Insert' from single insert and chunked insert SQL.
+unsafeTypedInsert' :: String -> String -> Int -> Insert a
+unsafeTypedInsert' =  Insert
+
+-- | Unsafely make typed 'Insert' from single insert SQL.
+unsafeTypedInsert :: String -> Insert a
+unsafeTypedInsert q = unsafeTypedInsert' q q 1
 
 -- | Make typed 'Insert' from columns selector 'Pi' and 'Table'.
 typedInsert :: Pi r r' -> Table r -> Insert r'
-typedInsert pi' tbl = unsafeTypedInsert (insertSQL pi' tbl) ci n  where
+typedInsert pi' tbl = unsafeTypedInsert' (insertSQL pi' tbl) ci n  where
   (ci, n) = insertSizedChunkSQL pi' tbl chunkRecCount
   chunkRecCount = 256
 
