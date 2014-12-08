@@ -14,7 +14,9 @@
 module Database.HDBC.Record.Insert (
   PreparedInsert, prepare, prepareInsert,
 
-  runPreparedInsert, runInsert, mapInsert, chunksInsert
+  runPreparedInsert, runInsert, mapInsert,
+
+  chunksInsertActions, chunksInsert,
   ) where
 
 import Database.HDBC (IConnection, SqlValue)
@@ -82,17 +84,24 @@ chunks n = rec'  where
     | otherwise  =  Right c : rec' tl  where
       (c, tl) = splitAt n xs
 
--- | Prepare and insert with chunk insert statement.
-chunksInsert :: (IConnection conn, ToSql SqlValue a)
-             => conn
-             -> Insert a
-             -> [a]
-             -> IO [Integer]
-chunksInsert conn i0 rs = do
+-- | Prepare and insert with chunk insert statement. Result is insert action list.
+chunksInsertActions :: (IConnection conn, ToSql SqlValue a)
+                    => conn
+                    -> Insert a
+                    -> [a]
+                    -> IO [ IO [Integer] ]
+chunksInsertActions conn i0 rs = do
   ins    <- unsafePrepare conn $ untypeInsert i0
   iChunk <- unsafePrepare conn $ untypeChunkInsert i0
-  let insert (Right c) =
-        fmap (:[]) .  executeNoFetch $ chunkBind iChunk c
+  let insert (Right c) = do
+        rv <- executeNoFetch $ chunkBind iChunk c
+        return [rv]
       insert (Left  c) =
         mapM (runPreparedInsert ins) c
-  fmap concat . mapM insert $ chunks (chunkSizeOfInsert i0) rs
+  return . map insert $ chunks (chunkSizeOfInsert i0) rs
+
+-- | Prepare and insert with chunk insert statement.
+chunksInsert :: (IConnection conn, ToSql SqlValue a) => conn -> Insert a -> [a] -> IO [[Integer]]
+chunksInsert conn ins rs = do
+  as <- chunksInsertActions conn ins rs
+  sequence as
