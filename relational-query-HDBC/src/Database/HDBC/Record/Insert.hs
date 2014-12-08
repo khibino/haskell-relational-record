@@ -14,16 +14,17 @@
 module Database.HDBC.Record.Insert (
   PreparedInsert, prepare, prepareInsert,
 
-  runPreparedInsert, runInsert, mapInsert
+  runPreparedInsert, runInsert, mapInsert, chunksInsert
   ) where
 
 import Database.HDBC (IConnection, SqlValue)
 
-import Database.Relational.Query (Insert)
-import Database.Record (ToSql)
+import Database.Relational.Query (Insert (..))
+import Database.Record (ToSql, fromRecord)
 
 import Database.HDBC.Record.Statement
-  (prepareNoFetch, PreparedStatement, runPreparedNoFetch, runNoFetch, mapNoFetch)
+  (prepareNoFetch, unsafePrepare, PreparedStatement, untypePrepared, BoundStatement (..),
+   runPreparedNoFetch, runNoFetch, mapNoFetch, executeNoFetch)
 
 
 -- | Typed prepared insert type.
@@ -66,3 +67,32 @@ mapInsert :: (IConnection conn, ToSql SqlValue a)
           -> [a]
           -> IO [Integer]
 mapInsert = mapNoFetch
+
+
+-- | Unsafely bind chunk of records.
+chunkBind :: ToSql SqlValue p => PreparedStatement [p] () -> [p] -> BoundStatement ()
+chunkBind q ps = BoundStatement { bound = untypePrepared q, params =  ps >>= fromRecord }
+
+chunks :: Int -> [a] -> [Either [a] [a]]
+chunks n = rec'  where
+  rec' xs
+    | null tl    =  [ if length c == n
+                      then Right c
+                      else Left  c ]
+    | otherwise  =  Right c : rec' tl  where
+      (c, tl) = splitAt n xs
+
+-- | Prepare and insert with chunk insert statement.
+chunksInsert :: (IConnection conn, ToSql SqlValue a)
+             => conn
+             -> Insert a
+             -> [a]
+             -> IO [Integer]
+chunksInsert conn i0 rs = do
+  ins    <- unsafePrepare conn $ untypeInsert i0
+  iChunk <- unsafePrepare conn $ untypeChunkInsert i0
+  let insert (Right c) =
+        fmap (:[]) .  executeNoFetch $ chunkBind iChunk c
+      insert (Left  c) =
+        mapM (runPreparedInsert ins) c
+  fmap concat . mapM insert $ chunks (chunkSizeOfInsert i0) rs

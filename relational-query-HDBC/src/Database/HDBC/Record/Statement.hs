@@ -12,7 +12,7 @@
 -- This module provides typed statement running sequence
 -- which intermediate structres are typed.
 module Database.HDBC.Record.Statement (
-  PreparedStatement, unsafePrepare,
+  PreparedStatement, untypePrepared, unsafePrepare,
 
   BoundStatement (..), bind', bind, bindTo,
 
@@ -53,6 +53,10 @@ data ExecutedStatement a =
     -- | Result of HDBC execute.
   , result   :: Integer
   }
+
+-- | Unsafely untype prepared statement.
+untypePrepared :: PreparedStatement p a -> Statement
+untypePrepared =  prepared
 
 -- | Run prepare and unsafely make Typed prepared statement.
 unsafePrepare :: IConnection conn
