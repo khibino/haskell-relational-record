@@ -49,7 +49,7 @@ import Database.Relational.Query.Internal.Product
    Node, nodeAttr, nodeTree)
 import Database.Relational.Query.Component
   (ColumnSQL, columnSQL', showsColumnSQL,
-   Config (unitProductSupport), UnitProductSupport (UPSupported, UPNotSupported),
+   Config (productUnitSupport), ProductUnitSupport (UPSupported, UPNotSupported),
    Duplication, showsDuplication, QueryRestriction, composeWhere, composeHaving,
    AggregateElem, composeGroupBy, OrderingTerms, composeOrderBy)
 import Database.Relational.Query.Table (Table, (!))
@@ -167,10 +167,10 @@ toSQLs =  d  where
   d (Bin (BinOp (op, da)) l r) = (SQL.paren q, q)  where
     q = mconcat [normalizedSQL l, showsSetOp op, showsDuplication da, normalizedSQL r]
   d (Flat cf up da pd rs od)   = (SQL.paren q, q)  where
-    q = selectPrefixSQL up da <> showsJoinProduct (unitProductSupport cf) pd <> composeWhere rs
+    q = selectPrefixSQL up da <> showsJoinProduct (productUnitSupport cf) pd <> composeWhere rs
         <> composeOrderBy od
   d (Aggregated cf up da pd rs ag grs od) = (SQL.paren q, q)  where
-    q = selectPrefixSQL up da <> showsJoinProduct (unitProductSupport cf) pd <> composeWhere rs
+    q = selectPrefixSQL up da <> showsJoinProduct (productUnitSupport cf) pd <> composeWhere rs
         <> composeGroupBy ag <> composeHaving grs <> composeOrderBy od
 
 showUnitSQL :: SubQuery -> StringSQL
@@ -344,7 +344,7 @@ showsQueryProduct =  rec  where
 type JoinProduct = Maybe QueryProduct
 
 -- | Shows join product of query.
-showsJoinProduct :: UnitProductSupport -> JoinProduct -> StringSQL
+showsJoinProduct :: ProductUnitSupport -> JoinProduct -> StringSQL
 showsJoinProduct ups =  maybe (up ups) from  where
   from qp = FROM <> showsQueryProduct qp
   up UPSupported    = mempty

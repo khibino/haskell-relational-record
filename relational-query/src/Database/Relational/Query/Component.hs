@@ -17,8 +17,8 @@ module Database.Relational.Query.Component (
   ColumnSQL, columnSQL, columnSQL', showsColumnSQL,
 
   -- * Configuration type for query
-  Config (unitProductSupport), defaultConfig,
-  UnitProductSupport (..), Duplication (..),
+  Config (productUnitSupport), defaultConfig,
+  ProductUnitSupport (..), Duplication (..),
 
   -- * Duplication attribute
   showsDuplication,
@@ -92,16 +92,16 @@ instance Show ColumnSQL where
 -- | Configuration type.
 data Config =
   Config
-  { unitProductSupport :: UnitProductSupport
+  { productUnitSupport :: ProductUnitSupport
   } deriving Show
 
 -- | Default configuration.
 defaultConfig :: Config
-defaultConfig =  Config { unitProductSupport = UPSupported
+defaultConfig =  Config { productUnitSupport = UPSupported
                         }
 
--- | Unit product is supported or not.
-data UnitProductSupport = UPSupported | UPNotSupported  deriving Show
+-- | Unit of product is supported or not.
+data ProductUnitSupport = UPSupported | UPNotSupported  deriving Show
 
 
 -- | Result record duplication attribute
