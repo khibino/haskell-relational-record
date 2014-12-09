@@ -20,6 +20,7 @@ module Database.HDBC.Query.TH (
   defineTableDefault',
   defineTableDefault,
 
+  defineTableFromDB',
   defineTableFromDB,
 
   inlineVerifiedQuery
