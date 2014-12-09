@@ -51,7 +51,7 @@ import Database.Relational.Query.Constraint
 import Database.Relational.Query.Context
 import Database.Relational.Query.Expr hiding (fromJust, just)
 import Database.Relational.Query.Component
-  (Config, defaultConfig, ProductUnitSupport (..), Order (..))
+  (Config (..), defaultConfig, ProductUnitSupport (..), Order (..))
 import Database.Relational.Query.Sub (SubQuery, unitSQL, queryWidth)
 import Database.Relational.Query.Projection (Projection, list)
 import Database.Relational.Query.Projectable
