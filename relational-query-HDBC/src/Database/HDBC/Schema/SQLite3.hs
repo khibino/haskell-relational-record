@@ -14,7 +14,6 @@ module Database.HDBC.Schema.SQLite3 (
   driverSQLite3
   ) where
 
-import qualified Language.Haskell.TH.Lib.Extra as TH
 import qualified Database.Relational.Schema.SQLite3Syscat.IndexInfo as IndexInfo
 import qualified Database.Relational.Schema.SQLite3Syscat.IndexList as IndexList
 import qualified Database.Relational.Schema.SQLite3Syscat.TableInfo as TableInfo
@@ -49,7 +48,7 @@ putLog :: String -> IO ()
 putLog = putStrLn . logPrefix
 
 compileErrorIO :: String -> IO a
-compileErrorIO = TH.compileErrorIO . logPrefix
+compileErrorIO =  fail . logPrefix
 
 getPrimaryKey' :: IConnection conn
                => conn
