@@ -36,6 +36,7 @@ library
                        Database.HDBC.Schema.Driver
                        Database.HDBC.Schema.IBMDB2
                        Database.HDBC.Schema.PostgreSQL
+                       Database.HDBC.Schema.SQLServer
 
   other-modules:
                        Database.HDBC.Record.InternalTH
