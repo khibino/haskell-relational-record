@@ -81,7 +81,7 @@ import qualified Database.Record.TH as Record
 import Database.Record.Instances ()
 
 import Database.Relational.Query
-  (Table, Pi, Relation, Config, ProductConstructor (..),
+  (Table, Pi, Relation, Config (normalizedTableName), ProductConstructor (..),
    relationalQuerySQL, Query, relationalQuery, KeyUpdate,
    Insert, derivedInsert, InsertQuery, derivedInsertQuery,
    HasConstraintKey(constraintKey), Primary, NotNull, primary, primaryUpdate)
@@ -231,8 +231,14 @@ defineTableTypes tableVar' relVar' insVar' insQVar' recordType table columns = d
   dDs <- defineTableDerivations tableVar' relVar' insVar' insQVar' recordType
   return $ iDs ++ dDs
 
-tableSQL :: String -> String -> String
-tableSQL schema table = map toUpper schema ++ '.' : map toLower table
+tableSQL :: Bool -> String -> String -> String
+tableSQL normalize schema table = normalizeS schema ++ '.' : normalizeT table  where
+  normalizeS
+    | normalize = map toUpper
+    | otherwise = id
+  normalizeT
+    | normalize = map toLower
+    | otherwise = id
 
 derivationVarNameDefault :: String -> VarName
 derivationVarNameDefault =  (`varNameWithPrefix` "derivationFrom")
@@ -280,14 +286,14 @@ defineTableTypesDefault :: Config                           -- ^ Configuration t
                         -> String                           -- ^ Table name
                         -> [((String, TypeQ), Maybe TypeQ)] -- ^ Column names and types and constraint type
                         -> Q [Dec]                          -- ^ Result declarations
-defineTableTypesDefault _config schema table columns = do
+defineTableTypesDefault config schema table columns = do
   tableDs <- defineTableTypes
              (tableVarNameDefault table)
              (relationVarNameDefault table)
              (table `varNameWithPrefix` "insert")
              (table `varNameWithPrefix` "insertQuery")
              (recordTypeDefault table)
-             (tableSQL schema table)
+             (tableSQL (normalizedTableName config) schema table)
              (map (fst . fst) columns)
   colsDs <- defineColumnsDefault (recordTypeNameDefault table) columns
   return $ tableDs ++ colsDs
