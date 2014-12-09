@@ -7,7 +7,10 @@ import Data.Int (Int64)
 import Database.Record.TH (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
-$(defineTableTypesAndRecordDefault
+import Database.Relational.Schema.SQLite3Syscat.Config (config)
+
+
+$(defineTableTypesAndRecordDefault config
   "pragma" "index_list"
   [
 -- pragma "main.index_list"

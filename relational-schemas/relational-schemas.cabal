@@ -29,9 +29,15 @@ library
                        Database.Relational.Schema.SQLServerSyscat.Types
                        Database.Relational.Schema.SQLServer
 
+                       Database.Relational.Schema.SQLite3Syscat.IndexInfo
+                       Database.Relational.Schema.SQLite3Syscat.IndexList
+                       Database.Relational.Schema.SQLite3Syscat.TableInfo
+                       Database.Relational.Schema.SQLite3
+
                        Database.Relational.Schema.DB2Syscat.Config
                        Database.Relational.Schema.PgCatalog.Config
                        Database.Relational.Schema.SQLServerSyscat.Config
+                       Database.Relational.Schema.SQLite3Syscat.Config
 
   other-modules:
                        Database.Relational.Schema.DB2Syscat.Tabconst
