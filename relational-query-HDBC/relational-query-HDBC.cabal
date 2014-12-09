@@ -38,6 +38,7 @@ library
                        Database.HDBC.Schema.PostgreSQL
                        Database.HDBC.Schema.SQLServer
                        Database.HDBC.Schema.SQLite3
+                       Database.HDBC.Schema.Oracle
 
   other-modules:
                        Database.HDBC.Record.InternalTH
