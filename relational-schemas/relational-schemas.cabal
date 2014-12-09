@@ -37,11 +37,15 @@ library
                        Database.Relational.Schema.OracleDataDictionary.TabColumns
                        Database.Relational.Schema.Oracle
 
+                       Database.Relational.Schema.MySQLInfo.Columns
+                       Database.Relational.Schema.MySQL
+
                        Database.Relational.Schema.DB2Syscat.Config
                        Database.Relational.Schema.PgCatalog.Config
                        Database.Relational.Schema.SQLServerSyscat.Config
                        Database.Relational.Schema.SQLite3Syscat.Config
                        Database.Relational.Schema.OracleDataDictionary.Config
+                       Database.Relational.Schema.MySQLInfo.Config
 
   other-modules:
                        Database.Relational.Schema.DB2Syscat.Tabconst
@@ -56,6 +60,9 @@ library
 
                        Database.Relational.Schema.OracleDataDictionary.ConsColumns
                        Database.Relational.Schema.OracleDataDictionary.Constraints
+
+                       Database.Relational.Schema.MySQLInfo.KeyColumnUsage
+                       Database.Relational.Schema.MySQLInfo.TableConstraints
 
   build-depends:         base <5
                        , template-haskell

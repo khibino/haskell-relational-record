@@ -6,7 +6,10 @@ module Database.Relational.Schema.MySQLInfo.TableConstraints where
 import Database.Record.TH           (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
-$(defineTableTypesAndRecordDefault
+import Database.Relational.Schema.MySQLInfo.Config (config)
+
+
+$(defineTableTypesAndRecordDefault config
     "INFORMATION_SCHEMA" "table_constraints"
     [ ("table_schema"       , [t| String |])
     , ("table_name"         , [t| String |])

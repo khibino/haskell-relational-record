@@ -7,7 +7,10 @@ import Data.Int                     (Int16)
 import Database.Record.TH           (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
-$(defineTableTypesAndRecordDefault
+import Database.Relational.Schema.MySQLInfo.Config (config)
+
+
+$(defineTableTypesAndRecordDefault config
     "INFORMATION_SCHEMA" "key_column_usage"
     [ ("constraint_name"    , [t| String |])
     , ("table_schema"       , [t| String |])
