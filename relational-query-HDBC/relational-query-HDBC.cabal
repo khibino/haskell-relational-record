@@ -37,6 +37,7 @@ library
                        Database.HDBC.Schema.IBMDB2
                        Database.HDBC.Schema.PostgreSQL
                        Database.HDBC.Schema.SQLServer
+                       Database.HDBC.Schema.SQLite3
 
   other-modules:
                        Database.HDBC.Record.InternalTH
