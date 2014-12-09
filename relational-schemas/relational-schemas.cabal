@@ -5,6 +5,7 @@ description:         This package contains some RDBMSs' schema structure definit
                      Supported RDBMS schemas are below:
                      - IBM DB2
                      - PostgreSQL
+                     - Microsoft SQLServer
 homepage:            http://twitter.com/khibino
 license:             BSD3
 license-file:        LICENSE
@@ -24,8 +25,13 @@ library
                        Database.Relational.Schema.PgCatalog.PgType
                        Database.Relational.Schema.PostgreSQL
 
+                       Database.Relational.Schema.SQLServerSyscat.Columns
+                       Database.Relational.Schema.SQLServerSyscat.Types
+                       Database.Relational.Schema.SQLServer
+
                        Database.Relational.Schema.DB2Syscat.Config
                        Database.Relational.Schema.PgCatalog.Config
+                       Database.Relational.Schema.SQLServerSyscat.Config
 
   other-modules:
                        Database.Relational.Schema.DB2Syscat.Tabconst
@@ -35,10 +41,14 @@ library
                        Database.Relational.Schema.PgCatalog.PgNamespace
                        Database.Relational.Schema.PgCatalog.PgClass
 
+                       Database.Relational.Schema.SQLServerSyscat.IndexColumns
+                       Database.Relational.Schema.SQLServerSyscat.Indexes
+
   build-depends:         base <5
                        , template-haskell
                        , containers
                        , time
+                       , bytestring
 
                        , persistable-record
                        , relational-query

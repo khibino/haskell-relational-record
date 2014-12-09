@@ -8,7 +8,10 @@ import Data.Int (Int32)
 import Database.Record.TH (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
-$(defineTableTypesAndRecordDefault
+import Database.Relational.Schema.SQLServerSyscat.Config (config)
+
+
+$(defineTableTypesAndRecordDefault config
   "sys" "indexes"
   [
 -- View "sys.indexes"
