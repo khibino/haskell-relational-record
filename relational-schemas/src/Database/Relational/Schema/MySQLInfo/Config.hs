@@ -1,6 +1,6 @@
 -- |
 -- Module      : Database.Relational.Schema.MySQLInfo.Config
--- Copyright   : 2013 Kei Hibino
+-- Copyright   : 2014 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
