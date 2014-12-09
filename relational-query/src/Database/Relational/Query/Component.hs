@@ -17,7 +17,7 @@ module Database.Relational.Query.Component (
   ColumnSQL, columnSQL, columnSQL', showsColumnSQL,
 
   -- * Configuration type for query
-  Config (productUnitSupport, normalizedTableName),
+  Config (productUnitSupport, chunksInsertSize, normalizedTableName),
   defaultConfig,
   ProductUnitSupport (..), Duplication (..),
 
@@ -94,12 +94,14 @@ instance Show ColumnSQL where
 data Config =
   Config
   { productUnitSupport   ::  ProductUnitSupport
+  , chunksInsertSize     ::  Int
   , normalizedTableName  ::  Bool
   } deriving Show
 
 -- | Default configuration.
 defaultConfig :: Config
 defaultConfig =  Config { productUnitSupport   =  PUSupported
+                        , chunksInsertSize     =  512
                         , normalizedTableName  =  True
                         }
 
