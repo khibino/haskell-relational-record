@@ -9,7 +9,6 @@ module Database.HDBC.Schema.MySQL
 
 import           Prelude                            hiding (length)
 import           Language.Haskell.TH                (TypeQ)
-import qualified Language.Haskell.TH.Lib.Extra      as TH
 import qualified Data.List                          as List
 import           Data.Map                           (fromList)
 
@@ -42,7 +41,7 @@ putLog :: String -> IO ()
 putLog = putStrLn . logPrefix
 
 compileErrorIO :: String -> IO a
-compileErrorIO = TH.compileErrorIO . logPrefix
+compileErrorIO = fail . logPrefix
 
 getPrimaryKey' :: IConnection conn
                => conn
