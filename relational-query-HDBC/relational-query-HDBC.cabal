@@ -10,9 +10,9 @@ description:         This package contains HDBC instance of relational-query and
 homepage:            http://twitter.com/khibino
 license:             BSD3
 license-file:        LICENSE
-author:              Kei Hibino, Shohei Murayama
-maintainer:          ex8k.hibino@gmail.com, shohei.murayama@gmail.com
-copyright:           Copyright (c) 2013 2014 Kei Hibino, Shohei Murayama
+author:              Kei Hibino, Shohei Murayama, Shohei Yasutake
+maintainer:          ex8k.hibino@gmail.com, shohei.murayama@gmail.com, amutake.s@gmail.com
+copyright:           Copyright (c) 2013 2014 Kei Hibino, Shohei Murayama, Shohei Yasutake
 category:            Database
 build-type:          Simple
 cabal-version:       >=1.10
