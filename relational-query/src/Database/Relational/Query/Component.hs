@@ -97,11 +97,11 @@ data Config =
 
 -- | Default configuration.
 defaultConfig :: Config
-defaultConfig =  Config { productUnitSupport = UPSupported
+defaultConfig =  Config { productUnitSupport = PUSupported
                         }
 
 -- | Unit of product is supported or not.
-data ProductUnitSupport = UPSupported | UPNotSupported  deriving Show
+data ProductUnitSupport = PUSupported | PUNotSupported  deriving Show
 
 
 -- | Result record duplication attribute

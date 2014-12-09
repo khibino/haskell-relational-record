@@ -49,7 +49,7 @@ import Database.Relational.Query.Internal.Product
    Node, nodeAttr, nodeTree)
 import Database.Relational.Query.Component
   (ColumnSQL, columnSQL', showsColumnSQL,
-   Config (productUnitSupport), ProductUnitSupport (UPSupported, UPNotSupported),
+   Config (productUnitSupport), ProductUnitSupport (PUSupported, PUNotSupported),
    Duplication, showsDuplication, QueryRestriction, composeWhere, composeHaving,
    AggregateElem, composeGroupBy, OrderingTerms, composeOrderBy)
 import Database.Relational.Query.Table (Table, (!))
@@ -347,5 +347,5 @@ type JoinProduct = Maybe QueryProduct
 showsJoinProduct :: ProductUnitSupport -> JoinProduct -> StringSQL
 showsJoinProduct ups =  maybe (up ups) from  where
   from qp = FROM <> showsQueryProduct qp
-  up UPSupported    = mempty
-  up UPNotSupported = error "relation: Unit product support mode is disabled!"
+  up PUSupported    = mempty
+  up PUNotSupported = error "relation: Unit product support mode is disabled!"
