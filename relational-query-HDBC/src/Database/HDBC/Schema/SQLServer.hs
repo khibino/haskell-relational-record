@@ -16,7 +16,6 @@ module Database.HDBC.Schema.SQLServer (
 
 import qualified Database.Relational.Schema.SQLServerSyscat.Columns as Columns
 import qualified Database.Relational.Schema.SQLServerSyscat.Types as Types
-import qualified Language.Haskell.TH.Lib.Extra as TH
 
 import Data.Map (fromList)
 import Data.Maybe (catMaybes)
@@ -44,7 +43,7 @@ putLog :: String -> IO ()
 putLog = putStrLn . logPrefix
 
 compileErrorIO :: String -> IO a
-compileErrorIO = TH.compileErrorIO . logPrefix
+compileErrorIO =  fail . logPrefix
 
 getPrimaryKey' :: IConnection conn
                => conn
