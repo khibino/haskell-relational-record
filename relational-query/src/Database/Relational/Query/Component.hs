@@ -101,7 +101,7 @@ data Config =
 -- | Default configuration.
 defaultConfig :: Config
 defaultConfig =  Config { productUnitSupport   =  PUSupported
-                        , chunksInsertSize     =  512
+                        , chunksInsertSize     =  256
                         , normalizedTableName  =  True
                         }
 
