@@ -97,7 +97,8 @@ data Config =
 
 -- | Default configuration.
 defaultConfig :: Config
-defaultConfig =  Config UPSupported
+defaultConfig =  Config { unitProductSupport = UPSupported
+                        }
 
 -- | Unit product is supported or not.
 data UnitProductSupport = UPSupported | UPNotSupported  deriving Show
