@@ -78,3 +78,12 @@ library
 
   hs-source-dirs:      src
   ghc-options:         -Wall
+
+
+source-repository head
+  type:       git
+  location:   https://github.com/khibino/haskell-relational-record
+
+source-repository head
+  type:       mercurial
+  location:   https://bitbucket.org/khibino/haskell-relational-record
