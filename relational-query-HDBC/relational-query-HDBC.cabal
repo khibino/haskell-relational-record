@@ -39,6 +39,7 @@ library
                        Database.HDBC.Schema.SQLServer
                        Database.HDBC.Schema.SQLite3
                        Database.HDBC.Schema.Oracle
+                       Database.HDBC.Schema.MySQL
 
   other-modules:
                        Database.HDBC.Record.InternalTH
