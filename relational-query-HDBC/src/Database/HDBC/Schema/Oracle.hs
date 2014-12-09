@@ -10,7 +10,6 @@ import Data.Char (toUpper)
 import Data.Map (fromList)
 import Data.Maybe (catMaybes)
 import Language.Haskell.TH (TypeQ)
-import qualified Language.Haskell.TH.Lib.Extra as TH
 
 import Database.HDBC (IConnection, SqlValue)
 import Database.HDBC.Record.Query (runQuery')
@@ -38,7 +37,7 @@ putLog :: String -> IO ()
 putLog = putStrLn . logPrefix
 
 compileErrorIO :: String -> IO a
-compileErrorIO = TH.compileErrorIO . logPrefix
+compileErrorIO = fail . logPrefix
 
 getPrimaryKey' :: IConnection conn
                => conn
