@@ -102,7 +102,9 @@ insertChunkSQL :: Int     -- ^ Records count to insert
                -> Pi r r' -- ^ Columns selector to insert
                -> Table r -- ^ Table metadata
                -> String  -- ^ Result SQL
-insertChunkSQL n pi' tbl = showStringSQL $ insertPrefixSQL pi' tbl <> VALUES <> vs  where
+insertChunkSQL n0 pi' tbl = showStringSQL $ insertPrefixSQL pi' tbl <> VALUES <> vs  where
+  n | n0 >= 1    =  n0
+    | otherwise  =  error $ "Invalid chunk count value: " ++ show n0
   w = UnsafePi.width pi'
   vs = SQL.fold (|*|) . replicate n $ rowStringSQL (replicate w "?")
 
