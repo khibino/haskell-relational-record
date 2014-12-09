@@ -10,9 +10,9 @@ description:         This package contains HDBC instance of relational-query and
 homepage:            http://twitter.com/khibino
 license:             BSD3
 license-file:        LICENSE
-author:              Kei Hibino
-maintainer:          ex8k.hibino@gmail.com
-copyright:           Copyright (c) 2013 Kei Hibino
+author:              Kei Hibino, Shohei Murayama
+maintainer:          ex8k.hibino@gmail.com, shohei.murayama@gmail.com
+copyright:           Copyright (c) 2013 2014 Kei Hibino, Shohei Murayama
 category:            Database
 build-type:          Simple
 cabal-version:       >=1.10
@@ -44,11 +44,13 @@ library
                        , containers
                        , convertible
                        , template-haskell
+
                        , names-th
                        , persistable-record
                        , relational-query
                        , relational-schemas
                        , HDBC >=2
                        , HDBC-session
+
   hs-source-dirs:      src
   ghc-options:         -Wall
