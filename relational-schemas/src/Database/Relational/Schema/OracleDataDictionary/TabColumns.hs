@@ -10,7 +10,10 @@ import Data.Int (Int32)
 import Database.Record.TH (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
-$(defineTableTypesAndRecordDefault
+import Database.Relational.Schema.OracleDataDictionary.Config (config)
+
+
+$(defineTableTypesAndRecordDefault config
     "SYS" "dba_tab_columns"
     -- Column                                    NULL?    Datatype
     -- ----------------------------------------- -------- ----------------------------

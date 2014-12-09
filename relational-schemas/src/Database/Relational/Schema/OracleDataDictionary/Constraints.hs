@@ -6,7 +6,10 @@ module Database.Relational.Schema.OracleDataDictionary.Constraints where
 import Database.Record.TH (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
-$(defineTableTypesAndRecordDefault
+import Database.Relational.Schema.OracleDataDictionary.Config (config)
+
+
+$(defineTableTypesAndRecordDefault config
     "SYS" "dba_constraints"
     -- Column                                    NULL?    Datatype
     -- ----------------------------------------- -------- ----------------------------

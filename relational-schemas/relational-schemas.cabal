@@ -34,10 +34,14 @@ library
                        Database.Relational.Schema.SQLite3Syscat.TableInfo
                        Database.Relational.Schema.SQLite3
 
+                       Database.Relational.Schema.OracleDataDictionary.TabColumns
+                       Database.Relational.Schema.Oracle
+
                        Database.Relational.Schema.DB2Syscat.Config
                        Database.Relational.Schema.PgCatalog.Config
                        Database.Relational.Schema.SQLServerSyscat.Config
                        Database.Relational.Schema.SQLite3Syscat.Config
+                       Database.Relational.Schema.OracleDataDictionary.Config
 
   other-modules:
                        Database.Relational.Schema.DB2Syscat.Tabconst
@@ -49,6 +53,9 @@ library
 
                        Database.Relational.Schema.SQLServerSyscat.IndexColumns
                        Database.Relational.Schema.SQLServerSyscat.Indexes
+
+                       Database.Relational.Schema.OracleDataDictionary.ConsColumns
+                       Database.Relational.Schema.OracleDataDictionary.Constraints
 
   build-depends:         base <5
                        , template-haskell
