@@ -16,7 +16,10 @@ import Data.Int (Int16, Int32)
 import Database.Record.TH (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
-$(defineTableTypesAndRecordDefault
+import Database.Relational.Schema.PgCatalog.Config (config)
+
+
+$(defineTableTypesAndRecordDefault config
   "PG_CATALOG" "pg_attribute"
 
   [

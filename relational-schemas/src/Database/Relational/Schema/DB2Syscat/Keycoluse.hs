@@ -19,9 +19,11 @@ import Data.Int (Int16)
 import Database.Record.TH (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
+import Database.Relational.Schema.DB2Syscat.Config (config)
+
 
 -- Not all column is mapped. Minimum implementation.
-$(defineTableTypesAndRecordDefault
+$(defineTableTypesAndRecordDefault config
   "SYSCAT" "keycoluse"
   [("constname", [t| String |]),
    ("colname"  , [t| String |]),

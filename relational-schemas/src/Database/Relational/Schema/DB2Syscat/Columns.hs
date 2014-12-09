@@ -18,7 +18,10 @@ import Data.Int (Int16, Int32, Int64)
 import Database.Record.TH (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
-$(defineTableTypesAndRecordDefault
+import Database.Relational.Schema.DB2Syscat.Config (config)
+
+
+$(defineTableTypesAndRecordDefault config
   "SYSCAT" "columns"
   [
     -- column                         schema    type               length         NULL

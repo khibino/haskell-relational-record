@@ -24,6 +24,9 @@ library
                        Database.Relational.Schema.PgCatalog.PgType
                        Database.Relational.Schema.PostgreSQL
 
+                       Database.Relational.Schema.DB2Syscat.Config
+                       Database.Relational.Schema.PgCatalog.Config
+
   other-modules:
                        Database.Relational.Schema.DB2Syscat.Tabconst
                        Database.Relational.Schema.DB2Syscat.Keycoluse

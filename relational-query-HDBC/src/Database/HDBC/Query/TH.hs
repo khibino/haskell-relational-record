@@ -37,7 +37,7 @@ import Language.Haskell.TH.Lib.Extra (reportWarning, reportMessage)
 
 import Database.Record.TH (makeRecordPersistableWithSqlTypeDefault)
 import qualified Database.Record.TH as Record
-import Database.Relational.Query (Relation, Config, relationalQuerySQL)
+import Database.Relational.Query (Relation, Config, defaultConfig, relationalQuerySQL)
 import Database.Relational.Query.SQL (QuerySuffix)
 import qualified Database.Relational.Query.TH as Relational
 
@@ -59,38 +59,41 @@ makeRecordPersistableDefault recTypeName = do
   return $ rr ++ ps
 
 -- | Generate all HDBC templates about table except for constraint keys using default naming rule.
-defineTableDefault' :: String            -- ^ Schema name
+defineTableDefault' :: Config            -- ^ Configuration to generate query with
+                    -> String            -- ^ Schema name
                     -> String            -- ^ Table name
                     -> [(String, TypeQ)] -- ^ List of column name and type
                     -> [ConName]         -- ^ Derivings
                     -> Q [Dec]           -- ^ Result declaration
-defineTableDefault' schema table columns derives = do
-  modelD <- Relational.defineTableTypesAndRecordDefault schema table columns derives
+defineTableDefault' config schema table columns derives = do
+  modelD <- Relational.defineTableTypesAndRecordDefault config schema table columns derives
   sqlvD  <- makeRecordPersistableWithSqlTypeDefault [t| SqlValue |] table $ length columns
   return $ modelD ++ sqlvD
 
 -- | Generate all HDBC templates about table using default naming rule.
-defineTableDefault :: String            -- ^ Schema name
+defineTableDefault :: Config            -- ^ Configuration to generate query with
+                   -> String            -- ^ Schema name
                    -> String            -- ^ Table name
                    -> [(String, TypeQ)] -- ^ List of column name and type
                    -> [ConName]         -- ^ Derivings
                    -> [Int]             -- ^ Indexes to represent primary key
                    -> Maybe Int         -- ^ Index of not-null key
                    -> Q [Dec]           -- ^ Result declaration
-defineTableDefault schema table columns derives primary notNull = do
-  modelD <- Relational.defineTableDefault schema table columns derives primary notNull
+defineTableDefault config schema table columns derives primary notNull = do
+  modelD <- Relational.defineTableDefault config schema table columns derives primary notNull
   sqlvD  <- makeRecordPersistableWithSqlTypeDefault [t| SqlValue |] table $ length columns
   return $ modelD ++ sqlvD
 
--- | Generate all HDBC templates using system catalog informations.
-defineTableFromDB :: IConnection conn
-                  => IO conn     -- ^ Connect action to system catalog database
-                  -> Driver conn -- ^ Driver definition
-                  -> String      -- ^ Schema name
-                  -> String      -- ^ Table name
-                  -> [ConName]   -- ^ Derivings
-                  -> Q [Dec]     -- ^ Result declaration
-defineTableFromDB connect drv scm tbl derives = do
+-- | Generate all HDBC templates using system catalog informations with specified config.
+defineTableFromDB' :: IConnection conn
+                   => IO conn     -- ^ Connect action to system catalog database
+                   -> Config      -- ^ Configuration to generate query with
+                   -> Driver conn -- ^ Driver definition
+                   -> String      -- ^ Schema name
+                   -> String      -- ^ Table name
+                   -> [ConName]   -- ^ Derivings
+                   -> Q [Dec]     -- ^ Result declaration
+defineTableFromDB' connect config drv scm tbl derives = do
   let getDBinfo =
         withConnectionIO connect
         (\conn ->  do
@@ -111,7 +114,17 @@ defineTableFromDB connect drv scm tbl derives = do
       primaryIxs = fromMaybe [] . sequence $ map snd ixLookups
   mapM_ (uncurry warnLk) ixLookups
 
-  defineTableDefault scm tbl cols derives primaryIxs (listToMaybe notNullIdxs)
+  defineTableDefault config scm tbl cols derives primaryIxs (listToMaybe notNullIdxs)
+
+-- | Generate all HDBC templates using system catalog informations.
+defineTableFromDB :: IConnection conn
+                  => IO conn     -- ^ Connect action to system catalog database
+                  -> Driver conn -- ^ Driver definition
+                  -> String      -- ^ Schema name
+                  -> String      -- ^ Table name
+                  -> [ConName]   -- ^ Derivings
+                  -> Q [Dec]     -- ^ Result declaration
+defineTableFromDB connect = defineTableFromDB' connect defaultConfig
 
 -- | Verify composed 'Query' and inline it in compile type.
 inlineVerifiedQuery :: IConnection conn

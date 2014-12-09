@@ -18,9 +18,11 @@ module Database.Relational.Schema.DB2Syscat.Tabconst where
 import Database.Record.TH (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
+import Database.Relational.Schema.DB2Syscat.Config (config)
+
 
 -- Not all column is mapped. Minimum implementation.
-$(defineTableTypesAndRecordDefault
+$(defineTableTypesAndRecordDefault config
   "SYSCAT" "tabconst"
   [("constname", [t| String |]),
    ("tabschema", [t| String |]),

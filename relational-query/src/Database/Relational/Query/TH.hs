@@ -275,11 +275,12 @@ defineProductConstructorInstanceDefault table colTypes = do
     colTypes
 
 -- | Make templates about table and column metadatas using default naming rule.
-defineTableTypesDefault :: String                           -- ^ Schema name
+defineTableTypesDefault :: Config                           -- ^ Configuration to generate query with
+                        -> String                           -- ^ Schema name
                         -> String                           -- ^ Table name
                         -> [((String, TypeQ), Maybe TypeQ)] -- ^ Column names and types and constraint type
                         -> Q [Dec]                          -- ^ Result declarations
-defineTableTypesDefault schema table columns = do
+defineTableTypesDefault _config schema table columns = do
   tableDs <- defineTableTypes
              (tableVarNameDefault table)
              (relationVarNameDefault table)
@@ -292,15 +293,16 @@ defineTableTypesDefault schema table columns = do
   return $ tableDs ++ colsDs
 
 -- | Make templates about table, column and haskell record using default naming rule.
-defineTableTypesAndRecordDefault :: String            -- ^ Schema name
+defineTableTypesAndRecordDefault :: Config            -- ^ Configuration to generate query with
+                                 -> String            -- ^ Schema name
                                  -> String            -- ^ Table name
                                  -> [(String, TypeQ)] -- ^ Column names and types
                                  -> [ConName]         -- ^ Record derivings
                                  -> Q [Dec]           -- ^ Result declarations
-defineTableTypesAndRecordDefault schema table columns drives = do
+defineTableTypesAndRecordDefault config schema table columns drives = do
   recD    <- defineRecordTypeDefault table columns drives
   rconD   <- defineProductConstructorInstanceDefault table [t | (_, t) <- columns]
-  tableDs <- defineTableTypesDefault schema table [(c, Nothing) | c <- columns ]
+  tableDs <- defineTableTypesDefault config schema table [(c, Nothing) | c <- columns ]
   return $ recD ++ rconD ++ tableDs
 
 -- | Template of derived primary 'Query'.
@@ -372,15 +374,16 @@ defineWithNotNullKeyDefault :: String -> Int -> Q [Dec]
 defineWithNotNullKeyDefault =  defineHasNotNullKeyInstanceDefault
 
 -- | Generate all templtes about table using default naming rule.
-defineTableDefault :: String            -- ^ Schema name string of Database
+defineTableDefault :: Config            -- ^ Configuration to generate query with
+                   -> String            -- ^ Schema name string of Database
                    -> String            -- ^ Table name string of Database
                    -> [(String, TypeQ)] -- ^ Column names and types
                    -> [ConName]         -- ^ derivings for Record type
                    -> [Int]             -- ^ Primary key index
                    -> Maybe Int         -- ^ Not null key index
                    -> Q [Dec]           -- ^ Result declarations
-defineTableDefault schema table columns derives primaryIxs mayNotNullIdx = do
-  tblD  <- defineTableTypesAndRecordDefault schema table columns derives
+defineTableDefault config schema table columns derives primaryIxs mayNotNullIdx = do
+  tblD  <- defineTableTypesAndRecordDefault config schema table columns derives
   let pairT x y = appT (appT (tupleT 2) x) y
       keyType   = foldl1' pairT . map (snd . (columns !!)) $ primaryIxs
   primD <- case primaryIxs of
