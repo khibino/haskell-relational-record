@@ -50,7 +50,7 @@ import Database.Relational.Query.Effect
    sqlWhereFromRestriction, sqlFromUpdateTarget)
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi as Pi
-import Database.Relational.Query.Component (Config, defaultConfig)
+import Database.Relational.Query.Component (Config (chunksInsertSize), defaultConfig)
 import Database.Relational.Query.Table (Table, TableDerivable, derivedTable)
 import Database.Relational.Query.SQL
   (QuerySuffix, showsQuerySuffix, insertPrefixSQL, insertSQL, insertSizedChunkSQL,
@@ -185,9 +185,8 @@ unsafeTypedInsert q = unsafeTypedInsert' q q 1
 
 -- | Make typed 'Insert' from columns selector 'Pi' and 'Table'.
 typedInsert' :: Config -> Pi r r' -> Table r -> Insert r'
-typedInsert' _config pi' tbl = unsafeTypedInsert' (insertSQL pi' tbl) ci n  where
-  (ci, n) = insertSizedChunkSQL pi' tbl chunkRecCount
-  chunkRecCount = 256
+typedInsert' config pi' tbl = unsafeTypedInsert' (insertSQL pi' tbl) ci n  where
+  (ci, n) = insertSizedChunkSQL pi' tbl $ chunksInsertSize config
 
 -- | Make typed 'Insert' from columns selector 'Pi' and 'Table'.
 typedInsert :: Pi r r' -> Table r -> Insert r'
