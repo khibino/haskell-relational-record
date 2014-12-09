@@ -5,7 +5,7 @@ module Database.Relational.Schema.Oracle
     , columnsQuerySQL, primaryKeyQuerySQL
     ) where
 
-import Control.Applicative ((<|>), (<$>))
+import Control.Applicative ((<|>))
 import Data.ByteString (ByteString)
 import Data.Char (toLower)
 import Data.Map (Map)
@@ -59,10 +59,10 @@ getType :: Map String TypeQ -- ^ Type mapping specified by user
         -> DbaTabColumns -- ^ Column info in data dictionary
         -> Maybe (String, TypeQ) -- ^ Result normalized name and mapped Haskell type
 getType mapFromSql cols = do
-    key <- Cols.dataType cols
-    typ <- if key == "NUMBER"
+    ky  <- Cols.dataType cols
+    typ <- if ky == "NUMBER"
         then return $ numberType $ Cols.dataScale cols
-        else Map.lookup key mapFromSql <|> Map.lookup key mapFromSqlDefault
+        else Map.lookup ky mapFromSql <|> Map.lookup ky mapFromSqlDefault
     return (normalizeColumn $ Cols.columnName cols, mayNull typ)
   where
     mayNull typ
