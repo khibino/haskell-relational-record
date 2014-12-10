@@ -71,7 +71,7 @@ i2 =  relation $ do
   return qu
 
 oldest :: Relation () History
-oldest =  relation $ do
+oldest =  relation .
   return $ History |$| value 0 |*| value (read "2012-12-01 00:00:00") |*| value "oldest"
 
 runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a, ToSql SqlValue p)

@@ -14,7 +14,7 @@ connect :: IO Connection
 connect = connectPostgreSQL "dbname=testdb"
 
 defineTable :: [(String, TypeQ)] -> String -> String -> [ConName] -> Q [Dec]
-defineTable tmap scm tbl derives = do
+defineTable tmap scm tbl derives =
   defineTableFromDB
     connect
     (driverPostgreSQL { typeMap = tmap })

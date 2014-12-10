@@ -19,7 +19,7 @@ import Membership (Membership, groupId', userId', membership)
 
 groupMemberShip :: Relation () (Maybe Membership, Group)
 groupMemberShip =
-  relation $
+  relation
   [ m >< g
   | m  <- queryMaybe membership
   , g  <- query      group
@@ -28,7 +28,7 @@ groupMemberShip =
 
 groupMemberShipE :: Relation () (Maybe Membership, Group)
 groupMemberShipE =
-  relation $
+  relation
   [ m >< g
   | m  <- queryMaybe membership
   , g  <- query      group
@@ -38,7 +38,7 @@ groupMemberShipE =
 -- Monadic join style
 userGroup0 :: Relation () (Maybe User, Maybe Group)
 userGroup0 =
-  relation $
+  relation
   [ u   >< mg ?! snd'
   | u   <- queryMaybe user
   , mg  <- queryMaybe groupMemberShip
@@ -55,7 +55,7 @@ $(makeRecordPersistableDefault ''UserOrGroup)
 
 userGroup0' :: Relation () UserOrGroup
 userGroup0' =
-  relation $
+  relation
   [ UserOrGroup |$| u |*| mg ?! snd'
   | u   <- queryMaybe user
   , mg  <- queryMaybe groupMemberShip
@@ -68,7 +68,7 @@ userGroup0' =
 
 userGroup0E :: Relation () (Maybe User, Maybe Group)
 userGroup0E =
-  relation $
+  relation
   [ u   >< mg ?! snd'
   | u   <- queryMaybe user
   , mg  <- queryMaybe groupMemberShipE
@@ -95,7 +95,7 @@ haskellUser =
 -- Direct join style
 userGroup1 :: Relation () (Maybe User, Maybe Group)
 userGroup1 =
-  relation $
+  relation
   [ u >< g
   | umg <- query $
            user `left` membership `on'` [\ u m -> just (u ! User.id') .=. m ?! userId' ]
@@ -110,7 +110,7 @@ userGroup1 =
 {-
 userGroup1E :: Relation () (Maybe User, Maybe Group)
 userGroup1E =
-  relation $
+  relation
   [ u >< g
   | umg <- query $
            user `left` membership `on'` [\ u m -> u ! User.id' .=. m .! userId' ]
@@ -126,7 +126,7 @@ userGroup1E =
 -- Nested monad
 userGroup2 :: Relation () (Maybe User, Maybe Group)
 userGroup2 =
-  relation $
+  relation
   [ u   >< mg ?! snd'
   | u   <- queryMaybe user
   , mg  <- queryMaybe . relation $
@@ -143,7 +143,7 @@ userGroup2 =
 
 userGroup2E :: Relation () (Maybe User, Maybe Group)
 userGroup2E =
-  relation $
+  relation
   [ u   >< mg ?! snd'
   | u   <- queryMaybe user
   , mg  <- queryMaybe . relation $
@@ -161,19 +161,19 @@ userGroup2E =
 -- Aggregation
 userGroupAggregate0 :: Relation () ((Maybe String, Int64), Maybe Bool)
 userGroupAggregate0 =
-  aggregateRelation $
+  aggregateRelation
   [ g >< c >< every (uid .<. just (value 3))
   | ug  <- query userGroup0
   , g   <- groupBy (ug ! snd' ?!? Group.name')
   , let uid = ug ! fst' ?! User.id'
   , let c  = count uid
   , ()  <- having $ c `in'` values [1, 2]
-  , ()  <- asc $ c
+  , ()  <- asc c
   ]
 
 user3 :: Relation () (Maybe Int32)
 user3 =
-  relation $
+  relation
   [ just uid
   | u  <- query user
   , let uid = u ! User.id'
@@ -182,20 +182,20 @@ user3 =
 
 userGroupAggregate1 :: Relation () ((Maybe String, Int64), Maybe Bool)
 userGroupAggregate1 =
-  aggregateRelation $
+  aggregateRelation
   [ g >< c >< every (uid `in'` us)
   | ug  <- query userGroup0
   , g   <- groupBy (ug ! snd' ?!? Group.name')
   , let uid = ug ! fst' ?! User.id'
   , let c  = count uid
   , ()  <- having $ c `in'` values [1, 2]
-  , ()  <- asc $ c
+  , ()  <- asc c
   , us  <- queryList user3
   ]
 
 userGroupAggregate2 :: Relation () ((Maybe String, Int64), Maybe Bool)
 userGroupAggregate2 =
-  aggregateRelation $
+  aggregateRelation
   [ g >< c >< every (uid .<. just (value 3))
   | ug  <- query userGroup0
   , g   <- groupBy (ug ! snd' ?!? Group.name')
@@ -203,13 +203,13 @@ userGroupAggregate2 =
   , ()  <- wheres $ uid .<. just (value 2)
   , let c  = count uid
   , ()  <- having $ c `in'` values [1, 2]
-  , ()  <- asc $ c
+  , ()  <- asc c
   ]
 
 -- Concatinate operator
 userGroupStr :: Relation () (Maybe String)
 userGroupStr =
-  relation $
+  relation
   [ u ?!? User.name' ?||? just (value " - ") ?||? g ?!? Group.name'
   | () <- distinct
   , ug <- query userGroup2
@@ -220,7 +220,7 @@ userGroupStr =
 -- Type check is imcomplete when nested case
 userGroup2Fail :: Relation () (Maybe User, Maybe Group)
 userGroup2Fail =
-  relation $
+  relation
   [ u   >< mg ?! snd'
   | u   <- queryMaybe user
   , mg  <- queryMaybe . relation $
@@ -246,7 +246,7 @@ specifiedGroup =  relation' $ do
 -- Placeholder propagation
 userGroup3 :: Relation String (User, Group)
 userGroup3 =
-  relation' $
+  relation'
   [ (ph, u >< g)
   | (ph, umg) <- query' . rightPh
                  $ user `inner` membership `on'` [\ u m -> u ! User.id' .=. m ! userId' ]
@@ -266,7 +266,7 @@ specifiedUser =  relation' $ do
 
 userGroupU :: Relation (String, String) (User, Group)
 userGroupU =
-  relation' $
+  relation'
   [ (ph, u >< g)
   | (ph, umg) <- query'
                  $ leftPh (specifiedUser
@@ -335,9 +335,9 @@ groups =  relation $ do
   return $ g >< gc
 
 doubleValue1 :: Relation () Double
-doubleValue1 =  relation $ do
+doubleValue1 =  relation .
   return $ value 0.1 .+. value 0.1 .+. value 0.1
 
 doubleValue2 :: Relation () Double
-doubleValue2 =  relation $ do
+doubleValue2 =  relation .
   return . value $ 0.1 + 0.1 + 0.1

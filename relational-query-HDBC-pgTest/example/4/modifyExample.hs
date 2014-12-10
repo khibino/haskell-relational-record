@@ -34,14 +34,14 @@ runInsertStocks0 =  runInsertStocks stocks0
 
 
 pine :: Relation () StockGoods
-pine =  relation $ do
+pine =  relation .
   return $ StockGoods |$| value 6 |*| value "Pine" |*| value 300 |*| value 3
 
 insertPine :: InsertQuery ()
 insertPine =  derivedInsertQuery pine
 
 fig :: Relation () StockGoods
-fig =  relation $ do
+fig =  relation .
   return $ StockGoods |$| value 7 |*| value "Fig" |*| value 200 |*| value 13
 
 insertFig :: InsertQuery ()
