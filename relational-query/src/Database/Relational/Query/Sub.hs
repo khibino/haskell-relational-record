@@ -312,7 +312,7 @@ columnOfUntypedProjection up i' = rec up i' where
 -- | Get column SQL string list of projection.
 columnsOfUntypedProjection :: UntypedProjection -- ^ Source 'Projection'
                            -> [ColumnSQL]       -- ^ Result SQL string list
-columnsOfUntypedProjection p = map (\n -> columnOfUntypedProjection p n) . take w $ [0 .. ]
+columnsOfUntypedProjection p = map (columnOfUntypedProjection p) . take w $ [0 .. ]
   where w = widthOfUntypedProjection p
 
 
