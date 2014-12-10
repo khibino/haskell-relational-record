@@ -84,7 +84,7 @@ index =  (!) . unType
 
 -- | Cast phantom type into 'Maybe' type.
 toMaybe :: Table r -> Table (Maybe r)
-toMaybe (Table t) = (Table t)
+toMaybe (Table t) = Table t
 
 -- | Unsafely generate phantom typed table type.
 table :: String -> [String] -> Table r

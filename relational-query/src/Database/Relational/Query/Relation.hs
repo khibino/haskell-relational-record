@@ -201,7 +201,7 @@ join' qL qR r0 r1 rs = relation' $ do
   (ph0, pj0) <- qL r0
   (ph1, pj1) <- qR r1
   sequence_ [ on $ f pj0 pj1 | f <- rs ]
-  return $ (ph0 `projectZip` ph1, pj0 `projectZip` pj1)
+  return (ph0 `projectZip` ph1, pj0 `projectZip` pj1)
 
 -- | Direct inner join with place-holder parameters.
 inner' :: Relation pa a            -- ^ Left query to join

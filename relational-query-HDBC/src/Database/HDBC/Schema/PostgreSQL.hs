@@ -69,7 +69,7 @@ getPrimaryKey' conn scm' tbl' = do
   mayKeyLen <- runQuery' conn primaryKeyLengthQuerySQL (scm, tbl)
   case mayKeyLen of
     []        -> do
-      putLog $ "getPrimaryKey: Primary key not found."
+      putLog   "getPrimaryKey: Primary key not found."
       return []
     [keyLen]  -> do
       primCols <- runQuery' conn (primaryKeyQuerySQL keyLen) (scm, tbl)
@@ -77,7 +77,7 @@ getPrimaryKey' conn scm' tbl' = do
       putLog $ "getPrimaryKey: primary key = " ++ show primaryKeyCols
       return primaryKeyCols
     _:_:_     -> do
-      putLog $ "getPrimaryKey: Fail to detect primary key. Something wrong."
+      putLog   "getPrimaryKey: Fail to detect primary key. Something wrong."
       return []
 
 getColumns' :: IConnection conn

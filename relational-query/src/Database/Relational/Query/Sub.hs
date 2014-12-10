@@ -108,7 +108,7 @@ aggregatedSubQuery :: Config
 aggregatedSubQuery = Aggregated
 
 setBin :: SetOp -> Duplication -> SubQuery -> SubQuery -> SubQuery
-setBin op = Bin . BinOp . ((,) op)
+setBin op = Bin . BinOp . (,) op
 
 -- | Union binary operator on 'SubQuery'
 union     :: Duplication -> SubQuery -> SubQuery -> SubQuery

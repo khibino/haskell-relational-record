@@ -499,7 +499,7 @@ unsafeProjectPlaceHolder =  snd unsafeProjectPlaceHolder'
 
 -- | Provide scoped placeholder and return its parameter object.
 placeholder' :: (PersistableWidth t, SqlProjectable p) => (p t -> a) ->  (PlaceHolders t, a)
-placeholder' f = (PlaceHolders, f $ unsafeProjectPlaceHolder)
+placeholder' f = (PlaceHolders, f unsafeProjectPlaceHolder)
 
 -- | Provide scoped placeholder and return its parameter object. Monadic version.
 placeholder :: (PersistableWidth t, SqlProjectable p, Monad m) => (p t -> m a) -> m (PlaceHolders t, a)

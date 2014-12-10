@@ -41,7 +41,7 @@ data Driver conn =
   , getPrimaryKey :: conn          --  Connection to query system catalog
                   -> String        --  Schema name string
                   -> String        --  Table name string
-                  -> IO ([String]) --  Action to get column names of primary key
+                  -> IO [String]   --  Action to get column names of primary key
   }
 
 -- | Empty definition of 'Driver'
