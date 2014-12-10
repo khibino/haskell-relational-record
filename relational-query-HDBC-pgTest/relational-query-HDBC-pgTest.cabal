@@ -1,4 +1,3 @@
-
 name:                relational-query-HDBC-pgTest
 version:             0.0.1.0
 synopsis:            Tests codes for relational-query-HDBC which depends on PostgreSQL

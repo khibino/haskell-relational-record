@@ -1,4 +1,3 @@
-
 name:                relational-query-HDBC
 version:             0.0.1.0
 synopsis:            HDBC instance of relational join and typed query for HDBC
