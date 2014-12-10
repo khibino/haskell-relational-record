@@ -54,7 +54,9 @@ module Database.Relational.Query.Projectable (
   (?+?), (?-?), (?/?), (?*?), negateMaybe, fromIntegralMaybe, showNumMaybe,
 
   -- * Terms for Window function types
-  rank, dense_rank, row_number, percent_rank, cume_dist,
+  rank, denseRank, rowNumber, percentRank, cumeDist,
+
+  dense_rank, row_number, percent_rank, cume_dist,
 
   -- * Zipping projections
   projectZip, (><),
@@ -446,20 +448,40 @@ rank :: Projection OverWindow Int64
 rank =  unsafeUniTermFunction SQL.RANK
 
 -- | /DENSE_RANK()/ term.
+denseRank :: Projection OverWindow Int64
+denseRank =  unsafeUniTermFunction SQL.DENSE_RANK
+
+-- | /DENSE_RANK()/ term.
 dense_rank :: Projection OverWindow Int64
-dense_rank =  unsafeUniTermFunction SQL.DENSE_RANK
+dense_rank =  denseRank
+{-# DEPRECATED dense_rank "Use denseRank instead of this." #-}
+
+-- | /ROW_NUMBER()/ term.
+rowNumber :: Projection OverWindow Int64
+rowNumber =  unsafeUniTermFunction SQL.ROW_NUMBER
 
 -- | /ROW_NUMBER()/ term.
 row_number :: Projection OverWindow Int64
-row_number =  unsafeUniTermFunction SQL.ROW_NUMBER
+row_number =  rowNumber
+{-# DEPRECATED row_number "Use rowNumber instead of this." #-}
+
+-- | /PERCENT_RANK()/ term.
+percentRank :: Projection OverWindow Double
+percentRank =  unsafeUniTermFunction SQL.PERCENT_RANK
 
 -- | /PERCENT_RANK()/ term.
 percent_rank :: Projection OverWindow Double
-percent_rank =  unsafeUniTermFunction SQL.PERCENT_RANK
+percent_rank =  percentRank
+{-# DEPRECATED percent_rank "Use percentRank instead of this." #-}
+
+-- | /CUME_DIST()/ term.
+cumeDist :: Projection OverWindow Double
+cumeDist =  unsafeUniTermFunction SQL.CUME_DIST
 
 -- | /CUME_DIST()/ term.
 cume_dist :: Projection OverWindow Double
-cume_dist =  unsafeUniTermFunction SQL.CUME_DIST
+cume_dist =  cumeDist
+{-# DEPRECATED cume_dist "Use cumeDist instead of this." #-}
 
 -- | Placeholder parameter type which has real parameter type arguemnt 'p'.
 data PlaceHolders p = PlaceHolders
