@@ -6,6 +6,9 @@ description:         This package contains some RDBMSs' schema structure definit
                      - IBM DB2
                      - PostgreSQL
                      - Microsoft SQLServer
+                     - SQLite3
+                     - Oracle
+                     - MySQL
 homepage:            http://twitter.com/khibino
 license:             BSD3
 license-file:        LICENSE
