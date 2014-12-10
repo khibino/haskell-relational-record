@@ -34,7 +34,7 @@ import DataSource (connect)
 import Database.HDBC.Record.Query (runQuery)
 import Database.HDBC.Session (withConnectionIO, handleSqlError')
 
-allAccount :: Relation () (Account)
+allAccount :: Relation () Account
 allAccount =
   relation
   [ a
