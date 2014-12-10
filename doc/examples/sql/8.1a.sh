@@ -1,8 +1,8 @@
 #! /bin/bash
 
-psql testdb -c "
+sqlite3 test.db "
 SELECT open_emp_id, COUNT(*) how_many
-FROM LEARNINGSQL.account
+FROM account
 GROUP BY open_emp_id
 ORDER BY open_emp_id
 ;"
