@@ -147,10 +147,10 @@ fromTableToNormalizedSQL t = SELECT <> SQL.fold (|*|) columns' <>
 -- | Normalized column SQL
 normalizedSQL :: SubQuery -> StringSQL
 normalizedSQL =  d  where
-  d (Table t)                        = fromTableToNormalizedSQL t
-  d sub@(Bin _ _ _)                  = showUnitSQL sub
-  d sub@(Flat _ _ _ _ _ _)           = showUnitSQL sub
-  d sub@(Aggregated _ _ _ _ _ _ _ _) = showUnitSQL sub
+  d (Table t)             =  fromTableToNormalizedSQL t
+  d sub@(Bin {})          =  showUnitSQL sub
+  d sub@(Flat {})         =  showUnitSQL sub
+  d sub@(Aggregated {})   =  showUnitSQL sub
 
 selectPrefixSQL :: UntypedProjection -> Duplication -> StringSQL
 selectPrefixSQL up da = SELECT <> showsDuplication da <>
@@ -240,8 +240,8 @@ queryWidth =  width . unQualify
 column :: Qualified SubQuery -> Int -> ColumnSQL
 column qs =  d (unQualify qs)  where
   q = qualifier qs
-  d (Table u)         i             = q <.> (u ! i)
-  d (Bin _ _ _)       i             = q `columnFromId` i
+  d (Table u)           i           = q <.> (u ! i)
+  d (Bin {})            i           = q `columnFromId` i
   d (Flat _ up _ _ _ _) i           = columnOfUntypedProjection up i
   d (Aggregated _ up _ _ _ _ _ _) i = columnOfUntypedProjection up i
 
@@ -272,11 +272,11 @@ untypedProjectionFromColumns =  unitUntypedProjection . projectionUnitFromColumn
 untypedProjectionFromSubQuery :: Qualified SubQuery -> UntypedProjection
 untypedProjectionFromSubQuery qs = d $ unQualify qs  where  --  unitUntypedProjection . Sub
   normalized = unitUntypedProjection . Normalized $ fmap width qs
-  d (Table _)                    = untypedProjectionFromColumns . map (column qs)
-                                   $ take (queryWidth qs) [0..]
-  d (Bin _ _ _)                  = normalized
-  d (Flat _ _ _ _ _ _)           = normalized
-  d (Aggregated _ _ _ _ _ _ _ _) = normalized
+  d (Table _)               =  untypedProjectionFromColumns . map (column qs)
+                               $ take (queryWidth qs) [0..]
+  d (Bin {})                =  normalized
+  d (Flat {})               =  normalized
+  d (Aggregated {})         =  normalized
 
 -- | ProjectionUnit width.
 widthOfProjectionUnit :: ProjectionUnit -> Int
@@ -330,7 +330,7 @@ showsQueryProduct =  rec  where
   joinType Maybe Maybe = FULL
   urec n = case nodeTree n of
     p@(Leaf _)     -> rec p
-    p@(Join _ _ _) -> SQL.paren (rec p)
+    p@(Join {})    -> SQL.paren (rec p)
   rec (Leaf q)               = qualifiedForm q
   rec (Join left' right' rs) =
     mconcat
