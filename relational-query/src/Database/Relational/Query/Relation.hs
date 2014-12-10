@@ -47,6 +47,8 @@ module Database.Relational.Query.Relation (
   unionAll', exceptAll', intersectAll',
   ) where
 
+import Control.Applicative ((<$>))
+
 import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Monad.Type (ConfigureQuery, configureQuery, qualifyQuery)
 import Database.Relational.Query.Monad.Class
@@ -353,7 +355,7 @@ infixl 7 `union'`, `except'`, `intersect'`, `unionAll'`, `exceptAll'`, `intersec
 
 -- | Generate SQL string from 'Relation' with configuration.
 sqlFromRelationWith :: Relation p r -> Config -> StringSQL
-sqlFromRelationWith (SubQuery qsub) =  configureQuery $ fmap SubQuery.showSQL qsub
+sqlFromRelationWith (SubQuery qsub) =  configureQuery $ SubQuery.showSQL <$> qsub
 
 -- | SQL string from 'Relation'.
 sqlFromRelation :: Relation p r -> StringSQL
@@ -397,7 +399,7 @@ uniqueQueryWithAttr attr = addPlaceHolders . run where
     q <- liftQualifyUnique $ do
       sq <- subQueryQualifyFromRelation (unUnique rel)
       qualifyQuery sq
-    fmap Projection.unsafeChangeContext $ unsafeSubQuery attr q
+    Projection.unsafeChangeContext <$> unsafeSubQuery attr q
 
 -- | Join unique subquery with place-holder parameter 'p'.
 uniqueQuery' :: MonadQualifyUnique ConfigureQuery m
@@ -430,9 +432,9 @@ aggregatedUnique rel k ag = unsafeUnique . aggregateRelation' $ do
 queryScalar' :: (MonadQualify ConfigureQuery m, ScalarDegree r)
              => UniqueRelation p c r
              -> m (PlaceHolders p, Projection c r)
-queryScalar' ur = addPlaceHolders . liftQualify $ do
-  subQueryQualifyFromRelation (unUnique ur)
-    >>= return . Projection.unsafeFromColumns . (:[]) . columnSQL . SubQuery.unitSQL
+queryScalar' ur = addPlaceHolders . liftQualify $
+  Projection.unsafeFromColumns . (:[]) . columnSQL . SubQuery.unitSQL
+  <$> subQueryQualifyFromRelation (unUnique ur)
 
 -- | Scalar subQuery.
 queryScalar :: (MonadQualify ConfigureQuery m, ScalarDegree r)
