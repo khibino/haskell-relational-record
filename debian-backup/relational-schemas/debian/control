@@ -30,9 +30,13 @@ Description: RDBMSs' schema templates for relational-query
  Supported RDBMS schemas are below:
  - IBM DB2
  - PostgreSQL
+ - Microsoft SQLServer
+ - SQLite3
+ - Oracle
+ - MySQL
  .
-  Author: Kei Hibino
-  Upstream-Maintainer: ex8k.hibino@gmail.com
+  Author: Kei Hibino, Shohei Murayama, Shohei Yasutake, Sho KURODA
+  Upstream-Maintainer: ex8k.hibino@gmail.com, shohei.murayama@gmail.com, amutake.s@gmail.com, krdlab@gmail.com
  .
  This package provides a library for the Haskell programming language.
  See http:///www.haskell.org/ for more information on Haskell.
@@ -52,9 +56,13 @@ Description: RDBMSs' schema templates for relational-query
  Supported RDBMS schemas are below:
  - IBM DB2
  - PostgreSQL
+ - Microsoft SQLServer
+ - SQLite3
+ - Oracle
+ - MySQL
  .
-  Author: Kei Hibino
-  Upstream-Maintainer: ex8k.hibino@gmail.com
+  Author: Kei Hibino, Shohei Murayama, Shohei Yasutake, Sho KURODA
+  Upstream-Maintainer: ex8k.hibino@gmail.com, shohei.murayama@gmail.com, amutake.s@gmail.com, krdlab@gmail.com
  .
  This package provides a library for the Haskell programming language, compiled
  for profiling.  See http:///www.haskell.org/ for more information on Haskell.
@@ -75,9 +83,13 @@ Description: RDBMSs' schema templates for relational-query
  Supported RDBMS schemas are below:
  - IBM DB2
  - PostgreSQL
+ - Microsoft SQLServer
+ - SQLite3
+ - Oracle
+ - MySQL
  .
-  Author: Kei Hibino
-  Upstream-Maintainer: ex8k.hibino@gmail.com
+  Author: Kei Hibino, Shohei Murayama, Shohei Yasutake, Sho KURODA
+  Upstream-Maintainer: ex8k.hibino@gmail.com, shohei.murayama@gmail.com, amutake.s@gmail.com, krdlab@gmail.com
  .
  This package provides the documentation for a library for the Haskell
  programming language.
