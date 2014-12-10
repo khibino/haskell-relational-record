@@ -24,6 +24,7 @@ import Control.Monad.Trans.Writer (WriterT, runWriterT, tell)
 import Control.Monad.Trans.State (modify, StateT, runStateT)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second, (***))
+import Data.Maybe (fromMaybe)
 import Data.Monoid (Last (Last, getLast))
 
 import Database.Relational.Query.Context (Flat)
@@ -75,5 +76,5 @@ unsafeSubQueryWithAttr attr qsub = do
 
 -- | Run 'QueryJoin' to get 'JoinProduct'
 extractProduct :: Functor m => QueryJoin m a -> m ((a, JoinProduct), Duplication)
-extractProduct (QueryJoin s) = (second joinProduct *** (maybe All id . getLast))
+extractProduct (QueryJoin s) = (second joinProduct *** (fromMaybe All . getLast))
                                <$> runWriterT (runStateT s primeJoinContext)
