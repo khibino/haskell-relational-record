@@ -46,7 +46,7 @@ module Database.Relational.Query.Projectable (
   caseSearch, caseSearchMaybe, case', caseMaybe,
   in', and', or',
 
-  isNothing, isJust, isNull, isNotNull,
+  isNothing, isJust,
   fromMaybe', not', exists,
 
   (.||.), (?||?),
@@ -428,22 +428,10 @@ isNothing mr = unsafeProjectSql $
                parenBinStr (SQL.defineBinOp SQL.IS)
                (Projection.unsafeShowSqlNotNullMaybeProjection mr) (SQL.wordShow SQL.NULL)
 
-{-# DEPRECATED isNull "Use isNothing instead of this." #-}
--- | Same as 'isNothing'.
-isNull :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
-       => Projection c (Maybe r) -> Projection c (Maybe Bool)
-isNull =  isNothing
-
 -- | Operator corresponding SQL /NOT (... IS NULL)/ , and extended against record type.
 isJust :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
           => Projection c (Maybe r) -> Projection c (Maybe Bool)
 isJust =  not' . isNothing
-
-{-# DEPRECATED isNotNull "Use isJust instead of this." #-}
--- | Same as 'isJust'.
-isNotNull :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
-          => Projection c (Maybe r) -> Projection c (Maybe Bool)
-isNotNull =  isJust
 
 -- | Operator from maybe type using record extended 'isNull'.
 fromMaybe' :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
