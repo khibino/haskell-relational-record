@@ -89,11 +89,10 @@ import qualified Database.Relational.Query.Expr as Expr
 import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr
 
 import Database.Relational.Query.Pure
-  (ShowConstantTermsSQL (showConstantTermsSQL))
+  (ShowConstantTermsSQL (showConstantTermsSQL), ProductConstructor (..))
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi as Pi
 
-import Database.Relational.Query.Pure (ProductConstructor (..))
 import Database.Relational.Query.Projection
   (Projection, unsafeFromColumns, columns,
    ListProjection, unsafeShowSqlListProjection)

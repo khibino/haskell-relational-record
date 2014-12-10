@@ -47,7 +47,6 @@ module Database.Relational.Query.Relation (
   unionAll', exceptAll', intersectAll',
   ) where
 
-import Database.Relational.Query.Internal.SQL (showStringSQL)
 import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Monad.Type (ConfigureQuery, configureQuery, qualifyQuery)
 import Database.Relational.Query.Monad.Class
@@ -61,7 +60,7 @@ import qualified Database.Relational.Query.Monad.Unique as Unique
 
 import Database.Relational.Query.Component (columnSQL, Config, defaultConfig, Duplication (Distinct, All))
 import Database.Relational.Query.Table (Table, TableDerivable, derivedTable)
-import Database.Relational.Query.Internal.SQL (StringSQL)
+import Database.Relational.Query.Internal.SQL (StringSQL, showStringSQL)
 import Database.Relational.Query.Internal.Product (NodeAttr(Just', Maybe))
 import Database.Relational.Query.Sub (SubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
