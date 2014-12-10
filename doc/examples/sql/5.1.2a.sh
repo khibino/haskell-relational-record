@@ -1,7 +1,7 @@
 #! /bin/bash
 
-psql testdb -c "
+sqlite3 test.db "
 SELECT e.fname, e.lname, d.name
-FROM LEARNINGSQL.employee e INNER JOIN LEARNINGSQL.department d
+FROM employee e INNER JOIN department d
 USING (dept_id)
 ;"
