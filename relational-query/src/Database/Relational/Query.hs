@@ -77,3 +77,5 @@ import Database.Relational.Query.Type hiding
    unsafeTypedInsert, unsafeTypedInsertQuery, unsafeTypedDelete)
 import Database.Relational.Query.Effect
 import Database.Relational.Query.Derives
+
+{-# ANN module "HLint: ignore Use import/export shortcut" #-}

@@ -75,3 +75,5 @@ to infer 'RecordFromSql' proof object using 'ToSql' 'q' ('Maybe' a) instance.
 This proof object cat convert from SQL type into 'Maybe' typed record
 when dealing with outer joined query.
 -}
+
+{-# ANN module "HLint: ignore Use import/export shortcut" #-}
