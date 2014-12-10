@@ -24,6 +24,7 @@ module Database.Relational.Query.Effect (
   ) where
 
 import Data.Monoid ((<>))
+import Control.Monad (void)
 
 import Database.Record (PersistableWidth)
 
@@ -56,7 +57,7 @@ restriction =  Restriction
 
 -- | Finalize 'Restrict' monad and generate 'Restriction' with place-holder parameter 'p'
 restriction' :: RestrictedStatement r (PlaceHolders p) -> Restriction p r
-restriction' =  Restriction . (fmap (const ()) .)
+restriction' =  Restriction . (void .)
 
 runRestriction :: Restriction p r
                -> RestrictedStatement r (PlaceHolders p)
@@ -86,7 +87,7 @@ updateTarget =  UpdateTarget
 -- | Finalize 'Target' monad and generate 'UpdateTarget' with place-holder parameter 'p'.
 updateTarget' :: AssignStatement r (PlaceHolders p)
               -> UpdateTarget p r
-updateTarget' qf = UpdateTarget $ fmap (const ()) . qf
+updateTarget' qf = UpdateTarget $ void . qf
 
 _runUpdateTarget :: UpdateTarget p r
                  -> AssignStatement r (PlaceHolders p)
