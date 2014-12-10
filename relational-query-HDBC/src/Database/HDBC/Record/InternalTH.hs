@@ -67,7 +67,7 @@ convertibleSqlValues' =  cvInfo >>= d0  where
   cvInfo = reify ''Convertible
   unknownDeclaration =
     fail . ("convertibleSqlValues: Unknown declaration pattern: " ++)
-  d0 (ClassI _ is) = fmap catMaybes . sequence . map d1 $ is  where
+  d0 (ClassI _ is) = fmap catMaybes . mapM d1 $ is  where
     d1 (InstanceD _cxt (AppT (AppT (ConT _n) a) b) _ds)
       = do qvt <- sqlValueType
            return
@@ -95,7 +95,7 @@ persistableWidthTypes =  cvInfo >>= d0  where
   cvInfo = reify ''PersistableWidth
   unknownDeclaration =
     fail . ("persistableWidthTypes: Unknown declaration pattern: " ++)
-  d0 (ClassI _ is) = fmap fromList . sequence . map d1 $ is  where
+  d0 (ClassI _ is) = fmap fromList . mapM d1 $ is  where
     d1 (InstanceD _cxt (AppT (ConT _n) a) _ds) = return a
     d1 decl                                    = unknownDeclaration $ show decl
   d0 cls           = unknownDeclaration $ show cls
