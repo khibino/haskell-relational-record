@@ -18,7 +18,6 @@ executable hrr-oracle-example
                      , HDBC-session
                      , relational-query
                      , relational-query-HDBC
-                     , relational-Oracle
                      , template-haskell
   hs-source-dirs: src
   default-language:    Haskell2010
