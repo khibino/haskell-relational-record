@@ -27,3 +27,5 @@ import Database.HDBC.Record.Update hiding (prepare)
 import Database.HDBC.Record.KeyUpdate hiding (prepare)
 import Database.HDBC.Record.Delete hiding (prepare)
 import Database.HDBC.Record.Statement
+
+{-# ANN module "HLint: ignore Use import/export shortcut" #-}
