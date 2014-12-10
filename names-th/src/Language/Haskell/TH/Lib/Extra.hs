@@ -18,11 +18,9 @@ module Language.Haskell.TH.Lib.Extra (
   -- $prettyPrint
   pprQ,
 
-  -- * Functions to raise compile error
+  -- * Functions to print message or errors when compile time
   -- $compileMessage
   reportMessage, reportWarning, reportError,
-
-  compileError, compileErrorIO
   ) where
 
 import System.IO (hPutStrLn, stderr)
@@ -98,13 +96,3 @@ reportWarning =  qReport False
 -- | Print compile errors from TH code.
 reportError :: String -> Q ()
 reportError =  qReport True
-
--- | Raise compile error from TH code.
-compileError :: String -> Q a
-compileError =  fail
-{-# DEPRECATED compileError "Use fail instead of this" #-}
-
--- | 'IO' version of 'compileError'.
-compileErrorIO :: String -> IO a
-compileErrorIO =  fail
-{-# DEPRECATED compileErrorIO "Use fail instead of this" #-}
