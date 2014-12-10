@@ -76,7 +76,7 @@ Make camel-cased names.
 -- | Convert into camel-cased 'String'.
 --   First 'Char' of result is upper case.
 camelcaseUpper :: String -> String
-camelcaseUpper =  concat . map capitalize . splitForName
+camelcaseUpper =  concatMap capitalize . splitForName
 
 -- | Make camel-cased constructor name from 'String'.
 conCamelcaseName :: String -> ConName
