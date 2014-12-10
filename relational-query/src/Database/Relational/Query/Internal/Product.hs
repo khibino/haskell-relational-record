@@ -47,7 +47,7 @@ nodeTree (Node _ t) = t
 
 -- | Foldable instance of ProductTree
 instance Foldable ProductTree where
-  foldMap f pq = rec pq where
+  foldMap f = rec  where
     rec (Leaf q) = f q
     rec (Join (Node _ lp) (Node _ rp) _ ) = rec lp <> rec rp
 
