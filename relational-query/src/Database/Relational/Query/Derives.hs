@@ -19,7 +19,6 @@ module Database.Relational.Query.Derives (
   primary', primary,
 
   -- * Update derivation
-  updateBySpecifiedKey,
   updateByConstraintKey,
   primaryUpdate,
 
@@ -89,17 +88,11 @@ updateValuesWithKey :: ToSql q r
                     -> [q]
 updateValuesWithKey =  unsafeUpdateValuesWithIndexes recordToSql . unsafeExpandIndexes
 
--- | Typed 'KeyUpdate' using specified key.
-updateBySpecifiedKey :: Table r       -- ^ 'Table' to update
-                     -> Pi r p        -- ^ Key with record type 'r' and columns type 'p'
-                     -> KeyUpdate p r -- ^ Result typed 'Update'
-updateBySpecifiedKey table' = typedKeyUpdate table'
-
 -- | Typed 'KeyUpdate' using specified constraint key.
 updateByConstraintKey :: Table r       -- ^ 'Table' to update
                       -> Key c r p     -- ^ Key with constraint 'c', record type 'r' and columns type 'p'
                       -> KeyUpdate p r -- ^ Result typed 'Update'
-updateByConstraintKey table' = updateBySpecifiedKey table' . Constraint.projectionKey
+updateByConstraintKey table' = typedKeyUpdate table' . Constraint.projectionKey
 
 -- | Typed 'KeyUpdate' using infered primary key.
 primaryUpdate :: (HasConstraintKey Primary r p)
