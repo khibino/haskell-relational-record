@@ -15,13 +15,14 @@
 -- Single column instances for example to load schema of system catalogs.
 module Database.Record.Instances () where
 
-import Data.Int (Int16, Int32, Int64)
+import Data.Int (Int8, Int16, Int32, Int64)
 import Database.Record.TH (deriveNotNullType)
 
 $(fmap concat $ mapM deriveNotNullType
   [ [t| Bool |]
   , [t| Char |]
   , [t| String |]
+  , [t| Int8 |]
   , [t| Int16 |]
   , [t| Int32 |]
   , [t| Int64 |]
