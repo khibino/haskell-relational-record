@@ -27,7 +27,7 @@ module Database.Relational.Query.Sub (
   -- * Untyped projection
   ProjectionUnit, UntypedProjection,
 
-  untypedProjectionFromColumns, untypedProjectionFromSubQuery,
+  untypedProjectionFromColumns, untypedProjectionFromJoinedSubQuery,
   widthOfUntypedProjection, columnsOfUntypedProjection,
 
 
@@ -278,8 +278,8 @@ untypedProjectionFromColumns :: [ColumnSQL] -> UntypedProjection
 untypedProjectionFromColumns =  unitUntypedProjection . projectionUnitFromColumns
 
 -- | Make untyped projection from sub query.
-untypedProjectionFromSubQuery :: Qualified SubQuery -> UntypedProjection
-untypedProjectionFromSubQuery qs = d $ unQualify qs  where  --  unitUntypedProjection . Sub
+untypedProjectionFromJoinedSubQuery :: Qualified SubQuery -> UntypedProjection
+untypedProjectionFromJoinedSubQuery qs = d $ unQualify qs  where  --  unitUntypedProjection . Sub
   normalized = unitUntypedProjection . Normalized $ fmap width qs
   d (Table _)               =  untypedProjectionFromColumns . map (column qs)
                                $ take (queryWidth qs) [0..]
