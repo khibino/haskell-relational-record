@@ -60,12 +60,12 @@ Next, let's compose relations. Copy the following to "helloworld.hs":
     world :: Relation () (Int32, String)
     world = relation $ return (value 0 >< value "World!")
     
-    helloWorld :: Relation () ((Int32, String), (Int32, String))
+    helloWorld :: Relation () (Int32, (String, String))
     helloWorld = relation $ do
         h <- query hello
         w <- query world
         on $ h ! fst' .=. w ! fst'
-        return $ h >< w
+        return $ h ! fst' >< (h ! snd' >< w ! snd')
     
     main :: IO ()
     main = putStrLn $ show helloWorld ++ ";"
@@ -75,9 +75,11 @@ This code defines queries called 'hello' and 'world'. And 'helloworld' composes 
 This code generates the following SQL statement:
 
     % runghc helloworld.hs
-    SELECT ALL T0.f0 AS f0, T0.f1 AS f1, T1.f0 AS f2, T1.f1 AS f3 FROM (SELECT ALL 0 AS f0, 'Hello' AS f1) T0 INNER JOIN (SELECT ALL 0 AS f0, 'World!' AS f1) T1 ON (T0.f0 = T1.f0);
+    SELECT ALL T0.f0 AS f0, T0.f1 AS f1, T1.f1 AS f2 FROM (SELECT ALL 0 AS f0, 'Hello' AS f1) T0 INNER JOIN (SELECT ALL 0 AS f0, 'World!' AS f1) T1 ON (T0.f0 = T1.f0);
 
 Finally, let's execute it in SQLite:
 
     % runghc helloworld.hs | sqlite3 dummy.db
-    0|Hello|0|World!
+    0|Hello|World!
+
+Now we understand that relations are composable. Raw SQL does NOT have this feature. Moreover, relations are type safe. If our HRR code can be compiled by GHC, it always generates valid SQL statements.
