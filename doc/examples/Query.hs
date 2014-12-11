@@ -184,7 +184,7 @@ main = handleSqlError' $ withConnectionIO connect $ \conn -> do
   run join1' ()
   run selfJoin1 ()
   run selfJoin1' ()
-  --run union1 ()
-  --run union1' ()
+  run union1 ()
+  run union1' ()
   run group1 ()
 
