@@ -5,7 +5,7 @@ module Customer where
 import Prelude hiding (id)
 import Database.Record.TH (derivingShow)
 
-import DataSource (defineTable)
+import DataSource (convTypes, defineTable)
 
-$(defineTable []
-  "LEARNINGSQL" "customer" [derivingShow])
+$(defineTable convTypes
+  "main" "customer" [derivingShow])

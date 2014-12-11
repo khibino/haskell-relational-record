@@ -6,7 +6,7 @@ module Product where
 import Prelude hiding (id, product)
 import Database.Record.TH (derivingShow)
 
-import DataSource (defineTable)
+import DataSource (convTypes, defineTable)
 
-$(defineTable []
-  "LEARNINGSQL" "product" [derivingShow])
+$(defineTable convTypes
+  "main" "product" [derivingShow])

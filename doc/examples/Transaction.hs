@@ -5,7 +5,11 @@ module Transaction where
 import Prelude hiding (id)
 import Database.Record.TH (derivingShow)
 
-import DataSource (defineTable)
+import DataSource (convTypes, defineTable)
 
-$(defineTable []
-  "LEARNINGSQL" "transaction" [derivingShow])
+$(defineTable convTypes
+  "main" "transaction0" [derivingShow])
+
+type Transaction = Transaction0
+
+transaction = transaction0

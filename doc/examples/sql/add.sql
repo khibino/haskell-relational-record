@@ -27,10 +27,10 @@ create table employee
   lname varchar(20) not null,
   start_date date not null,
   end_date date,
-  superior_emp_id smallint unsigned,
-  dept_id smallint unsigned,
+  superior_emp_id integer,
+  dept_id integer,
   title varchar(20),
-  assigned_branch_id smallint unsigned,
+  assigned_branch_id integer,
   constraint fk_e_emp_id 
     foreign key (superior_emp_id) references employee (emp_id),
   constraint fk_dept_id
@@ -87,7 +87,7 @@ create table business
 
 create table officer
  (officer_id integer primary key autoincrement not null,
-  cust_id integer unsigned not null,
+  cust_id integer not null,
   fname varchar(30) not null,
   lname varchar(30) not null,
   title varchar(20),
@@ -100,13 +100,13 @@ create table officer
 create table account
  (account_id integer primary key autoincrement not null,
   product_cd varchar(10) not null,
-  cust_id integer unsigned not null,
+  cust_id integer not null,
   open_date date not null,
   close_date date,
   last_activity_date date,
-  status integer not null,
-  open_branch_id smallint unsigned,
-  open_emp_id smallint unsigned,
+  status text not null,
+  open_branch_id integer,
+  open_emp_id integer,
   avail_balance float(10,2),
   pending_balance float(10,2),
   check(status = 'ACTIVE' or status = 'CLOSED' or status = 'FROZEN')
@@ -123,11 +123,11 @@ create table account
 create table transaction0
  (txn_id integer primary key autoincrement not null,
   txn_date datetime not null,
-  account_id integer unsigned not null,
+  account_id integer not null,
   txn_type_cd text not null,
   amount double(10,2) not null,
-  teller_emp_id smallint unsigned,
-  execution_branch_id smallint unsigned,
+  teller_emp_id integer,
+  execution_branch_id integer,
   funds_avail_date datetime,
   check (txn_type_cd = 'DBT' or txn_type_cd = 'CDT'),
   constraint fk_t_account_id foreign key (account_id)
