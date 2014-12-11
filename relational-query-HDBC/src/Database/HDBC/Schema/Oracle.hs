@@ -10,6 +10,7 @@ import Data.Char (toUpper)
 import Data.Map (fromList)
 import Data.Maybe (catMaybes)
 import Language.Haskell.TH (TypeQ)
+import Language.Haskell.TH.Lib.Extra (reportMessage)
 
 import Database.HDBC (IConnection, SqlValue)
 import Database.HDBC.Record.Query (runQuery')
@@ -34,7 +35,7 @@ logPrefix :: String -> String
 logPrefix = ("Oracle: " ++)
 
 putLog :: String -> IO ()
-putLog = putStrLn . logPrefix
+putLog = reportMessage . logPrefix
 
 compileErrorIO :: String -> IO a
 compileErrorIO = fail . logPrefix

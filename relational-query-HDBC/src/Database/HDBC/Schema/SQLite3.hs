@@ -31,6 +31,7 @@ import Database.Relational.Schema.SQLite3Syscat.IndexInfo (IndexInfo)
 import Database.Relational.Schema.SQLite3Syscat.IndexList (IndexList)
 import Database.Relational.Schema.SQLite3Syscat.TableInfo (TableInfo)
 import Language.Haskell.TH (TypeQ)
+import Language.Haskell.TH.Lib.Extra (reportMessage)
 
 $(makeRecordPersistableWithSqlTypeDefaultFromDefined
   [t| SqlValue |] ''TableInfo)
@@ -45,7 +46,7 @@ logPrefix :: String -> String
 logPrefix = ("SQLite3: " ++)
 
 putLog :: String -> IO ()
-putLog = putStrLn . logPrefix
+putLog = reportMessage . logPrefix
 
 compileErrorIO :: String -> IO a
 compileErrorIO =  fail . logPrefix

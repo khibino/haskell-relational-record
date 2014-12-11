@@ -29,6 +29,7 @@ import Database.Relational.Schema.SQLServer (columnTypeQuerySQL, getType, normal
 import Database.Relational.Schema.SQLServerSyscat.Columns (Columns)
 import Database.Relational.Schema.SQLServerSyscat.Types (Types)
 import Language.Haskell.TH (TypeQ)
+import Language.Haskell.TH.Lib.Extra (reportMessage)
 
 $(makeRecordPersistableWithSqlTypeDefaultFromDefined
   [t| SqlValue |] ''Columns)
@@ -40,7 +41,7 @@ logPrefix :: String -> String
 logPrefix = ("SQLServer: " ++)
 
 putLog :: String -> IO ()
-putLog = putStrLn . logPrefix
+putLog = reportMessage . logPrefix
 
 compileErrorIO :: String -> IO a
 compileErrorIO =  fail . logPrefix
