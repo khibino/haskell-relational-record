@@ -50,7 +50,7 @@ import Database.Relational.Query.Internal.Product
 import Database.Relational.Query.Component
   (ColumnSQL, columnSQL', showsColumnSQL,
    Config (productUnitSupport), ProductUnitSupport (PUSupported, PUNotSupported),
-   Duplication, showsDuplication, QueryRestriction, composeWhere, composeHaving,
+   Duplication (..), showsDuplication, QueryRestriction, composeWhere, composeHaving,
    AggregateElem, composeGroupBy, OrderingTerms, composeOrderBy)
 import Database.Relational.Query.Table (Table, (!))
 import qualified Database.Relational.Query.Table as Table
@@ -63,11 +63,16 @@ data SetOp = Union | Except | Intersect  deriving Show
 
 newtype BinOp = BinOp (SetOp, Duplication) deriving Show
 
-showsSetOp :: SetOp -> StringSQL
-showsSetOp =  d  where
+showsSetOp' :: SetOp -> StringSQL
+showsSetOp' =  d  where
   d Union     = UNION
   d Except    = EXCEPT
   d Intersect = INTERSECT
+
+showsSetOp :: SetOp -> Duplication -> StringSQL
+showsSetOp op dup0 = showsSetOp' op <> mayDup dup0  where
+  mayDup dup@All  = showsDuplication dup
+  mayDup Distinct = mempty
 
 -- | Sub-query type
 data SubQuery = Table Table.Untyped
@@ -165,7 +170,7 @@ toSQLs :: SubQuery
 toSQLs =  d  where
   d (Table u)               = (stringSQL $ Table.name' u, fromTableToSQL u)
   d (Bin (BinOp (op, da)) l r) = (SQL.paren q, q)  where
-    q = mconcat [normalizedSQL l, showsSetOp op, showsDuplication da, normalizedSQL r]
+    q = mconcat [normalizedSQL l, showsSetOp op da, normalizedSQL r]
   d (Flat cf up da pd rs od)   = (SQL.paren q, q)  where
     q = selectPrefixSQL up da <> showsJoinProduct (productUnitSupport cf) pd <> composeWhere rs
         <> composeOrderBy od
