@@ -262,6 +262,7 @@ qualifiedForm =  qualifiedSQLas . fmap showUnitSQL
 -- | Projection structure unit
 data ProjectionUnit = Columns (Array Int ColumnSQL)
                     | Normalized (Qualified Int)
+                    | Scalar SubQuery
                     deriving Show
 
 projectionUnitFromColumns :: [ColumnSQL] -> ProjectionUnit
@@ -292,6 +293,7 @@ widthOfProjectionUnit :: ProjectionUnit -> Int
 widthOfProjectionUnit =  d  where
   d (Columns a)     = mx - mn + 1 where (mn, mx) = Array.bounds a
   d (Normalized qw) = unQualify qw
+  d (Scalar _)      = 1
 
 -- | Get column of ProjectionUnit.
 columnOfProjectionUnit :: ProjectionUnit -> Int -> ColumnSQL
@@ -302,6 +304,8 @@ columnOfProjectionUnit =  d  where
   d (Normalized qw) i | i < w          = qualifier qw `columnFromId` i
                       | otherwise      = error $ "index out of bounds (normalized unit): " ++ show i
     where w = unQualify qw
+  d (Scalar sub)    0                  = columnSQL' $ showUnitSQL sub
+  d (Scalar _)      i                  = error $ "index out of bounds (scalar unit): " ++ show i
 
 -- | Width of 'UntypedProjection'.
 widthOfUntypedProjection :: UntypedProjection -> Int
