@@ -9,6 +9,7 @@ module Database.HDBC.Schema.MySQL
 
 import           Prelude                            hiding (length)
 import           Language.Haskell.TH                (TypeQ)
+import           Language.Haskell.TH.Lib.Extra      (reportMessage)
 import qualified Data.List                          as List
 import           Data.Map                           (fromList)
 
@@ -38,7 +39,7 @@ logPrefix :: String -> String
 logPrefix = ("MySQL: " ++)
 
 putLog :: String -> IO ()
-putLog = putStrLn . logPrefix
+putLog = reportMessage . logPrefix
 
 compileErrorIO :: String -> IO a
 compileErrorIO = fail . logPrefix
