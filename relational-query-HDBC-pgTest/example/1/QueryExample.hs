@@ -326,9 +326,9 @@ userGroupScalar =  relation $ do
   gn <- queryScalar . uniqueRelation'
        $ do (uph, g) <- uniqueQuery' $ derivedUniqueRelation groupPrimaryUnique (m ! groupId')
             return (uph, g ! Group.name')
-  return $ un >< gn
+  return $ flatten un >< flatten gn
 
-groups :: Relation () (Group, Int64)
+groups :: Relation () (Group, Maybe Int64)
 groups =  relation $ do
   g  <- query group
   gc <- queryScalar $ aggregatedUnique group Group.id' count

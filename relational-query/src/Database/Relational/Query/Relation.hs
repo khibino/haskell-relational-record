@@ -431,7 +431,7 @@ aggregatedUnique rel k ag = unsafeUnique . aggregateRelation' $ do
 -- | Scalar subQuery with place-holder parameter 'p'.
 queryScalar' :: (MonadQualify ConfigureQuery m, ScalarDegree r)
              => UniqueRelation p c r
-             -> m (PlaceHolders p, Projection c r)
+             -> m (PlaceHolders p, Projection c (Maybe r))
 queryScalar' ur =
   addPlaceHolders . liftQualify $
   Projection.unsafeFromScalarSubQuery <$> subQueryQualifyFromRelation (unUnique ur)
@@ -439,5 +439,5 @@ queryScalar' ur =
 -- | Scalar subQuery.
 queryScalar :: (MonadQualify ConfigureQuery m, ScalarDegree r)
             => UniqueRelation () c r
-            -> m (Projection c r)
+            -> m (Projection c (Maybe r))
 queryScalar =  fmap snd . queryScalar'
