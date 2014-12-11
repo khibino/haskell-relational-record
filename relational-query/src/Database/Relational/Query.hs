@@ -78,4 +78,6 @@ import Database.Relational.Query.Type hiding
 import Database.Relational.Query.Effect
 import Database.Relational.Query.Derives
 
+import Database.Record.Instances ()
+
 {-# ANN module "HLint: ignore Use import/export shortcut" #-}
