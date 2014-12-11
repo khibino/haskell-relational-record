@@ -20,6 +20,7 @@ module Database.Relational.Query.Projection (
 
   unsafeFromColumns,
   unsafeFromQualifiedSubQuery,
+  unsafeFromScalarSubQuery,
   unsafeFromTable,
 
   -- * Projections
@@ -55,7 +56,7 @@ import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Relational.Query.Sub
   (SubQuery, Qualified, ProjectionUnit,
    UntypedProjection, widthOfUntypedProjection, columnsOfUntypedProjection,
-   untypedProjectionFromColumns, untypedProjectionFromJoinedSubQuery)
+   untypedProjectionFromColumns, untypedProjectionFromJoinedSubQuery, untypedProjectionFromScalarSubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
 
 
@@ -93,6 +94,10 @@ unsafeFromColumns =  typedProjection . untypedProjectionFromColumns
 -- | Unsafely generate  'Projection' from qualified (joined) subquery.
 unsafeFromQualifiedSubQuery :: Qualified SubQuery -> Projection c t
 unsafeFromQualifiedSubQuery =  typedProjection . untypedProjectionFromJoinedSubQuery
+
+-- | Unsafely generate 'Projection' from scalar subquery.
+unsafeFromScalarSubQuery :: SubQuery -> Projection c t
+unsafeFromScalarSubQuery =  typedProjection . untypedProjectionFromScalarSubQuery
 
 -- | Unsafely generate unqualified 'Projection' from 'Table'.
 unsafeFromTable :: Table r

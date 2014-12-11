@@ -60,7 +60,7 @@ import qualified Database.Relational.Query.Monad.Aggregate as Aggregate
 import Database.Relational.Query.Monad.Unique (QueryUnique)
 import qualified Database.Relational.Query.Monad.Unique as Unique
 
-import Database.Relational.Query.Component (columnSQL, Config, defaultConfig, Duplication (Distinct, All))
+import Database.Relational.Query.Component (Config, defaultConfig, Duplication (Distinct, All))
 import Database.Relational.Query.Table (Table, TableDerivable, derivedTable)
 import Database.Relational.Query.Internal.SQL (StringSQL, showStringSQL)
 import Database.Relational.Query.Internal.Product (NodeAttr(Just', Maybe))
@@ -432,9 +432,9 @@ aggregatedUnique rel k ag = unsafeUnique . aggregateRelation' $ do
 queryScalar' :: (MonadQualify ConfigureQuery m, ScalarDegree r)
              => UniqueRelation p c r
              -> m (PlaceHolders p, Projection c r)
-queryScalar' ur = addPlaceHolders . liftQualify $
-  Projection.unsafeFromColumns . (:[]) . columnSQL . SubQuery.unitSQL
-  <$> subQueryQualifyFromRelation (unUnique ur)
+queryScalar' ur =
+  addPlaceHolders . liftQualify $
+  Projection.unsafeFromScalarSubQuery <$> subQueryQualifyFromRelation (unUnique ur)
 
 -- | Scalar subQuery.
 queryScalar :: (MonadQualify ConfigureQuery m, ScalarDegree r)
