@@ -1,9 +1,19 @@
 ---
 layout: default
-title: test
+title: Quick start
 ---
 
-### this is test
+### Preparing HRR
 
 Hello world.
+
+### The first relation
+
+test
+
+### Composing relations
+
+test
+
+
 
