@@ -1,0 +1,27 @@
+name:                relational-record
+version:             0.0.1.0
+synopsis:            Meta package of Relational Record
+description:         Meta package to install Relational Record quickly
+homepage:            http://khibino.github.io/haskell-relational-record/
+license:             BSD3
+license-file:        LICENSE
+author:              Kei Hibino
+maintainer:          ex8k.hibino@gmail.com
+copyright:           Copyright (c) 2014 Kei Hibino
+category:            Database
+build-type:          Simple
+cabal-version:       >=1.10
+
+library
+  build-depends:       relational-query-HDBC
+
+  default-language:    Haskell2010
+
+
+source-repository head
+  type:       git
+  location:   https://github.com/khibino/haskell-relational-record
+
+source-repository head
+  type:       mercurial
+  location:   https://bitbucket.org/khibino/haskell-relational-record
