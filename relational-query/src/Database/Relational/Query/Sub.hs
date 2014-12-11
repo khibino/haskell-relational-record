@@ -152,10 +152,14 @@ fromTableToNormalizedSQL t = SELECT <> SQL.fold (|*|) columns' <>
 -- | Normalized column SQL
 normalizedSQL :: SubQuery -> StringSQL
 normalizedSQL =  d  where
-  d (Table t)             =  fromTableToNormalizedSQL t
-  d sub@(Bin {})          =  showUnitSQL sub
-  d sub@(Flat {})         =  showUnitSQL sub
-  d sub@(Aggregated {})   =  showUnitSQL sub
+  d (Table t)                 =  fromTableToNormalizedSQL t
+  d sub@(Bin {})              =  showUnitSQL sub
+  d sub@(Flat _ _ _ _ _ ots)
+    | null ots                =  showSQL sub
+    | otherwise               =  showUnitSQL sub
+  d sub@(Aggregated _ _ _ _ _ _ _ ots)
+    | null ots                =  showSQL sub
+    | otherwise               =  showUnitSQL sub
 
 selectPrefixSQL :: UntypedProjection -> Duplication -> StringSQL
 selectPrefixSQL up da = SELECT <> showsDuplication da <>
