@@ -23,7 +23,6 @@ To install the Haskell "relational-record" library, type as follows:
 Let's defined our first relation. Copy the following to "hello.hs":
 
     import Data.Int (Int32)
-    import Database.Record.Instances ()
     import Database.Relational.Query
     
     hello :: Relation () (Int32, String)
@@ -51,7 +50,6 @@ We got "0\|Hello"! Note that "dummy.db" is really a dummy file.
 Next, let's compose relations. Copy the following to "helloworld.hs":
 
     import Data.Int (Int32)
-    import Database.Record.Instances ()
     import Database.Relational.Query
     
     hello :: Relation () (Int32, String)
