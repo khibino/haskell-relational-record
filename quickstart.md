@@ -5,13 +5,13 @@ title: Quick start
 
 ### Preparing HRR
 
-To start using Haskell Relational Record (HRR), you need to install:
+To start using [Haskell Relational Record](http://khibino.github.io/haskell-relational-record/) (HRR), you need to install:
 
-- Glasgow Haskell Compiler (GHC) + the "cabal" command
-    - We recommend to use Haskell Platform
-- The Haskell "relational-record" library
-- Relational database system
-    - In this quickstart, we assume that "sqlite3" has been installed
+1. [Glasgow Haskell Compiler](https://www.haskell.org/ghc/) (GHC) + the "cabal" command
+    - We recommend to use [Haskell Platform](https://www.haskell.org/platform/)
+2. The Haskell ["relational-record"](http://hackage.haskell.org/package/relational-record) library
+3. Relational database system
+    - In this quickstart, we assume that [SQLite](http://www.sqlite.org/) has been installed
 
 To install the Haskell "relational-record" library, type as follows:
 
@@ -39,7 +39,7 @@ Let's run this Haskell code to show what kind of SQL statement is generated:
     % runghc hello.hs
     SELECT ALL 0 AS f0, 'Hello' AS f1;
 
-OK. Next, let's execute this SQL in SQLite3:
+OK. Next, let's execute this SQL in SQLite:
 
     % runghc hello.hs | sqlite3 dummy.db
     0|Hello
@@ -77,7 +77,7 @@ This code generates the following SQL statement:
     % runghc helloworld.hs
     SELECT ALL T0.f0 AS f0, T0.f1 AS f1, T1.f0 AS f2, T1.f1 AS f3 FROM (SELECT ALL 0 AS f0, 'Hello' AS f1) T0 INNER JOIN (SELECT ALL 0 AS f0, 'World!' AS f1) T1 ON (T0.f0 = T1.f0);
 
-Finally, let's execute it in SQLite3:
+Finally, let's execute it in SQLite:
 
     % runghc helloworld.hs | sqlite3 dummy.db
     0|Hello|0|World!
