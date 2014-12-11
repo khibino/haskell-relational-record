@@ -48,6 +48,8 @@ We got "0|Hello"! Note that "dummy.db" is really a dummy file.
 
 ### Composing relations
 
+Next, let's compose relations. Copy the following to "helloworld.hs":
+
     import Data.Int (Int32)
     import Database.Record.Instances ()
     import Database.Relational.Query
@@ -68,5 +70,14 @@ We got "0|Hello"! Note that "dummy.db" is really a dummy file.
     main :: IO ()
     main = putStrLn $ show helloWorld ++ ";"
 
+This code defines queries called 'hello' and 'world'. And 'helloworld' composes them by joining them on the first element of the tuples.
 
+This code generates the following SQL statement:
 
+   % runghc helloworld.hs
+SELECT ALL T0.f0 AS f0, T0.f1 AS f1, T1.f0 AS f2, T1.f1 AS f3 FROM (SELECT ALL 0 AS f0, 'Hello' AS f1) T0 INNER JOIN (SELECT ALL 0 AS f0, 'World!' AS f1) T1 ON (T0.f0 = T1.f0);
+
+Finally, let's execute it in SQLite3:
+
+    % runghc helloworld.hs | sqlite3 dummy.db
+    0|Hello|0|World!
