@@ -54,7 +54,7 @@ import Database.Relational.Query.Pure (ProductConstructor (..))
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Relational.Query.Sub
-  (SubQuery, Qualified, ProjectionUnit,
+  (SubQuery, Qualified,
    UntypedProjection, widthOfUntypedProjection, columnsOfUntypedProjection,
    untypedProjectionFromColumns, untypedProjectionFromJoinedSubQuery, untypedProjectionFromScalarSubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
@@ -65,12 +65,6 @@ newtype Projection c t = Projection { untypeProjection :: UntypedProjection }
 
 typedProjection :: UntypedProjection -> Projection c t
 typedProjection =  Projection
-
-units :: Projection c t -> [ProjectionUnit]
-units =  untypeProjection
-
-fromUnits :: [ProjectionUnit] -> Projection c t
-fromUnits =  typedProjection
 
 -- | Width of 'Projection'.
 width :: Projection c r -> Int
@@ -168,7 +162,7 @@ _ `pfmap` p = unsafeCast p
 
 -- | Projectable ap of 'Projection' type.
 pap :: Projection c (a -> b) -> Projection c a -> Projection c b
-pf `pap` pa = fromUnits $ units pf ++ units pa
+pf `pap` pa = typedProjection $ untypeProjection pf ++ untypeProjection pa
 
 -- | Projection type for row list.
 data ListProjection p t = List [p t]
