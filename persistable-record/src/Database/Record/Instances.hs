@@ -22,7 +22,6 @@ $(fmap concat $ mapM deriveNotNullType
   [ [t| Bool |]
   , [t| Char |]
   , [t| String |]
-  , [t| Int |]
   , [t| Int16 |]
   , [t| Int32 |]
   , [t| Int64 |]
