@@ -196,8 +196,8 @@ group1 = aggregateRelation $ do
 --   WHERE product_type_cd = 'ACCOUNT')
 -- @
 
-productSubQuery :: Relation String String
-productSubQuery = relation' $ do
+product1 :: Relation String String
+product1 = relation' $ do
   p <- query product
   (phProductCd,()) <- placeholder (\ph -> wheres $ p ! Product.productTypeCd' .=. ph)
   let productCd = p ! Product.productCd'
@@ -206,14 +206,14 @@ productSubQuery = relation' $ do
 account3 :: Relation String Account
 account3 = relation' $ do
   a <- query account
-  (phProductCd,p) <- queryList' productSubQuery
+  (phProductCd,p) <- queryList' product1
   wheres $ a ! Account.productCd' `in'` p
   return (phProductCd, a)
 
 account3T :: Relation String (((Int64, String), Int64), Maybe Double)
 account3T = relation' $ do
   a <- query account
-  (phProductCd,p) <- queryList' productSubQuery
+  (phProductCd,p) <- queryList' product1
   wheres $ a ! Account.productCd' `in'` p
   let at = a ! Account.accountId' >< a ! Account.productCd' >< a ! Account.custId' >< a ! Account.availBalance'
   return (phProductCd, at)
@@ -221,13 +221,27 @@ account3T = relation' $ do
 account3R :: Relation String Account1
 account3R = relation' $ do
   a <- query account
-  (phProductCd,p) <- queryList' productSubQuery
+  (phProductCd,p) <- queryList' product1
   wheres $ a ! Account.productCd' `in'` p
   let ar = Account1 |$| a ! Account.accountId'
                     |*| a ! Account.productCd'
                     |*| a ! Account.custId'
                     |*| a ! Account.availBalance'
   return (phProductCd, ar)
+
+-- sql/4.3.3c.sh
+--
+-- @
+--   SELECT account_id, product_cd, cust_id, avail_balance
+--   FROM LEARNINGSQL.account
+--   WHERE product_cd NOT IN ('CHK', 'SAV', 'CD', 'MM')
+-- @
+--
+account4 :: Relation () Account
+account4 = relation $ do
+  a  <- query account
+  wheres $ not' (a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"])
+  return a
 
 --
 -- run and print sql
@@ -257,4 +271,5 @@ main = handleSqlError' $ withConnectionIO connect $ \conn -> do
   run conn "ACCOUNT" account3
   run conn "ACCOUNT" account3T
   run conn "ACCOUNT" account3R
+  run conn () account4
 
