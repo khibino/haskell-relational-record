@@ -11,7 +11,7 @@ To start using [Haskell Relational Record](http://khibino.github.io/haskell-rela
     - We recommend to use [Haskell Platform](https://www.haskell.org/platform/)
 2. The Haskell ["relational-record"](http://hackage.haskell.org/package/relational-record) library
 3. Relational database system
-    - In this quickstart, we assume that [SQLite](http://www.sqlite.org/) has been installed
+    - In this quickstart, we assume that [SQLite](http://www.sqlite.org/) version 3 has been installed
 
 To install the Haskell "relational-record" library, type as follows:
 
