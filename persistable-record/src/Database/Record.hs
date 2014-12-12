@@ -60,9 +60,8 @@ and Haskell record type using type classes.
 -}
 
 {- $bindSqlAndHaskellRecords
-You will need to implement instances of 'Persistable' class
+You will need to implement instances of 'FromSql' and 'ToSql' class
 to bind between SQL database values and Haskell records.
-'Persistable' instance is source to derive 'FromSql' and 'ToSql'.
 
 You can use Database.Record.TH module in this package
 to generate instances from SQL database record column names and types.
