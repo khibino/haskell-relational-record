@@ -254,3 +254,7 @@ main = handleSqlError' $ withConnectionIO connect $ \conn -> do
   run conn () union1
   run conn () union1'
   run conn () group1
+  run conn "ACCOUNT" account3
+  run conn "ACCOUNT" account3T
+  run conn "ACCOUNT" account3R
+
