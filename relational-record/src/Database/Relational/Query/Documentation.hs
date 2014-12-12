@@ -53,7 +53,7 @@ module Database.Relational.Query.Documentation (
 
   -- **** Projection Path
   -- $projectionPath
-  (!),
+  Pi, (!), (<.>),
 
   -- **** Projection Operators
   -- $projectionOperators
@@ -198,6 +198,9 @@ Module "Database.Relational.Query.Context" contains documentation of other conte
  -}
 
 {- $projectionPath
+'!' operator is projected value selector using projection path type 'Pi' /r0/ /r1/.
+'Pi' /r0/ /r1/ is projection path type selecting column type /r1/ from record type /r0/.
+'<.>' operator makes composed projection path from two projection paths.
  -}
 
 {- $projectionOperators
