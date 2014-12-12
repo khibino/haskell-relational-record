@@ -158,7 +158,7 @@ Some operators are defined to build query structures in monadic context.
 Not monadic style join is supported by some direct join operators.
 
 'inner', 'left', 'right', 'full' operators can construct join products directly like SQL.
-'on'' specifies condition of join product.
+'on'' operator specifies condition of join product.
  -}
 
 {- $finalize
@@ -170,16 +170,30 @@ and 'aggregateRelation' operator finalizes aggregated query monadic context.
 
 {- $projectionOperators
 Some operators are defined to caluculate projections.
+
+For example,
+'.=.' operator is equal compare operation of projected value correspond to SQL =,
+'.+.' operator is plus operation of projected value coresspond to SQL +, and so on.
  -}
 
 {- $aggregateFunctions
 Typed aggregate operators are defined.
 Aggregated value types is distinguished with Flat value types.
+
+For example,
+'sum'' operator is aggregate function of projected flat (not aggregated) value
+correspond to SQL SUM(...), and
+'rank' operator is window function of projected value coresspond to SQL RANK().
+
  -}
 
 {- $setOperators
 Several operators are defined to manipulate relation set.
- -}
+
+'union' operator makes union relation set of two relation set correspond to SQL UNION.
+'except' operator makes difference relation set of two relation set correspond to SQL EXCEPT.
+'intersect' operator makes intersection relation set of two relation set correspond to SQL INTERSECT.
+-}
 
 {- $maybeProjection
 Operators of projection and aggregation are also provided Maybe type versions.
