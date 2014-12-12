@@ -40,7 +40,10 @@ module Database.Relational.Query.Documentation (
   relation,
   aggregateRelation,
 
-  -- *** Projection Type
+  -- *** Projection
+  -- $projection
+
+  -- **** Projection Type
   -- $projectionType
   Projection,
 
@@ -48,7 +51,11 @@ module Database.Relational.Query.Documentation (
 
   Exists, OverWindow,
 
-  -- *** Projection Operators
+  -- **** Projection Path
+  -- $projectionPath
+  (!),
+
+  -- **** Projection Operators
   -- $projectionOperators
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
   casesOrElse, case',
@@ -176,6 +183,10 @@ Several operators are defined to finalize query monadic context.
 and 'aggregateRelation' operator finalizes aggregated query monadic context.
  -}
 
+{- $projection
+This DSL project SQL value type to haskell type.
+ -}
+
 {- $projectionType
 'Projection' /c/ /t/ is SQL value type projection to haskell type with context type /c/ correspond haskell type /t/.
 
@@ -184,8 +195,11 @@ and 'aggregateRelation' operator finalizes aggregated query monadic context.
 'OverWindow' is window function context type, and so on.
  -}
 
+{- $projectionPath
+ -}
+
 {- $projectionOperators
-Some operators are defined to caluculate projections.
+Some operators are defined to caluculate projected values.
 
 For example,
 '.=.' operator is equal compare operation of projected value correspond to SQL =,
