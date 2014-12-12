@@ -2,10 +2,7 @@
 
 module Department where
 
-import Prelude hiding (id)
-import Database.Record.TH (derivingShow)
-
 import DataSource (defineTable)
+import Prelude hiding (id)
 
-$(defineTable
-  "main" "department" [derivingShow])
+$(defineTable "main" "department")

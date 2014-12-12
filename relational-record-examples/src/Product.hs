@@ -1,12 +1,9 @@
-{-# LANGUAGE TemplateHaskell, MultiParamTypeClasses #-}
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE TemplateHaskell, MultiParamTypeClasses, FlexibleInstances #-}
 
 module Product where
 
-import Prelude hiding (id, product)
-import Database.Record.TH (derivingShow)
-
 import DataSource (defineTable)
+import Prelude hiding (id, product)
 
-$(defineTable
-  "main" "product" [derivingShow])
+$(defineTable "main" "product")
+

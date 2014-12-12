@@ -2,10 +2,7 @@
 
 module Customer where
 
-import Prelude hiding (id)
-import Database.Record.TH (derivingShow)
-
 import DataSource (defineTable)
+import Prelude hiding (id)
 
-$(defineTable
-  "main" "customer" [derivingShow])
+$(defineTable "main" "customer")

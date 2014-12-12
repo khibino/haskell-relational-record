@@ -2,10 +2,8 @@
 
 module Account where
 
-import Prelude hiding (id)
-import Database.Record.TH (derivingShow)
-
 import DataSource (defineTable)
+import Prelude hiding (id)
 
-$(defineTable
-  "main" "account" [derivingShow])
+$(defineTable "main" "account")
+

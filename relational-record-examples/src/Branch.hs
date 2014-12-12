@@ -2,10 +2,7 @@
 
 module Branch where
 
-import Prelude hiding (id, zip)
-import Database.Record.TH (derivingShow)
-
 import DataSource (defineTable)
+import Prelude hiding (id, zip)
 
-$(defineTable
-  "main" "branch" [derivingShow])
+$(defineTable "main" "branch")

@@ -2,13 +2,10 @@
 
 module Transaction where
 
-import Prelude hiding (id)
-import Database.Record.TH (derivingShow)
-
 import DataSource (defineTable)
+import Prelude hiding (id)
 
-$(defineTable
-  "main" "transaction0" [derivingShow])
+$(defineTable "main" "transaction0")
 
 type Transaction = Transaction0
 

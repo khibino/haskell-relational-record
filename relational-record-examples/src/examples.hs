@@ -1,5 +1,4 @@
-{-# LANGUAGE MonadComprehensions #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MonadComprehensions, FlexibleContexts #-}
 
 import Database.Record
 
