@@ -21,6 +21,8 @@ module Database.Relational.Query.Documentation (
   -- **** Monadic Operators
   -- $monadicOperator
   query,
+  queryMaybe,
+
   on,
   wheres,
 
@@ -30,6 +32,8 @@ module Database.Relational.Query.Documentation (
 
   -- **** Direct Join Operators
   -- $directJoin
+  inner, left, right, full,
+  on',
 
   -- **** Finalize Context
   -- $finalize
@@ -44,13 +48,55 @@ module Database.Relational.Query.Documentation (
   -- $aggregateFunctions
   sum',
 
+  -- *** Maybe Projections
+  -- $maybeProjection
+
   -- *** Set Operators
   -- $setOperators
-  union,
+  union, except, intersect,
+
 
   -- ** Database Operations
   -- $databaseOperations
+
+  -- *** Generalized Statement
+  -- $generalizedStmt
+  prepareNoFetch,
   bind,
+  execute,
+  executeNoFetch,
+
+  -- *** Select
+  -- $select
+  prepareQuery,
+  fetch,
+  runQuery,
+
+  -- *** Insert Values
+  -- $insertValue
+  prepareInsert,
+  runInsert,
+
+  -- *** Insert Select Results
+  -- $insertSelect
+  prepareInsertQuery,
+  runInsertQuery,
+
+  -- *** Update
+  -- $update
+  prepareUpdate,
+  runUpdate,
+
+  -- *** Delete
+  -- $delete
+  prepareDelete,
+  runDelete,
+
+  -- *** Update by Key
+  -- $keyUpdate
+  prepareKeyUpdate,
+  bindKeyUpdate,
+  runKeyUpdate,
 
   ) where
 
@@ -93,10 +139,42 @@ Typed aggregate operators are defined.
 Aggregated value types is distinguished with Flat value types.
  -}
 
+{- $maybeProjection
+Operators of projection and aggregation are also provided Maybe type versions.
+ -}
+
 {- $setOperators
 Several operators are defined to manipulate relation set.
  -}
 
 {- $databaseOperations
 Some actions are defined for database site effects.
+ -}
+
+{- $generalizedStmt
+Actions to manage generalized SQL statements.
+ -}
+
+{- $select
+Actions to manage SELECT statements.
+ -}
+
+{- $insertValue
+Actions to manage INSERT ... VALUES ... statements.
+ -}
+
+{- $insertSelect
+Actions to manage INSERT ... SELECT ... statements.
+ -}
+
+{- $update
+Actions to manage UPDATE statements.
+ -}
+
+{- $delete
+Actions to manage DELETE statements.
+ -}
+
+{- $keyUpdate
+Actions to manage UPDATE statements which updates columns other than specified key of the records selected by specified key.
  -}
