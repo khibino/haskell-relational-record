@@ -48,12 +48,20 @@ module Database.Relational.Query.Documentation (
   -- $aggregateFunctions
   sum',
 
-  -- *** Maybe Projections
-  -- $maybeProjection
-
   -- *** Set Operators
   -- $setOperators
   union, except, intersect,
+
+  -- *** Maybe Projections
+  -- $maybeProjection
+  (?+?), (?*?),
+
+  -- *** Placeholders
+  -- $placeholder
+  query', queryMaybe',
+  inner', left',
+  relation', aggregateRelation',
+  union', except',
 
 
   -- ** Database Operations
@@ -139,13 +147,18 @@ Typed aggregate operators are defined.
 Aggregated value types is distinguished with Flat value types.
  -}
 
+{- $setOperators
+Several operators are defined to manipulate relation set.
+ -}
+
 {- $maybeProjection
 Operators of projection and aggregation are also provided Maybe type versions.
  -}
 
-{- $setOperators
-Several operators are defined to manipulate relation set.
+{- $placeholder
+Some operators are defined to realize type safe placeholder.
  -}
+
 
 {- $databaseOperations
 Some actions are defined for database site effects.
