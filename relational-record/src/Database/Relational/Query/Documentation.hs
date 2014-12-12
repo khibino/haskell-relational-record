@@ -183,7 +183,7 @@ Aggregated value types is distinguished with Flat value types.
 For example,
 'sum'' operator is aggregate function of projected flat (not aggregated) value
 correspond to SQL SUM(...), and
-'rank' operator is window function of projected value coresspond to SQL RANK().
+'rank' operator is window function of projected value coresspond to SQL RANK(), and so on.
 
  -}
 
@@ -197,6 +197,11 @@ Several operators are defined to manipulate relation set.
 
 {- $maybeProjection
 Operators of projection and aggregation are also provided Maybe type versions.
+
+For example,
+'?+?' operator is maybe version of '.+.',
+'nagateMaybe' operator is maybe version of 'nagate',
+'sumMaybe' operator is maybe version of 'sum'', and so on.
  -}
 
 {- $placeholder
