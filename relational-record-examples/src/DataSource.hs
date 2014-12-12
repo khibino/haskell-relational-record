@@ -17,7 +17,7 @@ connect = connectSqlite3 "examples.db"
 
 convTypes :: [(String, TypeQ)]
 convTypes =
-    [ ("float", [t|Double|]) 
+    [ ("float", [t|Double|])
     , ("date", [t|Day|])
     , ("datetime", [t|LocalTime|])
     , ("double", [t|Double|])
@@ -29,4 +29,3 @@ defineTable =
   defineTableFromDB
     connect
     (driverSQLite3 { typeMap = convTypes }) -- overwrite the default type map with yours
-
