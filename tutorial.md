@@ -159,4 +159,7 @@ OK. Let's execute our relation on "examples.db":
     Account {accountId = 2, productCd = "SAV", custId = 1, openDate = 2000-01-15, closeDate = Nothing, lastActivityDate = Just 2004-12-19, status = "ACTIVE", openBranchId = Just 2, openEmpId = Just 10, availBalance = Just 500.0, pendingBalance = Just 500.0}
     ...
 
+We make it!
+
+To understand how to express more complicated relations and how to update tables, please read [Examples](examples.hs).
 
