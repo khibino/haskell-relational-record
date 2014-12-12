@@ -11,9 +11,19 @@ category:            Database
 build-type:          Simple
 cabal-version:       >=1.10
 
+extra-source-files:    sql/4.3.3a.sh
+                       sql/4.3.3b.sh
+                       sql/4.3.3c.sh
+                       sql/5.1.2a.sh
+                       sql/5.3a.sh
+                       sql/6.4.1a.sh
+                       sql/8.1a.sh
+                       sql/add.sql
+                       examples.db
+
 executable examples
   hs-source-dirs:      src
-  main-is:             Examples.hs
+  main-is:             examples.hs
   other-modules:       Account
                        Branch
                        Business
