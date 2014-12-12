@@ -2,7 +2,7 @@
    from http://examples.oreilly.com/9780596007270/LearningSQLExample.sql
    Modified for SQLite3.
 
-   % sqlite3 test.db < add.sql
+   % sqlite3 examples.db < add.sql
 */
 
 /* begin table creation */
