@@ -42,11 +42,24 @@ module Database.Relational.Query.Documentation (
 
   -- *** Projection Operators
   -- $projectionOperators
-  (.=.), (.<>.),
+  (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
+  casesOrElse, case',
+  in', and', or',
 
-  -- *** Aggregate Functions
+  isNothing, isJust, fromMaybe,
+
+  not', exists,
+
+  (.||.),
+  (.+.), (.-.), (./.), (.*.), negate', fromIntegral', showNum,
+
+  -- *** Aggregate and Window Functions
   -- $aggregateFunctions
-  sum',
+  sum', avg,
+  max', min',
+  every, any', some',
+
+  rank, denseRank, rowNumber, percentRank, cumeDist,
 
   -- *** Set Operators
   -- $setOperators
@@ -54,15 +67,16 @@ module Database.Relational.Query.Documentation (
 
   -- *** Maybe Projections
   -- $maybeProjection
-  (?+?), (?*?),
+  (?+?),
+  negateMaybe,
+  sumMaybe,
 
   -- *** Placeholders
   -- $placeholder
-  query', queryMaybe',
-  inner', left',
-  relation', aggregateRelation',
-  union', except',
-
+  query',
+  left',
+  relation',
+  union',
 
   -- ** Database Operations
   -- $databaseOperations
