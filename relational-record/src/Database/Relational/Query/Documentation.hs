@@ -113,8 +113,10 @@ import Database.HDBC.Record
 
 {- $concepts
 User inferface of Relational Record has main two part of modules.
- * Relational Query Building DSL - "Database.Relational.Query"
- * Database Operation  - "Database.HDBC.Record"
+
+[@"Database.Relational.Query"@] Relational Query Building DSL
+
+[@"Database.HDBC.Record"@] Database Operation Actions
  -}
 
 {- $queryBuildingDSL
@@ -127,7 +129,7 @@ This DSL accumulates query structures into monadic context.
  -}
 
 {- $monadicOperator
-Some operators are defined to update query structures in monadic context.
+Some operators are defined to build query structures in monadic context.
  -}
 
 {- $directJoin
