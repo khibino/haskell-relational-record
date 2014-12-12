@@ -3,6 +3,5 @@
 module Branch where
 
 import DataSource (defineTable)
-import Prelude hiding (id, zip)
 
 $(defineTable "branch")

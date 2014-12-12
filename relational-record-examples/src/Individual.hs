@@ -3,6 +3,5 @@
 module Individual where
 
 import DataSource (defineTable)
-import Prelude hiding (id)
 
 $(defineTable "individual")

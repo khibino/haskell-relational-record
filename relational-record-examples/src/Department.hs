@@ -3,6 +3,5 @@
 module Department where
 
 import DataSource (defineTable)
-import Prelude hiding (id)
 
 $(defineTable "department")

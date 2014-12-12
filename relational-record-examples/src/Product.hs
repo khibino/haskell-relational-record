@@ -3,7 +3,7 @@
 module Product where
 
 import DataSource (defineTable)
-import Prelude hiding (id, product)
+import Prelude hiding (product)
 
 $(defineTable "product")
 

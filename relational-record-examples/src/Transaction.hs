@@ -3,7 +3,6 @@
 module Transaction where
 
 import DataSource (defineTable)
-import Prelude hiding (id)
 
 $(defineTable "transaction0")
 
