@@ -40,6 +40,14 @@ module Database.Relational.Query.Documentation (
   relation,
   aggregateRelation,
 
+  -- *** Projection Type
+  -- $projectionType
+  Projection,
+
+  Flat, Aggregated,
+
+  Exists, OverWindow,
+
   -- *** Projection Operators
   -- $projectionOperators
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
@@ -168,6 +176,14 @@ Several operators are defined to finalize query monadic context.
 and 'aggregateRelation' operator finalizes aggregated query monadic context.
  -}
 
+{- $projectionType
+'Projection' /c/ /t/ is SQL value type projection to haskell type with context type /c/ correspond haskell type /t/.
+
+'Flat' is not aggregated query context type,
+'Aggregated' is aggregated query context type,
+'OverWindow' is window function context type, and so on.
+ -}
+
 {- $projectionOperators
 Some operators are defined to caluculate projections.
 
@@ -182,7 +198,7 @@ Aggregated value types is distinguished with Flat value types.
 
 For example,
 'sum'' operator is aggregate function of projected flat (not aggregated) value
-correspond to SQL SUM(...), and
+correspond to SQL SUM(...),
 'rank' operator is window function of projected value coresspond to SQL RANK(), and so on.
 
  -}
