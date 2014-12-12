@@ -148,7 +148,10 @@ Not monadic style join is supported by some direct join operators.
  -}
 
 {- $finalize
-Several operators are defined to finalize flat and aggregated monadic context.
+Several operators are defined to finalize query monadic context.
+
+'relation' operator finalizes flat (not aggregated) query monadic context,
+and 'aggregateRelation' operator finalizes aggregated query monadic context.
  -}
 
 {- $projectionOperators
