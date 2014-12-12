@@ -16,9 +16,9 @@ Haskell Relational Record (HRR) is a joined query generator based on typefull re
 
 - [Quick start](quickstart.html)
 - [Tutorial](tutorial.html)
-- Examples (TBD)
+- [Examples](examples.html)
 - Manual (TBD)
 
-### Authors
+### Authors and contributors
 
-- [Kei Hibino](https://github.com/khibino/)
+- [Kei Hibino](https://github.com/khibino), [Shohei Murayama](https://github.com/yuga), [Shohei Yasutake](https://github.com/amutake), [Sho Kuroda](https://github.com/krdlab) and [Kazu Yamamoto](https://github.com/kazu-yamamoto)
