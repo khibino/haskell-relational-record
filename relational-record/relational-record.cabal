@@ -13,7 +13,15 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  build-depends:       relational-query-HDBC
+  exposed-modules:
+                     Database.Relational.Query.Documentation
+
+  build-depends:       base <5
+                     , relational-query
+                     , relational-query-HDBC
+
+  hs-source-dirs:    src
+  ghc-options:       -Wall
 
   default-language:    Haskell2010
 
