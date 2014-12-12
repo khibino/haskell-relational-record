@@ -1,17 +1,24 @@
-{-# LANGUAGE MonadComprehensions, FlexibleContexts #-}
+{-# LANGUAGE MonadComprehensions #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 import Database.Record
 
 import Database.Relational.Query
 import Database.HDBC (IConnection, SqlValue)
+import Database.HDBC.Query.TH (makeRecordPersistableDefault)
 import Data.Int (Int64)
 
 import qualified Account
-import Account (Account(..), account)
+import Account (Account, account)
 --import qualified Customer
 --import Customer (Customer, customer)
 --import qualified Individual
 --import Individual (Individual, individual)
+import qualified Product
+import Product (product)
 --import qualified ProductType
 --import ProductType (ProductType, productType)
 --import qualified Branch
@@ -33,6 +40,8 @@ import DataSource (connect)
 import Database.HDBC.Record.Query (runQuery)
 import Database.HDBC.Session (withConnectionIO, handleSqlError')
 
+import Prelude hiding (product)
+
 allAccount :: Relation () Account
 allAccount = relation $ query account
 
@@ -50,11 +59,29 @@ account1 = relation $ do
   wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
   return a
 
-account1' :: Relation () (((Int64, String), Int64), Maybe Double)
-account1' = relation $ do
+account1T :: Relation () (((Int64, String), Int64), Maybe Double)
+account1T = relation $ do
   a  <- query account
   wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
   return $ a ! Account.accountId' >< a ! Account.productCd' >< a ! Account.custId' >< a ! Account.availBalance'
+
+account1R :: Relation () Account1
+account1R = relation $ do
+  a  <- query account
+  wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
+  return $ Account1 |$| a ! Account.accountId'
+                    |*| a ! Account.productCd'
+                    |*| a ! Account.custId'
+                    |*| a ! Account.availBalance'
+
+data Account1 = Account1
+  { a1AccountId :: Int64
+  , a1ProductCd :: String
+  , a1CustId :: Int64
+  , a1AvailBalance :: Maybe Double
+  } deriving (Show)
+
+$(makeRecordPersistableDefault ''Account1)
 
 -- | sql/5.1.2a.sh
 --
@@ -160,6 +187,48 @@ group1 = aggregateRelation $ do
   asc $ g ! id'
   return $ g >< count (a ! Account.accountId')
 
+-- | sql/4.3.3b.sh
+--
+-- @
+--   SELECT account_id, product_cd, cust_id, avail_balance
+--   FROM account
+--   WHERE product_cd IN (SELECT product_cd FROM product
+--   WHERE product_type_cd = 'ACCOUNT')
+-- @
+
+productSubQuery :: Relation String String
+productSubQuery = relation' $ do
+  p <- query product
+  (phProductCd,()) <- placeholder (\ph -> wheres $ p ! Product.productTypeCd' .=. ph)
+  let productCd = p ! Product.productCd'
+  return (phProductCd, productCd)
+
+account3 :: Relation String Account
+account3 = relation' $ do
+  a <- query account
+  (phProductCd,p) <- queryList' productSubQuery
+  wheres $ a ! Account.productCd' `in'` p
+  return (phProductCd, a)
+
+account3T :: Relation String (((Int64, String), Int64), Maybe Double)
+account3T = relation' $ do
+  a <- query account
+  (phProductCd,p) <- queryList' productSubQuery
+  wheres $ a ! Account.productCd' `in'` p
+  let at = a ! Account.accountId' >< a ! Account.productCd' >< a ! Account.custId' >< a ! Account.availBalance'
+  return (phProductCd, at)
+
+account3R :: Relation String Account1
+account3R = relation' $ do
+  a <- query account
+  (phProductCd,p) <- queryList' productSubQuery
+  wheres $ a ! Account.productCd' `in'` p
+  let ar = Account1 |$| a ! Account.accountId'
+                    |*| a ! Account.productCd'
+                    |*| a ! Account.custId'
+                    |*| a ! Account.availBalance'
+  return (phProductCd, ar)
+
 --
 -- run and print sql
 --
@@ -176,7 +245,8 @@ main :: IO ()
 main = handleSqlError' $ withConnectionIO connect $ \conn -> do
   run conn () allAccount
   run conn () account1
-  run conn () account1'
+  run conn () account1T
+  run conn () account1R
   run conn () join1
   run conn () join1'
   run conn () selfJoin1
