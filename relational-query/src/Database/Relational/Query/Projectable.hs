@@ -46,8 +46,8 @@ module Database.Relational.Query.Projectable (
   caseSearch, caseSearchMaybe, case', caseMaybe,
   in', and', or',
 
-  isNothing, isJust,
-  fromMaybe', not', exists,
+  isNothing, isJust, fromMaybe, fromMaybe',
+  not', exists,
 
   (.||.), (?||?),
   (.+.), (.-.), (./.), (.*.), negate', fromIntegral', showNum,
@@ -436,9 +436,15 @@ isJust :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c), Has
 isJust =  not' . isNothing
 
 -- | Operator from maybe type using record extended 'isNull'.
+fromMaybe :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
+          => Projection c r -> Projection c (Maybe r) -> Projection c r
+fromMaybe d p = [ (isNothing p, d) ] `casesOrElse` unsafeCastProjectable p
+
+-- | Deprecated. Operator from maybe type using record extended 'isNull'.
 fromMaybe' :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
            => Projection c r -> Projection c (Maybe r) -> Projection c r
-fromMaybe' d p = [ (isNothing p, d) ] `casesOrElse` unsafeCastProjectable p
+fromMaybe' =  fromMaybe
+{-# DEPRECATED fromMaybe' "Use fromMaybe instead of this." #-}
 
 unsafeUniTermFunction :: SqlProjectable p => Keyword -> p t
 unsafeUniTermFunction =  unsafeProjectSql . (++ "()") . SQL.wordShow
