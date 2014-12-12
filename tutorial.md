@@ -161,5 +161,5 @@ OK. Let's execute our relation on "examples.db":
 
 We make it!
 
-To understand how to express more complicated relations and how to update tables, please read [Examples](examples.hs).
+To understand how to express more complicated relations and how to update tables, please read [Examples](examples.html).
 
