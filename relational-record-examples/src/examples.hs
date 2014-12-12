@@ -165,9 +165,9 @@ group1 = aggregateRelation $ do
 -- run and print sql
 --
 
-runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a, ToSql SqlValue p)
-            => conn -> Relation p a -> p -> IO ()
-runAndPrint conn rel param = do
+run :: (Show a, IConnection conn, FromSql SqlValue a, ToSql SqlValue p)
+       => conn -> p -> Relation p a -> IO ()
+run conn param rel = do
   putStrLn $ "SQL: " ++ show rel
   records <- runQuery conn (relationalQuery rel) param
   mapM_ print records
@@ -175,16 +175,13 @@ runAndPrint conn rel param = do
 
 main :: IO ()
 main = handleSqlError' $ withConnectionIO connect $ \conn -> do
-  let run :: (Show a, FromSql SqlValue a, ToSql SqlValue p) => Relation p a -> p -> IO ()
-      run = runAndPrint conn
-  run allAccount ()
-  run account1 ()
-  run account1' ()
-  run join1 ()
-  run join1' ()
-  run selfJoin1 ()
-  run selfJoin1' ()
-  run union1 ()
-  run union1' ()
-  run group1 ()
-
+  run conn () allAccount
+  run conn () account1
+  run conn () account1'
+  run conn () join1
+  run conn () join1'
+  run conn () selfJoin1
+  run conn () selfJoin1'
+  run conn () union1
+  run conn () union1'
+  run conn () group1
