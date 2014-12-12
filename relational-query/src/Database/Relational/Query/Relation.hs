@@ -350,8 +350,10 @@ intersect' =  liftAppend' $ SubQuery.intersect Distinct
 intersectAll' :: Relation p a -> Relation q a -> Relation (p, q) a
 intersectAll' =  liftAppend' $ SubQuery.intersect All
 
-infixl 7 `union`, `except`, `intersect`, `unionAll`, `exceptAll`, `intersectAll`
-infixl 7 `union'`, `except'`, `intersect'`, `unionAll'`, `exceptAll'`, `intersectAll'`
+infixl 7 `union`, `except`, `unionAll`, `exceptAll`
+infixl 8 `intersect`, `intersectAll`
+infixl 7 `union'`, `except'`, `unionAll'`, `exceptAll'`
+infixl 8 `intersect'`, `intersectAll'`
 
 -- | Generate SQL string from 'Relation' with configuration.
 sqlFromRelationWith :: Relation p r -> Config -> StringSQL
