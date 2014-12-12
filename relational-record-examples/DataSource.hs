@@ -4,7 +4,6 @@ module DataSource (
     connect, convTypes, defineTable
   ) where
 
-import Data.Int (Int32)
 import Data.Time (Day, LocalTime)
 import Database.HDBC.Query.TH (defineTableFromDB)
 import Database.HDBC.Schema.SQLite3 (driverSQLite3)
