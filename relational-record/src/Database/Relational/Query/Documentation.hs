@@ -142,6 +142,9 @@ Some operators are defined to build query structures in monadic context.
 
 {- $directJoin
 Not monadic style join is supported by some direct join operators.
+
+'inner', 'left', 'right', 'full' operators can construct join products directly like SQL.
+'on'' specifies condition of join product.
  -}
 
 {- $finalize
