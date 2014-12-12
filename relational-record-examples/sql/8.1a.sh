@@ -1,6 +1,6 @@
 #! /bin/bash
 
-sqlite3 test.db "
+sqlite3 examples.db "
 SELECT open_emp_id, COUNT(*) how_many
 FROM account
 GROUP BY open_emp_id

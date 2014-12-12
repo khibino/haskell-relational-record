@@ -1,6 +1,6 @@
 #! /bin/bash
 
-sqlite3 test.db "
+sqlite3 examples.db "
 SELECT emp_id, assigned_branch_id
 FROM employee
 WHERE title = 'Teller'
