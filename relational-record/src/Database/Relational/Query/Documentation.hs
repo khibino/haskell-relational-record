@@ -193,6 +193,8 @@ This DSL project SQL value type to haskell type.
 'Flat' is not aggregated query context type,
 'Aggregated' is aggregated query context type,
 'OverWindow' is window function context type, and so on.
+
+Module "Database.Relational.Query.Context" contains documentation of other context types.
  -}
 
 {- $projectionPath
