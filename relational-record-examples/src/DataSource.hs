@@ -25,11 +25,11 @@ convTypes =
     , ("varchar", [t|String|])
     ]
 
-defineTable :: String -> String -> Q [Dec]
-defineTable schemaName tableName =
+defineTable :: String -> Q [Dec]
+defineTable tableName =
   defineTableFromDB
     connect
     (driverSQLite3 { typeMap = convTypes }) -- overwrite the default type map with yours
-    schemaName
+    "main" -- schema name, ignored by SQLite
     tableName
     [derivingShow]

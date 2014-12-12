@@ -5,4 +5,4 @@ module Department where
 import DataSource (defineTable)
 import Prelude hiding (id)
 
-$(defineTable "main" "department")
+$(defineTable "department")

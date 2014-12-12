@@ -5,5 +5,5 @@ module ProductType where
 import DataSource (defineTable)
 import Prelude hiding (id)
 
-$(defineTable "main" "product_type)
+$(defineTable "product_type)
 

@@ -5,4 +5,4 @@ module Employee where
 import DataSource (defineTable)
 import Prelude hiding (id)
 
-$(defineTable "main" "employee")
+$(defineTable "employee")

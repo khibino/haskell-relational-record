@@ -5,5 +5,4 @@ module Account where
 import DataSource (defineTable)
 import Prelude hiding (id)
 
-$(defineTable "main" "account")
-
+$(defineTable "account")
