@@ -130,6 +130,14 @@ This DSL accumulates query structures into monadic context.
 
 {- $monadicOperator
 Some operators are defined to build query structures in monadic context.
+
+'query' and 'queryMaybe' operators grow query product of monadic context like join operation of SQL.
+'on' operator appends a new condition into recent join product condition.
+
+'groupBy' operator aggregates flat projection value.
+
+'wheres' and 'having' operators appends a new condition into whole query condition.
+'having' only accepts aggregated projection value.
  -}
 
 {- $directJoin
