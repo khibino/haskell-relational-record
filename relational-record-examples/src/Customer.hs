@@ -1,11 +1,11 @@
 {-# LANGUAGE TemplateHaskell, MultiParamTypeClasses, FlexibleInstances #-}
 
-module Department where
+module Customer where
 
 import Prelude hiding (id)
 import Database.Record.TH (derivingShow)
 
-import DataSource (convTypes, defineTable)
+import DataSource (defineTable)
 
-$(defineTable convTypes
-  "main" "department" [derivingShow])
+$(defineTable
+  "main" "customer" [derivingShow])

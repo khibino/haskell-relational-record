@@ -24,8 +24,9 @@ convTypes =
     , ("varchar", [t|String|])
     ]
 
-defineTable :: [(String, TypeQ)] -> String -> String -> [ConName] -> Q [Dec]
-defineTable tmap =
+defineTable :: String -> String -> [ConName] -> Q [Dec]
+defineTable =
   defineTableFromDB
     connect
-    (driverSQLite3 { typeMap = tmap })
+    (driverSQLite3 { typeMap = convTypes }) -- overwrite the default type map with yours
+

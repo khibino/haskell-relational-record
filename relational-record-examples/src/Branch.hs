@@ -5,7 +5,7 @@ module Branch where
 import Prelude hiding (id, zip)
 import Database.Record.TH (derivingShow)
 
-import DataSource (convTypes, defineTable)
+import DataSource (defineTable)
 
-$(defineTable convTypes
+$(defineTable
   "main" "branch" [derivingShow])

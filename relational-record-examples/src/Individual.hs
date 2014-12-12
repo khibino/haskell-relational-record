@@ -5,7 +5,7 @@ module Individual where
 import Prelude hiding (id)
 import Database.Record.TH (derivingShow)
 
-import DataSource (convTypes, defineTable)
+import DataSource (defineTable)
 
-$(defineTable convTypes
+$(defineTable
   "main" "individual" [derivingShow])

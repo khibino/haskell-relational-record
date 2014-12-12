@@ -1,0 +1,54 @@
+name:                relational-record-examples
+version:             0.1.0.0
+synopsis:            Examples of Haskell Relationa Record
+description:         Provides examples of Haskell Relational Record
+license:             BSD3
+license-file:        LICENSE
+author:              Kazu Yamamoto <kazu@iij.ad.jp>
+                     Shohei Murayama <shohei.murayama@gmail.com>
+maintainer:          Shohei Murayama <shohei.murayama@gmail.com>
+category:            Database
+build-type:          Simple
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     Account
+                       Branch
+                       Business
+                       Customer
+                       DataSource
+                       Department
+                       Employee
+                       Individual
+                       Officer
+                       Product
+                       ProductType
+                       Transaction
+  build-depends:       base <5
+                     , time
+                     , template-haskell
+                     , HDBC
+                     , HDBC-sqlite3
+                     , names-th
+                     , sql-words
+                     , HDBC-session
+                     , persistable-record
+                     , relational-query
+                     , relational-schemas
+                     , relational-query-HDBC
+  default-language:    Haskell2010
+
+executable query
+  hs-source-dirs:      mains
+  main-is:             Query.hs
+  build-depends:       base <5
+                     , HDBC
+                     , HDBC-sqlite3
+                     , HDBC-session
+                     , persistable-record
+                     , relational-query
+                     , relational-query-HDBC
+                     , relational-record-examples
+  default-language:    Haskell2010
+
