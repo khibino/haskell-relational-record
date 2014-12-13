@@ -180,7 +180,7 @@ Not monadic style join is supported by some direct join operators.
  -}
 
 {- $finalize
-Several operators are defined to finalize query monadic context.
+Several operators are defined to make 'Relation' type with finalizing query monadic context.
 
 'relation' operator finalizes flat (not aggregated) query monadic context,
 and 'aggregateRelation' operator finalizes aggregated query monadic context.
@@ -258,6 +258,9 @@ Placeholder flavor of operators against query operation and set operation are al
 
 'query'', 'left'', 'relation'' and 'union''
 operator is placeholder flavor 'query', 'left', 'relation' and union.
+
+Module "Database.Relational.Query.Relation" contains documentation of
+other placeholder flavor operators.
 -}
 
 
