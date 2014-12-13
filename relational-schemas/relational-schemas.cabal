@@ -1,5 +1,5 @@
 name:                relational-schemas
-version:             0.0.1.1
+version:             0.0.1.2
 synopsis:            RDBMSs' schema templates for relational-query
 description:         This package contains some RDBMSs' schema structure definitions.
                      Supported RDBMS schemas are below:
@@ -9,7 +9,7 @@ description:         This package contains some RDBMSs' schema structure definit
                      - SQLite3
                      - Oracle
                      - MySQL
-homepage:            http://twitter.com/khibino
+homepage:            http://khibino.github.io/haskell-relational-record/
 license:             BSD3
 license-file:        LICENSE
 author:              Kei Hibino, Shohei Murayama, Shohei Yasutake, Sho KURODA

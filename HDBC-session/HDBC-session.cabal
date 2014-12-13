@@ -1,9 +1,9 @@
 name:                HDBC-session
-version:             0.0.1.0
+version:             0.0.1.1
 synopsis:            Bracketed connection for HDBC
 description:         This package contains a base bracketed function
                      to call close correctly against opend DB connection.
-homepage:            http://twitter.com/khibino
+homepage:            http://khibino.github.io/haskell-relational-record/
 license:             BSD3
 license-file:        LICENSE
 author:              Kei Hibino
