@@ -82,6 +82,9 @@ module Database.Relational.Query.Documentation (
 
   -- *** Maybe Projections
   -- $maybeProjection
+  (?!), (?!?),
+  (<?.>), (<?.?>),
+
   (?+?),
   negateMaybe,
   sumMaybe,
@@ -231,12 +234,16 @@ Several operators are defined to manipulate relation set.
 -}
 
 {- $maybeProjection
-Operators of projection and aggregation are also provided Maybe type versions.
+Operators against projection path, projection and aggregation are also provided Maybe type versions.
 
 For example,
+'?!' operator is maybe version of '!',
+'<?.>' operator is maybe version of '<.>'.
+'?!?' opeartor and '<?.?>' operator joins source Maybe type and destination Maybe type phantom functors.
+
 '?+?' operator is maybe version of '.+.',
 'nagateMaybe' operator is maybe version of 'nagate',
-'sumMaybe' operator is maybe version of 'sum'', and so on.
+'sumMaybe' operator is maybe version of 'sum''.
  -}
 
 {- $placeholder
