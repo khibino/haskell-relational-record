@@ -156,7 +156,7 @@ projectPiMaybe' p = project . Projection.piMaybe' p
 
 -- | Get narrower projection along with projection path
 --   and project into result projection type.
---   'Maybe' phantom type is propagated.
+--   'Maybe' phantom functor is 'map'-ed.
 (?!) :: Projectable Projection p
      => Projection c (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
      -> Pi a b       -- ^ Projection path
@@ -165,7 +165,7 @@ projectPiMaybe' p = project . Projection.piMaybe' p
 
 -- | Get narrower projection along with projection path
 --   and project into result projection type.
---   'Maybe' phantom type is propagated. Projection path leaf is 'Maybe' case.
+--   Source record 'Maybe' phantom functor and projection path leaf 'Maybe' functor are 'join'-ed.
 (?!?) :: Projectable Projection p
       => Projection c (Maybe a)   -- ^ Source 'Projection'. 'Maybe' phantom type
       -> Pi a (Maybe b) -- ^ Projection path. 'Maybe' type leaf

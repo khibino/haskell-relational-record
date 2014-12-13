@@ -100,11 +100,11 @@ width =  runPersistableRecordWidth . width'
 (<.>) :: Pi a b -> Pi b c -> Pi a c
 (<.>) = unsafePiAppend id
 
--- | Compose projection path.
+-- | Compose projection path. 'Maybe' phantom functor is 'map'-ed.
 (<?.>) :: Pi a (Maybe b) -> Pi b c -> Pi a (Maybe c)
 (<?.>) = unsafePiAppend maybeWidth
 
--- | Compose projection path.
+-- | Compose projection path. 'Maybe' phantom functors are 'join'-ed like '>=>'.
 (<?.?>) :: Pi a (Maybe b) -> Pi b (Maybe c) -> Pi a (Maybe c)
 (<?.?>) = unsafePiAppend id
 
