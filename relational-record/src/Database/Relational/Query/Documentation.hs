@@ -157,7 +157,7 @@ defines Typed DSL to build complex SQL query.
  -}
 
 {- $monadicContext
-This DSL accumulates query structures into monadic context.
+On building query, query structures can be accumulated in monadic context.
  -}
 
 {- $monadicOperator
@@ -187,7 +187,7 @@ and 'aggregateRelation' operator finalizes aggregated query monadic context.
  -}
 
 {- $projection
-This DSL project SQL value type to haskell type.
+SQL expression can be projected to haskell phantom type in this DSL.
  -}
 
 {- $projectionType
@@ -212,10 +212,12 @@ Some operators are defined to caluculate projected values.
 For example,
 '.=.' operator is equal compare operation of projected value correspond to SQL =,
 '.+.' operator is plus operation of projected value coresspond to SQL +, and so on.
+
+Module "Database.Relational.Query.Projectable" contains documentation of other projection operators.
  -}
 
 {- $aggregateFunctions
-Typed aggregate operators are defined.
+Typed aggregate function operators are defined.
 Aggregated value types is distinguished with Flat value types.
 
 For example,
@@ -223,6 +225,8 @@ For example,
 correspond to SQL SUM(...),
 'rank' operator is window function of projected value coresspond to SQL RANK(), and so on.
 
+Module "Database.Relational.Query.Projectable" contains documentation of
+other aggregate function operators and window function operators.
  -}
 
 {- $setOperators
@@ -234,25 +238,31 @@ Several operators are defined to manipulate relation set.
 -}
 
 {- $maybeProjection
-Operators against projection path, projection and aggregation are also provided Maybe type versions.
+'Maybe' type flavor of operators against projection path, projection and aggregation are also provided.
 
 For example,
-'?!' operator is maybe version of '!',
-'<?.>' operator is maybe version of '<.>'.
+'?!' operator is maybe flavor of '!',
+'<?.>' operator is maybe flavor of '<.>'.
 '?!?' opeartor and '<?.?>' operator 'join' two 'Maybe' phantom functors.
 
-'?+?' operator is maybe version of '.+.',
-'nagateMaybe' operator is maybe version of 'nagate',
-'sumMaybe' operator is maybe version of 'sum''.
+'?+?' operator is maybe flavor of '.+.',
+'nagateMaybe' operator is maybe flavor of 'nagate',
+'sumMaybe' operator is maybe flavor of 'sum''.
+
+Module "Database.Relational.Query.Projectable" contains documentation of
+other 'Maybe' flavor projection operators.
  -}
 
 {- $placeholder
-Some operators are defined to realize type safe placeholder.
- -}
+Placeholder flavor of operators against query operation and set operation are also provided, to realize type safe placeholder.
+
+'query'', 'left'', 'relation'' and 'union''
+operator is placeholder flavor 'query', 'left', 'relation' and union.
+-}
 
 
 {- $databaseOperations
-Some actions are defined for database site effects.
+Some actions are defined for database side effects.
  -}
 
 {- $generalizedStmt
