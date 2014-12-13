@@ -239,7 +239,7 @@ Operators against projection path, projection and aggregation are also provided 
 For example,
 '?!' operator is maybe version of '!',
 '<?.>' operator is maybe version of '<.>'.
-'?!?' opeartor and '<?.?>' operator joins source Maybe type and destination Maybe type phantom functors.
+'?!?' opeartor and '<?.?>' operator 'join' two 'Maybe' phantom functors.
 
 '?+?' operator is maybe version of '.+.',
 'nagateMaybe' operator is maybe version of 'nagate',
