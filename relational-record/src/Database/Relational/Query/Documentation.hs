@@ -176,6 +176,7 @@ Some operators are defined to build query structures in monadic context.
 Not monadic style join is supported by some direct join operators.
 
 'inner', 'left', 'right', 'full' operators can construct join products directly like SQL.
+'inner' operator is INNER JOIN of SQL, 'left' operator is LEFT OUTER JOIN of SQL, and so on.
 'on'' operator specifies condition of join product.
  -}
 
@@ -249,8 +250,8 @@ For example,
 'nagateMaybe' operator is maybe flavor of 'nagate',
 'sumMaybe' operator is maybe flavor of 'sum''.
 
-Module "Database.Relational.Query.Projectable" contains documentation of
-other 'Maybe' flavor projection operators.
+Module "Database.Relational.Query.Projectable" and "Database.Relational.Query.ProjectableExtended"
+contain documentation of other 'Maybe' flavor projection operators.
  -}
 
 {- $placeholder
@@ -265,7 +266,7 @@ other placeholder flavor operators.
 
 
 {- $databaseOperations
-Some actions are defined for database side effects.
+Some HDBC actions are defined for database side effects.
  -}
 
 {- $generalizedStmt
