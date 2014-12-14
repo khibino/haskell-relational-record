@@ -1,5 +1,5 @@
 name:                HDBC-session
-version:             0.0.1.1
+version:             0.1.0.0
 synopsis:            Bracketed connection for HDBC
 description:         This package contains a base bracketed function
                      to call close correctly against opend DB connection.
