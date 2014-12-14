@@ -101,6 +101,9 @@ module Database.Relational.Query.Documentation (
   relation',
   union',
 
+  -- ** Database Statements
+  -- $databaseStatements
+
   -- * Database Operations
   -- $databaseOperations
 
@@ -192,6 +195,7 @@ Several operators are defined to make 'Relation' type with finalizing query mona
 
 'relation' operator finalizes flat (not aggregated) query monadic context,
 and 'aggregateRelation' operator finalizes aggregated query monadic context.
+Finalized relation can be reused in another queries as joining or sub-quering.
 
 'updateTarget' operator finalize monadic context which can be used as update statement.
 
@@ -274,6 +278,13 @@ operator is placeholder flavor 'query', 'left', 'relation' and union.
 Module "Database.Relational.Query.Relation" and "Database.Relational.Query.Effect"
 contains documentation of other placeholder flavor operators.
 -}
+
+{- $databaseStatements
+Some functions are defined to expand query structure
+into flat SQL statements to be used by database operation.
+
+
+ -}
 
 
 {- $databaseOperations
