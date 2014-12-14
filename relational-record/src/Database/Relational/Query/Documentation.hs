@@ -99,10 +99,17 @@ module Database.Relational.Query.Documentation (
   query',
   left',
   relation',
+  updateTarget',
+  restriction',
   union',
 
   -- ** Database Statements
   -- $databaseStatements
+  relationalQuery,
+  typedInsert,
+  typedUpdate,
+  typedDelete,
+  typedKeyUpdate,
 
   -- * Database Operations
   -- $databaseOperations
@@ -195,7 +202,8 @@ Several operators are defined to make 'Relation' type with finalizing query mona
 
 'relation' operator finalizes flat (not aggregated) query monadic context,
 and 'aggregateRelation' operator finalizes aggregated query monadic context.
-Finalized relation can be reused in another queries as joining or sub-quering.
+Both operator convert monadic context into 'Relation' type,
+and finalized 'Relation' can be reused as joining and sub-quering in another queries.
 
 'updateTarget' operator finalize monadic context which can be used as update statement.
 
@@ -272,8 +280,8 @@ contain documentation of other 'Maybe' flavor projection operators.
 {- $placeholder
 Placeholder flavor of operators against query operation and set operation are also provided, to realize type safe placeholder.
 
-'query'', 'left'', 'relation'' and 'union''
-operator is placeholder flavor 'query', 'left', 'relation' and union.
+'query'', 'left'', 'relation'', 'updateTarget'', 'restriction'', and 'union''
+operator are placeholder flavor 'query', 'left', 'relation', 'updateTarget', 'restriction' and 'union'.
 
 Module "Database.Relational.Query.Relation" and "Database.Relational.Query.Effect"
 contains documentation of other placeholder flavor operators.
@@ -283,8 +291,16 @@ contains documentation of other placeholder flavor operators.
 Some functions are defined to expand query structure
 into flat SQL statements to be used by database operation.
 
+'relationalQuery' function converts 'Relation' type info flat SQL query like SELECT statement.
 
- -}
+'typedInsert' function converts 'Pi' key type info flat SQL INSERT statement.
+
+'typedUpdate' function converts 'UpdateTarget' type into flat SQL UPDATE statement.
+
+'typedDelete' function converts 'Restriction' into flat SQL DELETE statement.
+
+'typedKeyUpdate' function converts 'Pi' key type info flat SQL UPDATE statement.
+-}
 
 
 {- $databaseOperations
