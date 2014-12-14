@@ -43,7 +43,7 @@ module Database.Relational.Query.Documentation (
   relation,
   aggregateRelation,
 
-  TargetUpdate, updateTarget,
+  UpdateTarget, updateTarget,
   Restriction, restriction,
 
   -- ** Projection
@@ -206,7 +206,7 @@ and 'aggregateRelation' operator finalizes aggregated query monadic context.
 Both operator convert monadic context into 'Relation' type,
 and finalized 'Relation' can be reused as joining and sub-quering in another queries.
 
-'updateTarget' operator finalize monadic context into 'TargetUpdate' type
+'updateTarget' operator finalize monadic context into 'UpdateTarget' type
 which can be used as update statement.
 
 'restriction' operator finalize monadic context into 'Restriction' type
