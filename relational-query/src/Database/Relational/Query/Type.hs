@@ -93,7 +93,7 @@ data KeyUpdate p a = KeyUpdate { updateKey :: Pi a p
 unsafeTypedKeyUpdate :: Pi a p -> String -> KeyUpdate p a
 unsafeTypedKeyUpdate =  KeyUpdate
 
--- | Make typed 'KeyUpdate' from 'Table' and key indexes.
+-- | Make typed 'KeyUpdate' from 'Table' and key columns selector 'Pi'.
 typedKeyUpdate :: Table a -> Pi a p -> KeyUpdate p a
 typedKeyUpdate tbl key = unsafeTypedKeyUpdate key $ updateOtherThanKeySQL tbl key
 
@@ -183,12 +183,12 @@ unsafeTypedInsert' =  Insert
 unsafeTypedInsert :: String -> Insert a
 unsafeTypedInsert q = unsafeTypedInsert' q q 1
 
--- | Make typed 'Insert' from columns selector 'Pi' and 'Table'.
+-- | Make typed 'Insert' from 'Table' and columns selector 'Pi' with configuration parameter.
 typedInsert' :: Config -> Table r -> Pi r r' -> Insert r'
 typedInsert' config tbl pi' = unsafeTypedInsert' (insertSQL pi' tbl) ci n  where
   (ci, n) = insertSizedChunkSQL pi' tbl $ chunksInsertSize config
 
--- | Make typed 'Insert' from columns selector 'Pi' and 'Table'.
+-- | Make typed 'Insert' from 'Table' and columns selector 'Pi'.
 typedInsert :: Table r -> Pi r r' -> Insert r'
 typedInsert =  typedInsert' defaultConfig
 
