@@ -39,11 +39,12 @@ module Database.Relational.Query.Documentation (
 
   -- *** Finalize Context
   -- $finalize
+  Relation,
   relation,
   aggregateRelation,
 
-  updateTarget,
-  restriction,
+  TargetUpdate, updateTarget,
+  Restriction, restriction,
 
   -- ** Projection
   -- $projection
@@ -205,9 +206,11 @@ and 'aggregateRelation' operator finalizes aggregated query monadic context.
 Both operator convert monadic context into 'Relation' type,
 and finalized 'Relation' can be reused as joining and sub-quering in another queries.
 
-'updateTarget' operator finalize monadic context which can be used as update statement.
+'updateTarget' operator finalize monadic context into 'TargetUpdate' type
+which can be used as update statement.
 
-'restriction' operator finalize monadic context which can be used as delete statement.
+'restriction' operator finalize monadic context into 'Restriction' type
+which can be used as delete statement.
  -}
 
 {- $projection
