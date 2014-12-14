@@ -184,17 +184,17 @@ unsafeTypedInsert :: String -> Insert a
 unsafeTypedInsert q = unsafeTypedInsert' q q 1
 
 -- | Make typed 'Insert' from columns selector 'Pi' and 'Table'.
-typedInsert' :: Config -> Pi r r' -> Table r -> Insert r'
-typedInsert' config pi' tbl = unsafeTypedInsert' (insertSQL pi' tbl) ci n  where
+typedInsert' :: Config -> Table r -> Pi r r' -> Insert r'
+typedInsert' config tbl pi' = unsafeTypedInsert' (insertSQL pi' tbl) ci n  where
   (ci, n) = insertSizedChunkSQL pi' tbl $ chunksInsertSize config
 
 -- | Make typed 'Insert' from columns selector 'Pi' and 'Table'.
-typedInsert :: Pi r r' -> Table r -> Insert r'
+typedInsert :: Table r -> Pi r r' -> Insert r'
 typedInsert =  typedInsert' defaultConfig
 
 -- | Infered 'Insert'.
 derivedInsert :: TableDerivable r => Insert r
-derivedInsert =  typedInsert Pi.id' derivedTable
+derivedInsert =  typedInsert derivedTable Pi.id'
 
 -- | Show insert SQL string.
 instance Show (Insert a) where
