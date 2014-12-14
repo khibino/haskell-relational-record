@@ -12,13 +12,13 @@ module Database.Relational.Query.Documentation (
   -- * Concepts
   -- $concepts
 
-  -- ** Relational Query Building DSL
+  -- * Relational Query Building DSL
   -- $queryBuildingDSL
 
-  -- *** Monadic Query Context Building
+  -- ** Monadic Query Context Building
   -- $monadicContext
 
-  -- **** Monadic Operators
+  -- *** Monadic Operators
   -- $monadicOperator
   query,
   queryMaybe,
@@ -30,20 +30,25 @@ module Database.Relational.Query.Documentation (
 
   having,
 
-  -- **** Direct Join Operators
+  (<-#),
+
+  -- *** Direct Join Operators
   -- $directJoin
   inner, left, right, full,
   on',
 
-  -- **** Finalize Context
+  -- *** Finalize Context
   -- $finalize
   relation,
   aggregateRelation,
 
-  -- *** Projection
+  updateTarget,
+  restriction,
+
+  -- ** Projection
   -- $projection
 
-  -- **** Projection Type
+  -- *** Projection Type
   -- $projectionType
   Projection,
 
@@ -51,11 +56,11 @@ module Database.Relational.Query.Documentation (
 
   Exists, OverWindow,
 
-  -- **** Projection Path
+  -- *** Projection Path
   -- $projectionPath
   Pi, (!), (<.>),
 
-  -- **** Projection Operators
+  -- *** Projection Operators
   -- $projectionOperators
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
   casesOrElse, case',
@@ -68,7 +73,7 @@ module Database.Relational.Query.Documentation (
   (.||.),
   (.+.), (.-.), (./.), (.*.), negate', fromIntegral', showNum,
 
-  -- *** Aggregate and Window Functions
+  -- ** Aggregate and Window Functions
   -- $aggregateFunctions
   sum', avg,
   max', min',
@@ -76,11 +81,11 @@ module Database.Relational.Query.Documentation (
 
   rank, denseRank, rowNumber, percentRank, cumeDist,
 
-  -- *** Set Operators
+  -- ** Set Operators
   -- $setOperators
   union, except, intersect,
 
-  -- *** Maybe Projections
+  -- ** Maybe Projections
   -- $maybeProjection
   (?!), (?!?),
   (<?.>), (<?.?>),
@@ -89,50 +94,50 @@ module Database.Relational.Query.Documentation (
   negateMaybe,
   sumMaybe,
 
-  -- *** Placeholders
+  -- ** Placeholders
   -- $placeholder
   query',
   left',
   relation',
   union',
 
-  -- ** Database Operations
+  -- * Database Operations
   -- $databaseOperations
 
-  -- *** Generalized Statement
+  -- ** Generalized Statement
   -- $generalizedStmt
   prepareNoFetch,
   bind,
   execute,
   executeNoFetch,
 
-  -- *** Select
+  -- ** Select
   -- $select
   prepareQuery,
   fetch,
   runQuery,
 
-  -- *** Insert Values
+  -- ** Insert Values
   -- $insertValue
   prepareInsert,
   runInsert,
 
-  -- *** Insert Select Results
+  -- ** Insert Select Results
   -- $insertSelect
   prepareInsertQuery,
   runInsertQuery,
 
-  -- *** Update
+  -- ** Update
   -- $update
   prepareUpdate,
   runUpdate,
 
-  -- *** Delete
+  -- ** Delete
   -- $delete
   prepareDelete,
   runDelete,
 
-  -- *** Update by Key
+  -- ** Update by Key
   -- $keyUpdate
   prepareKeyUpdate,
   bindKeyUpdate,
@@ -170,6 +175,8 @@ Some operators are defined to build query structures in monadic context.
 
 'wheres' and 'having' operators appends a new condition into whole query condition.
 'having' only accepts aggregated projection value.
+
+'(<-#)' operator assigns update target column and projection value to build update statement structure.
  -}
 
 {- $directJoin
@@ -185,6 +192,10 @@ Several operators are defined to make 'Relation' type with finalizing query mona
 
 'relation' operator finalizes flat (not aggregated) query monadic context,
 and 'aggregateRelation' operator finalizes aggregated query monadic context.
+
+'updateTarget' operator finalize monadic context which can be used as update statement.
+
+'restriction' operator finalize monadic context which can be used as delete statement.
  -}
 
 {- $projection
@@ -260,8 +271,8 @@ Placeholder flavor of operators against query operation and set operation are al
 'query'', 'left'', 'relation'' and 'union''
 operator is placeholder flavor 'query', 'left', 'relation' and union.
 
-Module "Database.Relational.Query.Relation" contains documentation of
-other placeholder flavor operators.
+Module "Database.Relational.Query.Relation" and "Database.Relational.Query.Effect"
+contains documentation of other placeholder flavor operators.
 -}
 
 
