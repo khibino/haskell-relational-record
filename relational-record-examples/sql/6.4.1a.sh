@@ -1,5 +1,7 @@
 #! /bin/bash
 
+#Sorting compound query results
+
 sqlite3 examples.db "
 SELECT emp_id, assigned_branch_id
 FROM employee
