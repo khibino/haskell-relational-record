@@ -67,7 +67,7 @@ library
                        , containers
                        , transformers
                        , time
-                       , old-locale
+                       , time-locale-compat
                        , bytestring
                        , text
                        , dlist
