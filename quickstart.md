@@ -20,7 +20,7 @@ To install the Haskell "relational-record" library, type as follows:
 
 ### The first relation
 
-Let's defined our first relation. Copy the following to "hello.hs":
+Let's define our first relation. Copy the following to "hello.hs":
 
     import Data.Int (Int32)
     import Database.Relational.Query
