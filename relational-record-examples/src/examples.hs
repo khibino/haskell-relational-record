@@ -10,6 +10,7 @@ import Database.Relational.Query
 import Database.HDBC (IConnection, SqlValue)
 import Database.HDBC.Query.TH (makeRecordPersistableDefault)
 import Data.Int (Int64)
+import Data.Time (Day)
 
 import qualified Account
 import Account (Account, account)
@@ -243,6 +244,147 @@ account_4_3_3c = relation $ do
   wheres $ not' (a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"])
   return a
 
+-- | sql/3.7
+--
+-- @
+--   SELECT open_emp_id, product_cd
+--   FROM account
+--   ORDER BY open_emp_id, product_cd
+-- @
+--
+account_3_7 :: Relation () (Maybe Int64, String)
+account_3_7 = relation $ do
+  a <- query account
+  let proj = (,) |$| a ! Account.openEmpId'
+                 |*| a ! Account.productCd'
+  asc proj
+  return proj
+
+-- | sql/3.7.1
+--
+-- @
+--   SELECT account_id, product_cd, open_date, avail_balance
+--   FROM account
+--   ORDER BY avail_balance DESC
+-- @
+--
+account_3_7_1 :: Relation () Account2
+account_3_7_1 = relation $ do
+  a <- query account
+  desc $ a ! Account.availBalance'
+  return $ Account2 |$| a ! Account.accountId'
+                    |*| a ! Account.productCd'
+                    |*| a ! Account.openDate'
+                    |*| a ! Account.availBalance'
+
+data Account2 = Account2
+  { a2AccountId :: Int64
+  , a2ProductCd :: String
+  , a2OpenDate :: Day
+  , a2AvailBalance :: Maybe Double
+  } deriving (Show)
+
+$(makeRecordPersistableDefault ''Account2)
+
+-- | sql/3.7.3
+--
+-- For backwards compatibility with the SQL92 version of standard, you can
+-- use numbers instead of names to specify the columns that should be sorted.
+-- With HRR you cannot use numbers for such purpose.
+--
+-- @
+--   SELECT emp_id, title, start_date, fname, lname
+--   FROM employee
+--   ORDER BY 2,5
+-- @
+--
+employee_3_7_3 :: Relation () Employee1
+employee_3_7_3 = relation $ do
+  e <- query employee
+  asc $ e ! Employee.title'
+  asc $ e ! Employee.lname'
+  return $ Employee1 |$| e ! Employee.empId'
+                     |*| e ! Employee.title'
+                     |*| e ! Employee.startDate'
+                     |*| e ! Employee.fname'
+                     |*| e ! Employee.lname'
+
+data Employee1 = Employee1
+  { e1EmpId :: Int64
+  , e1Title :: Maybe String
+  , e1StartDate :: Day
+  , e1Fname :: String
+  , e1Lname' :: String
+  } deriving (Show)
+
+$(makeRecordPersistableDefault ''Employee1)
+
+-- | sql/4.1.2
+--
+-- @
+--   SELECT *
+--   FROM employee
+--   WHERE end_date IS NULL AND (title = 'Teller' OR start_date < '2003-01-01')
+-- @
+--
+employee_4_1_2 :: Relation () Employee
+employee_4_1_2 = relation $ do
+  e <- query employee
+  wheres $ isNothing (e ! Employee.endDate')
+  wheres $ e ! Employee.title' .=. just (value "Teller")
+     `or'` e ! Employee.startDate' .<. unsafeSQLiteDayValue "2003-01-01"
+  return e
+
+unsafeSQLiteDayValue :: SqlProjectable p => String -> p Day
+unsafeSQLiteDayValue = unsafeProjectSqlTerms . showConstantTermsSQL
+
+employee_4_1_2P :: Relation Day Employee
+employee_4_1_2P = relation' $ do
+  e <- query employee
+  wheres $ isNothing (e ! Employee.endDate')
+  (phDay,()) <- placeholder (\ph ->
+    wheres $ e ! Employee.title' .=. just (value "Teller")
+       `or'` e ! Employee.startDate' .<. ph)
+  return (phDay, e)
+
+-- | sql/4.3.2
+--
+-- @
+--   SELECT emp_id, fname, lname, start_date FROM employee
+--   WHERE start_date
+--   BETWEEN date('2001-01-01') AND date('2002-12-31')
+-- @
+--
+employee_4_3_2 :: Relation () Employee2
+employee_4_3_2 = relation $ do
+  e <- query employee
+  wheres $ e ! Employee.startDate' .>=. unsafeSQLiteDayValue "2001-01-01"
+  wheres $ e ! Employee.startDate' .<=. unsafeSQLiteDayValue "2003-01-01"
+  return $ Employee2 |$| e ! Employee.empId'
+                     |*| e ! Employee.fname'
+                     |*| e ! Employee.lname'
+                     |*| e ! Employee.startDate'
+
+employee_4_3_2P :: Relation (Day,Day) Employee2
+employee_4_3_2P = relation' $ do
+  e <- query employee
+  (phDay1,()) <- placeholder (\ph -> wheres $ e ! Employee.startDate' .>=. ph)
+  (phDay2,()) <- placeholder (\ph -> wheres $ e ! Employee.startDate' .<=. ph)
+  return (phDay1 >< phDay2,
+           Employee2 |$| e ! Employee.empId'
+                     |*| e ! Employee.fname'
+                     |*| e ! Employee.lname'
+                     |*| e ! Employee.startDate')
+
+data Employee2 = Employee2
+  { e2EmpId :: Int64
+  , e2Fname :: String
+  , e2Lname :: String
+  , e2StartDate :: Day
+  } deriving (Show)
+
+$(makeRecordPersistableDefault ''Employee2)
+
 --
 -- run and print sql
 --
@@ -271,4 +413,11 @@ main = handleSqlError' $ withConnectionIO connect $ \conn -> do
   run conn "ACCOUNT" account_4_3_3b
   run conn "ACCOUNT" account_4_3_3bT
   run conn "ACCOUNT" account_4_3_3bR
+  run conn () account_3_7
+  run conn () account_3_7_1
+  run conn () employee_3_7_3
+  run conn () employee_4_1_2
+  run conn (read "2003-01-01") employee_4_1_2P
+  run conn () employee_4_3_2
+  run conn (read "2001-01-01", read "2003-01-01") employee_4_3_2P
 
