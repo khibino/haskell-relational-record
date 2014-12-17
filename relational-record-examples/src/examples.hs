@@ -53,20 +53,20 @@ allAccount = relation $ query account
 --   WHERE product_cd IN ('CHK', 'SAV', 'CD', 'MM')
 -- @
 --
-account1 :: Relation () Account
-account1 = relation $ do
+account_4_3_3a :: Relation () Account
+account_4_3_3a = relation $ do
   a  <- query account
   wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
   return a
 
-account1T :: Relation () (((Int64, String), Int64), Maybe Double)
-account1T = relation $ do
+account_4_3_3aT :: Relation () (((Int64, String), Int64), Maybe Double)
+account_4_3_3aT = relation $ do
   a  <- query account
   wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
   return $ a ! Account.accountId' >< a ! Account.productCd' >< a ! Account.custId' >< a ! Account.availBalance'
 
-account1R :: Relation () Account1
-account1R = relation $ do
+account_4_3_3aR :: Relation () Account1
+account_4_3_3aR = relation $ do
   a  <- query account
   wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
   return $ Account1 |$| a ! Account.accountId'
@@ -91,15 +91,15 @@ $(makeRecordPersistableDefault ''Account1)
 --   USING (dept_id)
 -- @
 --
-join1 :: Relation () (Employee, Department)
-join1 = relation $ do
+join_5_1_2a :: Relation () (Employee, Department)
+join_5_1_2a = relation $ do
   e  <- query employee
   d  <- query department
   on $ e ! Employee.deptId' .=. just (d ! Department.deptId')
   return $ e >< d
 
-join1' :: Relation () ((String, String), String)
-join1' = relation $ do
+join_5_1_2aT :: Relation () ((String, String), String)
+join_5_1_2aT = relation $ do
   e  <- query employee
   d  <- query department
   on $ e ! Employee.deptId' .=. just (d ! Department.deptId')
@@ -113,15 +113,15 @@ join1' = relation $ do
 --   ON e.superior_emp_id = e_mgr.emp_id
 -- @
 --
-selfJoin1 :: Relation () (Employee, Employee)
-selfJoin1 = relation $ do
+selfJoin_5_3a :: Relation () (Employee, Employee)
+selfJoin_5_3a = relation $ do
   e  <- query employee
   m  <- query employee
   on $ e ! Employee.superiorEmpId' .=. just (m ! Employee.empId')
   return $ e >< m
 
-selfJoin1' :: Relation () ((String, String), (String, String))
-selfJoin1' = relation $ do
+selfJoin_5_3aT :: Relation () ((String, String), (String, String))
+selfJoin_5_3aT = relation $ do
   e  <- query employee
   m  <- query employee
   on $ e ! Employee.superiorEmpId' .=. just (m ! Employee.empId')
@@ -142,26 +142,26 @@ selfJoin1' = relation $ do
 --   ORDER BY open_emp_id
 -- @
 --
-employee1 :: Relation () (Maybe Int64, Maybe Int64)
-employee1 = relation $ do
+employee_6_4_1a :: Relation () (Maybe Int64, Maybe Int64)
+employee_6_4_1a = relation $ do
   e  <- query employee
   wheres $ e ! Employee.title' .=. just (value "Teller")
   return $ just (e ! Employee.empId') >< e ! Employee.assignedBranchId'
 
-account2 :: Relation () (Maybe Int64, Maybe Int64)
-account2 = relation $ do
+account_6_4_1a :: Relation () (Maybe Int64, Maybe Int64)
+account_6_4_1a = relation $ do
   a  <- query account
   wheres $ a ! Account.productCd' .=. value "SAV"
   return $ a ! Account.openEmpId' >< a ! Account.openBranchId'
 
-union1 :: Relation () (Maybe Int64, Maybe Int64)
-union1 = relation $ do
-  ea <- query $ employee1 `union` account2
+union_6_4_1a_Nest :: Relation () (Maybe Int64, Maybe Int64)
+union_6_4_1a_Nest = relation $ do
+  ea <- query $ employee_6_4_1a `union` account_6_4_1a
   asc $ ea ! fst'
   return ea
 
-union1' :: Relation () (Maybe Int64, Maybe Int64)
-union1' = relation (do
+union_6_4_1a_Flat :: Relation () (Maybe Int64, Maybe Int64)
+union_6_4_1a_Flat = relation (do
     e  <- query employee
     wheres $ e ! Employee.title' .=. just (value "Teller")
     return $ just (e ! Employee.empId') >< e ! Employee.assignedBranchId'
@@ -180,8 +180,8 @@ union1' = relation (do
 --   ORDER BY open_emp_id
 -- @
 --
-group1 :: Relation () (Maybe Int64, Int64)
-group1 = aggregateRelation $ do
+group_8_1a :: Relation () (Maybe Int64, Int64)
+group_8_1a = aggregateRelation $ do
   a  <- query account
   g  <- groupBy $ a ! Account.openEmpId'
   asc $ g ! id'
@@ -196,32 +196,32 @@ group1 = aggregateRelation $ do
 --   WHERE product_type_cd = 'ACCOUNT')
 -- @
 
-product1 :: Relation String String
-product1 = relation' $ do
+product_4_3_3b :: Relation String String
+product_4_3_3b = relation' $ do
   p <- query product
   (phProductCd,()) <- placeholder (\ph -> wheres $ p ! Product.productTypeCd' .=. ph)
   let productCd = p ! Product.productCd'
   return (phProductCd, productCd)
 
-account3 :: Relation String Account
-account3 = relation' $ do
+account_4_3_3b :: Relation String Account
+account_4_3_3b = relation' $ do
   a <- query account
-  (phProductCd,p) <- queryList' product1
+  (phProductCd,p) <- queryList' product_4_3_3b
   wheres $ a ! Account.productCd' `in'` p
   return (phProductCd, a)
 
-account3T :: Relation String (((Int64, String), Int64), Maybe Double)
-account3T = relation' $ do
+account_4_3_3bT :: Relation String (((Int64, String), Int64), Maybe Double)
+account_4_3_3bT = relation' $ do
   a <- query account
-  (phProductCd,p) <- queryList' product1
+  (phProductCd,p) <- queryList' product_4_3_3b
   wheres $ a ! Account.productCd' `in'` p
   let at = a ! Account.accountId' >< a ! Account.productCd' >< a ! Account.custId' >< a ! Account.availBalance'
   return (phProductCd, at)
 
-account3R :: Relation String Account1
-account3R = relation' $ do
+account_4_3_3bR :: Relation String Account1
+account_4_3_3bR = relation' $ do
   a <- query account
-  (phProductCd,p) <- queryList' product1
+  (phProductCd,p) <- queryList' product_4_3_3b
   wheres $ a ! Account.productCd' `in'` p
   let ar = Account1 |$| a ! Account.accountId'
                     |*| a ! Account.productCd'
@@ -229,7 +229,7 @@ account3R = relation' $ do
                     |*| a ! Account.availBalance'
   return (phProductCd, ar)
 
--- sql/4.3.3c.sh
+-- | sql/4.3.3c.sh
 --
 -- @
 --   SELECT account_id, product_cd, cust_id, avail_balance
@@ -237,8 +237,8 @@ account3R = relation' $ do
 --   WHERE product_cd NOT IN ('CHK', 'SAV', 'CD', 'MM')
 -- @
 --
-account4 :: Relation () Account
-account4 = relation $ do
+account_4_3_3c :: Relation () Account
+account_4_3_3c = relation $ do
   a  <- query account
   wheres $ not' (a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"])
   return a
@@ -258,18 +258,17 @@ run conn param rel = do
 main :: IO ()
 main = handleSqlError' $ withConnectionIO connect $ \conn -> do
   run conn () allAccount
-  run conn () account1
-  run conn () account1T
-  run conn () account1R
-  run conn () join1
-  run conn () join1'
-  run conn () selfJoin1
-  run conn () selfJoin1'
-  run conn () union1
-  run conn () union1'
-  run conn () group1
-  run conn "ACCOUNT" account3
-  run conn "ACCOUNT" account3T
-  run conn "ACCOUNT" account3R
-  run conn () account4
+  run conn () account_4_3_3a
+  run conn () account_4_3_3aT
+  run conn () account_4_3_3aR
+  run conn () join_5_1_2a
+  run conn () join_5_1_2aT
+  run conn () selfJoin_5_3a
+  run conn () selfJoin_5_3aT
+  run conn () union_6_4_1a_Nest
+  run conn () union_6_4_1a_Flat
+  run conn () group_8_1a
+  run conn "ACCOUNT" account_4_3_3b
+  run conn "ACCOUNT" account_4_3_3bT
+  run conn "ACCOUNT" account_4_3_3bR
 
