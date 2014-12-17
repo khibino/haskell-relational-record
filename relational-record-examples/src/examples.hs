@@ -46,12 +46,24 @@ import Prelude hiding (product)
 allAccount :: Relation () Account
 allAccount = relation $ query account
 
--- sql/4.3.3a.sh
+-- | sql/4.3.3a.sh
+--
+-- Handwritten SQL:
 --
 -- @
 --   SELECT account_id, product_cd, cust_id, avail_balance
 --   FROM LEARNINGSQL.account
 --   WHERE product_cd IN ('CHK', 'SAV', 'CD', 'MM')
+-- @
+--
+-- record version of Generated SQL:
+--
+-- @
+--   SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2,
+--   T0.open_date AS f3, T0.close_date AS f4, T0.last_activity_date AS f5,
+--   T0.status AS f6, T0.open_branch_id AS f7, T0.open_emp_id AS f8,
+--   T0.avail_balance AS f9, T0.pending_balance AS f10 FROM MAIN.account T0
+--   WHERE (T0.product_cd IN ('CHK', 'SAV', 'CD', 'MM'))
 -- @
 --
 account_4_3_3a :: Relation () Account
@@ -60,12 +72,32 @@ account_4_3_3a = relation $ do
   wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
   return a
 
+-- |
+-- tuple version of Generated SQL:
+--
+-- @
+--   SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2,
+--   T0.avail_balance AS f3 FROM MAIN.account T0 WHERE (T0.product_cd IN
+--   ('CHK', 'SAV', 'CD', 'MM'))
+-- @
+--
 account_4_3_3aT :: Relation () (((Int64, String), Int64), Maybe Double)
 account_4_3_3aT = relation $ do
   a  <- query account
   wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
   return $ a ! Account.accountId' >< a ! Account.productCd' >< a ! Account.custId' >< a ! Account.availBalance'
 
+-- |
+-- newly defined record version of Generated SQL:
+--
+-- @
+--   SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2,
+--   T0.avail_balance AS f3 FROM MAIN.account T0 WHERE (T0.product_cd IN
+--   ('CHK', 'SAV', 'CD', 'MM'))
+-- @
+--
+-- Above sql is the same to the tuple version.
+--
 account_4_3_3aR :: Relation () Account1
 account_4_3_3aR = relation $ do
   a  <- query account
