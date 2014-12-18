@@ -17,6 +17,8 @@ Build-Depends: debhelper (>= 7.0)
                , libghc-sql-words-prof
                , libghc-text-dev
                , libghc-text-prof
+               , libghc-time-locale-compat-dev
+               , libghc-time-locale-compat-prof
                , libghc-transformers-dev
                , libghc-transformers-prof
 Build-Depends-Indep: ghc-doc
@@ -25,6 +27,7 @@ Build-Depends-Indep: ghc-doc
                      , libghc-persistable-record-doc
                      , libghc-sql-words-doc
                      , libghc-text-doc
+                     , libghc-time-locale-compat-doc
                      , libghc-transformers-doc
 
 Package: libghc-relational-query-dev
