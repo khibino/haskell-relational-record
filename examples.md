@@ -51,32 +51,36 @@ For backwards compatibility with the SQL92 version of standard, you can use numb
 
 SQL:
 
-    SELECT emp_id, title, start_date, fname, lname
-    FROM employee
-    ORDER BY 2,5;
+```sql
+SELECT emp_id, title, start_date, fname, lname
+FROM employee
+ORDER BY 2,5;
+```
 
 HRR: constructing new records in Applicative-like style.
 
-    employee_3_7_3 :: Relation () Employee1
-    employee_3_7_3 = relation $ do
-      e <- query employee
-      asc $ e ! Employee.title'
-      asc $ e ! Employee.lname'
-      return $ Employee1 |$| e ! Employee.empId'
-                         |*| e ! Employee.title'
-                         |*| e ! Employee.startDate'
-                         |*| e ! Employee.fname'
-                         |*| e ! Employee.lname'
-   
-    data Employee1 = Employee1
-      { e1EmpId :: Int64
-      , e1Title :: Maybe String
-      , e1StartDate :: Day
-      , e1Fname :: String
-      , e1Lname' :: String
-      } deriving (Show)
+```haskell
+employee_3_7_3 :: Relation () Employee1
+employee_3_7_3 = relation $ do
+  e <- query employee
+  asc $ e ! Employee.title'
+  asc $ e ! Employee.lname'
+  return $ Employee1 |$| e ! Employee.empId'
+                     |*| e ! Employee.title'
+                     |*| e ! Employee.startDate'
+                     |*| e ! Employee.fname'
+                     |*| e ! Employee.lname'
+
+data Employee1 = Employee1
+  { e1EmpId :: Int64
+  , e1Title :: Maybe String
+  , e1StartDate :: Day
+  , e1Fname :: String
+  , e1Lname' :: String
+  } deriving (Show)
 
 $(makeRecordPersistableDefault ''Employee1)
+```
 
 #### The order by clause
 
