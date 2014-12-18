@@ -51,15 +51,15 @@ For backwards compatibility with the SQL92 version of standard, you can use numb
 
 SQL:
 
-```sql
+{% highlight sql %}
 SELECT emp_id, title, start_date, fname, lname
 FROM employee
 ORDER BY 2,5;
-```
+{% endhighlight %}
 
 HRR: constructing new records in Applicative-like style.
 
-```haskell
+{% highlight haskell %}
 employee_3_7_3 :: Relation () Employee1
 employee_3_7_3 = relation $ do
   e <- query employee
@@ -80,7 +80,7 @@ data Employee1 = Employee1
   } deriving (Show)
 
 $(makeRecordPersistableDefault ''Employee1)
-```
+{% endhighlight %}
 
 #### The order by clause
 
