@@ -59,7 +59,39 @@ Here is the content of "Account.hs":
 
     $(defineTable "account")
 
-This code generates 'data Account'. "DataSource.hs" is a bit complicated:
+This code generates 'data Account' and definitions of this DSL like bellows.
+
+    data Account
+      = Account {accountId :: !GHC.Int.Int64,
+                 productCd :: !String,
+                 custId :: !GHC.Int.Int64,
+                 openDate :: !Day,
+                 closeDate :: !(Maybe Day),
+                 lastActivityDate :: !(Maybe Day),
+                 status :: !String,
+                 openBranchId :: !(Maybe GHC.Int.Int64),
+                 openEmpId :: !(Maybe GHC.Int.Int64),
+                 availBalance :: !(Maybe Double),
+                 pendingBalance :: !(Maybe Double)}
+      deriving (Show)
+
+    -- Relation type corresponding to Table
+    account :: Relation () Account
+    account =  ...
+
+    -- Column selectors for This DSL
+    accountId' :: Pi Account GHC.Int.Int64
+    accountId'
+      = definePi 0
+    productCd' :: Pi Account String
+    productCd'
+      = definePi 1
+    custId' :: Pi Account GHC.Int.Int64
+    custId'
+      = definePi 2
+    ....
+
+"DataSource.hs" is a bit complicated:
 
 
     {-# LANGUAGE TemplateHaskell #-}
