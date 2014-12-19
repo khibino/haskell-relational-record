@@ -37,18 +37,50 @@ SQL:
     FROM account
     ORDER BY avail_balance DESC;
 
-HRR: TBD
+HRR:
+
+    account_3_7_1 :: Relation () Account
+    account_3_7_1 = relation $ do
+      a <- query account
+      desc $ a ! Account.availBalance'
+      return a
 
 #### Sorting via numeric placeholders
 
+For backwards compatibility with the SQL92 version of standard, you can use numbers instead of names to specify the columns that should be sorted. With HRR you cannot use numbers for such purpose.
+
 SQL:
 
-    SELECT emp_id, title, start_date, fname, lname
-    FROM employee
-    ORDER BY 2,5;
+{% highlight sql %}
+SELECT emp_id, title, start_date, fname, lname
+FROM employee
+ORDER BY 2,5;
+{% endhighlight %}
 
-HRR: TBD
+HRR: constructing new records in Applicative-like style.
 
+{% highlight haskell %}
+employee_3_7_3 :: Relation () Employee1
+employee_3_7_3 = relation $ do
+  e <- query employee
+  asc $ e ! Employee.title'
+  asc $ e ! Employee.lname'
+  return $ Employee1 |$| e ! Employee.empId'
+                     |*| e ! Employee.title'
+                     |*| e ! Employee.startDate'
+                     |*| e ! Employee.fname'
+                     |*| e ! Employee.lname'
+
+data Employee1 = Employee1
+  { e1EmpId :: Int64
+  , e1Title :: Maybe String
+  , e1StartDate :: Day
+  , e1Fname :: String
+  , e1Lname' :: String
+  } deriving (Show)
+
+$(makeRecordPersistableDefault ''Employee1)
+{% endhighlight %}
 
 #### The order by clause
 
@@ -60,7 +92,9 @@ SQL:
 
 HRR: TBD
 
-#### Using the not operator
+#### Using the is null operator and the date literal
+
+HRR supports date literal of the SQL standard, such like Date '2003-01-01'. However, SQLite has its own date literal without Date keyword, like this: '2003-01-01'. So, you have to define a function to support SQLite's date literal. Here we define 'unsafeSQLiteDayValue' function for that.
 
 SQL:
 
@@ -68,7 +102,31 @@ SQL:
     FROM employee
     WHERE end_date IS NULL AND (title = 'Teller' OR start_date < '2003-01-01');
 
-HRR: TBD
+HRR:
+
+    employee_4_1_2 :: Relation () Employee
+    employee_4_1_2 = relation $ do
+      e <- query employee
+      wheres $ isNothing (e ! Employee.endDate')
+      wheres $ e ! Employee.title' .=. just (value "Teller")
+         `or'` e ! Employee.startDate' .<. unsafeSQLiteDayValue "2003-01-01"
+      return e
+    
+    unsafeSQLiteDayValue :: SqlProjectable p => String -> p Day
+    unsafeSQLiteDayValue = unsafeProjectSqlTerms . showConstantTermsSQL
+
+Another way, use a placeholder instead of a date literal. There is no need to define a helper function.
+
+HRR: using placeholder
+
+    employee_4_1_2P :: Relation Day Employee
+    employee_4_1_2P = relation' $ do
+      e <- query employee
+      wheres $ isNothing (e ! Employee.endDate')
+      (phDay,()) <- placeholder (\ph ->
+        wheres $ e ! Employee.title' .=. just (value "Teller")
+           `or'` e ! Employee.startDate' .<. ph)
+      return (phDay, e) 
 
 #### Range condition with the between operator
 
@@ -90,8 +148,8 @@ SQL:
 
 HRR: returning raw rows.
 
-    account1 :: Relation () Account
-    account1 = relation $ do
+    account_4_3_3a :: Relation () Account
+    account_4_3_3a = relation $ do
       a  <- query account
       wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
       return a
@@ -107,8 +165,8 @@ HRR: constructing new records in Applicative-like style.
 
     $(makeRecordPersistableDefault ''Account1)
 
-    account1R :: Relation () Account1
-    account1R = relation $ do
+    account_4_3_3aR :: Relation () Account1
+    account_4_3_3aR = relation $ do
       a  <- query account
       wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
       return $ Account1 |$| a ! Account.accountId'
@@ -127,23 +185,24 @@ SQL:
 
 HRR:
 
-    product1 = relation' $ do
+    product_4_3_3b :: Relation String String
+    product_4_3_3b = relation' $ do
       p <- query product
       (phProductCd,()) <- placeholder (\ph -> wheres $ p ! Product.productTypeCd' .=. ph)
       let productCd = p ! Product.productCd'
       return (phProductCd, productCd)
     
-    account3 :: Relation String Account
-    account3 = relation' $ do
+    account_4_3_3b :: Relation String Account
+    account_4_3_3b = relation' $ do
       a <- query account
-      (phProductCd,p) <- queryList' product1
+      (phProductCd,p) <- queryList' product_4_3_3b
       wheres $ a ! Account.productCd' `in'` p
       return (phProductCd, a)
-
-    account3R :: Relation String Account1
-    account3R = relation' $ do
+    
+    account_4_3_3bR :: Relation String Account1
+    account_4_3_3bR = relation' $ do
       a <- query account
-      (phProductCd,p) <- queryList' product1
+      (phProductCd,p) <- queryList' product_4_3_3b
       wheres $ a ! Account.productCd' `in'` p
       let ar = Account1 |$| a ! Account.accountId'
                         |*| a ! Account.productCd'
@@ -153,7 +212,7 @@ HRR:
 
 Using type holders:
 
-    run conn "ACCOUNT" account3R
+    run conn "ACCOUNT" account_4_3_3bR
 
 #### Membership conditions using not in
 
@@ -165,8 +224,8 @@ SQL:
 
 HRR:
 
-    account4 :: Relation () Account
-    account4 = relation $ do
+    account_4_3_3c :: Relation () Account
+    account_4_3_3c = relation $ do
       a  <- query account
       wheres $ not' (a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"])
       return a
@@ -181,8 +240,8 @@ SQL:
 
 HRR:
 
-    join1' :: Relation () ((String, String), String)
-    join1' = relation $ do
+    join_5_1_2aT :: Relation () ((String, String), String)
+    join_5_1_2aT = relation $ do
       e  <- query employee
       d  <- query department
       on $ e ! Employee.deptId' .=. just (d ! Department.deptId')
@@ -205,15 +264,14 @@ HRR: TBD
 
 SQL:
 
-    sqlite3 exmaples.db "
     SELECT e.fname, e.lname, e_mgr.fname mgr_fname, e_mgr.lname mgr_lname
     FROM employee e INNER JOIN employee e_mgr
-    ON e.superior_emp_id = e_mgr.emp_id;
+    ON e.superior_emp_id = e_mgr.emp_id
 
 HRR:
 
-    selfJoin1' :: Relation () ((String, String), (String, String))
-    selfJoin1' = relation $ do
+    selfJoin_5_3aT :: Relation () ((String, String), (String, String))
+    selfJoin_5_3aT = relation $ do
       e  <- query employee
       m  <- query employee
       on $ e ! Employee.superiorEmpId' .=. just (m ! Employee.empId')
@@ -236,28 +294,28 @@ SQL:
 
 HRR:
 
-    employee1 :: Relation () (Maybe Int64, Maybe Int64)
-    employee1 = relation $ do
+    employee_6_4_1a :: Relation () (Maybe Int64, Maybe Int64)
+    employee_6_4_1a = relation $ do
       e  <- query employee
       wheres $ e ! Employee.title' .=. just (value "Teller")
       return $ just (e ! Employee.empId') >< e ! Employee.assignedBranchId'
     
-    account2 :: Relation () (Maybe Int64, Maybe Int64)
-    account2 = relation $ do
+    account_6_4_1a :: Relation () (Maybe Int64, Maybe Int64)
+    account_6_4_1a = relation $ do
       a  <- query account
       wheres $ a ! Account.productCd' .=. value "SAV"
       return $ a ! Account.openEmpId' >< a ! Account.openBranchId'
-    
-    union1 :: Relation () (Maybe Int64, Maybe Int64)
-    union1 = relation $ do
-      ea <- query $ employee1 `union` account2
+
+    union_6_4_1a_Nest :: Relation () (Maybe Int64, Maybe Int64)
+    union_6_4_1a_Nest = relation $ do
+      ea <- query $ employee_6_4_1a `union` account_6_4_1a
       asc $ ea ! fst'
       return ea
-
+    
 HRR:
 
-    union1' :: Relation () (Maybe Int64, Maybe Int64)
-    union1' = relation (do
+    union_6_4_1a_Flat :: Relation () (Maybe Int64, Maybe Int64)
+    union_6_4_1a_Flat = relation (do
         e  <- query employee
         wheres $ e ! Employee.title' .=. just (value "Teller")
         return $ just (e ! Employee.empId') >< e ! Employee.assignedBranchId'
@@ -266,7 +324,6 @@ HRR:
         wheres $ a ! Account.productCd' .=. value "SAV"
         return $ a ! Account.openEmpId' >< a ! Account.openBranchId'
       )
-
 
 #### Grouping
 
@@ -279,8 +336,8 @@ SQL:
 
 HRR:
 
-    group1 :: Relation () (Maybe Int64, Int64)
-    group1 = aggregateRelation $ do
+    group_8_1a :: Relation () (Maybe Int64, Int64)
+    group_8_1a = aggregateRelation $ do
       a  <- query account
       g  <- groupBy $ a ! Account.openEmpId'
       asc $ g ! id'
