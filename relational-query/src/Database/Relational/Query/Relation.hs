@@ -53,7 +53,7 @@ import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Monad.Type (ConfigureQuery, configureQuery, qualifyQuery)
 import Database.Relational.Query.Monad.Class
   (MonadQualify (liftQualify), MonadQualifyUnique (liftQualifyUnique), MonadQuery (unsafeSubQuery), on)
-import Database.Relational.Query.Monad.Simple (QuerySimple, SimpleQuery)
+import Database.Relational.Query.Monad.Simple (QuerySimple, SimpleQuery')
 import qualified Database.Relational.Query.Monad.Simple as Simple
 import Database.Relational.Query.Monad.Aggregate (QueryAggregate, AggregatedQuery)
 import qualified Database.Relational.Query.Monad.Aggregate as Aggregate
@@ -73,7 +73,7 @@ import Database.Relational.Query.Projection
   (Projection, ListProjection, unsafeListProjectionFromSubQuery)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable
-  (PlaceHolders, addPlaceHolders, unsafePlaceHolders, projectZip)
+  (PlaceHolders, unitPlaceHolder, addPlaceHolders, unsafePlaceHolders, projectZip)
 import Database.Relational.Query.ProjectableExtended ((!))
 
 
@@ -153,16 +153,16 @@ queryList :: MonadQualify ConfigureQuery m
           -> m (ListProjection (Projection c) r)
 queryList =  queryList0
 
-unsafeRelation :: SimpleQuery rp -> Relation p r
-unsafeRelation =  SubQuery . Simple.toSubQuery
+addUnitPH :: Functor f => f t -> f (PlaceHolders (), t)
+addUnitPH =  ((,) unitPlaceHolder <$>)
+
+-- | Finalize 'QuerySimple' monad and generate 'Relation' with place-holder parameter 'p'.
+relation' :: SimpleQuery' p r -> Relation p r
+relation' =  SubQuery . Simple.toSubQuery
 
 -- | Finalize 'QuerySimple' monad and generate 'Relation'.
 relation :: QuerySimple (Projection Flat r) -> Relation () r
-relation =  unsafeRelation
-
--- | Finalize 'QuerySimple' monad and generate 'Relation' with place-holder parameter 'p'.
-relation' :: QuerySimple (PlaceHolders p, Projection Flat r) -> Relation p r
-relation' =  unsafeRelation . fmap snd
+relation =  relation' . addUnitPH
 
 unsafeAggregateRelation :: AggregatedQuery rp -> Relation p r
 unsafeAggregateRelation =  SubQuery . Aggregate.toSubQuery
