@@ -47,92 +47,97 @@ Now we map the type of rows of a table to a Haskell record type. Here is the sch
             references employee (emp_id)
      );
 
-We don't want to define 'data Account' for this by hand. HRR gains access to our DB at compile time and automatically generates Haskell record types. To avoid the conflict of record field names, we recommend to make one module per table. (This limitation would be solved by OverloadedFieldRecord in the future.)
+We don't want to define `data Account` for this by hand. HRR gains access to our DB at compile time and automatically generates Haskell record types. To avoid the conflict of record field names, we recommend to make one module per table. (This limitation would be solved by OverloadedFieldRecord in the future.)
 
 Here is the content of "Account.hs":
 
-    {-# LANGUAGE TemplateHaskell, MultiParamTypeClasses, FlexibleInstances #-}
+{% highlight haskell %}
+{-# LANGUAGE TemplateHaskell, MultiParamTypeClasses, FlexibleInstances #-}
 
-    module Account where
+module Account where
 
-    import DataSource (defineTable)
+import DataSource (defineTable)
 
-    $(defineTable "account")
+$(defineTable "account")
+{% endhighlight %}
 
-This code generates 'data Account' and definitions of this DSL like bellows.
+This code generates `data Account` and definitions of this DSL like bellows.
 
-    data Account
-      = Account {accountId :: !GHC.Int.Int64,
-                 productCd :: !String,
-                 custId :: !GHC.Int.Int64,
-                 openDate :: !Day,
-                 closeDate :: !(Maybe Day),
-                 lastActivityDate :: !(Maybe Day),
-                 status :: !String,
-                 openBranchId :: !(Maybe GHC.Int.Int64),
-                 openEmpId :: !(Maybe GHC.Int.Int64),
-                 availBalance :: !(Maybe Double),
-                 pendingBalance :: !(Maybe Double)}
-      deriving (Show)
+{% highlight haskell %}
+data Account
+  = Account {accountId :: !GHC.Int.Int64,
+             productCd :: !String,
+             custId :: !GHC.Int.Int64,
+             openDate :: !Day,
+             closeDate :: !(Maybe Day),
+             lastActivityDate :: !(Maybe Day),
+             status :: !String,
+             openBranchId :: !(Maybe GHC.Int.Int64),
+             openEmpId :: !(Maybe GHC.Int.Int64),
+             availBalance :: !(Maybe Double),
+             pendingBalance :: !(Maybe Double)}
+  deriving (Show)
 
-    -- Relation type corresponding to Table
-    account :: Relation () Account
-    account =  ...
+-- Relation type corresponding to Table
+account :: Relation () Account
+account =  ...
 
-    -- Column selectors for This DSL
-    accountId' :: Pi Account GHC.Int.Int64
-    accountId'
-      = definePi 0
-    productCd' :: Pi Account String
-    productCd'
-      = definePi 1
-    custId' :: Pi Account GHC.Int.Int64
-    custId'
-      = definePi 2
-    ....
+-- Column selectors for This DSL
+accountId' :: Pi Account GHC.Int.Int64
+accountId'
+  = definePi 0
+productCd' :: Pi Account String
+productCd'
+  = definePi 1
+custId' :: Pi Account GHC.Int.Int64
+custId'
+  = definePi 2
+....
+{% endhighlight %}
 
 "DataSource.hs" is a bit complicated:
 
+{% highlight haskell %}
+{-# LANGUAGE TemplateHaskell #-}
 
-    {-# LANGUAGE TemplateHaskell #-}
+module DataSource (
+    connect, convTypes, defineTable
+  ) where
 
-    module DataSource (
-        connect, convTypes, defineTable
-      ) where
+import Data.Time (Day, LocalTime)
+import Database.HDBC.Query.TH (defineTableFromDB)
+import Database.HDBC.Schema.Driver (typeMap)
+import Database.HDBC.Schema.SQLite3 (driverSQLite3)
+import Database.HDBC.Sqlite3 (Connection, connectSqlite3)
+import Database.Record.TH (derivingShow)
+import Language.Haskell.TH (Q, Dec, TypeQ)
+import Language.Haskell.TH.Name.CamelCase (ConName)
 
-    import Data.Time (Day, LocalTime)
-    import Database.HDBC.Query.TH (defineTableFromDB)
-    import Database.HDBC.Schema.Driver (typeMap)
-    import Database.HDBC.Schema.SQLite3 (driverSQLite3)
-    import Database.HDBC.Sqlite3 (Connection, connectSqlite3)
-    import Database.Record.TH (derivingShow)
-    import Language.Haskell.TH (Q, Dec, TypeQ)
-    import Language.Haskell.TH.Name.CamelCase (ConName)
+connect :: IO Connection
+connect = connectSqlite3 "examples.db"
 
-    connect :: IO Connection
-    connect = connectSqlite3 "examples.db"
+convTypes :: [(String, TypeQ)]
+convTypes =
+    [ ("float", [t|Double|])
+    , ("date", [t|Day|])
+    , ("datetime", [t|LocalTime|])
+    , ("double", [t|Double|])
+    , ("varchar", [t|String|])
+    ]
 
-    convTypes :: [(String, TypeQ)]
-    convTypes =
-        [ ("float", [t|Double|])
-        , ("date", [t|Day|])
-        , ("datetime", [t|LocalTime|])
-        , ("double", [t|Double|])
-        , ("varchar", [t|String|])
-        ]
+defineTable :: String -> Q [Dec]
+defineTable tableName =
+  defineTableFromDB
+    connect
+    (driverSQLite3 { typeMap = convTypes }) -- overwrite the default type map with yours
+    "main" -- schema name, ignored by SQLite
+    tableName
+    [derivingShow]
+{% endhighlight %}
 
-    defineTable :: String -> Q [Dec]
-    defineTable tableName =
-      defineTableFromDB
-        connect
-        (driverSQLite3 { typeMap = convTypes }) -- overwrite the default type map with yours
-        "main" -- schema name, ignored by SQLite
-        tableName
-        [derivingShow]
-
-* 'Connection' to "examples.db" will be made.
-* 'convTypes' defines data mappings for ambiguous types in SQLite. You don't have to understand this at this moment.
-* 'defineTable' is a wrapper for the magic function 'defineTableFromDB' which is the heart of code generation.
+* `Connection` to "examples.db" will be made.
+* `convTypes` defines data mappings for ambiguous types in SQLite. You don't have to understand this at this moment.
+* `defineTable` is a wrapper for the magic function `defineTableFromDB` which is the heart of code generation.
 
 Using 'DataSource.hs', we need to prepare modules for other tables than Account, of course.
 
@@ -140,44 +145,54 @@ Using 'DataSource.hs', we need to prepare modules for other tables than Account,
 
 Next we define a simple relation in "src/examples.hs":
 
-    account1 :: Relation () Account
-    account1 = relation $ do
-      a <- query account
-      wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
-      return a
+{% highlight haskell %}
+account1 :: Relation () Account
+account1 = relation $ do
+  a <- query account
+  wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
+  return a
+{% endhighlight %}
 
-'Relation' takes two type parameters. The first one is the type of placeholder. This example does not use place holder, so its type is (). The second one is type of value in 'Relation'.
+`Relation` takes two type parameters. The first one is the type of placeholder. This example does not use place holder, so its type is (). The second one is type of value in 'Relation'.
 
 Let's see the signature of 'relation':
 
-    relation :: QuerySimple (Projection Flat r) -> Relation () r
+{% highlight haskell %}
+relation :: QuerySimple (Projection Flat r) -> Relation () r
+{% endhighlight %}
 
-So, the type of 'do' should be 'QuerySimple (Projection Flat r)'. 'query' has the following type (note that this signature is simplified):
+So, the type of `do` should be `QuerySimple (Projection Flat r)`. `query` has the following type (note that this signature is simplified):
 
-    query :: Relation () r -> QuerySimple (Projection Flat r)
+{% highlight haskell %}
+query :: Relation () r -> QuerySimple (Projection Flat r)
+{% endhighlight %}
 
-'account' is the variable which refers to the "Account" table. This is automatically generated by 'defineTableFromDB' and its type is 'Relation () r'. So 'a <- query account' binds the variable 'a' to each row of the "Account" table.
+`account` is the variable which refers to the "Account" table. This is automatically generated by `defineTableFromDB` and its type is `Relation () r`. So `a <- query account` binds the variable `a` to each row of the "Account" table.
 
-'wheres' is corresponding to the SQL 'where' clause. In this example, rows whose 'productCd' is one of "CHK", "SAV", "CD", and "MM" are filtered.
+`wheres` is corresponding to the SQL 'where' clause. In this example, rows whose `productCd` is one of "CHK", "SAV", "CD", and "MM" are filtered.
 
 ### Connecting to the DB
 
 Let's define a wrapper function to execute our relation on "examples.db":
 
-    run :: (Show a, IConnection conn, FromSql SqlValue a, ToSql SqlValue p)
-           => conn -> p -> Relation p a -> IO ()
-    run conn param rel = do
-      putStrLn $ "SQL: " ++ show rel
-      records <- runQuery conn (relationalQuery rel) param
-      mapM_ print records
-      putStrLn ""
+{% highlight haskell %}
+run :: (Show a, IConnection conn, FromSql SqlValue a, ToSql SqlValue p)
+       => conn -> p -> Relation p a -> IO ()
+run conn param rel = do
+  putStrLn $ "SQL: " ++ show rel
+  records <- runQuery conn (relationalQuery rel) param
+  mapM_ print records
+  putStrLn ""
+{% endhighlight %}
 
-'run' shows a generated SQL statement first and the results of the query. Here are the signatures of the two important functions above:
+`run` shows a generated SQL statement first and the results of the query. Here are the signatures of the two important functions above:
 
-    runQuery :: (IConnection conn, ToSql SqlValue p, FromSql SqlValue a) =>
-                conn -> Query p a -> p -> IO [a]
+{% highlight haskell %}
+runQuery :: (IConnection conn, ToSql SqlValue p, FromSql SqlValue a) =>
+            conn -> Query p a -> p -> IO [a]
 
-    relationalQuery :: Relation p r -> Query p r
+relationalQuery :: Relation p r -> Query p r
+{% endhighlight %}
 
 OK. Let's execute our relation on "examples.db":
 
