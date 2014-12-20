@@ -381,6 +381,8 @@ account_4_3_3c = relation $ do
   return a
 {% endhighlight %}
 
+Generated SQL:
+
 {% highlight sql %}
 SELECT ALL T0.account_id AS f0,
            T0.product_cd AS f1,
@@ -416,6 +418,16 @@ join_5_1_2aT = relation $ do
   d <- query department
   on $ e ! Employee.deptId' .=. just (d ! Department.deptId')
   return $ e ! Employee.fname' >< e ! Employee.lname' >< d ! Department.name'
+{% endhighlight %}
+
+Genarated SQL:
+
+{% highlight sql %}
+SELECT ALL T0.fname AS f0,
+           T0.lname AS f1,
+           T1.name AS f2
+FROM MAIN.employee T0 INNER JOIN MAIN.department T1
+ON (T0.dept_id = T1.dept_id)
 {% endhighlight %}
 
 #### Complex join
