@@ -20,7 +20,7 @@ Note that HRR does not have a feature to create tables at this moment. This is a
 
 ### Defining record types in Haskell
 
-Now we map the type of rows of a table to a Haskell record type. Here is the schema of the Account table:
+Now we map the type of rows of a table to a Haskell record type. Here is the schema of the "Account" table:
 
     % sqlite3 examples.db
     sqlite> .schema Account
@@ -47,7 +47,7 @@ Now we map the type of rows of a table to a Haskell record type. Here is the sch
             references employee (emp_id)
      );
 
-We don't want to define `data Account` for this by hand. HRR gains access to our DB at compile time and automatically generates Haskell record types. To avoid the conflict of record field names, we recommend to make one module per table. (This limitation would be solved by OverloadedFieldRecord in the future.)
+We don't want to define `data Account` for this by hand. HRR gains access to our DB at compile time and automatically generates Haskell record types. To avoid the conflict of record field names, we recommend to make one module per table. (This limitation would be solved by `OverloadedFieldRecord` in the future.)
 
 Here is the content of "Account.hs":
 
@@ -139,7 +139,7 @@ defineTable tableName =
 * `convTypes` defines data mappings for ambiguous types in SQLite. You don't have to understand this at this moment.
 * `defineTable` is a wrapper for the magic function `defineTableFromDB` which is the heart of code generation.
 
-Using 'DataSource.hs', we need to prepare modules for other tables than Account, of course.
+Using "DataSource.hs", we need to prepare modules for other tables than Account, of course.
 
 ### Defining relations
 
@@ -153,7 +153,7 @@ account1 = relation $ do
   return a
 {% endhighlight %}
 
-`Relation` takes two type parameters. The first one is the type of placeholder. This example does not use place holder, so its type is (). The second one is type of value in 'Relation'.
+`Relation` takes two type parameters. The first one is the type of placeholder. This example does not use place holder, so its type is `()`. The second one is type of value in `Relation`.
 
 Let's see the signature of 'relation':
 
