@@ -89,3 +89,5 @@ Finally, let's execute it in SQLite:
     0|Hello|World!
 
 Now we understand that relations are composable. Raw SQL does NOT have this feature. Moreover, relations are type safe. If our HRR code can be compiled by GHC, it always generates valid SQL statements.
+
+The next step is to read [HRR tutorial](tutorial.html).
