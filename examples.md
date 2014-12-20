@@ -584,6 +584,16 @@ group_8_1a = aggregateRelation $ do
   return $ g >< count (a ! Account.accountId')
 {% endhighlight %}
 
+Generated SQL:
+
+{% highlight sql %}
+SELECT ALL T0.open_emp_id AS f0,
+           COUNT (T0.account_id) AS f1
+FROM MAIN.account T0
+GROUP BY T0.open_emp_id
+ORDER BY T0.open_emp_id ASC
+{% endhighlight %}
+
 ### insert
 
 TBD
