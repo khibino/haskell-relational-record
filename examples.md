@@ -90,9 +90,11 @@ $(makeRecordPersistableDefault ''Employee1)
 
 SQL:
 
-    SELECT open_emp_id, product_cd
-    FROM account
-    ORDER BY open_emp_id, product_cd;
+{% highlight sql %}
+SELECT open_emp_id, product_cd
+FROM account
+ORDER BY open_emp_id, product_cd;
+{% endhighlight %}
 
 HRR: TBD
 
@@ -102,9 +104,11 @@ HRR supports date literal of the SQL standard, such like Date '2003-01-01'. Howe
 
 SQL:
 
-    SELECT *
-    FROM employee
-    WHERE end_date IS NULL AND (title = 'Teller' OR start_date < '2003-01-01');
+{% highlight sql %}
+SELECT *
+FROM employee
+WHERE end_date IS NULL AND (title = 'Teller' OR start_date < '2003-01-01');
+{% endhighlight %}
 
 HRR:
 
@@ -134,11 +138,13 @@ HRR: using placeholder
 
 #### Range condition with the between operator
 
-SLQ:
+SQL:
 
-    SELECT emp_id, fname, lname, start_date FROM employee
-    WHERE start_date
-    BETWEEN date('2001-01-01') AND date('2002-12-31');
+{% highlight sql %}
+SELECT emp_id, fname, lname, start_date FROM employee
+WHERE start_date
+BETWEEN date('2001-01-01') AND date('2002-12-31');
+{% endhighlight %}
 
 HRR: TBD
 
@@ -146,9 +152,11 @@ HRR: TBD
 
 SQL:
 
-    SELECT account_id, product_cd, cust_id, avail_balance
-    FROM account
-    WHERE product_cd IN ('CHK', 'SAV', 'CD', 'MM');
+{% highlight sql %}
+SELECT account_id, product_cd, cust_id, avail_balance
+FROM account
+WHERE product_cd IN ('CHK', 'SAV', 'CD', 'MM');
+{% endhighlight %}
 
 HRR: returning raw rows.
 
@@ -182,10 +190,12 @@ HRR: constructing new records in Applicative-like style.
 
 SQL:
 
-    SELECT account_id, product_cd, cust_id, avail_balance
-    FROM account
-    WHERE product_cd IN (SELECT product_cd FROM product
-    WHERE product_type_cd = 'ACCOUNT');
+{% highlight sql %}
+SELECT account_id, product_cd, cust_id, avail_balance
+FROM account
+WHERE product_cd IN (SELECT product_cd FROM product
+WHERE product_type_cd = 'ACCOUNT');
+{% endhighlight %}
 
 HRR:
 
@@ -222,9 +232,11 @@ Using type holders:
 
 SQL:
 
-    SELECT account_id, product_cd, cust_id, avail_balance
-    FROM account
-    WHERE product_cd NOT IN ('CHK', 'SAV', 'CD', 'MM');
+{% highlight sql %}
+SELECT account_id, product_cd, cust_id, avail_balance
+FROM account
+WHERE product_cd NOT IN ('CHK', 'SAV', 'CD', 'MM');
+{% endhighlight %}
 
 HRR:
 
@@ -238,9 +250,11 @@ HRR:
 
 SQL:
 
-    SELECT e.fname, e.lname, d.name
-    FROM employee e INNER JOIN department d
-    USING (dept_id);
+{% highlight sql %}
+SELECT e.fname, e.lname, d.name
+FROM employee e INNER JOIN department d
+USING (dept_id);
+{% endhighlight %}
 
 HRR:
 
@@ -255,12 +269,14 @@ HRR:
 
 SQL:
 
-    SELECT a.account_id, a.cust_id, a.open_date, a.product_cd
-    FROM account a INNER JOIN employee e ON a.open_emp_id = e.emp_id
-    INNER JOIN branch b ON e.assigned_branch_id = b.branch_id
-    WHERE e.start_date <= date('2004-01-01') AND
-         (e.title = 'Teller' OR e.title = 'Head Teller') AND
-         b.name = 'Woburn Branch';
+{% highlight sql %}
+SELECT a.account_id, a.cust_id, a.open_date, a.product_cd
+FROM account a INNER JOIN employee e ON a.open_emp_id = e.emp_id
+INNER JOIN branch b ON e.assigned_branch_id = b.branch_id
+WHERE e.start_date <= date('2004-01-01') AND
+     (e.title = 'Teller' OR e.title = 'Head Teller') AND
+     b.name = 'Woburn Branch';
+{% endhighlight %}
 
 HRR: TBD
 
@@ -268,9 +284,11 @@ HRR: TBD
 
 SQL:
 
-    SELECT e.fname, e.lname, e_mgr.fname mgr_fname, e_mgr.lname mgr_lname
-    FROM employee e INNER JOIN employee e_mgr
-    ON e.superior_emp_id = e_mgr.emp_id
+{% highlight sql %}
+SELECT e.fname, e.lname, e_mgr.fname mgr_fname, e_mgr.lname mgr_lname
+FROM employee e INNER JOIN employee e_mgr
+ON e.superior_emp_id = e_mgr.emp_id
+{% endhighlight %}
 
 HRR:
 
@@ -287,14 +305,16 @@ HRR:
 
 SQL:
 
-    SELECT emp_id, assigned_branch_id
-    FROM employee
-    WHERE title = 'Teller'
-    UNION
-    SELECT open_emp_id, open_branch_id
-    FROM account
-    WHERE product_cd = 'SAV'
-    ORDER BY emp_id;
+{% highlight sql %}
+SELECT emp_id, assigned_branch_id
+FROM employee
+WHERE title = 'Teller'
+UNION
+SELECT open_emp_id, open_branch_id
+FROM account
+WHERE product_cd = 'SAV'
+ORDER BY emp_id;
+{% endhighlight %}
 
 HRR:
 
@@ -333,10 +353,12 @@ HRR:
 
 SQL:
 
-    SELECT open_emp_id, COUNT(*) how_many
-    FROM account
-    GROUP BY open_emp_id
-    ORDER BY open_emp_id;
+{% highlight sql %}
+SELECT open_emp_id, COUNT(*) how_many
+FROM account
+GROUP BY open_emp_id
+ORDER BY open_emp_id;
+{% endhighlight %}
 
 HRR:
 
