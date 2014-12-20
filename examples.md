@@ -49,6 +49,14 @@ account_3_7_1 = relation $ do
   return a
 {% endhighlight %}
 
+Generated SQL:
+
+{% highlight sql %}
+SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.open_date AS
+f2, T0.avail_balance AS f3 FROM MAIN.account T0 ORDER BY
+T0.avail_balance DESC
+{% endhighlight %}
+
 #### Sorting via numeric placeholders
 
 For backwards compatibility with the SQL92 version of standard, you can use numbers instead of names to specify the columns that should be sorted. With HRR you cannot use numbers for such purpose.
@@ -84,6 +92,14 @@ data Employee1 = Employee1
   } deriving (Show)
 
 $(makeRecordPersistableDefault ''Employee1)
+{% endhighlight %}
+
+Generated SQL:
+
+{% highlight sql %}
+SELECT ALL T0.emp_id AS f0, T0.title AS f1, T0.start_date AS f2,
+T0.fname AS f3, T0.lname AS f4 FROM MAIN.employee T0 ORDER BY T0.title
+ASC, T0.lname ASC
 {% endhighlight %}
 
 #### The order by clause
