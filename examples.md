@@ -124,9 +124,17 @@ account_3_7 = relation $ do
   return proj
 {% endhighlight %}
 
+Generated SQL:
+
+{% highlight sql %}
+SELECT ALL T0.open_emp_id AS f0, T0.product_cd AS f1
+FROM MAIN.account T0
+ORDER BY T0.open_emp_id ASC, T0.product_cd ASC
+{% endhighlight %}
+
 #### Using the is null operator and the date literal
 
-HRR supports date literal of the SQL standard, such like Date '2003-01-01'. However, SQLite has its own date literal without Date keyword, like this: '2003-01-01'. So, you have to define a function to support SQLite's date literal. Here we define 'unsafeSQLiteDayValue' function for that.
+HRR supports date literal of the SQL standard, such like Date '2003-01-01'. However, SQLite has its own date literal without Date keyword, like this: '2003-01-01'. So, you have to define a function to support SQLite's date literal. Here we define `unsafeSQLiteDayValue` function for that.
 
 SQL:
 
@@ -151,6 +159,14 @@ unsafeSQLiteDayValue :: SqlProjectable p => String -> p Day
 unsafeSQLiteDayValue = unsafeProjectSqlTerms . showConstantTermsSQL
 {% endhighlight %}
 
+Generated SQL:
+
+{% highlight sql %}
+SELECT ALL T0.emp_id AS f0, T0.fname AS f1, T0.lname AS f2, T0.start_date AS f3, T0.end_date AS f4, T0.superior_emp_id AS f5, T0.dept_id AS f6, T0.title AS f7, T0.assigned_branch_id AS f8
+FROM MAIN.employee T0
+WHERE ((T0.end_date IS NULL) AND ((T0.title = 'Teller') OR (T0.start_date < '2003-01-01')))
+{% endhighlight %}
+
 Another way, use a placeholder instead of a date literal. There is no need to define a helper function.
 
 HRR: using placeholder
@@ -164,6 +180,12 @@ employee_4_1_2P = relation' $ do
     wheres $ e ! Employee.title' .=. just (value "Teller")
        `or'` e ! Employee.startDate' .<. ph)
   return (phDay, e)
+{% endhighlight %}
+
+{% highlight sql %}
+SELECT ALL T0.emp_id AS f0, T0.fname AS f1, T0.lname AS f2, T0.start_date AS f3, T0.end_date AS f4, T0.superior_emp_id AS f5, T0.dept_id AS f6, T0.title AS f7, T0.assigned_branch_id AS f8
+FROM MAIN.employee T0
+WHERE ((T0.end_date IS NULL) AND ((T0.title = 'Teller') OR (T0.start_date < ?)))
 {% endhighlight %}
 
 #### Range condition with the between operator
