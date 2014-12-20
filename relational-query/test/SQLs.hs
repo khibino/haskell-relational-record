@@ -98,7 +98,7 @@ maybeX =  relation $ do
 
   wheres $ a ?! strA2' .=. b ! mayStrB1'
 
-  return $ fromMaybe' (value 1) (a ?! intA0') >< b
+  return $ fromMaybe (value 1) (a ?! intA0') >< b
 
 maybes :: [Test]
 maybes =  [ eqShow "isJust" justX
