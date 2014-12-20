@@ -78,8 +78,10 @@ This code defines queries called `hello` and `world`. And `helloworld` composes 
 
 This code generates the following SQL statement:
 
-    % runghc helloworld.hs
-    SELECT ALL T0.f0 AS f0, T0.f1 AS f1, T1.f1 AS f2 FROM (SELECT ALL 0 AS f0, 'Hello' AS f1) T0 INNER JOIN (SELECT ALL 0 AS f0, 'World!' AS f1) T1 ON (T0.f0 = T1.f0);
+{% highlight sql %}
+% runghc helloworld.hs
+SELECT ALL T0.f0 AS f0, T0.f1 AS f1, T1.f1 AS f2 FROM (SELECT ALL 0 AS f0, 'Hello' AS f1) T0 INNER JOIN (SELECT ALL 0 AS f0, 'World!' AS f1) T1 ON (T0.f0 = T1.f0);
+{% endhighlight %}
 
 Finally, let's execute it in SQLite:
 
