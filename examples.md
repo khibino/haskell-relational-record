@@ -112,29 +112,33 @@ WHERE end_date IS NULL AND (title = 'Teller' OR start_date < '2003-01-01');
 
 HRR:
 
-    employee_4_1_2 :: Relation () Employee
-    employee_4_1_2 = relation $ do
-      e <- query employee
-      wheres $ isNothing (e ! Employee.endDate')
-      wheres $ e ! Employee.title' .=. just (value "Teller")
-         `or'` e ! Employee.startDate' .<. unsafeSQLiteDayValue "2003-01-01"
-      return e
-    
-    unsafeSQLiteDayValue :: SqlProjectable p => String -> p Day
-    unsafeSQLiteDayValue = unsafeProjectSqlTerms . showConstantTermsSQL
+{% highlight haskell %}
+employee_4_1_2 :: Relation () Employee
+employee_4_1_2 = relation $ do
+  e <- query employee
+  wheres $ isNothing (e ! Employee.endDate')
+  wheres $ e ! Employee.title' .=. just (value "Teller")
+     `or'` e ! Employee.startDate' .<. unsafeSQLiteDayValue "2003-01-01"
+  return e
+
+unsafeSQLiteDayValue :: SqlProjectable p => String -> p Day
+unsafeSQLiteDayValue = unsafeProjectSqlTerms . showConstantTermsSQL
+{% endhighlight %}
 
 Another way, use a placeholder instead of a date literal. There is no need to define a helper function.
 
 HRR: using placeholder
 
-    employee_4_1_2P :: Relation Day Employee
-    employee_4_1_2P = relation' $ do
-      e <- query employee
-      wheres $ isNothing (e ! Employee.endDate')
-      (phDay,()) <- placeholder (\ph ->
-        wheres $ e ! Employee.title' .=. just (value "Teller")
-           `or'` e ! Employee.startDate' .<. ph)
-      return (phDay, e) 
+{% highlight haskell %}
+employee_4_1_2P :: Relation Day Employee
+employee_4_1_2P = relation' $ do
+  e <- query employee
+  wheres $ isNothing (e ! Employee.endDate')
+  (phDay,()) <- placeholder (\ph ->
+    wheres $ e ! Employee.title' .=. just (value "Teller")
+       `or'` e ! Employee.startDate' .<. ph)
+  return (phDay, e)
+{% endhighlight %}
 
 #### Range condition with the between operator
 
@@ -160,31 +164,35 @@ WHERE product_cd IN ('CHK', 'SAV', 'CD', 'MM');
 
 HRR: returning raw rows.
 
-    account_4_3_3a :: Relation () Account
-    account_4_3_3a = relation $ do
-      a  <- query account
-      wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
-      return a
+{% highlight haskell %}
+account_4_3_3a :: Relation () Account
+account_4_3_3a = relation $ do
+  a <- query account
+  wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
+  return a
+{% endhighlight %}
 
 HRR: constructing new records in Applicative-like style.
 
-    data Account1 = Account1
-      { a1AccountId :: Int64
-      , a1ProductCd :: String
-      , a1CustId :: Int64
-      , a1AvailBalance :: Maybe Double
-      } deriving (Show)
+{% highlight haskell %}
+data Account1 = Account1
+  { a1AccountId :: Int64
+  , a1ProductCd :: String
+  , a1CustId :: Int64
+  , a1AvailBalance :: Maybe Double
+  } deriving (Show)
 
-    $(makeRecordPersistableDefault ''Account1)
+$(makeRecordPersistableDefault ''Account1)
 
-    account_4_3_3aR :: Relation () Account1
-    account_4_3_3aR = relation $ do
-      a  <- query account
-      wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
-      return $ Account1 |$| a ! Account.accountId'
-                        |*| a ! Account.productCd'
-                        |*| a ! Account.custId'
-                        |*| a ! Account.availBalance'
+account_4_3_3aR :: Relation () Account1
+account_4_3_3aR = relation $ do
+  a  <- query account
+  wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
+  return $ Account1 |$| a ! Account.accountId'
+                    |*| a ! Account.productCd'
+                    |*| a ! Account.custId'
+                    |*| a ! Account.availBalance'
+{% endhighlight %}
 
 #### Membership conditions using subqueries
 
@@ -199,34 +207,38 @@ WHERE product_type_cd = 'ACCOUNT');
 
 HRR:
 
-    product_4_3_3b :: Relation String String
-    product_4_3_3b = relation' $ do
-      p <- query product
-      (phProductCd,()) <- placeholder (\ph -> wheres $ p ! Product.productTypeCd' .=. ph)
-      let productCd = p ! Product.productCd'
-      return (phProductCd, productCd)
-    
-    account_4_3_3b :: Relation String Account
-    account_4_3_3b = relation' $ do
-      a <- query account
-      (phProductCd,p) <- queryList' product_4_3_3b
-      wheres $ a ! Account.productCd' `in'` p
-      return (phProductCd, a)
-    
-    account_4_3_3bR :: Relation String Account1
-    account_4_3_3bR = relation' $ do
-      a <- query account
-      (phProductCd,p) <- queryList' product_4_3_3b
-      wheres $ a ! Account.productCd' `in'` p
-      let ar = Account1 |$| a ! Account.accountId'
-                        |*| a ! Account.productCd'
-                        |*| a ! Account.custId'
-                        |*| a ! Account.availBalance'
-      return (phProductCd, ar)
+{% highlight haskell %}
+product_4_3_3b :: Relation String String
+product_4_3_3b = relation' $ do
+  p <- query product
+  (phProductCd,()) <- placeholder (\ph -> wheres $ p ! Product.productTypeCd' .=. ph)
+  let productCd = p ! Product.productCd'
+  return (phProductCd, productCd)
+
+account_4_3_3b :: Relation String Account
+account_4_3_3b = relation' $ do
+  a <- query account
+  (phProductCd,p) <- queryList' product_4_3_3b
+  wheres $ a ! Account.productCd' `in'` p
+  return (phProductCd, a)
+
+account_4_3_3bR :: Relation String Account1
+account_4_3_3bR = relation' $ do
+  a <- query account
+  (phProductCd,p) <- queryList' product_4_3_3b
+  wheres $ a ! Account.productCd' `in'` p
+  let ar = Account1 |$| a ! Account.accountId'
+                    |*| a ! Account.productCd'
+                    |*| a ! Account.custId'
+                    |*| a ! Account.availBalance'
+  return (phProductCd, ar)
+{% endhighlight %}
 
 Using type holders:
 
-    run conn "ACCOUNT" account_4_3_3bR
+{% highlight haskell %}
+run conn "ACCOUNT" account_4_3_3bR
+{% endhighlight %}
 
 #### Membership conditions using not in
 
@@ -240,11 +252,13 @@ WHERE product_cd NOT IN ('CHK', 'SAV', 'CD', 'MM');
 
 HRR:
 
-    account_4_3_3c :: Relation () Account
-    account_4_3_3c = relation $ do
-      a  <- query account
-      wheres $ not' (a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"])
-      return a
+{% highlight haskell %}
+account_4_3_3c :: Relation () Account
+account_4_3_3c = relation $ do
+  a  <- query account
+  wheres $ not' (a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"])
+  return a
+{% endhighlight %}
 
 #### Inner join
 
@@ -258,12 +272,14 @@ USING (dept_id);
 
 HRR:
 
-    join_5_1_2aT :: Relation () ((String, String), String)
-    join_5_1_2aT = relation $ do
-      e  <- query employee
-      d  <- query department
-      on $ e ! Employee.deptId' .=. just (d ! Department.deptId')
-      return $ e ! Employee.fname' >< e ! Employee.lname' >< d ! Department.name'
+{% highlight haskell %}
+join_5_1_2aT :: Relation () ((String, String), String)
+join_5_1_2aT = relation $ do
+  e <- query employee
+  d <- query department
+  on $ e ! Employee.deptId' .=. just (d ! Department.deptId')
+  return $ e ! Employee.fname' >< e ! Employee.lname' >< d ! Department.name'
+{% endhighlight %}
 
 #### Complex join
 
@@ -292,14 +308,16 @@ ON e.superior_emp_id = e_mgr.emp_id
 
 HRR:
 
-    selfJoin_5_3aT :: Relation () ((String, String), (String, String))
-    selfJoin_5_3aT = relation $ do
-      e  <- query employee
-      m  <- query employee
-      on $ e ! Employee.superiorEmpId' .=. just (m ! Employee.empId')
-      let emp = e ! Employee.fname' >< e ! Employee.lname'
-      let mgr = m ! Employee.fname' >< m ! Employee.lname'
-      return $ emp >< mgr
+{% highlight haskell %}
+selfJoin_5_3aT :: Relation () ((String, String), (String, String))
+selfJoin_5_3aT = relation $ do
+  e <- query employee
+  m <- query employee
+  on $ e ! Employee.superiorEmpId' .=. just (m ! Employee.empId')
+  let emp = e ! Employee.fname' >< e ! Employee.lname'
+  let mgr = m ! Employee.fname' >< m ! Employee.lname'
+  return $ emp >< mgr
+{% endhighlight %}
 
 ####Sorting compound query results
 
@@ -318,36 +336,40 @@ ORDER BY emp_id;
 
 HRR:
 
-    employee_6_4_1a :: Relation () (Maybe Int64, Maybe Int64)
-    employee_6_4_1a = relation $ do
-      e  <- query employee
-      wheres $ e ! Employee.title' .=. just (value "Teller")
-      return $ just (e ! Employee.empId') >< e ! Employee.assignedBranchId'
-    
-    account_6_4_1a :: Relation () (Maybe Int64, Maybe Int64)
-    account_6_4_1a = relation $ do
-      a  <- query account
-      wheres $ a ! Account.productCd' .=. value "SAV"
-      return $ a ! Account.openEmpId' >< a ! Account.openBranchId'
+{% highlight haskell %}
+employee_6_4_1a :: Relation () (Maybe Int64, Maybe Int64)
+employee_6_4_1a = relation $ do
+  e <- query employee
+  wheres $ e ! Employee.title' .=. just (value "Teller")
+  return $ just (e ! Employee.empId') >< e ! Employee.assignedBranchId'
 
-    union_6_4_1a_Nest :: Relation () (Maybe Int64, Maybe Int64)
-    union_6_4_1a_Nest = relation $ do
-      ea <- query $ employee_6_4_1a `union` account_6_4_1a
-      asc $ ea ! fst'
-      return ea
+account_6_4_1a :: Relation () (Maybe Int64, Maybe Int64)
+account_6_4_1a = relation $ do
+  a <- query account
+  wheres $ a ! Account.productCd' .=. value "SAV"
+  return $ a ! Account.openEmpId' >< a ! Account.openBranchId'
+
+union_6_4_1a_Nest :: Relation () (Maybe Int64, Maybe Int64)
+union_6_4_1a_Nest = relation $ do
+  ea <- query $ employee_6_4_1a `union` account_6_4_1a
+  asc $ ea ! fst'
+  return ea
+{% endhighlight %}
     
 HRR:
 
-    union_6_4_1a_Flat :: Relation () (Maybe Int64, Maybe Int64)
-    union_6_4_1a_Flat = relation (do
-        e  <- query employee
-        wheres $ e ! Employee.title' .=. just (value "Teller")
-        return $ just (e ! Employee.empId') >< e ! Employee.assignedBranchId'
-      ) `union` relation (do
-        a  <- query account
-        wheres $ a ! Account.productCd' .=. value "SAV"
-        return $ a ! Account.openEmpId' >< a ! Account.openBranchId'
-      )
+{% highlight haskell %}
+union_6_4_1a_Flat :: Relation () (Maybe Int64, Maybe Int64)
+union_6_4_1a_Flat = relation (do
+    e <- query employee
+    wheres $ e ! Employee.title' .=. just (value "Teller")
+    return $ just (e ! Employee.empId') >< e ! Employee.assignedBranchId'
+  ) `union` relation (do
+    a <- query account
+    wheres $ a ! Account.productCd' .=. value "SAV"
+    return $ a ! Account.openEmpId' >< a ! Account.openBranchId'
+  )
+{% endhighlight %}
 
 #### Grouping
 
@@ -362,12 +384,14 @@ ORDER BY open_emp_id;
 
 HRR:
 
-    group_8_1a :: Relation () (Maybe Int64, Int64)
-    group_8_1a = aggregateRelation $ do
-      a  <- query account
-      g  <- groupBy $ a ! Account.openEmpId'
-      asc $ g ! id'
-      return $ g >< count (a ! Account.accountId')
+{% highlight haskell %}
+group_8_1a :: Relation () (Maybe Int64, Int64)
+group_8_1a = aggregateRelation $ do
+  a <- query account
+  g <- groupBy $ a ! Account.openEmpId'
+  asc $ g ! id'
+  return $ g >< count (a ! Account.accountId')
+{% endhighlight %}
 
 ### insert
 
