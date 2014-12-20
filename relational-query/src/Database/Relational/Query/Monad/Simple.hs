@@ -40,13 +40,13 @@ import Database.Relational.Query.Sub (SubQuery, flatSubQuery, JoinProduct)
 import qualified Database.Relational.Query.Sub as SubQuery
 
 
--- | Simple query (not-aggregated) monad type.
+-- | Simple (not-aggregated) query monad type.
 type QuerySimple = Orderings Flat QueryCore
 
--- | Simple query (not-aggregated) type. 'SimpleQuery' r == 'QuerySimple' ('Projection' r).
+-- | Simple (not-aggregated) query type. 'SimpleQuery' r == 'QuerySimple' ('Projection' r).
 type SimpleQuery r = OrderedQuery Flat QueryCore r
 
--- | Simple query (not-aggregated) type. 'SimpleQuery'' p r == 'QuerySimple' ('PlaceHolders' p, 'Projection' r).
+-- | Simple (not-aggregated) query type. 'SimpleQuery'' p r == 'QuerySimple' ('PlaceHolders' p, 'Projection' r).
 type SimpleQuery' p r = OrderedQuery' Flat QueryCore p r
 
 -- | Lift from qualified table forms into 'QuerySimple'.
