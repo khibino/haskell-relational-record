@@ -167,9 +167,7 @@ FROM MAIN.employee T0
 WHERE ((T0.end_date IS NULL) AND ((T0.title = 'Teller') OR (T0.start_date < '2003-01-01')))
 {% endhighlight %}
 
-Another way, use a placeholder instead of a date literal. There is no need to define a helper function.
-
-HRR: using placeholder
+Another way, use a placeholder instead of a date literal. There is no need to define a helper function:
 
 {% highlight haskell %}
 employee_4_1_2P :: Relation Day Employee
@@ -181,6 +179,8 @@ employee_4_1_2P = relation' $ do
        `or'` e ! Employee.startDate' .<. ph)
   return (phDay, e)
 {% endhighlight %}
+
+Generated SQL:
 
 {% highlight sql %}
 SELECT ALL T0.emp_id AS f0, T0.fname AS f1, T0.lname AS f2, T0.start_date AS f3, T0.end_date AS f4, T0.superior_emp_id AS f5, T0.dept_id AS f6, T0.title AS f7, T0.assigned_branch_id AS f8
@@ -220,6 +220,14 @@ account_4_3_3a = relation $ do
   return a
 {% endhighlight %}
 
+Generated SQL:
+
+{% highlight sql %}
+SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2, T0.open_date AS f3, T0.close_date AS f4, T0.last_activity_date AS f5, T0.status AS f6, T0.open_branch_id AS f7, T0.open_emp_id AS f8, T0.avail_balance AS f9, T0.pending_balance AS f10
+FROM MAIN.account T0
+WHERE (T0.product_cd IN ('CHK', 'SAV', 'CD', 'MM'))
+{% endhighlight %}
+
 HRR: constructing new records in Applicative-like style.
 
 {% highlight haskell %}
@@ -241,6 +249,8 @@ account_4_3_3aR = relation $ do
                     |*| a ! Account.custId'
                     |*| a ! Account.availBalance'
 {% endhighlight %}
+
+Generated SQL: TBD
 
 #### Membership conditions using subqueries
 
@@ -286,6 +296,16 @@ Using type holders:
 
 {% highlight haskell %}
 run conn "ACCOUNT" account_4_3_3bR
+{% endhighlight %}
+
+Generated SQL:
+
+{% highlight sql %}
+SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2, T0.open_date AS f3, T0.close_date AS f4, T0.last_activity_date AS f5, T0.status AS f6, T0.open_branch_id AS f7, T0.open_emp_id AS f8, T0.avail_balance AS f9, T0.pending_balance AS f10
+FROM MAIN.account T0
+WHERE (T0.product_cd IN (SELECT ALL T1.product_cd AS f0
+                         FROM MAIN.product T1
+                         WHERE (T1.product_type_cd = ?)))
 {% endhighlight %}
 
 #### Membership conditions using not in
