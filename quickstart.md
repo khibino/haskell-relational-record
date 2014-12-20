@@ -31,7 +31,7 @@ Let's define our first relation. Copy the following to "hello.hs":
     main :: IO ()
     main = putStrLn $ show hello ++ ";"
 
-'hello' defines the fist relation. This "SELECT"s a constant tuple value (0,"Hello") from the (virtual) empty table. In other words, this relation just returns (0,"Hello").
+`hello` defines the fist relation. This "SELECT"s a constant tuple value (0,"Hello") from the (virtual) empty table. In other words, this relation just returns (0,"Hello").
 
 Let's run this Haskell code to show what kind of SQL statement is generated:
 
@@ -68,7 +68,7 @@ Next, let's compose relations. Copy the following to "helloworld.hs":
     main :: IO ()
     main = putStrLn $ show helloWorld ++ ";"
 
-This code defines queries called 'hello' and 'world'. And 'helloworld' composes them by joining them on the first element of the tuples.
+This code defines queries called `hello` and `world`. And `helloworld` composes them by joining them on the first element of the tuples.
 
 This code generates the following SQL statement:
 
