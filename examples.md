@@ -250,7 +250,16 @@ account_4_3_3aR = relation $ do
                     |*| a ! Account.availBalance'
 {% endhighlight %}
 
-Generated SQL: TBD
+Generated SQL:
+
+{% highlight sql %}
+SELECT ALL T0.account_id AS f0,
+           T0.product_cd AS f1,
+           T0.cust_id AS f2,
+           T0.avail_balance AS f3
+FROM MAIN.account T0
+WHERE (T0.product_cd IN ('CHK', 'SAV', 'CD', 'MM'))
+{% endhighlight %}
 
 #### Membership conditions using subqueries
 
