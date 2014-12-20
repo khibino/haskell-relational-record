@@ -381,6 +381,22 @@ account_4_3_3c = relation $ do
   return a
 {% endhighlight %}
 
+{% highlight sql %}
+SELECT ALL T0.account_id AS f0,
+           T0.product_cd AS f1,
+           T0.cust_id AS f2,
+           T0.open_date AS f3,
+           T0.close_date AS f4,
+           T0.last_activity_date AS f5,
+           T0.status AS f6,
+           T0.open_branch_id AS f7,
+           T0.open_emp_id AS f8,
+           T0.avail_balance AS f9,
+           T0.pending_balance AS f10
+FROM MAIN.account T0
+WHERE (NOT (T0.product_cd IN ('CHK', 'SAV', 'CD', 'MM')))
+{% endhighlight %}
+
 #### Inner join
 
 SQL:
