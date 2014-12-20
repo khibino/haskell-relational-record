@@ -52,7 +52,10 @@ account_3_7_1 = relation $ do
 Generated SQL:
 
 {% highlight sql %}
-SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.open_date AS f2, T0.avail_balance AS f3
+SELECT ALL T0.account_id AS f0,
+           T0.product_cd AS f1,
+           T0.open_date AS f2,
+           T0.avail_balance AS f3
 FROM MAIN.account T0
 ORDER BY T0.avail_balance DESC
 {% endhighlight %}
@@ -97,7 +100,11 @@ $(makeRecordPersistableDefault ''Employee1)
 Generated SQL:
 
 {% highlight sql %}
-SELECT ALL T0.emp_id AS f0, T0.title AS f1, T0.start_date AS f2, T0.fname AS f3, T0.lname AS f4
+SELECT ALL T0.emp_id AS f0,
+           T0.title AS f1,
+           T0.start_date AS f2,
+           T0.fname AS f3,
+           T0.lname AS f4
 FROM MAIN.employee T0
 ORDER BY T0.title ASC, T0.lname ASC
 {% endhighlight %}
@@ -127,7 +134,8 @@ account_3_7 = relation $ do
 Generated SQL:
 
 {% highlight sql %}
-SELECT ALL T0.open_emp_id AS f0, T0.product_cd AS f1
+SELECT ALL T0.open_emp_id AS f0,
+           T0.product_cd AS f1
 FROM MAIN.account T0
 ORDER BY T0.open_emp_id ASC, T0.product_cd ASC
 {% endhighlight %}
@@ -162,7 +170,15 @@ unsafeSQLiteDayValue = unsafeProjectSqlTerms . showConstantTermsSQL
 Generated SQL:
 
 {% highlight sql %}
-SELECT ALL T0.emp_id AS f0, T0.fname AS f1, T0.lname AS f2, T0.start_date AS f3, T0.end_date AS f4, T0.superior_emp_id AS f5, T0.dept_id AS f6, T0.title AS f7, T0.assigned_branch_id AS f8
+SELECT ALL T0.emp_id AS f0,
+           T0.fname AS f1,
+           T0.lname AS f2,
+           T0.start_date AS f3,
+           T0.end_date AS f4,
+           T0.superior_emp_id AS f5,
+           T0.dept_id AS f6,
+           T0.title AS f7,
+           T0.assigned_branch_id AS f8
 FROM MAIN.employee T0
 WHERE ((T0.end_date IS NULL) AND ((T0.title = 'Teller') OR (T0.start_date < '2003-01-01')))
 {% endhighlight %}
@@ -183,7 +199,15 @@ employee_4_1_2P = relation' $ do
 Generated SQL:
 
 {% highlight sql %}
-SELECT ALL T0.emp_id AS f0, T0.fname AS f1, T0.lname AS f2, T0.start_date AS f3, T0.end_date AS f4, T0.superior_emp_id AS f5, T0.dept_id AS f6, T0.title AS f7, T0.assigned_branch_id AS f8
+SELECT ALL T0.emp_id AS f0,
+           T0.fname AS f1,
+           T0.lname AS f2,
+           T0.start_date AS f3,
+           T0.end_date AS f4,
+           T0.superior_emp_id AS f5,
+           T0.dept_id AS f6,
+           T0.title AS f7,
+           T0.assigned_branch_id AS f8
 FROM MAIN.employee T0
 WHERE ((T0.end_date IS NULL) AND ((T0.title = 'Teller') OR (T0.start_date < ?)))
 {% endhighlight %}
@@ -223,7 +247,17 @@ account_4_3_3a = relation $ do
 Generated SQL:
 
 {% highlight sql %}
-SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2, T0.open_date AS f3, T0.close_date AS f4, T0.last_activity_date AS f5, T0.status AS f6, T0.open_branch_id AS f7, T0.open_emp_id AS f8, T0.avail_balance AS f9, T0.pending_balance AS f10
+SELECT ALL T0.account_id AS f0,
+           T0.product_cd AS f1,
+           T0.cust_id AS f2,
+           T0.open_date AS f3,
+           T0.close_date AS f4,
+           T0.last_activity_date AS f5,
+           T0.status AS f6,
+           T0.open_branch_id AS f7,
+           T0.open_emp_id AS f8,
+           T0.avail_balance AS f9,
+           T0.pending_balance AS f10
 FROM MAIN.account T0
 WHERE (T0.product_cd IN ('CHK', 'SAV', 'CD', 'MM'))
 {% endhighlight %}
@@ -310,7 +344,17 @@ run conn "ACCOUNT" account_4_3_3bR
 Generated SQL:
 
 {% highlight sql %}
-SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2, T0.open_date AS f3, T0.close_date AS f4, T0.last_activity_date AS f5, T0.status AS f6, T0.open_branch_id AS f7, T0.open_emp_id AS f8, T0.avail_balance AS f9, T0.pending_balance AS f10
+SELECT ALL T0.account_id AS f0,
+           T0.product_cd AS f1,
+           T0.cust_id AS f2,
+           T0.open_date AS f3,
+           T0.close_date AS f4,
+           T0.last_activity_date AS f5,
+           T0.status AS f6,
+           T0.open_branch_id AS f7,
+           T0.open_emp_id AS f8,
+           T0.avail_balance AS f9,
+           T0.pending_balance AS f10
 FROM MAIN.account T0
 WHERE (T0.product_cd IN (SELECT ALL T1.product_cd AS f0
                          FROM MAIN.product T1
