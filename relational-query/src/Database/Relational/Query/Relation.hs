@@ -416,7 +416,7 @@ uniqueQueryMaybe' pr =  do
 
 -- | Finalize 'QueryUnique' monad and generate 'UniqueRelation'.
 uniqueRelation' :: QueryUnique (PlaceHolders p, Projection c r) -> UniqueRelation p c r
-uniqueRelation' =  unsafeUnique . SubQuery . Unique.toSubQuery . fmap snd
+uniqueRelation' =  unsafeUnique . SubQuery . Unique.toSubQuery
 
 -- | Aggregated 'UniqueRelation'.
 aggregatedUnique :: Relation ph r
