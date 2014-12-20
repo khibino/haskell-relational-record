@@ -55,7 +55,7 @@ import Database.Relational.Query.Monad.Class
   (MonadQualify (liftQualify), MonadQualifyUnique (liftQualifyUnique), MonadQuery (unsafeSubQuery), on)
 import Database.Relational.Query.Monad.Simple (QuerySimple, SimpleQuery')
 import qualified Database.Relational.Query.Monad.Simple as Simple
-import Database.Relational.Query.Monad.Aggregate (QueryAggregate, AggregatedQuery)
+import Database.Relational.Query.Monad.Aggregate (QueryAggregate, AggregatedQuery')
 import qualified Database.Relational.Query.Monad.Aggregate as Aggregate
 import Database.Relational.Query.Monad.Unique (QueryUnique)
 import qualified Database.Relational.Query.Monad.Unique as Unique
@@ -164,16 +164,13 @@ relation' =  SubQuery . Simple.toSubQuery
 relation :: QuerySimple (Projection Flat r) -> Relation () r
 relation =  relation' . addUnitPH
 
-unsafeAggregateRelation :: AggregatedQuery rp -> Relation p r
-unsafeAggregateRelation =  SubQuery . Aggregate.toSubQuery
+-- | Finalize 'QueryAggregate' monad and geneate 'Relation' with place-holder parameter 'p'.
+aggregateRelation' :: AggregatedQuery' p r -> Relation p r
+aggregateRelation' =  SubQuery . Aggregate.toSubQuery
 
 -- | Finalize 'QueryAggregate' monad and geneate 'Relation'.
 aggregateRelation :: QueryAggregate (Projection Aggregated r) -> Relation () r
-aggregateRelation =  unsafeAggregateRelation
-
--- | Finalize 'QueryAggregate' monad and geneate 'Relation' with place-holder parameter 'p'.
-aggregateRelation' :: QueryAggregate (PlaceHolders p, Projection Aggregated r) -> Relation p r
-aggregateRelation' =  unsafeAggregateRelation . fmap snd
+aggregateRelation =  aggregateRelation' . addUnitPH
 
 
 -- | Restriction function type for direct style join operator.

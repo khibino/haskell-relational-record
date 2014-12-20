@@ -17,7 +17,7 @@
 module Database.Relational.Query.Monad.Aggregate (
   -- * Aggregated Query
   QueryAggregate,
-  AggregatedQuery,
+  AggregatedQuery, AggregatedQuery',
 
   toSQL,
 
@@ -36,7 +36,7 @@ import Database.Relational.Query.Component
   (AggregateColumnRef, Duplication, QueryRestriction, OrderingTerms, AggregateElem, composeOver)
 import Database.Relational.Query.Sub (SubQuery, aggregatedSubQuery, JoinProduct)
 import qualified Database.Relational.Query.Sub as SubQuery
-import Database.Relational.Query.Projectable (SqlProjectable, unsafeProjectSql, unsafeShowSql)
+import Database.Relational.Query.Projectable (PlaceHolders, SqlProjectable, unsafeProjectSql, unsafeShowSql)
 
 import Database.Relational.Query.Monad.Class (MonadRestrict(..), MonadQualify(..), MonadPartition (..))
 import Database.Relational.Query.Monad.Trans.Join (join')
@@ -47,14 +47,17 @@ import Database.Relational.Query.Monad.Trans.Aggregating
 import Database.Relational.Query.Monad.Trans.Ordering
   (Orderings, orderings, extractOrderingTerms)
 import Database.Relational.Query.Monad.Type
-  (ConfigureQuery, askConfig, QueryCore, extractCore, OrderedQuery)
+  (ConfigureQuery, askConfig, QueryCore, extractCore, OrderedQuery, OrderedQuery')
 
 
 -- | Aggregated query monad type.
 type QueryAggregate     = Orderings Aggregated (Restrictings Aggregated (AggregatingSetT QueryCore))
 
--- | Aggregated query type. AggregatedQuery r == QueryAggregate (Projection Aggregated r).
+-- | Aggregated query type. 'AggregatedQuery' r == 'QueryAggregate' ('Projection' 'Aggregated' r).
 type AggregatedQuery  r = OrderedQuery Aggregated (Restrictings Aggregated (AggregatingSetT QueryCore)) r
+
+-- | Aggregated query type. 'AggregatedQuery'' p r == 'QueryAggregate' ('PlaceHolders' p, 'Projection' 'Aggregated' r).
+type AggregatedQuery' p r = OrderedQuery' Aggregated (Restrictings Aggregated (AggregatingSetT QueryCore)) p r
 
 -- | Partition monad type for partition-by clause.
 type Window           c = Orderings c (PartitioningSet c)
@@ -71,8 +74,8 @@ instance MonadRestrict Flat q => MonadRestrict Flat (Restrictings Aggregated q) 
 instance MonadQualify ConfigureQuery QueryAggregate where
   liftQualify = aggregatedQuery
 
-extract :: AggregatedQuery r
-        -> ConfigureQuery ((((((Projection Aggregated r, OrderingTerms),
+extract :: AggregatedQuery' p r
+        -> ConfigureQuery (((((((PlaceHolders p, Projection Aggregated r), OrderingTerms),
                                QueryRestriction Aggregated),
                               [AggregateElem]),
                              QueryRestriction Flat),
@@ -80,15 +83,15 @@ extract :: AggregatedQuery r
 extract =  extractCore . extractAggregateTerms . extractRestrict . extractOrderingTerms
 
 -- | Run 'AggregatedQuery' to get SQL with 'ConfigureQuery' computation.
-toSQL :: AggregatedQuery r     -- ^ 'AggregatedQuery' to run
+toSQL :: AggregatedQuery' p r     -- ^ 'AggregatedQuery' to run
       -> ConfigureQuery String -- ^ Result SQL string with 'ConfigureQuery' computation
 toSQL =  fmap SubQuery.toSQL . toSubQuery
 
 -- | Run 'AggregatedQuery' to get 'SubQuery' with 'ConfigureQuery' computation.
-toSubQuery :: AggregatedQuery r       -- ^ 'AggregatedQuery' to run
+toSubQuery :: AggregatedQuery' p r       -- ^ 'AggregatedQuery' to run
            -> ConfigureQuery SubQuery -- ^ Result 'SubQuery' with 'ConfigureQuery' computation
 toSubQuery q = do
-  ((((((pj, ot), grs), ag), rs), pd), da) <- extract q
+  (((((((_ph, pj), ot), grs), ag), rs), pd), da) <- extract q
   c <- askConfig
   return $ aggregatedSubQuery c (Projection.untype pj) da pd rs ag grs ot
 
