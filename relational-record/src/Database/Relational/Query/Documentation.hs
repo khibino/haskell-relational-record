@@ -63,6 +63,8 @@ module Database.Relational.Query.Documentation (
 
   -- *** Projection Operators
   -- $projectionOperators
+  value, values,
+
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
   casesOrElse, case',
   in', and', or',
@@ -237,6 +239,8 @@ Module "Database.Relational.Query.Context" contains documentation of other conte
 Some operators are defined to caluculate projected values.
 
 For example,
+'value' operator projects from Haskell value into 'Projection' corresponding SQL value,
+'values' operator projects from Haskell list value into 'ListProjection', corresponding SQL set value,
 '.=.' operator is equal compare operation of projected value correspond to SQL =,
 '.+.' operator is plus operation of projected value coresspond to SQL +, and so on.
 
