@@ -11,7 +11,7 @@
 module Database.Relational.Query.Monad.Type (
   -- * Core query monad
   ConfigureQuery, configureQuery, qualifyQuery, askConfig, QueryCore, extractCore,
-  OrderedQuery, OrderedQuery',
+  OrderedQuery,
   ) where
 
 import Data.Functor.Identity (Identity, runIdentity)
@@ -51,8 +51,5 @@ extractCore :: QueryCore a
             -> ConfigureQuery (((a, QueryRestriction Flat), JoinProduct), Duplication)
 extractCore =  extractProduct . extractRestrict
 
--- | OrderedQuery monad type. Projection must be the same as 'Orderings' context type parameter 'c'.
-type OrderedQuery c m r = Orderings c m (Projection c r)
-
--- | OrderedQuery' monad type with placeholder type 'p'. Projection must be the same as 'Orderings' context type parameter 'c'.
-type OrderedQuery' c m p r = Orderings c m (PlaceHolders p, Projection c r)
+-- | OrderedQuery monad type with placeholder type 'p'. Projection must be the same as 'Orderings' context type parameter 'c'.
+type OrderedQuery c m p r = Orderings c m (PlaceHolders p, Projection c r)
