@@ -468,6 +468,17 @@ selfJoin_5_3aT = relation $ do
   return $ emp >< mgr
 {% endhighlight %}
 
+Generated SQL:
+
+{% highlight sql %}
+SELECT ALL T0.fname AS f0,
+           T0.lname AS f1,
+           T1.fname AS f2,
+           T1.lname AS f3
+FROM MAIN.employee T0 INNER JOIN MAIN.employee T1
+ON (T0.superior_emp_id = T1.emp_id)
+{% endhighlight %}
+
 ####Sorting compound query results
 
 SQL:
