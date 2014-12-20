@@ -30,8 +30,9 @@ import Database.Relational.Query.Monad.Class (MonadQualify(..))
 import Database.Relational.Query.Monad.Trans.Join (join')
 import Database.Relational.Query.Monad.Trans.Restricting (restrictings)
 import Database.Relational.Query.Monad.Trans.Ordering
-  (Orderings, orderings, OrderedQuery, extractOrderingTerms)
-import Database.Relational.Query.Monad.Type (ConfigureQuery, askConfig, QueryCore, extractCore)
+  (Orderings, orderings, extractOrderingTerms)
+import Database.Relational.Query.Monad.Type
+  (ConfigureQuery, askConfig, QueryCore, extractCore, OrderedQuery)
 
 import Database.Relational.Query.Component (Duplication, QueryRestriction, OrderingTerms)
 import Database.Relational.Query.Sub (SubQuery, flatSubQuery, JoinProduct)

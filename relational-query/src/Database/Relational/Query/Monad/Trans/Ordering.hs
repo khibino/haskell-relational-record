@@ -16,7 +16,7 @@
 -- from query into query with ordering.
 module Database.Relational.Query.Monad.Trans.Ordering (
   -- * Transformer into query with ordering
-  Orderings, orderings, OrderedQuery, OrderingTerms,
+  Orderings, orderings, OrderingTerms,
 
   -- * API of query with ordering
   orderBy, asc, desc,
@@ -67,9 +67,6 @@ instance MonadAggregate m => MonadAggregate (Orderings c m) where
 -- | 'MonadPartition' with ordering.
 instance MonadPartition m => MonadPartition (Orderings c m) where
   unsafeAddPartitionKey = orderings . unsafeAddPartitionKey
-
--- | OrderedQuery type synonym. Projection must be the same as 'Orderings' type parameter 'p'
-type OrderedQuery c m r = Orderings c m (Projection c r)
 
 -- | Ordering term projection type interface.
 class ProjectableOrdering p where
