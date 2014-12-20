@@ -33,17 +33,21 @@ HRR code examples are found in "src/examples.hs".
 
 SQL:
 
-    SELECT account_id, product_cd, open_date, avail_balance
-    FROM account
-    ORDER BY avail_balance DESC;
+{% highlight sql %}
+SELECT account_id, product_cd, open_date, avail_balance
+FROM account
+ORDER BY avail_balance DESC;
+{% endhighlight %}
 
 HRR:
 
-    account_3_7_1 :: Relation () Account
-    account_3_7_1 = relation $ do
-      a <- query account
-      desc $ a ! Account.availBalance'
-      return a
+{% highlight haskell %}
+account_3_7_1 :: Relation () Account
+account_3_7_1 = relation $ do
+  a <- query account
+  desc $ a ! Account.availBalance'
+  return a
+{% endhighlight %}
 
 #### Sorting via numeric placeholders
 
