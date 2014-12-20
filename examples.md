@@ -244,8 +244,7 @@ SELECT ALL T0.emp_id AS f0,
            T0.lname AS f2,
            T0.start_date AS f3
 FROM MAIN.employee T0
-WHERE ((T0.start_date >= '2001-01-01') AND
-       (T0.start_date <= '2003-01-01'))
+WHERE ((T0.start_date >= '2001-01-01') AND (T0.start_date <= '2003-01-01'))
 {% endhighlight %}
 
 #### Membership conditions
