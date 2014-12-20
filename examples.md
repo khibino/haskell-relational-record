@@ -60,6 +60,37 @@ FROM MAIN.account T0
 ORDER BY T0.avail_balance DESC
 {% endhighlight %}
 
+#### The order by clause
+
+SQL:
+
+{% highlight sql %}
+SELECT open_emp_id, product_cd
+FROM account
+ORDER BY open_emp_id, product_cd;
+{% endhighlight %}
+
+HRR:
+
+{% highlight haskell %}
+account_3_7 :: Relation () (Maybe Int64, String)
+account_3_7 = relation $ do
+  a <- query account
+  let proj = (,) |$| a ! Account.openEmpId'
+                 |*| a ! Account.productCd'
+  asc proj
+  return proj
+{% endhighlight %}
+
+Generated SQL:
+
+{% highlight sql %}
+SELECT ALL T0.open_emp_id AS f0,
+           T0.product_cd AS f1
+FROM MAIN.account T0
+ORDER BY T0.open_emp_id ASC, T0.product_cd ASC
+{% endhighlight %}
+
 #### Sorting via numeric placeholders
 
 For backwards compatibility with the SQL92 version of standard, you can use numbers instead of names to specify the columns that should be sorted. With HRR you cannot use numbers for such purpose.
@@ -107,37 +138,6 @@ SELECT ALL T0.emp_id AS f0,
            T0.lname AS f4
 FROM MAIN.employee T0
 ORDER BY T0.title ASC, T0.lname ASC
-{% endhighlight %}
-
-#### The order by clause
-
-SQL:
-
-{% highlight sql %}
-SELECT open_emp_id, product_cd
-FROM account
-ORDER BY open_emp_id, product_cd;
-{% endhighlight %}
-
-HRR:
-
-{% highlight haskell %}
-account_3_7 :: Relation () (Maybe Int64, String)
-account_3_7 = relation $ do
-  a <- query account
-  let proj = (,) |$| a ! Account.openEmpId'
-                 |*| a ! Account.productCd'
-  asc proj
-  return proj
-{% endhighlight %}
-
-Generated SQL:
-
-{% highlight sql %}
-SELECT ALL T0.open_emp_id AS f0,
-           T0.product_cd AS f1
-FROM MAIN.account T0
-ORDER BY T0.open_emp_id ASC, T0.product_cd ASC
 {% endhighlight %}
 
 #### Using the is null operator and the date literal
