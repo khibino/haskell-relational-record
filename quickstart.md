@@ -22,14 +22,16 @@ To install the Haskell "relational-record" library, type as follows:
 
 Let's define our first relation. Copy the following to "hello.hs":
 
-    import Data.Int (Int32)
-    import Database.Relational.Query
-    
-    hello :: Relation () (Int32, String)
-    hello = relation $ return (value 0 >< value "Hello")
-    
-    main :: IO ()
-    main = putStrLn $ show hello ++ ";"
+{% highlight haskell %}
+import Data.Int (Int32)
+import Database.Relational.Query
+
+hello :: Relation () (Int32, String)
+hello = relation $ return (value 0 >< value "Hello")
+
+main :: IO ()
+main = putStrLn $ show hello ++ ";"
+{% endhighlight %}
 
 `hello` defines the fist relation. This "SELECT"s a constant tuple value (0,"Hello") from the (virtual) empty table. In other words, this relation just returns (0,"Hello").
 
@@ -49,24 +51,26 @@ We got "0\|Hello"! Note that "dummy.db" is really a dummy file.
 
 Next, let's compose relations. Copy the following to "helloworld.hs":
 
-    import Data.Int (Int32)
-    import Database.Relational.Query
-    
-    hello :: Relation () (Int32, String)
-    hello = relation $ return (value 0 >< value "Hello")
-    
-    world :: Relation () (Int32, String)
-    world = relation $ return (value 0 >< value "World!")
-    
-    helloWorld :: Relation () (Int32, (String, String))
-    helloWorld = relation $ do
-        h <- query hello
-        w <- query world
-        on $ h ! fst' .=. w ! fst'
-        return $ h ! fst' >< (h ! snd' >< w ! snd')
-    
-    main :: IO ()
-    main = putStrLn $ show helloWorld ++ ";"
+{% highlight haskell %}
+import Data.Int (Int32)
+import Database.Relational.Query
+
+hello :: Relation () (Int32, String)
+hello = relation $ return (value 0 >< value "Hello")
+
+world :: Relation () (Int32, String)
+world = relation $ return (value 0 >< value "World!")
+
+helloWorld :: Relation () (Int32, (String, String))
+helloWorld = relation $ do
+    h <- query hello
+    w <- query world
+    on $ h ! fst' .=. w ! fst'
+    return $ h ! fst' >< (h ! snd' >< w ! snd')
+
+main :: IO ()
+main = putStrLn $ show helloWorld ++ ";"
+{% endhighlight %}
 
 This code defines queries called `hello` and `world`. And `helloworld` composes them by joining them on the first element of the tuples.
 
