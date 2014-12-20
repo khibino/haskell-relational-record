@@ -420,7 +420,7 @@ join_5_1_2aT = relation $ do
   return $ e ! Employee.fname' >< e ! Employee.lname' >< d ! Department.name'
 {% endhighlight %}
 
-Genarated SQL:
+Generated SQL:
 
 {% highlight sql %}
 SELECT ALL T0.fname AS f0,
