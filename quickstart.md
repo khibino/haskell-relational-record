@@ -37,8 +37,10 @@ main = putStrLn $ show hello ++ ";"
 
 Let's run this Haskell code to show what kind of SQL statement is generated:
 
-    % runghc hello.hs
-    SELECT ALL 0 AS f0, 'Hello' AS f1;
+{% highlight sql %}
+% runghc hello.hs
+SELECT ALL 0 AS f0, 'Hello' AS f1;
+{% endhighlight %}
 
 OK. Next, let's execute this SQL in SQLite:
 
