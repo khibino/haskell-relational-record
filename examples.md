@@ -525,10 +525,11 @@ FROM (SELECT ALL T0.emp_id AS f0,
                  T0.assigned_branch_id AS f1
       FROM MAIN.employee T0
       WHERE (T0.title = 'Teller')
-      UNION SELECT ALL T1.open_emp_id AS f0,
-                       T1.open_branch_id AS f1
-            FROM MAIN.account T1
-            WHERE (T1.product_cd = 'SAV')) T2
+      UNION
+      SELECT ALL T1.open_emp_id AS f0,
+                 T1.open_branch_id AS f1
+      FROM MAIN.account T1
+      WHERE (T1.product_cd = 'SAV')) T2
 ORDER BY T2.f0 ASC
 {% endhighlight %}
 
@@ -554,8 +555,9 @@ SELECT ALL T0.emp_id AS f0,
            T0.assigned_branch_id AS f1
 FROM MAIN.employee T0
 WHERE (T0.title = 'Teller')
-UNION SELECT ALL T1.open_emp_id AS f0,
-                 T1.open_branch_id AS f1
+UNION
+SELECT ALL T1.open_emp_id AS f0,
+           T1.open_branch_id AS f1
 FROM MAIN.account T1
 WHERE (T1.product_cd = 'SAV')
 {% endhighlight %}
