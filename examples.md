@@ -96,7 +96,17 @@ FROM account
 ORDER BY open_emp_id, product_cd;
 {% endhighlight %}
 
-HRR: TBD
+HRR:
+
+{% highlight haskell %}
+account_3_7 :: Relation () (Maybe Int64, String)
+account_3_7 = relation $ do
+  a <- query account
+  let proj = (,) |$| a ! Account.openEmpId'
+                 |*| a ! Account.productCd'
+  asc proj
+  return proj
+{% endhighlight %}
 
 #### Using the is null operator and the date literal
 
