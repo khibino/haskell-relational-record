@@ -515,7 +515,23 @@ union_6_4_1a_Nest = relation $ do
   asc $ ea ! fst'
   return ea
 {% endhighlight %}
-    
+
+Generated SQL:
+
+{% highlight sql %}
+SELECT ALL T2.f0 AS f0,
+           T2.f1 AS f1
+FROM (SELECT ALL T0.emp_id AS f0,
+                 T0.assigned_branch_id AS f1
+      FROM MAIN.employee T0
+      WHERE (T0.title = 'Teller')
+      UNION SELECT ALL T1.open_emp_id AS f0,
+                       T1.open_branch_id AS f1
+            FROM MAIN.account T1
+            WHERE (T1.product_cd = 'SAV')) T2
+ORDER BY T2.f0 ASC
+{% endhighlight %}
+
 HRR:
 
 {% highlight haskell %}
@@ -529,6 +545,19 @@ union_6_4_1a_Flat = relation (do
     wheres $ a ! Account.productCd' .=. value "SAV"
     return $ a ! Account.openEmpId' >< a ! Account.openBranchId'
   )
+{% endhighlight %}
+
+Generated SQL:
+
+{% highlight sql %}
+SELECT ALL T0.emp_id AS f0,
+           T0.assigned_branch_id AS f1
+FROM MAIN.employee T0
+WHERE (T0.title = 'Teller')
+UNION SELECT ALL T1.open_emp_id AS f0,
+                 T1.open_branch_id AS f1
+FROM MAIN.account T1
+WHERE (T1.product_cd = 'SAV')
 {% endhighlight %}
 
 #### Grouping
