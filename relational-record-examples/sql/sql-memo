@@ -1,0 +1,61 @@
+# 9.1 What is a subquery?
+
+SELECT account_id, product_cd, cust_id, avail_balance FROM account WHERE account_id = (SELECT MAX(account_id) FROM account);
+
+# 9.4 Correlated Subqueries
+
+SELECT c.cust_id, c.cust_type_cd, c.city FROM customer c WHERE 2 = (SELECT COUNT(*) FROM account a WHERE a.cust_id = c.cust_id);
+
+----------------------------------------
+
+# (original) Deleting data
+
+DELETE FROM account
+where account_id = 2;
+
+# (original) Data modification using equality conditions
+
+DELETE FROM account WHERE account_id >= 10 AND account_id <= 20;
+
+# 9.4.2 Data manipulation using correlated subqueries
+
+DELETE FROM department d
+WHERE NOT EXISTS (SELECT 1
+FROM employee e
+WHERE e.dept_id = d.dept_id);
+
+----------------------------------------
+
+# (original) Updating data
+
+UPDATE employee
+SET lname = 'Bush',
+     dept_id = 3
+WHERE emp_id = 10;
+
+# 9.4.2 Data Manipulation Using Correlated Subqueries
+
+UPDATE account
+SET last_activity_date =
+   (SELECT MAX(t.txn_date)
+    FROM transaction0 t
+    WHERE t.account_id = account.account_id)
+WHERE EXISTS (SELECT 1
+              FROM transaction0 t
+              WHERE t.account_id = account.account_id);
+
+----------------------------------------
+
+# (from script) The insert statement
+
+INSERT INTO branch (branch_id, name, address, city, state, zip)
+VALUES (null, 'Headquarters', '3882 Main St.', 'Waltham', 'MA', '02451');
+
+# (from script) The insert statement
+
+INSERT INTO employee (emp_id, fname, lname, start_date, 
+  dept_id, title, assigned_branch_id)
+VALUES (null, 'Michael', 'Smith', '2001-06-22', 
+  (SELECT dept_id FROM department WHERE name = 'Administration'), 
+  'President', 
+  (SELECT branch_id FROM branch WHERE name = 'Headquarters'));
