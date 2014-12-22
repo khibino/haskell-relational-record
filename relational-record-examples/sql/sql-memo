@@ -1,21 +1,29 @@
 # 9.1 What is a subquery?
 
-SELECT account_id, product_cd, cust_id, avail_balance FROM account WHERE account_id = (SELECT MAX(account_id) FROM account);
+SELECT account_id, product_cd, cust_id, avail_balance
+FROM account
+WHERE account_id = (SELECT MAX(account_id)
+                    FROM account);
 
 # 9.4 Correlated Subqueries
 
-SELECT c.cust_id, c.cust_type_cd, c.city FROM customer c WHERE 2 = (SELECT COUNT(*) FROM account a WHERE a.cust_id = c.cust_id);
+SELECT c.cust_id, c.cust_type_cd, c.city
+FROM customer c
+WHERE 2 = (SELECT COUNT(*)
+           FROM account a
+           WHERE a.cust_id = c.cust_id);
 
 ----------------------------------------
 
 # (original) Deleting data
 
 DELETE FROM account
-where account_id = 2;
+WHERE account_id = 2;
 
 # (original) Data modification using equality conditions
 
-DELETE FROM account WHERE account_id >= 10 AND account_id <= 20;
+DELETE FROM account
+WHERE account_id >= 10 AND account_id <= 20;
 
 # 9.4.2 Data manipulation using correlated subqueries
 
