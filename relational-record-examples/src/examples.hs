@@ -14,8 +14,8 @@ import Data.Time (Day)
 
 import qualified Account
 import Account (Account, account)
---import qualified Customer
---import Customer (Customer, customer)
+import qualified Customer
+import Customer (Customer, customer)
 --import qualified Individual
 --import Individual (Individual, individual)
 import qualified Product
@@ -208,6 +208,12 @@ selfJoin_5_3aT = relation $ do
 
 -- | sql/6.4.1a.sh
 --
+-- The standard SQL allows the syntax of UNION that has an order clause
+-- at the last of query. Unfortunately, HRR dows not support. In addition,
+-- HRR put a select statement having an order clause into parentheses.
+-- Generated SQL has different meaning with the handwritten
+-- SQL below. Such query cannot be expressed directly with EDSL of HRR.
+--
 -- Handwritten SQL:
 --
 -- @
@@ -238,11 +244,13 @@ union_6_4_1a_Flat = relation (do
   ) `union` relation (do
     a  <- query account
     wheres $ a ! Account.productCd' .=. value "SAV"
+    -- asc $ a ! Account.openEmpId'
     return $ a ! Account.openEmpId' >< a ! Account.openBranchId'
   )
 
 -- |
--- Sorting outside of union relation.
+-- If you want to sort whole row returned from UNION, place a order
+-- clouse outside of the union relation.
 --
 -- Generated SQL:
 --
@@ -621,6 +629,62 @@ data Employee2 = Employee2
   } deriving (Show)
 
 $(makeRecordPersistableDefault ''Employee2)
+
+-- |
+-- 9.1 What is a subquery?
+--
+-- @
+--   SELECT account_id, product_cd, cust_id, avail_balance
+--   FROM account
+--   WHERE account_id = (SELECT MAX(account_id)
+--                       FROM account);
+-- @
+--
+account_9_1 :: Relation () Account1
+account_9_1 = relation $ do
+  a  <- query account
+  ma <- queryScalar $ aggregatedUnique account Account.accountId' max'
+  wheres $ just (a ! Account.accountId') .=. ma
+  return $ Account1 |$| a ! Account.accountId'
+                    |*| a ! Account.productCd'
+                    |*| a ! Account.custId'
+                    |*| a ! Account.availBalance'
+
+-- |
+-- 9.4 Correlated Subqueries
+--
+-- @
+--   SELECT c.cust_id, c.cust_type_cd, c.city
+--   FROM customer c
+--   WHERE 2 = (SELECT COUNT(*)
+--              FROM account a
+--              WHERE a.cust_id = c.cust_id);
+-- @
+--
+customer_9_4 :: Relation () Customer1
+customer_9_4 = relation $ do
+  c  <- query customer
+  ca <- queryScalar $ aggregatedUnique (relation $ do
+    a <- query account
+    wheres $ a ! Account.custId' .=. c ! Customer.custId'
+    return (a ! Account.accountId')
+    ) id' count
+  wheres $ value 2 .=. ca
+  return (customer1 c)
+
+data Customer1 = Customer1
+  { c1Custid :: Int64
+  , c1CustTypeCd :: String
+  , c1City :: Maybe String
+  } deriving (Show)
+
+customer1 :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c))
+          => Projection c Customer -> Projection c Customer1
+customer1 c = Customer1 |$| c ! Customer.custId'
+                        |*| c ! Customer.custTypeCd'
+                        |*| c ! Customer.city'
+
+$(makeRecordPersistableDefault ''Customer1)
 
 --
 -- run and print sql
