@@ -1,0 +1,449 @@
+% Query Building DSL of Haskell Relational Record
+% 2014-12-25
+% Kei Hibino
+
+Abstract
+=====
+
+Query DSL Basics
+-----
+
+Building join like List Comprehension or List Monad
+
+$$\{ (x, y) | x \in X, y \in Y, \pi_1(x) = \pi_2(y) \}$$
+
+~~~~~ {.haskell}
+[ (x, y) | x <- xs, y <- ys, fst x == snd y ] -- Comprehension
+
+do { x <- xs; y <- ys; fst x == snd y; return (x, y) } -- List Monad
+
+personAndBirthday :: Relation () (Person, Birthday)
+personAndBirthday =  relation $ do
+  p <- query person    -- Join product accumulated
+  b <- query birthday
+  on $ p ! Person.name' .=. b ! Birthday.name'
+  return $ p >< b
+~~~~~
+
+State Stack
+-----
+
+Simple and Useful method
+
+* Accumulate untyped typeful DSL term into state monad context
+* Typeful result
+* Phantom context type
+
+State Stack
+-----
+
+Query building DSL of Relational Record accumulates various context in state monad context stack.
+
+* Join product
+* Aggregate terms
+* Ordering terms
+* Restrict predicates
+
+Contexts in State
+=====
+
+Join product
+-----
+
+~~~~~ {.haskell}
+query :: MonadQualify ConfigureQuery m
+      => Relation () r
+      -> m (Projection Flat r)
+
+-- Used for outer join
+queryMaybe :: MonadQualify ConfigureQuery m
+           => Relation () r
+           -> m (Projection Flat (Maybe r))
+
+on :: MonadQuery m => Projection Flat (Maybe Bool) -> m ()
+~~~~~
+
+'query' and 'fqueryMaybe' return Projection type of table form result.
+
+~~~~~ {.sql}
+SELECT .. FROM ...
+            -- Accumulating uniquely qualified
+            -- ( like 'as T0', 'as T1' ... )
+            -- table forms of SQL FROM clause
+~~~~~
+
+Join Example
+-----
+
+~~~~~ {.haskell}
+personAndBirthdayL :: Relation () (Person, Maybe Birthday)
+personAndBirthdayL =  relation $ do
+  p <- query person
+  b <- queryMaybe birthday
+  on $ just (p ! Person.name') .=. b ?! Birthday.name'
+  return $ p >< b
+~~~~~
+
+Generated left joined SQL
+
+~~~~~ {.sql}
+SELECT ALL T0.name AS f0, T0.age AS f1, T0.address AS f2,
+           T1.name AS f3, T1.day AS f4
+  FROM PUBLIC.person T0 LEFT JOIN
+       PUBLIC.birthday T1
+       ON (T0.name = T1.name)
+~~~~~
+
+Aggregation
+-----
+
+~~~~~ {.haskell}
+groupBy :: MonadAggregate m
+        => Projection Flat r
+        -- ^ Projection to add into group by
+        -> m (Projection Aggregated r)
+        -- ^ Result context and aggregated projection
+
+count :: Projection Flat a -> Projection Aggregated Int64
+max'  :: Ord a
+      => Projection Flat a -> Projection Aggregated (Maybe a)
+~~~~~
+
+'groupBy' returns Projection value with Aggregated context type.
+
+~~~~~ {.sql}
+SELECT .. GROUP BY ...
+                -- Accumulating keys
+                -- of SQL GROUP BY clause
+~~~~~
+
+Aggregation Example
+-----
+
+~~~~~ {.haskell}
+agesOfFamilies :: Relation () (String, Maybe Int32)
+agesOfFamilies =  aggregateRelation $ do
+  my <- query myTable
+  gFam <- groupBy $ my ! family'     -- Specify grouping key
+  return $ gFam >< sum' (my ! age')  -- Aggregated results
+~~~~~
+
+Sum of ages per family.
+
+Generated SQL
+
+~~~~~ {.sql}
+SELECT ALL T0.family AS f0, SUM (T0.age) AS f1
+  FROM PUBLIC.my_table T0
+  GROUP BY T0.family
+~~~~~
+
+Restirct
+-----
+
+~~~~~ {.haskell}
+restrict :: MonadRestrict c m
+         => Projection c (Maybe Bool)
+         -> m ()
+
+wheres :: MonadRestrict Flat m
+       => Projection Flat (Maybe Bool)
+       -> m ()
+~~~~~
+
+Add restriction of WHERE clause.
+
+~~~~~ {.sql}
+SELECT .. WHERE x AND y AND ...
+             -- Accumulating AND predicates
+             -- of SQL WHERE clause
+~~~~~
+
+Restirct
+-----
+
+~~~~~ {.haskell}
+restrict :: MonadRestrict c m
+         => Projection c (Maybe Bool)
+         -> m ()
+
+having :: MonadRestrict Aggregated m
+       => Projection Aggregated (Maybe Bool)
+       -> m ()
+~~~~~
+
+Add restriction of HAVING clause.
+Only Projection type values with aggregated context are allowed to be added.
+
+~~~~~ {.sql}
+SELECT .. HAVING x AND y AND ...
+              -- Accumulating AND predicates
+              -- of SQL HAVING clause
+~~~~~
+
+Restrict exmaple
+-----
+
+~~~~~ {.haskell}
+sameBirthdayHeisei' :: Relation () (Day, Int64)
+sameBirthdayHeisei' =  aggregateRelation $ do
+  p <- query person
+  b <- query birthday
+  on $ p ! Person.name' .=. b ! Birthday.name'
+  wheres $ b ! Birthday.day' .>=. value (fromGregorian 1989 1 8)
+  gbd <- groupBy $ b ! Birthday.day'
+  having $ count (p ! Person.name') .>. value 1
+  return $ gbd >< count (p ! Person.name')
+~~~~~
+
+Count persons of the same birthday born in the Heisei period.
+
+Generated SQL
+
+~~~~~ {.sql}
+SELECT ALL T1.day AS f0, COUNT (T0.name) AS f1
+  FROM PUBLIC.person T0 INNER JOIN PUBLIC.birthday T1
+    ON (T0.name = T1.name)
+ WHERE (T1.day >= DATE '1989-01-08')
+ GROUP BY T1.day HAVING (COUNT (T0.name) > 1)
+~~~~~
+
+Restrict exmaple
+-----
+
+~~~~~ {.haskell}
+sameBirthdayHeisei :: Relation () (Day, Int64)
+sameBirthdayHeisei =  aggregateRelation $ do
+  p <- query person
+  b <- query birthday
+  on $ p ! Person.name' .=. b ! Birthday.name'
+  let birthDay = b ! Birthday.day'
+  wheres $ birthDay .>=. value (fromGregorian 1989 1 8)
+  gbd <- groupBy birthDay
+  let personCount = count $ p ! Person.name'
+  having $ personCount .>. value 1
+  return $ gbd >< personCount
+~~~~~
+
+Binding using let.
+
+
+Ordering
+-----
+
+~~~~~ {.haskell}
+orderBy :: Monad m
+        => Projection c t
+        -- ^ Ordering terms to add
+        -> Order
+        -- ^ Order direction -- Asc | Desc
+        -> Orderings c m ()
+        -- ^ Result context with ordering
+~~~~~
+
+Only Projection type values with specified
+(ex. Flat, Aggregated ) context are allowed.
+
+~~~~~ {.sql}
+SELECT .. ORDER BY ...
+                -- Accumulating terms of ORDER BY clause
+~~~~~
+
+Ordering Example
+-----
+
+~~~~~ {.haskell}
+personAndBirthdayO :: Relation () (Person, Birthday)
+personAndBirthdayO =  relation $ do
+  p <- query person
+  b <- query birthday
+  on $ p ! Person.name' .=. b ! Birthday.name'
+  orderBy (b ! Birthday.day') Asc  -- Specify ordering key
+  orderBy (p ! Person.name') Asc
+  return $ p >< b
+~~~~~
+
+Ordered person and birthday.
+
+~~~~~ {.sql}
+SELECT ALL T0.name AS f0, T0.age AS f1, T0.address AS f2,
+           T1.name AS f3, T1.day AS f4
+  FROM PUBLIC.person T0 INNER JOIN PUBLIC.birthday T1
+    ON (T0.name = T1.name)
+  ORDER BY T1.day ASC, T0.name ASC
+~~~~~
+
+Ordering Example
+-----
+
+~~~~~ {.haskell}
+birthdayHeiseiDesc :: Relation () (Day, Int64)
+birthdayHeiseiDesc =  aggregateRelation $ do
+  p <- query person
+  b <- query birthday
+  on $ p ! Person.name' .=. b ! Birthday.name'
+  let birthDay = b ! Birthday.day'
+  wheres $ birthDay .>=. value (fromGregorian 1989 1 8)
+  gbd <- groupBy birthDay
+  let personCount = count $ p ! Person.name'
+  orderBy personCount Desc
+  return $ gbd >< personCount
+~~~~~
+
+Ordered by persons count of the same birthday born in the Heisei period.
+
+~~~~~ {.sql}
+SELECT ALL T1.day AS f0, COUNT (T0.name) AS f1
+  FROM PUBLIC.person T0 INNER JOIN PUBLIC.birthday T1
+    ON (T0.name = T1.name)
+ WHERE (T1.day >= DATE '1989-01-08')
+ GROUP BY T1.day ORDER BY COUNT (T0.name) DESC
+~~~~~
+
+
+Others Features
+=====
+
+Placeholder
+-----
+
+~~~~~ {.haskell}
+specifyPerson :: Relation String (Person, Birthday)
+specifyPerson =  relation' $ do
+  pb <- query personAndBirthday -- Re-use predefined
+  (ph, ()) <- placeholder (\ph' -> wheres $ pb ! fst' ! Person.name' .=. ph')
+  return (ph, pb)
+~~~~~
+
+Specify person name using placeholder.
+
+~~~~~ {.sql}
+SELECT ALL T2.f0 AS f0, T2.f1 AS f1, T2.f2 AS f2,
+           T2.f3 AS f3, T2.f4 AS f4
+  FROM (SELECT ALL T0.name AS f0, T0.age AS f1, T0.address AS f2,
+                   T1.name AS f3, T1.day AS f4
+          FROM PUBLIC.person T0 INNER JOIN
+               PUBLIC.birthday T1
+            ON (T0.name = T1.name)) T2
+ WHERE (T2.f0 = ?)
+~~~~~
+
+Map SQL values to Haskell Record
+-----
+
+Mapping to records using Applicative style
+
+~~~~~ {.haskell}
+(|$|) :: (ProjectableFunctor p, ProductConstructor (a -> b))
+      => (a -> b)
+      -> p a
+      -> p b
+(|*|) :: ProjectableApplicative p
+      => p (a -> b)
+      -> p a
+      -> p b
+~~~~~
+
+Record Mapping - Projection
+-----
+
+Assign record type to SQL projection
+
+~~~~~ {.haskell}
+personAndBirthdayT :: Relation () PersonAndBirthday
+personAndBirthdayT =  relation $ do
+  p <- query person
+  b <- query birthday
+  wheres $ p ! Person.name' .=. b ! Birthday.name'
+  return $ PersonAndBirthday |$| p |*| b  -- Build record phantom type
+
+(|$|) :: ProductConstructor (a -> b)
+      => (a -> b) -> Projection c a -> Projection c b
+(|*|) :: Projection c (a -> b) -> Projection c a -> Projection c b
+~~~~~
+
+Record Mapping - Column Selector
+-----
+
+Column Selector can be map to record.
+
+~~~~~ {.haskell}
+Birthday.day' :: Pi Birthday Day
+
+uncurryPB :: Pi (Person, Birthday) PersonAndBirthday
+uncurryPB =  PersonAndBirthday |$| fst' |*| snd'
+
+(|$|) :: ProductConstructor (a -> b)
+      => (a -> b) -> Pi r a -> Pi r b
+(|*|) :: Pi r (a -> b) -> Pi r a -> Pi r b
+~~~~~
+
+Record Mapping - Placeholder
+-----
+
+Placeholder can be map to record.
+
+~~~~~ {.haskell}
+placeholder3 f =
+  placeholder (\p0 -> placeholder (\p1 -> placeholder (\p2 -> f p0 p1 p2)))
+
+personAndBirthdayP2 :: Relation ((String, Int32), String) PersonAndBirthday
+personAndBirthdayP2 =  relation' $ do
+  p <- query person
+  b <- query birthday
+  (ph0, (ph1, (ph2, ()))) <-
+    placeholder3 (\ph0' ph1' ph2' ->
+                   wheres $
+                   (Person |$| p ! Person.name' |*| p ! Person.age' |*| p ! Person.address')
+                   .=.
+                   (Person |$| ph0' |*| ph1' |*| ph2') )
+  return $ (ph0 >< ph1 >< ph2, PersonAndBirthday |$| p |*| b)
+~~~~~
+
+Record Mapping - Record Placeholder
+-----
+
+Record typed placeholder.
+
+~~~~~ {.haskell}
+personAndBirthdayP :: Relation Person PersonAndBirthday
+personAndBirthdayP =  relation' $ do
+  p <- query person
+  b <- query birthday
+  (ph, ()) <- placeholder (\ph' -> wheres $ p .=. ph')
+  return $ (ph, PersonAndBirthday |$| p |*| b)
+~~~~~
+
+Any Question?
+-----
+
+Window Function
+-----
+
+Monadic style window building.
+
+~~~~~ {.haskell}
+ageRankOfFamilies :: Relation () ((Int64, String), Int32)
+ageRankOfFamilies =  relation $ do
+  my <- query myTable
+  return $
+    rank `over` do
+      partitionBy $ my ! family'  -- Monad to build window
+      orderBy (my ! age') Desc
+    ><
+    my ! family'
+    ><
+    my ! age'
+~~~~~
+
+Discussion
+-----
+
+exists operator
+-----
+
+Scalar Query
+-----
+
+in' operator
+-----
