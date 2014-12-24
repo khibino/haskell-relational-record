@@ -138,7 +138,7 @@ SELECT ALL T0.family AS f0, SUM (T0.age) AS f1
   GROUP BY T0.family
 ~~~~~
 
-Restirct
+Restrict
 -----
 
 ~~~~~ {.haskell}
@@ -159,7 +159,7 @@ SELECT .. WHERE x AND y AND ...
              -- of SQL WHERE clause
 ~~~~~
 
-Restirct
+Restrict
 -----
 
 ~~~~~ {.haskell}
