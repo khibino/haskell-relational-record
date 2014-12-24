@@ -16,7 +16,7 @@ module Database.Relational.Query.Monad.Class (
   MonadQualify (..), MonadQualifyUnique(..), MonadRestrict (..),
   MonadQuery (..), MonadAggregate (..), MonadPartition (..),
 
-  all', distinct,
+  all', distinct, restrict,
   onE, on, wheresE, wheres,
   groupBy,
   havingE, having
@@ -91,12 +91,16 @@ on :: MonadQuery m => Projection Flat (Maybe Bool) -> m ()
 on =  restrictJoin . expr
 
 -- | Add restriction to this query.
+restrict :: MonadRestrict c m => Projection c (Maybe Bool) -> m ()
+restrict =  restrictContext . expr
+
+-- | Add restriction to this query. Expr type version.
 wheresE :: MonadRestrict Flat m => Expr Flat (Maybe Bool) -> m ()
 wheresE =  restrictContext
 
--- | Add restriction to this query. Projection type version.
+-- | Add restriction to this not aggregated query.
 wheres :: MonadRestrict Flat m => Projection Flat (Maybe Bool) -> m ()
-wheres =  restrictContext . expr
+wheres =  restrict
 
 -- | Add /GROUP BY/ term into context and get aggregated projection.
 groupBy :: MonadAggregate m
@@ -106,10 +110,10 @@ groupBy p = do
   mapM_ unsafeAddAggregateElement [ aggregateColumnRef col | col <- Projection.columns p]
   return $ Projection.unsafeToAggregated p
 
--- | Add restriction to this aggregated query.
+-- | Add restriction to this aggregated query. Expr type version.
 havingE :: MonadRestrict Aggregated m => Expr Aggregated (Maybe Bool) -> m ()
 havingE =  restrictContext
 
 -- | Add restriction to this aggregated query. Aggregated Projection type version.
 having :: MonadRestrict Aggregated m => Projection Aggregated (Maybe Bool) -> m ()
-having =  restrictContext . expr
+having =  restrict
