@@ -53,7 +53,7 @@ assignings =  lift
 
 -- | 'MonadRestrict' with ordering.
 instance MonadRestrict c m => MonadRestrict c (Assignings r m) where
-  restrictContext = assignings . restrictContext
+  restrict = assignings . restrict
 
 -- | Target of assignment.
 type AssignTarget r v = Pi r v

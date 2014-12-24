@@ -52,7 +52,7 @@ orderings =  lift
 
 -- | 'MonadRestrict' with ordering.
 instance MonadRestrict rc m => MonadRestrict rc (Orderings c m) where
-  restrictContext = orderings . restrictContext
+  restrict = orderings . restrict
 
 -- | 'MonadQuery' with ordering.
 instance MonadQuery m => MonadQuery (Orderings c m) where
