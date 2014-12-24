@@ -5,7 +5,7 @@
   <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
   <meta name="author" content="2014-12-25" />
-  <title>Query Building DSL of Haskell Relational Record</title>
+  <title>Haskell Relational Record's Query-Building DSL</title>
   <style type="text/css">code{white-space: pre;}</style>
   <!-- configuration parameters -->
   <meta name="defaultView" content="slideshow" />
@@ -45,24 +45,23 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <div id="header"></div>
 <div id="footer">
   <h1>Kei Hibino</h1>
-  <h2>Query Building DSL of Haskell Relational Record</h2>
+  <h2>Haskell Relational Record's Query-Building DSL</h2>
 </div>
 </div>
 <div class="presentation">
 <div class="titleslide slide">
-  <h1>Query Building DSL of Haskell Relational Record</h1>
+  <h1>Haskell Relational Record's Query-Building DSL</h1>
   <h2>2014-12-25</h2>
   <h3>Kei Hibino</h3>
 </div>
-<div id="abstract" class="titleslide slide section level1"><h1>Abstract</h1></div><div id="query-dsl-basics" class="slide section level2">
+<div id="rough-design" class="titleslide slide section level1"><h1>Rough Design</h1></div><div id="query-dsl-basics" class="slide section level2">
 <h1>Query DSL Basics</h1>
-<p>Building join like List Comprehension or List Monad</p>
 <p><span class="LaTeX">$$\{ (x, y) | x \in X, y \in Y, \pi_1(x) = \pi_2(y) \}$$</span></p>
 <pre class="sourceCode haskell"><code class="sourceCode haskell">[ (x, y) <span class="fu">|</span> x <span class="ot">&lt;-</span> xs, y <span class="ot">&lt;-</span> ys, fst x <span class="fu">==</span> snd y ] <span class="co">-- Comprehension</span>
 
-<span class="kw">do</span> { x <span class="ot">&lt;-</span> xs; y <span class="ot">&lt;-</span> ys; fst x <span class="fu">==</span> snd y; return (x, y) } <span class="co">-- List Monad</span>
-
-<span class="ot">personAndBirthday ::</span> <span class="dt">Relation</span> () (<span class="dt">Person</span>, <span class="dt">Birthday</span>)
+<span class="kw">do</span> { x <span class="ot">&lt;-</span> xs; y <span class="ot">&lt;-</span> ys; fst x <span class="fu">==</span> snd y; return (x, y) } <span class="co">-- List Monad</span></code></pre>
+<p>Building a joined query like list comprehension or list Monad:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">personAndBirthday ::</span> <span class="dt">Relation</span> () (<span class="dt">Person</span>, <span class="dt">Birthday</span>)
 personAndBirthday <span class="fu">=</span>  relation <span class="fu">$</span> <span class="kw">do</span>
   p <span class="ot">&lt;-</span> query person    <span class="co">-- Join product accumulated</span>
   b <span class="ot">&lt;-</span> query birthday
@@ -70,15 +69,15 @@ personAndBirthday <span class="fu">=</span>  relation <span class="fu">$</span> 
   return <span class="fu">$</span> p <span class="fu">&gt;&lt;</span> b</code></pre>
 </div><div id="state-stack" class="slide section level2">
 <h1>State Stack</h1>
-<p>Simple and Useful method</p>
+<p>A simple and useful method:</p>
 <ul>
-<li>Accumulate untyped typeful DSL term into state monad context</li>
+<li>Accumulate untyped typeful DSL terms into a state monad context</li>
 <li>Typeful result</li>
 <li>Phantom context type</li>
 </ul>
 </div><div id="state-stack-1" class="slide section level2">
 <h1>State Stack</h1>
-<p>Query building DSL of Relational Record accumulates various context in state monad context stack.</p>
+<p>Haskell Relational Record's query-building DSL accumulates various context in a state monad context stack.</p>
 <ul>
 <li>Join product</li>
 <li>Aggregate terms</li>
@@ -87,7 +86,7 @@ personAndBirthday <span class="fu">=</span>  relation <span class="fu">$</span> 
 </ul>
 </div>
 <div id="contexts-in-state" class="titleslide slide section level1"><h1>Contexts in State</h1></div><div id="join-product" class="slide section level2">
-<h1>Join product</h1>
+<h1>Join Product</h1>
 <pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">query ::</span> <span class="dt">MonadQualify</span> <span class="dt">ConfigureQuery</span> m
       <span class="ot">=&gt;</span> <span class="dt">Relation</span> () r
       <span class="ot">-&gt;</span> m (<span class="dt">Projection</span> <span class="dt">Flat</span> r)
@@ -98,7 +97,7 @@ personAndBirthday <span class="fu">=</span>  relation <span class="fu">$</span> 
            <span class="ot">-&gt;</span> m (<span class="dt">Projection</span> <span class="dt">Flat</span> (<span class="dt">Maybe</span> r))
 
 <span class="ot">on ::</span> <span class="dt">MonadQuery</span> m <span class="ot">=&gt;</span> <span class="dt">Projection</span> <span class="dt">Flat</span> (<span class="dt">Maybe</span> <span class="dt">Bool</span>) <span class="ot">-&gt;</span> m ()</code></pre>
-<p>'query' and 'fqueryMaybe' return Projection type of table form result.</p>
+<p>'query' and 'fqueryMaybe' return a Projection type of table form results.</p>
 <pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> .. <span class="kw">FROM</span> ...
             <span class="co">-- Accumulating uniquely qualified</span>
             <span class="co">-- ( like 'as T0', 'as T1' ... )</span>
@@ -111,7 +110,7 @@ personAndBirthdayL <span class="fu">=</span>  relation <span class="fu">$</span>
   b <span class="ot">&lt;-</span> queryMaybe birthday
   on <span class="fu">$</span> just (p <span class="fu">!</span> Person.name') <span class="fu">.=.</span> b <span class="fu">?!</span> Birthday.name'
   return <span class="fu">$</span> p <span class="fu">&gt;&lt;</span> b</code></pre>
-<p>Generated left joined SQL</p>
+<p>generates left-joined SQL:</p>
 <pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.address <span class="kw">AS</span> f2,
            T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
   <span class="kw">FROM</span> PUBLIC.person T0 <span class="kw">LEFT</span> <span class="kw">JOIN</span>
@@ -128,7 +127,7 @@ personAndBirthdayL <span class="fu">=</span>  relation <span class="fu">$</span>
 <span class="ot">count ::</span> <span class="dt">Projection</span> <span class="dt">Flat</span> a <span class="ot">-&gt;</span> <span class="dt">Projection</span> <span class="dt">Aggregated</span> <span class="dt">Int64</span>
 <span class="ot">max'  ::</span> <span class="dt">Ord</span> a
       <span class="ot">=&gt;</span> <span class="dt">Projection</span> <span class="dt">Flat</span> a <span class="ot">-&gt;</span> <span class="dt">Projection</span> <span class="dt">Aggregated</span> (<span class="dt">Maybe</span> a)</code></pre>
-<p>'groupBy' returns Projection value with Aggregated context type.</p>
+<p>'groupBy' returns a Projection value with an Aggregated context type:</p>
 <pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> .. <span class="kw">GROUP</span> <span class="kw">BY</span> ...
                 <span class="co">-- Accumulating keys</span>
                 <span class="co">-- of SQL GROUP BY clause</span></code></pre>
@@ -139,13 +138,13 @@ agesOfFamilies <span class="fu">=</span>  aggregateRelation <span class="fu">$</
   my <span class="ot">&lt;-</span> query myTable
   gFam <span class="ot">&lt;-</span> groupBy <span class="fu">$</span> my <span class="fu">!</span> family'     <span class="co">-- Specify grouping key</span>
   return <span class="fu">$</span> gFam <span class="fu">&gt;&lt;</span> sum' (my <span class="fu">!</span> age')  <span class="co">-- Aggregated results</span></code></pre>
-<p>Sum of ages per family.</p>
-<p>Generated SQL</p>
+<p>sums ages per family.</p>
+<p>Generated SQL:</p>
 <pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.family <span class="kw">AS</span> f0, <span class="fu">SUM</span> (T0.age) <span class="kw">AS</span> f1
   <span class="kw">FROM</span> PUBLIC.my_table T0
   <span class="kw">GROUP</span> <span class="kw">BY</span> T0.family</code></pre>
-</div><div id="restirct" class="slide section level2">
-<h1>Restirct</h1>
+</div><div id="restrict" class="slide section level2">
+<h1>Restrict</h1>
 <pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">restrict ::</span> <span class="dt">MonadRestrict</span> c m
          <span class="ot">=&gt;</span> <span class="dt">Projection</span> c (<span class="dt">Maybe</span> <span class="dt">Bool</span>)
          <span class="ot">-&gt;</span> m ()
@@ -153,12 +152,12 @@ agesOfFamilies <span class="fu">=</span>  aggregateRelation <span class="fu">$</
 <span class="ot">wheres ::</span> <span class="dt">MonadRestrict</span> <span class="dt">Flat</span> m
        <span class="ot">=&gt;</span> <span class="dt">Projection</span> <span class="dt">Flat</span> (<span class="dt">Maybe</span> <span class="dt">Bool</span>)
        <span class="ot">-&gt;</span> m ()</code></pre>
-<p>Add restriction of WHERE clause.</p>
+<p>adds a WHERE clause restriction:</p>
 <pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> .. <span class="kw">WHERE</span> x <span class="kw">AND</span> y <span class="kw">AND</span> ...
              <span class="co">-- Accumulating AND predicates</span>
              <span class="co">-- of SQL WHERE clause</span></code></pre>
-</div><div id="restirct-1" class="slide section level2">
-<h1>Restirct</h1>
+</div><div id="restrict-1" class="slide section level2">
+<h1>Restrict</h1>
 <pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">restrict ::</span> <span class="dt">MonadRestrict</span> c m
          <span class="ot">=&gt;</span> <span class="dt">Projection</span> c (<span class="dt">Maybe</span> <span class="dt">Bool</span>)
          <span class="ot">-&gt;</span> m ()
@@ -166,12 +165,12 @@ agesOfFamilies <span class="fu">=</span>  aggregateRelation <span class="fu">$</
 <span class="ot">having ::</span> <span class="dt">MonadRestrict</span> <span class="dt">Aggregated</span> m
        <span class="ot">=&gt;</span> <span class="dt">Projection</span> <span class="dt">Aggregated</span> (<span class="dt">Maybe</span> <span class="dt">Bool</span>)
        <span class="ot">-&gt;</span> m ()</code></pre>
-<p>Add restriction of HAVING clause. Only Projection type values with aggregated context are allowed to be added.</p>
+<p>adds a HAVING clause restriction, in which only Projection type values with aggregated context are allowed:</p>
 <pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> .. <span class="kw">HAVING</span> x <span class="kw">AND</span> y <span class="kw">AND</span> ...
               <span class="co">-- Accumulating AND predicates</span>
               <span class="co">-- of SQL HAVING clause</span></code></pre>
-</div><div id="restrict-exmaple" class="slide section level2">
-<h1>Restrict exmaple</h1>
+</div><div id="restrict-example" class="slide section level2">
+<h1>Restrict Example</h1>
 <pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">sameBirthdayHeisei' ::</span> <span class="dt">Relation</span> () (<span class="dt">Day</span>, <span class="dt">Int64</span>)
 sameBirthdayHeisei' <span class="fu">=</span>  aggregateRelation <span class="fu">$</span> <span class="kw">do</span>
   p <span class="ot">&lt;-</span> query person
@@ -181,15 +180,15 @@ sameBirthdayHeisei' <span class="fu">=</span>  aggregateRelation <span class="fu
   gbd <span class="ot">&lt;-</span> groupBy <span class="fu">$</span> b <span class="fu">!</span> Birthday.day'
   having <span class="fu">$</span> count (p <span class="fu">!</span> Person.name') <span class="fu">.&gt;.</span> value <span class="dv">1</span>
   return <span class="fu">$</span> gbd <span class="fu">&gt;&lt;</span> count (p <span class="fu">!</span> Person.name')</code></pre>
-<p>Count persons of the same birthday born in the Heisei period.</p>
-<p>Generated SQL</p>
+<p>counts people with the same birthday, who were born in the Heisei period.</p>
+<p>Generated SQL:</p>
 <pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T1.day <span class="kw">AS</span> f0, <span class="fu">COUNT</span> (T0.name) <span class="kw">AS</span> f1
   <span class="kw">FROM</span> PUBLIC.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> PUBLIC.birthday T1
     <span class="kw">ON</span> (T0.name = T1.name)
  <span class="kw">WHERE</span> (T1.day &gt;= <span class="dt">DATE</span> <span class="st">'1989-01-08'</span>)
  <span class="kw">GROUP</span> <span class="kw">BY</span> T1.day <span class="kw">HAVING</span> (<span class="fu">COUNT</span> (T0.name) &gt; <span class="dv">1</span>)</code></pre>
-</div><div id="restrict-exmaple-1" class="slide section level2">
-<h1>Restrict exmaple</h1>
+</div><div id="restrict-example-1" class="slide section level2">
+<h1>Restrict Example</h1>
 <pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">sameBirthdayHeisei ::</span> <span class="dt">Relation</span> () (<span class="dt">Day</span>, <span class="dt">Int64</span>)
 sameBirthdayHeisei <span class="fu">=</span>  aggregateRelation <span class="fu">$</span> <span class="kw">do</span>
   p <span class="ot">&lt;-</span> query person
@@ -201,7 +200,7 @@ sameBirthdayHeisei <span class="fu">=</span>  aggregateRelation <span class="fu"
   <span class="kw">let</span> personCount <span class="fu">=</span> count <span class="fu">$</span> p <span class="fu">!</span> Person.name'
   having <span class="fu">$</span> personCount <span class="fu">.&gt;.</span> value <span class="dv">1</span>
   return <span class="fu">$</span> gbd <span class="fu">&gt;&lt;</span> personCount</code></pre>
-<p>Binding using let.</p>
+<p>binds using let.</p>
 </div><div id="ordering" class="slide section level2">
 <h1>Ordering</h1>
 <pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">orderBy ::</span> <span class="dt">Monad</span> m
@@ -211,7 +210,7 @@ sameBirthdayHeisei <span class="fu">=</span>  aggregateRelation <span class="fu"
         <span class="co">-- ^ Order direction -- Asc | Desc</span>
         <span class="ot">-&gt;</span> <span class="dt">Orderings</span> c m ()
         <span class="co">-- ^ Result context with ordering</span></code></pre>
-<p>Only Projection type values with specified (ex. Flat, Aggregated ) context are allowed.</p>
+<p>Only Projection type values with specified (Flat, Aggregated, ...) context are allowed.</p>
 <pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> .. <span class="kw">ORDER</span> <span class="kw">BY</span> ...
                 <span class="co">-- Accumulating terms of ORDER BY clause</span></code></pre>
 </div><div id="ordering-example" class="slide section level2">
@@ -224,7 +223,7 @@ personAndBirthdayO <span class="fu">=</span>  relation <span class="fu">$</span>
   orderBy (b <span class="fu">!</span> Birthday.day') <span class="dt">Asc</span>  <span class="co">-- Specify ordering key</span>
   orderBy (p <span class="fu">!</span> Person.name') <span class="dt">Asc</span>
   return <span class="fu">$</span> p <span class="fu">&gt;&lt;</span> b</code></pre>
-<p>Ordered person and birthday.</p>
+<p>orders by birthday and then name:</p>
 <pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.address <span class="kw">AS</span> f2,
            T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
   <span class="kw">FROM</span> PUBLIC.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> PUBLIC.birthday T1
@@ -243,22 +242,22 @@ birthdayHeiseiDesc <span class="fu">=</span>  aggregateRelation <span class="fu"
   <span class="kw">let</span> personCount <span class="fu">=</span> count <span class="fu">$</span> p <span class="fu">!</span> Person.name'
   orderBy personCount <span class="dt">Desc</span>
   return <span class="fu">$</span> gbd <span class="fu">&gt;&lt;</span> personCount</code></pre>
-<p>Ordered by persons count of the same birthday born in the Heisei period.</p>
+<p>orders by the number of people born on the same Heisei period dates:</p>
 <pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T1.day <span class="kw">AS</span> f0, <span class="fu">COUNT</span> (T0.name) <span class="kw">AS</span> f1
   <span class="kw">FROM</span> PUBLIC.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> PUBLIC.birthday T1
     <span class="kw">ON</span> (T0.name = T1.name)
  <span class="kw">WHERE</span> (T1.day &gt;= <span class="dt">DATE</span> <span class="st">'1989-01-08'</span>)
  <span class="kw">GROUP</span> <span class="kw">BY</span> T1.day <span class="kw">ORDER</span> <span class="kw">BY</span> <span class="fu">COUNT</span> (T0.name) <span class="kw">DESC</span></code></pre>
 </div>
-<div id="other-features" class="titleslide slide section level1"><h1>Other Features</h1></div><div id="placeholder" class="slide section level2">
-<h1>Placeholder</h1>
+<div id="other-features" class="titleslide slide section level1"><h1>Other Features</h1></div><div id="placeholders" class="slide section level2">
+<h1>Placeholders</h1>
 <pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">specifyPerson ::</span> <span class="dt">Relation</span> <span class="dt">String</span> (<span class="dt">Person</span>, <span class="dt">Birthday</span>)
 specifyPerson <span class="fu">=</span>  relation' <span class="fu">$</span> <span class="kw">do</span>
   pb <span class="ot">&lt;-</span> query personAndBirthday <span class="co">-- Re-use predefined</span>
   (ph, ()) <span class="ot">&lt;-</span> placeholder
               (\ph' <span class="ot">-&gt;</span> wheres <span class="fu">$</span> pb <span class="fu">!</span> fst' <span class="fu">!</span> Person.name' <span class="fu">.=.</span> ph')
   return (ph, pb)</code></pre>
-<p>Specify person name using placeholder.</p>
+<p>specifies a person name using a placeholder:</p>
 <pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T2.f0 <span class="kw">AS</span> f0, T2.f1 <span class="kw">AS</span> f1, T2.f2 <span class="kw">AS</span> f2,
            T2.f3 <span class="kw">AS</span> f3, T2.f4 <span class="kw">AS</span> f4
   <span class="kw">FROM</span> (<span class="kw">SELECT</span> <span class="kw">ALL</span>
@@ -268,9 +267,9 @@ specifyPerson <span class="fu">=</span>  relation' <span class="fu">$</span> <sp
                PUBLIC.birthday T1
             <span class="kw">ON</span> (T0.name = T1.name)) T2
  <span class="kw">WHERE</span> (T2.f0 = ?)</code></pre>
-</div><div id="map-sql-values-to-haskell-record" class="slide section level2">
-<h1>Map SQL values to Haskell Record</h1>
-<p>Mapping to records using Applicative style</p>
+</div><div id="map-sql-values-to-a-haskell-record" class="slide section level2">
+<h1>Map SQL Values to a Haskell Record</h1>
+<p>Mapping to records using Applicative style:</p>
 <pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">(|$|) ::</span> (<span class="dt">ProjectableFunctor</span> p, <span class="dt">ProductConstructor</span> (a <span class="ot">-&gt;</span> b))
       <span class="ot">=&gt;</span> (a <span class="ot">-&gt;</span> b)
       <span class="ot">-&gt;</span> p a
@@ -279,9 +278,9 @@ specifyPerson <span class="fu">=</span>  relation' <span class="fu">$</span> <sp
       <span class="ot">=&gt;</span> p (a <span class="ot">-&gt;</span> b)
       <span class="ot">-&gt;</span> p a
       <span class="ot">-&gt;</span> p b</code></pre>
-</div><div id="record-mapping---projection" class="slide section level2">
-<h1>Record Mapping - Projection</h1>
-<p>Assign record type to SQL projection</p>
+</div><div id="record-mapping---projections" class="slide section level2">
+<h1>Record Mapping - Projections</h1>
+<p>Assign record types to an SQL projection:</p>
 <pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">personAndBirthdayT ::</span> <span class="dt">Relation</span> () <span class="dt">PersonAndBirthday</span>
 personAndBirthdayT <span class="fu">=</span>  relation <span class="fu">$</span> <span class="kw">do</span>
   p <span class="ot">&lt;-</span> query person
@@ -293,9 +292,9 @@ personAndBirthdayT <span class="fu">=</span>  relation <span class="fu">$</span>
 <span class="ot">(|$|) ::</span> <span class="dt">ProductConstructor</span> (a <span class="ot">-&gt;</span> b)
       <span class="ot">=&gt;</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> <span class="dt">Projection</span> c a <span class="ot">-&gt;</span> <span class="dt">Projection</span> c b
 <span class="ot">(|*|) ::</span> <span class="dt">Projection</span> c (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> <span class="dt">Projection</span> c a <span class="ot">-&gt;</span> <span class="dt">Projection</span> c b</code></pre>
-</div><div id="record-mapping---column-selector" class="slide section level2">
-<h1>Record Mapping - Column Selector</h1>
-<p>Column Selector can be map to record.</p>
+</div><div id="record-mapping---column-selectors" class="slide section level2">
+<h1>Record Mapping - Column Selectors</h1>
+<p>Column selectors can be mapped to a record:</p>
 <pre class="sourceCode haskell"><code class="sourceCode haskell">Birthday.day'<span class="ot"> ::</span> <span class="dt">Pi</span> <span class="dt">Birthday</span> <span class="dt">Day</span>
 
 <span class="ot">uncurryPB ::</span> <span class="dt">Pi</span> (<span class="dt">Person</span>, <span class="dt">Birthday</span>) <span class="dt">PersonAndBirthday</span>
@@ -304,9 +303,9 @@ uncurryPB <span class="fu">=</span>  <span class="dt">PersonAndBirthday</span> <
 <span class="ot">(|$|) ::</span> <span class="dt">ProductConstructor</span> (a <span class="ot">-&gt;</span> b)
       <span class="ot">=&gt;</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> <span class="dt">Pi</span> r a <span class="ot">-&gt;</span> <span class="dt">Pi</span> r b
 <span class="ot">(|*|) ::</span> <span class="dt">Pi</span> r (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> <span class="dt">Pi</span> r a <span class="ot">-&gt;</span> <span class="dt">Pi</span> r b</code></pre>
-</div><div id="record-mapping---placeholder" class="slide section level2">
-<h1>Record Mapping - Placeholder</h1>
-<p>Placeholder can be map to record.</p>
+</div><div id="record-mapping---placeholders" class="slide section level2">
+<h1>Record Mapping - Placeholders</h1>
+<p>Placeholders can be mapped to a record:</p>
 <pre class="sourceCode haskell"><code class="sourceCode haskell">placeholder3 f <span class="fu">=</span>
   placeholder (\p0 <span class="ot">-&gt;</span> placeholder
                (\p1 <span class="ot">-&gt;</span>  placeholder (\p2 <span class="ot">-&gt;</span> f p0 p1 p2)))
@@ -324,20 +323,20 @@ personAndBirthdayP2 <span class="fu">=</span>  relation' <span class="fu">$</spa
                    <span class="fu">.=.</span>
                    (<span class="dt">Person</span> <span class="fu">|$|</span> ph0' <span class="fu">|*|</span> ph1' <span class="fu">|*|</span> ph2') )
   return <span class="fu">$</span> (ph0 <span class="fu">&gt;&lt;</span> ph1 <span class="fu">&gt;&lt;</span> ph2, <span class="dt">PersonAndBirthday</span> <span class="fu">|$|</span> p <span class="fu">|*|</span> b)</code></pre>
-</div><div id="record-mapping---record-placeholder" class="slide section level2">
-<h1>Record Mapping - Record Placeholder</h1>
-<p>Record typed placeholder.</p>
+</div><div id="record-mapping---record-placeholders" class="slide section level2">
+<h1>Record Mapping - Record Placeholders</h1>
+<p>Record-typed placeholder:</p>
 <pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">personAndBirthdayP ::</span> <span class="dt">Relation</span> <span class="dt">Person</span> <span class="dt">PersonAndBirthday</span>
 personAndBirthdayP <span class="fu">=</span>  relation' <span class="fu">$</span> <span class="kw">do</span>
   p <span class="ot">&lt;-</span> query person
   b <span class="ot">&lt;-</span> query birthday
   (ph, ()) <span class="ot">&lt;-</span> placeholder (\ph' <span class="ot">-&gt;</span> wheres <span class="fu">$</span> p <span class="fu">.=.</span> ph')
   return <span class="fu">$</span> (ph, <span class="dt">PersonAndBirthday</span> <span class="fu">|$|</span> p <span class="fu">|*|</span> b)</code></pre>
-</div><div id="any-question" class="slide section level2">
-<h1>Any Question?</h1>
+</div><div id="questions" class="slide section level2">
+<h1>Questions?</h1>
 </div><div id="window-function" class="slide section level2">
 <h1>Window Function</h1>
-<p>Monadic style window building.</p>
+<p>Monadic-style window building:</p>
 <pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">ageRankOfFamilies ::</span> <span class="dt">Relation</span> () ((<span class="dt">Int64</span>, <span class="dt">String</span>), <span class="dt">Int32</span>)
 ageRankOfFamilies <span class="fu">=</span>  relation <span class="fu">$</span> <span class="kw">do</span>
   my <span class="ot">&lt;-</span> query myTable
@@ -353,7 +352,7 @@ ageRankOfFamilies <span class="fu">=</span>  relation <span class="fu">$</span> 
 <h1>Discussion</h1>
 </div>
 <div id="others" class="titleslide slide section level1"><h1>Others</h1></div><div id="exists-operator" class="slide section level2">
-<h1>exists operator</h1>
+<h1>exists Operator</h1>
 <pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">exists ::</span> (<span class="dt">SqlProjectable</span> p, <span class="dt">ProjectableShowSql</span> p)
        <span class="ot">=&gt;</span> <span class="dt">ListProjection</span> (<span class="dt">Projection</span> <span class="dt">Exists</span>) r <span class="ot">-&gt;</span> p (<span class="dt">Maybe</span> <span class="dt">Bool</span>)
 
@@ -364,11 +363,11 @@ ageRankOfFamilies <span class="fu">=</span>  relation <span class="fu">$</span> 
           <span class="ot">=&gt;</span> <span class="dt">Relation</span> () r
           <span class="ot">-&gt;</span> m (<span class="dt">ListProjection</span> (<span class="dt">Projection</span> c) r)</code></pre>
 </div><div id="in-operator" class="slide section level2">
-<h1>in' operator</h1>
+<h1>in' Operator</h1>
 <pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">in' ::</span> (<span class="dt">SqlProjectable</span> p, <span class="dt">ProjectableShowSql</span> p)
     <span class="ot">=&gt;</span> p t <span class="ot">-&gt;</span> <span class="dt">ListProjection</span> p t <span class="ot">-&gt;</span> p (<span class="dt">Maybe</span> <span class="dt">Bool</span>)</code></pre>
-</div><div id="scalar-query" class="slide section level2">
-<h1>Scalar Query</h1>
+</div><div id="scalar-queries" class="slide section level2">
+<h1>Scalar Queries</h1>
 <pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">queryScalar ::</span> (<span class="dt">MonadQualify</span> <span class="dt">ConfigureQuery</span> m, <span class="dt">ScalarDegree</span> r)
             <span class="ot">=&gt;</span> <span class="dt">UniqueRelation</span> () c r
             <span class="ot">-&gt;</span> m (<span class="dt">Projection</span> c (<span class="dt">Maybe</span> r))</code></pre>

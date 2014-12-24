@@ -1,14 +1,12 @@
-% Query Building DSL of Haskell Relational Record
+% Haskell Relational Record's Query-Building DSL
 % 2014-12-25
 % Kei Hibino
 
-Abstract
+Rough Design
 =====
 
 Query DSL Basics
 -----
-
-Building join like List Comprehension or List Monad
 
 $$\{ (x, y) | x \in X, y \in Y, \pi_1(x) = \pi_2(y) \}$$
 
@@ -16,7 +14,11 @@ $$\{ (x, y) | x \in X, y \in Y, \pi_1(x) = \pi_2(y) \}$$
 [ (x, y) | x <- xs, y <- ys, fst x == snd y ] -- Comprehension
 
 do { x <- xs; y <- ys; fst x == snd y; return (x, y) } -- List Monad
+~~~~~
 
+Building a joined query like list comprehension or list Monad:
+
+~~~~~ {.haskell}
 personAndBirthday :: Relation () (Person, Birthday)
 personAndBirthday =  relation $ do
   p <- query person    -- Join product accumulated
@@ -28,16 +30,16 @@ personAndBirthday =  relation $ do
 State Stack
 -----
 
-Simple and Useful method
+A simple and useful method:
 
-* Accumulate untyped typeful DSL term into state monad context
+* Accumulate untyped typeful DSL terms into a state monad context
 * Typeful result
 * Phantom context type
 
 State Stack
 -----
 
-Query building DSL of Relational Record accumulates various context in state monad context stack.
+Haskell Relational Record's query-building DSL accumulates various context in a state monad context stack.
 
 * Join product
 * Aggregate terms
@@ -47,7 +49,7 @@ Query building DSL of Relational Record accumulates various context in state mon
 Contexts in State
 =====
 
-Join product
+Join Product
 -----
 
 ~~~~~ {.haskell}
@@ -63,7 +65,7 @@ queryMaybe :: MonadQualify ConfigureQuery m
 on :: MonadQuery m => Projection Flat (Maybe Bool) -> m ()
 ~~~~~
 
-'query' and 'fqueryMaybe' return Projection type of table form result.
+'query' and 'fqueryMaybe' return a Projection type of table form results.
 
 ~~~~~ {.sql}
 SELECT .. FROM ...
@@ -84,7 +86,7 @@ personAndBirthdayL =  relation $ do
   return $ p >< b
 ~~~~~
 
-Generated left joined SQL
+generates left-joined SQL:
 
 ~~~~~ {.sql}
 SELECT ALL T0.name AS f0, T0.age AS f1, T0.address AS f2,
@@ -109,7 +111,7 @@ max'  :: Ord a
       => Projection Flat a -> Projection Aggregated (Maybe a)
 ~~~~~
 
-'groupBy' returns Projection value with Aggregated context type.
+'groupBy' returns a Projection value with an Aggregated context type:
 
 ~~~~~ {.sql}
 SELECT .. GROUP BY ...
@@ -128,9 +130,9 @@ agesOfFamilies =  aggregateRelation $ do
   return $ gFam >< sum' (my ! age')  -- Aggregated results
 ~~~~~
 
-Sum of ages per family.
+sums ages per family.
 
-Generated SQL
+Generated SQL:
 
 ~~~~~ {.sql}
 SELECT ALL T0.family AS f0, SUM (T0.age) AS f1
@@ -151,7 +153,7 @@ wheres :: MonadRestrict Flat m
        -> m ()
 ~~~~~
 
-Add restriction of WHERE clause.
+adds a WHERE clause restriction:
 
 ~~~~~ {.sql}
 SELECT .. WHERE x AND y AND ...
@@ -172,8 +174,8 @@ having :: MonadRestrict Aggregated m
        -> m ()
 ~~~~~
 
-Add restriction of HAVING clause.
-Only Projection type values with aggregated context are allowed to be added.
+adds a HAVING clause restriction, in which
+only Projection type values with aggregated context are allowed:
 
 ~~~~~ {.sql}
 SELECT .. HAVING x AND y AND ...
@@ -181,7 +183,7 @@ SELECT .. HAVING x AND y AND ...
               -- of SQL HAVING clause
 ~~~~~
 
-Restrict exmaple
+Restrict Example
 -----
 
 ~~~~~ {.haskell}
@@ -196,9 +198,9 @@ sameBirthdayHeisei' =  aggregateRelation $ do
   return $ gbd >< count (p ! Person.name')
 ~~~~~
 
-Count persons of the same birthday born in the Heisei period.
+counts people with the same birthday, who were born in the Heisei period.
 
-Generated SQL
+Generated SQL:
 
 ~~~~~ {.sql}
 SELECT ALL T1.day AS f0, COUNT (T0.name) AS f1
@@ -208,7 +210,7 @@ SELECT ALL T1.day AS f0, COUNT (T0.name) AS f1
  GROUP BY T1.day HAVING (COUNT (T0.name) > 1)
 ~~~~~
 
-Restrict exmaple
+Restrict Example
 -----
 
 ~~~~~ {.haskell}
@@ -225,7 +227,7 @@ sameBirthdayHeisei =  aggregateRelation $ do
   return $ gbd >< personCount
 ~~~~~
 
-Binding using let.
+binds using let.
 
 
 Ordering
@@ -242,7 +244,7 @@ orderBy :: Monad m
 ~~~~~
 
 Only Projection type values with specified
-(ex. Flat, Aggregated ) context are allowed.
+(Flat, Aggregated, ...) context are allowed.
 
 ~~~~~ {.sql}
 SELECT .. ORDER BY ...
@@ -263,7 +265,7 @@ personAndBirthdayO =  relation $ do
   return $ p >< b
 ~~~~~
 
-Ordered person and birthday.
+orders by birthday and then name:
 
 ~~~~~ {.sql}
 SELECT ALL T0.name AS f0, T0.age AS f1, T0.address AS f2,
@@ -290,7 +292,7 @@ birthdayHeiseiDesc =  aggregateRelation $ do
   return $ gbd >< personCount
 ~~~~~
 
-Ordered by persons count of the same birthday born in the Heisei period.
+orders by the number of people born on the same Heisei period dates:
 
 ~~~~~ {.sql}
 SELECT ALL T1.day AS f0, COUNT (T0.name) AS f1
@@ -304,7 +306,7 @@ SELECT ALL T1.day AS f0, COUNT (T0.name) AS f1
 Other Features
 =====
 
-Placeholder
+Placeholders
 -----
 
 ~~~~~ {.haskell}
@@ -316,7 +318,7 @@ specifyPerson =  relation' $ do
   return (ph, pb)
 ~~~~~
 
-Specify person name using placeholder.
+specifies a person name using a placeholder:
 
 ~~~~~ {.sql}
 SELECT ALL T2.f0 AS f0, T2.f1 AS f1, T2.f2 AS f2,
@@ -330,10 +332,10 @@ SELECT ALL T2.f0 AS f0, T2.f1 AS f1, T2.f2 AS f2,
  WHERE (T2.f0 = ?)
 ~~~~~
 
-Map SQL values to Haskell Record
+Map SQL Values to a Haskell Record
 -----
 
-Mapping to records using Applicative style
+Mapping to records using Applicative style:
 
 ~~~~~ {.haskell}
 (|$|) :: (ProjectableFunctor p, ProductConstructor (a -> b))
@@ -346,10 +348,10 @@ Mapping to records using Applicative style
       -> p b
 ~~~~~
 
-Record Mapping - Projection
+Record Mapping - Projections
 -----
 
-Assign record type to SQL projection
+Assign record types to an SQL projection:
 
 ~~~~~ {.haskell}
 personAndBirthdayT :: Relation () PersonAndBirthday
@@ -365,10 +367,10 @@ personAndBirthdayT =  relation $ do
 (|*|) :: Projection c (a -> b) -> Projection c a -> Projection c b
 ~~~~~
 
-Record Mapping - Column Selector
+Record Mapping - Column Selectors
 -----
 
-Column Selector can be map to record.
+Column selectors can be mapped to a record:
 
 ~~~~~ {.haskell}
 Birthday.day' :: Pi Birthday Day
@@ -381,10 +383,10 @@ uncurryPB =  PersonAndBirthday |$| fst' |*| snd'
 (|*|) :: Pi r (a -> b) -> Pi r a -> Pi r b
 ~~~~~
 
-Record Mapping - Placeholder
+Record Mapping - Placeholders
 -----
 
-Placeholder can be map to record.
+Placeholders can be mapped to a record:
 
 ~~~~~ {.haskell}
 placeholder3 f =
@@ -406,10 +408,10 @@ personAndBirthdayP2 =  relation' $ do
   return $ (ph0 >< ph1 >< ph2, PersonAndBirthday |$| p |*| b)
 ~~~~~
 
-Record Mapping - Record Placeholder
+Record Mapping - Record Placeholders
 -----
 
-Record typed placeholder.
+Record-typed placeholder:
 
 ~~~~~ {.haskell}
 personAndBirthdayP :: Relation Person PersonAndBirthday
@@ -420,13 +422,13 @@ personAndBirthdayP =  relation' $ do
   return $ (ph, PersonAndBirthday |$| p |*| b)
 ~~~~~
 
-Any Question?
+Questions?
 -----
 
 Window Function
 -----
 
-Monadic style window building.
+Monadic-style window building:
 
 ~~~~~ {.haskell}
 ageRankOfFamilies :: Relation () ((Int64, String), Int32)
@@ -448,7 +450,7 @@ Discussion
 Others
 =====
 
-exists operator
+exists Operator
 -----
 
 ~~~~~ {.haskell}
@@ -463,7 +465,7 @@ queryList :: MonadQualify ConfigureQuery m
           -> m (ListProjection (Projection c) r)
 ~~~~~
 
-in' operator
+in' Operator
 -----
 
 ~~~~~ {.haskell}
@@ -471,7 +473,7 @@ in' :: (SqlProjectable p, ProjectableShowSql p)
     => p t -> ListProjection p t -> p (Maybe Bool)
 ~~~~~
 
-Scalar Query
+Scalar Queries
 -----
 
 ~~~~~ {.haskell}
