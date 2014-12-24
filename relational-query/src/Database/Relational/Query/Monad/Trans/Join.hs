@@ -36,6 +36,7 @@ import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Expr (Expr, fromJust)
 import Database.Relational.Query.Component (Duplication (All))
 import Database.Relational.Query.Sub (SubQuery, Qualified, JoinProduct)
+import Database.Relational.Query.Projectable (expr)
 
 import Database.Relational.Query.Monad.Class (MonadQuery (..))
 
@@ -62,7 +63,7 @@ updateJoinRestriction e = updateContext (updateProduct d)  where
 -- | Joinable query instance.
 instance (Monad q, Functor q) => MonadQuery (QueryJoin q) where
   setDuplication     = QueryJoin . lift . tell . Last . Just
-  restrictJoin       = updateJoinRestriction
+  restrictJoin       = updateJoinRestriction . expr
   unsafeSubQuery     = unsafeSubQueryWithAttr
 
 -- | Unsafely join subquery with this query.

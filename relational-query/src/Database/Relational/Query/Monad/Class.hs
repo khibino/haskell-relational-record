@@ -28,7 +28,6 @@ import Database.Relational.Query.Component
   (Duplication (..), AggregateElem, AggregateColumnRef, aggregateColumnRef)
 import Database.Relational.Query.Projection (Projection, predicateProjectionFromExpr)
 import qualified Database.Relational.Query.Projection as Projection
-import Database.Relational.Query.Projectable (expr)
 import Database.Relational.Query.Sub (SubQuery, Qualified)
 
 import Database.Relational.Query.Internal.Product (NodeAttr)
@@ -44,8 +43,8 @@ class (Functor m, Monad m) => MonadQuery m where
   -- | Specify duplication.
   setDuplication :: Duplication -> m ()
   -- | Add restriction to last join.
-  restrictJoin :: Expr Flat (Maybe Bool) -- ^ 'Expr' 'Projection' which represent restriction
-               -> m ()                   -- ^ Restricted query context
+  restrictJoin :: Projection Flat (Maybe Bool) -- ^ 'Projection' which represent restriction
+               -> m ()                         -- ^ Restricted query context
   -- | Unsafely join subquery with this query.
   unsafeSubQuery :: NodeAttr              -- ^ Attribute maybe or just
                  -> Qualified SubQuery    -- ^ 'SubQuery' to join
@@ -84,11 +83,11 @@ distinct =  setDuplication Distinct
 
 -- | Add restriction to last join.
 onE :: MonadQuery m => Expr Flat (Maybe Bool) -> m ()
-onE =  restrictJoin
+onE =  restrictJoin . predicateProjectionFromExpr
 
 -- | Add restriction to last join. Projection type version.
 on :: MonadQuery m => Projection Flat (Maybe Bool) -> m ()
-on =  restrictJoin . expr
+on =  restrictJoin
 
 -- | Add restriction to this query. Expr type version.
 wheresE :: MonadRestrict Flat m => Expr Flat (Maybe Bool) -> m ()
