@@ -301,7 +301,7 @@ SELECT ALL T1.day AS f0, COUNT (T0.name) AS f1
 ~~~~~
 
 
-Others Features
+Other Features
 =====
 
 Placeholder
@@ -311,7 +311,8 @@ Placeholder
 specifyPerson :: Relation String (Person, Birthday)
 specifyPerson =  relation' $ do
   pb <- query personAndBirthday -- Re-use predefined
-  (ph, ()) <- placeholder (\ph' -> wheres $ pb ! fst' ! Person.name' .=. ph')
+  (ph, ()) <- placeholder
+              (\ph' -> wheres $ pb ! fst' ! Person.name' .=. ph')
   return (ph, pb)
 ~~~~~
 
@@ -320,8 +321,9 @@ Specify person name using placeholder.
 ~~~~~ {.sql}
 SELECT ALL T2.f0 AS f0, T2.f1 AS f1, T2.f2 AS f2,
            T2.f3 AS f3, T2.f4 AS f4
-  FROM (SELECT ALL T0.name AS f0, T0.age AS f1, T0.address AS f2,
-                   T1.name AS f3, T1.day AS f4
+  FROM (SELECT ALL
+               T0.name AS f0, T0.age AS f1, T0.address AS f2,
+               T1.name AS f3, T1.day AS f4
           FROM PUBLIC.person T0 INNER JOIN
                PUBLIC.birthday T1
             ON (T0.name = T1.name)) T2
@@ -355,7 +357,8 @@ personAndBirthdayT =  relation $ do
   p <- query person
   b <- query birthday
   wheres $ p ! Person.name' .=. b ! Birthday.name'
-  return $ PersonAndBirthday |$| p |*| b  -- Build record phantom type
+  -- Build record phantom type
+  return $ PersonAndBirthday |$| p |*| b
 
 (|$|) :: ProductConstructor (a -> b)
       => (a -> b) -> Projection c a -> Projection c b
@@ -385,16 +388,19 @@ Placeholder can be map to record.
 
 ~~~~~ {.haskell}
 placeholder3 f =
-  placeholder (\p0 -> placeholder (\p1 -> placeholder (\p2 -> f p0 p1 p2)))
+  placeholder (\p0 -> placeholder
+               (\p1 ->  placeholder (\p2 -> f p0 p1 p2)))
 
-personAndBirthdayP2 :: Relation ((String, Int32), String) PersonAndBirthday
+personAndBirthdayP2 :: Relation ((String, Int32), String)
+                                PersonAndBirthday
 personAndBirthdayP2 =  relation' $ do
   p <- query person
   b <- query birthday
   (ph0, (ph1, (ph2, ()))) <-
     placeholder3 (\ph0' ph1' ph2' ->
                    wheres $
-                   (Person |$| p ! Person.name' |*| p ! Person.age' |*| p ! Person.address')
+                   (Person |$| p ! Person.name'
+                           |*| p ! Person.age' |*| p ! Person.address')
                    .=.
                    (Person |$| ph0' |*| ph1' |*| ph2') )
   return $ (ph0 >< ph1 >< ph2, PersonAndBirthday |$| p |*| b)
@@ -439,11 +445,37 @@ ageRankOfFamilies =  relation $ do
 Discussion
 -----
 
+Others
+=====
+
 exists operator
 -----
+
+~~~~~ {.haskell}
+exists :: (SqlProjectable p, ProjectableShowSql p)
+       => ListProjection (Projection Exists) r -> p (Maybe Bool)
+
+values :: (ShowConstantTermsSQL t, SqlProjectable p)
+       => [t] -> ListProjection p t
+
+queryList :: MonadQualify ConfigureQuery m
+          => Relation () r
+          -> m (ListProjection (Projection c) r)
+~~~~~
+
+in' operator
+-----
+
+~~~~~ {.haskell}
+in' :: (SqlProjectable p, ProjectableShowSql p)
+    => p t -> ListProjection p t -> p (Maybe Bool)
+~~~~~
 
 Scalar Query
 -----
 
-in' operator
------
+~~~~~ {.haskell}
+queryScalar :: (MonadQualify ConfigureQuery m, ScalarDegree r)
+            => UniqueRelation () c r
+            -> m (Projection c (Maybe r))
+~~~~~
