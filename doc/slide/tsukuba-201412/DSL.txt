@@ -127,6 +127,7 @@ agesOfFamilies :: Relation () (String, Maybe Int32)
 agesOfFamilies =  aggregateRelation $ do
   my <- query myTable
   gFam <- groupBy $ my ! family'     -- Specify grouping key
+
   return $ gFam >< sum' (my ! age')  -- Aggregated results
 ~~~~~
 
@@ -389,23 +390,27 @@ Record Mapping - Placeholders
 Placeholders can be mapped to a record:
 
 ~~~~~ {.haskell}
-placeholder3 f =
-  placeholder (\p0 -> placeholder
-               (\p1 ->  placeholder (\p2 -> f p0 p1 p2)))
-
-personAndBirthdayP2 :: Relation ((String, Int32), String)
-                                PersonAndBirthday
+personAndBirthdayP2 :: Relation Person PersonAndBirthday
 personAndBirthdayP2 =  relation' $ do
   p <- query person
   b <- query birthday
-  (ph0, (ph1, (ph2, ()))) <-
-    placeholder3 (\ph0' ph1' ph2' ->
-                   wheres $
-                   (Person |$| p ! Person.name'
-                           |*| p ! Person.age' |*| p ! Person.address')
-                   .=.
-                   (Person |$| ph0' |*| ph1' |*| ph2') )
-  return $ (ph0 >< ph1 >< ph2, PersonAndBirthday |$| p |*| b)
+  (ph0, ()) <- placeholder (\ph0' -> on $ p ! Person.name'     .=. ph0')
+  (ph1, ()) <- placeholder (\ph1' -> on $ p ! Person.age'      .=. ph1')
+  (ph2, ()) <- placeholder (\ph2' -> on $ p ! Person.address'  .=. ph2')
+
+  return (Person |$| ph0 |*| ph1 |*| ph2,
+          PersonAndBirthday |$| p |*| b)
+
+(|$|) :: ProductConstructor (a -> b)
+      => (a -> b) -> Placeholders a -> Placeholders b
+(|*|) :: Placeholders (a -> b) -> Placeholders a -> Placeholders b
+~~~~~
+
+~~~~~ {.sql}
+SELECT ALL T0.name AS f0, T0.age AS f1, T0.address AS f2,
+           T1.name AS f3, T1.day AS f4
+      FROM PUBLIC.person T0 INNER JOIN PUBLIC.birthday T1
+        ON (((T0.name = ?) AND (T0.age = ?)) AND (T0.address = ?))
 ~~~~~
 
 Record Mapping - Record Placeholders
@@ -414,6 +419,9 @@ Record Mapping - Record Placeholders
 Record-typed placeholder:
 
 ~~~~~ {.haskell}
+placeholder :: (PersistableWidth t, Monad m)
+            => (Projection c t -> m a) -> m (PlaceHolders t, a)
+
 personAndBirthdayP :: Relation Person PersonAndBirthday
 personAndBirthdayP =  relation' $ do
   p <- query person
@@ -426,8 +434,7 @@ personAndBirthdayP =  relation' $ do
 SELECT ALL T0.name AS f0, T0.age AS f1, T0.address AS f2,
            T1.name AS f3, T1.day AS f4
       FROM PUBLIC.person T0 INNER JOIN PUBLIC.birthday T1
-        ON (0=0)
-     WHERE ((T0.name, T0.age, T0.address) = (?, ?, ?))
+        ON ((T0.name, T0.age, T0.address) = (?, ?, ?))
 ~~~~~
 
 Questions?

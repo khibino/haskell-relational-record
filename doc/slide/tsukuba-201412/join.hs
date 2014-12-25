@@ -102,21 +102,19 @@ personAndBirthdayP :: Relation Person PersonAndBirthday
 personAndBirthdayP =  relation' $ do
   p <- query person
   b <- query birthday
-  (ph, ()) <- placeholder (\ph' -> wheres $ p .=. ph')
+  (ph, ()) <- placeholder (\ph' -> on $ p .=. ph')
   return $ (ph, PersonAndBirthday |$| p |*| b)
 
 placeholder3 :: (Monad m, PersistableWidth t, PersistableWidth t1, PersistableWidth t2, SqlProjectable p, SqlProjectable p1, SqlProjectable p2) => (p t -> p1 t1 -> p2 t2 -> m a) -> m (PlaceHolders t, (PlaceHolders t1, (PlaceHolders t2, a)))
 placeholder3 f =
   placeholder (\p0 -> placeholder (\p1 -> placeholder (\p2 -> f p0 p1 p2)))
 
-personAndBirthdayP2 :: Relation ((String, Int32), String) PersonAndBirthday
+personAndBirthdayP2 :: Relation Person PersonAndBirthday
 personAndBirthdayP2 =  relation' $ do
   p <- query person
   b <- query birthday
-  (ph0, (ph1, (ph2, ()))) <-
-    placeholder3 (\ph0' ph1' ph2' ->
-                   wheres $
-                   (Person |$| p ! Person.name' |*| p ! Person.age' |*| p ! Person.address')
-                   .=.
-                   (Person |$| ph0' |*| ph1' |*| ph2') )
-  return $ (ph0 >< ph1 >< ph2, PersonAndBirthday |$| p |*| b)
+  (ph0, ()) <- placeholder (\ph0' -> on $ p ! Person.name'     .=. ph0')
+  (ph1, ()) <- placeholder (\ph1' -> on $ p ! Person.age'      .=. ph1')
+  (ph2, ()) <- placeholder (\ph2' -> on $ p ! Person.address'  .=. ph2')
+
+  return (Person |$| ph0 |*| ph1 |*| ph2, PersonAndBirthday |$| p |*| b)

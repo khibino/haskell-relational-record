@@ -137,6 +137,7 @@ personAndBirthdayL <span class="fu">=</span>  relation <span class="fu">$</span>
 agesOfFamilies <span class="fu">=</span>  aggregateRelation <span class="fu">$</span> <span class="kw">do</span>
   my <span class="ot">&lt;-</span> query myTable
   gFam <span class="ot">&lt;-</span> groupBy <span class="fu">$</span> my <span class="fu">!</span> family'     <span class="co">-- Specify grouping key</span>
+
   return <span class="fu">$</span> gFam <span class="fu">&gt;&lt;</span> sum' (my <span class="fu">!</span> age')  <span class="co">-- Aggregated results</span></code></pre>
 <p>sums ages per family.</p>
 <p>Generated SQL:</p>
@@ -306,27 +307,31 @@ uncurryPB <span class="fu">=</span>  <span class="dt">PersonAndBirthday</span> <
 </div><div id="record-mapping---placeholders" class="slide section level2">
 <h1>Record Mapping - Placeholders</h1>
 <p>Placeholders can be mapped to a record:</p>
-<pre class="sourceCode haskell"><code class="sourceCode haskell">placeholder3 f <span class="fu">=</span>
-  placeholder (\p0 <span class="ot">-&gt;</span> placeholder
-               (\p1 <span class="ot">-&gt;</span>  placeholder (\p2 <span class="ot">-&gt;</span> f p0 p1 p2)))
-
-<span class="ot">personAndBirthdayP2 ::</span> <span class="dt">Relation</span> ((<span class="dt">String</span>, <span class="dt">Int32</span>), <span class="dt">String</span>)
-                                <span class="dt">PersonAndBirthday</span>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">personAndBirthdayP2 ::</span> <span class="dt">Relation</span> <span class="dt">Person</span> <span class="dt">PersonAndBirthday</span>
 personAndBirthdayP2 <span class="fu">=</span>  relation' <span class="fu">$</span> <span class="kw">do</span>
   p <span class="ot">&lt;-</span> query person
   b <span class="ot">&lt;-</span> query birthday
-  (ph0, (ph1, (ph2, ()))) <span class="ot">&lt;-</span>
-    placeholder3 (\ph0' ph1' ph2' <span class="ot">-&gt;</span>
-                   wheres <span class="fu">$</span>
-                   (<span class="dt">Person</span> <span class="fu">|$|</span> p <span class="fu">!</span> Person.name'
-                           <span class="fu">|*|</span> p <span class="fu">!</span> Person.age' <span class="fu">|*|</span> p <span class="fu">!</span> Person.address')
-                   <span class="fu">.=.</span>
-                   (<span class="dt">Person</span> <span class="fu">|$|</span> ph0' <span class="fu">|*|</span> ph1' <span class="fu">|*|</span> ph2') )
-  return <span class="fu">$</span> (ph0 <span class="fu">&gt;&lt;</span> ph1 <span class="fu">&gt;&lt;</span> ph2, <span class="dt">PersonAndBirthday</span> <span class="fu">|$|</span> p <span class="fu">|*|</span> b)</code></pre>
+  (ph0, ()) <span class="ot">&lt;-</span> placeholder (\ph0' <span class="ot">-&gt;</span> on <span class="fu">$</span> p <span class="fu">!</span> Person.name'     <span class="fu">.=.</span> ph0')
+  (ph1, ()) <span class="ot">&lt;-</span> placeholder (\ph1' <span class="ot">-&gt;</span> on <span class="fu">$</span> p <span class="fu">!</span> Person.age'      <span class="fu">.=.</span> ph1')
+  (ph2, ()) <span class="ot">&lt;-</span> placeholder (\ph2' <span class="ot">-&gt;</span> on <span class="fu">$</span> p <span class="fu">!</span> Person.address'  <span class="fu">.=.</span> ph2')
+
+  return (<span class="dt">Person</span> <span class="fu">|$|</span> ph0 <span class="fu">|*|</span> ph1 <span class="fu">|*|</span> ph2,
+          <span class="dt">PersonAndBirthday</span> <span class="fu">|$|</span> p <span class="fu">|*|</span> b)
+
+<span class="ot">(|$|) ::</span> <span class="dt">ProductConstructor</span> (a <span class="ot">-&gt;</span> b)
+      <span class="ot">=&gt;</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> <span class="dt">Placeholders</span> a <span class="ot">-&gt;</span> <span class="dt">Placeholders</span> b
+<span class="ot">(|*|) ::</span> <span class="dt">Placeholders</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> <span class="dt">Placeholders</span> a <span class="ot">-&gt;</span> <span class="dt">Placeholders</span> b</code></pre>
+<pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.address <span class="kw">AS</span> f2,
+           T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
+      <span class="kw">FROM</span> PUBLIC.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> PUBLIC.birthday T1
+        <span class="kw">ON</span> (((T0.name = ?) <span class="kw">AND</span> (T0.age = ?)) <span class="kw">AND</span> (T0.address = ?))</code></pre>
 </div><div id="record-mapping---record-placeholders" class="slide section level2">
 <h1>Record Mapping - Record Placeholders</h1>
 <p>Record-typed placeholder:</p>
-<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">personAndBirthdayP ::</span> <span class="dt">Relation</span> <span class="dt">Person</span> <span class="dt">PersonAndBirthday</span>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">placeholder ::</span> (<span class="dt">PersistableWidth</span> t, <span class="dt">Monad</span> m)
+            <span class="ot">=&gt;</span> (<span class="dt">Projection</span> c t <span class="ot">-&gt;</span> m a) <span class="ot">-&gt;</span> m (<span class="dt">PlaceHolders</span> t, a)
+
+<span class="ot">personAndBirthdayP ::</span> <span class="dt">Relation</span> <span class="dt">Person</span> <span class="dt">PersonAndBirthday</span>
 personAndBirthdayP <span class="fu">=</span>  relation' <span class="fu">$</span> <span class="kw">do</span>
   p <span class="ot">&lt;-</span> query person
   b <span class="ot">&lt;-</span> query birthday
@@ -335,8 +340,7 @@ personAndBirthdayP <span class="fu">=</span>  relation' <span class="fu">$</span
 <pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.address <span class="kw">AS</span> f2,
            T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
       <span class="kw">FROM</span> PUBLIC.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> PUBLIC.birthday T1
-        <span class="kw">ON</span> (<span class="dv">0</span>=<span class="dv">0</span>)
-     <span class="kw">WHERE</span> ((T0.name, T0.age, T0.address) = (?, ?, ?))</code></pre>
+        <span class="kw">ON</span> ((T0.name, T0.age, T0.address) = (?, ?, ?))</code></pre>
 </div><div id="questions" class="slide section level2">
 <h1>Questions?</h1>
 </div><div id="window-function" class="slide section level2">
