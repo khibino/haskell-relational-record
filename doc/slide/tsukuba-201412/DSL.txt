@@ -214,6 +214,19 @@ SELECT ALL T1.day AS f0, COUNT (T0.name) AS f1
 Restrict Example
 -----
 
+Generated SQL:
+
+~~~~~ {.sql}
+SELECT ALL T1.day AS f0, COUNT (T0.name) AS f1
+  FROM PUBLIC.person T0 INNER JOIN PUBLIC.birthday T1
+    ON (T0.name = T1.name)
+ WHERE (T1.day >= DATE '1989-01-08')
+ GROUP BY T1.day HAVING (COUNT (T0.name) > 1)
+~~~~~
+
+Restrict Example
+-----
+
 ~~~~~ {.haskell}
 sameBirthdayHeisei :: Relation () (Day, Int64)
 sameBirthdayHeisei =  aggregateRelation $ do
@@ -303,6 +316,16 @@ SELECT ALL T1.day AS f0, COUNT (T0.name) AS f1
  GROUP BY T1.day ORDER BY COUNT (T0.name) DESC
 ~~~~~
 
+Ordering Example
+-----
+
+~~~~~ {.sql}
+SELECT ALL T1.day AS f0, COUNT (T0.name) AS f1
+  FROM PUBLIC.person T0 INNER JOIN PUBLIC.birthday T1
+    ON (T0.name = T1.name)
+ WHERE (T1.day >= DATE '1989-01-08')
+ GROUP BY T1.day ORDER BY COUNT (T0.name) DESC
+~~~~~
 
 Other Features
 =====
@@ -412,6 +435,18 @@ personAndBirthdayP2 =  relation' $ do
       => (a -> b) -> Placeholders a -> Placeholders b
 (|*|) :: Placeholders (a -> b) -> Placeholders a -> Placeholders b
 ~~~~~
+
+Generated SQL:
+
+~~~~~ {.sql}
+SELECT ALL T0.name AS f0, T0.age AS f1, T0.address AS f2,
+           T1.name AS f3, T1.day AS f4
+      FROM PUBLIC.person T0 INNER JOIN PUBLIC.birthday T1
+        ON (((T0.name = ?) AND (T0.age = ?)) AND (T0.address = ?))
+~~~~~
+
+Record Mapping - Placeholders
+-----
 
 Generated SQL:
 

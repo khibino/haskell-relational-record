@@ -190,6 +190,14 @@ sameBirthdayHeisei' <span class="fu">=</span>  aggregateRelation <span class="fu
  <span class="kw">GROUP</span> <span class="kw">BY</span> T1.day <span class="kw">HAVING</span> (<span class="fu">COUNT</span> (T0.name) &gt; <span class="dv">1</span>)</code></pre>
 </div><div id="restrict-example-1" class="slide section level2">
 <h1>Restrict Example</h1>
+<p>Generated SQL:</p>
+<pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T1.day <span class="kw">AS</span> f0, <span class="fu">COUNT</span> (T0.name) <span class="kw">AS</span> f1
+  <span class="kw">FROM</span> PUBLIC.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> PUBLIC.birthday T1
+    <span class="kw">ON</span> (T0.name = T1.name)
+ <span class="kw">WHERE</span> (T1.day &gt;= <span class="dt">DATE</span> <span class="st">'1989-01-08'</span>)
+ <span class="kw">GROUP</span> <span class="kw">BY</span> T1.day <span class="kw">HAVING</span> (<span class="fu">COUNT</span> (T0.name) &gt; <span class="dv">1</span>)</code></pre>
+</div><div id="restrict-example-2" class="slide section level2">
+<h1>Restrict Example</h1>
 <pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">sameBirthdayHeisei ::</span> <span class="dt">Relation</span> () (<span class="dt">Day</span>, <span class="dt">Int64</span>)
 sameBirthdayHeisei <span class="fu">=</span>  aggregateRelation <span class="fu">$</span> <span class="kw">do</span>
   p <span class="ot">&lt;-</span> query person
