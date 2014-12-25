@@ -67,15 +67,15 @@ personAndBirthday <span class="fu">=</span>  relation <span class="fu">$</span> 
   b <span class="ot">&lt;-</span> query birthday
   on <span class="fu">$</span> p <span class="fu">!</span> Person.name' <span class="fu">.=.</span> b <span class="fu">!</span> Birthday.name'
   return <span class="fu">$</span> p <span class="fu">&gt;&lt;</span> b</code></pre>
-</div><div id="state-stack" class="slide section level2">
-<h1>State Stack</h1>
+</div><div id="typing" class="slide section level2">
+<h1>Typing</h1>
 <p>A simple and useful method:</p>
 <ul>
-<li>Accumulate untyped typeful DSL terms into a state monad context</li>
+<li>Untype and accumulate from typeful DSL terms into a state monad context</li>
 <li>Typeful result</li>
-<li>Phantom context type</li>
+<li>Phantom context and result type</li>
 </ul>
-</div><div id="state-stack-1" class="slide section level2">
+</div><div id="state-stack" class="slide section level2">
 <h1>State Stack</h1>
 <p>Haskell Relational Record's query-building DSL accumulates various context in a state monad context stack.</p>
 <ul>
@@ -332,6 +332,11 @@ personAndBirthdayP <span class="fu">=</span>  relation' <span class="fu">$</span
   b <span class="ot">&lt;-</span> query birthday
   (ph, ()) <span class="ot">&lt;-</span> placeholder (\ph' <span class="ot">-&gt;</span> wheres <span class="fu">$</span> p <span class="fu">.=.</span> ph')
   return <span class="fu">$</span> (ph, <span class="dt">PersonAndBirthday</span> <span class="fu">|$|</span> p <span class="fu">|*|</span> b)</code></pre>
+<pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.address <span class="kw">AS</span> f2,
+           T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
+      <span class="kw">FROM</span> PUBLIC.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> PUBLIC.birthday T1
+        <span class="kw">ON</span> (<span class="dv">0</span>=<span class="dv">0</span>)
+     <span class="kw">WHERE</span> ((T0.name, T0.age, T0.address) = (?, ?, ?))</code></pre>
 </div><div id="questions" class="slide section level2">
 <h1>Questions?</h1>
 </div><div id="window-function" class="slide section level2">
@@ -348,6 +353,10 @@ ageRankOfFamilies <span class="fu">=</span>  relation <span class="fu">$</span> 
     my <span class="fu">!</span> family'
     <span class="fu">&gt;&lt;</span>
     my <span class="fu">!</span> age'</code></pre>
+<pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span>
+       <span class="fu">RANK</span>() <span class="kw">OVER</span> (<span class="kw">PARTITION</span> <span class="kw">BY</span> T0.family <span class="kw">ORDER</span> <span class="kw">BY</span> T0.age <span class="kw">DESC</span>) <span class="kw">AS</span> f0,
+       T0.family <span class="kw">AS</span> f1, T0.age <span class="kw">AS</span> f2
+  <span class="kw">FROM</span> PUBLIC.my_table T0</code></pre>
 </div><div id="discussion" class="slide section level2">
 <h1>Discussion</h1>
 </div>

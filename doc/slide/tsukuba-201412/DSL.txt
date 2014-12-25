@@ -27,14 +27,14 @@ personAndBirthday =  relation $ do
   return $ p >< b
 ~~~~~
 
-State Stack
+Typing
 -----
 
 A simple and useful method:
 
-* Accumulate untyped typeful DSL terms into a state monad context
+* Untype and accumulate from typeful DSL terms into a state monad context
 * Typeful result
-* Phantom context type
+* Phantom context and result type
 
 State Stack
 -----
@@ -422,6 +422,14 @@ personAndBirthdayP =  relation' $ do
   return $ (ph, PersonAndBirthday |$| p |*| b)
 ~~~~~
 
+~~~~~ {.sql}
+SELECT ALL T0.name AS f0, T0.age AS f1, T0.address AS f2,
+           T1.name AS f3, T1.day AS f4
+      FROM PUBLIC.person T0 INNER JOIN PUBLIC.birthday T1
+        ON (0=0)
+     WHERE ((T0.name, T0.age, T0.address) = (?, ?, ?))
+~~~~~
+
 Questions?
 -----
 
@@ -442,6 +450,13 @@ ageRankOfFamilies =  relation $ do
     my ! family'
     ><
     my ! age'
+~~~~~
+
+~~~~~ {.sql}
+SELECT ALL
+       RANK() OVER (PARTITION BY T0.family ORDER BY T0.age DESC) AS f0,
+       T0.family AS f1, T0.age AS f2
+  FROM PUBLIC.my_table T0
 ~~~~~
 
 Discussion
