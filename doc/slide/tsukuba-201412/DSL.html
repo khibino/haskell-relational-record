@@ -257,6 +257,13 @@ birthdayHeiseiDesc <span class="fu">=</span>  aggregateRelation <span class="fu"
     <span class="kw">ON</span> (T0.name = T1.name)
  <span class="kw">WHERE</span> (T1.day &gt;= <span class="dt">DATE</span> <span class="st">'1989-01-08'</span>)
  <span class="kw">GROUP</span> <span class="kw">BY</span> T1.day <span class="kw">ORDER</span> <span class="kw">BY</span> <span class="fu">COUNT</span> (T0.name) <span class="kw">DESC</span></code></pre>
+</div><div id="ordering-example-2" class="slide section level2">
+<h1>Ordering Example</h1>
+<pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T1.day <span class="kw">AS</span> f0, <span class="fu">COUNT</span> (T0.name) <span class="kw">AS</span> f1
+  <span class="kw">FROM</span> PUBLIC.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> PUBLIC.birthday T1
+    <span class="kw">ON</span> (T0.name = T1.name)
+ <span class="kw">WHERE</span> (T1.day &gt;= <span class="dt">DATE</span> <span class="st">'1989-01-08'</span>)
+ <span class="kw">GROUP</span> <span class="kw">BY</span> T1.day <span class="kw">ORDER</span> <span class="kw">BY</span> <span class="fu">COUNT</span> (T0.name) <span class="kw">DESC</span></code></pre>
 </div>
 <div id="other-features" class="titleslide slide section level1"><h1>Other Features</h1></div><div id="placeholders" class="slide section level2">
 <h1>Placeholders</h1>
@@ -333,6 +340,13 @@ personAndBirthdayP2 <span class="fu">=</span>  relation' <span class="fu">$</spa
 <span class="ot">(|$|) ::</span> <span class="dt">ProductConstructor</span> (a <span class="ot">-&gt;</span> b)
       <span class="ot">=&gt;</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> <span class="dt">Placeholders</span> a <span class="ot">-&gt;</span> <span class="dt">Placeholders</span> b
 <span class="ot">(|*|) ::</span> <span class="dt">Placeholders</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> <span class="dt">Placeholders</span> a <span class="ot">-&gt;</span> <span class="dt">Placeholders</span> b</code></pre>
+<p>Generated SQL:</p>
+<pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.address <span class="kw">AS</span> f2,
+           T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
+      <span class="kw">FROM</span> PUBLIC.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> PUBLIC.birthday T1
+        <span class="kw">ON</span> (((T0.name = ?) <span class="kw">AND</span> (T0.age = ?)) <span class="kw">AND</span> (T0.address = ?))</code></pre>
+</div><div id="record-mapping---placeholders-1" class="slide section level2">
+<h1>Record Mapping - Placeholders</h1>
 <p>Generated SQL:</p>
 <pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.address <span class="kw">AS</span> f2,
            T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
