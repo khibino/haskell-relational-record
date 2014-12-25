@@ -4,7 +4,6 @@
 
 import Data.Int
 import Data.Time
-import Database.Record
 import Database.Relational.Query
 import Database.Relational.Query.TH
 
@@ -104,10 +103,6 @@ personAndBirthdayP =  relation' $ do
   b <- query birthday
   (ph, ()) <- placeholder (\ph' -> on $ p .=. ph')
   return $ (ph, PersonAndBirthday |$| p |*| b)
-
-placeholder3 :: (Monad m, PersistableWidth t, PersistableWidth t1, PersistableWidth t2, SqlProjectable p, SqlProjectable p1, SqlProjectable p2) => (p t -> p1 t1 -> p2 t2 -> m a) -> m (PlaceHolders t, (PlaceHolders t1, (PlaceHolders t2, a)))
-placeholder3 f =
-  placeholder (\p0 -> placeholder (\p1 -> placeholder (\p2 -> f p0 p1 p2)))
 
 personAndBirthdayP2 :: Relation Person PersonAndBirthday
 personAndBirthdayP2 =  relation' $ do
