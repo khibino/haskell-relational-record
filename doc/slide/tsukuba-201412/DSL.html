@@ -293,6 +293,10 @@ personAndBirthdayT <span class="fu">=</span>  relation <span class="fu">$</span>
 <span class="ot">(|$|) ::</span> <span class="dt">ProductConstructor</span> (a <span class="ot">-&gt;</span> b)
       <span class="ot">=&gt;</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> <span class="dt">Projection</span> c a <span class="ot">-&gt;</span> <span class="dt">Projection</span> c b
 <span class="ot">(|*|) ::</span> <span class="dt">Projection</span> c (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> <span class="dt">Projection</span> c a <span class="ot">-&gt;</span> <span class="dt">Projection</span> c b</code></pre>
+<pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.address <span class="kw">AS</span> f2,
+           T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
+      <span class="kw">FROM</span> PUBLIC.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> PUBLIC.birthday T1
+        <span class="kw">ON</span> (T0.name = T1.name)</code></pre>
 </div><div id="record-mapping---column-selectors" class="slide section level2">
 <h1>Record Mapping - Column Selectors</h1>
 <p>Column selectors can be mapped to a record:</p>
@@ -321,6 +325,7 @@ personAndBirthdayP2 <span class="fu">=</span>  relation' <span class="fu">$</spa
 <span class="ot">(|$|) ::</span> <span class="dt">ProductConstructor</span> (a <span class="ot">-&gt;</span> b)
       <span class="ot">=&gt;</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> <span class="dt">Placeholders</span> a <span class="ot">-&gt;</span> <span class="dt">Placeholders</span> b
 <span class="ot">(|*|) ::</span> <span class="dt">Placeholders</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> <span class="dt">Placeholders</span> a <span class="ot">-&gt;</span> <span class="dt">Placeholders</span> b</code></pre>
+<p>Generated SQL:</p>
 <pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.address <span class="kw">AS</span> f2,
            T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
       <span class="kw">FROM</span> PUBLIC.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> PUBLIC.birthday T1
@@ -337,6 +342,7 @@ personAndBirthdayP <span class="fu">=</span>  relation' <span class="fu">$</span
   b <span class="ot">&lt;-</span> query birthday
   (ph, ()) <span class="ot">&lt;-</span> placeholder (\ph' <span class="ot">-&gt;</span> wheres <span class="fu">$</span> p <span class="fu">.=.</span> ph')
   return <span class="fu">$</span> (ph, <span class="dt">PersonAndBirthday</span> <span class="fu">|$|</span> p <span class="fu">|*|</span> b)</code></pre>
+<p>row value of Placeholders:</p>
 <pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.address <span class="kw">AS</span> f2,
            T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
       <span class="kw">FROM</span> PUBLIC.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> PUBLIC.birthday T1
@@ -354,9 +360,7 @@ ageRankOfFamilies <span class="fu">=</span>  relation <span class="fu">$</span> 
       partitionBy <span class="fu">$</span> my <span class="fu">!</span> family'  <span class="co">-- Monad to build window</span>
       orderBy (my <span class="fu">!</span> age') <span class="dt">Desc</span>
     <span class="fu">&gt;&lt;</span>
-    my <span class="fu">!</span> family'
-    <span class="fu">&gt;&lt;</span>
-    my <span class="fu">!</span> age'</code></pre>
+    my <span class="fu">!</span> family' <span class="fu">&gt;&lt;</span> my <span class="fu">!</span> age'</code></pre>
 <pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span>
        <span class="fu">RANK</span>() <span class="kw">OVER</span> (<span class="kw">PARTITION</span> <span class="kw">BY</span> T0.family <span class="kw">ORDER</span> <span class="kw">BY</span> T0.age <span class="kw">DESC</span>) <span class="kw">AS</span> f0,
        T0.family <span class="kw">AS</span> f1, T0.age <span class="kw">AS</span> f2

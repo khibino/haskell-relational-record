@@ -89,7 +89,7 @@ personAndBirthdayT :: Relation () PersonAndBirthday
 personAndBirthdayT =  relation $ do
   p <- query person
   b <- query birthday
-  wheres $ p ! Person.name' .=. b ! Birthday.name'
+  on $ p ! Person.name' .=. b ! Birthday.name'
   return $ PersonAndBirthday |$| p |*| b  -- Build record phantom type
 
 -- Birthday.day' :: Pi Birthday Day

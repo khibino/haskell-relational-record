@@ -368,6 +368,13 @@ personAndBirthdayT =  relation $ do
 (|*|) :: Projection c (a -> b) -> Projection c a -> Projection c b
 ~~~~~
 
+~~~~~ {.sql}
+SELECT ALL T0.name AS f0, T0.age AS f1, T0.address AS f2,
+           T1.name AS f3, T1.day AS f4
+      FROM PUBLIC.person T0 INNER JOIN PUBLIC.birthday T1
+        ON (T0.name = T1.name)
+~~~~~
+
 Record Mapping - Column Selectors
 -----
 
@@ -406,6 +413,8 @@ personAndBirthdayP2 =  relation' $ do
 (|*|) :: Placeholders (a -> b) -> Placeholders a -> Placeholders b
 ~~~~~
 
+Generated SQL:
+
 ~~~~~ {.sql}
 SELECT ALL T0.name AS f0, T0.age AS f1, T0.address AS f2,
            T1.name AS f3, T1.day AS f4
@@ -429,6 +438,7 @@ personAndBirthdayP =  relation' $ do
   (ph, ()) <- placeholder (\ph' -> wheres $ p .=. ph')
   return $ (ph, PersonAndBirthday |$| p |*| b)
 ~~~~~
+row value of Placeholders:
 
 ~~~~~ {.sql}
 SELECT ALL T0.name AS f0, T0.age AS f1, T0.address AS f2,
@@ -454,9 +464,7 @@ ageRankOfFamilies =  relation $ do
       partitionBy $ my ! family'  -- Monad to build window
       orderBy (my ! age') Desc
     ><
-    my ! family'
-    ><
-    my ! age'
+    my ! family' >< my ! age'
 ~~~~~
 
 ~~~~~ {.sql}
