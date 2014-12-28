@@ -41,7 +41,7 @@ newtype QueryUnique a = QueryUnique (QueryCore a)
 queryUnique :: ConfigureQuery a -> QueryUnique a
 queryUnique =  QueryUnique . restrictings . join'
 
--- | Instance to lift from qualified table forms into 'QuerySimple'.
+-- | Instance to lift from qualified table forms into 'QueryUnique'.
 instance MonadQualifyUnique ConfigureQuery QueryUnique where
   liftQualifyUnique = queryUnique
 

@@ -56,6 +56,7 @@ class (Functor q, Monad q, Functor m, Monad m) => MonadQualify q m where
   --   Qualify monad qualifies table form 'SubQuery'.
   liftQualify :: q a -> m a
 
+-- The only method to lift to QueryUnique.
 -- | Lift interface from base qualify monad. Another constraint to support unique query.
 class (Functor q, Monad q, MonadQuery m) => MonadQualifyUnique q m where
   -- | Lift from qualify monad 'q' into 'MonadQuery' m.
