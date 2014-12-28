@@ -65,7 +65,7 @@ aggregatedQuery =  orderings . restrictings . aggregatings . restrictings . join
 
 -- | Restricted 'MonadRestrict' instance.
 instance MonadRestrict Flat q => MonadRestrict Flat (Restrictings Aggregated q) where
-  restrictContext = restrictings . restrictContext
+  restrict = restrictings . restrict
 
 -- | Instance to lift from qualified table forms into 'QueryAggregate'.
 instance MonadQualify ConfigureQuery QueryAggregate where

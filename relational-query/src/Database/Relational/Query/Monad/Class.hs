@@ -16,7 +16,7 @@ module Database.Relational.Query.Monad.Class (
   MonadQualify (..), MonadQualifyUnique(..), MonadRestrict (..),
   MonadQuery (..), MonadAggregate (..), MonadPartition (..),
 
-  all', distinct, restrict,
+  all', distinct,
   onE, on, wheresE, wheres,
   groupBy,
   havingE, having
@@ -26,9 +26,8 @@ import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Expr (Expr)
 import Database.Relational.Query.Component
   (Duplication (..), AggregateElem, AggregateColumnRef, aggregateColumnRef)
-import Database.Relational.Query.Projection (Projection)
+import Database.Relational.Query.Projection (Projection, predicateProjectionFromExpr)
 import qualified Database.Relational.Query.Projection as Projection
-import Database.Relational.Query.Projectable (expr)
 import Database.Relational.Query.Sub (SubQuery, Qualified)
 
 import Database.Relational.Query.Internal.Product (NodeAttr)
@@ -36,16 +35,16 @@ import Database.Relational.Query.Internal.Product (NodeAttr)
 -- | Restrict context interface
 class (Functor m, Monad m) => MonadRestrict c m where
   -- | Add restriction to this context.
-  restrictContext :: Expr c (Maybe Bool) -- ^ 'Expr' 'Projection' which represent restriction
-                  -> m ()                         -- ^ Restricted query context
+  restrict :: Projection c (Maybe Bool) -- ^ 'Projection' which represent restriction
+           -> m ()                      -- ^ Restricted query context
 
 -- | Query building interface.
 class (Functor m, Monad m) => MonadQuery m where
   -- | Specify duplication.
   setDuplication :: Duplication -> m ()
   -- | Add restriction to last join.
-  restrictJoin :: Expr Flat (Maybe Bool) -- ^ 'Expr' 'Projection' which represent restriction
-               -> m ()                   -- ^ Restricted query context
+  restrictJoin :: Projection Flat (Maybe Bool) -- ^ 'Projection' which represent restriction
+               -> m ()                         -- ^ Restricted query context
   -- | Unsafely join subquery with this query.
   unsafeSubQuery :: NodeAttr              -- ^ Attribute maybe or just
                  -> Qualified SubQuery    -- ^ 'SubQuery' to join
@@ -84,19 +83,15 @@ distinct =  setDuplication Distinct
 
 -- | Add restriction to last join.
 onE :: MonadQuery m => Expr Flat (Maybe Bool) -> m ()
-onE =  restrictJoin
+onE =  restrictJoin . predicateProjectionFromExpr
 
 -- | Add restriction to last join. Projection type version.
 on :: MonadQuery m => Projection Flat (Maybe Bool) -> m ()
-on =  restrictJoin . expr
-
--- | Add restriction to this query.
-restrict :: MonadRestrict c m => Projection c (Maybe Bool) -> m ()
-restrict =  restrictContext . expr
+on =  restrictJoin
 
 -- | Add restriction to this query. Expr type version.
 wheresE :: MonadRestrict Flat m => Expr Flat (Maybe Bool) -> m ()
-wheresE =  restrictContext
+wheresE =  restrict . predicateProjectionFromExpr
 
 -- | Add restriction to this not aggregated query.
 wheres :: MonadRestrict Flat m => Projection Flat (Maybe Bool) -> m ()
@@ -112,7 +107,7 @@ groupBy p = do
 
 -- | Add restriction to this aggregated query. Expr type version.
 havingE :: MonadRestrict Aggregated m => Expr Aggregated (Maybe Bool) -> m ()
-havingE =  restrictContext
+havingE =  restrict . predicateProjectionFromExpr
 
 -- | Add restriction to this aggregated query. Aggregated Projection type version.
 having :: MonadRestrict Aggregated m => Projection Aggregated (Maybe Bool) -> m ()

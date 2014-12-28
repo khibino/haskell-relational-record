@@ -77,7 +77,7 @@ type PartitioningSetT c   = Aggregatings c         AggregateColumnRef
 
 -- | Aggregated 'MonadRestrict'.
 instance MonadRestrict c m => MonadRestrict c (AggregatingSetT m) where
-  restrictContext =  aggregatings . restrictContext
+  restrict =  aggregatings . restrict
 
 -- | Aggregated 'MonadQuery'.
 instance MonadQuery m => MonadQuery (AggregatingSetT m) where

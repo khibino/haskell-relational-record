@@ -22,6 +22,7 @@ module Database.Relational.Query.Projection (
   unsafeFromQualifiedSubQuery,
   unsafeFromScalarSubQuery,
   unsafeFromTable,
+  predicateProjectionFromExpr,
 
   -- * Projections
   pi, piMaybe, piMaybe',
@@ -47,15 +48,16 @@ import qualified Database.Record.KeyConstraint as KeyConstraint
 
 import Database.Relational.Query.Internal.SQL (rowListStringString)
 import Database.Relational.Query.Context (Aggregated, Flat)
-import Database.Relational.Query.Component (ColumnSQL)
+import Database.Relational.Query.Component (ColumnSQL, columnSQL')
 import Database.Relational.Query.Table (Table)
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Pure (ProductConstructor (..))
+import Database.Relational.Query.Expr.Unsafe (Expr, sqlExpr)
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Relational.Query.Sub
   (SubQuery, Qualified,
-   UntypedProjection, widthOfUntypedProjection, columnsOfUntypedProjection,
+   UntypedProjection, widthOfUntypedProjection, columnsOfUntypedProjection, untypedProjectionFromColumns,
    untypedProjectionFromColumns, untypedProjectionFromJoinedSubQuery, untypedProjectionFromScalarSubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
 
@@ -97,6 +99,11 @@ unsafeFromScalarSubQuery =  typedProjection . untypedProjectionFromScalarSubQuer
 unsafeFromTable :: Table r
                 -> Projection c r
 unsafeFromTable =  unsafeFromColumns . Table.columns
+
+-- | Lift 'Expr' to 'Projection' to use as restrict predicate.
+predicateProjectionFromExpr :: Expr c (Maybe Bool) -> Projection c (Maybe Bool)
+predicateProjectionFromExpr =
+  typedProjection . untypedProjectionFromColumns . (:[]) .  columnSQL' . sqlExpr
 
 
 -- | Unsafely trace projection path.
