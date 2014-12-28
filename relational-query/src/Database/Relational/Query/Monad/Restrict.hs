@@ -1,3 +1,7 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+
 -- |
 -- Module      : Database.Relational.Query.Monad.Restrict
 -- Copyright   : 2013 Kei Hibino
@@ -19,7 +23,9 @@ module Database.Relational.Query.Monad.Restrict (
 import Database.Relational.Query.Component (Config, QueryRestriction)
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Projection (Projection)
-import Database.Relational.Query.Monad.Trans.Restricting (Restrictings, extractRestrict)
+import Database.Relational.Query.Monad.Class (MonadQualify(..))
+import Database.Relational.Query.Monad.Trans.Restricting
+  (Restrictings, restrictings, extractRestrict)
 import Database.Relational.Query.Monad.Type (ConfigureQuery, configureQuery)
 
 
@@ -30,6 +36,10 @@ type Restrict = Restrictings Flat ConfigureQuery
 --   Projection record type 'r' must be
 --   the same as 'Restrictings' type parameter 'r'.
 type RestrictedStatement r a = Projection Flat r -> Restrict a
+
+-- | Instance to lift from qualified table forms into 'Restrict'.
+instance MonadQualify ConfigureQuery Restrict where
+  liftQualify = restrictings
 
 -- -- | 'return' of 'Restrict'
 -- restricted :: a -> Restrict a
