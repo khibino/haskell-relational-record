@@ -18,7 +18,7 @@ module Database.Relational.Query.Type (
 
   -- * Typed update statement
   KeyUpdate (..), unsafeTypedKeyUpdate, typedKeyUpdate, typedKeyUpdateTable,
-  Update (..), unsafeTypedUpdate, typedUpdate, typedUpdateTable, targetUpdate, targetUpdateTable,
+  Update (..), unsafeTypedUpdate, typedUpdate', typedUpdate, derivedUpdate', derivedUpdate,
   typedUpdateAllColumn, restrictedUpdateAllColumn, restrictedUpdateTableAllColumn,
 
   updateSQL,
@@ -30,7 +30,7 @@ module Database.Relational.Query.Type (
   insertQuerySQL,
 
   -- * Typed delete statement
-  Delete (..), unsafeTypedDelete, typedDelete, restrictedDelete,
+  Delete (..), unsafeTypedDelete, typedDelete', typedDelete, derivedDelete', derivedDelete,
 
   deleteSQL,
 
@@ -113,34 +113,30 @@ newtype Update p = Update { untypeUpdate :: String }
 unsafeTypedUpdate :: String -> Update p
 unsafeTypedUpdate =  Update
 
--- | Make untyped update SQL string from 'Table' and 'Restriction'.
+-- | Make untyped update SQL string from 'Table' and 'UpdateTarget'.
 updateSQL :: Config -> Table r -> UpdateTarget p r -> String
 updateSQL config tbl ut = showStringSQL $ updatePrefixSQL tbl <> sqlFromUpdateTarget config tbl ut
 
--- | Make typed 'Update' from 'Config', 'Table' and 'Restriction'.
+-- | Make typed 'Update' from 'Config', 'Table' and 'UpdateTarget'.
 typedUpdate' :: Config -> Table r -> UpdateTarget p r -> Update p
 typedUpdate' config tbl ut = unsafeTypedUpdate $ updateSQL config tbl ut
 
--- | Make typed 'Update' using 'defaultConfig', 'Table' and 'Restriction'.
+-- | Make typed 'Update' using 'defaultConfig', 'Table' and 'UpdateTarget'.
 typedUpdate :: Table r -> UpdateTarget p r -> Update p
 typedUpdate =  typedUpdate' defaultConfig
 
--- | Make typed 'Update' object using derived info specified by 'Relation' type.
-typedUpdateTable :: TableDerivable r => Relation () r -> UpdateTarget p r -> Update p
-typedUpdateTable =  typedUpdate . tableOf
+targetTable :: TableDerivable r => UpdateTarget p r -> Table r
+targetTable =  const derivedTable
 
--- | Directly make typed 'Update' from 'Table' and 'Target' monad context.
-targetUpdate :: Table r
-             -> UpdateTargetContext p r -- ^ 'Target' monad context
-             -> Update p
-targetUpdate tbl = typedUpdate tbl . updateTarget'
+-- | Make typed 'Update' from 'Config', derived table and 'UpdateTargetContext'
+derivedUpdate' :: TableDerivable r => Config -> UpdateTargetContext p r -> Update p
+derivedUpdate' config utc =  typedUpdate' config (targetTable ut) ut  where
+  ut = updateTarget' utc
 
--- | Directly make typed 'Update' from 'Relation' and 'Target' monad context.
-targetUpdateTable :: TableDerivable r
-                  => Relation () r
-                  -> UpdateTargetContext p r -- ^ 'Target' monad context
-                  -> Update p
-targetUpdateTable =  targetUpdate . tableOf
+-- | Make typed 'Update' from 'defaultConfig', derived table and 'UpdateTargetContext'
+derivedUpdate :: TableDerivable r => UpdateTargetContext p r -> Update p
+derivedUpdate = derivedUpdate' defaultConfig
+
 
 -- | Make typed 'Update' from 'Table' and 'Restriction'.
 --   Update target is all column.
@@ -243,19 +239,21 @@ deleteSQL config tbl r = showStringSQL $ deletePrefixSQL tbl <> sqlWhereFromRest
 typedDelete' :: Config -> Table r -> Restriction p r -> Delete p
 typedDelete' config tbl r = unsafeTypedDelete $ deleteSQL config tbl r
 
--- | Directly make typed 'Delete' from 'Config', 'Table' and 'Restrict' monad context.
-restrictedDelete' :: Config -> Table r
-                  -> RestrictionContext p r -- ^ 'Restrict' monad context.
-                  -> Delete p
-restrictedDelete' config tbl = typedDelete' config tbl . restriction'
-
 -- | Make typed 'Delete' from 'Table' and 'Restriction'.
 typedDelete :: Table r -> Restriction p r -> Delete p
 typedDelete =  typedDelete' defaultConfig
 
--- | Directly make typed 'Delete' from 'Table' and 'Restrict' monad context.
-restrictedDelete :: Table r -> RestrictionContext p r -> Delete p
-restrictedDelete =  restrictedDelete' defaultConfig
+restrictedTable :: TableDerivable r => Restriction p r -> Table r
+restrictedTable =  const derivedTable
+
+-- | Make typed 'Delete' from 'Config', derived table and 'RestrictContext'
+derivedDelete' :: TableDerivable r => Config -> RestrictionContext p r -> Delete p
+derivedDelete' config rc = typedDelete' config (restrictedTable rs) rs  where
+  rs = restriction' rc
+
+-- | Make typed 'Delete' from 'defaultConfig', derived table and 'RestrictContext'
+derivedDelete :: TableDerivable r => RestrictionContext p r -> Delete p
+derivedDelete = derivedDelete' defaultConfig
 
 -- | Show delete SQL string
 instance Show (Delete p) where
