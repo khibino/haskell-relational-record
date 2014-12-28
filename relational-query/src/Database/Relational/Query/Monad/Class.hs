@@ -51,7 +51,7 @@ class (Functor m, Monad m) => MonadQuery m where
                  -> m (Projection Flat r) -- ^ Result joined context and 'SubQuery' result projection.
 
 -- | Lift interface from base qualify monad.
-class (Functor q, Monad q, MonadQuery m) => MonadQualify q m where
+class (Functor q, Monad q, Functor m, Monad m) => MonadQualify q m where
   -- | Lift from qualify monad 'q' into 'MonadQuery' m.
   --   Qualify monad qualifies table form 'SubQuery'.
   liftQualify :: q a -> m a

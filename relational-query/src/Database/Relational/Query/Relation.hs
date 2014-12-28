@@ -106,8 +106,10 @@ subQueryQualifyFromRelation =  d  where
 -- subQueryFromRelation =  configureQuery . subQueryQualifyFromRelation
 
 -- | Basic monadic join operation using 'MonadQuery'.
-queryWithAttr :: MonadQualify ConfigureQuery m
-              => NodeAttr -> Relation p r -> m (PlaceHolders p, Projection Flat r)
+queryWithAttr :: (MonadQualify ConfigureQuery m, MonadQuery m)
+              => NodeAttr
+              -> Relation p r
+              -> m (PlaceHolders p, Projection Flat r)
 queryWithAttr attr = unsafeAddPlaceHolders . run where
   run rel = do
     q <- liftQualify $ do
@@ -117,21 +119,29 @@ queryWithAttr attr = unsafeAddPlaceHolders . run where
   -- d (Relation q) = unsafeMergeAnotherQuery attr q
 
 -- | Join subquery with place-holder parameter 'p'. query result is not 'Maybe'.
-query' :: MonadQualify ConfigureQuery m => Relation p r -> m (PlaceHolders p, Projection Flat r)
+query' :: (MonadQualify ConfigureQuery m, MonadQuery m)
+       => Relation p r
+       -> m (PlaceHolders p, Projection Flat r)
 query' =  queryWithAttr Just'
 
 -- | Join subquery. Query result is not 'Maybe'.
-query :: MonadQualify ConfigureQuery m => Relation () r -> m (Projection Flat r)
+query :: (MonadQualify ConfigureQuery m, MonadQuery m)
+      => Relation () r
+      -> m (Projection Flat r)
 query =  fmap snd . query'
 
 -- | Join subquery with place-holder parameter 'p'. Query result is 'Maybe'.
-queryMaybe' :: MonadQualify ConfigureQuery m => Relation p r -> m (PlaceHolders p, Projection Flat (Maybe r))
+queryMaybe' :: (MonadQualify ConfigureQuery m, MonadQuery m)
+            => Relation p r
+            -> m (PlaceHolders p, Projection Flat (Maybe r))
 queryMaybe' pr =  do
   (ph, pj) <- queryWithAttr Maybe pr
   return (ph, Projection.just pj)
 
 -- | Join subquery. Query result is 'Maybe'.
-queryMaybe :: MonadQualify ConfigureQuery m => Relation () r -> m (Projection Flat (Maybe r))
+queryMaybe :: (MonadQualify ConfigureQuery m, MonadQuery m)
+           => Relation () r
+           -> m (Projection Flat (Maybe r))
 queryMaybe =  fmap snd . queryMaybe'
 
 queryList0 :: MonadQualify ConfigureQuery m => Relation p r -> m (ListProjection (Projection c) r)
