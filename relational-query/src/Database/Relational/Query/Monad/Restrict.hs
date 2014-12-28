@@ -16,16 +16,15 @@ module Database.Relational.Query.Monad.Restrict (
   extract
   ) where
 
-import Data.Functor.Identity (Identity (..), runIdentity)
-
-import Database.Relational.Query.Component (QueryRestriction)
+import Database.Relational.Query.Component (Config, QueryRestriction)
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Projection (Projection)
 import Database.Relational.Query.Monad.Trans.Restricting (Restrictings, extractRestrict)
+import Database.Relational.Query.Monad.Type (ConfigureQuery, configureQuery)
 
 
 -- | Restrict only monad type used from update statement and delete statement.
-type Restrict = Restrictings Flat Identity
+type Restrict = Restrictings Flat ConfigureQuery
 
 -- | RestrictedStatement type synonym.
 --   Projection record type 'r' must be
@@ -37,5 +36,5 @@ type RestrictedStatement r a = Projection Flat r -> Restrict a
 -- restricted =  restrict . Identity
 
 -- | Run 'Restrict' to get 'QueryRestriction'.
-extract :: Restrict a -> (a, QueryRestriction Flat)
-extract =  runIdentity . extractRestrict
+extract :: Restrict a -> Config -> (a, QueryRestriction Flat)
+extract =  configureQuery . extractRestrict

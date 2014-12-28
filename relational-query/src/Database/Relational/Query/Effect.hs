@@ -32,7 +32,7 @@ import Database.Relational.Query.Internal.SQL (StringSQL, showStringSQL)
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Pi (id')
 import Database.Relational.Query.Table (Table, TableDerivable, derivedTable)
-import Database.Relational.Query.Component (composeWhere, composeSets)
+import Database.Relational.Query.Component (Config, defaultConfig, composeWhere, composeSets)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable
@@ -65,13 +65,13 @@ runRestriction (Restriction qf) =
   fmap fst . unsafeAddPlaceHolders . qf
 
 -- | SQL WHERE clause 'StringSQL' string from 'Restriction'.
-sqlWhereFromRestriction :: Table r -> Restriction p r -> StringSQL
-sqlWhereFromRestriction tbl (Restriction q) = composeWhere rs
-  where (_ph, rs) = Restrict.extract (q $ Projection.unsafeFromTable tbl)
+sqlWhereFromRestriction :: Config -> Table r -> Restriction p r -> StringSQL
+sqlWhereFromRestriction config tbl (Restriction q) = composeWhere rs
+  where (_ph, rs) = Restrict.extract (q $ Projection.unsafeFromTable tbl) config
 
 -- | Show where clause.
 instance TableDerivable r => Show (Restriction p r) where
-  show = showStringSQL . sqlWhereFromRestriction derivedTable
+  show = showStringSQL . sqlWhereFromRestriction defaultConfig derivedTable
 
 -- | UpdateTarget type with place-holder parameter 'p' and projection record type 'r'.
 newtype UpdateTarget p r = UpdateTarget (AssignStatement r ())
@@ -128,6 +128,9 @@ updateTargetAllColumn' = liftTargetAllColumn' . restriction'
 
 
 -- | SQL SET clause and WHERE clause 'StringSQL' string from 'UpdateTarget'
-sqlFromUpdateTarget :: Table r -> UpdateTarget p r -> StringSQL
-sqlFromUpdateTarget tbl (UpdateTarget q) = composeSets (asR tbl) <> composeWhere rs
-  where ((_ph, asR), rs) = Assign.extract (q (Projection.unsafeFromTable tbl))
+sqlFromUpdateTarget :: Config -> Table r -> UpdateTarget p r -> StringSQL
+sqlFromUpdateTarget config tbl (UpdateTarget q) = composeSets (asR tbl) <> composeWhere rs
+  where ((_ph, asR), rs) = Assign.extract (q (Projection.unsafeFromTable tbl)) config
+
+instance TableDerivable r => Show (UpdateTarget p r) where
+  show = showStringSQL . sqlFromUpdateTarget defaultConfig derivedTable
