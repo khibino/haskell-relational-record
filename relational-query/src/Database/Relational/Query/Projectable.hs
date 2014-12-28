@@ -26,7 +26,7 @@ module Database.Relational.Query.Projectable (
   unsafeValueNull,
 
   -- * Placeholders
-  PlaceHolders, addPlaceHolders, unsafePlaceHolders,
+  PlaceHolders, unsafeAddPlaceHolders, unsafePlaceHolders,
   placeholder', placeholder, unitPlaceHolder,
 
   -- * Projectable into SQL strings
@@ -493,8 +493,8 @@ cume_dist =  cumeDist
 data PlaceHolders p = PlaceHolders
 
 -- | Unsafely add placeholder parameter to queries.
-addPlaceHolders :: Functor f => f a -> f (PlaceHolders p, a)
-addPlaceHolders =  fmap ((,) PlaceHolders)
+unsafeAddPlaceHolders :: Functor f => f a -> f (PlaceHolders p, a)
+unsafeAddPlaceHolders =  fmap ((,) PlaceHolders)
 
 -- | Unsafely get placeholder parameter
 unsafePlaceHolders :: PlaceHolders p

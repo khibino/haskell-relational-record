@@ -73,7 +73,7 @@ import Database.Relational.Query.Projection
   (Projection, ListProjection, unsafeListProjectionFromSubQuery)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable
-  (PlaceHolders, unitPlaceHolder, addPlaceHolders, unsafePlaceHolders, projectZip)
+  (PlaceHolders, unitPlaceHolder, unsafeAddPlaceHolders, unsafePlaceHolders, projectZip)
 import Database.Relational.Query.ProjectableExtended ((!))
 
 
@@ -108,7 +108,7 @@ subQueryQualifyFromRelation =  d  where
 -- | Basic monadic join operation using 'MonadQuery'.
 queryWithAttr :: MonadQualify ConfigureQuery m
               => NodeAttr -> Relation p r -> m (PlaceHolders p, Projection Flat r)
-queryWithAttr attr = addPlaceHolders . run where
+queryWithAttr attr = unsafeAddPlaceHolders . run where
   run rel = do
     q <- liftQualify $ do
       sq <- subQueryQualifyFromRelation rel
@@ -393,7 +393,7 @@ uniqueQueryWithAttr :: MonadQualifyUnique ConfigureQuery m
                     => NodeAttr
                     -> UniqueRelation p c r
                     -> m (PlaceHolders p, Projection c r)
-uniqueQueryWithAttr attr = addPlaceHolders . run where
+uniqueQueryWithAttr attr = unsafeAddPlaceHolders . run where
   run rel = do
     q <- liftQualifyUnique $ do
       sq <- subQueryQualifyFromRelation (unUnique rel)
@@ -432,7 +432,7 @@ queryScalar' :: (MonadQualify ConfigureQuery m, ScalarDegree r)
              => UniqueRelation p c r
              -> m (PlaceHolders p, Projection c (Maybe r))
 queryScalar' ur =
-  addPlaceHolders . liftQualify $
+  unsafeAddPlaceHolders . liftQualify $
   Projection.unsafeFromScalarSubQuery <$> subQueryQualifyFromRelation (unUnique ur)
 
 -- | Scalar subQuery.

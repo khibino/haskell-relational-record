@@ -36,7 +36,7 @@ import Database.Relational.Query.Component (composeWhere, composeSets)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable
-  (PlaceHolders, placeholder, addPlaceHolders, (><), rightId)
+  (PlaceHolders, placeholder, unsafeAddPlaceHolders, (><), rightId)
 
 import Database.Relational.Query.Monad.Trans.Assigning (assignings, (<-#))
 import Database.Relational.Query.Monad.Restrict (Restrict, RestrictedStatement)
@@ -62,7 +62,7 @@ restriction' =  Restriction . (void .)
 runRestriction :: Restriction p r
                -> RestrictedStatement r (PlaceHolders p)
 runRestriction (Restriction qf) =
-  fmap fst . addPlaceHolders . qf
+  fmap fst . unsafeAddPlaceHolders . qf
 
 -- | SQL WHERE clause 'StringSQL' string from 'Restriction'.
 sqlWhereFromRestriction :: Table r -> Restriction p r -> StringSQL
@@ -92,7 +92,7 @@ updateTarget' qf = UpdateTarget $ void . qf
 _runUpdateTarget :: UpdateTarget p r
                  -> AssignStatement r (PlaceHolders p)
 _runUpdateTarget (UpdateTarget qf) =
-  fmap fst . addPlaceHolders . qf
+  fmap fst . unsafeAddPlaceHolders . qf
 
 updateAllColumn :: PersistableWidth r
                 => Restriction p r
