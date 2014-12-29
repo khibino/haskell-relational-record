@@ -385,7 +385,8 @@ ageRankOfFamilies <span class="fu">=</span>  relation <span class="fu">$</span> 
     <span class="fu">&gt;&lt;</span>
     my <span class="fu">!</span> family' <span class="fu">&gt;&lt;</span> my <span class="fu">!</span> age'</code></pre>
 <pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span>
-       <span class="fu">RANK</span>() <span class="kw">OVER</span> (<span class="kw">PARTITION</span> <span class="kw">BY</span> T0.family <span class="kw">ORDER</span> <span class="kw">BY</span> T0.age <span class="kw">DESC</span>) <span class="kw">AS</span> f0,
+       <span class="fu">RANK</span>() <span class="kw">OVER</span> (<span class="kw">PARTITION</span> <span class="kw">BY</span> T0.family
+                    <span class="kw">ORDER</span> <span class="kw">BY</span> T0.age <span class="kw">DESC</span>) <span class="kw">AS</span> f0,
        T0.family <span class="kw">AS</span> f1, T0.age <span class="kw">AS</span> f2
   <span class="kw">FROM</span> PUBLIC.my_table T0</code></pre>
 </div><div id="discussion" class="slide section level2">
@@ -396,16 +397,20 @@ ageRankOfFamilies <span class="fu">=</span>  relation <span class="fu">$</span> 
 <pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">exists ::</span> (<span class="dt">SqlProjectable</span> p, <span class="dt">ProjectableShowSql</span> p)
        <span class="ot">=&gt;</span> <span class="dt">ListProjection</span> (<span class="dt">Projection</span> <span class="dt">Exists</span>) r <span class="ot">-&gt;</span> p (<span class="dt">Maybe</span> <span class="dt">Bool</span>)
 
-<span class="ot">values ::</span> (<span class="dt">ShowConstantTermsSQL</span> t, <span class="dt">SqlProjectable</span> p)
-       <span class="ot">=&gt;</span> [t] <span class="ot">-&gt;</span> <span class="dt">ListProjection</span> p t
-
 <span class="ot">queryList ::</span> <span class="dt">MonadQualify</span> <span class="dt">ConfigureQuery</span> m
           <span class="ot">=&gt;</span> <span class="dt">Relation</span> () r
           <span class="ot">-&gt;</span> m (<span class="dt">ListProjection</span> (<span class="dt">Projection</span> c) r)</code></pre>
 </div><div id="in-operator" class="slide section level2">
 <h1>in' Operator</h1>
 <pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">in' ::</span> (<span class="dt">SqlProjectable</span> p, <span class="dt">ProjectableShowSql</span> p)
-    <span class="ot">=&gt;</span> p t <span class="ot">-&gt;</span> <span class="dt">ListProjection</span> p t <span class="ot">-&gt;</span> p (<span class="dt">Maybe</span> <span class="dt">Bool</span>)</code></pre>
+    <span class="ot">=&gt;</span> p t <span class="ot">-&gt;</span> <span class="dt">ListProjection</span> p t <span class="ot">-&gt;</span> p (<span class="dt">Maybe</span> <span class="dt">Bool</span>)
+
+<span class="ot">queryList ::</span> <span class="dt">MonadQualify</span> <span class="dt">ConfigureQuery</span> m
+          <span class="ot">=&gt;</span> <span class="dt">Relation</span> () r
+          <span class="ot">-&gt;</span> m (<span class="dt">ListProjection</span> (<span class="dt">Projection</span> c) r)
+
+<span class="ot">values ::</span> (<span class="dt">ShowConstantTermsSQL</span> t, <span class="dt">SqlProjectable</span> p)
+       <span class="ot">=&gt;</span> [t] <span class="ot">-&gt;</span> <span class="dt">ListProjection</span> p t</code></pre>
 </div><div id="scalar-queries" class="slide section level2">
 <h1>Scalar Queries</h1>
 <pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">queryScalar ::</span> (<span class="dt">MonadQualify</span> <span class="dt">ConfigureQuery</span> m, <span class="dt">ScalarDegree</span> r)

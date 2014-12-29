@@ -507,7 +507,8 @@ ageRankOfFamilies =  relation $ do
 
 ~~~~~ {.sql}
 SELECT ALL
-       RANK() OVER (PARTITION BY T0.family ORDER BY T0.age DESC) AS f0,
+       RANK() OVER (PARTITION BY T0.family
+                    ORDER BY T0.age DESC) AS f0,
        T0.family AS f1, T0.age AS f2
   FROM PUBLIC.my_table T0
 ~~~~~
@@ -525,9 +526,6 @@ exists Operator
 exists :: (SqlProjectable p, ProjectableShowSql p)
        => ListProjection (Projection Exists) r -> p (Maybe Bool)
 
-values :: (ShowConstantTermsSQL t, SqlProjectable p)
-       => [t] -> ListProjection p t
-
 queryList :: MonadQualify ConfigureQuery m
           => Relation () r
           -> m (ListProjection (Projection c) r)
@@ -539,6 +537,14 @@ in' Operator
 ~~~~~ {.haskell}
 in' :: (SqlProjectable p, ProjectableShowSql p)
     => p t -> ListProjection p t -> p (Maybe Bool)
+
+queryList :: MonadQualify ConfigureQuery m
+          => Relation () r
+          -> m (ListProjection (Projection c) r)
+
+values :: (ShowConstantTermsSQL t, SqlProjectable p)
+       => [t] -> ListProjection p t
+
 ~~~~~
 
 Scalar Queries
