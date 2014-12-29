@@ -1,5 +1,5 @@
 % Haskell Relational Record's Query-Building DSL
-% 2014-12-25
+% 2014-12-25 (Updated 2014-12-29)
 % Kei Hibino
 
 Rough Design
@@ -53,12 +53,12 @@ Join Product
 -----
 
 ~~~~~ {.haskell}
-query :: MonadQualify ConfigureQuery m
+query :: (MonadQualify ConfigureQuery m, MonadQuery m)
       => Relation () r
       -> m (Projection Flat r)
 
 -- Used for outer join
-queryMaybe :: MonadQualify ConfigureQuery m
+queryMaybe :: (MonadQualify ConfigureQuery m, MonadQuery m)
            => Relation () r
            -> m (Projection Flat (Maybe r))
 
@@ -110,6 +110,9 @@ count :: Projection Flat a -> Projection Aggregated Int64
 max'  :: Ord a
       => Projection Flat a -> Projection Aggregated (Maybe a)
 ~~~~~
+
+'groupBy' can be used under only 'MonadAggregate' monad constraint,
+narrower than 'MonadQuery'.
 
 'groupBy' returns a Projection value with an Aggregated context type:
 

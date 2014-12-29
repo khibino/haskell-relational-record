@@ -4,7 +4,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
-  <meta name="author" content="2014-12-25" />
+  <meta name="author" content="2014-12-25 (Updated 2014-12-29)" />
   <title>Haskell Relational Record's Query-Building DSL</title>
   <style type="text/css">code{white-space: pre;}</style>
   <!-- configuration parameters -->
@@ -51,7 +51,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <div class="presentation">
 <div class="titleslide slide">
   <h1>Haskell Relational Record's Query-Building DSL</h1>
-  <h2>2014-12-25</h2>
+  <h2>2014-12-25 (Updated 2014-12-29)</h2>
   <h3>Kei Hibino</h3>
 </div>
 <div id="rough-design" class="titleslide slide section level1"><h1>Rough Design</h1></div><div id="query-dsl-basics" class="slide section level2">
@@ -87,12 +87,12 @@ personAndBirthday <span class="fu">=</span>  relation <span class="fu">$</span> 
 </div>
 <div id="contexts-in-state" class="titleslide slide section level1"><h1>Contexts in State</h1></div><div id="join-product" class="slide section level2">
 <h1>Join Product</h1>
-<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">query ::</span> <span class="dt">MonadQualify</span> <span class="dt">ConfigureQuery</span> m
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">query ::</span> (<span class="dt">MonadQualify</span> <span class="dt">ConfigureQuery</span> m, <span class="dt">MonadQuery</span> m)
       <span class="ot">=&gt;</span> <span class="dt">Relation</span> () r
       <span class="ot">-&gt;</span> m (<span class="dt">Projection</span> <span class="dt">Flat</span> r)
 
 <span class="co">-- Used for outer join</span>
-<span class="ot">queryMaybe ::</span> <span class="dt">MonadQualify</span> <span class="dt">ConfigureQuery</span> m
+<span class="ot">queryMaybe ::</span> (<span class="dt">MonadQualify</span> <span class="dt">ConfigureQuery</span> m, <span class="dt">MonadQuery</span> m)
            <span class="ot">=&gt;</span> <span class="dt">Relation</span> () r
            <span class="ot">-&gt;</span> m (<span class="dt">Projection</span> <span class="dt">Flat</span> (<span class="dt">Maybe</span> r))
 
@@ -127,6 +127,7 @@ personAndBirthdayL <span class="fu">=</span>  relation <span class="fu">$</span>
 <span class="ot">count ::</span> <span class="dt">Projection</span> <span class="dt">Flat</span> a <span class="ot">-&gt;</span> <span class="dt">Projection</span> <span class="dt">Aggregated</span> <span class="dt">Int64</span>
 <span class="ot">max'  ::</span> <span class="dt">Ord</span> a
       <span class="ot">=&gt;</span> <span class="dt">Projection</span> <span class="dt">Flat</span> a <span class="ot">-&gt;</span> <span class="dt">Projection</span> <span class="dt">Aggregated</span> (<span class="dt">Maybe</span> a)</code></pre>
+<p>'groupBy' can be used under only 'MonadAggregate' monad constraint, narrower than 'MonadQuery'.</p>
 <p>'groupBy' returns a Projection value with an Aggregated context type:</p>
 <pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> .. <span class="kw">GROUP</span> <span class="kw">BY</span> ...
                 <span class="co">-- Accumulating keys</span>
