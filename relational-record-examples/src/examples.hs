@@ -7,13 +7,20 @@
 import Database.Record
 
 import Database.Relational.Query
+import Database.Relational.Query.Pi.Unsafe
+
 import Database.HDBC (IConnection, SqlValue, rollback)
 import Database.HDBC.Query.TH (makeRecordPersistableDefault)
+import Database.HDBC.Record (runDelete, runInsert, runInsertQuery, runQuery, runUpdate)
+import Database.HDBC.Session (withConnectionIO, handleSqlError')
+
 import Data.Int (Int64)
 import Data.Time (Day, LocalTime)
 
 import qualified Account
 import Account (Account, account, tableOfAccount)
+--import qualified Branch
+import Branch (Branch, tableOfBranch)
 import qualified Customer
 import Customer (Customer, customer)
 --import qualified Individual
@@ -22,8 +29,6 @@ import qualified Product
 import Product (product)
 --import qualified ProductType
 --import ProductType (ProductType, productType)
---import qualified Branch
---import Branch (Branch, Branch)
 --import qualified Officer
 --import Officer (Officer, Officer)
 import qualified Transaction
@@ -38,8 +43,6 @@ import qualified Employee
 import Employee (Employee, employee, tableOfEmployee)
 
 import DataSource (connect)
-import Database.HDBC.Record (runDelete, runQuery, runUpdate)
-import Database.HDBC.Session (withConnectionIO, handleSqlError')
 
 import Prelude hiding (product)
 
@@ -847,6 +850,65 @@ updateAccount_9_4_2 = typedUpdate tableOfAccount . updateTarget $ \proj -> do
 toDay :: (SqlProjectable p, ProjectableShowSql p) => p (Maybe LocalTime) -> p (Maybe Day)
 toDay dt = unsafeProjectSql $ "date(" ++ unsafeShowSql dt ++ ")"
 
+-- |
+-- (from script) The insert statement
+--
+-- Handwritten SQL:
+--
+-- @
+--   INSERT INTO branch (branch_id, name, address, city, state, zip)
+--   VALUES (null, 'Headquarters', '3882 Main St.', 'Waltham', 'MA', '02451');
+-- @
+--
+-- Literal version of Generated SQL:
+--
+-- @
+--   INSERT INTO MAIN.branch (name, address, city, state, zip) SELECT ALL
+--   'Headquarters' AS f0, '3882 Main St.' AS f1, 'Waltham' AS f2, 'MA' AS
+--   f3, '02451' AS f4
+-- @
+--
+insertBranch_s1 :: InsertQuery ()
+insertBranch_s1 = typedInsertQuery piBranch1 $ relation .
+  return $ Branch1 |$| value "Headquarters"
+                   |*| value (Just "3882 Main St.")
+                   |*| value (Just "Waltham")
+                   |*| value (Just "MA")
+                   |*| value (Just "02451")
+
+piBranch1 :: Pi Branch Branch1
+piBranch1 = definePi 1
+
+branch1 :: Branch1
+branch1 = Branch1
+  { b1Name = "Headquarters"
+  , b1Address = Just "3882 Main St."
+  , b1City = Just "Waltham"
+  , b1State = Just "MA"
+  , b1Zip = Just "02451"
+  }
+
+data Branch1 = Branch1
+  { b1Name :: String
+  , b1Address :: Maybe String
+  , b1City :: Maybe String
+  , b1State :: Maybe String
+  , b1Zip :: Maybe String
+  }
+
+$(makeRecordPersistableDefault ''Branch1)
+
+-- |
+-- Placeholder version of Generated SQL:
+--
+-- @
+--   INSERT INTO MAIN.branch (name, address, city, state, zip) VALUES (?,
+--   ?, ?, ?, ?)
+-- @
+--
+insertBranch_s1P :: Insert Branch1
+insertBranch_s1P = typedInsert tableOfBranch piBranch1
+
 --
 -- run and print sql
 --
@@ -857,6 +919,24 @@ run conn param rel = do
   putStrLn $ "SQL: " ++ show rel
   records <- runQuery conn (relationalQuery rel) param
   mapM_ print records
+  putStrLn ""
+  rollback conn
+
+runI :: (IConnection conn, ToSql SqlValue p)
+     => conn -> p -> Insert p -> IO ()
+runI conn param ins = do
+  putStrLn $ "SQL: " ++ show ins
+  num <- runInsert conn ins param
+  print num
+  putStrLn ""
+  rollback conn
+
+runIQ :: (IConnection conn, ToSql SqlValue p)
+     => conn -> p -> InsertQuery p -> IO ()
+runIQ conn param ins = do
+  putStrLn $ "SQL: " ++ show ins
+  num <- runInsertQuery conn ins param
+  print num
   putStrLn ""
   rollback conn
 
@@ -908,4 +988,6 @@ main = handleSqlError' $ withConnectionIO connect $ \conn -> do
   runD conn () deleteEmployee_9_4_2
   runU conn () updateEmployee_o3
   runU conn () updateAccount_9_4_2
+  runIQ conn () insertBranch_s1
+  runI conn branch1 insertBranch_s1P
 
