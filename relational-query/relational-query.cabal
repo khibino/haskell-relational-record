@@ -84,6 +84,7 @@ library
 test-suite SQLs
   build-depends:         base <5
                        , Cabal
+                       , cabal-test-compat
                        , relational-query
 
   type:                detailed-0.9

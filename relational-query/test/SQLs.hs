@@ -1,6 +1,7 @@
 module SQLs (tests) where
 
 import Distribution.TestSuite (Test)
+import Distribution.TestSuite.Compat (TestList, testList)
 
 import Tool (eqShow)
 import Model
@@ -111,6 +112,6 @@ _p_maybes :: IO ()
 _p_maybes =  mapM_ print [show justX, show maybeX]
 
 
-tests :: IO [Test]
+tests :: TestList
 tests =
-  return $ concat [base, directJoins, join3s, maybes]
+  testList $ concat [base, directJoins, join3s, maybes]
