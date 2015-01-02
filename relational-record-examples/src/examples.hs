@@ -19,26 +19,24 @@ import Data.Time (Day, LocalTime)
 
 import qualified Account
 import Account (Account, account, tableOfAccount)
---import qualified Branch
-import Branch (Branch, tableOfBranch)
+import qualified Branch
+import Branch (Branch, branch, tableOfBranch)
+--import qualified Business
+--import Business (Business, business)
 import qualified Customer
 import Customer (Customer, customer)
+import qualified Department
+import Department (Department, department, tableOfDepartment)
 --import qualified Individual
 --import Individual (Individual, individual)
+--import qualified Officer
+--import Officer (Officer, Officer)
 import qualified Product
 import Product (product)
 --import qualified ProductType
 --import ProductType (ProductType, productType)
---import qualified Officer
---import Officer (Officer, Officer)
 import qualified Transaction
 import Transaction (transaction)
---import qualified Business
---import Business (Business, business)
-import qualified Department
-import Department (Department, department, tableOfDepartment)
---import qualified Product
---import Product (Product, product)
 import qualified Employee
 import Employee (Employee, employee, tableOfEmployee)
 
@@ -909,6 +907,136 @@ $(makeRecordPersistableDefault ''Branch1)
 insertBranch_s1P :: Insert Branch1
 insertBranch_s1P = typedInsert tableOfBranch piBranch1
 
+-- |
+-- (from script) The insert statement
+--
+-- Handwritten SQL:
+--
+-- @
+--   INSERT INTO employee (emp_id, fname, lname, start_date,
+--     dept_id, title, assigned_branch_id)
+--   VALUES (null, 'Michael', 'Smith', '2001-06-22',
+--     (SELECT dept_id FROM department WHERE name = 'Administration'),
+--     'President',
+--     (SELECT branch_id FROM branch WHERE name = 'Headquarters'));
+-- @
+--
+-- Literal version of Generated SQL:
+--
+-- @
+--   INSERT INTO MAIN.employee (fname, lname, start_date, dept_id, title,
+--   assigned_branch_id) SELECT ALL 'Michael' AS f0, 'Smith' AS f1,
+--   '2001-06-22' AS f2, T0.dept_id AS f3, 'President' AS f4, T1.branch_id
+--   AS f5 FROM MAIN.department T0 INNER JOIN MAIN.branch T1 ON (0=0) WHERE
+--   ((T0.name = 'Administration') AND (T1.name = 'Headquarters'))
+-- @
+--
+-- Note: Since the name column of department table is not set with
+-- an unique constraint, it is not possible to use queryScalar.
+-- The name column of branch table is the same.
+--
+insertEmployee_s2 :: InsertQuery ()
+insertEmployee_s2 = typedInsertQuery piEmployee3 . relation $ do
+  d <- query department
+  b <- query branch
+  wheres $ d ! Department.name' .=. value "Administration"
+  wheres $ b ! Branch.name' .=. value "Headquarters"
+  return $ Employee3 |$| value "Michael"
+                     |*| value "Smith"
+                     |*| unsafeSQLiteDayValue "2001-06-22"
+                     |*| just (d ! Department.deptId')
+                     |*| value (Just "President")
+                     |*| just (b ! Branch.branchId')
+
+-- |
+-- In the following code we simulate to use queryScalar with using
+-- unsafeUnique. By that means we throw away the safety given by HRR
+-- and the type system.
+--
+-- Unsafe version of Generated SQL:
+--
+-- @
+--   INSERT INTO MAIN.employee (fname, lname, start_date, dept_id, title,
+--   assigned_branch_id) SELECT ALL 'Michael' AS f0, 'Smith' AS f1,
+--   '2001-06-22' AS f2, (SELECT ALL T0.dept_id AS f0 FROM MAIN.department
+--   T0 WHERE (T0.name = 'Administration')) AS f3, 'President' AS f4,
+--   (SELECT ALL T1.branch_id AS f0 FROM MAIN.branch T1 WHERE (T1.name
+--   = 'Headquarters')) AS f5
+-- @
+--
+insertEmployee_s2U :: InsertQuery ()
+insertEmployee_s2U = typedInsertQuery piEmployee3 . relation $ do
+  d <- queryScalar . unsafeUnique . relation $ do
+    d' <- query department
+    wheres $ d' ! Department.name' .=. value "Administration"
+    return $ d' ! Department.deptId'
+  b <- queryScalar . unsafeUnique . relation $ do
+    b' <- query branch
+    wheres $ b' ! Branch.name' .=. value "Headquarters"
+    return $ b' ! Branch.branchId'
+  return $ Employee3 |$| value "Michael"
+                     |*| value "Smith"
+                     |*| unsafeSQLiteDayValue "2001-06-22"
+                     |*| d
+                     |*| value (Just "President")
+                     |*| b
+
+piEmployee3 :: Pi Employee Employee3
+piEmployee3 = defineDirectPi [1,2,3,6,7,8]
+
+data Employee3 = Employee3
+  { e3Fname :: String
+  , e3Lname :: String
+  , e3StartDate :: Day
+  , e3DeptId :: Maybe Int64
+  , e3Title :: Maybe String
+  , e3AssignedBranchId :: Maybe Int64
+  }
+
+$(makeRecordPersistableDefault ''Employee3)
+
+data Employee4 = Employee4
+  { e4Fname :: String
+  , e4Lname :: String
+  , e4StartDate :: Day
+  , e4Title :: Maybe String
+  }
+
+$(makeRecordPersistableDefault ''Employee4)
+
+-- |
+-- Placeholder version of Generated SQL:
+--
+-- @
+--   INSERT INTO MAIN.employee (fname, lname, start_date, dept_id, title,
+--   assigned_branch_id) SELECT ALL ? AS f0, ? AS f1, ? AS f2, T0.dept_id
+--   AS f3, ? AS f4, T1.branch_id AS f5 FROM MAIN.department T0 INNER JOIN
+--   MAIN.branch T1 ON (0=0) WHERE ((T0.name = 'Administration') AND
+--   (T1.name = 'Headquarters'))
+-- @
+--
+insertEmployee_s2P :: InsertQuery Employee4
+insertEmployee_s2P = typedInsertQuery piEmployee3 . relation' $ do
+  d <- query department
+  b <- query branch
+  wheres $ d ! Department.name' .=. value "Administration"
+  wheres $ b ! Branch.name' .=. value "Headquarters"
+  placeholder $ \ph ->
+    return $ Employee3 |$| ph ! e4Fname'
+                       |*| ph ! e4Lname'
+                       |*| ph ! e4StartDate'
+                       |*| just (d ! Department.deptId')
+                       |*| ph ! e4Title'
+                       |*| just (b ! Branch.branchId')
+
+employee4 :: Employee4
+employee4 = Employee4
+  { e4Fname = "Michael"
+  , e4Lname = "Smith"
+  , e4StartDate = read "2001-06-22"
+  , e4Title = Just "President"
+  }
+
 --
 -- run and print sql
 --
@@ -990,4 +1118,7 @@ main = handleSqlError' $ withConnectionIO connect $ \conn -> do
   runU conn () updateAccount_9_4_2
   runIQ conn () insertBranch_s1
   runI conn branch1 insertBranch_s1P
+  runIQ conn () insertEmployee_s2
+  runIQ conn () insertEmployee_s2U
+  runIQ conn employee4 insertEmployee_s2P
 
