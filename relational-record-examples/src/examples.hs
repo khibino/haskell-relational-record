@@ -948,6 +948,20 @@ insertEmployee_s2 = typedInsertQuery piEmployee3 . relation $ do
                      |*| value (Just "President")
                      |*| just (b ! Branch.branchId')
 
+piEmployee3 :: Pi Employee Employee3
+piEmployee3 = defineDirectPi [1,2,3,6,7,8]
+
+data Employee3 = Employee3
+  { e3Fname :: String
+  , e3Lname :: String
+  , e3StartDate :: Day
+  , e3DeptId :: Maybe Int64
+  , e3Title :: Maybe String
+  , e3AssignedBranchId :: Maybe Int64
+  }
+
+$(makeRecordPersistableDefault ''Employee3)
+
 -- |
 -- In the following code we simulate to use queryScalar with using
 -- unsafeUnique. By that means we throw away the safety given by HRR
@@ -981,20 +995,8 @@ insertEmployee_s2U = typedInsertQuery piEmployee3 . relation $ do
                      |*| value (Just "President")
                      |*| b
 
-piEmployee3 :: Pi Employee Employee3
-piEmployee3 = defineDirectPi [1,2,3,6,7,8]
-
-data Employee3 = Employee3
-  { e3Fname :: String
-  , e3Lname :: String
-  , e3StartDate :: Day
-  , e3DeptId :: Maybe Int64
-  , e3Title :: Maybe String
-  , e3AssignedBranchId :: Maybe Int64
-  }
-
-$(makeRecordPersistableDefault ''Employee3)
-
+-- place the definition of Employee4 that contains template-haskell, before
+-- insertEmployee_s2P uses the function to be generated.
 data Employee4 = Employee4
   { e4Fname :: String
   , e4Lname :: String
