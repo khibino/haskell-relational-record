@@ -8,4 +8,4 @@ sudo apt-get install libghc-convertible-dev libghc-convertible-prof libghc-conve
 sudo apt-get install libghc-hdbc-dev libghc-hdbc-prof libghc-hdbc-doc
 
 cabal install cabal-test-compat
-cabal install relatinal-record
+cabal install relational-record
