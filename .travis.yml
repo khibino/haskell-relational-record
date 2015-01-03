@@ -5,8 +5,9 @@ ghc:
   - 7.4
 before_install:
   - date
+  - cabal --version
   - cd relational-query
 script:
-  - cabal configure --enable-tests --disable-shared && cabal build && ls -l dist/build && cabal test || ls -l dist/build
+  - cabal configure --enable-tests --enable-library-vanilla --disable-shared --disable-executable-dynamic && cabal build && ls -l dist/build && cabal test || ls -l dist/build
 after_script:
   - date
