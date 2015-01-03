@@ -1,13 +1,6 @@
-ghc:
-  - 7.8
-  - 7.6
-  - 7.4
+language: haskell
 before_install:
   - date
-  - travis-CI/before-install.sh
-install:
-  - travis-CI/install.sh
-script:
-  - travis-CI/script.sh
+  - cd relational-query
 after_script:
   - date
