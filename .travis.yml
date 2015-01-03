@@ -7,6 +7,6 @@ before_install:
   - date
   - cd relational-query
 script:
-  - cabal configure --enable-tests --distable-shared && cabal build && ls -l dist/build && cabal test || ls -l dist/build
+  - cabal configure --enable-tests --disable-shared && cabal build && ls -l dist/build && cabal test || ls -l dist/build
 after_script:
   - date
