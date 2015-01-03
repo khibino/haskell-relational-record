@@ -3,7 +3,7 @@ module SQLs (tests) where
 import Distribution.TestSuite (Test)
 import Distribution.TestSuite.Compat (TestList, testList)
 
-import Tool (eqShow)
+import Lex (eqProp)
 import Model
 
 import Data.Int (Int32)
@@ -11,9 +11,9 @@ import Database.Relational.Query
 
 base :: [Test]
 base =
-  [ eqShow "setA" setA "SELECT int_a0, str_a1, str_a2 FROM TEST.set_a"
-  , eqShow "setB" setB "SELECT int_b0, may_str_b1, str_b2 FROM TEST.set_b"
-  , eqShow "setC" setC "SELECT int_c0, str_c1, int_c2, may_str_c3 FROM TEST.set_c"
+  [ eqProp "setA" setA "SELECT int_a0, str_a1, str_a2 FROM TEST.set_a"
+  , eqProp "setB" setB "SELECT int_b0, may_str_b1, str_b2 FROM TEST.set_b"
+  , eqProp "setC" setC "SELECT int_c0, str_c1, int_c2, may_str_c3 FROM TEST.set_c"
   ]
 
 _p_base :: IO ()
@@ -36,15 +36,15 @@ fullX =  setA `full` setB `on'` [ \a b -> a ?! intA0' .=. b ?! intB0' ]
 
 directJoins :: [Test]
 directJoins =
-  [ eqShow "cross" cross
+  [ eqProp "cross" cross
     "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 FROM TEST.set_a T0 INNER JOIN TEST.set_b T1 ON (0=0)"
-  , eqShow "inner" innerX
+  , eqProp "inner" innerX
     "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 FROM TEST.set_a T0 INNER JOIN TEST.set_b T1 ON (T0.int_a0 = T1.int_b0)"
-  , eqShow "left" leftX
+  , eqProp "left" leftX
     "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 FROM TEST.set_a T0 LEFT JOIN TEST.set_b T1 ON (T0.str_a1 = T1.may_str_b1)"
-  , eqShow "right" rightX
+  , eqProp "right" rightX
     "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 FROM TEST.set_a T0 RIGHT JOIN TEST.set_b T1 ON (T0.int_a0 = T1.int_b0)"
-  , eqShow "full" fullX
+  , eqProp "full" fullX
     "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 FROM TEST.set_a T0 FULL JOIN TEST.set_b T1 ON (T0.int_a0 = T1.int_b0)"
   ]
 
@@ -73,10 +73,10 @@ j3right =  relation $ do
   return $ Abc |$| a |*| b |*| c
 
 join3s :: [Test]
-join3s =  [ eqShow "join-3 left" j3left
+join3s =  [ eqProp "join-3 left" j3left
             "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5, T2.int_c0 AS f6, T2.str_c1 AS f7, T2.int_c2 AS f8, T2.may_str_c3 AS f9 FROM (TEST.set_a T0 LEFT JOIN TEST.set_b T1 ON (T0.str_a2 = T1.str_b2)) LEFT JOIN TEST.set_c T2 ON (T1.int_b0 = T2.int_c0)"
 
-          , eqShow "join-3 right" j3right
+          , eqProp "join-3 right" j3right
             "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, T3.f0 AS f3, T3.f1 AS f4, T3.f2 AS f5, T3.f3 AS f6, T3.f4 AS f7, T3.f5 AS f8, T3.f6 AS f9 FROM TEST.set_a T0 INNER JOIN (SELECT ALL T1.int_b0 AS f0, T1.may_str_b1 AS f1, T1.str_b2 AS f2, T2.int_c0 AS f3, T2.str_c1 AS f4, T2.int_c2 AS f5, T2.may_str_c3 AS f6 FROM TEST.set_b T1 FULL JOIN TEST.set_c T2 ON (T1.int_b0 = T2.int_c0)) T3 ON (T0.str_a2 = T3.f2)"
           ]
 
@@ -102,9 +102,9 @@ maybeX =  relation $ do
   return $ fromMaybe (value 1) (a ?! intA0') >< b
 
 maybes :: [Test]
-maybes =  [ eqShow "isJust" justX
+maybes =  [ eqProp "isJust" justX
             "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 FROM TEST.set_a T0 LEFT JOIN TEST.set_b T1 ON (0=0) WHERE ((NOT (T1.int_b0 IS NULL)) OR (T0.int_a0 = 1))"
-          , eqShow "fromMaybe" maybeX
+          , eqProp "fromMaybe" maybeX
             "SELECT ALL CASE WHEN (T0.int_a0 IS NULL) THEN 1 ELSE T0.int_a0 END AS f0, T1.int_b0 AS f1, T1.may_str_b1 AS f2, T1.str_b2 AS f3 FROM TEST.set_a T0 RIGHT JOIN TEST.set_b T1 ON (0=0) WHERE (T0.str_a2 = T1.may_str_b1)"
           ]
 

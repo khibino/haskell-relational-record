@@ -86,11 +86,13 @@ test-suite SQLs
                        , Cabal
                        , cabal-test-compat
                        , relational-query
+                       , containers
+                       , transformers
 
   type:                detailed-0.9
   test-module:         SQLs
   other-modules:
-                       Tool
+                       Lex
                        Model
 
   hs-source-dirs:      test
