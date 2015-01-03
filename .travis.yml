@@ -6,5 +6,7 @@ ghc:
 before_install:
   - date
   - cd relational-query
+script:
+  - cabal configure --enable-tests && cabal build --verbose=2 && pwd && cabal test --verbose=2
 after_script:
   - date
