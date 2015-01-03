@@ -111,7 +111,65 @@ maybes =  [ eqProp "isJust" justX
 _p_maybes :: IO ()
 _p_maybes =  mapM_ print [show justX, show maybeX]
 
+setAFromB :: Pi SetB SetA
+setAFromB =  SetA |$| intB0' |*| strB2' |*| strB2'
+
+aFromB :: Relation () SetA
+aFromB =  relation $ do
+  x <- query setB
+  return $ x ! setAFromB
+
+unionX :: Relation () SetA
+unionX =  setA `union` aFromB
+
+unionAllX :: Relation () SetA
+unionAllX =  setA `unionAll` aFromB
+
+exceptX :: Relation () SetA
+exceptX =  setA `except` aFromB
+
+intersectX :: Relation () SetA
+intersectX =  setA `intersect` aFromB
+
+exps :: [Test]
+exps =  [ eqProp "union" unionX
+          "SELECT int_a0 AS f0, str_a1 AS f1, str_a2 AS f2 FROM TEST.set_a UNION SELECT ALL T0.int_b0 AS f0, T0.str_b2 AS f1, T0.str_b2 AS f2 FROM TEST.set_b T0"
+        , eqProp "unionAll" unionAllX
+          "SELECT int_a0 AS f0, str_a1 AS f1, str_a2 AS f2 FROM TEST.set_a UNION ALL SELECT ALL T0.int_b0 AS f0, T0.str_b2 AS f1, T0.str_b2 AS f2 FROM TEST.set_b T0"
+        , eqProp "except" exceptX
+          "SELECT int_a0 AS f0, str_a1 AS f1, str_a2 AS f2 FROM TEST.set_a EXCEPT SELECT ALL T0.int_b0 AS f0, T0.str_b2 AS f1, T0.str_b2 AS f2 FROM TEST.set_b T0"
+        , eqProp "intersect" intersectX
+          "SELECT int_a0 AS f0, str_a1 AS f1, str_a2 AS f2 FROM TEST.set_a INTERSECT SELECT ALL T0.int_b0 AS f0, T0.str_b2 AS f1, T0.str_b2 AS f2 FROM TEST.set_b T0"
+        ]
+
+insertX :: Insert SetA
+insertX =  derivedInsert
+
+updateKeyX :: KeyUpdate Int32 SetA
+updateKeyX =  primaryUpdate tableOfSetA
+
+updateX :: Update ()
+updateX =  derivedUpdate $ \proj -> do
+  strA2' <-# value "X"
+  wheres $ proj ! strA1' .=. value "A"
+  return unitPlaceHolder
+
+deleteX :: Delete ()
+deleteX =  derivedDelete $ \proj -> do
+  wheres $ proj ! strA1' .=. value "A"
+  return unitPlaceHolder
+
+effs :: [Test]
+effs =  [ eqProp "insert" insertX
+          "INSERT INTO TEST.set_a (int_a0, str_a1, str_a2) VALUES (?, ?, ?)"
+        , eqProp "updateKey" updateKeyX
+          "UPDATE TEST.set_a SET str_a1 = ?, str_a2 = ? WHERE int_a0 = ?"
+        , eqProp "update" updateX
+          "UPDATE TEST.set_a SET str_a2 = 'X' WHERE (str_a1 = 'A')"
+        , eqProp "delete" deleteX
+          "DELETE FROM TEST.set_a WHERE (str_a1 = 'A')"
+        ]
 
 tests :: TestList
 tests =
-  testList $ concat [base, directJoins, join3s, maybes]
+  testList $ concat [base, directJoins, join3s, maybes, exps, effs]

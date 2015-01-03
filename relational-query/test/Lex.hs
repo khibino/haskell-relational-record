@@ -26,6 +26,7 @@ data Token
   | LParen
   | RParen
   | Comma
+  | PlaceHolder
   deriving (Eq, Show)
 
 type VarName = String
@@ -125,6 +126,9 @@ rParen =  char ')' *> pure RParen
 comma :: Parser Token
 comma =  char ',' *> pure Comma
 
+placeholder :: Parser Token
+placeholder =  char '?' *> pure PlaceHolder
+
 eof :: Parser ()
 eof =  lift ReadP.eof
 
@@ -137,7 +141,8 @@ token =
   string                <|>
   lParen                <|>
   rParen                <|>
-  comma
+  comma                 <|>
+  placeholder
 
 tokens :: Parser [Token]
 tokens =  (many $ token <* spaces) <* eof
