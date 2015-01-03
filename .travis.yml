@@ -7,6 +7,6 @@ before_install:
   - date
   - cd relational-query
 script:
-  - cabal configure --enable-tests && cabal build --verbose=2 && pwd && cabal test --verbose=2
+  - cabal configure --enable-tests && cabal build && find dist/build -ls && cabal test || find dist/build -ls
 after_script:
   - date
