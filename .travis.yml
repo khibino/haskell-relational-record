@@ -5,14 +5,10 @@ language: haskell
 #   - 7.4
 before_install:
   - date
-  - sudo apt-get update
-  - sudo apt-get install cabal-install
-  - cabal --version
-  - sudo apt-get install haskell-platform haskell-platform-prof haskell-platform-doc
-  - cd relational-query
+  - ./travis-CI/before-install.sh
 install:
-  - cabal install --only-dependencies
-# script:
-#   - cabal configure --enable-tests --disable-executable-dynamic && cabal build && ls -l dist/build && cabal test || (ls -l dist/build ; exit 1)
+  - ./travis-CI/install.sh
+script:
+  - ./travis-CI/script.sh
 after_script:
   - date
