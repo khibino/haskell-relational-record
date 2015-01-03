@@ -7,5 +7,4 @@ sudo apt-get install libghc-dlist-dev libghc-dlist-prof libghc-dlist-doc
 sudo apt-get install libghc-convertible-dev libghc-convertible-prof libghc-convertible-doc
 sudo apt-get install libghc-hdbc-dev libghc-hdbc-prof libghc-hdbc-doc
 
-cabal install time-locale-compat
-cabal install cabal-test-compat
+cabal install relational-record
