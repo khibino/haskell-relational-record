@@ -1,0 +1,9 @@
+before_install:
+  - date
+  - travis-CI/before-install.sh
+install:
+  - travis-CI/install.sh
+script:
+  - travis-CI/script.sh
+after_script:
+  - date
