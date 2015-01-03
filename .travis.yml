@@ -8,9 +8,10 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install cabal-install
   - cabal --version
+  - sudo apt-get install haskell-platform haskell-platform-prof haskell-platform-doc
   - cd relational-query
 install:
-  - sudo apt-get install haskell-platform haskell-platform-prof haskell-platform-doc
+  - cabal install --only-dependencies
 # script:
 #   - cabal configure --enable-tests --disable-executable-dynamic && cabal build && ls -l dist/build && cabal test || (ls -l dist/build ; exit 1)
 after_script:
