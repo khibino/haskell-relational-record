@@ -1,13 +1,17 @@
 language: haskell
-ghc:
-  - 7.8
-  - 7.6
-  - 7.4
+# ghc:
+#   - 7.8
+#   - 7.6
+#   - 7.4
 before_install:
   - date
+  - sudo apt-get update
+  - sudo apt-get install cabal-install
   - cabal --version
   - cd relational-query
-script:
-  - cabal configure --enable-tests --disable-executable-dynamic && cabal build && ls -l dist/build && cabal test || (ls -l dist/build ; exit 1)
+install:
+  - sudo apt-get install haskell-platform haskell-platform-prof haskell-platform-doc
+# script:
+#   - cabal configure --enable-tests --disable-executable-dynamic && cabal build && ls -l dist/build && cabal test || (ls -l dist/build ; exit 1)
 after_script:
   - date
