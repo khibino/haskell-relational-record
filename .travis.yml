@@ -6,5 +6,7 @@ ghc:
 before_install:
   - date
   - cd relational-query
+script:
+  - runghc Setup.hs configure --enable-tests && runghc Setup.hs build && runghc Setup.hs test
 after_script:
   - date
