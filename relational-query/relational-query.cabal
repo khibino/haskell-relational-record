@@ -81,7 +81,7 @@ library
 
   default-language:     Haskell2010
 
-test-suite SQLs
+test-suite sqls
   build-depends:         base <5
                        , Cabal
                        , cabal-test-compat
