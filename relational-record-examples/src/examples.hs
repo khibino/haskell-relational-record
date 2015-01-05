@@ -7,7 +7,6 @@
 import Database.Record
 
 import Database.Relational.Query
-import Database.Relational.Query.Pi.Unsafe
 
 import Database.HDBC (IConnection, SqlValue, rollback)
 import Database.HDBC.Query.TH (makeRecordPersistableDefault)
@@ -874,8 +873,13 @@ insertBranch_s1 = typedInsertQuery piBranch1 $ relation .
                    |*| value (Just "MA")
                    |*| value (Just "02451")
 
+-- this is equal to `definePi 1'
 piBranch1 :: Pi Branch Branch1
-piBranch1 = definePi 1
+piBranch1 = Branch1 |$| Branch.name'
+                    |*| Branch.address'
+                    |*| Branch.city'
+                    |*| Branch.state'
+                    |*| Branch.zip'
 
 branch1 :: Branch1
 branch1 = Branch1
@@ -948,8 +952,14 @@ insertEmployee_s2 = typedInsertQuery piEmployee3 . relation $ do
                      |*| value (Just "President")
                      |*| just (b ! Branch.branchId')
 
+-- this is equal to `defineDirectPi [1,2,3,6,7,8]'
 piEmployee3 :: Pi Employee Employee3
-piEmployee3 = defineDirectPi [1,2,3,6,7,8]
+piEmployee3 = Employee3 |$| Employee.fname'
+                        |*| Employee.lname'
+                        |*| Employee.startDate'
+                        |*| Employee.deptId'
+                        |*| Employee.title'
+                        |*| Employee.assignedBranchId'
 
 data Employee3 = Employee3
   { e3Fname :: String
