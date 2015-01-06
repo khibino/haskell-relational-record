@@ -37,6 +37,9 @@ showDString (DString f) = f []
 isEmptyDString :: DString -> Bool
 isEmptyDString = null . showDString
 
+instance Eq DString where
+  x == y = showDString x == showDString y
+
 instance Show DString where
   show = showDString
 
@@ -139,3 +142,6 @@ wordShow :: Keyword -> String
 wordShow =  d  where
   d (Sequence s)   = showDString s
   d w              = show w
+
+instance Eq Keyword where
+  x == y = wordShow x == wordShow y
