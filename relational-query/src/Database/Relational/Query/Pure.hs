@@ -17,7 +17,7 @@ module Database.Relational.Query.Pure (
   ProductConstructor (..),
 
   -- * Constant SQL Terms
-  ShowConstantTermsSQL (..)
+  ShowConstantTermsSQL (..), showConstantTermsSQL
   ) where
 
 import Data.Monoid (mconcat)
@@ -32,11 +32,12 @@ import Text.Printf (PrintfArg, printf)
 import Data.Time (FormatTime, Day, TimeOfDay, LocalTime, formatTime)
 import Data.Time.Locale.Compat (defaultTimeLocale)
 
-import Language.SQL.Keyword (Keyword (..), wordShow)
+import Language.SQL.Keyword (Keyword (..))
 import Database.Record
   (PersistableWidth, persistableWidth, PersistableRecordWidth)
 import Database.Record.Persistable
   (runPersistableRecordWidth)
+import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL)
 
 
 -- | Specify tuple like record constructors which are allowed to define 'ProjectableFunctor'.
@@ -50,10 +51,10 @@ instance ProductConstructor (a -> b -> (a, b)) where
 
 
 -- | Constant integral SQL expression.
-intExprSQL :: (Show a, Integral a) => a -> String
-intExprSQL =  show
+intExprSQL :: (Show a, Integral a) => a -> StringSQL
+intExprSQL =  stringSQL . show
 
-intTermsSQL :: (Show a, Integral a) => a -> [String]
+intTermsSQL :: (Show a, Integral a) => a -> [StringSQL]
 intTermsSQL =  (:[]) . intExprSQL
 
 -- | Escape 'String' for constant SQL string expression.
@@ -64,99 +65,103 @@ escapeStringToSqlExpr =  rec  where
   rec (c:cs)    = c : rec cs
 
 -- | From 'String' into constant SQL string expression.
-stringExprSQL :: String -> String
-stringExprSQL =  ('\'':) . (++ "'") . escapeStringToSqlExpr
+stringExprSQL :: String -> StringSQL
+stringExprSQL =  stringSQL . ('\'':) . (++ "'") . escapeStringToSqlExpr
 
-stringTermsSQL :: String -> [String]
+stringTermsSQL :: String -> [StringSQL]
 stringTermsSQL =  (:[]) . stringExprSQL
 
 -- | Interface for constant SQL term list.
 class ShowConstantTermsSQL a where
-  showConstantTermsSQL :: a -> [String]
+  showConstantTermsSQL' :: a -> [StringSQL]
+
+-- | String interface of 'showConstantTermsSQL''.
+showConstantTermsSQL :: ShowConstantTermsSQL a => a -> [String]
+showConstantTermsSQL =  map showStringSQL . showConstantTermsSQL'
 
 -- | Constant SQL terms of 'Int16'.
 instance ShowConstantTermsSQL Int16 where
-  showConstantTermsSQL = intTermsSQL
+  showConstantTermsSQL' = intTermsSQL
 
 -- | Constant SQL terms of 'Int32'.
 instance ShowConstantTermsSQL Int32 where
-  showConstantTermsSQL = intTermsSQL
+  showConstantTermsSQL' = intTermsSQL
 
 -- | Constant SQL terms of 'Int64'.
 instance ShowConstantTermsSQL Int64 where
-  showConstantTermsSQL = intTermsSQL
+  showConstantTermsSQL' = intTermsSQL
 
 -- | Constant SQL terms of 'String'.
 instance ShowConstantTermsSQL String where
-  showConstantTermsSQL = stringTermsSQL
+  showConstantTermsSQL' = stringTermsSQL
 
 -- | Constant SQL terms of 'ByteString'.
 instance ShowConstantTermsSQL ByteString where
-  showConstantTermsSQL = stringTermsSQL . T.unpack . T.decodeUtf8
+  showConstantTermsSQL' = stringTermsSQL . T.unpack . T.decodeUtf8
 
 -- | Constant SQL terms of 'LB.ByteString'.
 instance ShowConstantTermsSQL LB.ByteString where
-  showConstantTermsSQL = showConstantTermsSQL . mconcat . LB.toChunks
+  showConstantTermsSQL' = mconcat . map showConstantTermsSQL' . LB.toChunks
 
 -- | Constant SQL terms of 'Text'.
 instance ShowConstantTermsSQL Text where
-  showConstantTermsSQL = stringTermsSQL . T.unpack
+  showConstantTermsSQL' = stringTermsSQL . T.unpack
 
 -- | Constant SQL terms of 'LT.Text'.
 instance ShowConstantTermsSQL LT.Text where
-  showConstantTermsSQL = showConstantTermsSQL . LT.toStrict
+  showConstantTermsSQL' = mconcat . map showConstantTermsSQL' . LT.toChunks
 
 -- | Constant SQL terms of 'Char'.
 instance ShowConstantTermsSQL Char where
-  showConstantTermsSQL = stringTermsSQL . (:"")
+  showConstantTermsSQL' = stringTermsSQL . (:"")
 
 -- | Constant SQL terms of 'Bool'.
 instance ShowConstantTermsSQL Bool where
-  showConstantTermsSQL = (:[]) . d  where
+  showConstantTermsSQL' = (:[]) . stringSQL . d  where
     d True  = "(0=0)"
     d False = "(0=1)"
 
-floatTerms :: (PrintfArg a, Ord a, Num a)=> a -> [String]
-floatTerms f = (:[]) $ printf fmt f  where
+floatTerms :: (PrintfArg a, Ord a, Num a)=> a -> [StringSQL]
+floatTerms f = (:[]) . stringSQL $ printf fmt f  where
   fmt
     | f >= 0    = "%f"
     | otherwise = "(%f)"
 
 -- | Constant SQL terms of 'Float'. Caution for floating-point error rate.
 instance ShowConstantTermsSQL Float where
-  showConstantTermsSQL = floatTerms
+  showConstantTermsSQL' = floatTerms
 
 -- | Constant SQL terms of 'Double'. Caution for floating-point error rate.
 instance ShowConstantTermsSQL Double where
-  showConstantTermsSQL = floatTerms
+  showConstantTermsSQL' = floatTerms
 
-constantTimeTerms :: FormatTime t => Keyword -> String -> t -> [String]
-constantTimeTerms kw fmt t = [unwords [wordShow kw,
+constantTimeTerms :: FormatTime t => Keyword -> String -> t -> [StringSQL]
+constantTimeTerms kw fmt t = [mconcat [kw,
                                        stringExprSQL $ formatTime defaultTimeLocale fmt t]]
 
 -- | Constant SQL terms of 'Day'.
 instance ShowConstantTermsSQL Day where
-  showConstantTermsSQL = constantTimeTerms DATE "%Y-%m-%d"
+  showConstantTermsSQL' = constantTimeTerms DATE "%Y-%m-%d"
 
 -- | Constant SQL terms of 'TimeOfDay'.
 instance ShowConstantTermsSQL TimeOfDay where
-  showConstantTermsSQL = constantTimeTerms TIME "%H:%M:%S"
+  showConstantTermsSQL' = constantTimeTerms TIME "%H:%M:%S"
 
 -- | Constant SQL terms of 'LocalTime'.
 instance ShowConstantTermsSQL LocalTime where
-  showConstantTermsSQL = constantTimeTerms TIMESTAMP "%Y-%m-%d %H:%M:%S"
+  showConstantTermsSQL' = constantTimeTerms TIMESTAMP "%Y-%m-%d %H:%M:%S"
 
-showMaybeTerms :: ShowConstantTermsSQL a => PersistableRecordWidth a -> Maybe a -> [String]
+showMaybeTerms :: ShowConstantTermsSQL a => PersistableRecordWidth a -> Maybe a -> [StringSQL]
 showMaybeTerms wa = d  where
-  d (Just a) = showConstantTermsSQL a
-  d Nothing  = replicate (runPersistableRecordWidth wa) "NULL"
+  d (Just a) = showConstantTermsSQL' a
+  d Nothing  = replicate (runPersistableRecordWidth wa) $ stringSQL "NULL"
 
 -- | Constant SQL terms of 'Maybe' type. Width inference is required.
 instance (PersistableWidth a, ShowConstantTermsSQL a)
          => ShowConstantTermsSQL (Maybe a) where
-  showConstantTermsSQL = showMaybeTerms persistableWidth
+  showConstantTermsSQL' = showMaybeTerms persistableWidth
 
 -- | Constant SQL terms of '(a, b)' type.
 instance (ShowConstantTermsSQL a, ShowConstantTermsSQL b)
          => ShowConstantTermsSQL (a, b) where
-  showConstantTermsSQL (a, b) = showConstantTermsSQL a ++ showConstantTermsSQL b
+  showConstantTermsSQL' (a, b) = showConstantTermsSQL' a ++ showConstantTermsSQL' b
