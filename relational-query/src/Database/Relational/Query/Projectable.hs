@@ -17,7 +17,8 @@ module Database.Relational.Query.Projectable (
   expr,
 
   -- * Projectable from SQL strings
-  SqlProjectable (unsafeProjectSqlTerms), unsafeProjectSql,
+  SqlProjectable (unsafeProjectSqlTerms'), unsafeProjectSql',
+  unsafeProjectSqlTerms, unsafeProjectSql,
 
   -- * Projections of values
   value,
@@ -83,15 +84,15 @@ import Database.Record
   (PersistableWidth, PersistableRecordWidth, derivedWidth,
    HasColumnConstraint, NotNull)
 
-import Database.Relational.Query.Internal.SQL (stringSQL, showStringSQL, rowStringSQL)
+import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL, rowStringSQL)
 import Database.Relational.Query.Context (Flat, Aggregated, Exists, OverWindow)
-import Database.Relational.Query.Component (columnSQL, showsColumnSQL)
+import Database.Relational.Query.Component (columnSQL', showsColumnSQL)
 import Database.Relational.Query.Expr (Expr)
 import qualified Database.Relational.Query.Expr as Expr
 import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr
 
 import Database.Relational.Query.Pure
-  (ShowConstantTermsSQL (showConstantTermsSQL), ProductConstructor (..))
+  (ShowConstantTermsSQL, showConstantTermsSQL', ProductConstructor (..))
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi as Pi
 
@@ -115,34 +116,44 @@ expr =  exprOfProjection
 
 
 -- | Unsafely generate 'Projection' from SQL expression strings.
-unsafeSqlTermsProjection :: [String] -> Projection c t
-unsafeSqlTermsProjection =  unsafeFromColumns . map columnSQL
+unsafeSqlTermsProjection :: [StringSQL] -> Projection c t
+unsafeSqlTermsProjection =  unsafeFromColumns . map columnSQL'
 
 -- | Interface to project SQL terms unsafely.
 class SqlProjectable p where
-  -- | Unsafely project from SQL expression strings.
-  unsafeProjectSqlTerms :: [String] -- ^ SQL expression strings
-                        -> p t      -- ^ Result projection object
+  -- | Unsafely project from SQL expression terms.
+  unsafeProjectSqlTerms' :: [StringSQL] -- ^ SQL expression strings
+                         -> p t         -- ^ Result projection object
+
+-- | Unsafely project from SQL strings. String interface of 'unsafeProjectSqlTerms''.
+unsafeProjectSqlTerms :: SqlProjectable p
+                      => [String] -- ^ SQL expression strings
+                      -> p t      -- ^ Result projection object
+unsafeProjectSqlTerms =  unsafeProjectSqlTerms' . map stringSQL
 
 -- | Unsafely make 'Projection' from SQL terms.
 instance SqlProjectable (Projection Flat) where
-  unsafeProjectSqlTerms = unsafeSqlTermsProjection
+  unsafeProjectSqlTerms' = unsafeSqlTermsProjection
 
 -- | Unsafely make 'Projection' from SQL terms.
 instance SqlProjectable (Projection Aggregated) where
-  unsafeProjectSqlTerms = unsafeSqlTermsProjection
+  unsafeProjectSqlTerms' = unsafeSqlTermsProjection
 
 -- | Unsafely make 'Projection' from SQL terms.
 instance SqlProjectable (Projection OverWindow) where
-  unsafeProjectSqlTerms = unsafeSqlTermsProjection
+  unsafeProjectSqlTerms' = unsafeSqlTermsProjection
 
 -- | Unsafely make 'Expr' from SQL terms.
 instance SqlProjectable (Expr p) where
-  unsafeProjectSqlTerms = UnsafeExpr.Expr . rowStringSQL . map stringSQL
+  unsafeProjectSqlTerms' = UnsafeExpr.Expr . rowStringSQL
 
 -- | Unsafely Project single SQL term.
+unsafeProjectSql' :: SqlProjectable p => StringSQL -> p t
+unsafeProjectSql' =  unsafeProjectSqlTerms' . (:[])
+
+-- | Unsafely Project single SQL string. String interface of 'unsafeProjectSql''.
 unsafeProjectSql :: SqlProjectable p => String -> p t
-unsafeProjectSql =  unsafeProjectSqlTerms . (:[])
+unsafeProjectSql =  unsafeProjectSql' . stringSQL
 
 -- | Polymorphic projection of SQL null value.
 unsafeValueNull :: SqlProjectable p => p (Maybe a)
@@ -150,7 +161,7 @@ unsafeValueNull =  unsafeProjectSql "NULL"
 
 -- | Generate polymorphic projection of SQL constant values from Haskell value.
 value :: (ShowConstantTermsSQL t, SqlProjectable p) => t -> p t
-value =  unsafeProjectSqlTerms . showConstantTermsSQL
+value =  unsafeProjectSqlTerms' . showConstantTermsSQL'
 
 -- | Polymorphic proejction of SQL true value.
 valueTrue  :: (SqlProjectable p, ProjectableMaybe p) => p (Maybe Bool)
@@ -379,7 +390,7 @@ caseSearch :: (SqlProjectable p, ProjectableShowSql p)
            => [(p (Maybe Bool), p a)] -- ^ Each when clauses
            -> p a                     -- ^ Else result projection
            -> p a                     -- ^ Result projection
-caseSearch cs e = unsafeProjectSql . SQL.wordShow $ SQL.CASE <> whensClause "caseSearch" cs e
+caseSearch cs e = unsafeProjectSql' $ SQL.CASE <> whensClause "caseSearch" cs e
 
 -- | Same as 'caseSearch', but you can write like <when list> `casesOrElse` <else clause>.
 casesOrElse :: (SqlProjectable p, ProjectableShowSql p)
@@ -401,7 +412,7 @@ case' :: (SqlProjectable p, ProjectableShowSql p)
       -> [(p a, p b)] -- ^ Each when clauses
       -> p b          -- ^ Else result projection
       -> p b          -- ^ Result projection
-case' v cs e = unsafeProjectSql . SQL.wordShow $ SQL.CASE <> unsafeSqlWord v <> whensClause "case'" cs e
+case' v cs e = unsafeProjectSql' $ SQL.CASE <> unsafeSqlWord v <> whensClause "case'" cs e
 
 -- | Uncurry version of 'case'', and you can write like ... `casesOrElse'` <else clause>.
 casesOrElse' :: (SqlProjectable p, ProjectableShowSql p)
@@ -447,7 +458,7 @@ fromMaybe' =  fromMaybe
 {-# DEPRECATED fromMaybe' "Use fromMaybe instead of this." #-}
 
 unsafeUniTermFunction :: SqlProjectable p => Keyword -> p t
-unsafeUniTermFunction =  unsafeProjectSql . (++ "()") . SQL.wordShow
+unsafeUniTermFunction =  unsafeProjectSql' . (SQL.<++> stringSQL "()")
 
 -- | /RANK()/ term.
 rank :: Projection OverWindow Int64
@@ -510,7 +521,7 @@ unsafeCastPlaceHolders PlaceHolders = PlaceHolders
 
 unsafeProjectPlaceHolder' :: (PersistableWidth r, SqlProjectable p)
                                => (PersistableRecordWidth r, p r)
-unsafeProjectPlaceHolder' =  unsafeProjectSqlTerms . (`replicate` "?") <$> derivedWidth
+unsafeProjectPlaceHolder' =  unsafeProjectSqlTerms' . (`replicate` "?") <$> derivedWidth
 
 unsafeProjectPlaceHolder :: (PersistableWidth r, SqlProjectable p)
                                => p r
