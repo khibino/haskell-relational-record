@@ -39,7 +39,6 @@ module Database.Relational.Query.ProjectableExtended (
 
 import Prelude hiding (pi)
 import Data.Int (Int64)
-import Data.Monoid ((<>))
 
 import qualified Language.SQL.Keyword as SQL
 
@@ -67,7 +66,7 @@ instance AggregatedContext OverWindow
 -- | Unsafely make aggregation uni-operator from SQL keyword.
 unsafeAggregateOp :: (AggregatedContext ac, SqlProjectable (p ac))
                   => SQL.Keyword -> Projection Flat a -> p ac b
-unsafeAggregateOp op = unsafeUniOp ((op <>) . SQL.paren)
+unsafeAggregateOp op = unsafeUniOp ((op SQL.<++>) . SQL.paren)
 
 -- | Aggregation function COUNT.
 count :: (AggregatedContext ac, SqlProjectable (p ac))
