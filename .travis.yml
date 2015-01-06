@@ -13,27 +13,25 @@ env:
   - PKG_DIR=relational-query-HDBC
 before_install:
   - date
-  - printenv
   - echo $PATH
-  - which ghc   ; ghc --version   ; dpkg -l ghc
   - which cabal ; cabal --version ; dpkg -l cabal-install
-  - sudo apt-get update
   - find /usr/local/ghc/*/bin -type f -ls
-  ## replace 7.4 into platform 2012.2
+  ## Replace GHC 7.4 into platform 2012.2
   - case "$PATH" in
       /usr/local/ghc/7.4*)
+        sudo apt-get update ;
         sudo apt-get --purge remove cabal-install ;
         sudo apt-get install haskell-platform haskell-platform-prof haskell-platform-doc cabal-install=0.14.0-2 ;
-        export PATH=/usr/bin:$PATH
+        export PATH=/usr/bin:$PATH ;
+        echo $PATH ;
+        which cabal ; cabal --version ; dpkg -l cabal-install ;
+        rm /home/travis/.cabal/config ; cabal update
         ;;
 
       *)
         ;;
     esac
-  - echo $PATH
-  - which ghc   ; ghc --version   ; dpkg -l ghc
-  - which cabal ; cabal --version ; dpkg -l cabal-install
-  - rm /home/travis/.cabal/config ; cabal update
+  - which ghc   ; ghc --version   ; dpkg -l ghc ;
   - cd $PKG_DIR
 after_script:
   - date
