@@ -28,6 +28,7 @@ module Language.SQL.Keyword.Concat (
   (.||.),
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
   and, or, in',
+  (<++>),
 
   fold,
 
@@ -38,7 +39,7 @@ module Language.SQL.Keyword.Concat (
 
 import Prelude hiding (and, or, not)
 import Data.List (intersperse)
-import Data.Monoid (mempty, mconcat)
+import Data.Monoid (mempty, mconcat, (<>))
 
 import Language.SQL.Keyword.Internal.Type (Keyword (..), word, wordShow, toDString, fromDString)
 
@@ -70,6 +71,10 @@ ws `parenSepBy` d = concatStr $ "(" : (ws `sepBy'` d) ++ [")"]
 {- $binaryOperators
 Binary operators on SQL. Result is concatinated into one 'Keyword'.
 -}
+
+-- | Directly concatinate SQL string without whitespaces.
+(<++>) :: Keyword -> Keyword -> Keyword
+x <++> y = fromDString $ toDString x <> toDString y
 
 concat' :: [Keyword] -> Keyword
 concat' =  fromDString . mconcat . map toDString
