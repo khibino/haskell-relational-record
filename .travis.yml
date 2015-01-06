@@ -1,30 +1,39 @@
 language: haskell
+ghc:
+  - 7.8
+  - 7.6
+  - 7.4
 env:
-  - GHC_VERSION=7.8
-  - GHC_VERSION=7.6
-  - GHC_VERSION=platform.2012.2
+  - PKG_DIR=names-th
+  - PKG_DIR=sql-words
+  - PKG_DIR=persistable-record
+  - PKG_DIR=relational-query
+  - PKG_DIR=relational-schemas
+  - PKG_DIR=HDBC-session
+  - PKG_DIR=relational-query-HDBC
 before_install:
   - date
+  - printenv
   - echo $PATH
   - which ghc   ; ghc --version   ; dpkg -l ghc
   - which cabal ; cabal --version ; dpkg -l cabal-install
   - sudo apt-get update
   - find /usr/local/ghc/*/bin -type f -ls
-  - case "$GHC_VERSION" in
-      platform.2012.2)
+  ## replace 7.4 into platform 2012.2
+  - case "$PATH" in
+      /usr/local/ghc/7.4*)
         sudo apt-get --purge remove cabal-install ;
         sudo apt-get install haskell-platform haskell-platform-prof haskell-platform-doc cabal-install=0.14.0-2 ;
         export PATH=/usr/bin:$PATH
         ;;
 
       *)
-        export PATH=/usr/local/ghc/$(ghc_find $GHC_VERSION)/bin:$PATH
         ;;
     esac
   - echo $PATH
   - which ghc   ; ghc --version   ; dpkg -l ghc
   - which cabal ; cabal --version ; dpkg -l cabal-install
   - rm /home/travis/.cabal/config ; cabal update
-  - cd relational-query
+  - cd $PKG_DIR
 after_script:
   - date
