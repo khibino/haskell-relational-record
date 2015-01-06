@@ -9,14 +9,14 @@
 --
 -- SQL keyword representation using Haskell data constructors.
 module Language.SQL.Keyword.Type (
-  Keyword (..),
+  Keyword (..), DString,
 
   word,
   wordShow, unwordsSQL
   ) where
 
 import Data.Monoid (mconcat)
-import Language.SQL.Keyword.Internal.Type (Keyword (..), word, wordShow)
+import Language.SQL.Keyword.Internal.Type (Keyword (..), word, wordShow, DString)
 
 
 -- | Concatinate keywords into 'String' like unwords

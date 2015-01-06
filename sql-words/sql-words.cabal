@@ -28,6 +28,20 @@ library
 
   default-language:     Haskell2010
 
+test-suite monoids
+  build-depends:         base <5
+                       , Cabal
+                       , cabal-test-compat
+                       , QuickCheck >=2
+                       , sql-words
+
+  type:                detailed-0.9
+  test-module:         MonoidLaw
+
+  hs-source-dirs:      test
+  ghc-options:         -Wall
+
+  default-language:     Haskell2010
 
 source-repository head
   type:       git
