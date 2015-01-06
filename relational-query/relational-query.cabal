@@ -72,7 +72,7 @@ library
                        , text
                        , dlist
                        , template-haskell
-                       , sql-words
+                       , sql-words >=0.1.1
                        , names-th
                        , persistable-record
 
