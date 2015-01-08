@@ -20,7 +20,7 @@ import Data.Time (LocalTime, Day, TimeOfDay)
 import Database.Record.Instances ()
 import Database.Relational.Query (Query, Relation, PlaceHolders, Projection, Flat,
                                   (!), (.=.), (><), asc, relationalQuery, just, placeholder',
-                                  query, relation', unsafeShowSql, unsafeShowSqlProjection,
+                                  query, relation', unsafeShowSql,
                                   unsafeProjectSql, wheres)
 import Database.Relational.Schema.SQLServerSyscat.Columns
 import Database.Relational.Schema.SQLServerSyscat.Indexes
@@ -99,11 +99,11 @@ columnTypeRelation = relation' $ do
     wheres $ cols ! Columns.userTypeId' .=. typs ! Types.userTypeId'
     wheres $ cols ! Columns.objectId'   .=. oid
     asc $ cols ! Columns.columnId'
-    return   (params, cols >< typs >< sqlsrvSchemaName (typs ! Types.schemaId'))
+    return   (params, cols >< typs >< sqlsrvSchemaName (typs ! Types.schemaId' :: Projection Flat Int32))
   where
     (params, oid) = sqlsrvOidPlaceHolder
     sqlsrvSchemaName i = unsafeProjectSql $
-        "SCHEMA_NAME(" ++ unsafeShowSqlProjection i ++ ")"
+        "SCHEMA_NAME(" ++ unsafeShowSql i ++ ")"
 
 columnTypeQuerySQL :: Query (String, String) ((Columns, Types), String)
 columnTypeQuerySQL =  relationalQuery columnTypeRelation
