@@ -11,6 +11,7 @@ env:
   - PKG_DIR=relational-schemas
   - PKG_DIR=HDBC-session
   - PKG_DIR=relational-query-HDBC
+  - PKG_DIR=relational-record
 before_install:
   - date
   - echo $PATH
