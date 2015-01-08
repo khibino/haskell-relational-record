@@ -297,13 +297,13 @@ contain documentation of other 'Maybe' flavor projection operators.
  -}
 
 {- $placeholders
-Placeholder flavor of operators against query operation and set operation are also provided, to realize type safe placeholder.
+Placeholders' flavor of operators against query operation and set operation are also provided, to realize type safe placeholders.
 
 'query'', 'left'', 'relation'', 'updateTarget'', 'restriction'', and 'union''
-operator are placeholder flavor 'query', 'left', 'relation', 'updateTarget', 'restriction' and 'union'.
+operator are placeholders' flavor 'query', 'left', 'relation', 'updateTarget', 'restriction' and 'union'.
 
 Module "Database.Relational.Query.Relation" and "Database.Relational.Query.Effect"
-contains documentation of other placeholder flavor operators.
+contains documentation of other placeholders' flavor operators.
 -}
 
 {- $recordMapping
