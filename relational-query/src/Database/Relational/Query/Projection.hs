@@ -32,13 +32,13 @@ module Database.Relational.Query.Projection (
   flattenMaybe, just,
 
   unsafeToAggregated, unsafeToFlat, unsafeChangeContext,
-  unsafeShowSqlNotNullMaybeProjection,
+  unsafeStringSqlNotNullMaybe,
 
   pfmap, pap,
 
   -- * List Projection
-  ListProjection, list, unsafeListProjectionFromSubQuery,
-  unsafeShowSqlListProjection
+  ListProjection, list, unsafeListFromSubQuery,
+  unsafeStringSqlList
   ) where
 
 import Prelude hiding (pi)
@@ -170,8 +170,8 @@ notNullMaybeConstraint :: HasColumnConstraint NotNull r => Projection c (Maybe r
 notNullMaybeConstraint =  const KeyConstraint.columnConstraint
 
 -- | Unsafely get SQL string expression of not null key projection.
-unsafeShowSqlNotNullMaybeProjection :: HasColumnConstraint NotNull r => Projection c (Maybe r) -> StringSQL
-unsafeShowSqlNotNullMaybeProjection p = showsColumnSQL . (!!  KeyConstraint.index (notNullMaybeConstraint p)) . columns $ p
+unsafeStringSqlNotNullMaybe :: HasColumnConstraint NotNull r => Projection c (Maybe r) -> StringSQL
+unsafeStringSqlNotNullMaybe p = showsColumnSQL . (!!  KeyConstraint.index (notNullMaybeConstraint p)) . columns $ p
 
 -- | Projectable fmap of 'Projection' type.
 pfmap :: ProductConstructor (a -> b)
@@ -191,11 +191,11 @@ list :: [p t] -> ListProjection p t
 list =  List
 
 -- | Make row list projection from 'SubQuery'.
-unsafeListProjectionFromSubQuery :: SubQuery -> ListProjection p t
-unsafeListProjectionFromSubQuery =  Sub
+unsafeListFromSubQuery :: SubQuery -> ListProjection p t
+unsafeListFromSubQuery =  Sub
 
 -- | Map projection show operatoions and concatinate to single SQL expression.
-unsafeShowSqlListProjection :: (p t -> StringSQL) -> ListProjection p t -> StringSQL
-unsafeShowSqlListProjection sf = d  where
+unsafeStringSqlList :: (p t -> StringSQL) -> ListProjection p t -> StringSQL
+unsafeStringSqlList sf = d  where
   d (List ps) = rowListStringSQL $ map sf ps
   d (Sub sub) = SQL.paren $ SubQuery.showSQL sub

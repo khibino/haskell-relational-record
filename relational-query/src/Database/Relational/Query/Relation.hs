@@ -70,7 +70,7 @@ import qualified Database.Relational.Query.Sub as SubQuery
 import Database.Relational.Query.Scalar (ScalarDegree)
 import Database.Relational.Query.Pi (Pi)
 import Database.Relational.Query.Projection
-  (Projection, ListProjection, unsafeListProjectionFromSubQuery)
+  (Projection, ListProjection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable
   (PlaceHolders, unitPlaceHolder, unsafeAddPlaceHolders, unsafePlaceHolders, projectZip)
@@ -146,7 +146,7 @@ queryMaybe =  fmap snd . queryMaybe'
 
 queryList0 :: MonadQualify ConfigureQuery m => Relation p r -> m (ListProjection (Projection c) r)
 queryList0 =  liftQualify
-              . fmap unsafeListProjectionFromSubQuery
+              . fmap Projection.unsafeListFromSubQuery
               . subQueryQualifyFromRelation
 
 -- | List subQuery, for /IN/ and /EXIST/ with place-holder parameter 'p'.

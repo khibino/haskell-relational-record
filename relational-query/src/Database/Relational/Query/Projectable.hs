@@ -94,7 +94,7 @@ import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi as Pi
 
 import Database.Relational.Query.Projection
-  (Projection, ListProjection, unsafeShowSqlListProjection)
+  (Projection, ListProjection)
 import qualified Database.Relational.Query.Projection as Projection
 
 
@@ -263,7 +263,7 @@ not' =  unsafeFlatUniOp SQL.NOT
 exists :: (SqlProjectable p, ProjectableShowSql p)
        => ListProjection (Projection Exists) r -> p (Maybe Bool)
 exists =  unsafeProjectSql' . SQL.paren . SQL.defineUniOp SQL.EXISTS
-          . unsafeShowSqlListProjection unsafeShowSql'
+          . Projection.unsafeStringSqlList unsafeShowSql'
 
 -- | Concatinate operator corresponding SQL /||/ .
 (.||.) :: (SqlProjectable p, ProjectableShowSql p, IsString a)
@@ -413,14 +413,14 @@ caseMaybe v cs = case' v cs unsafeValueNull
 in' :: (SqlProjectable p, ProjectableShowSql p)
     => p t -> ListProjection p t -> p (Maybe Bool)
 in' a lp = unsafeProjectSql' . SQL.paren
-           $ SQL.in' (unsafeShowSql' a) (unsafeShowSqlListProjection unsafeShowSql' lp)
+           $ SQL.in' (unsafeShowSql' a) (Projection.unsafeStringSqlList unsafeShowSql' lp)
 
 -- | Operator corresponding SQL /IS NULL/ , and extended against record types.
 isNothing :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
           => Projection c (Maybe r) -> Projection c (Maybe Bool)
 isNothing mr = unsafeProjectSql' $
                SQL.paren $ (SQL.defineBinOp SQL.IS)
-               (Projection.unsafeShowSqlNotNullMaybeProjection mr) SQL.NULL
+               (Projection.unsafeStringSqlNotNullMaybe mr) SQL.NULL
 
 -- | Operator corresponding SQL /NOT (... IS NULL)/ , and extended against record type.
 isJust :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
