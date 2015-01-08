@@ -234,6 +234,15 @@ employee_4_3_2 = relation $ do
                      |*| e ! Employee.fname'
                      |*| e ! Employee.lname'
                      |*| e ! Employee.startDate'
+
+data Employee2 = Employee2
+  { e2EmpId :: Int64
+  , e2Fname :: String
+  , e2Lname :: String
+  , e2StartDate :: Day
+  } deriving (Show)
+
+$(makeRecordPersistableDefault ''Employee2)
 {% endhighlight %}
 
 Generated SQL:
@@ -245,6 +254,32 @@ SELECT ALL T0.emp_id AS f0,
            T0.start_date AS f3
 FROM MAIN.employee T0
 WHERE ((T0.start_date >= '2001-01-01') AND (T0.start_date <= '2003-01-01'))
+{% endhighlight %}
+
+HRR with place holder:
+
+{% highlight haskell %}
+employee_4_3_2P :: Relation (Day,Day) Employee2
+employee_4_3_2P = relation' $ do
+  e <- query employee
+  (phDay1,()) <- placeholder (\ph -> wheres $ e ! Employee.startDate' .>=. ph)
+  (phDay2,()) <- placeholder (\ph -> wheres $ e ! Employee.startDate' .<=. ph)
+  return (phDay1 >< phDay2,
+           Employee2 |$| e ! Employee.empId'
+                     |*| e ! Employee.fname'
+                     |*| e ! Employee.lname'
+                     |*| e ! Employee.startDate')
+{% endhighlight %}
+
+Generated SQL:
+
+{% highlight sql %}
+SELECT ALL T0.emp_id AS f0,
+           T0.fname AS f1,
+           T0.lname AS f2,
+           T0.start_date AS f3
+FROM MAIN.employee T0
+WHERE ((T0.start_date >= ?) AND (T0.start_date <= ?))
 {% endhighlight %}
 
 #### Membership conditions
