@@ -13,8 +13,8 @@ Build-Depends: debhelper (>= 7.0)
                , libghc-names-th-prof
                , libghc-persistable-record-dev
                , libghc-persistable-record-prof
-               , libghc-sql-words-dev
-               , libghc-sql-words-prof
+               , libghc-sql-words-dev (>= 0.1.1)
+               , libghc-sql-words-prof (>= 0.1.1)
                , libghc-text-dev
                , libghc-text-prof
                , libghc-time-locale-compat-dev
@@ -25,7 +25,7 @@ Build-Depends-Indep: ghc-doc
                      , libghc-dlist-doc
                      , libghc-names-th-doc
                      , libghc-persistable-record-doc
-                     , libghc-sql-words-doc
+                     , libghc-sql-words-doc (>= 0.1.1)
                      , libghc-text-doc
                      , libghc-time-locale-compat-doc
                      , libghc-transformers-doc
