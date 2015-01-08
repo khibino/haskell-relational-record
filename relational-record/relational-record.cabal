@@ -17,7 +17,7 @@ library
                      Database.Relational.Query.Documentation
 
   build-depends:       base <5
-                     , relational-query
+                     , relational-query >=0.3
                      , relational-query-HDBC
 
   hs-source-dirs:    src
