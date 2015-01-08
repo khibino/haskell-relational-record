@@ -120,9 +120,15 @@ module Database.Relational.Query.Documentation (
   -- $databaseStatements
   relationalQuery,
   typedInsert,
+  typedInsertQuery,
   typedUpdate,
   typedDelete,
   typedKeyUpdate,
+
+  derivedInsert,
+  derivedInsertQuery,
+  derivedUpdate,
+  derivedDelete,
 
   -- * Database Operations
   -- $databaseOperations
@@ -324,12 +330,17 @@ into flat SQL statements to be used by database operation.
 
 'typedInsert' function converts 'Pi' key type info flat SQL INSERT statement.
 
+'typedInsertQuery' function converts 'Pi' key type and 'Relation' type info flat SQL INSERT ... SELECT ... statement.
+
 'typedUpdate' function converts 'UpdateTarget' type into flat SQL UPDATE statement.
 
 'typedDelete' function converts 'Restriction' into flat SQL DELETE statement.
 
 'typedKeyUpdate' function converts 'Pi' key type info flat SQL UPDATE statement.
--}
+
+Some handy table type infered functions are provided,
+'derivedInsert', 'derivedInsertQuery', 'derivedUpdate' and 'derivedDelete'.
+ -}
 
 
 {- $databaseOperations
