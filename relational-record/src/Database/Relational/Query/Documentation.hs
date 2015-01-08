@@ -101,7 +101,7 @@ module Database.Relational.Query.Documentation (
   sumMaybe,
 
   -- ** Placeholders
-  -- $placeholder
+  -- $placeholders
   query',
   left',
   relation',
@@ -289,7 +289,7 @@ Module "Database.Relational.Query.Projectable" and "Database.Relational.Query.Pr
 contain documentation of other 'Maybe' flavor projection operators.
  -}
 
-{- $placeholder
+{- $placeholders
 Placeholder flavor of operators against query operation and set operation are also provided, to realize type safe placeholder.
 
 'query'', 'left'', 'relation'', 'updateTarget'', 'restriction'', and 'union''
