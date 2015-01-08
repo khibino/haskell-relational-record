@@ -109,6 +109,13 @@ module Database.Relational.Query.Documentation (
   restriction',
   union',
 
+  -- ** Record Mapping
+  -- $recordMapping
+  ProductConstructor,
+  ProjectableFunctor (..),
+  ProjectableApplicative (..),
+  (><),
+
   -- ** Database Statements
   -- $databaseStatements
   relationalQuery,
@@ -298,6 +305,16 @@ operator are placeholder flavor 'query', 'left', 'relation', 'updateTarget', 're
 Module "Database.Relational.Query.Relation" and "Database.Relational.Query.Effect"
 contains documentation of other placeholder flavor operators.
 -}
+
+{- $recordMapping
+Applicative stype record mapping is supported, for 'Projection', 'Pi' and 'PlaceHolders'.
+'|$|' operator can be used on 'ProjectableFunctor' context, and
+'|*|' operator can be used on 'ProjectableApplicative' context with 'ProductConstructor',
+like /Foo |$| projection1 |*| projection2 |*| projection3/
+, /Foo |$| placeholders1 |*| placeholders2 |*| placeholders3/, and so on.
+
+'><' operator constructs pair result. /x >< y/ is the same as /(,) |$| x |*| y/.
+ -}
 
 {- $databaseStatements
 Some functions are defined to expand query structure
