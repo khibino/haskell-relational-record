@@ -30,6 +30,9 @@ module Database.Relational.Query.Documentation (
 
   having,
 
+  distinct,
+  all',
+
   (<-#),
 
   -- *** Direct Join Operators
@@ -188,6 +191,8 @@ Some operators are defined to build query structures in monadic context.
 
 'wheres' and 'having' operators appends a new condition into whole query condition.
 'having' only accepts aggregated projection value, and can be used only in 'MonadRestrict' 'Aggregated' context.
+
+'distinct' operator and 'all'' operator specify SELECT DISTINCT or SELECT ALL, the last specified in monad is used.
 
 '(<-#)' operator assigns update target column and projection value to build update statement structure.
  -}
