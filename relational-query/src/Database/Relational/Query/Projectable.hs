@@ -106,13 +106,9 @@ import qualified Database.Relational.Query.Projection as Projection
 unsafeShowSqlProjection :: Projection c r -> StringSQL
 unsafeShowSqlProjection =  rowStringSQL . map showsColumnSQL . columns
 
--- | 'Expr' from 'Projection'
-exprOfProjection :: Projection c r -> Expr c r
-exprOfProjection =  UnsafeExpr.Expr . unsafeShowSqlProjection
-
 -- | Project from Projection type into expression type.
 expr :: Projection p a -> Expr p a
-expr =  exprOfProjection
+expr =  UnsafeExpr.Expr . unsafeShowSqlProjection
 
 
 -- | Unsafely generate 'Projection' from SQL expression strings.
