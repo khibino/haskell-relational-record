@@ -84,7 +84,6 @@ import Database.Record
 
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL, rowStringSQL)
 import Database.Relational.Query.Context (Flat, Aggregated, Exists, OverWindow)
-import Database.Relational.Query.Component (columnSQL')
 import Database.Relational.Query.Expr (Expr)
 import qualified Database.Relational.Query.Expr as Expr
 import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr
@@ -95,8 +94,7 @@ import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi as Pi
 
 import Database.Relational.Query.Projection
-  (Projection, unsafeFromColumns,
-   ListProjection, unsafeShowSqlListProjection)
+  (Projection, ListProjection, unsafeShowSqlListProjection)
 import qualified Database.Relational.Query.Projection as Projection
 
 
@@ -104,10 +102,6 @@ import qualified Database.Relational.Query.Projection as Projection
 expr :: Projection p a -> Expr p a
 expr =  UnsafeExpr.Expr . Projection.unsafeStringSql
 
-
--- | Unsafely generate 'Projection' from SQL expression strings.
-unsafeSqlTermsProjection :: [StringSQL] -> Projection c t
-unsafeSqlTermsProjection =  unsafeFromColumns . map columnSQL'
 
 -- | Interface to project SQL terms unsafely.
 class SqlProjectable p where
@@ -123,15 +117,15 @@ unsafeProjectSqlTerms =  unsafeProjectSqlTerms' . map stringSQL
 
 -- | Unsafely make 'Projection' from SQL terms.
 instance SqlProjectable (Projection Flat) where
-  unsafeProjectSqlTerms' = unsafeSqlTermsProjection
+  unsafeProjectSqlTerms' = Projection.unsafeFromSqlTerms
 
 -- | Unsafely make 'Projection' from SQL terms.
 instance SqlProjectable (Projection Aggregated) where
-  unsafeProjectSqlTerms' = unsafeSqlTermsProjection
+  unsafeProjectSqlTerms' = Projection.unsafeFromSqlTerms
 
 -- | Unsafely make 'Projection' from SQL terms.
 instance SqlProjectable (Projection OverWindow) where
-  unsafeProjectSqlTerms' = unsafeSqlTermsProjection
+  unsafeProjectSqlTerms' = Projection.unsafeFromSqlTerms
 
 -- | Unsafely make 'Expr' from SQL terms.
 instance SqlProjectable (Expr p) where

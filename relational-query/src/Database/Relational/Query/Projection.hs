@@ -24,12 +24,13 @@ module Database.Relational.Query.Projection (
   unsafeFromTable,
   predicateProjectionFromExpr,
 
+  unsafeFromSqlTerms, unsafeStringSql,
+
   -- * Projections
   pi, piMaybe, piMaybe',
 
   flattenMaybe, just,
 
-  unsafeStringSql,
   unsafeToAggregated, unsafeToFlat, unsafeChangeContext,
   unsafeShowSqlNotNullMaybeProjection,
 
@@ -110,6 +111,10 @@ predicateProjectionFromExpr =
 -- | Unsafely get SQL term from 'Proejction'.
 unsafeStringSql :: Projection c r -> StringSQL
 unsafeStringSql =  rowStringSQL . map showsColumnSQL . columns
+
+-- | Unsafely generate 'Projection' from SQL expression strings.
+unsafeFromSqlTerms :: [StringSQL] -> Projection c t
+unsafeFromSqlTerms =  unsafeFromColumns . map columnSQL'
 
 
 -- | Unsafely trace projection path.
