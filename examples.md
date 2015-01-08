@@ -797,6 +797,38 @@ deleteAccount_o2 = typedDelete tableOfAccount . restriction $ \proj -> do
 Generated SQL:
 
 {% highlight sql %}
-DELETE FROM MAIN.account WHERE ((account_id >= 10) AND (account_id <=
-20))
+DELETE FROM MAIN.account
+WHERE ((account_id >= 10) AND (account_id <= 20))
+{% endhighlight %}
+
+#### Deleting data using correlated subqueries
+
+SQL:
+
+{% highlight sql %}
+DELETE FROM department d
+WHERE NOT EXISTS (SELECT 1
+                  FROM employee e
+                  WHERE e.dept_id = d.dept_id);
+{% endhighlight %}
+
+HRR:
+
+{% highlight haskell %}
+deleteEmployee_9_4_2 :: Delete ()
+deleteEmployee_9_4_2 = typedDelete tableOfDepartment . restriction $ \proj -> do
+  el <- queryList $ relation $ do
+    e <- query employee
+    wheres $ e ! Employee.deptId' .=. just (proj ! Department.deptId')
+    return (value (1 :: Int64))
+  wheres $ not' . exists $ el
+{% endhighlight %}
+
+Generated SQL:
+
+{% highlight sql %}
+DELETE FROM MAIN.department
+WHERE (NOT (EXISTS (SELECT ALL 1 AS f0
+                   FROM MAIN.employee T0
+                   WHERE (T0.dept_id = dept_id))))
 {% endhighlight %}
