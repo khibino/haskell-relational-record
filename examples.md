@@ -752,4 +752,51 @@ TBD
 
 ### delete
 
-TBD
+#### Deleting data
+
+SQL:
+
+{% highlight sql %}
+DELETE FROM account
+WHERE account_id = 2;
+{% endhighlight %}
+
+HRR:
+
+{% highlight haskell %}
+deleteAccount_o1 :: Delete ()
+deleteAccount_o1 = typedDelete tableOfAccount . restriction $ \proj -> do
+  wheres $ proj ! Account.accountId' .=. value 2
+{% endhighlight %}
+
+Generated SQL:
+
+{% highlight sql %}
+DELETE FROM MAIN.account
+WHERE (account_id = 2)
+{% endhighlight %}
+
+#### Deleting data with conditions
+
+SQL:
+
+{% highlight sql %}
+DELETE FROM account
+WHERE account_id >= 10 AND account_id <= 20;
+{% endhighlight %}
+
+HRR:
+
+{% highlight haskell %}
+deleteAccount_o2 :: Delete ()
+deleteAccount_o2 = typedDelete tableOfAccount . restriction $ \proj -> do
+  wheres $ proj ! Account.accountId' .>=. value 10
+  wheres $ proj ! Account.accountId' .<=. value 20
+{% endhighlight %}
+
+Generated SQL:
+
+{% highlight sql %}
+DELETE FROM MAIN.account WHERE ((account_id >= 10) AND (account_id <=
+20))
+{% endhighlight %}
