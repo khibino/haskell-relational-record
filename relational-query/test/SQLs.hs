@@ -143,7 +143,7 @@ exps =  [ eqProp "union" unionX
         ]
 
 insertX :: Insert SetA
-insertX =  derivedInsert
+insertX =  derivedInsert id'
 
 updateKeyX :: KeyUpdate Int32 SetA
 updateKeyX =  primaryUpdate tableOfSetA

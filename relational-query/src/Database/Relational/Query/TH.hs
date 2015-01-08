@@ -80,7 +80,7 @@ import Database.Record.TH
 import qualified Database.Record.TH as Record
 
 import Database.Relational.Query
-  (Table, Pi, Relation, Config (normalizedTableName), ProductConstructor (..),
+  (Table, Pi, id', Relation, Config (normalizedTableName), ProductConstructor (..),
    relationalQuerySQL, Query, relationalQuery, KeyUpdate,
    Insert, derivedInsert, InsertQuery, derivedInsertQuery,
    HasConstraintKey(constraintKey), Primary, NotNull, primary, primaryUpdate)
@@ -210,10 +210,10 @@ defineTableDerivations tableVar' relVar' insVar' insQVar' recordType = do
              [| derivedRelation |]
   let insVar   = varName insVar'
   insDs   <- simpleValD insVar   [t| Insert $recordType |]
-             [| derivedInsert |]
+             [| derivedInsert id' |]
   let insQVar  = varName insQVar'
   insQDs  <- simpleValD insQVar  [t| forall p . Relation p $recordType -> InsertQuery p |]
-             [| derivedInsertQuery |]
+             [| derivedInsertQuery id' |]
   return $ concat [tableDs, relDs, insDs, insQDs]
 
 -- | 'Table' and 'Relation' templates.

@@ -25,7 +25,7 @@ module Database.Relational.Query.Type (
 
   -- * Typed insert statement
   Insert (..), unsafeTypedInsert', unsafeTypedInsert, typedInsert', typedInsert, derivedInsert,
-  InsertQuery (..), unsafeTypedInsertQuery, typedInsertQuery, derivedInsertQuery,
+  InsertQuery (..), unsafeTypedInsertQuery, typedInsertQuery', typedInsertQuery, derivedInsertQuery,
 
   insertQuerySQL,
 
@@ -49,7 +49,6 @@ import Database.Relational.Query.Effect
    UpdateTarget, UpdateTargetContext, updateTarget', liftTargetAllColumn',
    sqlWhereFromRestriction, sqlFromUpdateTarget)
 import Database.Relational.Query.Pi (Pi)
-import qualified Database.Relational.Query.Pi as Pi
 import Database.Relational.Query.Component (Config (chunksInsertSize), defaultConfig)
 import Database.Relational.Query.Table (Table, TableDerivable, derivedTable)
 import Database.Relational.Query.SQL
@@ -192,9 +191,9 @@ typedInsert' config tbl pi' = unsafeTypedInsert' (insertSQL pi' tbl) ci n  where
 typedInsert :: Table r -> Pi r r' -> Insert r'
 typedInsert =  typedInsert' defaultConfig
 
--- | Infered 'Insert'.
-derivedInsert :: TableDerivable r => Insert r
-derivedInsert =  typedInsert derivedTable Pi.id'
+-- | Table type infered 'Insert'.
+derivedInsert :: TableDerivable r => Pi r r' -> Insert r'
+derivedInsert =  typedInsert derivedTable
 
 -- | Show insert SQL string.
 instance Show (Insert a) where
@@ -207,17 +206,21 @@ newtype InsertQuery p = InsertQuery { untypeInsertQuery :: String }
 unsafeTypedInsertQuery :: String -> InsertQuery p
 unsafeTypedInsertQuery =  InsertQuery
 
--- | Make untyped insert select SQL string from 'Table' and 'Relation'.
-insertQuerySQL :: TableDerivable r => Config -> Pi r r' -> Relation p r' -> String
-insertQuerySQL config pi' rel = showStringSQL $ insertPrefixSQL pi' derivedTable <> sqlFromRelationWith rel config
+-- | Make untyped insert select SQL string from 'Table', 'Pi' and 'Relation'.
+insertQuerySQL :: Config -> Table r -> Pi r r' -> Relation p r' -> String
+insertQuerySQL config tbl pi' rel = showStringSQL $ insertPrefixSQL pi' tbl <> sqlFromRelationWith rel config
 
--- | Make typed 'InsertQuery' from columns selector 'Pi' and 'Table' and 'Relation'.
-typedInsertQuery :: TableDerivable r => Pi r r' -> Relation p r' -> InsertQuery p
-typedInsertQuery pi' rel = unsafeTypedInsertQuery $ insertQuerySQL defaultConfig pi' rel
+-- | Make typed 'InsertQuery' from columns selector 'Table', 'Pi' and 'Relation' with configuration parameter.
+typedInsertQuery' :: Config -> Table r -> Pi r r' -> Relation p r' -> InsertQuery p
+typedInsertQuery' config tbl pi' rel = unsafeTypedInsertQuery $ insertQuerySQL config tbl pi' rel
 
--- | Infered 'InsertQuery'.
-derivedInsertQuery :: TableDerivable r => Relation p r -> InsertQuery p
-derivedInsertQuery =  typedInsertQuery Pi.id'
+-- | Make typed 'InsertQuery' from columns selector 'Table', 'Pi' and 'Relation'.
+typedInsertQuery :: Table r -> Pi r r' -> Relation p r' -> InsertQuery p
+typedInsertQuery =  typedInsertQuery' defaultConfig
+
+-- | Table type infered 'InsertQuery'.
+derivedInsertQuery :: TableDerivable r => Pi r r' -> Relation p r' -> InsertQuery p
+derivedInsertQuery =  typedInsertQuery derivedTable
 
 -- | Show insert SQL string.
 instance Show (InsertQuery p) where
