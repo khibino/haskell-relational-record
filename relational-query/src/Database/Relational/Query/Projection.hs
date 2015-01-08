@@ -46,9 +46,9 @@ import qualified Language.SQL.Keyword as SQL
 import Database.Record (HasColumnConstraint, NotNull, NotNullColumnConstraint)
 import qualified Database.Record.KeyConstraint as KeyConstraint
 
-import Database.Relational.Query.Internal.SQL (rowListStringString)
+import Database.Relational.Query.Internal.SQL (StringSQL, rowListStringSQL)
 import Database.Relational.Query.Context (Aggregated, Flat)
-import Database.Relational.Query.Component (ColumnSQL, columnSQL')
+import Database.Relational.Query.Component (ColumnSQL, showsColumnSQL, columnSQL')
 import Database.Relational.Query.Table (Table)
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Pure (ProductConstructor (..))
@@ -159,8 +159,8 @@ notNullMaybeConstraint :: HasColumnConstraint NotNull r => Projection c (Maybe r
 notNullMaybeConstraint =  const KeyConstraint.columnConstraint
 
 -- | Unsafely get SQL string expression of not null key projection.
-unsafeShowSqlNotNullMaybeProjection :: HasColumnConstraint NotNull r => Projection c (Maybe r) -> String
-unsafeShowSqlNotNullMaybeProjection p = show . (!!  KeyConstraint.index (notNullMaybeConstraint p)) . columns $ p
+unsafeShowSqlNotNullMaybeProjection :: HasColumnConstraint NotNull r => Projection c (Maybe r) -> StringSQL
+unsafeShowSqlNotNullMaybeProjection p = showsColumnSQL . (!!  KeyConstraint.index (notNullMaybeConstraint p)) . columns $ p
 
 -- | Projectable fmap of 'Projection' type.
 pfmap :: ProductConstructor (a -> b)
@@ -184,7 +184,7 @@ unsafeListProjectionFromSubQuery :: SubQuery -> ListProjection p t
 unsafeListProjectionFromSubQuery =  Sub
 
 -- | Map projection show operatoions and concatinate to single SQL expression.
-unsafeShowSqlListProjection :: (p t -> String) -> ListProjection p t -> String
+unsafeShowSqlListProjection :: (p t -> StringSQL) -> ListProjection p t -> StringSQL
 unsafeShowSqlListProjection sf = d  where
-  d (List ps) = rowListStringString $ map sf ps
-  d (Sub sub) = SQL.wordShow . SQL.paren $ SubQuery.showSQL sub
+  d (List ps) = rowListStringSQL $ map sf ps
+  d (Sub sub) = SQL.paren $ SubQuery.showSQL sub
