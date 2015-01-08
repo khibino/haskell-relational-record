@@ -18,13 +18,13 @@ module Database.Relational.Query.Projection (
   columns,
   untype,
 
-  unsafeFromColumns,
+  unsafeFromSqlTerms,
   unsafeFromQualifiedSubQuery,
   unsafeFromScalarSubQuery,
   unsafeFromTable,
   predicateProjectionFromExpr,
 
-  unsafeFromSqlTerms, unsafeStringSql,
+  unsafeStringSql,
 
   -- * Projections
   pi, piMaybe, piMaybe',
