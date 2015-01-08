@@ -29,6 +29,7 @@ module Database.Relational.Query.Projection (
 
   flattenMaybe, just,
 
+  unsafeStringSql,
   unsafeToAggregated, unsafeToFlat, unsafeChangeContext,
   unsafeShowSqlNotNullMaybeProjection,
 
@@ -46,7 +47,7 @@ import qualified Language.SQL.Keyword as SQL
 import Database.Record (HasColumnConstraint, NotNull, NotNullColumnConstraint)
 import qualified Database.Record.KeyConstraint as KeyConstraint
 
-import Database.Relational.Query.Internal.SQL (StringSQL, rowListStringSQL)
+import Database.Relational.Query.Internal.SQL (StringSQL, rowStringSQL, rowListStringSQL)
 import Database.Relational.Query.Context (Aggregated, Flat)
 import Database.Relational.Query.Component (ColumnSQL, showsColumnSQL, columnSQL')
 import Database.Relational.Query.Table (Table)
@@ -104,6 +105,10 @@ unsafeFromTable =  unsafeFromColumns . Table.columns
 predicateProjectionFromExpr :: Expr c (Maybe Bool) -> Projection c (Maybe Bool)
 predicateProjectionFromExpr =
   typedProjection . untypedProjectionFromColumns . (:[]) .  columnSQL' . sqlExpr
+
+-- | Unsafely get SQL term from 'Proejction'.
+unsafeStringSql :: Projection c r -> StringSQL
+unsafeStringSql =  rowStringSQL . map showsColumnSQL . columns
 
 
 -- | Unsafely trace projection path.

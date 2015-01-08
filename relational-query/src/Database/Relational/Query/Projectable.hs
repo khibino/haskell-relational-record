@@ -32,7 +32,6 @@ module Database.Relational.Query.Projectable (
 
   -- * Projectable into SQL strings
   unsafeShowSqlExpr,
-  unsafeShowSqlProjection,
   ProjectableShowSql (unsafeShowSql'), unsafeShowSql,
 
   -- * Operators
@@ -86,7 +85,7 @@ import Database.Record
 
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL, rowStringSQL)
 import Database.Relational.Query.Context (Flat, Aggregated, Exists, OverWindow)
-import Database.Relational.Query.Component (columnSQL', showsColumnSQL)
+import Database.Relational.Query.Component (columnSQL')
 import Database.Relational.Query.Expr (Expr)
 import qualified Database.Relational.Query.Expr as Expr
 import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr
@@ -97,18 +96,14 @@ import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi as Pi
 
 import Database.Relational.Query.Projection
-  (Projection, unsafeFromColumns, columns,
+  (Projection, unsafeFromColumns,
    ListProjection, unsafeShowSqlListProjection)
 import qualified Database.Relational.Query.Projection as Projection
 
 
--- | Unsafely get SQL term from 'Proejction'.
-unsafeShowSqlProjection :: Projection c r -> StringSQL
-unsafeShowSqlProjection =  rowStringSQL . map showsColumnSQL . columns
-
 -- | Project from Projection type into expression type.
 expr :: Projection p a -> Expr p a
-expr =  UnsafeExpr.Expr . unsafeShowSqlProjection
+expr =  UnsafeExpr.Expr . Projection.unsafeStringSql
 
 
 -- | Unsafely generate 'Projection' from SQL expression strings.
@@ -195,7 +190,7 @@ instance ProjectableShowSql (Expr p) where
 
 -- | Unsafely get SQL term from 'Proejction'.
 instance ProjectableShowSql (Projection c) where
-  unsafeShowSql' = unsafeShowSqlProjection
+  unsafeShowSql' = Projection.unsafeStringSql
 
 
 -- | Binary operator type for SQL String.
