@@ -689,6 +689,59 @@ GROUP BY T0.open_emp_id
 ORDER BY T0.open_emp_id ASC
 {% endhighlight %}
 
+#### Correlated Subqueries
+
+SQL:
+{% highlight sql %}
+SELECT c.cust_id, c.cust_type_cd, c.city
+FROM customer c
+WHERE 2 = (SELECT COUNT(*)
+           FROM account a
+           WHERE a.cust_id = c.cust_id);
+{% endhighlight %}
+
+HRR:
+
+{% highlight haskell %}
+customer_9_4 :: Relation () Customer1
+customer_9_4 = relation $ do
+  c  <- query customer
+  ca <- queryScalar $ aggregatedUnique (relation $ do
+    a <- query account
+    wheres $ a ! Account.custId' .=. c ! Customer.custId'
+    return (a ! Account.accountId')
+    ) id' count
+  wheres $ just (value 2) .=. ca
+  return (customer1 c)
+
+data Customer1 = Customer1
+  { c1Custid :: Int64
+  , c1CustTypeCd :: String
+  , c1City :: Maybe String
+  } deriving (Show)
+
+customer1 :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c))
+          => Projection c Customer -> Projection c Customer1
+customer1 c = Customer1 |$| c ! Customer.custId'
+                        |*| c ! Customer.custTypeCd'
+                        |*| c ! Customer.city'
+
+$(makeRecordPersistableDefault ''Customer1)
+{% endhighlight %}
+
+Generated SQL:
+
+{% highlight sql %}
+SELECT ALL T0.cust_id AS f0,
+           T0.cust_type_cd AS f1,
+           T0.city AS f2
+FROM MAIN.customer T0
+WHERE (2 = (SELECT ALL COUNT (T2.f0) AS f0
+            FROM (SELECT ALL T1.account_id AS f0
+                  FROM MAIN.account T1
+                  WHERE (T1.cust_id = T0.cust_id)) T2))
+{% endhighlight %}
+
 ### insert
 
 TBD
