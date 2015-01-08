@@ -353,6 +353,42 @@ FROM MAIN.account T0
 WHERE (T0.product_cd IN ('CHK', 'SAV', 'CD', 'MM'))
 {% endhighlight %}
 
+#### Subquery
+
+SQL:
+{% highlight sql %}
+SELECT account_id, product_cd, cust_id, avail_balance
+FROM account
+WHERE account_id = (SELECT MAX(account_id)
+                    FROM account);
+{% endhighlight %}
+
+HRR:
+
+{% highlight haskell %}
+account_9_1 :: Relation () Account1
+account_9_1 = relation $ do
+  a  <- query account
+  ma <- queryScalar $ aggregatedUnique account Account.accountId' max'
+  wheres $ just (a ! Account.accountId') .=. flattenMaybe ma
+  return $ Account1 |$| a ! Account.accountId'
+                    |*| a ! Account.productCd'
+                    |*| a ! Account.custId'
+                    |*| a ! Account.availBalance'
+{% endhighlight %}
+
+Generated SQL:
+
+{% highlight sql %}
+SELECT ALL T0.account_id AS f0,
+           T0.product_cd AS f1,
+           T0.cust_id AS f2,
+           T0.avail_balance AS f3
+FROM MAIN.account T0
+WHERE (T0.account_id = (SELECT ALL MAX (T1.account_id) AS f0
+                        FROM MAIN.account T1))
+{% endhighlight %}
+
 #### Membership conditions using subqueries
 
 SQL:
