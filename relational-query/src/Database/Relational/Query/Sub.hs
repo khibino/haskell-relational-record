@@ -42,7 +42,7 @@ import Data.Monoid (mempty, (<>), mconcat)
 
 import qualified Database.Relational.Query.Context as Context
 import Database.Relational.Query.Expr (valueExpr)
-import Database.Relational.Query.Expr.Unsafe (sqlExpr)
+import Database.Relational.Query.Expr.Unsafe (unsafeStringSql)
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL)
 import Database.Relational.Query.Internal.Product
   (NodeAttr(Just', Maybe), ProductTree (Leaf, Join),
@@ -358,7 +358,7 @@ showsQueryProduct =  rec  where
      joinType (nodeAttr left') (nodeAttr right'), JOIN,
      urec right',
      ON,
-     sqlExpr . fromMaybe (valueExpr True) {- or error on compile -}  $ rs]
+     unsafeStringSql . fromMaybe (valueExpr True) {- or error on compile -}  $ rs]
 
 -- | Type for join product of query.
 type JoinProduct = Maybe QueryProduct

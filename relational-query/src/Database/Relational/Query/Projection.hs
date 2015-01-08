@@ -53,7 +53,8 @@ import Database.Relational.Query.Component (ColumnSQL, showsColumnSQL, columnSQL
 import Database.Relational.Query.Table (Table)
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Pure (ProductConstructor (..))
-import Database.Relational.Query.Expr.Unsafe (Expr, sqlExpr)
+import Database.Relational.Query.Expr.Unsafe (Expr)
+import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Relational.Query.Sub
@@ -104,7 +105,7 @@ unsafeFromTable =  unsafeFromColumns . Table.columns
 -- | Lift 'Expr' to 'Projection' to use as restrict predicate.
 predicateProjectionFromExpr :: Expr c (Maybe Bool) -> Projection c (Maybe Bool)
 predicateProjectionFromExpr =
-  typedProjection . untypedProjectionFromColumns . (:[]) .  columnSQL' . sqlExpr
+  typedProjection . untypedProjectionFromColumns . (:[]) .  columnSQL' . UnsafeExpr.unsafeStringSql
 
 -- | Unsafely get SQL term from 'Proejction'.
 unsafeStringSql :: Projection c r -> StringSQL

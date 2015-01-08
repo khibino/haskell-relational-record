@@ -25,7 +25,7 @@ module Database.Relational.Query.Expr (
 
 import Prelude hiding (and, or)
 
-import Database.Relational.Query.Expr.Unsafe (Expr(Expr), sqlExpr)
+import Database.Relational.Query.Expr.Unsafe (Expr(Expr), unsafeStringSql)
 import Database.Relational.Query.Pure (ShowConstantTermsSQL, showConstantTermsSQL')
 import Database.Relational.Query.Internal.SQL (rowStringSQL)
 
@@ -38,7 +38,7 @@ valueExpr =  Expr . rowStringSQL . showConstantTermsSQL'
 
 -- | Unsafely cast phantom type.
 unsafeCastExpr :: Expr p a -> Expr p b
-unsafeCastExpr =  Expr . sqlExpr
+unsafeCastExpr =  Expr . unsafeStringSql
 
 -- | Convert phantom type into 'Maybe'.
 just :: Expr p ft -> Expr p (Maybe ft)
@@ -52,4 +52,4 @@ fromJust =  unsafeCastExpr
 
 -- | AND operator for 'Expr'.
 exprAnd :: Expr p Bool -> Expr p Bool -> Expr p Bool
-exprAnd a b = Expr . SQL.paren $ SQL.and (sqlExpr a) (sqlExpr b)
+exprAnd a b = Expr . SQL.paren $ SQL.and (unsafeStringSql a) (unsafeStringSql b)

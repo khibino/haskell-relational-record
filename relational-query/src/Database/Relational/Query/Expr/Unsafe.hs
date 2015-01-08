@@ -11,7 +11,7 @@
 -- Contains internal structure and unsafe interfaces.
 module Database.Relational.Query.Expr.Unsafe (
   -- * Typed SQL Expression
-  Expr(Expr), sqlExpr, showExpr
+  Expr(Expr), unsafeStringSql, showExpr
   ) where
 
 import Database.Relational.Query.Internal.SQL (StringSQL, showStringSQL)
@@ -20,12 +20,12 @@ import Database.Relational.Query.Internal.SQL (StringSQL, showStringSQL)
 newtype Expr p a = Expr StringSQL
 
 -- | Get SQL expression from typed object.
-sqlExpr :: Expr p t -> StringSQL
-sqlExpr (Expr s) = s
+unsafeStringSql :: Expr p t -> StringSQL
+unsafeStringSql (Expr s) = s
 
 -- | Get SQL string from typed object.
 showExpr :: Expr p t -> String
-showExpr =  showStringSQL . sqlExpr
+showExpr =  showStringSQL . unsafeStringSql
 
 -- | Show expression.
 instance Show (Expr p a) where

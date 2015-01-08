@@ -31,7 +31,6 @@ module Database.Relational.Query.Projectable (
   placeholder', placeholder, unitPlaceHolder,
 
   -- * Projectable into SQL strings
-  unsafeShowSqlExpr,
   ProjectableShowSql (unsafeShowSql'), unsafeShowSql,
 
   -- * Operators
@@ -181,12 +180,8 @@ unsafeShowSql :: ProjectableShowSql p
 unsafeShowSql =  showStringSQL . unsafeShowSql'
 
 -- | Unsafely get SQL term from 'Expr'.
-unsafeShowSqlExpr :: Expr p t -> StringSQL
-unsafeShowSqlExpr =  UnsafeExpr.sqlExpr
-
--- | Unsafely get SQL term from 'Expr'.
 instance ProjectableShowSql (Expr p) where
-  unsafeShowSql' = unsafeShowSqlExpr
+  unsafeShowSql' = UnsafeExpr.unsafeStringSql
 
 -- | Unsafely get SQL term from 'Proejction'.
 instance ProjectableShowSql (Projection c) where
