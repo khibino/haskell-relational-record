@@ -744,7 +744,77 @@ WHERE (2 = (SELECT ALL COUNT (T2.f0) AS f0
 
 ### insert
 
-TBD
+#### Inserting data
+
+SQL:
+
+{% highlight sql %}
+INSERT INTO branch (branch_id, name, address, city, state, zip)
+VALUES (null, 'Headquarters', '3882 Main St.', 'Waltham', 'MA', '02451');
+{% endhighlight %}
+
+HRR:
+
+{% highlight haskell %}
+insertBranch_s1 :: InsertQuery ()
+insertBranch_s1 = typedInsertQuery piBranch1 $ relation .
+  return $ Branch1 |$| value "Headquarters"
+                   |*| value (Just "3882 Main St.")
+                   |*| value (Just "Waltham")
+                   |*| value (Just "MA")
+                   |*| value (Just "02451")
+
+-- this is equal to `definePi 1'
+piBranch1 :: Pi Branch Branch1
+piBranch1 = Branch1 |$| Branch.name'
+                    |*| Branch.address'
+                    |*| Branch.city'
+                    |*| Branch.state'
+                    |*| Branch.zip'
+
+branch1 :: Branch1
+branch1 = Branch1
+  { b1Name = "Headquarters"
+  , b1Address = Just "3882 Main St."
+  , b1City = Just "Waltham"
+  , b1State = Just "MA"
+  , b1Zip = Just "02451"
+  }
+
+data Branch1 = Branch1
+  { b1Name :: String
+  , b1Address :: Maybe String
+  , b1City :: Maybe String
+  , b1State :: Maybe String
+  , b1Zip :: Maybe String
+  }
+
+$(makeRecordPersistableDefault ''Branch1)
+{% endhighlight %}
+
+Generated SQL:
+
+{% highlight sql %}
+INSERT INTO MAIN.branch (name, address, city, state, zip)
+SELECT ALL 'Headquarters' AS f0,
+           '3882 Main St.' AS f1,
+           'Waltham' AS f2, 
+           'MA' AS f3, '02451' AS f4
+{% endhighlight %}
+
+HRR using place holder:
+
+{% highlight haskell %}
+insertBranch_s1P :: Insert Branch1
+insertBranch_s1P = typedInsert tableOfBranch piBranch1
+{% endhighlight %}
+
+Generated SQL:
+
+{% highlight sql %}
+INSERT INTO MAIN.branch (name, address, city, state, zip)
+VALUES (?, ?, ?, ?, ?)
+{% endhighlight %}
 
 ### update
 
@@ -775,6 +845,56 @@ Generated SQL:
 UPDATE MAIN.employee
 SET lname = 'Bush', dept_id = 3
 WHERE (emp_id = 10)
+{% endhighlight %}
+
+#### Updating data using correlated subqueries
+
+SQL:
+
+{% highlight sql %}
+UPDATE account
+SET last_activity_date =
+   (SELECT MAX(t.txn_date)
+    FROM transaction0 t
+    WHERE t.account_id = account.account_id)
+WHERE EXISTS (SELECT 1
+              FROM transaction0 t
+              WHERE t.account_id = account.account_id);
+{% endhighlight %}
+
+HRR:
+
+{% highlight haskell %}
+updateAccount_9_4_2 :: Update ()
+updateAccount_9_4_2 = typedUpdate tableOfAccount . updateTarget $ \proj -> do
+  ts <- queryScalar $ aggregatedUnique (relation $ do
+    t <- query transaction
+    wheres $ t ! Transaction.accountId' .=. proj ! Account.accountId'
+    return (t ! Transaction.txnDate')
+    ) id' max'
+  tl <- queryList $ relation $ do
+    t <- query transaction
+    wheres $ t ! Transaction.accountId' .=. proj ! Account.accountId'
+    return (value (1 :: Int64))
+  Account.lastActivityDate' <-# (toDay $ flattenMaybe ts)
+  wheres $ exists $ tl
+
+toDay :: (SqlProjectable p, ProjectableShowSql p) => p (Maybe LocalTime) -> p (Maybe Day)
+toDay dt = unsafeProjectSql $ "date(" ++ unsafeShowSql dt ++ ")"
+{% endhighlight %}
+
+Generated SQL:
+
+{% highlight sql %}
+UPDATE MAIN.account
+SET last_activity_date = 
+  date((SELECT ALL MAX (T1.f0) AS f0
+        FROM (SELECT ALL T0.txn_date AS f0
+             FROM MAIN.transaction0 T0
+             WHERE (T0.account_id = account_id)) T1))
+WHERE (EXISTS (SELECT ALL 1 AS f0
+               FROM MAIN.transaction0 T2
+               WHERE (T2.account_id = account_id)))
 {% endhighlight %}
 
 ### delete
