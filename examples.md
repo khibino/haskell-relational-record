@@ -816,7 +816,7 @@ INSERT INTO MAIN.branch (name, address, city, state, zip)
 VALUES (?, ?, ?, ?, ?)
 {% endhighlight %}
 
-#### 
+#### Inserting data from tables
 
 SQL:
 
