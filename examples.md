@@ -748,7 +748,34 @@ TBD
 
 ### update
 
-TBD
+#### Updating data
+
+SQL:
+
+{% highlight sql %}
+UPDATE employee
+SET lname = 'Bush',
+     dept_id = 3
+WHERE emp_id = 10;
+{% endhighlight %}
+
+HRR:
+
+{% highlight haskell %}
+updateEmployee_o3 :: Update ()
+updateEmployee_o3 = typedUpdate tableOfEmployee . updateTarget $ \proj -> do
+  Employee.lname' <-# value "Bush"
+  Employee.deptId' <-# just (value 3)
+  wheres $ proj ! Employee.empId' .=. value 10
+{% endhighlight %}
+
+Generated SQL:
+
+{% highlight sql %}
+UPDATE MAIN.employee
+SET lname = 'Bush', dept_id = 3
+WHERE (emp_id = 10)
+{% endhighlight %}
 
 ### delete
 
