@@ -27,16 +27,16 @@ module Database.Relational.Query.Monad.Aggregate (
   ) where
 
 import Data.Functor.Identity (Identity (runIdentity))
+import Data.Monoid ((<>))
 
-import Database.Relational.Query.Internal.SQL (showStringSQL)
 import Database.Relational.Query.Context (Flat, Aggregated, OverWindow)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Component
-  (AggregateColumnRef, Duplication, QueryRestriction, OrderingTerms, AggregateElem, composeOver)
+  (AggregateColumnRef, Duplication, QueryRestriction, OrderingTerms, AggregateElem, composeOver, showsColumnSQL)
 import Database.Relational.Query.Sub (SubQuery, aggregatedSubQuery, JoinProduct)
 import qualified Database.Relational.Query.Sub as SubQuery
-import Database.Relational.Query.Projectable (PlaceHolders, SqlProjectable, unsafeProjectSql, unsafeShowSql)
+import Database.Relational.Query.Projectable (PlaceHolders, SqlProjectable)
 
 import Database.Relational.Query.Monad.Class (MonadRestrict(..), MonadQualify(..), MonadPartition (..))
 import Database.Relational.Query.Monad.Trans.Join (join')
@@ -104,5 +104,8 @@ over :: SqlProjectable (Projection c)
      => Projection OverWindow a
      -> Window c ()
      -> Projection c a
-wp `over` win = unsafeProjectSql $ unwords [unsafeShowSql wp, showStringSQL (composeOver pt ot)]  where
-  (((), ot), pt) = extractWindow win
+wp `over` win =
+  Projection.unsafeFromSqlTerms
+  [ showsColumnSQL c <> composeOver pt ot
+  | c <- Projection.columns wp
+  ]  where (((), ot), pt) = extractWindow win

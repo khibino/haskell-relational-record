@@ -216,16 +216,29 @@ partitionX =  relation $ do
     partitionBy $ c ! strC1'
     orderBy (c ! intC2') Asc
 
+partitionY :: Relation () (String, (Int64, Maybe Int32))
+partitionY =  relation $ do
+  c <- query setC
+
+  return $ (c ! strC1') >< (rank >< sum' (c ! intC0'))`over` do
+    partitionBy $ c ! strC1'
+    orderBy (c ! intC2') Asc
+
 partitions :: [Test]
 partitions =
-  [ eqProp "partition"  partitionX
+  [ eqProp "partition 0"  partitionX
     "SELECT ALL T0.str_c1 AS f0, \
     \           RANK() OVER (PARTITION BY T0.str_c1 ORDER BY T0.int_c2 ASC) AS f1 \
     \  FROM TEST.set_c T0"
+  , eqProp "partition 1"  partitionY
+    "SELECT ALL T0.str_c1 AS f0, \
+    \           RANK()         OVER (PARTITION BY T0.str_c1 ORDER BY T0.int_c2 ASC) AS f1, \
+    \           SUM(T0.int_c0) OVER (PARTITION BY T0.str_c1 ORDER BY T0.int_c2 ASC) AS f2 \
+    \      FROM TEST.set_c T0"
   ]
 
 _p_partitions :: IO ()
-_p_partitions =  mapM_ print [show partitionX]
+_p_partitions =  mapM_ print [show partitionX, show partitionY]
 
 setAFromB :: Pi SetB SetA
 setAFromB =  SetA |$| intB0' |*| strB2' |*| strB2'
