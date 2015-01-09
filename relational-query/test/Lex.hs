@@ -58,7 +58,7 @@ symbol :: Parser Token
 symbol =  Symbol <$> symbol'
 
 opCharset :: [Char]
-opCharset =  "=<>+-*|"
+opCharset =  "=<>+-*/|"
 
 op :: Parser Token
 op =  Op <$> some (satisfy (`elem` opCharset))
@@ -165,7 +165,7 @@ eq a b = fromMaybe False $ do
 
 eqProp' :: String -> (a -> String) -> a -> String -> Test
 eqProp' name t x est = prop' name (Just em) (t x `eq` est)
-  where em = unlines [show . run $ t x, " -- NOT EQUALS! --", show $ run est]
+  where em = unlines [show $ run $ t x, " -- compares --", show $ run est]
 
 eqProp :: Show a => String -> a -> String -> Test
 eqProp name = eqProp' name show
