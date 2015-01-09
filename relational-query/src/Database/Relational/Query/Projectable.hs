@@ -188,7 +188,7 @@ type SqlBinOp = Keyword -> Keyword -> Keyword
 -- | Unsafely make projection unary operator from SQL keyword.
 unsafeUniOp :: (ProjectableShowSql p0, SqlProjectable p1)
              => (Keyword -> Keyword) -> p0 a -> p1 b
-unsafeUniOp u = unsafeProjectSql . SQL.strUniOp u . unsafeShowSql
+unsafeUniOp u = unsafeProjectSql' . u . unsafeShowSql'
 
 unsafeFlatUniOp :: (SqlProjectable p, ProjectableShowSql p)
                => Keyword -> p a -> p b
