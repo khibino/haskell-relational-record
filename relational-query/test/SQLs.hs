@@ -3,12 +3,29 @@ module SQLs (tests) where
 import Distribution.TestSuite (Test)
 import Distribution.TestSuite.Compat (TestList, testList)
 
+import Control.Applicative ((<$>), (<*>))
+
 import Lex (eqProp)
 import Model
 
-import Data.Int (Int32)
+import Data.Int (Int32, Int64)
 import Database.Relational.Query
 
+
+numBin :: (Projection Flat Int32 -> Projection Flat Int32 -> Projection Flat r) -> Relation () r
+numBin op = relation $ do
+  return $ value 5 `op` value 3
+
+_p_numBin :: (Projection Flat Int32 -> Projection Flat Int32 -> Projection Flat r) -> IO ()
+_p_numBin = print . numBin
+
+bin :: [Test]
+bin =
+  [ eqProp "plus"  (numBin (.+.)) "SELECT ALL (5 + 3) AS f0"
+  , eqProp "minus" (numBin (.-.)) "SELECT ALL (5 - 3) AS f0"
+  , eqProp "mult"  (numBin (.*.)) "SELECT ALL (5 * 3) AS f0"
+  , eqProp "div"   (numBin (./.)) "SELECT ALL (5 / 3) AS f0"
+  ]
 
 tables :: [Test]
 tables =
@@ -112,6 +129,75 @@ maybes =  [ eqProp "isJust" justX
 _p_maybes :: IO ()
 _p_maybes =  mapM_ print [show justX, show maybeX]
 
+groupX :: Relation () (String, Int64)
+groupX =  aggregateRelation $ do
+  c <- query setC
+
+  gc1 <- groupBy $ c ! strC1'
+  return $ gc1 >< count (c ! intC0')
+
+cubeX :: Relation () ((Maybe String, Maybe (Int64, Maybe String)), Maybe Int32)
+cubeX =  aggregateRelation $ do
+  c <- query setC
+
+  gCube <- groupBy' . cube $ do
+    (><)
+      <$> bkey (c ! strC1')
+      <*> bkey (c ! intC2' >< c ! mayStrC3')
+  return $ gCube >< sum' (c ! intC0')
+
+groupingSetsX :: Relation () (((Maybe String, Maybe (Maybe String)), Maybe Int64), Maybe Int64)
+groupingSetsX = aggregateRelation $ do
+  c <- query setC
+
+  gs <- groupBy' . groupingSets $ do
+    s1 <- set $ do
+      gRollup <- key' . rollup $ do
+        (><)
+          <$> bkey (c ! strC1')
+          <*> bkey (c ! mayStrC3')
+      gc2 <- key $ c ! intC2'
+      return $ gRollup >< gc2
+    s2 <- set . key $ c ! intC2'
+    return $ s1 >< s2
+
+  return gs
+
+
+groups :: [Test]
+groups =
+  [ eqProp "group" groupX
+    "SELECT ALL T0.str_c1 AS f0, COUNT(T0.int_c0) AS f1 \
+    \  FROM TEST.set_c T0 GROUP BY T0.str_c1"
+  , eqProp "cube" cubeX
+    "SELECT ALL T0.str_c1 AS f0, T0.int_c2 AS f1, T0.may_str_c3 AS f2, SUM(T0.int_c0) AS f3 \
+    \  FROM TEST.set_c T0 GROUP BY CUBE ((T0.str_c1), (T0.int_c2, T0.may_str_c3))"
+  , eqProp "groupingSets" groupingSetsX
+    "SELECT ALL T0.str_c1 AS f0, T0.may_str_c3 AS f1, T0.int_c2 AS f2, T0.int_c2 AS f3 \
+    \  FROM TEST.set_c T0 GROUP BY \
+    \  GROUPING SETS ((ROLLUP ((T0.str_c1), (T0.may_str_c3)), T0.int_c2), (T0.int_c2))"
+  ]
+
+_p_groups :: IO ()
+_p_groups =  mapM_ print [show groupX, show cubeX, show groupingSetsX]
+
+partitionX :: Relation () (String, Int64)
+partitionX =  relation $ do
+  c <- query setC
+
+  return $ (c ! strC1') >< rank `over` do
+    partitionBy $ c ! strC1'
+    orderBy (c ! intC2') Asc
+
+partitions :: [Test]
+partitions =
+  [ eqProp "partition"  partitionX
+    "SELECT ALL T0.str_c1 AS f0, RANK() OVER (PARTITION BY T0.str_c1 ORDER BY T0.int_c2 ASC) AS f1 FROM TEST.set_c T0"
+  ]
+
+_p_partitions :: IO ()
+_p_partitions =  mapM_ print [show partitionX]
+
 setAFromB :: Pi SetB SetA
 setAFromB =  SetA |$| intB0' |*| strB2' |*| strB2'
 
@@ -178,4 +264,6 @@ effs =  [ eqProp "insert" insertX
 
 tests :: TestList
 tests =
-  testList $ concat [tables, directJoins, join3s, maybes, exps, effs]
+  testList
+  $ concat [bin, tables, directJoins, join3s, maybes,
+            groups, partitions, exps, effs]
