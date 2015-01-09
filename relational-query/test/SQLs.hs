@@ -145,6 +145,9 @@ exps =  [ eqProp "union" unionX
 insertX :: Insert SetA
 insertX =  derivedInsert id'
 
+insertQueryX :: InsertQuery ()
+insertQueryX =  derivedInsertQuery setAFromB setA
+
 updateKeyX :: KeyUpdate Int32 SetA
 updateKeyX =  primaryUpdate tableOfSetA
 
@@ -162,6 +165,8 @@ deleteX =  derivedDelete $ \proj -> do
 effs :: [Test]
 effs =  [ eqProp "insert" insertX
           "INSERT INTO TEST.set_a (int_a0, str_a1, str_a2) VALUES (?, ?, ?)"
+        , eqProp "insertQuery" insertQueryX
+          "INSERT INTO TEST.set_b (int_b0, str_b2, str_b2) SELECT int_a0, str_a1, str_a2 FROM TEST.set_a"
         , eqProp "updateKey" updateKeyX
           "UPDATE TEST.set_a SET str_a1 = ?, str_a2 = ? WHERE int_a0 = ?"
         , eqProp "update" updateX
