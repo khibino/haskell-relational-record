@@ -55,15 +55,25 @@ fullX =  setA `full` setB `on'` [ \a b -> a ?! intA0' .=. b ?! intB0' ]
 directJoins :: [Test]
 directJoins =
   [ eqProp "cross" cross
-    "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 FROM TEST.set_a T0 INNER JOIN TEST.set_b T1 ON (0=0)"
+    "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, \
+    \           T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 \
+    \  FROM TEST.set_a T0 INNER JOIN TEST.set_b T1 ON (0=0)"
   , eqProp "inner" innerX
-    "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 FROM TEST.set_a T0 INNER JOIN TEST.set_b T1 ON (T0.int_a0 = T1.int_b0)"
+    "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, \
+    \           T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 \
+    \  FROM TEST.set_a T0 INNER JOIN TEST.set_b T1 ON (T0.int_a0 = T1.int_b0)"
   , eqProp "left" leftX
-    "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 FROM TEST.set_a T0 LEFT JOIN TEST.set_b T1 ON (T0.str_a1 = T1.may_str_b1)"
+    "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, \
+    \           T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 \
+    \  FROM TEST.set_a T0 LEFT JOIN TEST.set_b T1 ON (T0.str_a1 = T1.may_str_b1)"
   , eqProp "right" rightX
-    "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 FROM TEST.set_a T0 RIGHT JOIN TEST.set_b T1 ON (T0.int_a0 = T1.int_b0)"
+    "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, \
+    \           T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 \
+    \  FROM TEST.set_a T0 RIGHT JOIN TEST.set_b T1 ON (T0.int_a0 = T1.int_b0)"
   , eqProp "full" fullX
-    "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 FROM TEST.set_a T0 FULL JOIN TEST.set_b T1 ON (T0.int_a0 = T1.int_b0)"
+    "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, \
+    \           T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 \
+    \  FROM TEST.set_a T0 FULL JOIN TEST.set_b T1 ON (T0.int_a0 = T1.int_b0)"
   ]
 
 _p_directJoins :: IO ()
@@ -91,12 +101,23 @@ j3right =  relation $ do
   return $ Abc |$| a |*| b |*| c
 
 join3s :: [Test]
-join3s =  [ eqProp "join-3 left" j3left
-            "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5, T2.int_c0 AS f6, T2.str_c1 AS f7, T2.int_c2 AS f8, T2.may_str_c3 AS f9 FROM (TEST.set_a T0 LEFT JOIN TEST.set_b T1 ON (T0.str_a2 = T1.str_b2)) LEFT JOIN TEST.set_c T2 ON (T1.int_b0 = T2.int_c0)"
+join3s =
+  [ eqProp "join-3 left" j3left
+    "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, \
+    \           T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5, \
+    \           T2.int_c0 AS f6, T2.str_c1 AS f7, T2.int_c2 AS f8, T2.may_str_c3 AS f9 \
+    \  FROM (TEST.set_a T0 LEFT JOIN TEST.set_b T1 ON (T0.str_a2 = T1.str_b2)) \
+    \        LEFT JOIN TEST.set_c T2 ON (T1.int_b0 = T2.int_c0)"
 
-          , eqProp "join-3 right" j3right
-            "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, T3.f0 AS f3, T3.f1 AS f4, T3.f2 AS f5, T3.f3 AS f6, T3.f4 AS f7, T3.f5 AS f8, T3.f6 AS f9 FROM TEST.set_a T0 INNER JOIN (SELECT ALL T1.int_b0 AS f0, T1.may_str_b1 AS f1, T1.str_b2 AS f2, T2.int_c0 AS f3, T2.str_c1 AS f4, T2.int_c2 AS f5, T2.may_str_c3 AS f6 FROM TEST.set_b T1 FULL JOIN TEST.set_c T2 ON (T1.int_b0 = T2.int_c0)) T3 ON (T0.str_a2 = T3.f2)"
-          ]
+  , eqProp "join-3 right" j3right
+    "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, \
+    \           T3.f0 AS f3, T3.f1 AS f4, T3.f2 AS f5, T3.f3 AS f6, T3.f4 AS f7, T3.f5 AS f8, T3.f6 AS f9 \
+    \  FROM TEST.set_a T0 \
+    \       INNER JOIN (SELECT ALL T1.int_b0 AS f0, T1.may_str_b1 AS f1, T1.str_b2 AS f2, \
+    \                              T2.int_c0 AS f3, T2.str_c1 AS f4, T2.int_c2 AS f5, T2.may_str_c3 AS f6 \
+    \                     FROM TEST.set_b T1 FULL JOIN TEST.set_c T2 ON (T1.int_b0 = T2.int_c0)) T3 \
+    \               ON (T0.str_a2 = T3.f2)"
+  ]
 
 _p_j3s :: IO ()
 _p_j3s =  mapM_ print [show j3left, show j3right]
@@ -120,11 +141,17 @@ maybeX =  relation $ do
   return $ fromMaybe (value 1) (a ?! intA0') >< b
 
 maybes :: [Test]
-maybes =  [ eqProp "isJust" justX
-            "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 FROM TEST.set_a T0 LEFT JOIN TEST.set_b T1 ON (0=0) WHERE ((NOT (T1.int_b0 IS NULL)) OR (T0.int_a0 = 1))"
-          , eqProp "fromMaybe" maybeX
-            "SELECT ALL CASE WHEN (T0.int_a0 IS NULL) THEN 1 ELSE T0.int_a0 END AS f0, T1.int_b0 AS f1, T1.may_str_b1 AS f2, T1.str_b2 AS f3 FROM TEST.set_a T0 RIGHT JOIN TEST.set_b T1 ON (0=0) WHERE (T0.str_a2 = T1.may_str_b1)"
-          ]
+maybes =
+  [ eqProp "isJust" justX
+    "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, \
+    \           T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 \
+    \  FROM TEST.set_a T0 LEFT JOIN TEST.set_b T1 ON (0=0) \
+    \ WHERE ((NOT (T1.int_b0 IS NULL)) OR (T0.int_a0 = 1))"
+  , eqProp "fromMaybe" maybeX
+    "SELECT ALL CASE WHEN (T0.int_a0 IS NULL) THEN 1 ELSE T0.int_a0 END AS f0, \
+    \           T1.int_b0 AS f1, T1.may_str_b1 AS f2, T1.str_b2 AS f3 \
+    \  FROM TEST.set_a T0 RIGHT JOIN TEST.set_b T1 ON (0=0) WHERE (T0.str_a2 = T1.may_str_b1)"
+  ]
 
 _p_maybes :: IO ()
 _p_maybes =  mapM_ print [show justX, show maybeX]
@@ -192,7 +219,9 @@ partitionX =  relation $ do
 partitions :: [Test]
 partitions =
   [ eqProp "partition"  partitionX
-    "SELECT ALL T0.str_c1 AS f0, RANK() OVER (PARTITION BY T0.str_c1 ORDER BY T0.int_c2 ASC) AS f1 FROM TEST.set_c T0"
+    "SELECT ALL T0.str_c1 AS f0, \
+    \           RANK() OVER (PARTITION BY T0.str_c1 ORDER BY T0.int_c2 ASC) AS f1 \
+    \  FROM TEST.set_c T0"
   ]
 
 _p_partitions :: IO ()
@@ -219,15 +248,20 @@ intersectX :: Relation () SetA
 intersectX =  setA `intersect` aFromB
 
 exps :: [Test]
-exps =  [ eqProp "union" unionX
-          "SELECT int_a0 AS f0, str_a1 AS f1, str_a2 AS f2 FROM TEST.set_a UNION SELECT ALL T0.int_b0 AS f0, T0.str_b2 AS f1, T0.str_b2 AS f2 FROM TEST.set_b T0"
-        , eqProp "unionAll" unionAllX
-          "SELECT int_a0 AS f0, str_a1 AS f1, str_a2 AS f2 FROM TEST.set_a UNION ALL SELECT ALL T0.int_b0 AS f0, T0.str_b2 AS f1, T0.str_b2 AS f2 FROM TEST.set_b T0"
-        , eqProp "except" exceptX
-          "SELECT int_a0 AS f0, str_a1 AS f1, str_a2 AS f2 FROM TEST.set_a EXCEPT SELECT ALL T0.int_b0 AS f0, T0.str_b2 AS f1, T0.str_b2 AS f2 FROM TEST.set_b T0"
-        , eqProp "intersect" intersectX
-          "SELECT int_a0 AS f0, str_a1 AS f1, str_a2 AS f2 FROM TEST.set_a INTERSECT SELECT ALL T0.int_b0 AS f0, T0.str_b2 AS f1, T0.str_b2 AS f2 FROM TEST.set_b T0"
-        ]
+exps =
+  [ eqProp "union" unionX
+    "SELECT int_a0 AS f0, str_a1 AS f1, str_a2 AS f2 FROM TEST.set_a UNION \
+    \SELECT ALL T0.int_b0 AS f0, T0.str_b2 AS f1, T0.str_b2 AS f2 FROM TEST.set_b T0"
+  , eqProp "unionAll" unionAllX
+    "SELECT int_a0 AS f0, str_a1 AS f1, str_a2 AS f2 FROM TEST.set_a UNION ALL \
+    \SELECT ALL T0.int_b0 AS f0, T0.str_b2 AS f1, T0.str_b2 AS f2 FROM TEST.set_b T0"
+  , eqProp "except" exceptX
+    "SELECT int_a0 AS f0, str_a1 AS f1, str_a2 AS f2 FROM TEST.set_a EXCEPT \
+    \SELECT ALL T0.int_b0 AS f0, T0.str_b2 AS f1, T0.str_b2 AS f2 FROM TEST.set_b T0"
+  , eqProp "intersect" intersectX
+    "SELECT int_a0 AS f0, str_a1 AS f1, str_a2 AS f2 FROM TEST.set_a INTERSECT \
+    \SELECT ALL T0.int_b0 AS f0, T0.str_b2 AS f1, T0.str_b2 AS f2 FROM TEST.set_b T0"
+  ]
 
 insertX :: Insert SetA
 insertX =  derivedInsert id'
@@ -250,17 +284,18 @@ deleteX =  derivedDelete $ \proj -> do
   return unitPlaceHolder
 
 effs :: [Test]
-effs =  [ eqProp "insert" insertX
-          "INSERT INTO TEST.set_a (int_a0, str_a1, str_a2) VALUES (?, ?, ?)"
-        , eqProp "insertQuery" insertQueryX
-          "INSERT INTO TEST.set_b (int_b0, str_b2, str_b2) SELECT int_a0, str_a1, str_a2 FROM TEST.set_a"
-        , eqProp "updateKey" updateKeyX
-          "UPDATE TEST.set_a SET str_a1 = ?, str_a2 = ? WHERE int_a0 = ?"
-        , eqProp "update" updateX
-          "UPDATE TEST.set_a SET str_a2 = 'X' WHERE (str_a1 = 'A')"
-        , eqProp "delete" deleteX
-          "DELETE FROM TEST.set_a WHERE (str_a1 = 'A')"
-        ]
+effs =
+  [ eqProp "insert" insertX
+    "INSERT INTO TEST.set_a (int_a0, str_a1, str_a2) VALUES (?, ?, ?)"
+  , eqProp "insertQuery" insertQueryX
+    "INSERT INTO TEST.set_b (int_b0, str_b2, str_b2) SELECT int_a0, str_a1, str_a2 FROM TEST.set_a"
+  , eqProp "updateKey" updateKeyX
+    "UPDATE TEST.set_a SET str_a1 = ?, str_a2 = ? WHERE int_a0 = ?"
+  , eqProp "update" updateX
+    "UPDATE TEST.set_a SET str_a2 = 'X' WHERE (str_a1 = 'A')"
+  , eqProp "delete" deleteX
+    "DELETE FROM TEST.set_a WHERE (str_a1 = 'A')"
+  ]
 
 tests :: TestList
 tests =
