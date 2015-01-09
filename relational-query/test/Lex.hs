@@ -3,17 +3,39 @@ module Lex (eqProp) where
 import Control.Applicative
   ((<$>), (<*>), pure, (*>), (<*), (<|>), empty, many, some)
 import Control.Monad (void)
-import Control.Monad.Trans.State (StateT, evalStateT, get, put)
+import Control.Monad.Trans.State (StateT (..), evalStateT, get, put)
 import Control.Monad.Trans.Class (lift)
 import Data.Maybe (listToMaybe, fromMaybe)
 import Data.Map (Map)
 import qualified Data.Map as Map
-import Text.ParserCombinators.ReadP (ReadP, readP_to_S)
-import qualified Text.ParserCombinators.ReadP as ReadP
 
 import Distribution.TestSuite (Test)
 import Distribution.TestSuite.Compat (prop')
 
+
+type P = StateT String Maybe
+
+satisfy' :: (Char -> Bool) -> P Char
+satisfy' p = do
+  s <- get
+  case s of
+    c:cs -> if p c
+            then  put cs *> pure c
+            else  empty
+    []   ->       empty
+
+char' :: Char -> P Char
+char' x = satisfy' (== x)
+
+look' :: P String
+look' =  get
+
+eof' :: P ()
+eof' =  do
+  s <- get
+  case s of
+    []   -> pure ()
+    _:_  -> empty
 
 type Var = Int
 
@@ -37,13 +59,16 @@ data QState =
   , varMap   ::  Map VarName Var
   } deriving Eq
 
-type Parser = StateT QState ReadP
+type Parser = StateT QState P
+
+run' :: Parser a -> String -> Maybe (a, String)
+run' p = runStateT (evalStateT p (QState { nextVar = 0, varMap = Map.empty }))
 
 char :: Char -> Parser Char
-char =  lift . ReadP.char
+char =  lift . char'
 
 satisfy :: (Char -> Bool) -> Parser Char
-satisfy =  lift . ReadP.satisfy
+satisfy =  lift . satisfy'
 
 quote :: Parser Char
 quote =  char '\''
@@ -101,7 +126,7 @@ spaces :: Parser ()
 spaces =  many space *> pure ()
 
 peekChar :: Parser (Maybe Char)
-peekChar =  listToMaybe <$> lift ReadP.look
+peekChar =  listToMaybe <$> lift look'
 
 peekSatisfy :: (Char -> Bool) -> Parser Char
 peekSatisfy pre = do
@@ -130,7 +155,7 @@ placeholder :: Parser Token
 placeholder =  char '?' *> pure PlaceHolder
 
 eof :: Parser ()
-eof =  lift ReadP.eof
+eof =  lift eof'
 
 token :: Parser Token
 token =
@@ -146,12 +171,6 @@ token =
 
 tokens :: Parser [Token]
 tokens =  (many $ token <* spaces) <* eof
-
-run' :: Parser a -> String -> Maybe (a, String)
-run' p =
-  (result <$>) . listToMaybe .
-  readP_to_S (evalStateT p (QState { nextVar = 0, varMap = Map.empty }))  where
-    result (a, in') = (a, in')
 
 run :: String -> Maybe [Token]
 run =  (fst <$>) . run' tokens
