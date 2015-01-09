@@ -9,15 +9,16 @@ import Model
 import Data.Int (Int32)
 import Database.Relational.Query
 
-base :: [Test]
-base =
+
+tables :: [Test]
+tables =
   [ eqProp "setA" setA "SELECT int_a0, str_a1, str_a2 FROM TEST.set_a"
   , eqProp "setB" setB "SELECT int_b0, may_str_b1, str_b2 FROM TEST.set_b"
   , eqProp "setC" setC "SELECT int_c0, str_c1, int_c2, may_str_c3 FROM TEST.set_c"
   ]
 
-_p_base :: IO ()
-_p_base =  mapM_ print [show setA, show setB, show setC]
+_p_tables :: IO ()
+_p_tables =  mapM_ print [show setA, show setB, show setC]
 
 cross :: Relation () (SetA, SetB)
 cross =  setA `inner` setB `on'` []
@@ -177,4 +178,4 @@ effs =  [ eqProp "insert" insertX
 
 tests :: TestList
 tests =
-  testList $ concat [base, directJoins, join3s, maybes, exps, effs]
+  testList $ concat [tables, directJoins, join3s, maybes, exps, effs]
