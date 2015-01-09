@@ -27,7 +27,7 @@ Here is a list of tables copied from page 34 of "Learning SQL":
 The most of the following examples come from "Learning SQL", too.
 HRR code examples are found in "src/examples.hs".
 
-### Select
+### SELECT
 
 #### Descending sort order
 
@@ -742,7 +742,7 @@ WHERE (2 = (SELECT ALL COUNT (T2.f0) AS f0
                   WHERE (T1.cust_id = T0.cust_id)) T2))
 {% endhighlight %}
 
-### insert
+### INSERT
 
 #### Inserting data
 
@@ -973,7 +973,7 @@ FROM MAIN.department T0 INNER JOIN MAIN.branch T1 ON (0=0)
 WHERE ((T0.name = 'Administration') AND (T1.name = 'Headquarters'))
 {% endhighlight %}
 
-### update
+### UPDATE
 
 #### Updating data
 
@@ -1054,7 +1054,7 @@ WHERE (EXISTS (SELECT ALL 1 AS f0
                WHERE (T2.account_id = account_id)))
 {% endhighlight %}
 
-### delete
+### DELETE
 
 #### Deleting data
 
