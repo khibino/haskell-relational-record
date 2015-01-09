@@ -3,7 +3,7 @@ module Lex (eqProp) where
 import Control.Applicative
   ((<$>), (<*>), pure, (*>), (<*), (<|>), empty, many, some)
 import Control.Monad (void)
-import Control.Monad.Trans.State (StateT, runStateT, get, put)
+import Control.Monad.Trans.State (StateT, evalStateT, get, put)
 import Control.Monad.Trans.Class (lift)
 import Data.Maybe (listToMaybe, fromMaybe)
 import Data.Map (Map)
@@ -150,8 +150,8 @@ tokens =  (many $ token <* spaces) <* eof
 run' :: Parser a -> String -> Maybe (a, String)
 run' p =
   (result <$>) . listToMaybe .
-  readP_to_S (runStateT p (QState { nextVar = 0, varMap = Map.empty }))  where
-    result ((a, _s), in') = (a, in')
+  readP_to_S (evalStateT p (QState { nextVar = 0, varMap = Map.empty }))  where
+    result (a, in') = (a, in')
 
 run :: String -> Maybe [Token]
 run =  (fst <$>) . run' tokens
