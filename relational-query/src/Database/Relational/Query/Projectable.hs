@@ -129,6 +129,12 @@ instance SqlProjectable (Projection OverWindow) where
 instance SqlProjectable (Expr p) where
   unsafeProjectSqlTerms' = UnsafeExpr.Expr . rowStringSQL
 
+class SqlProjectable p => OperatorProjectable p
+instance OperatorProjectable (Projection Flat)
+instance OperatorProjectable (Projection Aggregated)
+instance OperatorProjectable (Expr Flat)
+instance OperatorProjectable (Expr Aggregated)
+
 -- | Unsafely Project single SQL term.
 unsafeProjectSql' :: SqlProjectable p => StringSQL -> p t
 unsafeProjectSql' =  unsafeProjectSqlTerms' . (:[])
@@ -138,23 +144,23 @@ unsafeProjectSql :: SqlProjectable p => String -> p t
 unsafeProjectSql =  unsafeProjectSql' . stringSQL
 
 -- | Polymorphic projection of SQL null value.
-unsafeValueNull :: SqlProjectable p => p (Maybe a)
+unsafeValueNull :: OperatorProjectable p => p (Maybe a)
 unsafeValueNull =  unsafeProjectSql "NULL"
 
 -- | Generate polymorphic projection of SQL constant values from Haskell value.
-value :: (ShowConstantTermsSQL t, SqlProjectable p) => t -> p t
+value :: (ShowConstantTermsSQL t, OperatorProjectable p) => t -> p t
 value =  unsafeProjectSqlTerms' . showConstantTermsSQL'
 
 -- | Polymorphic proejction of SQL true value.
-valueTrue  :: (SqlProjectable p, ProjectableMaybe p) => p (Maybe Bool)
+valueTrue  :: (OperatorProjectable p, ProjectableMaybe p) => p (Maybe Bool)
 valueTrue  =  just $ value True
 
 -- | Polymorphic proejction of SQL false value.
-valueFalse :: (SqlProjectable p, ProjectableMaybe p) => p (Maybe Bool)
+valueFalse :: (OperatorProjectable p, ProjectableMaybe p) => p (Maybe Bool)
 valueFalse =  just $ value False
 
 -- | Polymorphic proejction of SQL set value from Haskell list.
-values :: (ShowConstantTermsSQL t, SqlProjectable p) => [t] -> ListProjection p t
+values :: (ShowConstantTermsSQL t, OperatorProjectable p) => [t] -> ListProjection p t
 values =  Projection.list . map value
 
 
@@ -213,63 +219,63 @@ monoBinOp =  unsafeBinOp
 
 
 -- | Compare operator corresponding SQL /=/ .
-(.=.)  :: (SqlProjectable p, ProjectableShowSql p)
+(.=.)  :: (OperatorProjectable p, ProjectableShowSql p)
   => p ft -> p ft -> p (Maybe Bool)
 (.=.)  =  compareBinOp (SQL..=.)
 
 -- | Compare operator corresponding SQL /</ .
-(.<.)  :: (SqlProjectable p, ProjectableShowSql p)
+(.<.)  :: (OperatorProjectable p, ProjectableShowSql p)
   => p ft -> p ft -> p (Maybe Bool)
 (.<.)  =  compareBinOp (SQL..<.)
 
 -- | Compare operator corresponding SQL /<=/ .
-(.<=.)  :: (SqlProjectable p, ProjectableShowSql p)
+(.<=.)  :: (OperatorProjectable p, ProjectableShowSql p)
   => p ft -> p ft -> p (Maybe Bool)
 (.<=.)  =  compareBinOp (SQL..<=.)
 
 -- | Compare operator corresponding SQL />/ .
-(.>.)  :: (SqlProjectable p, ProjectableShowSql p)
+(.>.)  :: (OperatorProjectable p, ProjectableShowSql p)
   => p ft -> p ft -> p (Maybe Bool)
 (.>.)  =  compareBinOp (SQL..>.)
 
 -- | Compare operator corresponding SQL />=/ .
-(.>=.)  :: (SqlProjectable p, ProjectableShowSql p)
+(.>=.)  :: (OperatorProjectable p, ProjectableShowSql p)
   => p ft -> p ft -> p (Maybe Bool)
 (.>=.)  =  compareBinOp (SQL..>=.)
 
 -- | Compare operator corresponding SQL /<>/ .
-(.<>.) :: (SqlProjectable p, ProjectableShowSql p)
+(.<>.) :: (OperatorProjectable p, ProjectableShowSql p)
   => p ft -> p ft -> p (Maybe Bool)
 (.<>.) =  compareBinOp (SQL..<>.)
 
 -- | Logical operator corresponding SQL /AND/ .
-and' :: (SqlProjectable p, ProjectableShowSql p)
+and' :: (OperatorProjectable p, ProjectableShowSql p)
      => p ft -> p ft -> p (Maybe Bool)
 and' =  compareBinOp SQL.and
 
 -- | Logical operator corresponding SQL /OR/ .
-or' :: (SqlProjectable p, ProjectableShowSql p)
+or' :: (OperatorProjectable p, ProjectableShowSql p)
     => p ft -> p ft -> p (Maybe Bool)
 or'  =  compareBinOp SQL.or
 
 -- | Logical operator corresponding SQL /NOT/ .
-not' :: (SqlProjectable p, ProjectableShowSql p)
+not' :: (OperatorProjectable p, ProjectableShowSql p)
     => p (Maybe Bool) -> p (Maybe Bool)
 not' =  unsafeFlatUniOp SQL.NOT
 
 -- | Logical operator corresponding SQL /EXISTS/ .
-exists :: (SqlProjectable p, ProjectableShowSql p)
+exists :: (OperatorProjectable p, ProjectableShowSql p)
        => ListProjection (Projection Exists) r -> p (Maybe Bool)
 exists =  unsafeProjectSql' . SQL.paren . SQL.defineUniOp SQL.EXISTS
           . Projection.unsafeStringSqlList unsafeShowSql'
 
 -- | Concatinate operator corresponding SQL /||/ .
-(.||.) :: (SqlProjectable p, ProjectableShowSql p, IsString a)
+(.||.) :: (OperatorProjectable p, ProjectableShowSql p, IsString a)
        => p a -> p a -> p a
 (.||.) =  unsafeBinOp (SQL..||.)
 
 -- | Concatinate operator corresponding SQL /||/ . Maybe type version.
-(?||?) :: (SqlProjectable p, ProjectableShowSql p, IsString a)
+(?||?) :: (OperatorProjectable p, ProjectableShowSql p, IsString a)
        => p (Maybe a) -> p (Maybe a) -> p (Maybe a)
 (?||?) =  unsafeBinOp (SQL..||.)
 
@@ -279,27 +285,27 @@ monoBinOp' :: (SqlProjectable p, ProjectableShowSql p)
 monoBinOp' = monoBinOp . SQL.defineBinOp
 
 -- | Number operator corresponding SQL /+/ .
-(.+.) :: (SqlProjectable p, ProjectableShowSql p, Num a)
+(.+.) :: (OperatorProjectable p, ProjectableShowSql p, Num a)
   => p a -> p a -> p a
 (.+.) =  monoBinOp' "+"
 
 -- | Number operator corresponding SQL /-/ .
-(.-.) :: (SqlProjectable p, ProjectableShowSql p, Num a)
+(.-.) :: (OperatorProjectable p, ProjectableShowSql p, Num a)
   => p a -> p a -> p a
 (.-.) =  monoBinOp' "-"
 
 -- | Number operator corresponding SQL /// .
-(./.) :: (SqlProjectable p, ProjectableShowSql p, Num a)
+(./.) :: (OperatorProjectable p, ProjectableShowSql p, Num a)
   => p a -> p a -> p a
 (./.) =  monoBinOp' "/"
 
 -- | Number operator corresponding SQL /*/ .
-(.*.) :: (SqlProjectable p, ProjectableShowSql p, Num a)
+(.*.) :: (OperatorProjectable p, ProjectableShowSql p, Num a)
   => p a -> p a -> p a
 (.*.) =  monoBinOp' "*"
 
 -- | Number negate uni-operator corresponding SQL /-/.
-negate' :: (SqlProjectable p, ProjectableShowSql p, Num a)
+negate' :: (OperatorProjectable p, ProjectableShowSql p, Num a)
         => p a -> p a
 negate' =  unsafeFlatUniOp $ SQL.word "-"
 
@@ -318,27 +324,27 @@ showNum :: (SqlProjectable p, ProjectableShowSql p, Num a, IsString b)
 showNum =  unsafeCastProjectable
 
 -- | Number operator corresponding SQL /+/ .
-(?+?) :: (SqlProjectable p, ProjectableShowSql p, Num a)
+(?+?) :: (OperatorProjectable p, ProjectableShowSql p, Num a)
   => p (Maybe a) -> p (Maybe a) -> p (Maybe a)
 (?+?) =  monoBinOp' "+"
 
 -- | Number operator corresponding SQL /-/ .
-(?-?) :: (SqlProjectable p, ProjectableShowSql p, Num a)
+(?-?) :: (OperatorProjectable p, ProjectableShowSql p, Num a)
   => p (Maybe a) -> p (Maybe a) -> p (Maybe a)
 (?-?) =  monoBinOp' "-"
 
 -- | Number operator corresponding SQL /// .
-(?/?) :: (SqlProjectable p, ProjectableShowSql p, Num a)
+(?/?) :: (OperatorProjectable p, ProjectableShowSql p, Num a)
   => p (Maybe a) -> p (Maybe a) -> p (Maybe a)
 (?/?) =  monoBinOp' "/"
 
 -- | Number operator corresponding SQL /*/ .
-(?*?) :: (SqlProjectable p, ProjectableShowSql p, Num a)
+(?*?) :: (OperatorProjectable p, ProjectableShowSql p, Num a)
   => p (Maybe a) -> p (Maybe a) -> p (Maybe a)
 (?*?) =  monoBinOp' "*"
 
 -- | Number negate uni-operator corresponding SQL /-/.
-negateMaybe :: (SqlProjectable p, ProjectableShowSql p, Num a)
+negateMaybe :: (OperatorProjectable p, ProjectableShowSql p, Num a)
             => p (Maybe a) -> p (Maybe a)
 negateMaybe =  unsafeFlatUniOp $ SQL.word "-"
 
@@ -352,7 +358,7 @@ showNumMaybe :: (SqlProjectable p, ProjectableShowSql p, Num a, IsString b)
                    => p (Maybe a) -> p (Maybe b)
 showNumMaybe = unsafeCastProjectable
 
-whensClause :: (SqlProjectable p, ProjectableShowSql p)
+whensClause :: (OperatorProjectable p, ProjectableShowSql p)
             => String       -- ^ Error tag
             -> [(p a, p b)] -- ^ Each when clauses
             -> p b          -- ^ Else result projection
@@ -365,28 +371,28 @@ whensClause eTag cs0 e = d cs0  where
 
 -- | Search case operator correnponding SQL search /CASE/.
 --   Like, /CASE WHEN p0 THEN a WHEN p1 THEN b ... ELSE c END/
-caseSearch :: (SqlProjectable p, ProjectableShowSql p)
+caseSearch :: (OperatorProjectable p, ProjectableShowSql p)
            => [(p (Maybe Bool), p a)] -- ^ Each when clauses
            -> p a                     -- ^ Else result projection
            -> p a                     -- ^ Result projection
 caseSearch cs e = unsafeProjectSql' $ SQL.CASE <> whensClause "caseSearch" cs e
 
 -- | Same as 'caseSearch', but you can write like <when list> `casesOrElse` <else clause>.
-casesOrElse :: (SqlProjectable p, ProjectableShowSql p)
+casesOrElse :: (OperatorProjectable p, ProjectableShowSql p)
             => [(p (Maybe Bool), p a)] -- ^ Each when clauses
             -> p a                     -- ^ Else result projection
             -> p a                     -- ^ Result projection
 casesOrElse = caseSearch
 
 -- | Null default version of 'caseSearch'.
-caseSearchMaybe :: (ProjectableShowSql p, SqlProjectable p)
+caseSearchMaybe :: (OperatorProjectable p, ProjectableShowSql p)
                 => [(p (Maybe Bool), p (Maybe a))] -- ^ Each when clauses
                 -> p (Maybe a)                     -- ^ Result projection
 caseSearchMaybe cs = caseSearch cs unsafeValueNull
 
 -- | Simple case operator correnponding SQL simple /CASE/.
 --   Like, /CASE x WHEN v THEN a WHEN w THEN b ... ELSE c END/
-case' :: (SqlProjectable p, ProjectableShowSql p)
+case' :: (OperatorProjectable p, ProjectableShowSql p)
       => p a          -- ^ Projection value to match
       -> [(p a, p b)] -- ^ Each when clauses
       -> p b          -- ^ Else result projection
@@ -394,39 +400,39 @@ case' :: (SqlProjectable p, ProjectableShowSql p)
 case' v cs e = unsafeProjectSql' $ SQL.CASE <> unsafeShowSql' v <> whensClause "case'" cs e
 
 -- | Uncurry version of 'case'', and you can write like ... `casesOrElse'` <else clause>.
-casesOrElse' :: (SqlProjectable p, ProjectableShowSql p)
+casesOrElse' :: (OperatorProjectable p, ProjectableShowSql p)
              => (p a, [(p a, p b)]) -- ^ Projection value to match and each when clauses list
              -> p b                 -- ^ Else result projection
              -> p b                 -- ^ Result projection
 casesOrElse' =  uncurry case'
 
 -- | Null default version of 'case''.
-caseMaybe :: (SqlProjectable p, ProjectableShowSql p, ProjectableMaybe p)
+caseMaybe :: (OperatorProjectable p, ProjectableShowSql p, ProjectableMaybe p)
           => p a                  -- ^ Projection value to match
           -> [(p a, p (Maybe b))] -- ^ Each when clauses
           -> p (Maybe b)          -- ^ Result projection
 caseMaybe v cs = case' v cs unsafeValueNull
 
 -- | Binary operator corresponding SQL /IN/ .
-in' :: (SqlProjectable p, ProjectableShowSql p)
+in' :: (OperatorProjectable p, ProjectableShowSql p)
     => p t -> ListProjection p t -> p (Maybe Bool)
 in' a lp = unsafeProjectSql' . SQL.paren
            $ SQL.in' (unsafeShowSql' a) (Projection.unsafeStringSqlList unsafeShowSql' lp)
 
 -- | Operator corresponding SQL /IS NULL/ , and extended against record types.
-isNothing :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
+isNothing :: (OperatorProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
           => Projection c (Maybe r) -> Projection c (Maybe Bool)
 isNothing mr = unsafeProjectSql' $
                SQL.paren $ (SQL.defineBinOp SQL.IS)
                (Projection.unsafeStringSqlNotNullMaybe mr) SQL.NULL
 
 -- | Operator corresponding SQL /NOT (... IS NULL)/ , and extended against record type.
-isJust :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
+isJust :: (OperatorProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
           => Projection c (Maybe r) -> Projection c (Maybe Bool)
 isJust =  not' . isNothing
 
 -- | Operator from maybe type using record extended 'isNull'.
-fromMaybe :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
+fromMaybe :: (OperatorProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
           => Projection c r -> Projection c (Maybe r) -> Projection c r
 fromMaybe d p = [ (isNothing p, d) ] `casesOrElse` unsafeCastProjectable p
 
