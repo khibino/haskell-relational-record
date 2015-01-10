@@ -648,19 +648,12 @@ $(makeRecordPersistableDefault ''Employee2)
 -- Generated SQL:
 --
 -- @
---   ELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2,
---   T0.open_date AS f3, T0.close_date AS f4, T0.last_activity_date AS f5,
---   T0.status AS f6, T0.open_branch_id AS f7, T0.open_emp_id AS f8,
---   T0.avail_balance AS f9, T0.pending_balance AS f10, T1.emp_id AS f11,
---   T1.fname AS f12, T1.lname AS f13, T1.start_date AS f14, T1.end_date AS
---   f15, T1.superior_emp_id AS f16, T1.dept_id AS f17, T1.title AS f18,
---   T1.assigned_branch_id AS f19, T2.branch_id AS f20, T2.name AS f21,
---   T2.address AS f22, T2.city AS f23, T2.state AS f24, T2.zip AS f25 FROM
---   (MAIN.account T0 INNER JOIN MAIN.employee T1 ON (T0.open_emp_id
---   = T1.emp_id)) INNER JOIN MAIN.branch T2 ON (T1.assigned_branch_id
---   = T2.branch_id) WHERE ((T1.start_date <= '2004-01-01') AND (((T1.title
---   = 'Teller') OR (T1.title = 'Head Teller')) AND (T2.name = 'Woburn
---   Branch')))
+--   SELECT ALL T0.account_id AS f0, T0.cust_id AS f1, T0.open_date AS f2,
+--   T0.product_cd AS f3 FROM (MAIN.account T0 INNER JOIN MAIN.employee T1
+--   ON (T0.open_emp_id = T1.emp_id)) INNER JOIN MAIN.branch T2 ON
+--   (T1.assigned_branch_id = T2.branch_id) WHERE ((T1.start_date <=
+--   '2004-01-01') AND (((T1.title = 'Teller') OR (T1.title = 'Head
+--   Teller')) AND (T2.name = 'Woburn Branch')))
 -- @
 --
 join_5_1_3 :: Relation () Account3
