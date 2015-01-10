@@ -632,6 +632,53 @@ data Employee2 = Employee2
 
 $(makeRecordPersistableDefault ''Employee2)
 
+-- | sql/5.1.3.sh
+--
+-- Handwritten SQL:
+--
+-- @
+--   SELECT a.account_id, a.cust_id, a.open_date, a.product_cd
+--   FROM account a INNER JOIN employee e ON a.open_emp_id = e.emp_id
+--   INNER JOIN branch b ON e.assigned_branch_id = b.branch_id
+--   WHERE e.start_date <= date('2004-01-01') AND
+--        (e.title = 'Teller' OR e.title = 'Head Teller') AND
+--             b.name = 'Woburn Branch'
+-- @
+--
+-- Generated SQL:
+--
+-- @
+--   ELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2,
+--   T0.open_date AS f3, T0.close_date AS f4, T0.last_activity_date AS f5,
+--   T0.status AS f6, T0.open_branch_id AS f7, T0.open_emp_id AS f8,
+--   T0.avail_balance AS f9, T0.pending_balance AS f10, T1.emp_id AS f11,
+--   T1.fname AS f12, T1.lname AS f13, T1.start_date AS f14, T1.end_date AS
+--   f15, T1.superior_emp_id AS f16, T1.dept_id AS f17, T1.title AS f18,
+--   T1.assigned_branch_id AS f19, T2.branch_id AS f20, T2.name AS f21,
+--   T2.address AS f22, T2.city AS f23, T2.state AS f24, T2.zip AS f25 FROM
+--   (MAIN.account T0 INNER JOIN MAIN.employee T1 ON (T0.open_emp_id
+--   = T1.emp_id)) INNER JOIN MAIN.branch T2 ON (T1.assigned_branch_id
+--   = T2.branch_id) WHERE ((T1.start_date <= '2004-01-01') AND (((T1.title
+--   = 'Teller') OR (T1.title = 'Head Teller')) AND (T2.name = 'Woburn
+--   Branch')))
+-- @
+--
+join_5_1_3 :: Relation () ((Account, Employee), Branch)
+join_5_1_3 = relation $ do
+    a <- query account
+    e <- query employee
+    on $ a ! Account.openEmpId' .=. just (e ! Employee.empId')
+
+    b <- query branch
+    on $ e ! Employee.assignedBranchId' .=. just (b ! Branch.branchId')
+
+    wheres $ e ! Employee.startDate' .<=. unsafeSQLiteDayValue "2004-01-01"
+    wheres $ e ! Employee.title' .=. just (value "Teller")
+       `or'` e ! Employee.title' .=. just (value "Head Teller")
+    wheres $ b ! Branch.name' .=. value "Woburn Branch"
+
+    return (a >< e >< b)
+
 -- |
 -- 9.1 What is a subquery?
 --
@@ -1121,6 +1168,7 @@ main = handleSqlError' $ withConnectionIO connect $ \conn -> do
   run conn (read "2003-01-01") employee_4_1_2P
   run conn () employee_4_3_2
   run conn (read "2001-01-01", read "2003-01-01") employee_4_3_2P
+  run conn () join_5_1_3
   run conn () account_9_1
   run conn () customer_9_4
   runD conn () deleteAccount_o1
