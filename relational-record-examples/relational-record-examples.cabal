@@ -42,7 +42,7 @@ executable examples
                      , HDBC-sqlite3
                      , names-th
                      , persistable-record
-                     , relational-query
+                     , relational-query >0.4
                      , relational-query-HDBC
                      , template-haskell
                      , time
