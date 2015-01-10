@@ -866,7 +866,7 @@ toDay dt = unsafeProjectSql $ "date(" ++ unsafeShowSql dt ++ ")"
 -- @
 --
 insertBranch_s1 :: InsertQuery ()
-insertBranch_s1 = typedInsertQuery piBranch1 $ relation .
+insertBranch_s1 = derivedInsertQuery piBranch1 . relation $
   return $ Branch1 |$| value "Headquarters"
                    |*| value (Just "3882 Main St.")
                    |*| value (Just "Waltham")
@@ -940,7 +940,7 @@ insertBranch_s1P = typedInsert tableOfBranch piBranch1
 -- The name column of branch table is the same.
 --
 insertEmployee_s2 :: InsertQuery ()
-insertEmployee_s2 = typedInsertQuery piEmployee3 . relation $ do
+insertEmployee_s2 = derivedInsertQuery piEmployee3 . relation $ do
   d <- query department
   b <- query branch
   wheres $ d ! Department.name' .=. value "Administration"
@@ -989,7 +989,7 @@ $(makeRecordPersistableDefault ''Employee3)
 -- @
 --
 insertEmployee_s2U :: InsertQuery ()
-insertEmployee_s2U = typedInsertQuery piEmployee3 . relation $ do
+insertEmployee_s2U = derivedInsertQuery piEmployee3 . relation $ do
   d <- queryScalar . unsafeUnique . relation $ do
     d' <- query department
     wheres $ d' ! Department.name' .=. value "Administration"
@@ -1028,7 +1028,7 @@ $(makeRecordPersistableDefault ''Employee4)
 -- @
 --
 insertEmployee_s2P :: InsertQuery Employee4
-insertEmployee_s2P = typedInsertQuery piEmployee3 . relation' $ do
+insertEmployee_s2P = derivedInsertQuery piEmployee3 . relation' $ do
   d <- query department
   b <- query branch
   wheres $ d ! Department.name' .=. value "Administration"
