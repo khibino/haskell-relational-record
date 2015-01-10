@@ -663,7 +663,7 @@ $(makeRecordPersistableDefault ''Employee2)
 --   Branch')))
 -- @
 --
-join_5_1_3 :: Relation () ((Account, Employee), Branch)
+join_5_1_3 :: Relation () Account3
 join_5_1_3 = relation $ do
   a <- query account
   e <- query employee
@@ -677,7 +677,19 @@ join_5_1_3 = relation $ do
      `or'` e ! Employee.title' .=. just (value "Head Teller")
   wheres $ b ! Branch.name' .=. value "Woburn Branch"
 
-  return (a >< e >< b)
+  return $ Account3 |$| a ! Account.accountId'
+                    |*| a ! Account.custId'
+                    |*| a ! Account.openDate'
+                    |*| a ! Account.productCd'
+
+data Account3 = Account3
+  { accountId :: Int64
+  , custId :: Int64
+  , openDate :: Day
+  , productCd :: String
+  } deriving (Show)
+
+$(makeRecordPersistableDefault ''Account3)
 
 -- |
 -- 9.1 What is a subquery?
