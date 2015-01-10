@@ -665,19 +665,19 @@ $(makeRecordPersistableDefault ''Employee2)
 --
 join_5_1_3 :: Relation () ((Account, Employee), Branch)
 join_5_1_3 = relation $ do
-    a <- query account
-    e <- query employee
-    on $ a ! Account.openEmpId' .=. just (e ! Employee.empId')
+  a <- query account
+  e <- query employee
+  on $ a ! Account.openEmpId' .=. just (e ! Employee.empId')
 
-    b <- query branch
-    on $ e ! Employee.assignedBranchId' .=. just (b ! Branch.branchId')
+  b <- query branch
+  on $ e ! Employee.assignedBranchId' .=. just (b ! Branch.branchId')
 
-    wheres $ e ! Employee.startDate' .<=. unsafeSQLiteDayValue "2004-01-01"
-    wheres $ e ! Employee.title' .=. just (value "Teller")
-       `or'` e ! Employee.title' .=. just (value "Head Teller")
-    wheres $ b ! Branch.name' .=. value "Woburn Branch"
+  wheres $ e ! Employee.startDate' .<=. unsafeSQLiteDayValue "2004-01-01"
+  wheres $ e ! Employee.title' .=. just (value "Teller")
+     `or'` e ! Employee.title' .=. just (value "Head Teller")
+  wheres $ b ! Branch.name' .=. value "Woburn Branch"
 
-    return (a >< e >< b)
+  return (a >< e >< b)
 
 -- |
 -- 9.1 What is a subquery?
