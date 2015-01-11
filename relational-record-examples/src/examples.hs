@@ -782,6 +782,25 @@ deleteAccount_o1 = typedDelete tableOfAccount . restriction $ \proj -> do
   wheres $ proj ! Account.accountId' .=. value 2
 
 -- |
+-- Placeholder version of Generated SQL:
+--
+-- @
+--   DELETE FROM MAIN.account WHERE (account_id = ?)
+-- @
+--
+-- Note: This function is equal to the following:
+--
+-- @
+--   deleteAccount_o1P :: Delete Int64
+--   deleteAccount_o1P = typedDelete tableOfAccount . restriction' $ \proj -> do
+--     fmap fst $ placeholder (\ph -> wheres $ proj ! Account.accountId' .=. ph)
+-- @
+--
+deleteAccount_o1P :: Delete Int64
+deleteAccount_o1P = derivedDelete $ \proj -> do
+  fmap fst $ placeholder (\ph -> wheres $ proj ! Account.accountId' .=. ph)
+
+-- |
 -- (original) Data modification using equality conditions
 --
 -- Handwritten SQL:
@@ -803,6 +822,19 @@ deleteAccount_o2 = typedDelete tableOfAccount . restriction $ \proj -> do
   wheres $ proj ! Account.accountId' .>=. value 10
   wheres $ proj ! Account.accountId' .<=. value 20
 
+-- |
+-- Placeholder version of Generated SQL:
+--
+-- @
+--   DELETE FROM MAIN.account WHERE ((account_id >= ?) AND (account_id <=
+--   ?))
+-- @
+--
+deleteAccount_o2P :: Delete (Int64,Int64)
+deleteAccount_o2P = derivedDelete $ \proj -> do
+  (phMin,()) <- placeholder (\ph -> wheres $ proj ! Account.accountId' .>=. ph)
+  (phMax,()) <- placeholder (\ph -> wheres $ proj ! Account.accountId' .<=. ph)
+  return (phMin >< phMax)
 
 -- |
 -- 9.4.2 Data manipulation using correlated subqueries
@@ -855,6 +887,31 @@ updateEmployee_o3 = typedUpdate tableOfEmployee . updateTarget $ \proj -> do
   Employee.lname' <-# value "Bush"
   Employee.deptId' <-# just (value 3)
   wheres $ proj ! Employee.empId' .=. value 10
+
+-- |
+-- Placeholder version of Generated SQL:
+--
+-- @
+--   UPDATE MAIN.employee SET lname = ?, dept_id = ? WHERE (emp_id = ?)
+-- @
+--
+-- Note: This function is equal to the following:
+--
+-- @
+--   updateEmployee_o3P :: Update ((String,Int64),Int64)
+--   updateEmployee_o3P = typedUpdate tableOfEmployee . updateTarget' $ \proj -> do
+--     (phLname,()) <- placeholder (\ph -> Employee.lname' <-# ph)
+--     (phDeptId,()) <- placeholder (\ph -> Employee.deptId' <-# just ph)
+--     (phEmpId,()) <- placeholder (\ph -> wheres $ proj ! Employee.empId' .=. ph)
+--     return (phLname >< phDeptId >< phEmpId)
+-- @
+--
+updateEmployee_o3P :: Update ((String,Int64),Int64)
+updateEmployee_o3P = derivedUpdate $ \proj -> do
+  (phLname,()) <- placeholder (\ph -> Employee.lname' <-# ph)
+  (phDeptId,()) <- placeholder (\ph -> Employee.deptId' <-# just ph)
+  (phEmpId,()) <- placeholder (\ph -> wheres $ proj ! Employee.empId' .=. ph)
+  return (phLname >< phDeptId >< phEmpId)
 
 -- |
 -- 9.4.2 Data Manipulation Using Correlated Subqueries
@@ -1177,9 +1234,12 @@ main = handleSqlError' $ withConnectionIO connect $ \conn -> do
   run conn () account_9_1
   run conn () customer_9_4
   runD conn () deleteAccount_o1
+  runD conn 2 deleteAccount_o1P
   runD conn () deleteAccount_o2
+  runD conn (10,20) deleteAccount_o2P
   runD conn () deleteEmployee_9_4_2
   runU conn () updateEmployee_o3
+  runU conn (("Bush",3),10) updateEmployee_o3P
   runU conn () updateAccount_9_4_2
   runIQ conn () insertBranch_s1
   runI conn branch1 insertBranch_s1P

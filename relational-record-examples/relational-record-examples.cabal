@@ -1,5 +1,5 @@
 name:                relational-record-examples
-version:             0.2.0.0
+version:             0.2.0.1
 synopsis:            Examples of Haskell Relationa Record
 description:         Provides examples of Haskell Relational Record
 license:             BSD3
@@ -11,14 +11,21 @@ category:            Database
 build-type:          Simple
 cabal-version:       >=1.10
 
-extra-source-files:    sql/4.3.3a.sh
+extra-source-files:    sql/3.7.1.sh
+                       sql/3.7.3.sh
+                       sql/3.7.sh
+                       sql/4.1.2.sh
+                       sql/4.3.2.sh
+                       sql/4.3.3a.sh
                        sql/4.3.3b.sh
                        sql/4.3.3c.sh
                        sql/5.1.2a.sh
+                       sql/5.1.3.sh
                        sql/5.3a.sh
                        sql/6.4.1a.sh
                        sql/8.1a.sh
                        sql/add.sql
+                       sql/sql-memo
                        examples.db
 
 executable examples

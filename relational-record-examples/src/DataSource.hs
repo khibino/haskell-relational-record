@@ -11,7 +11,6 @@ import Database.HDBC.Schema.SQLite3 (driverSQLite3)
 import Database.HDBC.Sqlite3 (Connection, connectSqlite3)
 import Database.Record.TH (derivingShow)
 import Language.Haskell.TH (Q, Dec, TypeQ)
-import Language.Haskell.TH.Name.CamelCase (ConName)
 
 connect :: IO Connection
 connect = connectSqlite3 "examples.db"
