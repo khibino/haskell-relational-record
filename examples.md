@@ -948,17 +948,6 @@ insertEmployee_s2U = typedInsertQuery piEmployee3 . relation $ do
                      |*| d
                      |*| value (Just "President")
                      |*| b
-
--- place the definition of Employee4 that contains template-haskell, before
--- insertEmployee_s2P uses the function to be generated.
-data Employee4 = Employee4
-  { e4Fname :: String
-  , e4Lname :: String
-  , e4StartDate :: Day
-  , e4Title :: Maybe String
-  }
-
-$(makeRecordPersistableDefault ''Employee4)
 {% endhighlight %}
 
 Generated SQL:
@@ -980,6 +969,17 @@ SELECT ALL 'Michael' AS f0,
 HRR using place holder:
 
 {% highlight haskell %}
+-- place the definition of Employee4 that contains template-haskell, before
+-- insertEmployee_s2P uses the function to be generated.
+data Employee4 = Employee4
+  { e4Fname :: String
+  , e4Lname :: String
+  , e4StartDate :: Day
+  , e4Title :: Maybe String
+  }
+
+$(makeRecordPersistableDefault ''Employee4)
+
 insertEmployee_s2P :: InsertQuery Employee4
 insertEmployee_s2P = typedInsertQuery piEmployee3 . relation' $ do
   d <- query department
