@@ -632,6 +632,58 @@ data Employee2 = Employee2
 
 $(makeRecordPersistableDefault ''Employee2)
 
+-- | sql/5.1.3.sh
+--
+-- Handwritten SQL:
+--
+-- @
+--   SELECT a.account_id, a.cust_id, a.open_date, a.product_cd
+--   FROM account a INNER JOIN employee e ON a.open_emp_id = e.emp_id
+--   INNER JOIN branch b ON e.assigned_branch_id = b.branch_id
+--   WHERE e.start_date <= date('2004-01-01') AND
+--        (e.title = 'Teller' OR e.title = 'Head Teller') AND
+--             b.name = 'Woburn Branch'
+-- @
+--
+-- Generated SQL:
+--
+-- @
+--   SELECT ALL T0.account_id AS f0, T0.cust_id AS f1, T0.open_date AS f2,
+--   T0.product_cd AS f3 FROM (MAIN.account T0 INNER JOIN MAIN.employee T1
+--   ON (T0.open_emp_id = T1.emp_id)) INNER JOIN MAIN.branch T2 ON
+--   (T1.assigned_branch_id = T2.branch_id) WHERE ((T1.start_date <=
+--   '2004-01-01') AND (((T1.title = 'Teller') OR (T1.title = 'Head
+--   Teller')) AND (T2.name = 'Woburn Branch')))
+-- @
+--
+join_5_1_3 :: Relation () Account3
+join_5_1_3 = relation $ do
+  a <- query account
+  e <- query employee
+  on $ a ! Account.openEmpId' .=. just (e ! Employee.empId')
+
+  b <- query branch
+  on $ e ! Employee.assignedBranchId' .=. just (b ! Branch.branchId')
+
+  wheres $ e ! Employee.startDate' .<=. unsafeSQLiteDayValue "2004-01-01"
+  wheres $ e ! Employee.title' .=. just (value "Teller")
+     `or'` e ! Employee.title' .=. just (value "Head Teller")
+  wheres $ b ! Branch.name' .=. value "Woburn Branch"
+
+  return $ Account3 |$| a ! Account.accountId'
+                    |*| a ! Account.custId'
+                    |*| a ! Account.openDate'
+                    |*| a ! Account.productCd'
+
+data Account3 = Account3
+  { accountId :: Int64
+  , custId :: Int64
+  , openDate :: Day
+  , productCd :: String
+  } deriving (Show)
+
+$(makeRecordPersistableDefault ''Account3)
+
 -- |
 -- 9.1 What is a subquery?
 --
@@ -730,6 +782,25 @@ deleteAccount_o1 = typedDelete tableOfAccount . restriction $ \proj -> do
   wheres $ proj ! Account.accountId' .=. value 2
 
 -- |
+-- Placeholder version of Generated SQL:
+--
+-- @
+--   DELETE FROM MAIN.account WHERE (account_id = ?)
+-- @
+--
+-- Note: This function is equal to the following:
+--
+-- @
+--   deleteAccount_o1P :: Delete Int64
+--   deleteAccount_o1P = typedDelete tableOfAccount . restriction' $ \proj -> do
+--     fmap fst $ placeholder (\ph -> wheres $ proj ! Account.accountId' .=. ph)
+-- @
+--
+deleteAccount_o1P :: Delete Int64
+deleteAccount_o1P = derivedDelete $ \proj -> do
+  fmap fst $ placeholder (\ph -> wheres $ proj ! Account.accountId' .=. ph)
+
+-- |
 -- (original) Data modification using equality conditions
 --
 -- Handwritten SQL:
@@ -751,6 +822,19 @@ deleteAccount_o2 = typedDelete tableOfAccount . restriction $ \proj -> do
   wheres $ proj ! Account.accountId' .>=. value 10
   wheres $ proj ! Account.accountId' .<=. value 20
 
+-- |
+-- Placeholder version of Generated SQL:
+--
+-- @
+--   DELETE FROM MAIN.account WHERE ((account_id >= ?) AND (account_id <=
+--   ?))
+-- @
+--
+deleteAccount_o2P :: Delete (Int64,Int64)
+deleteAccount_o2P = derivedDelete $ \proj -> do
+  (phMin,()) <- placeholder (\ph -> wheres $ proj ! Account.accountId' .>=. ph)
+  (phMax,()) <- placeholder (\ph -> wheres $ proj ! Account.accountId' .<=. ph)
+  return (phMin >< phMax)
 
 -- |
 -- 9.4.2 Data manipulation using correlated subqueries
@@ -803,6 +887,31 @@ updateEmployee_o3 = typedUpdate tableOfEmployee . updateTarget $ \proj -> do
   Employee.lname' <-# value "Bush"
   Employee.deptId' <-# just (value 3)
   wheres $ proj ! Employee.empId' .=. value 10
+
+-- |
+-- Placeholder version of Generated SQL:
+--
+-- @
+--   UPDATE MAIN.employee SET lname = ?, dept_id = ? WHERE (emp_id = ?)
+-- @
+--
+-- Note: This function is equal to the following:
+--
+-- @
+--   updateEmployee_o3P :: Update ((String,Int64),Int64)
+--   updateEmployee_o3P = typedUpdate tableOfEmployee . updateTarget' $ \proj -> do
+--     (phLname,()) <- placeholder (\ph -> Employee.lname' <-# ph)
+--     (phDeptId,()) <- placeholder (\ph -> Employee.deptId' <-# just ph)
+--     (phEmpId,()) <- placeholder (\ph -> wheres $ proj ! Employee.empId' .=. ph)
+--     return (phLname >< phDeptId >< phEmpId)
+-- @
+--
+updateEmployee_o3P :: Update ((String,Int64),Int64)
+updateEmployee_o3P = derivedUpdate $ \proj -> do
+  (phLname,()) <- placeholder (\ph -> Employee.lname' <-# ph)
+  (phDeptId,()) <- placeholder (\ph -> Employee.deptId' <-# just ph)
+  (phEmpId,()) <- placeholder (\ph -> wheres $ proj ! Employee.empId' .=. ph)
+  return (phLname >< phDeptId >< phEmpId)
 
 -- |
 -- 9.4.2 Data Manipulation Using Correlated Subqueries
@@ -866,7 +975,7 @@ toDay dt = unsafeProjectSql $ "date(" ++ unsafeShowSql dt ++ ")"
 -- @
 --
 insertBranch_s1 :: InsertQuery ()
-insertBranch_s1 = typedInsertQuery piBranch1 $ relation .
+insertBranch_s1 = derivedInsertQuery piBranch1 . relation $
   return $ Branch1 |$| value "Headquarters"
                    |*| value (Just "3882 Main St.")
                    |*| value (Just "Waltham")
@@ -940,7 +1049,7 @@ insertBranch_s1P = typedInsert tableOfBranch piBranch1
 -- The name column of branch table is the same.
 --
 insertEmployee_s2 :: InsertQuery ()
-insertEmployee_s2 = typedInsertQuery piEmployee3 . relation $ do
+insertEmployee_s2 = derivedInsertQuery piEmployee3 . relation $ do
   d <- query department
   b <- query branch
   wheres $ d ! Department.name' .=. value "Administration"
@@ -989,7 +1098,7 @@ $(makeRecordPersistableDefault ''Employee3)
 -- @
 --
 insertEmployee_s2U :: InsertQuery ()
-insertEmployee_s2U = typedInsertQuery piEmployee3 . relation $ do
+insertEmployee_s2U = derivedInsertQuery piEmployee3 . relation $ do
   d <- queryScalar . unsafeUnique . relation $ do
     d' <- query department
     wheres $ d' ! Department.name' .=. value "Administration"
@@ -1028,7 +1137,7 @@ $(makeRecordPersistableDefault ''Employee4)
 -- @
 --
 insertEmployee_s2P :: InsertQuery Employee4
-insertEmployee_s2P = typedInsertQuery piEmployee3 . relation' $ do
+insertEmployee_s2P = derivedInsertQuery piEmployee3 . relation' $ do
   d <- query department
   b <- query branch
   wheres $ d ! Department.name' .=. value "Administration"
@@ -1121,12 +1230,16 @@ main = handleSqlError' $ withConnectionIO connect $ \conn -> do
   run conn (read "2003-01-01") employee_4_1_2P
   run conn () employee_4_3_2
   run conn (read "2001-01-01", read "2003-01-01") employee_4_3_2P
+  run conn () join_5_1_3
   run conn () account_9_1
   run conn () customer_9_4
   runD conn () deleteAccount_o1
+  runD conn 2 deleteAccount_o1P
   runD conn () deleteAccount_o2
+  runD conn (10,20) deleteAccount_o2P
   runD conn () deleteEmployee_9_4_2
   runU conn () updateEmployee_o3
+  runU conn (("Bush",3),10) updateEmployee_o3P
   runU conn () updateAccount_9_4_2
   runIQ conn () insertBranch_s1
   runI conn branch1 insertBranch_s1P
