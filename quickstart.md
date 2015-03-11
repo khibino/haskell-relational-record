@@ -8,12 +8,12 @@ title: Quick start
 To start using [Haskell Relational Record](http://khibino.github.io/haskell-relational-record/) (HRR), you need to install:
 
 1. [Glasgow Haskell Compiler](https://www.haskell.org/ghc/) (GHC) + the "cabal" command
-    - We recommend to use [Haskell Platform](https://www.haskell.org/platform/)
+    - We recommend using the [Haskell Platform](https://www.haskell.org/platform/)
 2. The Haskell ["relational-record"](http://hackage.haskell.org/package/relational-record) library
 3. Relational database system
     - In this quickstart, we assume that [SQLite](http://www.sqlite.org/) version 3 has been installed
 
-To install the Haskell "relational-record" library, type as follows:
+To install the Haskell "relational-record" library, run the following commands:
 
     % cabal update
     % cabal install relational-record
@@ -33,21 +33,21 @@ main :: IO ()
 main = putStrLn $ show hello ++ ";"
 {% endhighlight %}
 
-`hello` defines the fist relation. This "SELECT"s a constant tuple value (0,"Hello") from the (virtual) empty table. In other words, this relation just returns (0,"Hello").
+`hello` defines our first relation. This "SELECT"s a constant tuple value (0,"Hello") from the (virtual) empty table. In other words, this relation just returns (0,"Hello").
 
-Let's run this Haskell code to show what kind of SQL statement is generated:
+Let's run the above Haskell code to show what kind of SQL statement is generated:
 
 {% highlight sql %}
 % runghc hello.hs
 SELECT ALL 0 AS f0, 'Hello' AS f1;
 {% endhighlight %}
 
-OK. Next, let's execute this SQL in SQLite:
+OK. Next, let's execute the SQL produced above in SQLite:
 
     % runghc hello.hs | sqlite3 dummy.db
     0|Hello
 
-We got "0\|Hello"! Note that "dummy.db" is really a dummy file.
+We got "0\|Hello"! Note that "dummy.db" is just a dummy file.
 
 ### Composing relations
 
@@ -90,4 +90,4 @@ Finally, let's execute it in SQLite:
 
 Now we understand that relations are composable. Raw SQL does NOT have this feature. Moreover, relations are type safe. If our HRR code can be compiled by GHC, it always generates valid SQL statements.
 
-The next step is to read [HRR tutorial](tutorial.html).
+The next step is to read the [HRR tutorial](tutorial.html).
