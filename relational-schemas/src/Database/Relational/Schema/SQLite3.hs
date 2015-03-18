@@ -40,8 +40,8 @@ normalizeType = normalizeColumn . takeWhile (not . flip elem " (")
 notNull :: TableInfo -> Bool
 notNull info = isTrue . TableInfo.notnull $ info
   where
-    isTrue 1 = True
-    isTrue _ = False
+    isTrue 0 = False
+    isTrue _ = True
 
 getType :: Map String TypeQ -> TableInfo -> Maybe (String, TypeQ)
 getType mapFromSql info = do
