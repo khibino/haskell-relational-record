@@ -47,7 +47,7 @@ Now we map the type of rows of a table to a Haskell record type. Here is the sch
             references employee (emp_id)
      );
 
-We don't want to define `data Account` for this by hand. HRR gains access to our DB at compile time and automatically generates Haskell record types. To avoid the conflict of record field names, we recommend to make one module per table. (This limitation would be solved by `OverloadedFieldRecord` in the future.)
+We don't want to have to define `data Account` for this by hand. HRR accesses our DB at compile time and automatically generates Haskell record types. To avoid the conflict of record field names, we recommend making one module per table. (This limitation would be solved by `OverloadedFieldRecord` in the future.)
 
 Here is the content of "Account.hs":
 
@@ -61,7 +61,7 @@ import DataSource (defineTable)
 $(defineTable "account")
 {% endhighlight %}
 
-This code generates `data Account` and definitions of this DSL like bellows.
+This code generates the `Account` data type as follows:
 
 {% highlight haskell %}
 data Account
@@ -135,8 +135,8 @@ defineTable tableName =
     [derivingShow]
 {% endhighlight %}
 
-* `Connection` to "examples.db" will be made.
-* `convTypes` defines data mappings for ambiguous types in SQLite. You don't have to understand this at this moment.
+* A `Connection` to "examples.db" will be made.
+* `convTypes` defines data mappings for ambiguous types in SQLite. You don't have to understand this at the moment.
 * `defineTable` is a wrapper for the magic function `defineTableFromDB` which is the heart of code generation.
 
 Using "DataSource.hs", we need to prepare modules for other tables than Account, of course.
@@ -153,15 +153,15 @@ account1 = relation $ do
   return a
 {% endhighlight %}
 
-`Relation` takes two type parameters. The first one is the type of placeholder. This example does not use place holder, so its type is `()`. The second one is type of value in `Relation`.
+`Relation` takes two type parameters. The first one is the type of placeholder. This example does not use place holder, so its type is `()`. The second one is the type of the value in `Relation`.
 
-Let's see the signature of 'relation':
+Let's look at the signature of 'relation':
 
 {% highlight haskell %}
 relation :: QuerySimple (Projection Flat r) -> Relation () r
 {% endhighlight %}
 
-So, the type of `do` should be `QuerySimple (Projection Flat r)`. `query` has the following type (note that this signature is simplified):
+So, the type of the `do` should be `QuerySimple (Projection Flat r)`. `query` has the following type (note that this signature is simplified):
 
 {% highlight haskell %}
 query :: Relation () r -> QuerySimple (Projection Flat r)
@@ -185,7 +185,7 @@ run conn param rel = do
   putStrLn ""
 {% endhighlight %}
 
-`run` shows a generated SQL statement first and the results of the query. Here are the signatures of the two important functions above:
+`run` shows the generated SQL statement first and then the results of the query. Here are the signatures of the two important functions above:
 
 {% highlight haskell %}
 runQuery :: (IConnection conn, ToSql SqlValue p, FromSql SqlValue a) =>
@@ -206,6 +206,6 @@ OK. Let's execute our relation on "examples.db":
     Account {accountId = 2, productCd = "SAV", custId = 1, openDate = 2000-01-15, closeDate = Nothing, lastActivityDate = Just 2004-12-19, status = "ACTIVE", openBranchId = Just 2, openEmpId = Just 10, availBalance = Just 500.0, pendingBalance = Just 500.0}
     ...
 
-We make it!
+Great!
 
 To understand how to express more complicated relations and how to update tables, please read [Examples](examples.html).
