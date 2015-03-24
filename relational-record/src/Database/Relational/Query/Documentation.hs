@@ -186,7 +186,7 @@ User inferface of Relational Record has main two part of modules.
  -}
 
 {- $queryBuildingDSL
-Relatoinal Query ("Database.Relational.Query") module
+Relational Query ("Database.Relational.Query") module
 defines Typed DSL to build complex SQL query.
  -}
 
