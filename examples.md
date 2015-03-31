@@ -5,7 +5,7 @@ title: Examples
 
 ### Preparing
 
-We assume that you have read both [quick start](quickstart.html) and [tutorial](tutorial.htm).
+We assume that you have read both [quick start](quickstart.html) and [tutorial](tutorial.html).
 
 ### Schema of examples
 
