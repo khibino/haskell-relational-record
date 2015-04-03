@@ -28,6 +28,7 @@ module Language.Haskell.TH.Name.CamelCase (
   ) where
 
 import Data.Char (toUpper, toLower)
+import Data.Set (Set, fromList, member)
 import Language.Haskell.TH
   (Name, mkName, TypeQ, conT, ExpQ, conE, varE, PatQ, varP)
 
@@ -39,6 +40,21 @@ unCapitalize :: String -> String
 unCapitalize (c:cs) = toLower c : cs
 unCapitalize ""     = ""
 
+-- | rename the string that equals to reserved identifiers.
+rename :: String -> String
+rename cs | cs `member` reservedIds = cs ++ "_"
+          | otherwise = cs
+{-# INLINE rename #-}
+
+-- | All reserved identifiers. Taken from section 2.4 of the 2010 Report.
+reservedIds :: Set String
+reservedIds = fromList [ "case", "class", "data", "default", "deriving"
+                       , "do", "else", "foreign", "if", "import", "in"
+                       , "infix", "infixl", "infixr", "instance", "let"
+                       , "module", "newtype", "of", "then", "type", "where"
+                       , "_" ]
+{-# INLINE reservedIds #-}
+
 {- $nameTypes
 Wrap 'Name' to distinguish constructor names and variable names.
 -}
@@ -48,14 +64,14 @@ newtype ConName = ConName { conName :: Name {- ^ Get wrapped 'Name' -} }
 
 -- | Make constructor name from 'String'.
 toConName :: String -> ConName
-toConName =  ConName . mkName . capitalize
+toConName =  ConName . mkName . rename . capitalize
 
 -- | Type to wrap variable\'s 'Name'.
 newtype VarName = VarName { varName :: Name {- ^ Get wrapped 'Name' -} }
 
 -- | Make variable name from 'String'.
 toVarName :: String -> VarName
-toVarName =  VarName . mkName . unCapitalize
+toVarName =  VarName . mkName . rename . unCapitalize
 
 -- | 'Char' set used from camel-cased names.
 nameChars :: String
