@@ -65,7 +65,7 @@ queryMaybe :: (MonadQualify ConfigureQuery m, MonadQuery m)
 on :: MonadQuery m => Projection Flat (Maybe Bool) -> m ()
 ~~~~~
 
-'query' and 'fqueryMaybe' return a Projection type of table form results.
+'query' and 'queryMaybe' return a Projection type of table form results.
 
 ~~~~~ {.sql}
 SELECT .. FROM ...

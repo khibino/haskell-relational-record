@@ -97,7 +97,7 @@ personAndBirthday <span class="fu">=</span>  relation <span class="fu">$</span> 
            <span class="ot">-&gt;</span> m (<span class="dt">Projection</span> <span class="dt">Flat</span> (<span class="dt">Maybe</span> r))
 
 <span class="ot">on ::</span> <span class="dt">MonadQuery</span> m <span class="ot">=&gt;</span> <span class="dt">Projection</span> <span class="dt">Flat</span> (<span class="dt">Maybe</span> <span class="dt">Bool</span>) <span class="ot">-&gt;</span> m ()</code></pre>
-<p>'query' and 'fqueryMaybe' return a Projection type of table form results.</p>
+<p>'query' and 'queryMaybe' return a Projection type of table form results.</p>
 <pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> .. <span class="kw">FROM</span> ...
             <span class="co">-- Accumulating uniquely qualified</span>
             <span class="co">-- ( like 'as T0', 'as T1' ... )</span>
