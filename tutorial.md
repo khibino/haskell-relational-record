@@ -153,7 +153,7 @@ account1 = relation $ do
   return a
 {% endhighlight %}
 
-`Relation` takes two type parameters. The first one is the type of placeholder. This example does not use place holder, so its type is `()`. The second one is the type of the value in `Relation`.
+`Relation` takes two type parameters. The first one is the type of placeholder. This example does not use placeholder, so its type is `()`. The second one is the type of the value in `Relation`.
 
 Let's look at the signature of 'relation':
 

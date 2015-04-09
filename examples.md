@@ -256,7 +256,7 @@ FROM MAIN.employee T0
 WHERE ((T0.start_date >= '2001-01-01') AND (T0.start_date <= '2003-01-01'))
 {% endhighlight %}
 
-HRR with place holder:
+HRR with placeholder:
 
 {% highlight haskell %}
 employee_4_3_2P :: Relation (Day,Day) Employee2
@@ -846,7 +846,7 @@ SELECT ALL 'Headquarters' AS f0,
            'MA' AS f3, '02451' AS f4
 {% endhighlight %}
 
-HRR using place holder:
+HRR using placeholder:
 
 {% highlight haskell %}
 insertBranch_s1P :: Insert Branch1
@@ -966,7 +966,7 @@ SELECT ALL 'Michael' AS f0,
             WHERE (T1.name = 'Headquarters')) AS f5
 {% endhighlight %}
 
-HRR using place holder:
+HRR using placeholder:
 
 {% highlight haskell %}
 -- place the definition of Employee4 that contains template-haskell, before
