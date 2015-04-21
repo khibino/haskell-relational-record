@@ -17,7 +17,7 @@ library
   exposed-modules:
                      Language.Haskell.TH.Name.CamelCase
                      Language.Haskell.TH.Lib.Extra
-  build-depends:       base <5, template-haskell
+  build-depends:       base <5, containers, template-haskell
   hs-source-dirs:    src
   ghc-options:       -Wall
 
