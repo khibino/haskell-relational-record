@@ -257,19 +257,19 @@ FROM MAIN.employee T0
 WHERE ((T0.start_date >= '2001-01-01') AND (T0.start_date <= '2003-01-01'))
 {% endhighlight %}
 
-HRR with placeholder:
+HRR with structured placeholder:
 
 {% highlight haskell %}
 employee_4_3_2P :: Relation (Day,Day) Employee2
-employee_4_3_2P = relation' $ do
+employee_4_3_2P = relation' . placeholder $ \ph -> do
   e <- query employee
-  (phDay1,()) <- placeholder (\ph -> wheres $ e ! Employee.startDate' .>=. ph)
-  (phDay2,()) <- placeholder (\ph -> wheres $ e ! Employee.startDate' .<=. ph)
-  return (phDay1 >< phDay2,
-           Employee2 |$| e ! Employee.empId'
+  let date = e ! Employee.startDate'
+  wheres $ date .>=. ph ! fst'
+  wheres $ date .<=. ph ! snd'
+  return $ Employee2 |$| e ! Employee.empId'
                      |*| e ! Employee.fname'
                      |*| e ! Employee.lname'
-                     |*| e ! Employee.startDate')
+                     |*| date
 {% endhighlight %}
 
 NOTE: **The variable representing placeholders must be used in the right order. It is programmers' responsibility to follow this rule. If you don't, you will suffer from strange behaviors**.
