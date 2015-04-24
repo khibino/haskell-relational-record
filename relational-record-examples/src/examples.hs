@@ -374,11 +374,10 @@ account_4_3_3bR = relation' $ do
   return (phProductCd, ar)
 
 product_4_3_3b :: Relation String String
-product_4_3_3b = relation' $ do
+product_4_3_3b = relation' . placeholder $ \ph -> do
   p <- query product
-  (phProductCd,()) <- placeholder (\ph -> wheres $ p ! Product.productTypeCd' .=. ph)
-  let productCd = p ! Product.productCd'
-  return (phProductCd, productCd)
+  wheres $ p ! Product.productTypeCd' .=. ph
+  return $ p ! Product.productCd'
 
 -- | sql/4.3.3c.sh
 --
@@ -562,13 +561,12 @@ unsafeSQLiteDayValue = unsafeProjectSqlTerms . showConstantTermsSQL
 -- @
 --
 employee_4_1_2P :: Relation Day Employee
-employee_4_1_2P = relation' $ do
+employee_4_1_2P = relation' . placeholder $ \ph -> do
   e <- query employee
   wheres $ isNothing (e ! Employee.endDate')
-  (phDay,()) <- placeholder (\ph ->
-    wheres $ e ! Employee.title' .=. just (value "Teller")
-       `or'` e ! Employee.startDate' .<. ph)
-  return (phDay, e)
+  wheres $ e ! Employee.title' .=. just (value "Teller")
+     `or'` e ! Employee.startDate' .<. ph
+  return e
 
 -- | sql/4.3.2
 --
