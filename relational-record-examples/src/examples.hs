@@ -1156,6 +1156,16 @@ employee4 = Employee4
   , e4Title = Just "President"
   }
 
+{-TBD
+SELECT a.account_id, a.cust_id, i.fname, i.lname
+  FROM account a LEFT OUTER JOIN individual i
+    ON a.cust_id = i.cust_id;
+
+SELECT c.cust_id, b.name
+  FROM customer c RIGHT OUTER JOIN business b
+    ON c.cust_id = b.cust_id;
+-}
+
 --
 -- run and print sql
 --
