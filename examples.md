@@ -408,11 +408,10 @@ HRR:
 
 {% highlight haskell %}
 product_4_3_3b :: Relation String String
-product_4_3_3b = relation' $ do
+product_4_3_3b = relation' . placeholder $ \ph -> do
   p <- query product
-  (phProductCd,()) <- placeholder (\ph -> wheres $ p ! Product.productTypeCd' .=. ph)
-  let productCd = p ! Product.productCd'
-  return (phProductCd, productCd)
+  wheres $ p ! Product.productTypeCd' .=. ph
+  return $ p ! Product.productCd'
 
 account_4_3_3b :: Relation String Account
 account_4_3_3b = relation' $ do
