@@ -196,7 +196,7 @@ employee_4_1_2P = relation' $ do
   return (phDay, e)
 {% endhighlight %}
 
-NOTE: **The variable representing placeholders can be used exactly once. It is programmers' responsibility to follow this rule. If you don't, you will suffer from strange behaviors**.
+NOTE: **The variable representing placeholders must be used exactly once. It is programmers' responsibility to follow this rule. If you don't, you will suffer from strange behaviors**.
 
 Generated SQL:
 
@@ -272,6 +272,8 @@ employee_4_3_2P = relation' $ do
                      |*| e ! Employee.lname'
                      |*| e ! Employee.startDate')
 {% endhighlight %}
+
+NOTE: **The variable representing placeholders must be used in the right order. It is programmers' responsibility to follow this rule. If you don't, you will suffer from strange behaviors**.
 
 Generated SQL:
 
