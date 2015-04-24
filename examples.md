@@ -91,7 +91,7 @@ FROM MAIN.account T0
 ORDER BY T0.open_emp_id ASC, T0.product_cd ASC
 {% endhighlight %}
 
-#### Sorting via numeric placeholders
+#### Sorting with column numbers
 
 For backwards compatibility with the SQL92 version of standard, you can use numbers instead of names to specify the columns that should be sorted. With HRR you cannot use numbers for such purpose.
 
@@ -195,6 +195,8 @@ employee_4_1_2P = relation' $ do
        `or'` e ! Employee.startDate' .<. ph)
   return (phDay, e)
 {% endhighlight %}
+
+NOTE: **The variable representing placeholders can be used exactly once**.
 
 Generated SQL:
 
