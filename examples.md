@@ -196,7 +196,7 @@ employee_4_1_2P = relation' $ do
   return (phDay, e)
 {% endhighlight %}
 
-NOTE: **The variable representing placeholders can be used exactly once**.
+NOTE: **The variable representing placeholders can be used exactly once. It is programmers' responsibility to follow this rule. If you don't, you will suffer from strange behaviors**.
 
 Generated SQL:
 
