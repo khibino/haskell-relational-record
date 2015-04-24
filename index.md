@@ -8,7 +8,7 @@ title: Project top page
 Haskell Relational Record (HRR) is a query generator based on typed relational algebra and a mapper between SQL value lists and Haskell record types.
 
 - Abstracted - relations are expressed as high level expressions and they are translated into SQL statements. Drivers are provided for DB2, ProsgreSQL, SQLite, MySQL, MicroSoft SQL Server and OracleSQL.
-- Type safe - SQL statements produced by HRR are guaranteed to be valid if the Haskell code compiles. Even placeholders are typed.
+- Type safe - SQL statements produced by HRR are guaranteed to be valid if the Haskell code compiles. Even the type of placeholders are propagated.
 - Composable - relations can be composed to build bigger relations.
 - Automatic - SQL schema is obtained from a target DB and Haskell types are automatically generated at compile time.
 
