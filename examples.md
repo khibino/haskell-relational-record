@@ -187,13 +187,12 @@ Another way, use a placeholder instead of a date literal. There is no need to de
 
 {% highlight haskell %}
 employee_4_1_2P :: Relation Day Employee
-employee_4_1_2P = relation' $ do
+employee_4_1_2P = relation' . placeholder $ \ph -> do
   e <- query employee
   wheres $ isNothing (e ! Employee.endDate')
-  (phDay,()) <- placeholder (\ph ->
-    wheres $ e ! Employee.title' .=. just (value "Teller")
-       `or'` e ! Employee.startDate' .<. ph)
-  return (phDay, e)
+  wheres $ e ! Employee.title' .=. just (value "Teller")
+     `or'` e ! Employee.startDate' .<. ph
+  return e
 {% endhighlight %}
 
 NOTE: **The variable representing placeholders must be used exactly once. It is programmers' responsibility to follow this rule. If you don't, you will suffer from strange behaviors**.
