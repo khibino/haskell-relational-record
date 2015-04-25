@@ -436,7 +436,7 @@ inlineQuery relVar rel config sufs qns = do
 -- | Generate all templates against defined record like type constructor
 --   other than depending on sql-value type.
 makeRelationalRecordDefault :: Name    -- ^ Type constructor name
-                             -> Q [Dec] -- ^ Resutl declaration
+                             -> Q [Dec] -- ^ Result declaration
 makeRelationalRecordDefault recTypeName = do
   let recTypeConName = ConName recTypeName
   ((tyCon, dataCon), (mayNs, cts)) <- Record.reifyRecordType recTypeName
