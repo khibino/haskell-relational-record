@@ -50,7 +50,7 @@ import Database.HDBC.Schema.Driver (Driver, getFields, getPrimaryKey)
 
 -- | Generate all persistable templates against defined record like type constructor.
 makeRecordPersistableDefault :: Name    -- ^ Type constructor name
-                             -> Q [Dec] -- ^ Resutl declaration
+                             -> Q [Dec] -- ^ Result declaration
 makeRecordPersistableDefault recTypeName = do
   rr <- Relational.makeRelationalRecordDefault recTypeName
   (pair, (_mayNs, cts)) <- Record.reifyRecordType recTypeName
