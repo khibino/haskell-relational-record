@@ -38,7 +38,6 @@ module Database.Relational.Query.ProjectableExtended (
   )  where
 
 import Prelude hiding (pi)
-import Data.Int (Int64)
 
 import qualified Language.SQL.Keyword as SQL
 
