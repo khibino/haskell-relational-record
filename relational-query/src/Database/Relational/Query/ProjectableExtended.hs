@@ -69,8 +69,8 @@ unsafeAggregateOp :: (AggregatedContext ac, SqlProjectable (p ac))
 unsafeAggregateOp op = unsafeUniOp ((op SQL.<++>) . SQL.paren)
 
 -- | Aggregation function COUNT.
-count :: (AggregatedContext ac, SqlProjectable (p ac))
-      => Projection Flat a -> p ac Int64
+count :: (Integral b, AggregatedContext ac, SqlProjectable (p ac))
+      => Projection Flat a -> p ac b
 count =  unsafeAggregateOp SQL.COUNT
 
 -- | Aggregation function SUM.
