@@ -91,6 +91,11 @@ instance ShowConstantTermsSQL Int32 where
 instance ShowConstantTermsSQL Int64 where
   showConstantTermsSQL' = intTermsSQL
 
+-- | Constant SQL terms of 'Int'.
+--   Use this carefully, because this is architecture dependent size of integer type.
+instance ShowConstantTermsSQL Int where
+  showConstantTermsSQL' = intTermsSQL
+
 -- | Constant SQL terms of 'String'.
 instance ShowConstantTermsSQL String where
   showConstantTermsSQL' = stringTermsSQL
