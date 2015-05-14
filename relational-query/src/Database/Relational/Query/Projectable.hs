@@ -68,7 +68,6 @@ module Database.Relational.Query.Projectable (
 
 import Prelude hiding (pi)
 
-import Data.Int (Int64)
 import Data.String (IsString)
 import Data.Monoid ((<>), mconcat)
 import Control.Applicative ((<$>))
@@ -440,15 +439,15 @@ unsafeUniTermFunction :: SqlProjectable p => Keyword -> p t
 unsafeUniTermFunction =  unsafeProjectSql' . (SQL.<++> stringSQL "()")
 
 -- | /RANK()/ term.
-rank :: Projection OverWindow Int64
+rank :: Integral a => Projection OverWindow a
 rank =  unsafeUniTermFunction SQL.RANK
 
 -- | /DENSE_RANK()/ term.
-denseRank :: Projection OverWindow Int64
+denseRank :: Integral a => Projection OverWindow a
 denseRank =  unsafeUniTermFunction SQL.DENSE_RANK
 
 -- | /ROW_NUMBER()/ term.
-rowNumber :: Projection OverWindow Int64
+rowNumber :: Integral a => Projection OverWindow a
 rowNumber =  unsafeUniTermFunction SQL.ROW_NUMBER
 
 -- | /PERCENT_RANK()/ term.
