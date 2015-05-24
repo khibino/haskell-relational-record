@@ -32,6 +32,10 @@ $(defineTableDefault defaultConfig "TEST" "set_c"
   [] [0] $ Just 0)
 
 
+$(defineTableDefault defaultConfig "TEST" "set_i"
+  [ ("int_i0" ,    [t| Int32 |])  ]
+  [] [0] $ Just 0)
+
 data ABC =
   ABC
   { xJustA :: SetA

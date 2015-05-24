@@ -279,6 +279,9 @@ exps =
 insertX :: Insert SetA
 insertX =  derivedInsert id'
 
+insertI :: Insert SetI
+insertI =  derivedInsert id'
+
 insertQueryX :: InsertQuery ()
 insertQueryX =  derivedInsertQuery setAFromB setA
 
@@ -300,6 +303,8 @@ effs :: [Test]
 effs =
   [ eqProp "insert" insertX
     "INSERT INTO TEST.set_a (int_a0, str_a1, str_a2) VALUES (?, ?, ?)"
+  , eqProp "insert1" insertI
+    "INSERT INTO TEST.set_i (int_i0) VALUES (?)"
   , eqProp "insertQuery" insertQueryX
     "INSERT INTO TEST.set_b (int_b0, str_b2, str_b2) SELECT int_a0, str_a1, str_a2 FROM TEST.set_a"
   , eqProp "updateKey" updateKeyX
