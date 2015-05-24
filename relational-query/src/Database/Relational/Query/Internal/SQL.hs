@@ -41,6 +41,6 @@ rowStringSQL =  d  where
 rowPlaceHolderStringSQL :: Int -> StringSQL
 rowPlaceHolderStringSQL =  rowStringSQL . (`replicate` stringSQL "?")
 
--- | Rows String of SQL.
+-- | List String of SQL.
 listStringSQL :: [StringSQL] -> StringSQL
 listStringSQL =  paren . fold (|*|)
