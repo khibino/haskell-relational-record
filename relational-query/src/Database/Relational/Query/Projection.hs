@@ -48,7 +48,7 @@ import qualified Language.SQL.Keyword as SQL
 import Database.Record (HasColumnConstraint, NotNull, NotNullColumnConstraint)
 import qualified Database.Record.KeyConstraint as KeyConstraint
 
-import Database.Relational.Query.Internal.SQL (StringSQL, rowStringSQL, rowListStringSQL)
+import Database.Relational.Query.Internal.SQL (StringSQL, rowStringSQL, listStringSQL)
 import Database.Relational.Query.Context (Aggregated, Flat)
 import Database.Relational.Query.Component (ColumnSQL, showsColumnSQL, columnSQL')
 import Database.Relational.Query.Table (Table)
@@ -197,5 +197,5 @@ unsafeListFromSubQuery =  Sub
 -- | Map projection show operatoions and concatinate to single SQL expression.
 unsafeStringSqlList :: (p t -> StringSQL) -> ListProjection p t -> StringSQL
 unsafeStringSqlList sf = d  where
-  d (List ps) = rowListStringSQL $ map sf ps
+  d (List ps) = listStringSQL $ map sf ps
   d (Sub sub) = SQL.paren $ SubQuery.showSQL sub

@@ -13,7 +13,7 @@ module Database.Relational.Query.Internal.SQL (
 
   rowStringSQL, rowPlaceHolderStringSQL,
 
-  rowListStringSQL,
+  listStringSQL,
   ) where
 
 import Language.SQL.Keyword (Keyword, word, wordShow, fold, (|*|), paren)
@@ -42,5 +42,5 @@ rowPlaceHolderStringSQL :: Int -> StringSQL
 rowPlaceHolderStringSQL =  rowStringSQL . (`replicate` stringSQL "?")
 
 -- | Rows String of SQL.
-rowListStringSQL :: [StringSQL] -> StringSQL
-rowListStringSQL =  paren . fold (|*|)
+listStringSQL :: [StringSQL] -> StringSQL
+listStringSQL =  paren . fold (|*|)
