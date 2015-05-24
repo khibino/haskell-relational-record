@@ -34,7 +34,7 @@ import qualified Language.SQL.Keyword as SQL
 
 import Database.Record.ToSql (untypedUpdateValuesIndex)
 
-import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL, rowStringSQL)
+import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL, rowConsStringSQL)
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Relational.Query.Component (ColumnSQL, showsColumnSQL, showsColumnSQL)
@@ -94,7 +94,7 @@ updateOtherThanKeySQL tbl key =
 -- | Generate prefix string of insert SQL.
 insertPrefixSQL :: Pi r r' -> Table r -> StringSQL
 insertPrefixSQL pi' table =
-  INSERT <> INTO <> stringSQL (name table) <> rowStringSQL [showsColumnSQL c | c <- cols]  where
+  INSERT <> INTO <> stringSQL (name table) <> rowConsStringSQL [showsColumnSQL c | c <- cols]  where
     cols = Projection.columns . Projection.pi (Projection.unsafeFromTable table) $ pi'
 
 -- | Generate records chunk insert SQL.
@@ -106,7 +106,7 @@ insertChunkSQL n0 pi' tbl = showStringSQL $ insertPrefixSQL pi' tbl <> VALUES <>
   n | n0 >= 1    =  n0
     | otherwise  =  error $ "Invalid chunk count value: " ++ show n0
   w = UnsafePi.width pi'
-  vs = SQL.fold (|*|) . replicate n $ rowStringSQL (replicate w "?")
+  vs = SQL.fold (|*|) . replicate n $ rowConsStringSQL (replicate w "?")
 
 -- | Generate size measured records chunk insert SQL.
 insertSizedChunkSQL :: Pi r r'       -- ^ Columns selector to insert
