@@ -16,6 +16,10 @@ numBin :: (Projection Flat Int32 -> Projection Flat Int32 -> Projection Flat r) 
 numBin op = relation $ do
   return $ value 5 `op` value 3
 
+strConcat :: Relation () String
+strConcat = relation $ do
+  return $ value "Hello, " .||. value "World!"
+
 _p_numBin :: (Projection Flat Int32 -> Projection Flat Int32 -> Projection Flat r) -> IO ()
 _p_numBin = print . numBin
 
@@ -25,6 +29,7 @@ bin =
   , eqProp "minus" (numBin (.-.)) "SELECT ALL (5 - 3) AS f0"
   , eqProp "mult"  (numBin (.*.)) "SELECT ALL (5 * 3) AS f0"
   , eqProp "div"   (numBin (./.)) "SELECT ALL (5 / 3) AS f0"
+  , eqProp "string concat" strConcat "SELECT ALL ('Hello, ' || 'World!') AS f0"
   ]
 
 tables :: [Test]
