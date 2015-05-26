@@ -27,6 +27,7 @@ module Database.Relational.Query.TH (
 
   -- * Column projections and basic 'Relation' for Haskell record
   defineTableTypesAndRecordDefault,
+  defineTableTypesAndNamedRecord,
 
   -- * Constraint key templates
   defineHasPrimaryKeyInstance,
@@ -39,7 +40,7 @@ module Database.Relational.Query.TH (
   defineColumns, defineColumnsDefault,
 
   -- * Table metadata type and basic 'Relation'
-  defineTableTypes, defineTableTypesDefault,
+  defineTableTypes, defineTableTypesDefault, defineTableTypesNamedRecord,
 
   -- * Basic SQL templates generate rules
   definePrimaryQuery,
@@ -70,12 +71,13 @@ import Language.Haskell.TH
   (Name, nameBase, Q, reify, Info (VarI), TypeQ, Type (AppT, ConT), ExpQ,
    tupleT, appT, arrowT, Dec, stringE, listE)
 import Language.Haskell.TH.Name.CamelCase
-  (VarName, varName, ConName (ConName), conName, varNameWithPrefix, varCamelcaseName, toVarExp, toTypeCon, toDataCon)
+  (VarName, varName, ConName (ConName), conName, varNameWithPrefix,
+   varCamelcaseName, toConName, toVarExp, toVarName, toTypeCon, toDataCon)
 import Language.Haskell.TH.Lib.Extra (simpleValD, maybeD, integralE)
 
 import Database.Record.TH
   (recordTypeNameDefault, recordTypeDefault, columnOffsetsVarNameDefault,
-   defineRecordTypeDefault,
+   defineRecordType, defineRecordTypeDefault,
    defineHasColumnConstraintInstance)
 import qualified Database.Record.TH as Record
 
@@ -297,6 +299,32 @@ defineTableTypesDefault config schema table columns = do
   colsDs <- defineColumnsDefault (recordTypeNameDefault table) columns
   return $ tableDs ++ colsDs
 
+-- | Make templates about table and column metadatas giving the Haskell
+-- record and field specific names.
+defineTableTypesNamedRecord
+  :: Config    -- ^ Configuration to generate query with
+  -> String    -- ^ Schema name
+  -> String    -- ^ Table name
+  -> String    -- ^ Haskell record name
+  -> [((String, String, TypeQ), Maybe TypeQ)]
+               -- ^ Column names, Haskell record field names, and types and constraint type
+  -> Q [Dec]   -- ^ Result declarations
+defineTableTypesNamedRecord config schema table recName columns = do
+  tableDs <- defineTableTypes
+             (tableVarNameDefault recName)
+             (relationVarNameDefault recName)
+             (recName `varNameWithPrefix` "insert")
+             (recName `varNameWithPrefix` "insertQuery")
+             (toTypeCon (toConName recName))
+             (tableSQL (normalizedTableName config) schema table)
+             [c | ((c,_,_),_) <- columns]
+  let colInfo ((c, n, t), mayC) =
+        ( (toVarName (n ++ "'"), t)
+        , fmap (\t -> (t, toVarName ("constraint_key_" ++ c))) mayC
+        )
+  colsDs <- defineColumns (toConName recName) (map colInfo columns)
+  return $ tableDs ++ colsDs
+
 -- | Make templates about table, column and haskell record using default naming rule.
 defineTableTypesAndRecordDefault :: Config            -- ^ Configuration to generate query with
                                  -> String            -- ^ Schema name
@@ -308,6 +336,22 @@ defineTableTypesAndRecordDefault config schema table columns drives = do
   recD    <- defineRecordTypeDefault table columns drives
   rconD   <- defineProductConstructorInstanceDefault table [t | (_, t) <- columns]
   tableDs <- defineTableTypesDefault config schema table [(c, Nothing) | c <- columns ]
+  return $ recD ++ rconD ++ tableDs
+
+-- | Make templates about table, column and haskell record, givin the Haskell record and
+-- its fields specific names.
+defineTableTypesAndNamedRecord
+  :: Config     -- ^ Configuration to generate query with
+  -> String     -- ^ Schema name
+  -> String     -- ^ Table name
+  -> String     -- ^ Haskell record name
+  -> [(String, String, TypeQ)] -- ^ Column names, Haskell record field names, and types
+  -> [ConName]  -- ^ Record derivings
+  -> Q [Dec]    -- ^ Result declarations
+defineTableTypesAndNamedRecord config schema table recName columns drives = do
+  recD    <- defineRecordType (toConName recName) [(toVarName f, t) | (_, f, t) <- columns] drives
+  rconD   <- defineProductConstructorInstanceDefault recName [t | (_, _, t) <- columns]
+  tableDs <- defineTableTypesNamedRecord config schema table recName [(c, Nothing) | c <- columns ]
   return $ recD ++ rconD ++ tableDs
 
 -- | Template of derived primary 'Query'.

@@ -19,6 +19,7 @@ module Database.HDBC.Query.TH (
 
   defineTableDefault',
   defineTableDefault,
+  defineTableNamedRecord',
 
   defineTableFromDB',
   defineTableFromDB,
@@ -32,8 +33,9 @@ import Control.Monad (when)
 
 import Database.HDBC (IConnection, SqlValue, prepare)
 
-import Language.Haskell.TH (Q, runIO, Name, TypeQ, Dec)
-import Language.Haskell.TH.Name.CamelCase (ConName, varCamelcaseName)
+import Language.Haskell.TH (Q, runIO, Name, TypeQ, Dec, mkName)
+import Language.Haskell.TH.Name.CamelCase
+  (ConName, varCamelcaseName, toConName, toDataCon, toTypeCon)
 import Language.Haskell.TH.Lib.Extra (reportWarning, reportMessage)
 
 import Database.Record.TH (makeRecordPersistableWithSqlTypeDefault)
@@ -58,6 +60,25 @@ makeRecordPersistableDefault recTypeName = do
   ps <- Record.makeRecordPersistableWithSqlType [t| SqlValue |]
         (Record.persistableFunctionNamesDefault recTypeName) pair width
   return $ rr ++ ps
+
+-- | Generate all HDBC templates about table except for constraint keys
+-- using specific Haskell record and field names.
+defineTableNamedRecord'
+  :: Config            -- ^ Configuration to generate query with
+  -> String            -- ^ Schema name
+  -> String            -- ^ Table name
+  -> String            -- ^ Haskell record name
+  -> [(String, String, TypeQ)] -- ^ List of column name, Haskell record field name, and type
+  -> [ConName]         -- ^ Derivings
+  -> Q [Dec]           -- ^ Result declaration
+defineTableNamedRecord' config schema table recName columns derives = do
+  modelD <- Relational.defineTableTypesAndNamedRecord config schema table recName columns derives
+  sqlvD  <- Record.makeRecordPersistableWithSqlType
+              [t| SqlValue |]
+              (Record.persistableFunctionNamesDefault (mkName recName))
+              (toTypeCon (toConName recName), toDataCon (toConName recName))
+              (length columns)
+  return $ modelD ++ sqlvD
 
 -- | Generate all HDBC templates about table except for constraint keys using default naming rule.
 defineTableDefault' :: Config            -- ^ Configuration to generate query with
