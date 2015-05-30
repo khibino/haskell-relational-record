@@ -48,7 +48,7 @@ module Database.Relational.Query.Projectable (
   isNothing, isJust, fromMaybe,
   not', exists,
 
-  (.||.), (?||?),
+  (.||.), (?||?), like, likeMaybe, like', likeMaybe',
   (.+.), (.-.), (./.), (.*.), negate', fromIntegral', showNum,
   (?+?), (?-?), (?/?), (?*?), negateMaybe, fromIntegralMaybe, showNumMaybe,
 
@@ -277,6 +277,30 @@ exists =  unsafeProjectSql' . SQL.paren . SQL.defineUniOp SQL.EXISTS
 (?||?) :: (OperatorProjectable p, ProjectableShowSql p, IsString a)
        => p (Maybe a) -> p (Maybe a) -> p (Maybe a)
 (?||?) =  unsafeBinOp (SQL..||.)
+
+unsafeLike :: (OperatorProjectable p, ProjectableShowSql p)
+           => p a -> p b -> p (Maybe Bool)
+unsafeLike = unsafeBinOp (SQL.defineBinOp SQL.LIKE)
+
+-- | String-compare operator corresponding SQL /LIKE/ .
+like' :: (OperatorProjectable p, ProjectableShowSql p, IsString a)
+      => p a -> p a -> p (Maybe Bool)
+x `like'` y = x `unsafeLike` y
+
+-- | String-compare operator corresponding SQL /LIKE/ .
+likeMaybe' :: (OperatorProjectable p, ProjectableShowSql p, IsString a)
+           => p (Maybe a) -> p (Maybe a) -> p (Maybe Bool)
+x `likeMaybe'` y = x `unsafeLike` y
+
+-- | String-compare operator corresponding SQL /LIKE/ .
+like :: (OperatorProjectable p, ProjectableShowSql p, IsString a, ShowConstantTermsSQL a)
+       => p a -> a -> p (Maybe Bool)
+x `like` a = x `like'` value a
+
+-- | String-compare operator corresponding SQL /LIKE/ . Maybe type version.
+likeMaybe :: (OperatorProjectable p, ProjectableShowSql p, IsString a, ShowConstantTermsSQL a)
+       => p (Maybe a) -> a -> p (Maybe Bool)
+x `likeMaybe` a = x `unsafeLike` value a
 
 -- | Unsafely make number projection binary operator from SQL operator string.
 monoBinOp' :: (SqlProjectable p, ProjectableShowSql p)
@@ -580,7 +604,7 @@ infixl 7 .*., ./., ?*?, ?/?
 infixl 6 .+., .-., ?+?, ?-?
 infixl 5 .||., ?||?
 infixl 4 |$|, |*|
-infix  4 .=., .<>., .>., .>=., .<., .<=., `in'`
+infix  4 .=., .<>., .>., .>=., .<., .<=., `in'`, `like`, `likeMaybe`, `like'`, `likeMaybe'`
 infixr 3 `and'`
 infixr 2 `or'`
 infixl 1  ><
