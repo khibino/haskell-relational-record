@@ -48,6 +48,22 @@ userGroup0 =
   , ()  <- asc $ u ?! User.id'
   ]
 
+haskUserGroup :: Relation () (Maybe User, Maybe Group)
+haskUserGroup =
+  relation
+  [ u   >< mg ?! snd'
+  | u   <- queryMaybe user
+  , mg  <- queryMaybe groupMemberShip
+
+  , ()  <- on  $ u ?! User.id' .=. mg ?!? fst' ?! userId'
+
+  , let g = mg ?! snd'
+
+  , ()  <- wheres $ g ?!? Group.name' `likeMaybe` "Hask%"
+
+  , ()  <- asc $ u ?! User.id'
+  ]
+
 data UserOrGroup = UserOrGroup { mayUser :: Maybe User, mayGroup :: Maybe Group }
                    deriving Show
 
