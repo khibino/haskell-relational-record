@@ -20,6 +20,10 @@ strConcat :: Relation () String
 strConcat = relation $ do
   return $ value "Hello, " .||. value "World!"
 
+strLike :: Relation () (Maybe Bool)
+strLike = relation $ do
+  return $ value "Hoge" `like` "H%"
+
 _p_numBin :: (Projection Flat Int32 -> Projection Flat Int32 -> Projection Flat r) -> IO ()
 _p_numBin = print . numBin
 
@@ -30,6 +34,7 @@ bin =
   , eqProp "mult"  (numBin (.*.)) "SELECT ALL (5 * 3) AS f0"
   , eqProp "div"   (numBin (./.)) "SELECT ALL (5 / 3) AS f0"
   , eqProp "string concat" strConcat "SELECT ALL ('Hello, ' || 'World!') AS f0"
+  , eqProp "like" strLike "SELECT ALL ('Hoge' LIKE 'H%') AS f0"
   ]
 
 tables :: [Test]
