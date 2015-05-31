@@ -6,6 +6,7 @@ import Database.Record
 import Database.Relational.Query
 import Database.HDBC.Record
 import Database.HDBC.Session
+import qualified One
 import StockGoods
 import PgTestDataSource
 
@@ -21,16 +22,21 @@ stocks0 =  [ StockGoods 1 "Apple"  110 40
 handleConnectionIO :: IConnection conn => IO conn -> (conn -> IO a) -> IO a
 handleConnectionIO c p = handleSqlError' $ withConnectionIO c p
 
-runInsertStocks :: [StockGoods] -> IO ()
-runInsertStocks ss = handleConnectionIO connect $ \conn -> do
-  let q =  insertStockGoods
+insertOne :: Insert Int32
+insertOne = derivedInsert One.data'
+
+runInsertList :: ToSql SqlValue a => Insert a -> [a] -> IO ()
+runInsertList q ss = handleConnectionIO connect $ \conn -> do
   putStrLn $ "SQL: " ++ show q
   rvs  <- mapInsert conn q ss
   print rvs
   commit conn
 
+runInsertOne0 :: IO ()
+runInsertOne0 = runInsertList insertOne [1,2]
+
 runInsertStocks0 :: IO ()
-runInsertStocks0 =  runInsertStocks stocks0
+runInsertStocks0 =  runInsertList insertStockGoods stocks0
 
 
 pine :: Relation () StockGoods
@@ -107,6 +113,7 @@ runDeleteStocks d xs = handleConnectionIO connect $ \conn -> do
 
 run :: IO ()
 run = do
+  runInsertOne0
   runInsertStocks0
   runInsertQuery1 insertPine
   runInsertQuery1 insertFig
