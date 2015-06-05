@@ -18,6 +18,7 @@ copyright:           Copyright (c) 2013 Kei Hibino
 category:            Database
 build-type:          Simple
 cabal-version:       >=1.10
+extra-source-files:  ChangeLog.md
 
 library
   exposed-modules:
