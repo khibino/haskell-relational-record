@@ -1,3 +1,6 @@
+## 0.5.0.1
+
+- Add this ChangeLog file.
 
 ## 0.5.0.0
 
