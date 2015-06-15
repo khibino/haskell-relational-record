@@ -1,3 +1,7 @@
+## 0.5.0.2
+
+- Switch libraries to use from test-suites not to depend on Cabal library.
+
 ## 0.5.0.1
 
 - Add this ChangeLog file.
