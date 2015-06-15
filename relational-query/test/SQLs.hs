@@ -1,7 +1,5 @@
-module SQLs (tests) where
 
-import Distribution.TestSuite (Test)
-import Distribution.TestSuite.Compat (TestList, testList)
+import Test.QuickCheck.Simple (Test, defaultMain)
 
 import Control.Applicative ((<$>), (<*>))
 
@@ -325,8 +323,10 @@ effs =
     "DELETE FROM TEST.set_a WHERE (str_a1 = 'A')"
   ]
 
-tests :: TestList
+tests :: [Test]
 tests =
-  testList
-  $ concat [bin, tables, directJoins, join3s, maybes,
-            groups, partitions, exps, effs]
+  concat [ bin, tables, directJoins, join3s, maybes
+         , groups, partitions, exps, effs]
+
+main :: IO ()
+main = defaultMain tests

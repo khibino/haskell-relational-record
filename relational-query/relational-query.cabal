@@ -84,14 +84,13 @@ library
 
 test-suite sqls
   build-depends:         base <5
-                       , Cabal
-                       , cabal-test-compat
+                       , quickcheck-simple
                        , relational-query
                        , containers
                        , transformers
 
-  type:                detailed-0.9
-  test-module:         SQLs
+  type:                exitcode-stdio-1.0
+  main-is:             SQLs.hs
   other-modules:
                        Lex
                        Model

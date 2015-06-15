@@ -9,8 +9,7 @@ import Data.Maybe (listToMaybe, fromMaybe)
 import Data.Map (Map)
 import qualified Data.Map as Map
 
-import Distribution.TestSuite (Test)
-import Distribution.TestSuite.Compat (prop')
+import Test.QuickCheck.Simple (Test, boolTest')
 
 
 type P = StateT String Maybe
@@ -182,8 +181,8 @@ eq a b = fromMaybe False $ do
   y <- run b
   return $ x == y
 
-eqProp' :: String -> (a -> String) -> a -> String -> Test
-eqProp' name t x est = prop' name (Just em) (t x `eq` est)
+eqProp' :: String -> (t -> String) -> t -> String -> Test
+eqProp' name t x est = boolTest' name em (t x `eq` est)
   where em = unlines [show $ run $ t x, " -- compares --", show $ run est]
 
 eqProp :: Show a => String -> a -> String -> Test
