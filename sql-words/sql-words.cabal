@@ -35,7 +35,7 @@ test-suite monoids
                        , sql-words
 
   type:                exitcode-stdio-1.0
-  main-is:             MonoidLaw.hs
+  main-is:             monoidLaw.hs
 
   hs-source-dirs:      test
   ghc-options:         -Wall
