@@ -1,6 +1,7 @@
-module PgTest  where
 
-import Distribution.TestSuite (Test)
+import Test.QuickCheck.Simple (Test, defaultMain)
 
 tests :: [Test]
 tests =  []
+
+main = defaultMain tests

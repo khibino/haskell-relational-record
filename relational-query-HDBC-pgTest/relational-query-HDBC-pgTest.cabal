@@ -81,12 +81,13 @@ Executable example4
 
 Test-suite postgreSQL
   build-depends:         relational-query-HDBC
-                       , Cabal
+                       , base <5
+                       , quickcheck-simple
                        , HDBC-postgresql
                        , bytestring
                        , text
 
-  Type:                detailed-0.9
-  Test-module:         PgTest
+  Type:                exitcode-stdio-1.0
+  Main-is:             PgTest.hs
   hs-source-dirs:      pgTest
   ghc-options:         -Wall
