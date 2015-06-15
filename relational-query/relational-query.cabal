@@ -90,7 +90,7 @@ test-suite sqls
                        , transformers
 
   type:                exitcode-stdio-1.0
-  main-is:             SQLs.hs
+  main-is:             sqlsEq.hs
   other-modules:
                        Lex
                        Model
