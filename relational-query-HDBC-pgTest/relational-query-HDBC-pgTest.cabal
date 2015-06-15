@@ -88,6 +88,6 @@ Test-suite postgreSQL
                        , text
 
   Type:                exitcode-stdio-1.0
-  Main-is:             PgTest.hs
+  Main-is:             pgTest.hs
   hs-source-dirs:      pgTest
   ghc-options:         -Wall
