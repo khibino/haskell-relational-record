@@ -30,13 +30,12 @@ library
 
 test-suite monoids
   build-depends:         base <5
-                       , Cabal
-                       , cabal-test-compat
+                       , quickcheck-simple
                        , QuickCheck >=2
                        , sql-words
 
-  type:                detailed-0.9
-  test-module:         MonoidLaw
+  type:                exitcode-stdio-1.0
+  main-is:             MonoidLaw.hs
 
   hs-source-dirs:      test
   ghc-options:         -Wall

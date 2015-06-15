@@ -1,14 +1,15 @@
 {-# OPTIONS -fno-warn-orphans #-}
 
-module MonoidLaw (tests) where
-
 import Language.SQL.Keyword (Keyword, DString)
 
 import Data.Monoid (Monoid, mempty, (<>))
 import Data.String (fromString)
-import Distribution.TestSuite.Compat (TestList, testList, prop)
-import Test.QuickCheck (Arbitrary (..))
+import Test.QuickCheck (Arbitrary (..), Testable)
+import Test.QuickCheck.Simple (Test, qcTest, defaultMain)
 
+
+prop :: Testable prop => String -> prop -> Test
+prop = qcTest
 
 leftId :: (Eq a, Monoid a) => a -> Bool
 leftId a = mempty <> a == a
@@ -43,11 +44,14 @@ kwAssoc =  assoc
 instance Arbitrary Keyword where
   arbitrary = fmap fromString arbitrary
 
-tests :: TestList
-tests =  testList [ prop "DString left Id"  dsLeftId
-                  , prop "DString right Id" dsRightId
-                  , prop "DString associativity" dsAssoc
-                  , prop "Keyword left Id"  kwLeftId
-                  , prop "Keyword right Id" kwRightId
-                  , prop "Keyword associativity" kwAssoc
-                  ]
+tests :: [Test]
+tests =  [ prop "DString left Id"  dsLeftId
+         , prop "DString right Id" dsRightId
+         , prop "DString associativity" dsAssoc
+         , prop "Keyword left Id"  kwLeftId
+         , prop "Keyword right Id" kwRightId
+         , prop "Keyword associativity" kwAssoc
+         ]
+
+main :: IO ()
+main = defaultMain tests
