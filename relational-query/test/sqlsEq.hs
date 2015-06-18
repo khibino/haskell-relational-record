@@ -216,6 +216,42 @@ groups =
 _p_groups :: IO ()
 _p_groups =  mapM_ print [show groupX, show cubeX, show groupingSetsX]
 
+ordFlatX :: Relation () (SetA, Maybe SetB)
+ordFlatX =  relation $ do
+  a <- query setA
+  b <- queryMaybe setB
+  on $ just (a ! strA2') .=. b ?! strB2'
+
+  orderBy (a ! strA1') Asc
+  orderBy (b ?! mayStrB1') Desc
+
+  return $ (,) |$| a |*| b
+
+ordAggX :: Relation () (String, Int64)
+ordAggX =  aggregateRelation $ do
+  c <- query setC
+
+  gc1 <- groupBy $ c ! strC1'
+
+  orderBy (sum' $ c ! intC0') Asc
+
+  return $ gc1 >< count (c ! intC0')
+
+_p_orders :: IO ()
+_p_orders = mapM_ print [show ordFlatX, show ordAggX]
+
+orders :: [Test]
+orders =
+  [ eqProp "order-by - flat" ordFlatX
+    "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, \
+    \           T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 \
+    \  FROM TEST.set_a T0 LEFT JOIN TEST.set_b T1 ON (T0.str_a2 = T1.str_b2) \
+    \  ORDER BY T0.str_a1 ASC, T1.may_str_b1 DESC"
+  , eqProp "order-by - aggregated" ordAggX
+    "SELECT ALL T0.str_c1 AS f0, COUNT(T0.int_c0) AS f1 \
+    \  FROM TEST.set_c T0 GROUP BY T0.str_c1 ORDER BY SUM(T0.int_c0) ASC"
+  ]
+
 partitionX :: Relation () (String, Int64)
 partitionX =  relation $ do
   c <- query setC
@@ -326,7 +362,7 @@ effs =
 tests :: [Test]
 tests =
   concat [ bin, tables, directJoins, join3s, maybes
-         , groups, partitions, exps, effs]
+         , groups, orders, partitions, exps, effs]
 
 main :: IO ()
 main = defaultMain tests
