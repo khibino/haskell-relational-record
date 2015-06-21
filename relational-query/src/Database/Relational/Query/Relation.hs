@@ -240,13 +240,13 @@ full' :: Relation pa a                         -- ^ Left query to join
 full'  =  join' queryMaybe' queryMaybe'
 
 -- | Basic direct join operation.
-join :: (qa -> QuerySimple (Projection Flat a))
-     -> (qb -> QuerySimple (Projection Flat b))
-     -> qa
-     -> qb
-     -> [JoinRestriction a b]
-     -> Relation () (a, b)
-join qL qR r0 r1 rs = relation $ do
+join_ :: (qa -> QuerySimple (Projection Flat a))
+      -> (qb -> QuerySimple (Projection Flat b))
+      -> qa
+      -> qb
+      -> [JoinRestriction a b]
+      -> Relation () (a, b)
+join_ qL qR r0 r1 rs = relation $ do
   pj0 <- qL r0
   pj1 <- qR r1
   sequence_ [ on $ f pj0 pj1 | f <- rs ]
@@ -257,28 +257,28 @@ inner :: Relation () a         -- ^ Left query to join
       -> Relation () b         -- ^ Right query to join
       -> [JoinRestriction a b] -- ^ Join restrictions
       -> Relation () (a, b)    -- ^ Result joined relation
-inner =  join query query
+inner =  join_ query query
 
 -- | Direct left outer join.
 left :: Relation () a                 -- ^ Left query to join
      -> Relation () b                 -- ^ Right query to join
      -> [JoinRestriction a (Maybe b)] -- ^ Join restrictions
      -> Relation () (a, Maybe b)      -- ^ Result joined relation
-left  =  join query queryMaybe
+left  =  join_ query queryMaybe
 
 -- | Direct right outer join.
 right :: Relation () a                 -- ^ Left query to join
       -> Relation () b                 -- ^ Right query to join
       -> [JoinRestriction (Maybe a) b] -- ^ Join restrictions
       -> Relation () (Maybe a, b)      -- ^ Result joined relation
-right =  join queryMaybe query
+right =  join_ queryMaybe query
 
 -- | Direct full outer join.
 full :: Relation () a                         -- ^ Left query to join
      -> Relation () b                         -- ^ Right query to join
      -> [JoinRestriction (Maybe a) (Maybe b)] -- ^ Join restrictions
      -> Relation () (Maybe a, Maybe b)        -- ^ Result joined relation
-full  =  join queryMaybe queryMaybe
+full  =  join_ queryMaybe queryMaybe
 
 -- | Apply restriction for direct join style.
 on' :: ([JoinRestriction a b] -> Relation pc (a, b))
