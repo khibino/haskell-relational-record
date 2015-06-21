@@ -1,3 +1,9 @@
+## 0.5.0.3
+
+- Update unit-test cases.
+- Add the fixity of `over` operator.
+- Avoid an `a future Prelude name' warning.
+
 ## 0.5.0.2
 
 - Switch libraries to use from test-suites not to depend on Cabal library.
