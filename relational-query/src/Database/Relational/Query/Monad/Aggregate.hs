@@ -109,3 +109,5 @@ wp `over` win =
   [ showsColumnSQL c <> composeOver pt ot
   | c <- Projection.columns wp
   ]  where (((), ot), pt) = extractWindow win
+
+infix 8 `over`
