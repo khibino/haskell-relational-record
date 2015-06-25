@@ -22,6 +22,8 @@ extra-source-files:  ChangeLog.md
 
 library
   exposed-modules:
+                       Database.Relational.Query.Arrow
+
                        Database.Relational.Query
                        Database.Relational.Query.Table
                        Database.Relational.Query.SQL
