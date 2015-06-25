@@ -31,6 +31,26 @@ Executable example1
   hs-source-dirs:      example/1, example
   ghc-options:         -Wall
 
+Executable example1Arr
+  default-language:    Haskell2010
+  build-depends:         base <5
+                       , template-haskell
+                       , names-th
+                       , persistable-record
+                       , relational-query
+                       , HDBC
+                       , HDBC-session
+                       , HDBC-postgresql
+                       , relational-query-HDBC
+  other-modules:
+                       User
+                       Group
+                       Membership
+                       QueryArrowExample
+  main-is:             runArrow.hs
+  hs-source-dirs:      example/1, example
+  ghc-options:         -Wall
+
 Executable example2
   default-language:    Haskell2010
   build-depends:         base <5
