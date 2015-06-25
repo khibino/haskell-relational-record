@@ -1,3 +1,7 @@
+## 0.5.1.0
+
+- Add the arrow combinator module and its unit-test cases.
+
 ## 0.5.0.3
 
 - Update unit-test cases.
