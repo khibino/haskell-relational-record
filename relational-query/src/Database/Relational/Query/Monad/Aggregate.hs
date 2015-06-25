@@ -99,7 +99,7 @@ partitionBy =  mapM_ unsafeAddPartitionKey . Projection.columns
 extractWindow :: Window c a -> ((a, OrderingTerms), [AggregateColumnRef])
 extractWindow =  runIdentity . extractAggregateTerms . extractOrderingTerms
 
--- | Operator to make window function projection.
+-- | Operator to make window function result projection using built 'Window' monad.
 over :: SqlProjectable (Projection c)
      => Projection OverWindow a
      -> Window c ()
