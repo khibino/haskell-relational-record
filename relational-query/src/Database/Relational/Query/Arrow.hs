@@ -18,6 +18,9 @@
 -- by restricting domain type of arrow. This idea is imported from Opaleye.
 -- (https://github.com/tomjaguarpaw/haskell-opaleye,
 --  https://github.com/khibino/haskell-relational-record/issues/19).
+--
+-- Importing this module instead of "Database.Relational.Query" enables
+-- to build query using arrow combinators.
 module Database.Relational.Query.Arrow (
   module Database.Relational.Query,
 
