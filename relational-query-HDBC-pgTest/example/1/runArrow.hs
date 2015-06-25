@@ -16,7 +16,6 @@ import Database.HDBC.Record
   (ExecutedStatement, bindTo, execute
   ,runQuery, prepareQuery, fetchUnique, fetchUnique')
 import Database.HDBC.Session (withConnectionIO, handleSqlError')
-import Database.HDBC.Query.TH (inlineVerifiedQuery)
 
 
 runAndPrint :: (Show a, IConnection conn, FromSql SqlValue a, ToSql SqlValue p)

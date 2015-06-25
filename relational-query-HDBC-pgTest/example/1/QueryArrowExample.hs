@@ -287,7 +287,7 @@ userGroupScalar =
     uniqUser m = uniqueRelation' $ proc () -> do
       (uph, u) <- uniqueQuery' (derivedUniqueRelation userPrimaryUnique $ m ! userId') -< ()
       returnA -< (uph, u ! User.name')
-    uniqGroup m = uniqueRelation' $ proc m -> do
+    uniqGroup m = uniqueRelation' $ proc () -> do
       (uph, g) <- uniqueQuery' (derivedUniqueRelation groupPrimaryUnique $ m ! groupId') -< ()
       returnA -< (uph, g ! Group.name')
 
