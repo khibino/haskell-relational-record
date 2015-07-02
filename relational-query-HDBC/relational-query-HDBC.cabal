@@ -45,6 +45,7 @@ library
                        , containers
                        , convertible
                        , template-haskell
+                       , dlist
 
                        , names-th
                        , persistable-record

@@ -17,12 +17,37 @@ module Database.HDBC.Schema.Driver (
   ) where
 
 import Database.HDBC (IConnection)
+import Data.IORef (IORef, modifyIORef)
+import Data.Monoid ((<>))
+import Data.DList (DList)
+import Control.Applicative (pure)
 import Language.Haskell.TH (TypeQ)
 
 
 -- | Mapping between type name string of DBMS and type in Haskell.
 --   Type name string depends on specification of DBMS system catalogs.
 type TypeMap = [(String, TypeQ)]
+
+data Log
+  = Warning String
+  | Error String
+
+runLog :: (String -> t) -> (String -> t) -> Log -> t
+runLog wf ef = d  where
+  d (Warning m) = wf m
+  d (Error m)   = ef m
+
+-- | Channel to store compile-time warning messages.
+type LogChan = IORef (DList Log)
+
+putLog :: Maybe LogChan -> Log -> IO ()
+putLog mc m = maybe (return ()) (`modifyIORef` (<> pure m)) mc
+
+putWarning :: Maybe LogChan -> String -> IO ()
+putWarning mc = putLog mc . Warning
+
+putError :: Maybe LogChan -> String -> IO ()
+putError mc = putLog mc . Warning
 
 -- | Interface type to load database system catalog via HDBC.
 data Driver conn =
