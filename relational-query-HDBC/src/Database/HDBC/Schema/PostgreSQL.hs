@@ -40,7 +40,7 @@ import Database.Relational.Schema.PgCatalog.PgType (PgType)
 import qualified Database.Relational.Schema.PgCatalog.PgType as Type
 
 import Database.HDBC.Schema.Driver
-  (TypeMap, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
+  (TypeMap, LogChan, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
 
 
 $(makeRecordPersistableWithSqlTypeDefaultFromDefined
@@ -60,10 +60,11 @@ compileErrorIO =  fail . logPrefix
 
 getPrimaryKey' :: IConnection conn
               => conn
+              -> LogChan
               -> String
               -> String
               -> IO [String]
-getPrimaryKey' conn scm' tbl' = do
+getPrimaryKey' conn lchan scm' tbl' = do
   let scm = map toLower scm'
       tbl = map toLower tbl'
   mayKeyLen <- runQuery' conn primaryKeyLengthQuerySQL (scm, tbl)
@@ -83,10 +84,11 @@ getPrimaryKey' conn scm' tbl' = do
 getColumns' :: IConnection conn
           => TypeMap
           -> conn
+          -> LogChan
           -> String
           -> String
           -> IO ([(String, TypeQ)], [Int])
-getColumns' tmap conn scm' tbl' = do
+getColumns' tmap conn lchan scm' tbl' = do
   let scm = map toLower scm'
       tbl = map toLower tbl'
   cols <- runQuery' conn columnQuerySQL (scm, tbl)

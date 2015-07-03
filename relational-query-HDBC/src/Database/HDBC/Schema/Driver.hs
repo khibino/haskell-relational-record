@@ -71,12 +71,15 @@ data Driver conn =
     -- | Get column name and Haskell type pairs and not-null columns index.
   , getFieldsWithMap :: TypeMap                       --  Custom type mapping
                      -> conn                          --  Connection to query system catalog
+                     -> LogChan
                      -> String                        --  Schema name string
                      -> String                        --  Table name string
-                     -> IO ([(String, TypeQ)], [Int]) --  Action to get column name and Haskell type pairs and not-null columns index.
+                     -> IO ([(String, TypeQ)], [Int]) {-  Action to get column name and Haskell type pairs
+                                                           and not-null columns index. -}
 
     -- | Get primary key column name.
   , getPrimaryKey :: conn          --  Connection to query system catalog
+                  -> LogChan
                   -> String        --  Schema name string
                   -> String        --  Table name string
                   -> IO [String]   --  Action to get column names of primary key
@@ -84,8 +87,8 @@ data Driver conn =
 
 -- | Empty definition of 'Driver'
 emptyDriver :: IConnection conn => Driver conn
-emptyDriver =  Driver [] (\_ _ _ _ -> return ([],[])) (\_ _ _ -> return [])
+emptyDriver =  Driver [] (\_ _ _ _ _ -> return ([],[])) (\_ _ _ _ -> return [])
 
 -- | Helper function to call 'getFieldsWithMap' using 'typeMap' of 'Driver'.
-getFields :: IConnection conn => Driver conn -> conn -> String -> String -> IO ([(String, TypeQ)], [Int])
+getFields :: IConnection conn => Driver conn -> conn -> LogChan -> String -> String -> IO ([(String, TypeQ)], [Int])
 getFields drv = getFieldsWithMap drv (typeMap drv)

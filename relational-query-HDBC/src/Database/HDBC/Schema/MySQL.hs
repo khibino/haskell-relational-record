@@ -17,6 +17,7 @@ import           Database.HDBC                      (IConnection, SqlValue)
 import           Database.HDBC.Record.Query         (runQuery')
 import           Database.HDBC.Record.Persistable   ()
 import           Database.HDBC.Schema.Driver        ( TypeMap
+                                                    , LogChan
                                                     , Driver
                                                     , getFieldsWithMap
                                                     , getPrimaryKey
@@ -46,10 +47,11 @@ compileErrorIO = fail . logPrefix
 
 getPrimaryKey' :: IConnection conn
                => conn
+               -> LogChan
                -> String
                -> String
                -> IO [String]
-getPrimaryKey' conn scm tbl = do
+getPrimaryKey' conn lchan scm tbl = do
     primCols <- runQuery' conn primaryKeyQuerySQL (scm, tbl)
     let primaryKeyCols = normalizeColumn `fmap` primCols
     putLog $ "getPrimaryKey: primary key = " ++ show primaryKeyCols
@@ -58,10 +60,11 @@ getPrimaryKey' conn scm tbl = do
 getFields' :: IConnection conn
            => TypeMap
            -> conn
+           -> LogChan
            -> String
            -> String
            -> IO ([(String, TypeQ)], [Int])
-getFields' tmap conn scm tbl = do
+getFields' tmap conn lchan scm tbl = do
     cols <- runQuery' conn columnsQuerySQL (scm, tbl)
     case cols of
         [] -> compileErrorIO

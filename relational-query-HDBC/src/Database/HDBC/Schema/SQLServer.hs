@@ -22,7 +22,7 @@ import Data.Maybe (catMaybes)
 import Database.HDBC (IConnection, SqlValue)
 import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
-import Database.HDBC.Schema.Driver (TypeMap, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
+import Database.HDBC.Schema.Driver (TypeMap, LogChan, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
 import Database.Record.TH (makeRecordPersistableWithSqlTypeDefaultFromDefined)
 import Database.Relational.Schema.SQLServer (columnTypeQuerySQL, getType, normalizeColumn,
                                             notNull, primaryKeyQuerySQL)
@@ -48,10 +48,11 @@ compileErrorIO =  fail . logPrefix
 
 getPrimaryKey' :: IConnection conn
                => conn
+               -> LogChan
                -> String
                -> String
                -> IO [String]
-getPrimaryKey' conn scm tbl = do
+getPrimaryKey' conn lchan scm tbl = do
     prims <- catMaybes `fmap` runQuery' conn primaryKeyQuerySQL (scm,tbl)
     let primColumns = map normalizeColumn prims
     putLog $ "getPrimaryKey: keys=" ++ show primColumns
@@ -60,10 +61,11 @@ getPrimaryKey' conn scm tbl = do
 getFields' :: IConnection conn
            => TypeMap
            -> conn
+           -> LogChan
            -> String
            -> String
            -> IO ([(String, TypeQ)], [Int])
-getFields' tmap conn scm tbl = do
+getFields' tmap conn lchan scm tbl = do
     rows <- runQuery' conn columnTypeQuerySQL (scm, tbl)
     case rows of
       [] -> compileErrorIO

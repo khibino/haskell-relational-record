@@ -45,7 +45,7 @@ import qualified Database.Relational.Query.TH as Relational
 import Database.HDBC.Session (withConnectionIO)
 import Database.HDBC.Record.Persistable ()
 
-import Database.HDBC.Schema.Driver (Driver, getFields, getPrimaryKey)
+import Database.HDBC.Schema.Driver (newLogChan, Driver, getFields, getPrimaryKey)
 
 
 -- | Generate all persistable templates against defined record like type constructor.
@@ -95,11 +95,12 @@ defineTableFromDB' :: IConnection conn
                    -> [ConName]   -- ^ Derivings
                    -> Q [Dec]     -- ^ Result declaration
 defineTableFromDB' connect config drv scm tbl derives = do
+  logChan <- runIO $ newLogChan
   let getDBinfo =
         withConnectionIO connect
         (\conn ->  do
-            (cols, notNullIdxs) <- getFields drv conn scm tbl
-            primCols            <- getPrimaryKey drv conn scm tbl
+            (cols, notNullIdxs) <- getFields drv conn logChan scm tbl
+            primCols            <- getPrimaryKey drv conn logChan scm tbl
 
             return (cols, notNullIdxs, primCols) )
 

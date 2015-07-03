@@ -41,7 +41,7 @@ import Database.Relational.Schema.DB2Syscat.Columns (Columns)
 import qualified Database.Relational.Schema.DB2Syscat.Columns as Columns
 
 import Database.HDBC.Schema.Driver
-  (TypeMap, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
+  (TypeMap, LogChan, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
 
 
 -- Specify type constructor and data constructor from same table name.
@@ -59,10 +59,11 @@ compileErrorIO =  fail . logPrefix
 
 getPrimaryKey' :: IConnection conn
               => conn
+              -> LogChan
               -> String
               -> String
               -> IO [String]
-getPrimaryKey' conn scm' tbl' = do
+getPrimaryKey' conn lchan scm' tbl' = do
   let tbl = map toUpper tbl'
       scm = map toUpper scm'
   primCols <- runQuery' conn primaryKeyQuerySQL (scm, tbl)
@@ -74,10 +75,11 @@ getPrimaryKey' conn scm' tbl' = do
 getColumns' :: IConnection conn
           => TypeMap
           -> conn
+          -> LogChan
           -> String
           -> String
           -> IO ([(String, TypeQ)], [Int])
-getColumns' tmap conn scm' tbl' = do
+getColumns' tmap conn lchan scm' tbl' = do
   let tbl = map toUpper tbl'
       scm = map toUpper scm'
 

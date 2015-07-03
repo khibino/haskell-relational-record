@@ -17,7 +17,7 @@ import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
 import Database.Record.TH (makeRecordPersistableWithSqlTypeDefaultFromDefined)
 import Database.HDBC.Schema.Driver
-    ( TypeMap, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver
+    ( TypeMap, LogChan, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver
     )
 
 import Database.Relational.Schema.Oracle
@@ -42,10 +42,11 @@ compileErrorIO = fail . logPrefix
 
 getPrimaryKey' :: IConnection conn
                => conn
+               -> LogChan
                -> String -- ^ owner name
                -> String -- ^ table name
                -> IO [String] -- ^ primary key names
-getPrimaryKey' conn owner' tbl' = do
+getPrimaryKey' conn lchan owner' tbl' = do
     let owner = map toUpper owner'
         tbl = map toUpper tbl'
     prims <- map normalizeColumn . catMaybes <$>
@@ -56,10 +57,11 @@ getPrimaryKey' conn owner' tbl' = do
 getFields' :: IConnection conn
            => TypeMap
            -> conn
+           -> LogChan
            -> String
            -> String
            -> IO ([(String, TypeQ)], [Int])
-getFields' tmap conn owner' tbl' = do
+getFields' tmap conn lchan owner' tbl' = do
     let owner = map toUpper owner'
         tbl = map toUpper tbl'
     cols <- runQuery' conn columnsQuerySQL (owner, tbl)
