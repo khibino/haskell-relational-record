@@ -98,7 +98,7 @@ defineTableFromDB' :: IConnection conn
                    -> Q [Dec]     -- ^ Result declaration
 defineTableFromDB' connect config drv scm tbl derives = do
   let getDBinfo = do
-        logChan  <-  newLogChan
+        logChan  <-  newLogChan {- TODO: should get this flag from config -} False
         infoP    <-  withConnectionIO connect
                      (\conn ->
                        (,)

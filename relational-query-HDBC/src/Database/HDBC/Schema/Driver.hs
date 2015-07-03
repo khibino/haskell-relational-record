@@ -13,7 +13,7 @@ module Database.HDBC.Schema.Driver (
   TypeMap,
 
   Log, runLog,
-  LogChan, newLogChan, takeLogs, putWarning, putError,
+  LogChan, newLogChan, takeLogs, putWarning, putError, putVerbose,
 
   Driver(Driver, typeMap, getFieldsWithMap, getPrimaryKey),
   emptyDriver,
@@ -24,7 +24,7 @@ import Database.HDBC (IConnection)
 import Data.IORef (IORef, newIORef, readIORef, writeIORef, modifyIORef)
 import Data.Monoid (mempty, (<>))
 import Data.DList (DList, toList)
-import Control.Applicative (pure)
+import Control.Applicative ((<$>), pure, (<*>))
 import Language.Haskell.TH (TypeQ)
 
 
@@ -42,25 +42,36 @@ runLog wf ef = d  where
   d (Error m)   = ef m
 
 -- | Channel to store compile-time warning messages.
-type LogChan = IORef (DList Log)
+data LogChan =
+  LogChan
+  { chan :: IORef (DList Log)
+  , verboseAsWarning :: Bool
+  }
 
-newLogChan :: IO LogChan
-newLogChan = newIORef mempty
+newLogChan :: Bool -> IO LogChan
+newLogChan v =
+  LogChan <$> newIORef mempty <*> pure v
 
 takeLogs :: LogChan -> IO [Log]
 takeLogs lchan = do
-  xs <- readIORef lchan
-  writeIORef lchan mempty
+  xs <- readIORef $ chan lchan
+  writeIORef (chan lchan) mempty
   return $ toList xs
 
 putLog :: LogChan -> Log -> IO ()
-putLog lchan m = lchan `modifyIORef` (<> pure m)
+putLog lchan m = chan lchan `modifyIORef` (<> pure m)
 
 putWarning :: LogChan -> String -> IO ()
 putWarning lchan = putLog lchan . Warning
 
 putError :: LogChan -> String -> IO ()
 putError lchan = putLog lchan . Warning
+
+-- | Put verbose compile-time message as warning when 'verboseAsWarning'.
+putVerbose :: LogChan -> String -> IO ()
+putVerbose lchan
+  | verboseAsWarning lchan  =  putWarning lchan . ("info: " ++)
+  | otherwise               =  const $ pure ()
 
 -- | Interface type to load database system catalog via HDBC.
 data Driver conn =
