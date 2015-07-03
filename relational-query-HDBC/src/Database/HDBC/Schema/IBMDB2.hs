@@ -28,8 +28,6 @@ import Control.Monad (when)
 
 import Database.HDBC (IConnection, SqlValue)
 
-import Language.Haskell.TH.Lib.Extra (reportMessage)
-
 import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
 
@@ -41,7 +39,7 @@ import Database.Relational.Schema.DB2Syscat.Columns (Columns)
 import qualified Database.Relational.Schema.DB2Syscat.Columns as Columns
 
 import Database.HDBC.Schema.Driver
-  (TypeMap, LogChan, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
+  (TypeMap, LogChan, putVerbose, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
 
 
 -- Specify type constructor and data constructor from same table name.
@@ -51,8 +49,8 @@ $(makeRecordPersistableWithSqlTypeDefaultFromDefined
 logPrefix :: String -> String
 logPrefix =  ("IBMDB2: " ++)
 
-putLog :: String -> IO ()
-putLog =  reportMessage . logPrefix
+putLog :: LogChan -> String -> IO ()
+putLog lchan =  putVerbose lchan . logPrefix
 
 compileErrorIO :: String -> IO a
 compileErrorIO =  fail . logPrefix
@@ -68,7 +66,7 @@ getPrimaryKey' conn lchan scm' tbl' = do
       scm = map toUpper scm'
   primCols <- runQuery' conn primaryKeyQuerySQL (scm, tbl)
   let primaryKeyCols = normalizeColumn `fmap` primCols
-  putLog $ "getPrimaryKey: primary key = " ++ show primaryKeyCols
+  putLog lchan $ "getPrimaryKey: primary key = " ++ show primaryKeyCols
 
   return primaryKeyCols
 
@@ -88,7 +86,7 @@ getColumns' tmap conn lchan scm' tbl' = do
     $ "getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl
 
   let notNullIdxs = map fst . filter (notNull . snd) . zip [0..] $ cols
-  putLog
+  putLog lchan
     $  "getFields: num of columns = " ++ show (List.length cols)
     ++ ", not null columns = " ++ show notNullIdxs
   let getType' col = case getType (fromList tmap) col of
