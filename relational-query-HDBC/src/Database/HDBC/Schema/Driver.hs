@@ -11,15 +11,19 @@
 -- to load database system catalog via HDBC.
 module Database.HDBC.Schema.Driver (
   TypeMap,
+
+  Log, runLog,
+  LogChan, newLogChan, takeLogs, putWarning, putError,
+
   Driver(Driver, typeMap, getFieldsWithMap, getPrimaryKey),
   emptyDriver,
   getFields
   ) where
 
 import Database.HDBC (IConnection)
-import Data.IORef (IORef, modifyIORef)
-import Data.Monoid ((<>))
-import Data.DList (DList)
+import Data.IORef (IORef, newIORef, readIORef, writeIORef, modifyIORef)
+import Data.Monoid (mempty, (<>))
+import Data.DList (DList, toList)
 import Control.Applicative (pure)
 import Language.Haskell.TH (TypeQ)
 
@@ -39,6 +43,15 @@ runLog wf ef = d  where
 
 -- | Channel to store compile-time warning messages.
 type LogChan = IORef (DList Log)
+
+newLogChan :: IO LogChan
+newLogChan = newIORef mempty
+
+takeLogs :: LogChan -> IO [Log]
+takeLogs lchan = do
+  xs <- readIORef lchan
+  writeIORef lchan mempty
+  return $ toList xs
 
 putLog :: Maybe LogChan -> Log -> IO ()
 putLog mc m = maybe (return ()) (`modifyIORef` (<> pure m)) mc
