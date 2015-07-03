@@ -28,13 +28,14 @@ module Database.HDBC.Query.TH (
 
 import Data.Maybe (listToMaybe, fromMaybe)
 import qualified Data.Map as Map
+import Control.Applicative ((<$>), (<*>))
 import Control.Monad (when)
 
 import Database.HDBC (IConnection, SqlValue, prepare)
 
 import Language.Haskell.TH (Q, runIO, Name, TypeQ, Dec)
 import Language.Haskell.TH.Name.CamelCase (ConName, varCamelcaseName)
-import Language.Haskell.TH.Lib.Extra (reportWarning, reportMessage)
+import Language.Haskell.TH.Lib.Extra (reportWarning, reportError, reportMessage)
 
 import Database.Record.TH (makeRecordPersistableWithSqlTypeDefault)
 import qualified Database.Record.TH as Record
@@ -45,7 +46,8 @@ import qualified Database.Relational.Query.TH as Relational
 import Database.HDBC.Session (withConnectionIO)
 import Database.HDBC.Record.Persistable ()
 
-import Database.HDBC.Schema.Driver (newLogChan, Driver, getFields, getPrimaryKey)
+import Database.HDBC.Schema.Driver
+  (runLog, newLogChan, takeLogs, Driver, getFields, getPrimaryKey)
 
 
 -- | Generate all persistable templates against defined record like type constructor.
@@ -95,16 +97,17 @@ defineTableFromDB' :: IConnection conn
                    -> [ConName]   -- ^ Derivings
                    -> Q [Dec]     -- ^ Result declaration
 defineTableFromDB' connect config drv scm tbl derives = do
-  logChan <- runIO $ newLogChan
-  let getDBinfo =
-        withConnectionIO connect
-        (\conn ->  do
-            (cols, notNullIdxs) <- getFields drv conn logChan scm tbl
-            primCols            <- getPrimaryKey drv conn logChan scm tbl
+  let getDBinfo = do
+        logChan  <-  newLogChan
+        infoP    <-  withConnectionIO connect
+                     (\conn ->
+                       (,)
+                       <$> getFields drv conn logChan scm tbl
+                       <*> getPrimaryKey drv conn logChan scm tbl)
+        (,) infoP <$> takeLogs logChan
 
-            return (cols, notNullIdxs, primCols) )
-
-  (cols, notNullIdxs, primaryCols) <- runIO getDBinfo
+  (((cols, notNullIdxs), primaryCols), logs) <- runIO getDBinfo
+  mapM_ (runLog reportWarning reportError) logs
   when (null primaryCols) . reportWarning
     $ "getPrimaryKey: Primary key not found for table: " ++ scm ++ "." ++ tbl
 
