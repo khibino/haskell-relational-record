@@ -53,14 +53,14 @@ takeLogs lchan = do
   writeIORef lchan mempty
   return $ toList xs
 
-putLog :: Maybe LogChan -> Log -> IO ()
-putLog mc m = maybe (return ()) (`modifyIORef` (<> pure m)) mc
+putLog :: LogChan -> Log -> IO ()
+putLog lchan m = lchan `modifyIORef` (<> pure m)
 
-putWarning :: Maybe LogChan -> String -> IO ()
-putWarning mc = putLog mc . Warning
+putWarning :: LogChan -> String -> IO ()
+putWarning lchan = putLog lchan . Warning
 
-putError :: Maybe LogChan -> String -> IO ()
-putError mc = putLog mc . Warning
+putError :: LogChan -> String -> IO ()
+putError lchan = putLog lchan . Warning
 
 -- | Interface type to load database system catalog via HDBC.
 data Driver conn =
