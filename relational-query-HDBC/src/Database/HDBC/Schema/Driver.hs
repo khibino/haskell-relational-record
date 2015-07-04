@@ -14,7 +14,7 @@ module Database.HDBC.Schema.Driver (
 
   Log, runLog,
   LogChan, newLogChan, takeLogs, putWarning, putError, putVerbose,
-  maybeIO,
+  failWith, hoistMaybe, maybeIO,
 
   Driver(Driver, typeMap, getFieldsWithMap, getPrimaryKey),
   emptyDriver,
@@ -26,6 +26,8 @@ import Data.IORef (IORef, newIORef, readIORef, writeIORef, modifyIORef)
 import Data.Monoid (mempty, (<>))
 import Data.DList (DList, toList)
 import Control.Applicative ((<$>), pure, (<*>))
+import Control.Monad (MonadPlus, mzero)
+import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Maybe (MaybeT (..))
 import Language.Haskell.TH (TypeQ)
 
@@ -69,8 +71,16 @@ putWarning lchan = putLog lchan . Warning
 putError :: LogChan -> String -> IO ()
 putError lchan = putLog lchan . Warning
 
--- Use the idiom to raise error log
--- do lift $ putError ... >> empty
+failWith :: LogChan -> String -> MaybeT IO a
+failWith lchan m = do
+  lift $ putError lchan m
+  mzero
+
+hoistM :: MonadPlus m => Maybe a -> m a
+hoistM = maybe mzero return
+
+hoistMaybe :: Monad m => Maybe a -> MaybeT m a
+hoistMaybe = hoistM
 
 maybeT :: Functor f => b -> (a -> b) -> MaybeT f a -> f b
 maybeT zero f = (maybe zero f <$>) . runMaybeT
