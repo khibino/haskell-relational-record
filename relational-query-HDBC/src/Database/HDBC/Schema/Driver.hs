@@ -14,6 +14,7 @@ module Database.HDBC.Schema.Driver (
 
   Log, runLog,
   LogChan, newLogChan, takeLogs, putWarning, putError, putVerbose,
+  maybeIO,
 
   Driver(Driver, typeMap, getFieldsWithMap, getPrimaryKey),
   emptyDriver,
@@ -25,6 +26,7 @@ import Data.IORef (IORef, newIORef, readIORef, writeIORef, modifyIORef)
 import Data.Monoid (mempty, (<>))
 import Data.DList (DList, toList)
 import Control.Applicative ((<$>), pure, (<*>))
+import Control.Monad.Trans.Maybe (MaybeT (..))
 import Language.Haskell.TH (TypeQ)
 
 
@@ -66,6 +68,15 @@ putWarning lchan = putLog lchan . Warning
 
 putError :: LogChan -> String -> IO ()
 putError lchan = putLog lchan . Warning
+
+-- Use the idiom to raise error log
+-- do lift $ putError ... >> empty
+
+maybeT :: Functor f => b -> (a -> b) -> MaybeT f a -> f b
+maybeT zero f = (maybe zero f <$>) . runMaybeT
+
+maybeIO :: b -> (a -> b) -> MaybeT IO a -> IO b
+maybeIO = maybeT
 
 -- | Put verbose compile-time message as warning when 'verboseAsWarning'.
 putVerbose :: LogChan -> String -> IO ()
