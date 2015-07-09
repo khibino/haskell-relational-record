@@ -86,6 +86,8 @@ module Database.Relational.Query.Documentation (
   max', min',
   every, any', some',
 
+  over,
+
   rank, denseRank, rowNumber, percentRank, cumeDist,
 
   -- ** Set Operators
@@ -274,6 +276,8 @@ For example,
 'sum'' operator is aggregate function of projected flat (not aggregated) value
 correspond to SQL SUM(...),
 'rank' operator is window function of projected value correspond to SQL RANK(), and so on.
+
+To convert window function result into normal projection, use the 'over' operator with built 'Window' monad.
 
 Module "Database.Relational.Query.Projectable" contains documentation of
 other aggregate function operators and window function operators.
