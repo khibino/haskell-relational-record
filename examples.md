@@ -531,6 +531,83 @@ FROM MAIN.employee T0 INNER JOIN MAIN.department T1
 ON (T0.dept_id = T1.dept_id)
 {% endhighlight %}
 
+#### Left outer join
+
+SQL:
+
+{% highlight sql %}
+SELECT a.account_id, a.cust_id, i.fname, i.lname
+  FROM account a LEFT OUTER JOIN individual i
+    ON a.cust_id = i.cust_id
+{% endhighlight %}
+
+HRR:
+
+{% highlight haskell %}
+account_LeftOuterJoin :: Relation () Account4
+account_LeftOuterJoin = relation $ do
+  a <- query account
+  i <- queryMaybe individual
+  on $ just (a ! Account.custId') .=. i ?! Individual.custId'
+  return $ Account4 |$| a ! Account.accountId'
+                    |*| a ! Account.custId'
+                    |*| i ?! Individual.fname'
+                    |*| i ?! Individual.lname'
+
+data Account4 = Account4
+  { a4AccountId :: Int64
+  , a4CustId :: Int64
+  , a4Fname :: Maybe String
+  , a4Lname :: Maybe String
+  } deriving (Show)
+
+$(makeRecordPersistableDefault ''Account4)
+{% endhighlight %}
+
+Generated SQL:
+
+{% highlight sql %}
+SELECT ALL T0.account_id AS f0,
+           T0.cust_id AS f1,
+           T1.fname AS f2,
+           T1.lname AS f3
+FROM MAIN.account T0 LEFT JOIN MAIN.individual T1
+ON (T0.cust_id = T1.cust_id)
+{% endhighlight %}
+
+#### Right outer join
+
+SQL:
+
+{% highlight sql %}
+SELECT c.cust_id, b.name
+  FROM customer c RIGHT OUTER JOIN business b
+    ON c.cust_id = b.cust_id
+{% endhighlight %}
+
+HRR:
+
+{% highlight haskell %}
+business_RightOuterJoin :: Relation () (Maybe Int64, String)
+business_RightOuterJoin = relation $ do
+  c <- queryMaybe customer
+  b <- query business
+  on $ c ?! Customer.custId' .=. just (b ! Business.custId')
+  return (c ?! Customer.custId' >< b ! Business.name')
+{% endhighlight %}
+
+Generated SQL:
+
+{% highlight sql %}
+SELECT ALL T0.cust_id AS f0,
+           T1.name AS f1
+FROM MAIN.customer T0 RIGHT JOIN MAIN.business T1
+ON (T0.cust_id = T1.cust_id)
+{% endhighlight %}
+
+Note: **A function using right-out-join can be defined, but unfortunately
+SQLite3 does not support it.**
+
 #### Complex join
 
 SQL:
@@ -761,7 +838,7 @@ customer_9_4 = relation $ do
     wheres $ a ! Account.custId' .=. c ! Customer.custId'
     return (a ! Account.accountId')
     ) id' count
-  wheres $ just (value 2) .=. ca
+  wheres $ just (value (2 :: Int64)) .=. ca
   return (customer1 c)
 
 data Customer1 = Customer1
