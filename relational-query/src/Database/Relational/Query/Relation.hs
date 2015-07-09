@@ -139,6 +139,17 @@ queryMaybe' pr =  do
   return (ph, Projection.just pj)
 
 -- | Join subquery. Query result is 'Maybe'.
+--   The combinations of 'query' and 'queryMaybe' express
+--   inner joins, left outer joins, right outer joins, and full outer joins.
+--   Here is an example of a right outer join:
+--
+-- @
+--   outerJoin = relation $ do
+--     e <- queryMaybe employee
+--     d <- query department
+--     on $ e ?! E.deptId' .=. just (d ! D.deptId')
+--     return $ (,) |$| e |*| d
+-- @
 queryMaybe :: (MonadQualify ConfigureQuery m, MonadQuery m)
            => Relation () r
            -> m (Projection Flat (Maybe r))
