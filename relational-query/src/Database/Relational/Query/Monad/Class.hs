@@ -45,7 +45,7 @@ class (Functor m, Monad m) => MonadQuery m where
   -- | Add restriction to last join.
   restrictJoin :: Projection Flat (Maybe Bool) -- ^ 'Projection' which represent restriction
                -> m ()                         -- ^ Restricted query context
-  -- | Unsafely join subquery with this query.
+  -- | Unsafely join sub-query with this query.
   unsafeSubQuery :: NodeAttr              -- ^ Attribute maybe or just
                  -> Qualified SubQuery    -- ^ 'SubQuery' to join
                  -> m (Projection Flat r) -- ^ Result joined context and 'SubQuery' result projection.

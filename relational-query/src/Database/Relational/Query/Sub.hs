@@ -170,7 +170,7 @@ selectPrefixSQL up da = SELECT <> showsDuplication da <>
 
 -- | SQL string for nested-query and toplevel-SQL.
 toSQLs :: SubQuery
-       -> (StringSQL, StringSQL) -- ^ subquery SQL and top-level SQL
+       -> (StringSQL, StringSQL) -- ^ sub-query SQL and top-level SQL
 toSQLs =  d  where
   d (Table u)               = (stringSQL $ Table.name' u, fromTableToSQL u)
   d (Bin (BinOp (op, da)) l r) = (SQL.paren q, q)  where

@@ -118,19 +118,19 @@ queryWithAttr attr = unsafeAddPlaceHolders . run where
     unsafeSubQuery attr q
   -- d (Relation q) = unsafeMergeAnotherQuery attr q
 
--- | Join subquery with place-holder parameter 'p'. query result is not 'Maybe'.
+-- | Join sub-query with place-holder parameter 'p'. query result is not 'Maybe'.
 query' :: (MonadQualify ConfigureQuery m, MonadQuery m)
        => Relation p r
        -> m (PlaceHolders p, Projection Flat r)
 query' =  queryWithAttr Just'
 
--- | Join subquery. Query result is not 'Maybe'.
+-- | Join sub-query. Query result is not 'Maybe'.
 query :: (MonadQualify ConfigureQuery m, MonadQuery m)
       => Relation () r
       -> m (Projection Flat r)
 query =  fmap snd . query'
 
--- | Join subquery with place-holder parameter 'p'. Query result is 'Maybe'.
+-- | Join sub-query with place-holder parameter 'p'. Query result is 'Maybe'.
 queryMaybe' :: (MonadQualify ConfigureQuery m, MonadQuery m)
             => Relation p r
             -> m (PlaceHolders p, Projection Flat (Maybe r))
@@ -138,7 +138,7 @@ queryMaybe' pr =  do
   (ph, pj) <- queryWithAttr Maybe pr
   return (ph, Projection.just pj)
 
--- | Join subquery. Query result is 'Maybe'.
+-- | Join sub-query. Query result is 'Maybe'.
 --   The combinations of 'query' and 'queryMaybe' express
 --   inner joins, left outer joins, right outer joins, and full outer joins.
 --   Here is an example of a right outer join:
@@ -160,7 +160,7 @@ queryList0 =  liftQualify
               . fmap Projection.unsafeListFromSubQuery
               . subQueryQualifyFromRelation
 
--- | List subQuery, for /IN/ and /EXIST/ with place-holder parameter 'p'.
+-- | List sub-query, for /IN/ and /EXIST/ with place-holder parameter 'p'.
 queryList' :: MonadQualify ConfigureQuery m
            => Relation p r
            -> m (PlaceHolders p, ListProjection (Projection c) r)
@@ -168,7 +168,7 @@ queryList' rel = do
   ql <- queryList0 rel
   return (placeHoldersFromRelation rel, ql)
 
--- | List subQuery, for /IN/ and /EXIST/.
+-- | List sub-query, for /IN/ and /EXIST/.
 queryList :: MonadQualify ConfigureQuery m
           => Relation () r
           -> m (ListProjection (Projection c) r)
@@ -421,13 +421,13 @@ uniqueQueryWithAttr attr = unsafeAddPlaceHolders . run where
       qualifyQuery sq
     Projection.unsafeChangeContext <$> unsafeSubQuery attr q
 
--- | Join unique subquery with place-holder parameter 'p'.
+-- | Join unique sub-query with place-holder parameter 'p'.
 uniqueQuery' :: MonadQualifyUnique ConfigureQuery m
              => UniqueRelation p c r
              -> m (PlaceHolders p, Projection c r)
 uniqueQuery' = uniqueQueryWithAttr Just'
 
--- | Join unique subquery with place-holder parameter 'p'. Query result is 'Maybe'.
+-- | Join unique sub-query with place-holder parameter 'p'. Query result is 'Maybe'.
 uniqueQueryMaybe' :: MonadQualifyUnique ConfigureQuery m
                   => UniqueRelation p c r
                   -> m (PlaceHolders p, Projection c (Maybe r))
@@ -448,7 +448,7 @@ aggregatedUnique rel k ag = unsafeUnique . aggregateRelation' $ do
   (ph, a) <- query' rel
   return (ph, ag $ a ! k)
 
--- | Scalar subQuery with place-holder parameter 'p'.
+-- | Scalar sub-query with place-holder parameter 'p'.
 queryScalar' :: (MonadQualify ConfigureQuery m, ScalarDegree r)
              => UniqueRelation p c r
              -> m (PlaceHolders p, Projection c (Maybe r))
@@ -456,7 +456,7 @@ queryScalar' ur =
   unsafeAddPlaceHolders . liftQualify $
   Projection.unsafeFromScalarSubQuery <$> subQueryQualifyFromRelation (unUnique ur)
 
--- | Scalar subQuery.
+-- | Scalar sub-query.
 queryScalar :: (MonadQualify ConfigureQuery m, ScalarDegree r)
             => UniqueRelation () c r
             -> m (Projection c (Maybe r))

@@ -90,11 +90,11 @@ unsafeFromColumns :: [ColumnSQL]    -- ^ SQL string list specifies columns
                   -> Projection c r -- ^ Result 'Projection'
 unsafeFromColumns =  typedProjection . untypedProjectionFromColumns
 
--- | Unsafely generate  'Projection' from qualified (joined) subquery.
+-- | Unsafely generate  'Projection' from qualified (joined) sub-query.
 unsafeFromQualifiedSubQuery :: Qualified SubQuery -> Projection c t
 unsafeFromQualifiedSubQuery =  typedProjection . untypedProjectionFromJoinedSubQuery
 
--- | Unsafely generate 'Projection' from scalar subquery.
+-- | Unsafely generate 'Projection' from scalar sub-query.
 unsafeFromScalarSubQuery :: SubQuery -> Projection c t
 unsafeFromScalarSubQuery =  typedProjection . untypedProjectionFromScalarSubQuery
 

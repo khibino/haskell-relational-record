@@ -66,7 +66,7 @@ instance (Monad q, Functor q) => MonadQuery (QueryJoin q) where
   restrictJoin       = updateJoinRestriction . expr
   unsafeSubQuery     = unsafeSubQueryWithAttr
 
--- | Unsafely join subquery with this query.
+-- | Unsafely join sub-query with this query.
 unsafeSubQueryWithAttr :: Monad q
                        => NodeAttr                        -- ^ Attribute maybe or just
                        -> Qualified SubQuery              -- ^ 'SubQuery' to join
