@@ -124,7 +124,7 @@ definePi' :: PersistableRecordWidth r1
 definePi' pw i = Pi (Leftest i) pw
 
 -- | Unsafely define projection path from type 'r0' into type 'r1'.
---   Use infered 'PersistableRecordWidth'.
+--   Use inferred 'PersistableRecordWidth'.
 definePi :: PersistableWidth r1
          => Int      -- ^ Index of flat SQL value list
          -> Pi r0 r1 -- ^ Result projection path
@@ -137,7 +137,7 @@ defineDirectPi' :: PersistableRecordWidth r1
 defineDirectPi' pw is = Pi (Map is) pw
 
 -- | Unsafely define projection path from type 'r0' into type 'r1'.
---   Use infered 'PersistableRecordWidth'.
+--   Use inferred 'PersistableRecordWidth'.
 defineDirectPi :: PersistableWidth r1
                => [Int]    -- ^ Indexes of flat SQL value list
                -> Pi r0 r1 -- ^ Result projection path

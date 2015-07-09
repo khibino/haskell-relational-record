@@ -1,5 +1,5 @@
 name:                relational-record
-version:             0.1.1.0
+version:             0.1.2.0
 synopsis:            Meta package of Relational Record
 description:         Meta package to install Relational Record quickly
 homepage:            http://khibino.github.io/haskell-relational-record/

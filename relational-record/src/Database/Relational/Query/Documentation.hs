@@ -76,14 +76,17 @@ module Database.Relational.Query.Documentation (
 
   not', exists,
 
-  (.||.),
+  (.||.), like, like',
   (.+.), (.-.), (./.), (.*.), negate', fromIntegral', showNum,
 
   -- ** Aggregate and Window Functions
   -- $aggregateFunctions
+  count,
   sum', avg,
   max', min',
   every, any', some',
+
+  over,
 
   rank, denseRank, rowNumber, percentRank, cumeDist,
 
@@ -178,7 +181,7 @@ import Database.Relational.Query
 import Database.HDBC.Record
 
 {- $concepts
-User inferface of Relational Record has main two part of modules.
+User interface of Relational Record has main two part of modules.
 
 [@"Database.Relational.Query"@] Relational Query Building DSL
 
@@ -224,7 +227,7 @@ Several operators are defined to make 'Relation' type with finalizing query mona
 'relation' operator finalizes flat (not aggregated) query monadic context,
 and 'aggregateRelation' operator finalizes aggregated query monadic context.
 Both operator convert monadic context into 'Relation' type,
-and finalized 'Relation' can be reused as joining and sub-quering in another queries.
+and finalized 'Relation' can be reused as joining and sub-querying in another queries.
 
 'updateTarget' operator finalize monadic context into 'UpdateTarget' type
 which can be used as update statement.
@@ -234,11 +237,11 @@ which can be used as delete statement.
  -}
 
 {- $projection
-SQL expression can be projected to haskell phantom type in this DSL.
+SQL expression can be projected to Haskell phantom type in this DSL.
  -}
 
 {- $projectionType
-'Projection' /c/ /t/ is SQL value type projection to haskell type with context type /c/ correspond haskell type /t/.
+'Projection' /c/ /t/ is SQL value type projection to Haskell type with context type /c/ correspond Haskell type /t/.
 
 'Flat' is not aggregated query context type,
 'Aggregated' is aggregated query context type,
@@ -254,13 +257,13 @@ Module "Database.Relational.Query.Context" contains documentation of other conte
  -}
 
 {- $projectionOperators
-Some operators are defined to caluculate projected values.
+Some operators are defined to calculate projected values.
 
 For example,
 'value' operator projects from Haskell value into 'Projection' corresponding SQL value,
 'values' operator projects from Haskell list value into 'ListProjection', corresponding SQL set value,
 '.=.' operator is equal compare operation of projected value correspond to SQL =,
-'.+.' operator is plus operation of projected value coresspond to SQL +, and so on.
+'.+.' operator is plus operation of projected value correspond to SQL +, and so on.
 
 Module "Database.Relational.Query.Projectable" contains documentation of other projection operators.
  -}
@@ -272,7 +275,9 @@ Aggregated value types is distinguished with Flat value types.
 For example,
 'sum'' operator is aggregate function of projected flat (not aggregated) value
 correspond to SQL SUM(...),
-'rank' operator is window function of projected value coresspond to SQL RANK(), and so on.
+'rank' operator is window function of projected value correspond to SQL RANK(), and so on.
+
+To convert window function result into normal projection, use the 'over' operator with built 'Window' monad.
 
 Module "Database.Relational.Query.Projectable" contains documentation of
 other aggregate function operators and window function operators.
@@ -292,10 +297,10 @@ Several operators are defined to manipulate relation set.
 For example,
 '?!' operator is maybe flavor of '!',
 '<?.>' operator is maybe flavor of '<.>'.
-'?!?' opeartor and '<?.?>' operator 'join' two 'Maybe' phantom functors.
+'?!?' operator and '<?.?>' operator 'join' two 'Maybe' phantom functors.
 
 '?+?' operator is maybe flavor of '.+.',
-'nagateMaybe' operator is maybe flavor of 'nagate',
+'negateMaybe' operator is maybe flavor of 'negate'',
 'sumMaybe' operator is maybe flavor of 'sum''.
 
 Module "Database.Relational.Query.Projectable" and "Database.Relational.Query.ProjectableExtended"
@@ -313,7 +318,7 @@ contains documentation of other placeholders' flavor operators.
 -}
 
 {- $recordMapping
-Applicative stype record mapping is supported, for 'Projection', 'Pi' and 'PlaceHolders'.
+Applicative style record mapping is supported, for 'Projection', 'Pi' and 'PlaceHolders'.
 '|$|' operator can be used on 'ProjectableFunctor' context, and
 '|*|' operator can be used on 'ProjectableApplicative' context with 'ProductConstructor',
 like /Foo |$| projection1 |*| projection2 |*| projection3/
@@ -338,7 +343,7 @@ into flat SQL statements to be used by database operation.
 
 'typedKeyUpdate' function converts 'Pi' key type info flat SQL UPDATE statement.
 
-Some handy table type infered functions are provided,
+Some handy table type inferred functions are provided,
 'derivedInsert', 'derivedInsertQuery', 'derivedUpdate' and 'derivedDelete'.
  -}
 

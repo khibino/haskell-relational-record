@@ -566,7 +566,7 @@ class ProjectableFunctor p where
   -- | Method like 'fmap'.
   (|$|) :: ProductConstructor (a -> b) => (a -> b) -> p a -> p b
 
--- | Same as '|$|' other than using infered record constructor.
+-- | Same as '|$|' other than using inferred record constructor.
 ipfmap :: (ProjectableFunctor p, ProductConstructor (a -> b))
        => p a -> p b
 ipfmap =  (|$|) productConstructor
