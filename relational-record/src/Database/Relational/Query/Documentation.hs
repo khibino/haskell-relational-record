@@ -76,11 +76,12 @@ module Database.Relational.Query.Documentation (
 
   not', exists,
 
-  (.||.),
+  (.||.), like, like',
   (.+.), (.-.), (./.), (.*.), negate', fromIntegral', showNum,
 
   -- ** Aggregate and Window Functions
   -- $aggregateFunctions
+  count,
   sum', avg,
   max', min',
   every, any', some',
