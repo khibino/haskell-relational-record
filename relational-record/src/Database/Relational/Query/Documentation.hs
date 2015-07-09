@@ -296,7 +296,7 @@ For example,
 '?!?' operator and '<?.?>' operator 'join' two 'Maybe' phantom functors.
 
 '?+?' operator is maybe flavor of '.+.',
-'negateMaybe' operator is maybe flavor of 'negate',
+'negateMaybe' operator is maybe flavor of 'negate'',
 'sumMaybe' operator is maybe flavor of 'sum''.
 
 Module "Database.Relational.Query.Projectable" and "Database.Relational.Query.ProjectableExtended"
