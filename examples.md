@@ -496,6 +496,10 @@ FROM MAIN.account T0
 WHERE (NOT (T0.product_cd IN ('CHK', 'SAV', 'CD', 'MM')))
 {% endhighlight %}
 
+#### Joins
+
+The combinations of `query` and `queryMaybe` express inner joins, left outer joins, right outer joins, and full outer joins.
+
 #### Inner join
 
 SQL:
