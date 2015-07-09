@@ -742,7 +742,7 @@ customer_9_4 = relation $ do
     wheres $ a ! Account.custId' .=. c ! Customer.custId'
     return (a ! Account.accountId')
     ) id' count
-  wheres $ just (value 2) .=. ca
+  wheres $ just (value (2 :: Int64)) .=. ca
   return (customer1 c)
 
 data Customer1 = Customer1
