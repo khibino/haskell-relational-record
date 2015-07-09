@@ -70,7 +70,7 @@ primary' :: PersistableWidth p
          -> Relation p a    -- ^ Result restricted 'Relation'
 primary' =  specifiedKey . projectionKey
 
--- | Query restricted with infered primary key.
+-- | Query restricted with inferred primary key.
 primary :: HasConstraintKey Primary a p
         => Relation () a -- ^ 'Relation' to add restriction.
         -> Relation p a  -- ^ Result restricted 'Relation'
@@ -94,13 +94,13 @@ updateByConstraintKey :: Table r       -- ^ 'Table' to update
                       -> KeyUpdate p r -- ^ Result typed 'Update'
 updateByConstraintKey table' = typedKeyUpdate table' . Constraint.projectionKey
 
--- | Typed 'KeyUpdate' using infered primary key.
+-- | Typed 'KeyUpdate' using inferred primary key.
 primaryUpdate :: (HasConstraintKey Primary r p)
               => Table r       -- ^ 'Table' to update
               -> KeyUpdate p r -- ^ Result typed 'Update'
 primaryUpdate table' = updateByConstraintKey table' (uniqueKey constraintKey)
 
--- | 'UniqueRelation' infered from table.
+-- | 'UniqueRelation' inferred from table.
 derivedUniqueRelation :: TableDerivable r
                       => Key Unique r k        -- ^ Unique key proof object which record type is 'a' and key type is 'p'.
                       -> Projection c k        -- ^ Unique key value to specify.

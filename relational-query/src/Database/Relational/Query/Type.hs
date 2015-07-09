@@ -191,7 +191,7 @@ typedInsert' config tbl pi' = unsafeTypedInsert' (insertSQL pi' tbl) ci n  where
 typedInsert :: Table r -> Pi r r' -> Insert r'
 typedInsert =  typedInsert' defaultConfig
 
--- | Table type infered 'Insert'.
+-- | Table type inferred 'Insert'.
 derivedInsert :: TableDerivable r => Pi r r' -> Insert r'
 derivedInsert =  typedInsert derivedTable
 
@@ -218,7 +218,7 @@ typedInsertQuery' config tbl pi' rel = unsafeTypedInsertQuery $ insertQuerySQL c
 typedInsertQuery :: Table r -> Pi r r' -> Relation p r' -> InsertQuery p
 typedInsertQuery =  typedInsertQuery' defaultConfig
 
--- | Table type infered 'InsertQuery'.
+-- | Table type inferred 'InsertQuery'.
 derivedInsertQuery :: TableDerivable r => Pi r r' -> Relation p r' -> InsertQuery p
 derivedInsertQuery =  typedInsertQuery derivedTable
 

@@ -194,7 +194,7 @@ defineTableDerivableInstance recordType table columns =
         derivedTable = Table.table $(stringE table) $(listE $ map stringE columns)
     |]
 
--- | Template to define infered entries from table type.
+-- | Template to define inferred entries from table type.
 defineTableDerivations :: VarName -- ^ Table declaration variable name
                        -> VarName -- ^ Relation declaration variable name
                        -> VarName -- ^ Insert statement declaration variable name
