@@ -20,14 +20,14 @@ import qualified Account
 import Account (Account, account, tableOfAccount)
 import qualified Branch
 import Branch (Branch, branch, tableOfBranch)
---import qualified Business
---import Business (Business, business)
+import qualified Business
+import Business (business)
 import qualified Customer
 import Customer (Customer, customer)
 import qualified Department
 import Department (Department, department, tableOfDepartment)
---import qualified Individual
---import Individual (Individual, individual)
+import qualified Individual
+import Individual (individual)
 --import qualified Officer
 --import Officer (Officer, Officer)
 import qualified Product
@@ -674,10 +674,10 @@ join_5_1_3 = relation $ do
                     |*| a ! Account.productCd'
 
 data Account3 = Account3
-  { accountId :: Int64
-  , custId :: Int64
-  , openDate :: Day
-  , productCd :: String
+  { a3AccountId :: Int64
+  , a3CustId :: Int64
+  , a3OpenDate :: Day
+  , a3ProductCd :: String
   } deriving (Show)
 
 $(makeRecordPersistableDefault ''Account3)
@@ -1156,15 +1156,70 @@ employee4 = Employee4
   , e4Title = Just "President"
   }
 
-{-TBD
-SELECT a.account_id, a.cust_id, i.fname, i.lname
-  FROM account a LEFT OUTER JOIN individual i
-    ON a.cust_id = i.cust_id;
+-- |
+-- Left Outer Join
+--
+-- Handwritten SQL:
+--
+-- @
+--  SELECT a.account_id, a.cust_id, i.fname, i.lname
+--    FROM account a LEFT OUTER JOIN individual i
+--      ON a.cust_id = i.cust_id
+-- @
+--
+-- Generated SQL:
+-- @
+--   SELECT ALL T0.account_id AS f0, T0.cust_id AS f1, T1.fname AS f2,
+--   T1.lname AS f3 FROM MAIN.account T0 LEFT JOIN MAIN.individual T1 ON
+--   (T0.cust_id = T1.cust_id)
+-- @
+--
+account_LeftOuterJoin :: Relation () Account4
+account_LeftOuterJoin = relation $ do
+  a <- query account
+  i <- queryMaybe individual
+  on $ just (a ! Account.custId') .=. i ?! Individual.custId'
+  return $ Account4 |$| a ! Account.accountId'
+                    |*| a ! Account.custId'
+                    |*| i ?! Individual.fname'
+                    |*| i ?! Individual.lname'
 
-SELECT c.cust_id, b.name
-  FROM customer c RIGHT OUTER JOIN business b
-    ON c.cust_id = b.cust_id;
--}
+data Account4 = Account4
+  { a4AccountId :: Int64
+  , a4CustId :: Int64
+  , a4Fname :: Maybe String
+  , a4Lname :: Maybe String
+  } deriving (Show)
+
+$(makeRecordPersistableDefault ''Account4)
+
+-- |
+-- Right Outer Join
+--
+-- Handwritten SQL:
+--
+-- @
+-- SELECT c.cust_id, b.name
+--   FROM customer c RIGHT OUTER JOIN business b
+--       ON c.cust_id = b.cust_id
+-- @
+--
+-- Generated SQL:
+--
+-- @
+--   SELECT ALL T0.cust_id AS f0, T1.name AS f1 FROM MAIN.customer T0 RIGHT
+--   JOIN MAIN.business T1 ON (T0.cust_id = T1.cust_id)
+-- @
+-- 
+-- Note: A function using right-out-join can be defined, but unfortunately
+-- SQLite3 does not support it.
+--
+business_RightOuterJoin :: Relation () (Maybe Int64, String)
+business_RightOuterJoin = relation $ do
+  c <- queryMaybe customer
+  b <- query business
+  on $ c ?! Customer.custId' .=. just (b ! Business.custId')
+  return (c ?! Customer.custId' >< b ! Business.name')
 
 --
 -- run and print sql
@@ -1254,4 +1309,6 @@ main = handleSqlError' $ withConnectionIO connect $ \conn -> do
   runIQ conn () insertEmployee_s2
   runIQ conn () insertEmployee_s2U
   runIQ conn employee4 insertEmployee_s2P
+  run conn () account_LeftOuterJoin
+  putStrLn $ "SQL: " ++ show business_RightOuterJoin -- run conn () business_RightOuterJoin
 
