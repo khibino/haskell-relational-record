@@ -24,8 +24,10 @@ import Language.Haskell.TH (TypeQ)
 import qualified Data.List as List
 import Data.Char (toUpper)
 import Data.Map (fromList)
-import Control.Monad (when)
+import Control.Applicative ((<|>))
+import Control.Monad (guard)
 import Control.Monad.Trans.Class (lift)
+import Control.Monad.Trans.Maybe (MaybeT)
 
 import Database.HDBC (IConnection, SqlValue)
 
@@ -40,7 +42,7 @@ import Database.Relational.Schema.DB2Syscat.Columns (Columns)
 import qualified Database.Relational.Schema.DB2Syscat.Columns as Columns
 
 import Database.HDBC.Schema.Driver
-  (TypeMap, LogChan, putVerbose, maybeIO,
+  (TypeMap, LogChan, putVerbose, failWith, maybeIO, hoistMaybe,
    Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
 
 
@@ -54,8 +56,8 @@ logPrefix =  ("IBMDB2: " ++)
 putLog :: LogChan -> String -> IO ()
 putLog lchan =  putVerbose lchan . logPrefix
 
-compileErrorIO :: String -> IO a
-compileErrorIO =  fail . logPrefix
+compileErrorIO :: LogChan -> String -> MaybeT IO a
+compileErrorIO lchan = failWith lchan . logPrefix
 
 getPrimaryKey' :: IConnection conn
               => conn
@@ -84,19 +86,18 @@ getColumns' tmap conn lchan scm' tbl' = maybeIO ([], []) id $ do
       scm = map toUpper scm'
 
   cols <- lift $ runQuery' conn columnsQuerySQL (scm, tbl)
-  lift . when (null cols) . compileErrorIO
-    $ "getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl
+  guard (not $ null cols) <|>
+    compileErrorIO lchan ("getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl)
 
   let notNullIdxs = map fst . filter (notNull . snd) . zip [0..] $ cols
   lift . putLog lchan
     $  "getFields: num of columns = " ++ show (List.length cols)
     ++ ", not null columns = " ++ show notNullIdxs
-  let getType' col = case getType (fromList tmap) col of
-        Nothing -> compileErrorIO
-                   $ "Type mapping is not defined against DB2 type: " ++ Columns.typename col
-        Just p  -> return p
+  let getType' col =
+        hoistMaybe (getType (fromList tmap) col) <|>
+        compileErrorIO lchan ("Type mapping is not defined against DB2 type: " ++ Columns.typename col)
 
-  types <- lift $ mapM getType' cols
+  types <- mapM getType' cols
   return (types, notNullIdxs)
 
 -- | Driver implementation
