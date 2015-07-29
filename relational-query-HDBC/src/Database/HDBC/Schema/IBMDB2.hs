@@ -25,6 +25,7 @@ import qualified Data.List as List
 import Data.Char (toUpper)
 import Data.Map (fromList)
 import Control.Monad (when)
+import Control.Monad.Trans.Class (lift)
 
 import Database.HDBC (IConnection, SqlValue)
 
@@ -39,7 +40,8 @@ import Database.Relational.Schema.DB2Syscat.Columns (Columns)
 import qualified Database.Relational.Schema.DB2Syscat.Columns as Columns
 
 import Database.HDBC.Schema.Driver
-  (TypeMap, LogChan, putVerbose, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
+  (TypeMap, LogChan, putVerbose, maybeIO,
+   Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
 
 
 -- Specify type constructor and data constructor from same table name.
@@ -77,16 +79,16 @@ getColumns' :: IConnection conn
           -> String
           -> String
           -> IO ([(String, TypeQ)], [Int])
-getColumns' tmap conn lchan scm' tbl' = do
+getColumns' tmap conn lchan scm' tbl' = maybeIO ([], []) id $ do
   let tbl = map toUpper tbl'
       scm = map toUpper scm'
 
-  cols <- runQuery' conn columnsQuerySQL (scm, tbl)
-  when (null cols) . compileErrorIO
+  cols <- lift $ runQuery' conn columnsQuerySQL (scm, tbl)
+  lift . when (null cols) . compileErrorIO
     $ "getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl
 
   let notNullIdxs = map fst . filter (notNull . snd) . zip [0..] $ cols
-  putLog lchan
+  lift . putLog lchan
     $  "getFields: num of columns = " ++ show (List.length cols)
     ++ ", not null columns = " ++ show notNullIdxs
   let getType' col = case getType (fromList tmap) col of
@@ -94,7 +96,7 @@ getColumns' tmap conn lchan scm' tbl' = do
                    $ "Type mapping is not defined against DB2 type: " ++ Columns.typename col
         Just p  -> return p
 
-  types <- mapM getType' cols
+  types <- lift $ mapM getType' cols
   return (types, notNullIdxs)
 
 -- | Driver implementation
