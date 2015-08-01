@@ -56,15 +56,15 @@ logPrefix =  ("IBMDB2: " ++)
 putLog :: LogChan -> String -> IO ()
 putLog lchan =  putVerbose lchan . logPrefix
 
-compileErrorIO :: LogChan -> String -> MaybeT IO a
-compileErrorIO lchan = failWith lchan . logPrefix
+compileError :: LogChan -> String -> MaybeT IO a
+compileError lchan = failWith lchan . logPrefix
 
 getPrimaryKey' :: IConnection conn
-              => conn
-              -> LogChan
-              -> String
-              -> String
-              -> IO [String]
+               => conn
+               -> LogChan
+               -> String
+               -> String
+               -> IO [String]
 getPrimaryKey' conn lchan scm' tbl' = do
   let tbl = map toUpper tbl'
       scm = map toUpper scm'
@@ -75,19 +75,19 @@ getPrimaryKey' conn lchan scm' tbl' = do
   return primaryKeyCols
 
 getColumns' :: IConnection conn
-          => TypeMap
-          -> conn
-          -> LogChan
-          -> String
-          -> String
-          -> IO ([(String, TypeQ)], [Int])
+            => TypeMap
+            -> conn
+            -> LogChan
+            -> String
+            -> String
+            -> IO ([(String, TypeQ)], [Int])
 getColumns' tmap conn lchan scm' tbl' = maybeIO ([], []) id $ do
   let tbl = map toUpper tbl'
       scm = map toUpper scm'
 
   cols <- lift $ runQuery' conn columnsQuerySQL (scm, tbl)
   guard (not $ null cols) <|>
-    compileErrorIO lchan ("getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl)
+    compileError lchan ("getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl)
 
   let notNullIdxs = map fst . filter (notNull . snd) . zip [0..] $ cols
   lift . putLog lchan
@@ -95,7 +95,7 @@ getColumns' tmap conn lchan scm' tbl' = maybeIO ([], []) id $ do
     ++ ", not null columns = " ++ show notNullIdxs
   let getType' col =
         hoistMaybe (getType (fromList tmap) col) <|>
-        compileErrorIO lchan ("Type mapping is not defined against DB2 type: " ++ Columns.typename col)
+        compileError lchan ("Type mapping is not defined against DB2 type: " ++ Columns.typename col)
 
   types <- mapM getType' cols
   return (types, notNullIdxs)
