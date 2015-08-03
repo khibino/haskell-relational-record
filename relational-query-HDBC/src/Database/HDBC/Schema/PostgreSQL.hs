@@ -22,6 +22,7 @@ import Language.Haskell.TH (TypeQ)
 import Data.Char (toLower)
 import Data.Map (fromList)
 import Control.Monad (when)
+import Control.Monad.Trans.Class (lift)
 
 import Database.HDBC (IConnection, SqlValue)
 
@@ -38,7 +39,8 @@ import Database.Relational.Schema.PgCatalog.PgType (PgType)
 import qualified Database.Relational.Schema.PgCatalog.PgType as Type
 
 import Database.HDBC.Schema.Driver
-  (TypeMap, LogChan, putVerbose, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
+  (TypeMap, LogChan, putVerbose, maybeIO,
+   Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
 
 
 $(makeRecordPersistableWithSqlTypeDefaultFromDefined
@@ -86,15 +88,15 @@ getColumns' :: IConnection conn
           -> String
           -> String
           -> IO ([(String, TypeQ)], [Int])
-getColumns' tmap conn lchan scm' tbl' = do
+getColumns' tmap conn lchan scm' tbl' = maybeIO ([], []) id $ do
   let scm = map toLower scm'
       tbl = map toLower tbl'
-  cols <- runQuery' conn columnQuerySQL (scm, tbl)
-  when (null cols) . compileErrorIO
+  cols <- lift $ runQuery' conn columnQuerySQL (scm, tbl)
+  lift . when (null cols) . compileErrorIO
     $ "getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl
 
   let notNullIdxs = map fst . filter (notNull . snd) . zip [0..] $ cols
-  putLog lchan
+  lift . putLog lchan
     $  "getFields: num of columns = " ++ show (length cols)
     ++ ", not null columns = " ++ show notNullIdxs
   let getType' col = case getType (fromList tmap) col of
@@ -102,7 +104,7 @@ getColumns' tmap conn lchan scm' tbl' = do
                    $ "Type mapping is not defined against PostgreSQL type: " ++ Type.typname (snd col)
         Just p  -> return p
 
-  types <- mapM getType' cols
+  types <- lift $ mapM getType' cols
   return (types, notNullIdxs)
 
 -- | Driver implementation
