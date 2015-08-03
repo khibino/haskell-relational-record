@@ -21,8 +21,10 @@ import Language.Haskell.TH (TypeQ)
 
 import Data.Char (toLower)
 import Data.Map (fromList)
-import Control.Monad (when)
+import Control.Applicative ((<|>))
+import Control.Monad (guard)
 import Control.Monad.Trans.Class (lift)
+import Control.Monad.Trans.Maybe (MaybeT)
 
 import Database.HDBC (IConnection, SqlValue)
 
@@ -39,7 +41,7 @@ import Database.Relational.Schema.PgCatalog.PgType (PgType)
 import qualified Database.Relational.Schema.PgCatalog.PgType as Type
 
 import Database.HDBC.Schema.Driver
-  (TypeMap, LogChan, putVerbose, maybeIO,
+  (TypeMap, LogChan, putVerbose, failWith, maybeIO, hoistMaybe,
    Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
 
 
@@ -55,8 +57,8 @@ logPrefix =  ("PostgreSQL: " ++)
 putLog :: LogChan -> String -> IO ()
 putLog lchan = putVerbose lchan . logPrefix
 
-compileErrorIO :: String -> IO a
-compileErrorIO =  fail . logPrefix
+compileErrorIO :: LogChan -> String -> MaybeT IO a
+compileErrorIO lchan = failWith lchan . logPrefix
 
 getPrimaryKey' :: IConnection conn
               => conn
@@ -92,19 +94,18 @@ getColumns' tmap conn lchan scm' tbl' = maybeIO ([], []) id $ do
   let scm = map toLower scm'
       tbl = map toLower tbl'
   cols <- lift $ runQuery' conn columnQuerySQL (scm, tbl)
-  lift . when (null cols) . compileErrorIO
-    $ "getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl
+  guard (not $ null cols) <|>
+    compileErrorIO lchan ("getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl)
 
   let notNullIdxs = map fst . filter (notNull . snd) . zip [0..] $ cols
   lift . putLog lchan
     $  "getFields: num of columns = " ++ show (length cols)
     ++ ", not null columns = " ++ show notNullIdxs
-  let getType' col = case getType (fromList tmap) col of
-        Nothing -> compileErrorIO
-                   $ "Type mapping is not defined against PostgreSQL type: " ++ Type.typname (snd col)
-        Just p  -> return p
+  let getType' col =
+        hoistMaybe (getType (fromList tmap) col) <|>
+        compileErrorIO lchan ("Type mapping is not defined against PostgreSQL type: " ++ Type.typname (snd col))
 
-  types <- lift $ mapM getType' cols
+  types <- mapM getType' cols
   return (types, notNullIdxs)
 
 -- | Driver implementation
