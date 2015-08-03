@@ -25,8 +25,6 @@ import Control.Monad (when)
 
 import Database.HDBC (IConnection, SqlValue)
 
-import Language.Haskell.TH.Lib.Extra (reportMessage)
-
 import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
 
@@ -40,7 +38,7 @@ import Database.Relational.Schema.PgCatalog.PgType (PgType)
 import qualified Database.Relational.Schema.PgCatalog.PgType as Type
 
 import Database.HDBC.Schema.Driver
-  (TypeMap, LogChan, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
+  (TypeMap, LogChan, putVerbose, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
 
 
 $(makeRecordPersistableWithSqlTypeDefaultFromDefined
@@ -52,8 +50,8 @@ $(makeRecordPersistableWithSqlTypeDefaultFromDefined
 logPrefix :: String -> String
 logPrefix =  ("PostgreSQL: " ++)
 
-putLog :: String -> IO ()
-putLog =  reportMessage . logPrefix
+putLog :: LogChan -> String -> IO ()
+putLog lchan = putVerbose lchan . logPrefix
 
 compileErrorIO :: String -> IO a
 compileErrorIO =  fail . logPrefix
@@ -70,15 +68,15 @@ getPrimaryKey' conn lchan scm' tbl' = do
   mayKeyLen <- runQuery' conn primaryKeyLengthQuerySQL (scm, tbl)
   case mayKeyLen of
     []        -> do
-      putLog   "getPrimaryKey: Primary key not found."
+      putLog lchan   "getPrimaryKey: Primary key not found."
       return []
     [keyLen]  -> do
       primCols <- runQuery' conn (primaryKeyQuerySQL keyLen) (scm, tbl)
       let primaryKeyCols = normalizeColumn `fmap` primCols
-      putLog $ "getPrimaryKey: primary key = " ++ show primaryKeyCols
+      putLog lchan $ "getPrimaryKey: primary key = " ++ show primaryKeyCols
       return primaryKeyCols
     _:_:_     -> do
-      putLog   "getPrimaryKey: Fail to detect primary key. Something wrong."
+      putLog lchan   "getPrimaryKey: Fail to detect primary key. Something wrong."
       return []
 
 getColumns' :: IConnection conn
@@ -96,7 +94,7 @@ getColumns' tmap conn lchan scm' tbl' = do
     $ "getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl
 
   let notNullIdxs = map fst . filter (notNull . snd) . zip [0..] $ cols
-  putLog
+  putLog lchan
     $  "getFields: num of columns = " ++ show (length cols)
     ++ ", not null columns = " ++ show notNullIdxs
   let getType' col = case getType (fromList tmap) col of
