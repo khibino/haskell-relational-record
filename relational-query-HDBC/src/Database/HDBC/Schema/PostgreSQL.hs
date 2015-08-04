@@ -57,15 +57,15 @@ logPrefix =  ("PostgreSQL: " ++)
 putLog :: LogChan -> String -> IO ()
 putLog lchan = putVerbose lchan . logPrefix
 
-compileErrorIO :: LogChan -> String -> MaybeT IO a
-compileErrorIO lchan = failWith lchan . logPrefix
+compileError :: LogChan -> String -> MaybeT IO a
+compileError lchan = failWith lchan . logPrefix
 
 getPrimaryKey' :: IConnection conn
-              => conn
-              -> LogChan
-              -> String
-              -> String
-              -> IO [String]
+               => conn
+               -> LogChan
+               -> String
+               -> String
+               -> IO [String]
 getPrimaryKey' conn lchan scm' tbl' = do
   let scm = map toLower scm'
       tbl = map toLower tbl'
@@ -84,18 +84,18 @@ getPrimaryKey' conn lchan scm' tbl' = do
       return []
 
 getColumns' :: IConnection conn
-          => TypeMap
-          -> conn
-          -> LogChan
-          -> String
-          -> String
-          -> IO ([(String, TypeQ)], [Int])
+            => TypeMap
+            -> conn
+            -> LogChan
+            -> String
+            -> String
+            -> IO ([(String, TypeQ)], [Int])
 getColumns' tmap conn lchan scm' tbl' = maybeIO ([], []) id $ do
   let scm = map toLower scm'
       tbl = map toLower tbl'
   cols <- lift $ runQuery' conn columnQuerySQL (scm, tbl)
   guard (not $ null cols) <|>
-    compileErrorIO lchan ("getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl)
+    compileError lchan ("getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl)
 
   let notNullIdxs = map fst . filter (notNull . snd) . zip [0..] $ cols
   lift . putLog lchan
@@ -103,7 +103,7 @@ getColumns' tmap conn lchan scm' tbl' = maybeIO ([], []) id $ do
     ++ ", not null columns = " ++ show notNullIdxs
   let getType' col =
         hoistMaybe (getType (fromList tmap) col) <|>
-        compileErrorIO lchan ("Type mapping is not defined against PostgreSQL type: " ++ Type.typname (snd col))
+        compileError lchan ("Type mapping is not defined against PostgreSQL type: " ++ Type.typname (snd col))
 
   types <- mapM getType' cols
   return (types, notNullIdxs)
