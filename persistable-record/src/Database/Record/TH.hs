@@ -19,7 +19,7 @@ module Database.Record.TH (
   defineRecordDefault,
 
   -- * Deriving class symbols
-  derivingEq, derivingShow, derivingRead, derivingData, derivingTypable,
+  derivingEq, derivingShow, derivingRead, derivingData, derivingTypeable,
 
   -- * Table constraint specified by key
   defineHasColumnConstraintInstance,
@@ -179,9 +179,9 @@ derivingRead = conCamelcaseName "Read"
 derivingData :: ConName
 derivingData = conCamelcaseName "Data"
 
--- | Name to specify deriving 'Typable'
-derivingTypable :: ConName
-derivingTypable = conCamelcaseName "Typable"
+-- | Name to specify deriving 'Typeable'
+derivingTypeable :: ConName
+derivingTypeable = conCamelcaseName "Typeable"
 
 -- | Record type width expression template.
 recordWidthTemplate :: TypeQ -- ^ Record type constructor.
