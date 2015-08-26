@@ -40,9 +40,9 @@ Suggests: ${haskell:Suggests}
 Conflicts: ${haskell:Conflicts}
 Provides: ${haskell:Provides}
 Replaces: ${haskell:Replaces}
-Description: HDBC instance of relational join and typed query for HDBC
- This package contains HDBC instance of relational-query and
- typed query for HDBC.
+Description: HDBC instance of relational-query and typed query interface for HDBC
+ This package contains the HDBC instance of relational-query and
+ the typed query interface for HDBC.
  Generating Database table definitions and functions for
  relational-query by reading table and index definitions
  from Database system catalogs.
@@ -63,9 +63,9 @@ Suggests: ${haskell:Suggests}
 Conflicts: ${haskell:Conflicts}
 Provides: ${haskell:Provides}
 Replaces: ${haskell:Replaces}
-Description: HDBC instance of relational join and typed query for HDBC
- This package contains HDBC instance of relational-query and
- typed query for HDBC.
+Description: HDBC instance of relational-query and typed query interface for HDBC
+ This package contains the HDBC instance of relational-query and
+ the typed query interface for HDBC.
  Generating Database table definitions and functions for
  relational-query by reading table and index definitions
  from Database system catalogs.
@@ -87,9 +87,9 @@ Suggests: ${haskell:Suggests}
 Conflicts: ${haskell:Conflicts}
 Provides: ${haskell:Provides}
 Replaces: ${haskell:Replaces}
-Description: HDBC instance of relational join and typed query for HDBC
- This package contains HDBC instance of relational-query and
- typed query for HDBC.
+Description: HDBC instance of relational-query and typed query interface for HDBC
+ This package contains the HDBC instance of relational-query and
+ the typed query interface for HDBC.
  Generating Database table definitions and functions for
  relational-query by reading table and index definitions
  from Database system catalogs.
