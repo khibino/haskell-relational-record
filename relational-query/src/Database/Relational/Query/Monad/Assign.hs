@@ -29,7 +29,7 @@ import Database.Relational.Query.Monad.Class (MonadQualify(..))
 import Database.Relational.Query.Monad.Restrict (Restrict)
 import qualified Database.Relational.Query.Monad.Restrict as Restrict
 import Database.Relational.Query.Monad.Trans.Assigning (Assignings, extractAssignments)
-import Database.Relational.Query.Monad.Type (ConfigureQuery)
+import Database.Relational.Query.Monad.BaseType (ConfigureQuery)
 
 -- | Target update monad type used from update statement and merge statement.
 type Assign r = Assignings r Restrict

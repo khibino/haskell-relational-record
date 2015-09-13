@@ -25,6 +25,7 @@ module Database.Relational.Query (
   module Database.Relational.Query.Monad.Trans.Aggregating,
   module Database.Relational.Query.Monad.Trans.Ordering,
   module Database.Relational.Query.Monad.Trans.Assigning,
+  module Database.Relational.Query.Monad.BaseType,
   module Database.Relational.Query.Monad.Type,
   module Database.Relational.Query.Monad.Simple,
   module Database.Relational.Query.Monad.Aggregate,
@@ -63,6 +64,7 @@ import Database.Relational.Query.Monad.Trans.Aggregating
   (groupBy', key, key', set, bkey, rollup, cube, groupingSets)
 import Database.Relational.Query.Monad.Trans.Ordering (orderBy, asc, desc)
 import Database.Relational.Query.Monad.Trans.Assigning (assignTo, (<-#))
+import Database.Relational.Query.Monad.BaseType
 import Database.Relational.Query.Monad.Type
 import Database.Relational.Query.Monad.Simple (QuerySimple, SimpleQuery)
 import Database.Relational.Query.Monad.Aggregate

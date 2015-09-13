@@ -46,8 +46,8 @@ import Database.Relational.Query.Monad.Trans.Aggregating
   (aggregatings, extractAggregateTerms, AggregatingSetT, PartitioningSet)
 import Database.Relational.Query.Monad.Trans.Ordering
   (Orderings, orderings, extractOrderingTerms)
-import Database.Relational.Query.Monad.Type
-  (ConfigureQuery, askConfig, QueryCore, extractCore, OrderedQuery)
+import Database.Relational.Query.Monad.BaseType (ConfigureQuery, askConfig)
+import Database.Relational.Query.Monad.Type (QueryCore, extractCore, OrderedQuery)
 
 
 -- | Aggregated query monad type.

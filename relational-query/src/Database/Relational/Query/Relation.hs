@@ -50,7 +50,7 @@ module Database.Relational.Query.Relation (
 import Control.Applicative ((<$>))
 
 import Database.Relational.Query.Context (Flat, Aggregated)
-import Database.Relational.Query.Monad.Type (ConfigureQuery, configureQuery, qualifyQuery)
+import Database.Relational.Query.Monad.BaseType (ConfigureQuery, configureQuery, qualifyQuery)
 import Database.Relational.Query.Monad.Class
   (MonadQualify (liftQualify), MonadQualifyUnique (liftQualifyUnique), MonadQuery (unsafeSubQuery), on)
 import Database.Relational.Query.Monad.Simple (QuerySimple, SimpleQuery)

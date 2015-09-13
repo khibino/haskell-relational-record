@@ -27,7 +27,8 @@ import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Monad.Class (MonadQualifyUnique(..), MonadQuery)
 import Database.Relational.Query.Monad.Trans.Join (join')
 import Database.Relational.Query.Monad.Trans.Restricting (restrictings)
-import Database.Relational.Query.Monad.Type (ConfigureQuery, askConfig, QueryCore, extractCore)
+import Database.Relational.Query.Monad.BaseType (ConfigureQuery, askConfig)
+import Database.Relational.Query.Monad.Type (QueryCore, extractCore)
 import Database.Relational.Query.Projectable (PlaceHolders)
 
 import Database.Relational.Query.Component (Duplication, QueryRestriction)

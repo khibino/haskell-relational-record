@@ -39,6 +39,7 @@ library
                        Database.Relational.Query.Component
                        Database.Relational.Query.Sub
                        Database.Relational.Query.Projection
+                       Database.Relational.Query.Monad.BaseType
                        Database.Relational.Query.Monad.Class
                        Database.Relational.Query.Monad.Trans.Ordering
                        Database.Relational.Query.Monad.Trans.Aggregating
