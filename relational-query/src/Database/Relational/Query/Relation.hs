@@ -326,10 +326,6 @@ infixl 8 `intersect'`, `intersectAll'`
 -- | Get projection width from 'Relation'.
 width :: Relation p r -> Int
 width =  SubQuery.width . subQueryFromRelation
-
--- | Finalize internal Query monad.
-nested :: Relation p r -> Relation p r
-nested =  unsafeTypeRelation . untypeRelation
 -}
 
 -- | Unique relation type to compose scalar queries.
