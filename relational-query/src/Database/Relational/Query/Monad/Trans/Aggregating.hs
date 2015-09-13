@@ -48,7 +48,7 @@ import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
 import Database.Relational.Query.Monad.Class
-  (MonadRestrict(..), MonadQuery(..), MonadAggregate(..), MonadPartition(..))
+  (MonadQualify (..), MonadRestrict(..), MonadQuery(..), MonadAggregate(..), MonadPartition(..))
 
 
 -- | Type to accumulate aggregating context.
@@ -79,11 +79,16 @@ type PartitioningSetT c   = Aggregatings c         AggregateColumnRef
 instance MonadRestrict c m => MonadRestrict c (AggregatingSetT m) where
   restrict =  aggregatings . restrict
 
+-- | Aggregated 'MonadQualify'.
+instance MonadQualify q m => MonadQualify q (AggregatingSetT m) where
+  liftQualify = aggregatings . liftQualify
+
 -- | Aggregated 'MonadQuery'.
 instance MonadQuery m => MonadQuery (AggregatingSetT m) where
   setDuplication     = aggregatings . setDuplication
   restrictJoin       = aggregatings . restrictJoin
-  unsafeSubQuery na  = aggregatings . unsafeSubQuery na
+  query'             = aggregatings . query'
+  queryMaybe'        = aggregatings . queryMaybe'
 
 unsafeAggregateWithTerm :: Monad m => at -> Aggregatings ac at m ()
 unsafeAggregateWithTerm =  Aggregatings . tell . pure

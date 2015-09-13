@@ -38,14 +38,13 @@ import Database.Relational.Query.Sub (SubQuery, aggregatedSubQuery, JoinProduct)
 import qualified Database.Relational.Query.Sub as SubQuery
 import Database.Relational.Query.Projectable (PlaceHolders, SqlProjectable)
 
-import Database.Relational.Query.Monad.Class (MonadRestrict(..), MonadQualify(..), MonadPartition (..))
-import Database.Relational.Query.Monad.Trans.Join (join')
+import Database.Relational.Query.Monad.Class (MonadRestrict(..), MonadPartition (..))
 import Database.Relational.Query.Monad.Trans.Restricting
   (Restrictings, restrictings, extractRestrict)
 import Database.Relational.Query.Monad.Trans.Aggregating
-  (aggregatings, extractAggregateTerms, AggregatingSetT, PartitioningSet)
+  (extractAggregateTerms, AggregatingSetT, PartitioningSet)
 import Database.Relational.Query.Monad.Trans.Ordering
-  (Orderings, orderings, extractOrderingTerms)
+  (Orderings, extractOrderingTerms)
 import Database.Relational.Query.Monad.BaseType (ConfigureQuery, askConfig)
 import Database.Relational.Query.Monad.Type (QueryCore, extractCore, OrderedQuery)
 
@@ -59,17 +58,9 @@ type AggregatedQuery p r = OrderedQuery Aggregated (Restrictings Aggregated (Agg
 -- | Partition monad type for partition-by clause.
 type Window           c = Orderings c (PartitioningSet c)
 
--- | Lift from qualified table forms into 'QueryAggregate'.
-aggregatedQuery :: ConfigureQuery a -> QueryAggregate a
-aggregatedQuery =  orderings . restrictings . aggregatings . restrictings . join'
-
 -- | Restricted 'MonadRestrict' instance.
 instance MonadRestrict Flat q => MonadRestrict Flat (Restrictings Aggregated q) where
   restrict = restrictings . restrict
-
--- | Instance to lift from qualified table forms into 'QueryAggregate'.
-instance MonadQualify ConfigureQuery QueryAggregate where
-  liftQualify = aggregatedQuery
 
 extract :: AggregatedQuery p r
         -> ConfigureQuery (((((((PlaceHolders p, Projection Aggregated r), OrderingTerms),

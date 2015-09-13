@@ -1,4 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 -- |
 -- Module      : Database.Relational.Query.Monad.Trans.Join
@@ -10,13 +13,16 @@
 -- Portability : unknown
 --
 -- This module defines monad transformer which lift to basic 'MonadQuery'.
-module Database.Relational.Query.Monad.Trans.Join (
-  -- * Transformer into join query
-  QueryJoin, join',
+module Database.Relational.Query.Monad.Trans.Join
+       ( -- * Transformer into join query
+         QueryJoin, join',
 
-  -- * Result
-  extractProduct
-  ) where
+         -- * Result
+         extractProduct,
+
+         -- * Unsafe API
+         unsafeSubQueryWithAttr,
+       ) where
 
 import Prelude hiding (product)
 import Control.Monad.Trans.Class (MonadTrans (lift))
@@ -30,15 +36,16 @@ import Data.Monoid (Last (Last, getLast))
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Monad.Trans.JoinState
   (JoinContext, primeJoinContext, updateProduct, joinProduct)
-import Database.Relational.Query.Internal.Product (NodeAttr, restrictProduct, growProduct)
+import Database.Relational.Query.Internal.Product (NodeAttr (Just', Maybe), restrictProduct, growProduct)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Expr (Expr, fromJust)
 import Database.Relational.Query.Component (Duplication (All))
 import Database.Relational.Query.Sub (SubQuery, Qualified, JoinProduct)
-import Database.Relational.Query.Projectable (expr)
+import Database.Relational.Query.Projectable (PlaceHolders, unsafeAddPlaceHolders, expr)
 
-import Database.Relational.Query.Monad.Class (MonadQuery (..))
+import Database.Relational.Query.Monad.BaseType (ConfigureQuery, qualifyQuery, Relation, untypeRelation)
+import Database.Relational.Query.Monad.Class (MonadQualify (..), MonadQuery (..))
 
 
 -- | 'StateT' type to accumulate join product context.
@@ -60,20 +67,37 @@ updateJoinRestriction e = updateContext (updateProduct d)  where
   d  Nothing  = error "on: Product is empty! Restrict target product is not found!"
   d (Just pt) = restrictProduct pt (fromJust e)
 
+instance MonadQualify q m => MonadQualify q (QueryJoin m) where
+  liftQualify = join' . liftQualify
+
 -- | Joinable query instance.
-instance (Monad q, Functor q) => MonadQuery (QueryJoin q) where
+instance MonadQuery (QueryJoin ConfigureQuery) where
   setDuplication     = QueryJoin . lift . tell . Last . Just
   restrictJoin       = updateJoinRestriction . expr
-  unsafeSubQuery     = unsafeSubQueryWithAttr
+  query'             = queryWithAttr Just'
+  queryMaybe' pr     = do
+    (ph, pj) <- queryWithAttr Maybe pr
+    return (ph, Projection.just pj)
 
 -- | Unsafely join sub-query with this query.
 unsafeSubQueryWithAttr :: Monad q
-                       => NodeAttr                        -- ^ Attribute maybe or just
-                       -> Qualified SubQuery              -- ^ 'SubQuery' to join
-                       -> QueryJoin q (Projection Flat r) -- ^ Result joined context and 'SubQuery' result projection.
+                       => NodeAttr                     -- ^ Attribute maybe or just
+                       -> Qualified SubQuery           -- ^ 'SubQuery' to join
+                       -> QueryJoin q (Projection c r) -- ^ Result joined context and 'SubQuery' result projection.
 unsafeSubQueryWithAttr attr qsub = do
   updateContext (updateProduct (`growProduct` (attr, qsub)))
   return $ Projection.unsafeFromQualifiedSubQuery qsub
+
+-- | Basic monadic join operation using 'MonadQuery'.
+queryWithAttr :: NodeAttr
+              -> Relation p r
+              -> QueryJoin ConfigureQuery (PlaceHolders p, Projection c r)
+queryWithAttr attr = unsafeAddPlaceHolders . run where
+  run rel = do
+    q <- liftQualify $ do
+      sq <- untypeRelation rel
+      qualifyQuery sq
+    unsafeSubQueryWithAttr attr q
 
 -- | Run 'QueryJoin' to get 'JoinProduct'
 extractProduct :: Functor m => QueryJoin m a -> m ((a, JoinProduct), Duplication)

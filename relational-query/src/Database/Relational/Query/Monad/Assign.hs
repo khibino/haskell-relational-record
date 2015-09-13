@@ -19,17 +19,13 @@ module Database.Relational.Query.Monad.Assign (
   extract,
   ) where
 
-import Control.Monad.Trans.Class (lift)
-
 import Database.Relational.Query.Component (Config, QueryRestriction, Assignments)
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Projection (Projection)
-import Database.Relational.Query.Monad.Class (MonadQualify(..))
 import Database.Relational.Query.Monad.Restrict (Restrict)
 import qualified Database.Relational.Query.Monad.Restrict as Restrict
 import Database.Relational.Query.Monad.Trans.Assigning (Assignings, extractAssignments)
-import Database.Relational.Query.Monad.BaseType (ConfigureQuery)
 
 -- | Target update monad type used from update statement and merge statement.
 type Assign r = Assignings r Restrict
@@ -39,10 +35,6 @@ type Assign r = Assignings r Restrict
 --   Projection record type must be
 --   the same as 'Target' type parameter 'r'.
 type AssignStatement r a = Projection Flat r -> Assign r a
-
--- | Instance to lift from qualified table forms into 'Restrict'.
-instance MonadQualify ConfigureQuery (Assign r) where
-  liftQualify = lift . liftQualify
 
 -- -- | 'return' of 'Update'
 -- updateStatement :: a -> Assignings r (Restrictings Identity) a

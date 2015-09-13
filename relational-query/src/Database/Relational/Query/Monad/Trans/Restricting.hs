@@ -30,7 +30,8 @@ import Database.Relational.Query.Expr (Expr, fromJust)
 import Database.Relational.Query.Component (QueryRestriction)
 import Database.Relational.Query.Projectable (expr)
 
-import Database.Relational.Query.Monad.Class (MonadRestrict(..), MonadQuery (..), MonadAggregate(..))
+import Database.Relational.Query.Monad.Class
+  (MonadQualify (..), MonadRestrict(..), MonadQuery (..), MonadAggregate(..))
 
 
 -- | Type to accumulate query restrictions.
@@ -52,11 +53,16 @@ updateRestriction =  Restrictings . tell . pure . fromJust
 instance (Monad q, Functor q) => MonadRestrict c (Restrictings c q) where
   restrict = updateRestriction . expr
 
+-- | Restricted 'MonadQualify' instance.
+instance MonadQualify q m => MonadQualify q (Restrictings c m) where
+  liftQualify = restrictings . liftQualify
+
 -- | Restricted 'MonadQuery' instance.
 instance MonadQuery q => MonadQuery (Restrictings c q) where
   setDuplication     = restrictings . setDuplication
   restrictJoin       = restrictings . restrictJoin
-  unsafeSubQuery a   = restrictings . unsafeSubQuery a
+  query'             = restrictings . query'
+  queryMaybe'        = restrictings . queryMaybe'
 
 -- | Resticted 'MonadAggregate' instance.
 instance MonadAggregate m => MonadAggregate (Restrictings c m) where

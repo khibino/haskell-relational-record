@@ -26,7 +26,6 @@ import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
-import Database.Relational.Query.Monad.Class (MonadQualify(..))
 import Database.Relational.Query.Monad.Trans.Join (join')
 import Database.Relational.Query.Monad.Trans.Restricting (restrictings)
 import Database.Relational.Query.Monad.Trans.Ordering
@@ -49,10 +48,6 @@ type SimpleQuery p r = OrderedQuery Flat QueryCore p r
 -- | Lift from qualified table forms into 'QuerySimple'.
 simple :: ConfigureQuery a -> QuerySimple a
 simple =  orderings . restrictings . join'
-
--- | Instance to lift from qualified table forms into 'QuerySimple'.
-instance MonadQualify ConfigureQuery (Orderings Flat QueryCore) where
-  liftQualify = simple
 
 extract :: SimpleQuery p r
         -> ConfigureQuery (((((PlaceHolders p, Projection Flat r), OrderingTerms), QueryRestriction Flat),

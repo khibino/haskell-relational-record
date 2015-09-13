@@ -37,7 +37,7 @@ import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
 import Database.Relational.Query.Monad.Class
-  (MonadRestrict(..), MonadQuery(..), MonadAggregate(..), MonadPartition(..))
+  (MonadQualify (..), MonadRestrict(..), MonadQuery(..), MonadAggregate(..), MonadPartition(..))
 
 
 -- | Type to accumulate ordering context.
@@ -54,11 +54,16 @@ orderings =  lift
 instance MonadRestrict rc m => MonadRestrict rc (Orderings c m) where
   restrict = orderings . restrict
 
+-- | 'MonadQualify' with ordering.
+instance MonadQualify q m => MonadQualify q (Orderings c m) where
+  liftQualify = orderings . liftQualify
+
 -- | 'MonadQuery' with ordering.
 instance MonadQuery m => MonadQuery (Orderings c m) where
   setDuplication     = orderings . setDuplication
   restrictJoin       = orderings . restrictJoin
-  unsafeSubQuery na  = orderings . unsafeSubQuery na
+  query'             = orderings . query'
+  queryMaybe'        = orderings . queryMaybe'
 
 -- | 'MonadAggregate' with ordering.
 instance MonadAggregate m => MonadAggregate (Orderings c m) where

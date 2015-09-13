@@ -15,28 +15,29 @@
 -- This module contains definitions about unique query type
 -- to support scalar queries.
 module Database.Relational.Query.Monad.Unique (
-  QueryUnique, toSubQuery
+  QueryUnique, toSubQuery, unsafeUniqueSubQuery
   ) where
 
 import Control.Applicative (Applicative)
 
 import Database.Relational.Query.Context (Flat)
+import Database.Relational.Query.Internal.Product (NodeAttr)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
-import Database.Relational.Query.Monad.Class (MonadQualifyUnique(..), MonadQuery)
-import Database.Relational.Query.Monad.Trans.Join (join')
+import Database.Relational.Query.Monad.Class (MonadQualifyUnique(..), MonadQualify, MonadQuery)
+import Database.Relational.Query.Monad.Trans.Join (join', unsafeSubQueryWithAttr)
 import Database.Relational.Query.Monad.Trans.Restricting (restrictings)
 import Database.Relational.Query.Monad.BaseType (ConfigureQuery, askConfig)
 import Database.Relational.Query.Monad.Type (QueryCore, extractCore)
 import Database.Relational.Query.Projectable (PlaceHolders)
 
 import Database.Relational.Query.Component (Duplication, QueryRestriction)
-import Database.Relational.Query.Sub (SubQuery, flatSubQuery, JoinProduct)
+import Database.Relational.Query.Sub (SubQuery, flatSubQuery, Qualified, JoinProduct)
 
 -- | Unique query monad type.
 newtype QueryUnique a = QueryUnique (QueryCore a)
-                      deriving (MonadQuery, Monad, Applicative, Functor)
+                      deriving (MonadQualify ConfigureQuery, MonadQuery, Monad, Applicative, Functor)
 
 -- | Lift from qualified table forms into 'QueryUnique'.
 queryUnique :: ConfigureQuery a -> QueryUnique a
@@ -45,6 +46,12 @@ queryUnique =  QueryUnique . restrictings . join'
 -- | Instance to lift from qualified table forms into 'QueryUnique'.
 instance MonadQualifyUnique ConfigureQuery QueryUnique where
   liftQualifyUnique = queryUnique
+
+-- | Unsafely join sub-query with this unique query.
+unsafeUniqueSubQuery :: NodeAttr                     -- ^ Attribute maybe or just
+                     -> Qualified SubQuery           -- ^ 'SubQuery' to join
+                     -> QueryUnique (Projection c r) -- ^ Result joined context and 'SubQuery' result projection.
+unsafeUniqueSubQuery a  = QueryUnique . restrictings . unsafeSubQueryWithAttr a
 
 extract :: QueryUnique a
         -> ConfigureQuery (((a, QueryRestriction Flat), JoinProduct), Duplication)

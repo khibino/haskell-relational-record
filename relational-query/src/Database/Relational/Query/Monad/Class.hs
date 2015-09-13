@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 -- |
@@ -27,10 +28,10 @@ import Database.Relational.Query.Expr (Expr)
 import Database.Relational.Query.Component
   (Duplication (..), AggregateElem, AggregateColumnRef, aggregateColumnRef)
 import Database.Relational.Query.Projection (Projection, predicateProjectionFromExpr)
+import Database.Relational.Query.Projectable (PlaceHolders)
 import qualified Database.Relational.Query.Projection as Projection
-import Database.Relational.Query.Sub (SubQuery, Qualified)
+import Database.Relational.Query.Monad.BaseType (ConfigureQuery, Relation)
 
-import Database.Relational.Query.Internal.Product (NodeAttr)
 
 -- | Restrict context interface
 class (Functor m, Monad m) => MonadRestrict c m where
@@ -39,22 +40,26 @@ class (Functor m, Monad m) => MonadRestrict c m where
            -> m ()                      -- ^ Restricted query context
 
 -- | Query building interface.
-class (Functor m, Monad m) => MonadQuery m where
+class (Functor m, Monad m, MonadQualify ConfigureQuery m) => MonadQuery m where
   -- | Specify duplication.
   setDuplication :: Duplication -> m ()
   -- | Add restriction to last join.
   restrictJoin :: Projection Flat (Maybe Bool) -- ^ 'Projection' which represent restriction
                -> m ()                         -- ^ Restricted query context
-  -- | Unsafely join sub-query with this query.
-  unsafeSubQuery :: NodeAttr              -- ^ Attribute maybe or just
-                 -> Qualified SubQuery    -- ^ 'SubQuery' to join
-                 -> m (Projection Flat r) -- ^ Result joined context and 'SubQuery' result projection.
+  query' :: Relation p r
+         -> m (PlaceHolders p, Projection Flat r)
+
+  queryMaybe' :: Relation p r
+              -> m (PlaceHolders p, Projection Flat (Maybe r))
 
 -- | Lift interface from base qualify monad.
 class (Functor q, Monad q, Functor m, Monad m) => MonadQualify q m where
   -- | Lift from qualify monad 'q' into 'MonadQuery' m.
   --   Qualify monad qualifies table form 'SubQuery'.
   liftQualify :: q a -> m a
+
+instance (Functor q, Monad q) => MonadQualify q q where
+  liftQualify = id
 
 -- The only method to lift to QueryUnique.
 -- | Lift interface from base qualify monad. Another constraint to support unique query.

@@ -25,7 +25,7 @@ module Database.Relational.Query.Relation (
   uniqueRelation', aggregatedUnique,
 
   -- * Query using relation
-  query, query', queryMaybe, queryMaybe', queryList, queryList', queryScalar, queryScalar',
+  query, queryMaybe, queryList, queryList', queryScalar, queryScalar',
   uniqueQuery', uniqueQueryMaybe',
 
   -- * Direct style join
@@ -49,12 +49,13 @@ import Database.Relational.Query.Monad.BaseType
   (ConfigureQuery, qualifyQuery,
    Relation, unsafeTypeRelation, untypeRelation)
 import Database.Relational.Query.Monad.Class
-  (MonadQualify (liftQualify), MonadQualifyUnique (liftQualifyUnique), MonadQuery (unsafeSubQuery), on)
+  (MonadQualify (liftQualify), MonadQuery (query', queryMaybe'),
+   MonadQualifyUnique (liftQualifyUnique), on)
 import Database.Relational.Query.Monad.Simple (QuerySimple, SimpleQuery)
 import qualified Database.Relational.Query.Monad.Simple as Simple
 import Database.Relational.Query.Monad.Aggregate (QueryAggregate, AggregatedQuery)
 import qualified Database.Relational.Query.Monad.Aggregate as Aggregate
-import Database.Relational.Query.Monad.Unique (QueryUnique)
+import Database.Relational.Query.Monad.Unique (QueryUnique, unsafeUniqueSubQuery)
 import qualified Database.Relational.Query.Monad.Unique as Unique
 
 import Database.Relational.Query.Component (Duplication (Distinct, All))
@@ -92,37 +93,11 @@ placeHoldersFromRelation =  const unsafePlaceHolders
 subQueryQualifyFromRelation :: Relation p r -> ConfigureQuery SubQuery
 subQueryQualifyFromRelation = untypeRelation
 
--- | Basic monadic join operation using 'MonadQuery'.
-queryWithAttr :: (MonadQualify ConfigureQuery m, MonadQuery m)
-              => NodeAttr
-              -> Relation p r
-              -> m (PlaceHolders p, Projection Flat r)
-queryWithAttr attr = unsafeAddPlaceHolders . run where
-  run rel = do
-    q <- liftQualify $ do
-      sq <- subQueryQualifyFromRelation rel
-      qualifyQuery sq
-    unsafeSubQuery attr q
-
--- | Join sub-query with place-holder parameter 'p'. query result is not 'Maybe'.
-query' :: (MonadQualify ConfigureQuery m, MonadQuery m)
-       => Relation p r
-       -> m (PlaceHolders p, Projection Flat r)
-query' =  queryWithAttr Just'
-
 -- | Join sub-query. Query result is not 'Maybe'.
 query :: (MonadQualify ConfigureQuery m, MonadQuery m)
       => Relation () r
       -> m (Projection Flat r)
 query =  fmap snd . query'
-
--- | Join sub-query with place-holder parameter 'p'. Query result is 'Maybe'.
-queryMaybe' :: (MonadQualify ConfigureQuery m, MonadQuery m)
-            => Relation p r
-            -> m (PlaceHolders p, Projection Flat (Maybe r))
-queryMaybe' pr =  do
-  (ph, pj) <- queryWithAttr Maybe pr
-  return (ph, Projection.just pj)
 
 -- | Join sub-query. Query result is 'Maybe'.
 --   The combinations of 'query' and 'queryMaybe' express
@@ -369,27 +344,24 @@ unUnique :: UniqueRelation p c r -> Relation p r
 unUnique (Unique r) = r
 
 -- | Basic monadic join operation using 'MonadQuery'.
-uniqueQueryWithAttr :: MonadQualifyUnique ConfigureQuery m
-                    => NodeAttr
+uniqueQueryWithAttr :: NodeAttr
                     -> UniqueRelation p c r
-                    -> m (PlaceHolders p, Projection c r)
+                    -> QueryUnique (PlaceHolders p, Projection c r)
 uniqueQueryWithAttr attr = unsafeAddPlaceHolders . run where
   run rel = do
     q <- liftQualifyUnique $ do
       sq <- subQueryQualifyFromRelation (unUnique rel)
       qualifyQuery sq
-    Projection.unsafeChangeContext <$> unsafeSubQuery attr q
+    Projection.unsafeChangeContext <$> unsafeUniqueSubQuery attr q
 
 -- | Join unique sub-query with place-holder parameter 'p'.
-uniqueQuery' :: MonadQualifyUnique ConfigureQuery m
-             => UniqueRelation p c r
-             -> m (PlaceHolders p, Projection c r)
+uniqueQuery' :: UniqueRelation p c r
+             -> QueryUnique (PlaceHolders p, Projection c r)
 uniqueQuery' = uniqueQueryWithAttr Just'
 
 -- | Join unique sub-query with place-holder parameter 'p'. Query result is 'Maybe'.
-uniqueQueryMaybe' :: MonadQualifyUnique ConfigureQuery m
-                  => UniqueRelation p c r
-                  -> m (PlaceHolders p, Projection c (Maybe r))
+uniqueQueryMaybe' :: UniqueRelation p c r
+                  -> QueryUnique (PlaceHolders p, Projection c (Maybe r))
 uniqueQueryMaybe' pr =  do
   (ph, pj) <- uniqueQueryWithAttr Maybe pr
   return (ph, Projection.just pj)
