@@ -98,8 +98,7 @@ placeHoldersFromRelation =  const unsafePlaceHolders
 
 -- | Sub-query Qualify monad from relation.
 subQueryQualifyFromRelation :: Relation p r -> ConfigureQuery SubQuery
-subQueryQualifyFromRelation =  d  where
-  d (SubQuery qsub)   = qsub
+subQueryQualifyFromRelation (SubQuery qsub) = qsub
 
 -- -- | Sub-query from relation.
 -- subQueryFromRelation :: Relation p r -> SubQuery
