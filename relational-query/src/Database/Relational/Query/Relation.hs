@@ -89,10 +89,6 @@ tableOf =  const derivedTable
 placeHoldersFromRelation :: Relation p r -> PlaceHolders p
 placeHoldersFromRelation =  const unsafePlaceHolders
 
--- | Sub-query Qualify monad from relation.
-subQueryQualifyFromRelation :: Relation p r -> ConfigureQuery SubQuery
-subQueryQualifyFromRelation = untypeRelation
-
 -- | Join sub-query. Query result is not 'Maybe'.
 query :: (MonadQualify ConfigureQuery m, MonadQuery m)
       => Relation () r
@@ -119,7 +115,7 @@ queryMaybe =  fmap snd . queryMaybe'
 queryList0 :: MonadQualify ConfigureQuery m => Relation p r -> m (ListProjection (Projection c) r)
 queryList0 =  liftQualify
               . fmap Projection.unsafeListFromSubQuery
-              . subQueryQualifyFromRelation
+              . untypeRelation
 
 -- | List sub-query, for /IN/ and /EXIST/ with place-holder parameter 'p'.
 queryList' :: MonadQualify ConfigureQuery m
@@ -253,8 +249,8 @@ unsafeLiftAppend :: (SubQuery -> SubQuery -> SubQuery)
            -> Relation q a
            -> Relation r a
 unsafeLiftAppend op a0 a1 = unsafeTypeRelation $ do
-  s0 <- subQueryQualifyFromRelation a0
-  s1 <- subQueryQualifyFromRelation a1
+  s0 <- untypeRelation a0
+  s1 <- untypeRelation a1
   return $ s0 `op` s1
 
 liftAppend :: (SubQuery -> SubQuery -> SubQuery)
@@ -346,7 +342,7 @@ uniqueQueryWithAttr :: NodeAttr
 uniqueQueryWithAttr attr = unsafeAddPlaceHolders . run where
   run rel = do
     q <- liftQualifyUnique $ do
-      sq <- subQueryQualifyFromRelation (unUnique rel)
+      sq <- untypeRelation (unUnique rel)
       qualifyQuery sq
     Projection.unsafeChangeContext <$> unsafeUniqueSubQuery attr q
 
@@ -381,7 +377,7 @@ queryScalar' :: (MonadQualify ConfigureQuery m, ScalarDegree r)
              -> m (PlaceHolders p, Projection c (Maybe r))
 queryScalar' ur =
   unsafeAddPlaceHolders . liftQualify $
-  Projection.unsafeFromScalarSubQuery <$> subQueryQualifyFromRelation (unUnique ur)
+  Projection.unsafeFromScalarSubQuery <$> untypeRelation (unUnique ur)
 
 -- | Scalar sub-query.
 queryScalar :: (MonadQualify ConfigureQuery m, ScalarDegree r)
