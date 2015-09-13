@@ -24,17 +24,12 @@ module Database.Relational.Query.Relation (
 
   uniqueRelation', aggregatedUnique,
 
-  dump,
-
-  sqlFromRelationWith, sqlFromRelation,
-
   -- * Query using relation
   query, query', queryMaybe, queryMaybe', queryList, queryList', queryScalar, queryScalar',
   uniqueQuery', uniqueQueryMaybe',
 
   -- * Direct style join
   JoinRestriction,
-  rightPh, leftPh,
   inner', left', right', full',
   inner, left, right, full,
   on',
@@ -50,7 +45,9 @@ module Database.Relational.Query.Relation (
 import Control.Applicative ((<$>))
 
 import Database.Relational.Query.Context (Flat, Aggregated)
-import Database.Relational.Query.Monad.BaseType (ConfigureQuery, configureQuery, qualifyQuery)
+import Database.Relational.Query.Monad.BaseType
+  (ConfigureQuery, qualifyQuery,
+   Relation, unsafeTypeRelation, untypeRelation)
 import Database.Relational.Query.Monad.Class
   (MonadQualify (liftQualify), MonadQualifyUnique (liftQualifyUnique), MonadQuery (unsafeSubQuery), on)
 import Database.Relational.Query.Monad.Simple (QuerySimple, SimpleQuery)
@@ -60,9 +57,8 @@ import qualified Database.Relational.Query.Monad.Aggregate as Aggregate
 import Database.Relational.Query.Monad.Unique (QueryUnique)
 import qualified Database.Relational.Query.Monad.Unique as Unique
 
-import Database.Relational.Query.Component (Config, defaultConfig, Duplication (Distinct, All))
+import Database.Relational.Query.Component (Duplication (Distinct, All))
 import Database.Relational.Query.Table (Table, TableDerivable, derivedTable)
-import Database.Relational.Query.Internal.SQL (StringSQL, showStringSQL)
 import Database.Relational.Query.Internal.Product (NodeAttr(Just', Maybe))
 import Database.Relational.Query.Sub (SubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
@@ -77,13 +73,9 @@ import Database.Relational.Query.Projectable
 import Database.Relational.Query.ProjectableExtended ((!))
 
 
--- | Relation type with place-holder parameter 'p' and query result type 'r'.
-newtype Relation p r = SubQuery (ConfigureQuery SubQuery)
-
-
 -- | Simple 'Relation' from 'Table'.
 table :: Table r -> Relation () r
-table =  SubQuery . return . SubQuery.fromTable
+table =  unsafeTypeRelation . return . SubQuery.fromTable
 
 -- | Infered 'Relation'.
 derivedRelation :: TableDerivable r => Relation () r
@@ -98,7 +90,7 @@ placeHoldersFromRelation =  const unsafePlaceHolders
 
 -- | Sub-query Qualify monad from relation.
 subQueryQualifyFromRelation :: Relation p r -> ConfigureQuery SubQuery
-subQueryQualifyFromRelation (SubQuery qsub) = qsub
+subQueryQualifyFromRelation = untypeRelation
 
 -- | Basic monadic join operation using 'MonadQuery'.
 queryWithAttr :: (MonadQualify ConfigureQuery m, MonadQuery m)
@@ -173,7 +165,7 @@ addUnitPH =  ((,) unitPlaceHolder <$>)
 
 -- | Finalize 'QuerySimple' monad and generate 'Relation' with place-holder parameter 'p'.
 relation' :: SimpleQuery p r -> Relation p r
-relation' =  SubQuery . Simple.toSubQuery
+relation' =  unsafeTypeRelation . Simple.toSubQuery
 
 -- | Finalize 'QuerySimple' monad and generate 'Relation'.
 relation :: QuerySimple (Projection Flat r) -> Relation () r
@@ -181,7 +173,7 @@ relation =  relation' . addUnitPH
 
 -- | Finalize 'QueryAggregate' monad and geneate 'Relation' with place-holder parameter 'p'.
 aggregateRelation' :: AggregatedQuery p r -> Relation p r
-aggregateRelation' =  SubQuery . Aggregate.toSubQuery
+aggregateRelation' =  unsafeTypeRelation . Aggregate.toSubQuery
 
 -- | Finalize 'QueryAggregate' monad and geneate 'Relation'.
 aggregateRelation :: QueryAggregate (Projection Aggregated r) -> Relation () r
@@ -190,18 +182,6 @@ aggregateRelation =  aggregateRelation' . addUnitPH
 
 -- | Restriction function type for direct style join operator.
 type JoinRestriction a b = Projection Flat a -> Projection Flat b -> Projection Flat (Maybe Bool)
-
-unsafeCastPlaceHolder :: Relation a r -> Relation b r
-unsafeCastPlaceHolder =  d  where
-  d (SubQuery q)      = SubQuery q
-
--- | Simplify placeholder type applying left identity element.
-rightPh :: Relation ((), p) r -> Relation p r
-rightPh =  unsafeCastPlaceHolder
-
--- | Simplify placeholder type applying right identity element.
-leftPh :: Relation (p, ()) r -> Relation p r
-leftPh =  unsafeCastPlaceHolder
 
 -- | Basic direct join operation with place-holder parameters.
 join' :: (qa -> QuerySimple (PlaceHolders pa, Projection Flat a))
@@ -297,7 +277,7 @@ unsafeLiftAppend :: (SubQuery -> SubQuery -> SubQuery)
            -> Relation p a
            -> Relation q a
            -> Relation r a
-unsafeLiftAppend op a0 a1 = SubQuery $ do
+unsafeLiftAppend op a0 a1 = unsafeTypeRelation $ do
   s0 <- subQueryQualifyFromRelation a0
   s1 <- subQueryQualifyFromRelation a1
   return $ s0 `op` s1
@@ -367,21 +347,6 @@ infixl 8 `intersect`, `intersectAll`
 infixl 7 `union'`, `except'`, `unionAll'`, `exceptAll'`
 infixl 8 `intersect'`, `intersectAll'`
 
--- | Generate SQL string from 'Relation' with configuration.
-sqlFromRelationWith :: Relation p r -> Config -> StringSQL
-sqlFromRelationWith (SubQuery qsub) =  configureQuery $ SubQuery.showSQL <$> qsub
-
--- | SQL string from 'Relation'.
-sqlFromRelation :: Relation p r -> StringSQL
-sqlFromRelation =  (`sqlFromRelationWith` defaultConfig)
-
--- | Dump internal structure tree.
-dump :: Relation p r -> String
-dump =  show . (`configureQuery` defaultConfig) . subQueryQualifyFromRelation
-
-instance Show (Relation p r) where
-  show = showStringSQL . sqlFromRelation
-
 {-
 -- | Get projection width from 'Relation'.
 width :: Relation p r -> Int
@@ -389,7 +354,7 @@ width =  SubQuery.width . subQueryFromRelation
 
 -- | Finalize internal Query monad.
 nested :: Relation p r -> Relation p r
-nested =  SubQuery . subQueryFromRelation
+nested =  unsafeTypeRelation . untypeRelation
 -}
 
 -- | Unique relation type to compose scalar queries.
@@ -431,7 +396,7 @@ uniqueQueryMaybe' pr =  do
 
 -- | Finalize 'QueryUnique' monad and generate 'UniqueRelation'.
 uniqueRelation' :: QueryUnique (PlaceHolders p, Projection c r) -> UniqueRelation p c r
-uniqueRelation' =  unsafeUnique . SubQuery . Unique.toSubQuery
+uniqueRelation' =  unsafeUnique . unsafeTypeRelation . Unique.toSubQuery
 
 -- | Aggregated 'UniqueRelation'.
 aggregatedUnique :: Relation ph r
