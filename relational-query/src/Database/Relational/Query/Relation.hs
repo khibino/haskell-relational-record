@@ -100,10 +100,6 @@ placeHoldersFromRelation =  const unsafePlaceHolders
 subQueryQualifyFromRelation :: Relation p r -> ConfigureQuery SubQuery
 subQueryQualifyFromRelation (SubQuery qsub) = qsub
 
--- -- | Sub-query from relation.
--- subQueryFromRelation :: Relation p r -> SubQuery
--- subQueryFromRelation =  configureQuery . subQueryQualifyFromRelation
-
 -- | Basic monadic join operation using 'MonadQuery'.
 queryWithAttr :: (MonadQualify ConfigureQuery m, MonadQuery m)
               => NodeAttr
@@ -115,7 +111,6 @@ queryWithAttr attr = unsafeAddPlaceHolders . run where
       sq <- subQueryQualifyFromRelation rel
       qualifyQuery sq
     unsafeSubQuery attr q
-  -- d (Relation q) = unsafeMergeAnotherQuery attr q
 
 -- | Join sub-query with place-holder parameter 'p'. query result is not 'Maybe'.
 query' :: (MonadQualify ConfigureQuery m, MonadQuery m)
