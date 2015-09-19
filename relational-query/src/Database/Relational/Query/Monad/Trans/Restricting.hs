@@ -66,7 +66,8 @@ instance MonadQuery q => MonadQuery (Restrictings c q) where
 
 -- | Resticted 'MonadAggregate' instance.
 instance MonadAggregate m => MonadAggregate (Restrictings c m) where
-  unsafeAddAggregateElement = restrictings . unsafeAddAggregateElement
+  groupBy  = restrictings . groupBy
+  groupBy' = restrictings . groupBy'
 
 -- | Run 'Restrictings' to get 'QueryRestriction'
 extractRestrict :: (Monad m, Functor m) => Restrictings c m a -> m (a, QueryRestriction c)

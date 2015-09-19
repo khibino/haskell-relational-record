@@ -19,17 +19,15 @@ module Database.Relational.Query.Monad.Class
 
          all', distinct,
          onE, on, wheresE, wheres,
-         groupBy,
          havingE, having,
        ) where
 
 import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Expr (Expr)
 import Database.Relational.Query.Component
-  (Duplication (..), AggregateElem, AggregateColumnRef, aggregateColumnRef)
+  (Duplication (..),AggregateColumnRef, AggregateKey)
 import Database.Relational.Query.Projection (Projection, predicateProjectionFromExpr)
 import Database.Relational.Query.Projectable (PlaceHolders)
-import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Monad.BaseType (ConfigureQuery, Relation)
 
 
@@ -63,9 +61,12 @@ instance (Functor q, Monad q) => MonadQualify q q where
 
 -- | Aggregated query building interface extends 'MonadQuery'.
 class MonadQuery m => MonadAggregate m where
-  -- | Add /group by/ term into context and get aggregated projection.
-  unsafeAddAggregateElement :: AggregateElem -- ^ Grouping element to add into group by clause
-                            -> m ()          -- ^ Result context
+  -- | Add /GROUP BY/ term into context and get aggregated projection.
+  groupBy :: Projection Flat r           -- ^ Projection to add into group by
+          -> m (Projection Aggregated r) -- ^ Result context and aggregated projection
+  -- | Add /GROUP BY/ term into context and get aggregated projection. Non-traditional group by version.
+  groupBy' :: AggregateKey a
+           -> m a
 
 -- | Window specification building interface.
 class Monad m => MonadPartition m where
@@ -95,14 +96,6 @@ wheresE =  restrict . predicateProjectionFromExpr
 -- | Add restriction to this not aggregated query.
 wheres :: MonadRestrict Flat m => Projection Flat (Maybe Bool) -> m ()
 wheres =  restrict
-
--- | Add /GROUP BY/ term into context and get aggregated projection.
-groupBy :: MonadAggregate m
-        => Projection Flat r           -- ^ Projection to add into group by
-        -> m (Projection Aggregated r) -- ^ Result context and aggregated projection
-groupBy p = do
-  mapM_ unsafeAddAggregateElement [ aggregateColumnRef col | col <- Projection.columns p]
-  return $ Projection.unsafeToAggregated p
 
 -- | Add restriction to this aggregated query. Expr type version.
 havingE :: MonadRestrict Aggregated m => Expr Aggregated (Maybe Bool) -> m ()

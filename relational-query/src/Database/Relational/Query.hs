@@ -58,11 +58,12 @@ import Database.Relational.Query.Projection (Projection, list)
 import Database.Relational.Query.Projectable
 import Database.Relational.Query.ProjectableExtended
 import Database.Relational.Query.Monad.Class
-  (MonadQualify, MonadRestrict, MonadAggregate,
+  (MonadQualify, MonadRestrict,
+   MonadAggregate, groupBy, groupBy',
    MonadQuery, query', queryMaybe',
-   distinct, all', on, wheres, groupBy, having, restrict, onE, wheresE, havingE)
+   distinct, all', on, wheres, having, restrict, onE, wheresE, havingE)
 import Database.Relational.Query.Monad.Trans.Aggregating
-  (groupBy', key, key', set, bkey, rollup, cube, groupingSets)
+  (key, key', set, bkey, rollup, cube, groupingSets)
 import Database.Relational.Query.Monad.Trans.Ordering (orderBy, asc, desc)
 import Database.Relational.Query.Monad.Trans.Assigning (assignTo, (<-#))
 import Database.Relational.Query.Monad.BaseType

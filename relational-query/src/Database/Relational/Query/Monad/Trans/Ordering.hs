@@ -67,7 +67,8 @@ instance MonadQuery m => MonadQuery (Orderings c m) where
 
 -- | 'MonadAggregate' with ordering.
 instance MonadAggregate m => MonadAggregate (Orderings c m) where
-  unsafeAddAggregateElement = orderings . unsafeAddAggregateElement
+  groupBy  = orderings . groupBy
+  groupBy' = orderings . groupBy'
 
 -- | 'MonadPartition' with ordering.
 instance MonadPartition m => MonadPartition (Orderings c m) where

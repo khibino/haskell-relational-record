@@ -79,7 +79,7 @@ import Database.Relational.Query hiding
    UpdateTargetContext, RestrictionContext)
 import qualified Database.Relational.Query as Monadic
 import Database.Relational.Query.Projection (ListProjection)
-import Database.Relational.Query.Monad.Trans.Aggregating (AggregateKey)
+import Database.Relational.Query.Component (AggregateKey)
 import qualified Database.Relational.Query.Monad.Trans.Aggregating as Monadic
 import qualified Database.Relational.Query.Monad.Trans.Ordering as Monadic
 import qualified Database.Relational.Query.Monad.Trans.Assigning as Monadic

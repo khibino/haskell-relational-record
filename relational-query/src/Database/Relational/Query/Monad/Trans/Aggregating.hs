@@ -23,8 +23,6 @@ module Database.Relational.Query.Monad.Trans.Aggregating
          extractAggregateTerms,
 
          -- * Grouping sets support
-         groupBy',
-
          AggregatingSet, AggregatingPowerSet,  AggregatingSetList, PartitioningSet,
          key, key', set,
          bkey, rollup, cube, groupingSets,
@@ -92,9 +90,17 @@ instance MonadQuery m => MonadQuery (AggregatingSetT m) where
 unsafeAggregateWithTerm :: Monad m => at -> Aggregatings ac at m ()
 unsafeAggregateWithTerm =  Aggregatings . tell . pure
 
+aggregateKey :: Monad m => AggregateKey a -> Aggregatings ac AggregateElem m a
+aggregateKey k = do
+  unsafeAggregateWithTerm $ aggregateKeyElement k
+  return $ aggregateKeyProjection k
+
 -- | Aggregated query instance.
 instance MonadQuery m => MonadAggregate (AggregatingSetT m) where
-  unsafeAddAggregateElement = unsafeAggregateWithTerm
+  groupBy p = do
+    mapM_ unsafeAggregateWithTerm [ aggregateColumnRef col | col <- Projection.columns p]
+    return $ Projection.unsafeToAggregated p
+  groupBy'  = aggregateKey
 
 -- | Partition clause instance
 instance Monad m => MonadPartition (PartitioningSetT c m) where
@@ -103,15 +109,6 @@ instance Monad m => MonadPartition (PartitioningSetT c m) where
 -- | Run 'Aggregatings' to get terms list.
 extractAggregateTerms :: (Monad m, Functor m) => Aggregatings ac at m a -> m (a, [at])
 extractAggregateTerms (Aggregatings ac) = second toList <$> runWriterT ac
-
-
--- | Add /GROUP BY/ element into context and get aggregated projection.
-groupBy' :: MonadAggregate m
-         => AggregateKey a
-         -> m a
-groupBy' ak = do
-  unsafeAddAggregateElement $ aggregateKeyElement ak
-  return $ aggregateKeyProjection ak
 
 extractTermList :: Aggregatings ac at Identity a -> (a, [at])
 extractTermList =  runIdentity . extractAggregateTerms
@@ -138,9 +135,7 @@ key p = do
 -- | Specify key of single grouping set.
 key' :: AggregateKey a
      -> AggregatingSet a
-key' ak = do
-  unsafeAggregateWithTerm $ aggregateKeyElement ak
-  return $ aggregateKeyProjection ak
+key' = aggregateKey
 
 -- | Finalize and specify single grouping set.
 set :: AggregatingSet a
