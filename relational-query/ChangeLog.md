@@ -1,3 +1,8 @@
+## 0.6.0.0
+
+- Increase type safety of interfaces.
+- Simplify interfaces arond unique query.
+
 ## 0.5.2.0
 
 - Add MonadTrans instance of QueryJoin.
