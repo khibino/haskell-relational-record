@@ -12,42 +12,44 @@
 -- Portability : unknown
 --
 -- This module provides untyped components for query.
-module Database.Relational.Query.Component (
-  -- * Type for column SQL string
-  ColumnSQL, columnSQL, columnSQL', showsColumnSQL,
+module Database.Relational.Query.Component
+       ( -- * Type for column SQL string
+         ColumnSQL, columnSQL, columnSQL', showsColumnSQL,
 
-  -- * Configuration type for query
-  Config (productUnitSupport, chunksInsertSize, normalizedTableName),
-  defaultConfig,
-  ProductUnitSupport (..), Duplication (..),
+         -- * Configuration type for query
+         Config (productUnitSupport, chunksInsertSize, normalizedTableName),
+         defaultConfig,
+         ProductUnitSupport (..), Duplication (..),
 
-  -- * Duplication attribute
-  showsDuplication,
+         -- * Duplication attribute
+         showsDuplication,
 
-  -- * Query restriction
-  QueryRestriction, composeWhere, composeHaving,
+         -- * Query restriction
+         QueryRestriction, composeWhere, composeHaving,
 
-  -- * Types for aggregation
-  AggregateColumnRef,
+         -- * Types for aggregation
+         AggregateColumnRef,
 
-  AggregateBitKey, AggregateSet, AggregateElem,
+         AggregateBitKey, AggregateSet, AggregateElem,
 
-  aggregateColumnRef, aggregateEmpty,
-  aggregatePowerKey, aggregateGroupingSet,
-  aggregateRollup, aggregateCube, aggregateSets,
+         aggregateColumnRef, aggregateEmpty,
+         aggregatePowerKey, aggregateGroupingSet,
+         aggregateRollup, aggregateCube, aggregateSets,
 
-  composeGroupBy, composePartitionBy,
+         composeGroupBy, composePartitionBy,
 
-  -- * Types for ordering
-  Order (..), OrderColumn, OrderingTerm, OrderingTerms,
-  composeOrderBy,
+         AggregateKey, aggregateKeyProjection, aggregateKeyElement, unsafeAggregateKey,
 
-  -- * Types for assignments
-  AssignColumn, AssignTerm, Assignment, Assignments, composeSets,
+         -- * Types for ordering
+         Order (..), OrderColumn, OrderingTerm, OrderingTerms,
+         composeOrderBy,
 
-  -- * Compose window clause
-  composeOver
-) where
+         -- * Types for assignments
+         AssignColumn, AssignTerm, Assignment, Assignments, composeSets,
+
+         -- * Compose window clause
+         composeOver,
+       ) where
 
 import Data.Monoid (Monoid (..), (<>))
 
@@ -211,6 +213,22 @@ composePartitionBy :: [AggregateColumnRef] -> StringSQL
 composePartitionBy =  d where
   d []       = mempty
   d ts@(_:_) = PARTITION <> BY <> commaed (map showsAggregateColumnRef ts)
+
+-- | Typeful aggregate element.
+newtype AggregateKey a = AggregateKey (a, AggregateElem)
+
+-- | Extract typed projection from 'AggregateKey'.
+aggregateKeyProjection :: AggregateKey a -> a
+aggregateKeyProjection (AggregateKey (p, _c)) = p
+
+-- | Extract untyped term from 'AggregateKey'.
+aggregateKeyElement :: AggregateKey a -> AggregateElem
+aggregateKeyElement (AggregateKey (_p, c)) = c
+
+-- | Unsafely bind typed-projection and untyped-term into 'AggregateKey'.
+unsafeAggregateKey :: (a, AggregateElem) -> AggregateKey a
+unsafeAggregateKey = AggregateKey
+
 
 -- | Order direction. Ascendant or Descendant.
 data Order = Asc | Desc  deriving Show

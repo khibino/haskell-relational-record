@@ -43,7 +43,8 @@ import Data.Functor.Identity (Identity (runIdentity))
 import Database.Relational.Query.Context (Flat, Aggregated, Set, Power, SetList)
 import Database.Relational.Query.Component
   (AggregateColumnRef, AggregateElem, aggregateColumnRef, AggregateSet, aggregateGroupingSet,
-   AggregateBitKey, aggregatePowerKey, aggregateRollup, aggregateCube, aggregateSets)
+   AggregateBitKey, aggregatePowerKey, aggregateRollup, aggregateCube, aggregateSets,
+   AggregateKey, aggregateKeyProjection, aggregateKeyElement, unsafeAggregateKey)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
@@ -106,16 +107,13 @@ extractAggregateTerms :: (Monad m, Functor m) => Aggregatings ac at m a -> m (a,
 extractAggregateTerms (Aggregatings ac) = second toList <$> runWriterT ac
 
 
--- | Typeful aggregate element.
-newtype AggregateKey a = AggregateKey (a, AggregateElem)
-
 -- | Add /GROUP BY/ element into context and get aggregated projection.
 groupBy' :: MonadAggregate m
          => AggregateKey a
          -> m a
-groupBy' (AggregateKey (p, c)) = do
-  unsafeAddAggregateElement c
-  return p
+groupBy' ak = do
+  unsafeAddAggregateElement $ aggregateKeyElement ak
+  return $ aggregateKeyProjection ak
 
 extractTermList :: Aggregatings ac at Identity a -> (a, [at])
 extractTermList =  runIdentity . extractAggregateTerms
@@ -142,9 +140,9 @@ key p = do
 -- | Specify key of single grouping set.
 key' :: AggregateKey a
      -> AggregatingSet a
-key' (AggregateKey (p, c)) = do
-  unsafeAggregateWithTerm c
-  return p
+key' ak = do
+  unsafeAggregateWithTerm $ aggregateKeyElement ak
+  return $ aggregateKeyProjection ak
 
 -- | Finalize and specify single grouping set.
 set :: AggregatingSet a
@@ -163,7 +161,7 @@ bkey p = do
 
 finalizePower :: ([AggregateBitKey] -> AggregateElem)
               -> AggregatingPowerSet a -> AggregateKey a
-finalizePower finalize pow = AggregateKey . second finalize . extractTermList $ pow
+finalizePower finalize pow = unsafeAggregateKey . second finalize . extractTermList $ pow
 
 -- | Finalize grouping power set as rollup power set.
 rollup :: AggregatingPowerSet a -> AggregateKey a
@@ -175,4 +173,4 @@ cube   =  finalizePower aggregateCube
 
 -- | Finalize grouping set list.
 groupingSets :: AggregatingSetList a -> AggregateKey a
-groupingSets =  AggregateKey . second aggregateSets . extractTermList
+groupingSets =  unsafeAggregateKey . second aggregateSets . extractTermList
