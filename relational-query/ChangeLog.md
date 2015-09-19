@@ -1,3 +1,8 @@
+## 0.5.2.0
+
+- Add MonadTrans instance of QueryJoin.
+- Update links about Opaleye.
+
 ## 0.5.1.1
 
 - Update documentation.

@@ -53,9 +53,12 @@ newtype QueryJoin m a =
   QueryJoin (StateT JoinContext (WriterT (Last Duplication) m) a)
   deriving (Monad, Functor, Applicative)
 
+instance MonadTrans QueryJoin where
+  lift = QueryJoin . lift . lift
+
 -- | Lift to 'QueryJoin'
 join' :: Monad m => m a -> QueryJoin m a
-join' =  QueryJoin . lift . lift
+join' = lift
 
 -- | Unsafely update join product context.
 updateContext :: Monad m => (JoinContext -> JoinContext) -> QueryJoin m ()
