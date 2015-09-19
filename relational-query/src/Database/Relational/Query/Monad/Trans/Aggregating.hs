@@ -13,24 +13,22 @@
 --
 -- This module defines monad transformer which lift
 -- from 'MonadQuery' into Aggregated query.
-module Database.Relational.Query.Monad.Trans.Aggregating (
-  -- * Transformer into aggregated query
-  Aggregatings, aggregatings,
+module Database.Relational.Query.Monad.Trans.Aggregating
+       ( -- * Transformer into aggregated query
+         Aggregatings, aggregatings,
 
-  AggregatingSetT, AggregatingSetListT, AggregatingPowerSetT, PartitioningSetT,
+         AggregatingSetT, AggregatingSetListT, AggregatingPowerSetT, PartitioningSetT,
 
-  -- * Result
-  extractAggregateTerms,
+         -- * Result
+         extractAggregateTerms,
 
-  -- * Grouping sets support
-  AggregateKey,
+         -- * Grouping sets support
+         groupBy',
 
-  groupBy',
-
-  AggregatingSet, AggregatingPowerSet,  AggregatingSetList, PartitioningSet,
-  key, key', set,
-  bkey, rollup, cube, groupingSets
-  ) where
+         AggregatingSet, AggregatingPowerSet,  AggregatingSetList, PartitioningSet,
+         key, key', set,
+         bkey, rollup, cube, groupingSets,
+       ) where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Writer (WriterT, runWriterT, tell)
