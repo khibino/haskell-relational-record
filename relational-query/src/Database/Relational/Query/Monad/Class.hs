@@ -24,8 +24,7 @@ module Database.Relational.Query.Monad.Class
 
 import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Expr (Expr)
-import Database.Relational.Query.Component
-  (Duplication (..),AggregateColumnRef, AggregateKey)
+import Database.Relational.Query.Component (Duplication (..), AggregateKey)
 import Database.Relational.Query.Projection (Projection, predicateProjectionFromExpr)
 import Database.Relational.Query.Projectable (PlaceHolders)
 import Database.Relational.Query.Monad.BaseType (ConfigureQuery, Relation)
@@ -69,9 +68,9 @@ class MonadQuery m => MonadAggregate m where
            -> m (Projection Aggregated r)             -- ^ Result context and aggregated projection
 
 -- | Window specification building interface.
-class Monad m => MonadPartition m where
-  unsafeAddPartitionKey :: AggregateColumnRef -- ^ Partitioning key to add into partition by clause
-                        -> m ()               -- ^ Result context
+class Monad m => MonadPartition c m where
+  -- | Add /PARTITION BY/ term into context.
+  partitionBy :: Projection c r -> m ()
 
 -- | Specify ALL attribute to query context.
 all' :: MonadQuery m => m ()

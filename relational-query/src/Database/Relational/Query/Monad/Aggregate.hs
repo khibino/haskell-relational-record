@@ -23,7 +23,7 @@ module Database.Relational.Query.Monad.Aggregate (
 
   toSubQuery,
 
-  Window, partitionBy, over
+  Window, over
   ) where
 
 import Data.Functor.Identity (Identity (runIdentity))
@@ -38,7 +38,7 @@ import Database.Relational.Query.Sub (SubQuery, aggregatedSubQuery, JoinProduct)
 import qualified Database.Relational.Query.Sub as SubQuery
 import Database.Relational.Query.Projectable (PlaceHolders, SqlProjectable)
 
-import Database.Relational.Query.Monad.Class (MonadRestrict(..), MonadPartition (..))
+import Database.Relational.Query.Monad.Class (MonadRestrict(..))
 import Database.Relational.Query.Monad.Trans.Restricting
   (Restrictings, restrictings, extractRestrict)
 import Database.Relational.Query.Monad.Trans.Aggregating
@@ -82,10 +82,6 @@ toSubQuery q = do
   (((((((_ph, pj), ot), grs), ag), rs), pd), da) <- extract q
   c <- askConfig
   return $ aggregatedSubQuery c (Projection.untype pj) da pd rs ag grs ot
-
--- | Add /PARTITION BY/ term into context.
-partitionBy :: Projection c r -> Window c ()
-partitionBy =  mapM_ unsafeAddPartitionKey . Projection.columns
 
 extractWindow :: Window c a -> ((a, OrderingTerms), [AggregateColumnRef])
 extractWindow =  runIdentity . extractAggregateTerms . extractOrderingTerms

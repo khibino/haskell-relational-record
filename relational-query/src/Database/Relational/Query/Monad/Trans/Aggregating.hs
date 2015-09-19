@@ -103,8 +103,8 @@ instance MonadQuery m => MonadAggregate (AggregatingSetT m) where
   groupBy'  = aggregateKey
 
 -- | Partition clause instance
-instance Monad m => MonadPartition (PartitioningSetT c m) where
-  unsafeAddPartitionKey = unsafeAggregateWithTerm
+instance Monad m => MonadPartition c (PartitioningSetT c m) where
+  partitionBy =  mapM_ unsafeAggregateWithTerm . Projection.columns
 
 -- | Run 'Aggregatings' to get terms list.
 extractAggregateTerms :: (Monad m, Functor m) => Aggregatings ac at m a -> m (a, [at])

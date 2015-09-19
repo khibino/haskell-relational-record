@@ -71,8 +71,8 @@ instance MonadAggregate m => MonadAggregate (Orderings c m) where
   groupBy' = orderings . groupBy'
 
 -- | 'MonadPartition' with ordering.
-instance MonadPartition m => MonadPartition (Orderings c m) where
-  unsafeAddPartitionKey = orderings . unsafeAddPartitionKey
+instance MonadPartition c m => MonadPartition c (Orderings c m) where
+  partitionBy = orderings . partitionBy
 
 -- | Ordering term projection type interface.
 class ProjectableOrdering p where
