@@ -14,9 +14,10 @@
 --
 -- This module contains definitions about unique query type
 -- to support scalar queries.
-module Database.Relational.Query.Monad.Unique (
-  QueryUnique, toSubQuery, unsafeUniqueSubQuery
-  ) where
+module Database.Relational.Query.Monad.Unique
+       ( QueryUnique, unsafeUniqueSubQuery,
+         toSubQuery,
+       ) where
 
 import Control.Applicative (Applicative)
 
@@ -25,8 +26,8 @@ import Database.Relational.Query.Internal.Product (NodeAttr)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
-import Database.Relational.Query.Monad.Class (MonadQualifyUnique(..), MonadQualify, MonadQuery)
-import Database.Relational.Query.Monad.Trans.Join (join', unsafeSubQueryWithAttr)
+import Database.Relational.Query.Monad.Class (MonadQualify, MonadQuery)
+import Database.Relational.Query.Monad.Trans.Join (unsafeSubQueryWithAttr)
 import Database.Relational.Query.Monad.Trans.Restricting (restrictings)
 import Database.Relational.Query.Monad.BaseType (ConfigureQuery, askConfig)
 import Database.Relational.Query.Monad.Type (QueryCore, extractCore)
@@ -38,14 +39,6 @@ import Database.Relational.Query.Sub (SubQuery, flatSubQuery, Qualified, JoinPro
 -- | Unique query monad type.
 newtype QueryUnique a = QueryUnique (QueryCore a)
                       deriving (MonadQualify ConfigureQuery, MonadQuery, Monad, Applicative, Functor)
-
--- | Lift from qualified table forms into 'QueryUnique'.
-queryUnique :: ConfigureQuery a -> QueryUnique a
-queryUnique =  QueryUnique . restrictings . join'
-
--- | Instance to lift from qualified table forms into 'QueryUnique'.
-instance MonadQualifyUnique ConfigureQuery QueryUnique where
-  liftQualifyUnique = queryUnique
 
 -- | Unsafely join sub-query with this unique query.
 unsafeUniqueSubQuery :: NodeAttr                     -- ^ Attribute maybe or just
