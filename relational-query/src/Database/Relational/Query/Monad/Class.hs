@@ -12,16 +12,16 @@
 -- Portability : unknown
 --
 -- This module defines query building interface classes.
-module Database.Relational.Query.Monad.Class (
-  -- * Query interface classes
-  MonadQualify (..), MonadQualifyUnique(..), MonadRestrict (..),
-  MonadQuery (..), MonadAggregate (..), MonadPartition (..),
+module Database.Relational.Query.Monad.Class
+       ( -- * Query interface classes
+         MonadQualify (..), MonadRestrict (..),
+         MonadQuery (..), MonadAggregate (..), MonadPartition (..),
 
-  all', distinct,
-  onE, on, wheresE, wheres,
-  groupBy,
-  havingE, having
-  ) where
+         all', distinct,
+         onE, on, wheresE, wheres,
+         groupBy,
+         havingE, having,
+       ) where
 
 import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Expr (Expr)
@@ -60,13 +60,6 @@ class (Functor q, Monad q, Functor m, Monad m) => MonadQualify q m where
 
 instance (Functor q, Monad q) => MonadQualify q q where
   liftQualify = id
-
--- The only method to lift to QueryUnique.
--- | Lift interface from base qualify monad. Another constraint to support unique query.
-class (Functor q, Monad q, MonadQuery m) => MonadQualifyUnique q m where
-  -- | Lift from qualify monad 'q' into 'MonadQuery' m.
-  --   Qualify monad qualifies table form 'SubQuery'.
-  liftQualifyUnique :: q a -> m a
 
 -- | Aggregated query building interface extends 'MonadQuery'.
 class MonadQuery m => MonadAggregate m where
