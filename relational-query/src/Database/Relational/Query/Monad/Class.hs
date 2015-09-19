@@ -65,8 +65,8 @@ class MonadQuery m => MonadAggregate m where
   groupBy :: Projection Flat r           -- ^ Projection to add into group by
           -> m (Projection Aggregated r) -- ^ Result context and aggregated projection
   -- | Add /GROUP BY/ term into context and get aggregated projection. Non-traditional group-by version.
-  groupBy' :: AggregateKey a             -- ^ Key to aggretate for non-traditional group-by interface
-           -> m a                        -- ^ Result context and aggregated projection
+  groupBy' :: AggregateKey (Projection Aggregated r)  -- ^ Key to aggretate for non-traditional group-by interface
+           -> m (Projection Aggregated r)             -- ^ Result context and aggregated projection
 
 -- | Window specification building interface.
 class Monad m => MonadPartition m where

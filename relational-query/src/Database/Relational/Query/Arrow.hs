@@ -327,7 +327,7 @@ uniqueRelation' = runAofM Monadic.uniqueRelation'
 
 -- | Same as 'Monadic.groupBy''.
 --   This arrow is designed to be injected by local 'AggregateKey'.
-groupBy' :: MonadAggregate m => QueryA m (AggregateKey a) a
+groupBy' :: MonadAggregate m => QueryA m (AggregateKey (Projection Aggregated r)) (Projection Aggregated r)
 groupBy' = queryA Monadic.groupBy'
 
 -- | Same as 'Monadic.key'.
