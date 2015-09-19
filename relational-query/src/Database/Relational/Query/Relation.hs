@@ -49,8 +49,7 @@ import Database.Relational.Query.Monad.BaseType
   (ConfigureQuery, qualifyQuery,
    Relation, unsafeTypeRelation, untypeRelation)
 import Database.Relational.Query.Monad.Class
-  (MonadQualify (liftQualify), MonadQuery (query', queryMaybe'),
-   MonadQualifyUnique (liftQualifyUnique), on)
+  (MonadQualify (liftQualify), MonadQuery (query', queryMaybe'), on)
 import Database.Relational.Query.Monad.Simple (QuerySimple, SimpleQuery)
 import qualified Database.Relational.Query.Monad.Simple as Simple
 import Database.Relational.Query.Monad.Aggregate (QueryAggregate, AggregatedQuery)
@@ -341,7 +340,7 @@ uniqueQueryWithAttr :: NodeAttr
                     -> QueryUnique (PlaceHolders p, Projection c r)
 uniqueQueryWithAttr attr = unsafeAddPlaceHolders . run where
   run rel = do
-    q <- liftQualifyUnique $ do
+    q <- liftQualify $ do
       sq <- untypeRelation (unUnique rel)
       qualifyQuery sq
     Projection.unsafeChangeContext <$> unsafeUniqueSubQuery attr q
