@@ -6,6 +6,7 @@ module Database.HDBC.Schema.Oracle
     ) where
 
 import Control.Applicative ((<$>))
+import Control.Monad.Trans.Class (lift)
 import Data.Char (toUpper)
 import Data.Map (fromList)
 import Data.Maybe (catMaybes)
@@ -16,7 +17,7 @@ import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
 import Database.Record.TH (makeRecordPersistableWithSqlTypeDefaultFromDefined)
 import Database.HDBC.Schema.Driver
-    ( TypeMap, LogChan, putVerbose,
+    ( TypeMap, LogChan, putVerbose, maybeIO,
       Driver, getFieldsWithMap, getPrimaryKey, emptyDriver
     )
 
@@ -61,16 +62,16 @@ getFields' :: IConnection conn
            -> String
            -> String
            -> IO ([(String, TypeQ)], [Int])
-getFields' tmap conn lchan owner' tbl' = do
+getFields' tmap conn lchan owner' tbl' = maybeIO ([], []) id $ do
     let owner = map toUpper owner'
         tbl = map toUpper tbl'
-    cols <- runQuery' conn columnsQuerySQL (owner, tbl)
+    cols <- lift $ runQuery' conn columnsQuerySQL (owner, tbl)
     case cols of
-        [] -> compileErrorIO $
-            "getFields: No columns found: owner = " ++ owner ++ ", table = " ++ tbl
+        [] -> lift . compileErrorIO $
+              "getFields: No columns found: owner = " ++ owner ++ ", table = " ++ tbl
         _ -> return ()
     let notNullIdxs = map fst . filter (notNull . snd) . zip [0..] $ cols
-    putLog lchan $
+    lift . putLog lchan $
         "getFields: num of columns = " ++ show (length cols) ++
         ", not null columns = " ++ show notNullIdxs
     let getType' col = case getType (fromList tmap) col of
@@ -78,7 +79,7 @@ getFields' tmap conn lchan owner' tbl' = do
                 "Type mapping is not defined against Oracle DB type: " ++
                 show (Cols.dataType col)
             Just p -> return p
-    types <- mapM getType' cols
+    types <- lift $ mapM getType' cols
     return (types, notNullIdxs)
 
 -- | Driver for Oracle DB
