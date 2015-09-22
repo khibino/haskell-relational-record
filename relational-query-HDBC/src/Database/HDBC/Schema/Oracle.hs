@@ -10,14 +10,14 @@ import Data.Char (toUpper)
 import Data.Map (fromList)
 import Data.Maybe (catMaybes)
 import Language.Haskell.TH (TypeQ)
-import Language.Haskell.TH.Lib.Extra (reportMessage)
 
 import Database.HDBC (IConnection, SqlValue)
 import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
 import Database.Record.TH (makeRecordPersistableWithSqlTypeDefaultFromDefined)
 import Database.HDBC.Schema.Driver
-    ( TypeMap, LogChan, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver
+    ( TypeMap, LogChan, putVerbose,
+      Driver, getFieldsWithMap, getPrimaryKey, emptyDriver
     )
 
 import Database.Relational.Schema.Oracle
@@ -34,8 +34,8 @@ $(makeRecordPersistableWithSqlTypeDefaultFromDefined
 logPrefix :: String -> String
 logPrefix = ("Oracle: " ++)
 
-putLog :: String -> IO ()
-putLog = reportMessage . logPrefix
+putLog :: LogChan -> String -> IO ()
+putLog lchan = putVerbose lchan . logPrefix
 
 compileErrorIO :: String -> IO a
 compileErrorIO = fail . logPrefix
@@ -51,7 +51,7 @@ getPrimaryKey' conn lchan owner' tbl' = do
         tbl = map toUpper tbl'
     prims <- map normalizeColumn . catMaybes <$>
         runQuery' conn primaryKeyQuerySQL (owner, tbl)
-    putLog $ "getPrimaryKey: keys = " ++ show prims
+    putLog lchan $ "getPrimaryKey: keys = " ++ show prims
     return prims
 
 getFields' :: IConnection conn
@@ -70,7 +70,7 @@ getFields' tmap conn lchan owner' tbl' = do
             "getFields: No columns found: owner = " ++ owner ++ ", table = " ++ tbl
         _ -> return ()
     let notNullIdxs = map fst . filter (notNull . snd) . zip [0..] $ cols
-    putLog $
+    putLog lchan $
         "getFields: num of columns = " ++ show (length cols) ++
         ", not null columns = " ++ show notNullIdxs
     let getType' col = case getType (fromList tmap) col of
