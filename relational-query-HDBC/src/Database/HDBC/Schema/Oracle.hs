@@ -40,8 +40,8 @@ logPrefix = ("Oracle: " ++)
 putLog :: LogChan -> String -> IO ()
 putLog lchan = putVerbose lchan . logPrefix
 
-compileErrorIO :: LogChan -> String -> MaybeT IO a
-compileErrorIO lchan = failWith lchan . logPrefix
+compileError :: LogChan -> String -> MaybeT IO a
+compileError lchan = failWith lchan . logPrefix
 
 getPrimaryKey' :: IConnection conn
                => conn
@@ -57,19 +57,19 @@ getPrimaryKey' conn lchan owner' tbl' = do
     putLog lchan $ "getPrimaryKey: keys = " ++ show prims
     return prims
 
-getFields' :: IConnection conn
-           => TypeMap
-           -> conn
-           -> LogChan
-           -> String
-           -> String
-           -> IO ([(String, TypeQ)], [Int])
-getFields' tmap conn lchan owner' tbl' = maybeIO ([], []) id $ do
+getColumns' :: IConnection conn
+            => TypeMap
+            -> conn
+            -> LogChan
+            -> String
+            -> String
+            -> IO ([(String, TypeQ)], [Int])
+getColumns' tmap conn lchan owner' tbl' = maybeIO ([], []) id $ do
     let owner = map toUpper owner'
         tbl = map toUpper tbl'
     cols <- lift $ runQuery' conn columnsQuerySQL (owner, tbl)
     guard (not $ null cols) <|>
-        compileErrorIO lchan
+        compileError lchan
         ("getFields: No columns found: owner = " ++ owner ++ ", table = " ++ tbl)
     let notNullIdxs = map fst . filter (notNull . snd) . zip [0..] $ cols
     lift . putLog lchan $
@@ -77,7 +77,7 @@ getFields' tmap conn lchan owner' tbl' = maybeIO ([], []) id $ do
         ", not null columns = " ++ show notNullIdxs
     let getType' col =
           hoistMaybe (getType (fromList tmap) col) <|>
-          compileErrorIO lchan
+          compileError lchan
           ("Type mapping is not defined against Oracle DB type: " ++ show (Cols.dataType col))
     types <- mapM getType' cols
     return (types, notNullIdxs)
@@ -85,5 +85,5 @@ getFields' tmap conn lchan owner' tbl' = maybeIO ([], []) id $ do
 -- | Driver for Oracle DB
 driverOracle :: IConnection conn => Driver conn
 driverOracle =
-    emptyDriver { getFieldsWithMap = getFields' }
+    emptyDriver { getFieldsWithMap = getColumns' }
                 { getPrimaryKey = getPrimaryKey' }
