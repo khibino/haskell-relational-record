@@ -173,7 +173,12 @@ toSQLs :: SubQuery
        -> (StringSQL, StringSQL) -- ^ sub-query SQL and top-level SQL
 toSQLs =  d  where
   d (Table u)               = (stringSQL $ Table.name' u, fromTableToSQL u)
-  d (Bin (BinOp (op, da)) l r) = (SQL.paren q, q)  where
+
+  -- When a binop is followed by another binop, we don't want parenthesis around the lhs.
+  d (Bin (BinOp (op, da)) l@(Bin {}) r) = (SQL.paren q,q)  where
+    q = mconcat [showSQL l, showsSetOp op da, normalizedSQL r]
+
+  d (Bin (BinOp (op, da)) l r) = (SQL.paren q,q)  where
     q = mconcat [normalizedSQL l, showsSetOp op da, normalizedSQL r]
   d (Flat cf up da pd rs od)   = (SQL.paren q, q)  where
     q = selectPrefixSQL up da <> showsJoinProduct (productUnitSupport cf) pd <> composeWhere rs
