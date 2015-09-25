@@ -64,6 +64,7 @@ module Database.Record.TH (
 
 
 import Control.Applicative (pure, (<*>))
+import Data.Char (isNumber)
 import Data.List (foldl')
 import Data.Array (Array, listArray, (!))
 import Language.Haskell.TH.Name.CamelCase
@@ -219,17 +220,23 @@ defineRecordType typeName' columns derives = do
   return $ rec : offs
 
 -- | Generate column name from 'String'.
-columnDefault :: String -> TypeQ -> (VarName, TypeQ)
-columnDefault n t = (varCamelcaseName n, t)
+columnDefault :: String -> String -> TypeQ -> (VarName, TypeQ)
+columnDefault table n t = (varNameWithPrefix n (remConflicts n), t)
+  where
+     -- if the column is the same name as the table, or if the
+     -- column name starts with a number, prepend with _
+     remConflicts [] = ""
+     remConflicts x = if x == table || isNumber (head x)then "_" else ""
 
 -- | Record type declaration template from SQL table name 'String'
---   and column name 'String' - type pairs, derivings.
+--   and column name 'String' - type pairs, derivings.  If the table name matches
+--   any column name, or if the column starts with a number, the data type
+--   accessor will be prepended with an underscore.
 defineRecordTypeDefault :: String -> [(String, TypeQ)] -> [ConName] -> Q [Dec]
 defineRecordTypeDefault table columns =
   defineRecordType
   (recordTypeNameDefault table)
-  [ columnDefault n t | (n, t) <- columns ]
-
+  [ columnDefault table n t | (n, t) <- columns ]
 
 -- | Record parser template.
 defineRecordParser :: TypeQ         -- ^ SQL value type.
