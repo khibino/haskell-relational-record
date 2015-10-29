@@ -56,6 +56,7 @@ mapFromSqlDefault = fromList
     , ("TIMESTAMP",  [t| POSIXTime |])
     , ("TINYINT",    [t| Int32 |])
     , ("SMALLINT",   [t| Int32 |])
+    , ("MEDIUMINT",  [t| Int32 |])
     , ("INT",        [t| Int32 |])
     , ("INTEGER",    [t| Int32 |])
     , ("BIGINT",     [t| Int64 |])
