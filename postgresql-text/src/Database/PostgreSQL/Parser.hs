@@ -70,7 +70,7 @@ slash = char '/'
 hostAddress :: Parser HostAddress
 hostAddress = D.hostAddress <$> decW8 <* dot <*> decW8 <* dot <*> decW8 <* dot <*> decW8
 
-_exampleHostAddress :: [Either P.Error HostAddress]
+_exampleHostAddress :: [Either String HostAddress]
 _exampleHostAddress =
   [ evalParser (hostAddress <* eof) s
   | s <- [ "0.0.0.0", "192.168.0.1" ]
@@ -101,7 +101,7 @@ v6HostAddress =
   <*> hexW16 <* colon <*> hexW16 <* colon
   <*> hexW16 <* colon <*> hexW16
 
-_exampleHostAddress6 :: [Either P.Error V6HostAddress]
+_exampleHostAddress6 :: [Either String V6HostAddress]
 _exampleHostAddress6 =
   [ evalParser (v6HostAddress <* eof) s
   | s <- [ "::", "0:0:0:0:0:0:0:0", "2001:1::1:a2", "1:1:1:1:1:1:1:a1" ]
@@ -122,7 +122,7 @@ netAddress =
   NetAddress4 <$> hostAddress   <*> optional' mask4bits (slash *> decMask4) <|>
   NetAddress6 <$> v6HostAddress <*> optional' mask6bits (slash *> decMask6)
 
-_exampleNetAddress :: [Either P.Error NetAddress]
+_exampleNetAddress :: [Either String NetAddress]
 _exampleNetAddress =
   [ evalParser (netAddress <* eof) s
   | s <- [ "2001:1::a0:a2/64", "172.16.0.0" ]
