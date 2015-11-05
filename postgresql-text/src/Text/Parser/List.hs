@@ -11,27 +11,24 @@ import Control.Monad.Trans.State.Strict (StateT (..), evalStateT, get, put)
 import Data.Monoid (Last (..))
 import Data.Maybe (fromMaybe)
 
-import Control.Monad.Either.Instances ()
+import Control.Monad.Either.Plus (EitherP (..), emap, leftP)
 
-
-emap :: (e0 -> e1) -> Either e0 a -> Either e1 a
-emap f = either (Left . f) Right
 
 type Error = Last String
 
 unError :: String -> Error -> String
 unError s = fromMaybe s . getLast
 
-type Parser t = StateT [t] (Either Error)
+type Parser t = StateT [t] (EitherP Error)
 
 runParser :: Parser t a -> [t] -> Either String (a, [t])
-runParser p = emap (unError "runParser: parse error.") . runStateT p
+runParser p = unEitherP . emap (unError "runParser: parse error.") . runStateT p
 
 evalParser :: Parser t a -> [t] -> Either String a
-evalParser p = emap (unError "evalParser: parse error.") . evalStateT p
+evalParser p = unEitherP . emap (unError "evalParser: parse error.") . evalStateT p
 
-errorE :: String -> Either Error a
-errorE = Left . Last . Just
+errorE :: String -> EitherP Error a
+errorE = leftP . Last . Just
 
 errorP :: String -> Parser t a
 errorP = StateT . const . errorE
