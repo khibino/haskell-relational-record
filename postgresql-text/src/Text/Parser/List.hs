@@ -1,6 +1,6 @@
 module Text.Parser.List
        ( Parser, runParser, evalParser
-       , Error, errorE, mapE, errorP, noteP
+       , Error, errorE, errorP, noteP
 
        , token, eof, sink, satisfy', satisfy, list
        ) where
@@ -24,12 +24,6 @@ evalParser = evalStateT
 
 errorE :: String -> Either Error a
 errorE = Left . Last . Just
-
-mapE :: (String -> String) -> Either Error a -> Either Error a
-mapE f ee = case ee of
-  Left (Last (Just m))  ->  errorE $ f m
-  Left (Last Nothing)   ->  ee
-  Right _               ->  ee
 
 errorP :: String -> Parser t a
 errorP = StateT . const . errorE
