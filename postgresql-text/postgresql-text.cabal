@@ -23,6 +23,7 @@ library
                        Database.PostgreSQL.Printer
   other-modules:
                        Control.Monad.Either.Instances
+                       Control.Monad.Either.Plus
                        Text.Parser.List
                        Text.Printer.List
 
