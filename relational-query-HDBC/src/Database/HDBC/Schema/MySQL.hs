@@ -49,8 +49,8 @@ logPrefix = ("MySQL: " ++)
 putLog :: LogChan -> String -> IO ()
 putLog lchan = putVerbose lchan . logPrefix
 
-compileErrorIO :: LogChan -> String -> MaybeT IO a
-compileErrorIO lchan = failWith lchan . logPrefix
+compileError :: LogChan -> String -> MaybeT IO a
+compileError lchan = failWith lchan . logPrefix
 
 getPrimaryKey' :: IConnection conn
                => conn
@@ -64,17 +64,17 @@ getPrimaryKey' conn lchan scm tbl = do
     putLog lchan $ "getPrimaryKey: primary key = " ++ show primaryKeyCols
     return primaryKeyCols
 
-getFields' :: IConnection conn
-           => TypeMap
-           -> conn
-           -> LogChan
-           -> String
-           -> String
-           -> IO ([(String, TypeQ)], [Int])
-getFields' tmap conn lchan scm tbl = maybeIO ([], []) id $ do
+getColumns' :: IConnection conn
+            => TypeMap
+            -> conn
+            -> LogChan
+            -> String
+            -> String
+            -> IO ([(String, TypeQ)], [Int])
+getColumns' tmap conn lchan scm tbl = maybeIO ([], []) id $ do
     cols <- lift $ runQuery' conn columnsQuerySQL (scm, tbl)
     guard (not $ null cols) <|>
-      compileErrorIO lchan
+      compileError lchan
       ("getFields: No columns found: schema = " ++ scm
        ++ ", table = " ++ tbl)
     let notNullIdxs = map fst . filter (notNull . snd) . zip [0..] $ cols
@@ -86,12 +86,12 @@ getFields' tmap conn lchan scm tbl = maybeIO ([], []) id $ do
     where
         getType' col =
             hoistMaybe (getType (fromList tmap) col) <|>
-            compileErrorIO lchan
+            compileError lchan
             ("Type mapping is not defined against MySQL type: "
              ++ Columns.dataType col)
 
 -- | Driver implementation
 driverMySQL :: IConnection conn => Driver conn
 driverMySQL =
-    emptyDriver { getFieldsWithMap = getFields' }
+    emptyDriver { getFieldsWithMap = getColumns' }
                 { getPrimaryKey    = getPrimaryKey' }
