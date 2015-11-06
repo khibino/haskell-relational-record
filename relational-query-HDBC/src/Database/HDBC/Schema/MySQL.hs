@@ -9,7 +9,10 @@ module Database.HDBC.Schema.MySQL
 
 import           Prelude                            hiding (length)
 import           Language.Haskell.TH                (TypeQ)
+import           Control.Applicative                ((<|>))
+import           Control.Monad                      (guard)
 import           Control.Monad.Trans.Class          (lift)
+import           Control.Monad.Trans.Maybe          (MaybeT)
 import qualified Data.List                          as List
 import           Data.Map                           (fromList)
 
@@ -19,7 +22,9 @@ import           Database.HDBC.Record.Persistable   ()
 import           Database.HDBC.Schema.Driver        ( TypeMap
                                                     , LogChan
                                                     , putVerbose
+                                                    , failWith
                                                     , maybeIO
+                                                    , hoistMaybe
                                                     , Driver
                                                     , getFieldsWithMap
                                                     , getPrimaryKey
@@ -44,8 +49,8 @@ logPrefix = ("MySQL: " ++)
 putLog :: LogChan -> String -> IO ()
 putLog lchan = putVerbose lchan . logPrefix
 
-compileErrorIO :: String -> IO a
-compileErrorIO = fail . logPrefix
+compileErrorIO :: LogChan -> String -> MaybeT IO a
+compileErrorIO lchan = failWith lchan . logPrefix
 
 getPrimaryKey' :: IConnection conn
                => conn
@@ -68,24 +73,22 @@ getFields' :: IConnection conn
            -> IO ([(String, TypeQ)], [Int])
 getFields' tmap conn lchan scm tbl = maybeIO ([], []) id $ do
     cols <- lift $ runQuery' conn columnsQuerySQL (scm, tbl)
-    case cols of
-        [] -> lift . compileErrorIO
-                $ "getFields: No columns found: schema = " ++ scm
-                ++ ", table = " ++ tbl
-        _  -> return ()
+    guard (not $ null cols) <|>
+      compileErrorIO lchan
+      ("getFields: No columns found: schema = " ++ scm
+       ++ ", table = " ++ tbl)
     let notNullIdxs = map fst . filter (notNull . snd) . zip [0..] $ cols
     lift . putLog lchan
       $  "getFields: num of columns = " ++ show (List.length cols)
       ++ ", not null columns = " ++ show notNullIdxs
-    types <- lift $ mapM getType' cols
+    types <- mapM getType' cols
     return (types, notNullIdxs)
     where
         getType' col =
-            case getType (fromList tmap) col of
-                Nothing -> compileErrorIO
-                             $ "Type mapping is not defined against MySQL type: "
-                             ++ Columns.dataType col
-                Just p  -> return p
+            hoistMaybe (getType (fromList tmap) col) <|>
+            compileErrorIO lchan
+            ("Type mapping is not defined against MySQL type: "
+             ++ Columns.dataType col)
 
 -- | Driver implementation
 driverMySQL :: IConnection conn => Driver conn
