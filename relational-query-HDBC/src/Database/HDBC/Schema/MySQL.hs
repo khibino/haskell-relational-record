@@ -9,6 +9,7 @@ module Database.HDBC.Schema.MySQL
 
 import           Prelude                            hiding (length)
 import           Language.Haskell.TH                (TypeQ)
+import           Control.Monad.Trans.Class          (lift)
 import qualified Data.List                          as List
 import           Data.Map                           (fromList)
 
@@ -17,8 +18,9 @@ import           Database.HDBC.Record.Query         (runQuery')
 import           Database.HDBC.Record.Persistable   ()
 import           Database.HDBC.Schema.Driver        ( TypeMap
                                                     , LogChan
-                                                    , Driver
                                                     , putVerbose
+                                                    , maybeIO
+                                                    , Driver
                                                     , getFieldsWithMap
                                                     , getPrimaryKey
                                                     , emptyDriver
@@ -64,18 +66,18 @@ getFields' :: IConnection conn
            -> String
            -> String
            -> IO ([(String, TypeQ)], [Int])
-getFields' tmap conn lchan scm tbl = do
-    cols <- runQuery' conn columnsQuerySQL (scm, tbl)
+getFields' tmap conn lchan scm tbl = maybeIO ([], []) id $ do
+    cols <- lift $ runQuery' conn columnsQuerySQL (scm, tbl)
     case cols of
-        [] -> compileErrorIO
+        [] -> lift . compileErrorIO
                 $ "getFields: No columns found: schema = " ++ scm
                 ++ ", table = " ++ tbl
         _  -> return ()
     let notNullIdxs = map fst . filter (notNull . snd) . zip [0..] $ cols
-    putLog lchan
+    lift . putLog lchan
       $  "getFields: num of columns = " ++ show (List.length cols)
       ++ ", not null columns = " ++ show notNullIdxs
-    types <- mapM getType' cols
+    types <- lift $ mapM getType' cols
     return (types, notNullIdxs)
     where
         getType' col =
