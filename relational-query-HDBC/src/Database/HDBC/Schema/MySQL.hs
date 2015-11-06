@@ -9,7 +9,7 @@ module Database.HDBC.Schema.MySQL
 
 import           Prelude                            hiding (length)
 import           Language.Haskell.TH                (TypeQ)
-import           Control.Applicative                ((<|>))
+import           Control.Applicative                ((<$>), (<|>))
 import           Control.Monad                      (guard)
 import           Control.Monad.Trans.Class          (lift)
 import           Control.Monad.Trans.Maybe          (MaybeT)
@@ -60,7 +60,7 @@ getPrimaryKey' :: IConnection conn
                -> IO [String]
 getPrimaryKey' conn lchan scm tbl = do
     primCols <- runQuery' conn primaryKeyQuerySQL (scm, tbl)
-    let primaryKeyCols = normalizeColumn `fmap` primCols
+    let primaryKeyCols = normalizeColumn <$> primCols
     putLog lchan $ "getPrimaryKey: primary key = " ++ show primaryKeyCols
     return primaryKeyCols
 
