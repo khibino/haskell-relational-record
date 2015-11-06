@@ -9,7 +9,6 @@ module Database.HDBC.Schema.MySQL
 
 import           Prelude                            hiding (length)
 import           Language.Haskell.TH                (TypeQ)
-import           Language.Haskell.TH.Lib.Extra      (reportMessage)
 import qualified Data.List                          as List
 import           Data.Map                           (fromList)
 
@@ -19,6 +18,7 @@ import           Database.HDBC.Record.Persistable   ()
 import           Database.HDBC.Schema.Driver        ( TypeMap
                                                     , LogChan
                                                     , Driver
+                                                    , putVerbose
                                                     , getFieldsWithMap
                                                     , getPrimaryKey
                                                     , emptyDriver
@@ -39,8 +39,8 @@ $(makeRecordPersistableWithSqlTypeDefaultFromDefined [t| SqlValue |] ''Columns)
 logPrefix :: String -> String
 logPrefix = ("MySQL: " ++)
 
-putLog :: String -> IO ()
-putLog = reportMessage . logPrefix
+putLog :: LogChan -> String -> IO ()
+putLog lchan = putVerbose lchan . logPrefix
 
 compileErrorIO :: String -> IO a
 compileErrorIO = fail . logPrefix
@@ -54,7 +54,7 @@ getPrimaryKey' :: IConnection conn
 getPrimaryKey' conn lchan scm tbl = do
     primCols <- runQuery' conn primaryKeyQuerySQL (scm, tbl)
     let primaryKeyCols = normalizeColumn `fmap` primCols
-    putLog $ "getPrimaryKey: primary key = " ++ show primaryKeyCols
+    putLog lchan $ "getPrimaryKey: primary key = " ++ show primaryKeyCols
     return primaryKeyCols
 
 getFields' :: IConnection conn
@@ -72,7 +72,7 @@ getFields' tmap conn lchan scm tbl = do
                 ++ ", table = " ++ tbl
         _  -> return ()
     let notNullIdxs = map fst . filter (notNull . snd) . zip [0..] $ cols
-    putLog
+    putLog lchan
       $  "getFields: num of columns = " ++ show (List.length cols)
       ++ ", not null columns = " ++ show notNullIdxs
     types <- mapM getType' cols
