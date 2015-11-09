@@ -18,13 +18,15 @@ import qualified Database.Relational.Schema.SQLite3Syscat.IndexInfo as IndexInfo
 import qualified Database.Relational.Schema.SQLite3Syscat.IndexList as IndexList
 import qualified Database.Relational.Schema.SQLite3Syscat.TableInfo as TableInfo
 
+import Control.Monad.Trans.Class (lift)
 import Data.List (isPrefixOf, sort, sortBy)
 import Data.Map (fromList)
 import Database.HDBC (IConnection, SqlValue)
 import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
 import Database.HDBC.Schema.Driver
-  (TypeMap, LogChan, Driver, putVerbose, getFieldsWithMap, getPrimaryKey, emptyDriver)
+  (TypeMap, LogChan, putVerbose, maybeIO,
+   Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
 import Database.Record.TH (makeRecordPersistableWithSqlTypeDefaultFromDefined)
 import Database.Relational.Schema.SQLite3 (getType, indexInfoQuerySQL, indexListQuerySQL, normalizeColumn,
                                            normalizeType, notNull, tableInfoQuerySQL)
@@ -84,15 +86,15 @@ getFields' :: IConnection conn
            -> String
            -> String
            -> IO ([(String, TypeQ)], [Int])
-getFields' tmap conn lchan scm tbl = do
-    rows <- runQuery' conn (tableInfoQuerySQL scm tbl) ()
+getFields' tmap conn lchan scm tbl = maybeIO ([], []) id $ do
+    rows <- lift $ runQuery' conn (tableInfoQuerySQL scm tbl) ()
     case rows of
-      [] -> compileErrorIO
+      [] -> lift . compileErrorIO
             $ "getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl
       _  -> return ()
     let columnId = TableInfo.cid
     let notNullIdxs = map (fromIntegral . columnId) . filter notNull $ rows
-    putLog lchan
+    lift . putLog lchan
         $ "getFields: num of columns = " ++ show (length rows)
         ++ ", not null columns = " ++ show notNullIdxs
     let getType' ti = case getType (fromList tmap) ti of
@@ -100,7 +102,7 @@ getFields' tmap conn lchan scm tbl = do
                      $ "Type mapping is not defined against SQLite3 type: "
                      ++ normalizeType (TableInfo.ctype ti)
           Just p  -> return p
-    types <- mapM getType' rows
+    types <- lift $ mapM getType' rows
     return (types, notNullIdxs)
 
 driverSQLite3 :: IConnection conn => Driver conn
