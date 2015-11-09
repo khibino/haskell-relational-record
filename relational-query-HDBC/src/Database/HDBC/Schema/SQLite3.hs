@@ -18,15 +18,18 @@ import qualified Database.Relational.Schema.SQLite3Syscat.IndexInfo as IndexInfo
 import qualified Database.Relational.Schema.SQLite3Syscat.IndexList as IndexList
 import qualified Database.Relational.Schema.SQLite3Syscat.TableInfo as TableInfo
 
+import Control.Applicative ((<|>))
+import Control.Monad (guard)
 import Control.Monad.Trans.Class (lift)
+import Control.Monad.Trans.Maybe (MaybeT)
 import Data.List (isPrefixOf, sort, sortBy)
 import Data.Map (fromList)
 import Database.HDBC (IConnection, SqlValue)
 import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
 import Database.HDBC.Schema.Driver
-  (TypeMap, LogChan, putVerbose, maybeIO,
-   Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
+  (TypeMap, LogChan, putVerbose, failWith, maybeIO,
+   Driver, hoistMaybe, getFieldsWithMap, getPrimaryKey, emptyDriver)
 import Database.Record.TH (makeRecordPersistableWithSqlTypeDefaultFromDefined)
 import Database.Relational.Schema.SQLite3 (getType, indexInfoQuerySQL, indexListQuerySQL, normalizeColumn,
                                            normalizeType, notNull, tableInfoQuerySQL)
@@ -50,8 +53,8 @@ logPrefix = ("SQLite3: " ++)
 putLog :: LogChan -> String -> IO ()
 putLog lchan = putVerbose lchan . logPrefix
 
-compileErrorIO :: String -> IO a
-compileErrorIO =  fail . logPrefix
+compileErrorIO :: LogChan -> String -> MaybeT IO a
+compileErrorIO lchan = failWith lchan . logPrefix
 
 getPrimaryKey' :: IConnection conn
                => conn
@@ -88,21 +91,20 @@ getFields' :: IConnection conn
            -> IO ([(String, TypeQ)], [Int])
 getFields' tmap conn lchan scm tbl = maybeIO ([], []) id $ do
     rows <- lift $ runQuery' conn (tableInfoQuerySQL scm tbl) ()
-    case rows of
-      [] -> lift . compileErrorIO
-            $ "getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl
-      _  -> return ()
+    guard (not $ null rows) <|>
+      compileErrorIO lchan
+      ("getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl)
     let columnId = TableInfo.cid
     let notNullIdxs = map (fromIntegral . columnId) . filter notNull $ rows
     lift . putLog lchan
         $ "getFields: num of columns = " ++ show (length rows)
         ++ ", not null columns = " ++ show notNullIdxs
-    let getType' ti = case getType (fromList tmap) ti of
-          Nothing -> compileErrorIO
-                     $ "Type mapping is not defined against SQLite3 type: "
-                     ++ normalizeType (TableInfo.ctype ti)
-          Just p  -> return p
-    types <- lift $ mapM getType' rows
+    let getType' ti =
+          hoistMaybe (getType (fromList tmap) ti) <|>
+          compileErrorIO lchan
+          ("Type mapping is not defined against SQLite3 type: "
+           ++ normalizeType (TableInfo.ctype ti))
+    types <- mapM getType' rows
     return (types, notNullIdxs)
 
 driverSQLite3 :: IConnection conn => Driver conn
