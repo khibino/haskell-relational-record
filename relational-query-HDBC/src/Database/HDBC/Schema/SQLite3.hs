@@ -53,8 +53,8 @@ logPrefix = ("SQLite3: " ++)
 putLog :: LogChan -> String -> IO ()
 putLog lchan = putVerbose lchan . logPrefix
 
-compileErrorIO :: LogChan -> String -> MaybeT IO a
-compileErrorIO lchan = failWith lchan . logPrefix
+compileError :: LogChan -> String -> MaybeT IO a
+compileError lchan = failWith lchan . logPrefix
 
 getPrimaryKey' :: IConnection conn
                => conn
@@ -82,17 +82,17 @@ getPrimaryKey' conn lchan scm tbl = do
         putLog lchan $ "getPrimaryKey: keys=" ++ show primColumns'
         return primColumns'
 
-getFields' :: IConnection conn
-           => TypeMap
-           -> conn
-           -> LogChan
-           -> String
-           -> String
-           -> IO ([(String, TypeQ)], [Int])
-getFields' tmap conn lchan scm tbl = maybeIO ([], []) id $ do
+getColumns' :: IConnection conn
+            => TypeMap
+            -> conn
+            -> LogChan
+            -> String
+            -> String
+            -> IO ([(String, TypeQ)], [Int])
+getColumns' tmap conn lchan scm tbl = maybeIO ([], []) id $ do
     rows <- lift $ runQuery' conn (tableInfoQuerySQL scm tbl) ()
     guard (not $ null rows) <|>
-      compileErrorIO lchan
+      compileError lchan
       ("getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl)
     let columnId = TableInfo.cid
     let notNullIdxs = map (fromIntegral . columnId) . filter notNull $ rows
@@ -101,7 +101,7 @@ getFields' tmap conn lchan scm tbl = maybeIO ([], []) id $ do
         ++ ", not null columns = " ++ show notNullIdxs
     let getType' ti =
           hoistMaybe (getType (fromList tmap) ti) <|>
-          compileErrorIO lchan
+          compileError lchan
           ("Type mapping is not defined against SQLite3 type: "
            ++ normalizeType (TableInfo.ctype ti))
     types <- mapM getType' rows
@@ -109,5 +109,5 @@ getFields' tmap conn lchan scm tbl = maybeIO ([], []) id $ do
 
 driverSQLite3 :: IConnection conn => Driver conn
 driverSQLite3 =
-    emptyDriver { getFieldsWithMap = getFields' }
+    emptyDriver { getFieldsWithMap = getColumns' }
                 { getPrimaryKey    = getPrimaryKey' }
