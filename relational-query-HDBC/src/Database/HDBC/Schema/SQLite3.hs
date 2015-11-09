@@ -23,7 +23,8 @@ import Data.Map (fromList)
 import Database.HDBC (IConnection, SqlValue)
 import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
-import Database.HDBC.Schema.Driver (TypeMap, LogChan, Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
+import Database.HDBC.Schema.Driver
+  (TypeMap, LogChan, Driver, putVerbose, getFieldsWithMap, getPrimaryKey, emptyDriver)
 import Database.Record.TH (makeRecordPersistableWithSqlTypeDefaultFromDefined)
 import Database.Relational.Schema.SQLite3 (getType, indexInfoQuerySQL, indexListQuerySQL, normalizeColumn,
                                            normalizeType, notNull, tableInfoQuerySQL)
@@ -31,7 +32,6 @@ import Database.Relational.Schema.SQLite3Syscat.IndexInfo (IndexInfo)
 import Database.Relational.Schema.SQLite3Syscat.IndexList (IndexList)
 import Database.Relational.Schema.SQLite3Syscat.TableInfo (TableInfo)
 import Language.Haskell.TH (TypeQ)
-import Language.Haskell.TH.Lib.Extra (reportMessage)
 
 $(makeRecordPersistableWithSqlTypeDefaultFromDefined
   [t| SqlValue |] ''TableInfo)
@@ -45,8 +45,8 @@ $(makeRecordPersistableWithSqlTypeDefaultFromDefined
 logPrefix :: String -> String
 logPrefix = ("SQLite3: " ++)
 
-putLog :: String -> IO ()
-putLog = reportMessage . logPrefix
+putLog :: LogChan -> String -> IO ()
+putLog lchan = putVerbose lchan . logPrefix
 
 compileErrorIO :: String -> IO a
 compileErrorIO =  fail . logPrefix
@@ -62,7 +62,7 @@ getPrimaryKey' conn lchan scm tbl = do
     let primColumns = map (normalizeColumn . TableInfo.name)
                       . filter ((1 ==) . TableInfo.pk) $ tblinfo
     if length primColumns <= 1 then do
-        putLog $ "getPrimaryKey: key=" ++ show primColumns
+        putLog lchan $ "getPrimaryKey: key=" ++ show primColumns
         return primColumns
      else do
         idxlist <- runQuery' conn (indexListQuerySQL scm tbl) ()
@@ -74,7 +74,7 @@ getPrimaryKey' conn lchan scm tbl = do
         let idxInfo = concat . take 1 . filter isPrimaryKey $ idxInfos
         let comp x y = compare (IndexInfo.seqno x) (IndexInfo.seqno y)
         let primColumns' = map IndexInfo.name . sortBy comp $ idxInfo
-        putLog $ "getPrimaryKey: keys=" ++ show primColumns'
+        putLog lchan $ "getPrimaryKey: keys=" ++ show primColumns'
         return primColumns'
 
 getFields' :: IConnection conn
@@ -92,7 +92,7 @@ getFields' tmap conn lchan scm tbl = do
       _  -> return ()
     let columnId = TableInfo.cid
     let notNullIdxs = map (fromIntegral . columnId) . filter notNull $ rows
-    putLog
+    putLog lchan
         $ "getFields: num of columns = " ++ show (length rows)
         ++ ", not null columns = " ++ show notNullIdxs
     let getType' ti = case getType (fromList tmap) ti of
