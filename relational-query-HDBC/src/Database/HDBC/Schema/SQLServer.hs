@@ -17,13 +17,14 @@ module Database.HDBC.Schema.SQLServer (
 import qualified Database.Relational.Schema.SQLServerSyscat.Columns as Columns
 import qualified Database.Relational.Schema.SQLServerSyscat.Types as Types
 
+import Control.Monad.Trans.Class (lift)
 import Data.Map (fromList)
 import Data.Maybe (catMaybes)
 import Database.HDBC (IConnection, SqlValue)
 import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
 import Database.HDBC.Schema.Driver
-  (TypeMap, LogChan, putVerbose,
+  (TypeMap, LogChan, putVerbose, maybeIO,
    Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
 import Database.Record.TH (makeRecordPersistableWithSqlTypeDefaultFromDefined)
 import Database.Relational.Schema.SQLServer (columnTypeQuerySQL, getType, normalizeColumn,
@@ -67,15 +68,15 @@ getFields' :: IConnection conn
            -> String
            -> String
            -> IO ([(String, TypeQ)], [Int])
-getFields' tmap conn lchan scm tbl = do
-    rows <- runQuery' conn columnTypeQuerySQL (scm, tbl)
+getFields' tmap conn lchan scm tbl = maybeIO ([], []) id $ do
+    rows <- lift $ runQuery' conn columnTypeQuerySQL (scm, tbl)
     case rows of
-      [] -> compileErrorIO
+      [] -> lift . compileErrorIO
             $ "getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl
       _  -> return ()
     let columnId ((cols,_),_) = Columns.columnId cols - 1
     let notNullIdxs = map (fromIntegral . columnId) . filter notNull $ rows
-    putLog lchan
+    lift . putLog lchan
         $ "getFields: num of columns = " ++ show (length rows)
         ++ ", not null columns = " ++ show notNullIdxs
     let getType' rec@((_,typs),typScms) = case getType (fromList tmap) rec of
@@ -83,7 +84,7 @@ getFields' tmap conn lchan scm tbl = do
                      $ "Type mapping is not defined against SQLServer type: "
                      ++ typScms ++ "." ++ Types.name typs
           Just p  -> return p
-    types <- mapM getType' rows
+    types <- lift $ mapM getType' rows
     return (types, notNullIdxs)
 
 driverSQLServer :: IConnection conn => Driver conn
