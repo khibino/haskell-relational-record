@@ -49,8 +49,8 @@ logPrefix = ("SQLServer: " ++)
 putLog :: LogChan -> String -> IO ()
 putLog lchan = putVerbose lchan . logPrefix
 
-compileErrorIO :: LogChan -> String -> MaybeT IO a
-compileErrorIO lchan = failWith lchan . logPrefix
+compileError :: LogChan -> String -> MaybeT IO a
+compileError lchan = failWith lchan . logPrefix
 
 getPrimaryKey' :: IConnection conn
                => conn
@@ -64,17 +64,17 @@ getPrimaryKey' conn lchan scm tbl = do
     putLog lchan $ "getPrimaryKey: keys=" ++ show primColumns
     return primColumns
 
-getFields' :: IConnection conn
-           => TypeMap
-           -> conn
-           -> LogChan
-           -> String
-           -> String
-           -> IO ([(String, TypeQ)], [Int])
-getFields' tmap conn lchan scm tbl = maybeIO ([], []) id $ do
+getColumns' :: IConnection conn
+            => TypeMap
+            -> conn
+            -> LogChan
+            -> String
+            -> String
+            -> IO ([(String, TypeQ)], [Int])
+getColumns' tmap conn lchan scm tbl = maybeIO ([], []) id $ do
     rows <- lift $ runQuery' conn columnTypeQuerySQL (scm, tbl)
     guard (not $ null rows) <|>
-      compileErrorIO lchan
+      compileError lchan
       ("getFields: No columns found: schema = " ++ scm ++ ", table = " ++ tbl)
     let columnId ((cols,_),_) = Columns.columnId cols - 1
     let notNullIdxs = map (fromIntegral . columnId) . filter notNull $ rows
@@ -83,7 +83,7 @@ getFields' tmap conn lchan scm tbl = maybeIO ([], []) id $ do
         ++ ", not null columns = " ++ show notNullIdxs
     let getType' rec'@((_,typs),typScms) =
           hoistMaybe (getType (fromList tmap) rec') <|>
-          compileErrorIO lchan
+          compileError lchan
           ("Type mapping is not defined against SQLServer type: "
            ++ typScms ++ "." ++ Types.name typs)
     types <- mapM getType' rows
@@ -91,5 +91,5 @@ getFields' tmap conn lchan scm tbl = maybeIO ([], []) id $ do
 
 driverSQLServer :: IConnection conn => Driver conn
 driverSQLServer =
-    emptyDriver { getFieldsWithMap = getFields' }
+    emptyDriver { getFieldsWithMap = getColumns' }
                 { getPrimaryKey    = getPrimaryKey' }
