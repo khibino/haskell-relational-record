@@ -64,8 +64,8 @@ getPrimaryKey' :: IConnection conn
                -> IO [String]
 getPrimaryKey' conn lchan scm tbl = do
     tblinfo <- runQuery' conn (tableInfoQuerySQL scm tbl) ()
-    let primColumns = map (normalizeColumn . TableInfo.name)
-                      . filter ((1 ==) . TableInfo.pk) $ tblinfo
+    let primColumns = [ normalizeColumn $ TableInfo.name ti
+                      | ti <- tblinfo, TableInfo.pk ti == 1 ]
     if length primColumns <= 1 then do
         putLog lchan $ "getPrimaryKey: key=" ++ show primColumns
         return primColumns
