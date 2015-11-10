@@ -17,7 +17,7 @@ module Database.HDBC.Schema.SQLServer (
 import qualified Database.Relational.Schema.SQLServerSyscat.Columns as Columns
 import qualified Database.Relational.Schema.SQLServerSyscat.Types as Types
 
-import Control.Applicative ((<|>))
+import Control.Applicative ((<$>), (<|>))
 import Control.Monad (guard)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Maybe (MaybeT)
@@ -59,7 +59,7 @@ getPrimaryKey' :: IConnection conn
                -> String
                -> IO [String]
 getPrimaryKey' conn lchan scm tbl = do
-    prims <- catMaybes `fmap` runQuery' conn primaryKeyQuerySQL (scm,tbl)
+    prims <- catMaybes <$> runQuery' conn primaryKeyQuerySQL (scm,tbl)
     let primColumns = map normalizeColumn prims
     putLog lchan $ "getPrimaryKey: keys=" ++ show primColumns
     return primColumns

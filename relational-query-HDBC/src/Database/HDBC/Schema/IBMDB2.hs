@@ -24,7 +24,7 @@ import Language.Haskell.TH (TypeQ)
 import qualified Data.List as List
 import Data.Char (toUpper)
 import Data.Map (fromList)
-import Control.Applicative ((<|>))
+import Control.Applicative ((<$>), (<|>))
 import Control.Monad (guard)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Maybe (MaybeT)
@@ -69,7 +69,7 @@ getPrimaryKey' conn lchan scm' tbl' = do
   let tbl = map toUpper tbl'
       scm = map toUpper scm'
   primCols <- runQuery' conn primaryKeyQuerySQL (scm, tbl)
-  let primaryKeyCols = normalizeColumn `fmap` primCols
+  let primaryKeyCols = normalizeColumn <$> primCols
   putLog lchan $ "getPrimaryKey: primary key = " ++ show primaryKeyCols
 
   return primaryKeyCols
