@@ -1,6 +1,15 @@
 {-# OPTIONS_GHC -fno-warn-orphans  #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+
+-- |
+-- Module      : Database.HDBC.Schema.MySQL
+-- Copyright   : 2013 Sho KURODA
+-- License     : BSD3
+--
+-- Maintainer  : krdlab@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
 module Database.HDBC.Schema.MySQL
     (
       driverMySQL

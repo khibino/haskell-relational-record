@@ -107,6 +107,7 @@ getColumns' tmap conn lchan scm tbl = maybeIO ([], []) id $ do
     types <- mapM getType' rows
     return (types, notNullIdxs)
 
+-- | Driver implementation
 driverSQLite3 :: IConnection conn => Driver conn
 driverSQLite3 =
     emptyDriver { getFieldsWithMap = getColumns' }

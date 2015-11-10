@@ -1,6 +1,14 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE TemplateHaskell, MultiParamTypeClasses #-}
 
+-- |
+-- Module      : Database.HDBC.Schema.MySQL
+-- Copyright   : 2013 Shohei Yasutake
+-- License     : BSD3
+--
+-- Maintainer  : amutake.s@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
 module Database.HDBC.Schema.Oracle
     ( driverOracle
     ) where

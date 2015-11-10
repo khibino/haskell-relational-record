@@ -89,6 +89,7 @@ getColumns' tmap conn lchan scm tbl = maybeIO ([], []) id $ do
     types <- mapM getType' rows
     return (types, notNullIdxs)
 
+-- | Driver implementation
 driverSQLServer :: IConnection conn => Driver conn
 driverSQLServer =
     emptyDriver { getFieldsWithMap = getColumns' }
