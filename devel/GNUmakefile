@@ -16,9 +16,14 @@ check:
 	cabal check
 
 wc:
+	make clean-hs
 	test ! -d src || find src -name '*.hs' | xargs wc
 
 clean:
+	make clean-hs
 	cabal clean
 	[ ! -d .debian-build ] || rm -r .debian-build
 	test ! -d src || find src \( -name '*.o' -o -name '*.hi' \) -exec rm {} \;
+
+clean-hs:
+	test ! -d src || find src -name '*_flymake.hs' -exec rm {} \;
