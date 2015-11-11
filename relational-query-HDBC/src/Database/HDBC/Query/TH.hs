@@ -39,7 +39,7 @@ import Language.Haskell.TH.Lib.Extra (reportWarning, reportError, reportMessage)
 
 import Database.Record.TH (makeRecordPersistableWithSqlTypeDefault)
 import qualified Database.Record.TH as Record
-import Database.Relational.Query (Relation, Config, defaultConfig, relationalQuerySQL)
+import Database.Relational.Query (Relation, Config, verboseAsCompilerWarning, defaultConfig, relationalQuerySQL)
 import Database.Relational.Query.SQL (QuerySuffix)
 import qualified Database.Relational.Query.TH as Relational
 
@@ -98,7 +98,7 @@ defineTableFromDB' :: IConnection conn
                    -> Q [Dec]     -- ^ Result declaration
 defineTableFromDB' connect config drv scm tbl derives = do
   let getDBinfo = do
-        logChan  <-  newLogChan {- TODO: should get this flag from config -} False
+        logChan  <-  newLogChan $ verboseAsCompilerWarning config
         infoP    <-  withConnectionIO connect
                      (\conn ->
                        (,)
