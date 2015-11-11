@@ -35,7 +35,7 @@ import Database.HDBC (IConnection, SqlValue, prepare)
 
 import Language.Haskell.TH (Q, runIO, Name, TypeQ, Dec)
 import Language.Haskell.TH.Name.CamelCase (ConName, varCamelcaseName)
-import Language.Haskell.TH.Lib.Extra (reportWarning, reportError, reportMessage)
+import Language.Haskell.TH.Lib.Extra (reportWarning, reportError)
 
 import Database.Record.TH (makeRecordPersistableWithSqlTypeDefault)
 import qualified Database.Record.TH as Record
@@ -143,8 +143,8 @@ inlineVerifiedQuery :: IConnection conn
 inlineVerifiedQuery connect relVar rel config sufs qns = do
   (p, r) <- Relational.reifyRelation relVar
   let sql = relationalQuerySQL config rel sufs
+  when (verboseAsCompilerWarning config) . reportWarning $ "Verify with prepare: " ++ sql
   _ <- runIO $ withConnectionIO connect
        (\conn -> do
-           reportMessage $ "Verify with prepare: " ++ sql
            prepare conn sql)
   Relational.unsafeInlineQuery (return p) (return r) sql (varCamelcaseName qns)
