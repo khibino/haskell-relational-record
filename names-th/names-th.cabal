@@ -1,5 +1,5 @@
 name:                names-th
-version:             0.1.0.1
+version:             0.2.0.0
 synopsis:            Manipulate name strings for TH
 description:         This package includes functions to manipulate name string
                      and extra library functions for Template Haskell.
