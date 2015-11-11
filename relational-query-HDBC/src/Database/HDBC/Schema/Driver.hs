@@ -36,10 +36,12 @@ import Language.Haskell.TH (TypeQ)
 --   Type name string depends on specification of DBMS system catalogs.
 type TypeMap = [(String, TypeQ)]
 
+-- | Log string type for compile time.
 data Log
   = Warning String
   | Error String
 
+-- | Folding operation of 'Log' type.
 runLog :: (String -> t) -> (String -> t) -> Log -> t
 runLog wf ef = d  where
   d (Warning m) = wf m
@@ -52,10 +54,12 @@ data LogChan =
   , verboseAsWarning :: Bool
   }
 
+-- | Build and return a new instance of 'LogChan'.
 newLogChan :: Bool -> IO LogChan
 newLogChan v =
   LogChan <$> newIORef mempty <*> pure v
 
+-- | Take all logs list from channel.
 takeLogs :: LogChan -> IO [Log]
 takeLogs lchan = do
   xs <- readIORef $ chan lchan
@@ -65,12 +69,15 @@ takeLogs lchan = do
 putLog :: LogChan -> Log -> IO ()
 putLog lchan m = chan lchan `modifyIORef` (<> pure m)
 
+-- | Push a warning string into 'LogChan'.
 putWarning :: LogChan -> String -> IO ()
 putWarning lchan = putLog lchan . Warning
 
+-- | Push an error string into 'LogChan'.
 putError :: LogChan -> String -> IO ()
 putError lchan = putLog lchan . Warning
 
+-- | Push an error string into 'LogChan' and return failed context.
 failWith :: LogChan -> String -> MaybeT IO a
 failWith lchan m = do
   lift $ putError lchan m
@@ -79,12 +86,14 @@ failWith lchan m = do
 hoistM :: MonadPlus m => Maybe a -> m a
 hoistM = maybe mzero return
 
+-- | Hoist from 'Maybe' context into 'MaybeT'.
 hoistMaybe :: Monad m => Maybe a -> MaybeT m a
 hoistMaybe = hoistM
 
 maybeT :: Functor f => b -> (a -> b) -> MaybeT f a -> f b
 maybeT zero f = (maybe zero f <$>) . runMaybeT
 
+-- | Run 'MaybeT' with default value.
 maybeIO :: b -> (a -> b) -> MaybeT IO a -> IO b
 maybeIO = maybeT
 
