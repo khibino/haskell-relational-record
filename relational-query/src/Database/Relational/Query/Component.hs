@@ -102,10 +102,11 @@ data Config =
 
 -- | Default configuration.
 defaultConfig :: Config
-defaultConfig =  Config { productUnitSupport   =  PUSupported
-                        , chunksInsertSize     =  256
-                        , normalizedTableName  =  True
-                        }
+defaultConfig =
+  Config { productUnitSupport   =  PUSupported
+         , chunksInsertSize     =  256
+         , normalizedTableName  =  True
+         }
 
 -- | Unit of product is supported or not.
 data ProductUnitSupport = PUSupported | PUNotSupported  deriving Show
