@@ -29,7 +29,7 @@ module Database.HDBC.Query.TH (
 import Data.Maybe (listToMaybe, fromMaybe)
 import qualified Data.Map as Map
 import Control.Applicative ((<$>), (<*>))
-import Control.Monad (when)
+import Control.Monad (when, void)
 
 import Database.HDBC (IConnection, SqlValue, prepare)
 
@@ -144,7 +144,5 @@ inlineVerifiedQuery connect relVar rel config sufs qns = do
   (p, r) <- Relational.reifyRelation relVar
   let sql = relationalQuerySQL config rel sufs
   when (verboseAsCompilerWarning config) . reportWarning $ "Verify with prepare: " ++ sql
-  _ <- runIO $ withConnectionIO connect
-       (\conn -> do
-           prepare conn sql)
+  void . runIO $ withConnectionIO connect (\conn -> prepare conn sql)
   Relational.unsafeInlineQuery (return p) (return r) sql (varCamelcaseName qns)
