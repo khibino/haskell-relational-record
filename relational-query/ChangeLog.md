@@ -1,3 +1,7 @@
+## 0.6.1.0
+
+- Add a configuration flag to pring verbose compile-time messages.
+
 ## 0.6.0.0
 
 - Increase type safety of interfaces.
