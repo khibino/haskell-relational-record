@@ -26,7 +26,7 @@ import Database.Relational.Query.Projection (Projection)
 import Database.Relational.Query.Monad.Class (MonadQualify(..))
 import Database.Relational.Query.Monad.Trans.Restricting
   (Restrictings, restrictings, extractRestrict)
-import Database.Relational.Query.Monad.Type (ConfigureQuery, configureQuery)
+import Database.Relational.Query.Monad.BaseType (ConfigureQuery, configureQuery)
 
 
 -- | Restrict only monad type used from update statement and delete statement.

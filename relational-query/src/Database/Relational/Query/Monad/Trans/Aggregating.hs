@@ -13,24 +13,20 @@
 --
 -- This module defines monad transformer which lift
 -- from 'MonadQuery' into Aggregated query.
-module Database.Relational.Query.Monad.Trans.Aggregating (
-  -- * Transformer into aggregated query
-  Aggregatings, aggregatings,
+module Database.Relational.Query.Monad.Trans.Aggregating
+       ( -- * Transformer into aggregated query
+         Aggregatings, aggregatings,
 
-  AggregatingSetT, AggregatingSetListT, AggregatingPowerSetT, PartitioningSetT,
+         AggregatingSetT, AggregatingSetListT, AggregatingPowerSetT, PartitioningSetT,
 
-  -- * Result
-  extractAggregateTerms,
+         -- * Result
+         extractAggregateTerms,
 
-  -- * Grouping sets support
-  AggregateKey,
-
-  groupBy',
-
-  AggregatingSet, AggregatingPowerSet,  AggregatingSetList, PartitioningSet,
-  key, key', set,
-  bkey, rollup, cube, groupingSets
-  ) where
+         -- * Grouping sets support
+         AggregatingSet, AggregatingPowerSet,  AggregatingSetList, PartitioningSet,
+         key, key', set,
+         bkey, rollup, cube, groupingSets,
+       ) where
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Writer (WriterT, runWriterT, tell)
@@ -43,12 +39,13 @@ import Data.Functor.Identity (Identity (runIdentity))
 import Database.Relational.Query.Context (Flat, Aggregated, Set, Power, SetList)
 import Database.Relational.Query.Component
   (AggregateColumnRef, AggregateElem, aggregateColumnRef, AggregateSet, aggregateGroupingSet,
-   AggregateBitKey, aggregatePowerKey, aggregateRollup, aggregateCube, aggregateSets)
+   AggregateBitKey, aggregatePowerKey, aggregateRollup, aggregateCube, aggregateSets,
+   AggregateKey, aggregateKeyProjection, aggregateKeyElement, unsafeAggregateKey)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
 import Database.Relational.Query.Monad.Class
-  (MonadRestrict(..), MonadQuery(..), MonadAggregate(..), MonadPartition(..))
+  (MonadQualify (..), MonadRestrict(..), MonadQuery(..), MonadAggregate(..), MonadPartition(..))
 
 
 -- | Type to accumulate aggregating context.
@@ -79,38 +76,39 @@ type PartitioningSetT c   = Aggregatings c         AggregateColumnRef
 instance MonadRestrict c m => MonadRestrict c (AggregatingSetT m) where
   restrict =  aggregatings . restrict
 
+-- | Aggregated 'MonadQualify'.
+instance MonadQualify q m => MonadQualify q (AggregatingSetT m) where
+  liftQualify = aggregatings . liftQualify
+
 -- | Aggregated 'MonadQuery'.
 instance MonadQuery m => MonadQuery (AggregatingSetT m) where
   setDuplication     = aggregatings . setDuplication
   restrictJoin       = aggregatings . restrictJoin
-  unsafeSubQuery na  = aggregatings . unsafeSubQuery na
+  query'             = aggregatings . query'
+  queryMaybe'        = aggregatings . queryMaybe'
 
 unsafeAggregateWithTerm :: Monad m => at -> Aggregatings ac at m ()
 unsafeAggregateWithTerm =  Aggregatings . tell . pure
 
+aggregateKey :: Monad m => AggregateKey a -> Aggregatings ac AggregateElem m a
+aggregateKey k = do
+  unsafeAggregateWithTerm $ aggregateKeyElement k
+  return $ aggregateKeyProjection k
+
 -- | Aggregated query instance.
 instance MonadQuery m => MonadAggregate (AggregatingSetT m) where
-  unsafeAddAggregateElement = unsafeAggregateWithTerm
+  groupBy p = do
+    mapM_ unsafeAggregateWithTerm [ aggregateColumnRef col | col <- Projection.columns p]
+    return $ Projection.unsafeToAggregated p
+  groupBy'  = aggregateKey
 
 -- | Partition clause instance
-instance Monad m => MonadPartition (PartitioningSetT c m) where
-  unsafeAddPartitionKey = unsafeAggregateWithTerm
+instance Monad m => MonadPartition c (PartitioningSetT c m) where
+  partitionBy =  mapM_ unsafeAggregateWithTerm . Projection.columns
 
 -- | Run 'Aggregatings' to get terms list.
 extractAggregateTerms :: (Monad m, Functor m) => Aggregatings ac at m a -> m (a, [at])
 extractAggregateTerms (Aggregatings ac) = second toList <$> runWriterT ac
-
-
--- | Typeful aggregate element.
-newtype AggregateKey a = AggregateKey (a, AggregateElem)
-
--- | Add /GROUP BY/ element into context and get aggregated projection.
-groupBy' :: MonadAggregate m
-         => AggregateKey a
-         -> m a
-groupBy' (AggregateKey (p, c)) = do
-  unsafeAddAggregateElement c
-  return p
 
 extractTermList :: Aggregatings ac at Identity a -> (a, [at])
 extractTermList =  runIdentity . extractAggregateTerms
@@ -137,9 +135,7 @@ key p = do
 -- | Specify key of single grouping set.
 key' :: AggregateKey a
      -> AggregatingSet a
-key' (AggregateKey (p, c)) = do
-  unsafeAggregateWithTerm c
-  return p
+key' = aggregateKey
 
 -- | Finalize and specify single grouping set.
 set :: AggregatingSet a
@@ -158,7 +154,7 @@ bkey p = do
 
 finalizePower :: ([AggregateBitKey] -> AggregateElem)
               -> AggregatingPowerSet a -> AggregateKey a
-finalizePower finalize pow = AggregateKey . second finalize . extractTermList $ pow
+finalizePower finalize pow = unsafeAggregateKey . second finalize . extractTermList $ pow
 
 -- | Finalize grouping power set as rollup power set.
 rollup :: AggregatingPowerSet a -> AggregateKey a
@@ -170,4 +166,4 @@ cube   =  finalizePower aggregateCube
 
 -- | Finalize grouping set list.
 groupingSets :: AggregatingSetList a -> AggregateKey a
-groupingSets =  AggregateKey . second aggregateSets . extractTermList
+groupingSets =  unsafeAggregateKey . second aggregateSets . extractTermList

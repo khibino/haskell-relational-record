@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 -- |
@@ -11,26 +12,23 @@
 -- Portability : unknown
 --
 -- This module defines query building interface classes.
-module Database.Relational.Query.Monad.Class (
-  -- * Query interface classes
-  MonadQualify (..), MonadQualifyUnique(..), MonadRestrict (..),
-  MonadQuery (..), MonadAggregate (..), MonadPartition (..),
+module Database.Relational.Query.Monad.Class
+       ( -- * Query interface classes
+         MonadQualify (..), MonadRestrict (..),
+         MonadQuery (..), MonadAggregate (..), MonadPartition (..),
 
-  all', distinct,
-  onE, on, wheresE, wheres,
-  groupBy,
-  havingE, having
-  ) where
+         all', distinct,
+         onE, on, wheresE, wheres,
+         havingE, having,
+       ) where
 
 import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Expr (Expr)
-import Database.Relational.Query.Component
-  (Duplication (..), AggregateElem, AggregateColumnRef, aggregateColumnRef)
+import Database.Relational.Query.Component (Duplication (..), AggregateKey)
 import Database.Relational.Query.Projection (Projection, predicateProjectionFromExpr)
-import qualified Database.Relational.Query.Projection as Projection
-import Database.Relational.Query.Sub (SubQuery, Qualified)
+import Database.Relational.Query.Projectable (PlaceHolders)
+import Database.Relational.Query.Monad.BaseType (ConfigureQuery, Relation)
 
-import Database.Relational.Query.Internal.Product (NodeAttr)
 
 -- | Restrict context interface
 class (Functor m, Monad m) => MonadRestrict c m where
@@ -39,16 +37,17 @@ class (Functor m, Monad m) => MonadRestrict c m where
            -> m ()                      -- ^ Restricted query context
 
 -- | Query building interface.
-class (Functor m, Monad m) => MonadQuery m where
+class (Functor m, Monad m, MonadQualify ConfigureQuery m) => MonadQuery m where
   -- | Specify duplication.
   setDuplication :: Duplication -> m ()
   -- | Add restriction to last join.
   restrictJoin :: Projection Flat (Maybe Bool) -- ^ 'Projection' which represent restriction
                -> m ()                         -- ^ Restricted query context
-  -- | Unsafely join sub-query with this query.
-  unsafeSubQuery :: NodeAttr              -- ^ Attribute maybe or just
-                 -> Qualified SubQuery    -- ^ 'SubQuery' to join
-                 -> m (Projection Flat r) -- ^ Result joined context and 'SubQuery' result projection.
+  query' :: Relation p r
+         -> m (PlaceHolders p, Projection Flat r)
+
+  queryMaybe' :: Relation p r
+              -> m (PlaceHolders p, Projection Flat (Maybe r))
 
 -- | Lift interface from base qualify monad.
 class (Functor q, Monad q, Functor m, Monad m) => MonadQualify q m where
@@ -56,23 +55,22 @@ class (Functor q, Monad q, Functor m, Monad m) => MonadQualify q m where
   --   Qualify monad qualifies table form 'SubQuery'.
   liftQualify :: q a -> m a
 
--- The only method to lift to QueryUnique.
--- | Lift interface from base qualify monad. Another constraint to support unique query.
-class (Functor q, Monad q, MonadQuery m) => MonadQualifyUnique q m where
-  -- | Lift from qualify monad 'q' into 'MonadQuery' m.
-  --   Qualify monad qualifies table form 'SubQuery'.
-  liftQualifyUnique :: q a -> m a
+instance (Functor q, Monad q) => MonadQualify q q where
+  liftQualify = id
 
 -- | Aggregated query building interface extends 'MonadQuery'.
 class MonadQuery m => MonadAggregate m where
-  -- | Add /group by/ term into context and get aggregated projection.
-  unsafeAddAggregateElement :: AggregateElem -- ^ Grouping element to add into group by clause
-                            -> m ()          -- ^ Result context
+  -- | Add /GROUP BY/ term into context and get aggregated projection.
+  groupBy :: Projection Flat r           -- ^ Projection to add into group by
+          -> m (Projection Aggregated r) -- ^ Result context and aggregated projection
+  -- | Add /GROUP BY/ term into context and get aggregated projection. Non-traditional group-by version.
+  groupBy' :: AggregateKey (Projection Aggregated r)  -- ^ Key to aggretate for non-traditional group-by interface
+           -> m (Projection Aggregated r)             -- ^ Result context and aggregated projection
 
 -- | Window specification building interface.
-class Monad m => MonadPartition m where
-  unsafeAddPartitionKey :: AggregateColumnRef -- ^ Partitioning key to add into partition by clause
-                        -> m ()               -- ^ Result context
+class Monad m => MonadPartition c m where
+  -- | Add /PARTITION BY/ term into context.
+  partitionBy :: Projection c r -> m ()
 
 -- | Specify ALL attribute to query context.
 all' :: MonadQuery m => m ()
@@ -97,14 +95,6 @@ wheresE =  restrict . predicateProjectionFromExpr
 -- | Add restriction to this not aggregated query.
 wheres :: MonadRestrict Flat m => Projection Flat (Maybe Bool) -> m ()
 wheres =  restrict
-
--- | Add /GROUP BY/ term into context and get aggregated projection.
-groupBy :: MonadAggregate m
-        => Projection Flat r           -- ^ Projection to add into group by
-        -> m (Projection Aggregated r) -- ^ Result context and aggregated projection
-groupBy p = do
-  mapM_ unsafeAddAggregateElement [ aggregateColumnRef col | col <- Projection.columns p]
-  return $ Projection.unsafeToAggregated p
 
 -- | Add restriction to this aggregated query. Expr type version.
 havingE :: MonadRestrict Aggregated m => Expr Aggregated (Maybe Bool) -> m ()

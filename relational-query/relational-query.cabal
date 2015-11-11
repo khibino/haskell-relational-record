@@ -1,5 +1,5 @@
 name:                relational-query
-version:             0.5.1.1
+version:             0.6.0.0
 synopsis:            Typeful, Modular, Relational, algebraic query engine
 description:         This package contiains typeful relation structure and
                      relational-algebraic query building DSL which can
@@ -39,6 +39,7 @@ library
                        Database.Relational.Query.Component
                        Database.Relational.Query.Sub
                        Database.Relational.Query.Projection
+                       Database.Relational.Query.Monad.BaseType
                        Database.Relational.Query.Monad.Class
                        Database.Relational.Query.Monad.Trans.Ordering
                        Database.Relational.Query.Monad.Trans.Aggregating

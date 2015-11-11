@@ -15,9 +15,10 @@
 -- Referencing the local projections may cause to break
 -- the result query.
 -- It is possible to controls injection of previous local projections
--- by restricting domain type of arrow. This idea is imported from Opaleye.
--- (https://github.com/tomjaguarpaw/haskell-opaleye,
---  https://github.com/khibino/haskell-relational-record/issues/19).
+-- by restricting domain type of arrow. This idea is imported from Opaleye:
+--
+--   * <https://github.com/tomjaguarpaw/haskell-opaleye>
+--   * <https://github.com/khibino/haskell-relational-record/issues/19>
 --
 -- Importing this module instead of "Database.Relational.Query" enables
 -- to build query using arrow combinators.
@@ -77,9 +78,8 @@ import Database.Relational.Query hiding
    QuerySimple, QueryAggregate, QueryUnique, Window,
    UpdateTargetContext, RestrictionContext)
 import qualified Database.Relational.Query as Monadic
-import Database.Relational.Query.Monad.Class (MonadQualifyUnique)
 import Database.Relational.Query.Projection (ListProjection)
-import Database.Relational.Query.Monad.Trans.Aggregating (AggregateKey)
+import Database.Relational.Query.Component (AggregateKey)
 import qualified Database.Relational.Query.Monad.Trans.Aggregating as Monadic
 import qualified Database.Relational.Query.Monad.Trans.Ordering as Monadic
 import qualified Database.Relational.Query.Monad.Trans.Assigning as Monadic
@@ -255,16 +255,14 @@ queryScalarU' r = unsafeQueryScalar' $ \() -> r
 
 -- | Same as 'Monadic.uniqueQuery''. Arrow version.
 --   The result arrow is not injected by local projections.
-uniqueQuery' :: MonadQualifyUnique ConfigureQuery m
-             => UniqueRelation p c r
-             -> QueryA m () (PlaceHolders p, Projection c r)
+uniqueQuery' :: UniqueRelation p c r
+             -> QueryA Monadic.QueryUnique () (PlaceHolders p, Projection c r)
 uniqueQuery' r = queryA $ \() -> Monadic.uniqueQuery' r
 
 -- | Same as 'Monadic.uniqueQueryMaybe''. Arrow version.
 --   The result arrow is not injected by local projections.
-uniqueQueryMaybe' :: MonadQualifyUnique ConfigureQuery m
-                  => UniqueRelation p c r
-                  -> QueryA m () (PlaceHolders p, Projection c (Maybe r))
+uniqueQueryMaybe' :: UniqueRelation p c r
+                  -> QueryA Monadic.QueryUnique () (PlaceHolders p, Projection c (Maybe r))
 uniqueQueryMaybe' r = queryA $ \() -> Monadic.uniqueQueryMaybe' r
 
 -- | Same as 'Monadic.on'. Arrow version.
@@ -329,7 +327,7 @@ uniqueRelation' = runAofM Monadic.uniqueRelation'
 
 -- | Same as 'Monadic.groupBy''.
 --   This arrow is designed to be injected by local 'AggregateKey'.
-groupBy' :: MonadAggregate m => QueryA m (AggregateKey a) a
+groupBy' :: MonadAggregate m => QueryA m (AggregateKey (Projection Aggregated r)) (Projection Aggregated r)
 groupBy' = queryA Monadic.groupBy'
 
 -- | Same as 'Monadic.key'.

@@ -43,7 +43,8 @@ import Data.Monoid ((<>))
 import Database.Record (PersistableWidth)
 
 import Database.Relational.Query.Internal.SQL (showStringSQL)
-import Database.Relational.Query.Relation (Relation, sqlFromRelationWith, tableOf)
+import Database.Relational.Query.Monad.BaseType (Relation, sqlFromRelationWith)
+import Database.Relational.Query.Relation (tableOf)
 import Database.Relational.Query.Effect
   (Restriction, RestrictionContext, restriction',
    UpdateTarget, UpdateTargetContext, updateTarget', liftTargetAllColumn',
