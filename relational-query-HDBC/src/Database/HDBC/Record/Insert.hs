@@ -85,6 +85,7 @@ chunks n = rec'  where
       (c, tl) = splitAt n xs
 
 -- | Prepare and insert with chunk insert statement. Result is insert action list.
+{-# DEPRECATED chunksInsertActions "Difficult to release around prepared statement resources." #-}
 chunksInsertActions :: (IConnection conn, ToSql SqlValue a)
                     => conn
                     -> Insert a
