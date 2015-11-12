@@ -12,7 +12,9 @@
 -- This module provides typed statement running sequence
 -- which intermediate structres are typed.
 module Database.HDBC.Record.Statement (
-  PreparedStatement, untypePrepared, unsafePrepare,
+  PreparedStatement, untypePrepared, unsafePrepare, finish,
+
+  withUnsafePrepare, withPrepareNoFetch,
 
   BoundStatement (..), bind', bind, bindTo,
 
@@ -21,6 +23,7 @@ module Database.HDBC.Record.Statement (
   prepareNoFetch, executeNoFetch, runPreparedNoFetch, runNoFetch, mapNoFetch
   ) where
 
+import Control.Exception (bracket)
 import Database.Relational.Query (UntypeableNoFetch (untypeNoFetch))
 import Database.HDBC (IConnection, Statement, SqlValue)
 import qualified Database.HDBC as HDBC
@@ -72,6 +75,30 @@ prepareNoFetch :: (UntypeableNoFetch s, IConnection conn)
                -> IO (PreparedStatement p ())
 prepareNoFetch conn = unsafePrepare conn . untypeNoFetch
 
+-- | Close PreparedStatement. Useful for connection pooling cases.
+finish :: PreparedStatement p a -> IO ()
+finish = HDBC.finish . prepared
+
+-- | Bracketed prepare operation.
+--   Unsafely make Typed prepared statement.
+withUnsafePrepare :: IConnection conn
+                  => conn   -- ^ Database connection
+                  -> String -- ^ Raw SQL String
+                  -> (PreparedStatement p a -> IO b)
+                  -> IO b
+withUnsafePrepare conn qs =
+  bracket (unsafePrepare conn qs) finish
+
+-- | Bracketed prepare operation.
+--   Generalized prepare inferred from 'UntypeableNoFetch' instance.
+withPrepareNoFetch :: (UntypeableNoFetch s, IConnection conn)
+                   => conn
+                   -> s p
+                   -> (PreparedStatement p () -> IO a)
+                   -> IO a
+withPrepareNoFetch conn s =
+  bracket (prepareNoFetch conn s) finish
+
 -- | Typed operation to bind parameters.
 bind' :: RecordToSql SqlValue p -- ^ Proof object to convert from parameter type 'p' into 'SqlValue' list.
       -> PreparedStatement p a  -- ^ Prepared query to bind to
@@ -111,7 +138,7 @@ runNoFetch :: (UntypeableNoFetch s, IConnection conn, ToSql SqlValue a)
            -> s a
            -> a
            -> IO Integer
-runNoFetch conn s p = prepareNoFetch conn s >>= (`runPreparedNoFetch` p)
+runNoFetch conn s p = withPrepareNoFetch conn s (`runPreparedNoFetch` p)
 
 -- | Prepare and run it against each parameter list.
 mapNoFetch :: (UntypeableNoFetch s, IConnection conn, ToSql SqlValue a)
@@ -119,6 +146,5 @@ mapNoFetch :: (UntypeableNoFetch s, IConnection conn, ToSql SqlValue a)
            -> s a
            -> [a]
            -> IO [Integer]
-mapNoFetch conn s rs = do
-  ps <- prepareNoFetch conn s
-  mapM (runPreparedNoFetch ps) rs
+mapNoFetch conn s rs =
+  withPrepareNoFetch conn s (\ps -> mapM (runPreparedNoFetch ps) rs)
