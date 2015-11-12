@@ -14,13 +14,14 @@
 module Database.HDBC.Record.KeyUpdate (
   PreparedKeyUpdate,
 
-  prepare, prepareKeyUpdate,
+  prepare, prepareKeyUpdate, withPrepareKeyUpdate,
 
   bindKeyUpdate,
 
   runPreparedKeyUpdate, runKeyUpdate
   ) where
 
+import Control.Exception (bracket)
 import Database.HDBC (IConnection, SqlValue, Statement)
 import qualified Database.HDBC as HDBC
 
@@ -59,6 +60,19 @@ prepareKeyUpdate :: IConnection conn
                  -> IO (PreparedKeyUpdate p a)
 prepareKeyUpdate =  prepare
 
+-- | Bracketed prepare operation.
+withPrepareKeyUpdate :: IConnection conn
+                     => conn
+                     -> KeyUpdate p a
+                     -> (PreparedKeyUpdate p a -> IO b)
+                     -> IO b
+withPrepareKeyUpdate conn ku body =
+    bracket (HDBC.prepare conn sql) HDBC.finish
+    $ body . PreparedKeyUpdate key
+  where
+    sql = untypeKeyUpdate ku
+    key = Query.updateKey ku
+
 -- | Typed operation to bind parameters for 'PreparedKeyUpdate' type.
 bindKeyUpdate :: ToSql SqlValue a
               => PreparedKeyUpdate p a
@@ -82,4 +96,4 @@ runKeyUpdate :: (IConnection conn, ToSql SqlValue a)
              -> KeyUpdate p a
              -> a
              -> IO Integer
-runKeyUpdate conn q a = prepareKeyUpdate conn q >>= (`runPreparedKeyUpdate` a)
+runKeyUpdate conn q a = withPrepareKeyUpdate conn q (`runPreparedKeyUpdate` a)
