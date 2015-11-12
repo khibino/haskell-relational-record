@@ -12,7 +12,7 @@
 -- This module provides typed 'InsertQuery' running sequence
 -- which intermediate structres are typed.
 module Database.HDBC.Record.InsertQuery (
-  PreparedInsertQuery, prepare, prepareInsertQuery,
+  PreparedInsertQuery, prepare, prepareInsertQuery, withPrepareInsertQuery,
 
   runPreparedInsertQuery, runInsertQuery
   ) where
@@ -23,7 +23,7 @@ import Database.Relational.Query (InsertQuery)
 import Database.Record (ToSql)
 
 import Database.HDBC.Record.Statement
-  (prepareNoFetch, PreparedStatement, runPreparedNoFetch, runNoFetch)
+  (prepareNoFetch, withPrepareNoFetch, PreparedStatement, runPreparedNoFetch, runNoFetch)
 
 -- | Typed prepared insert query type.
 type PreparedInsertQuery p = PreparedStatement p ()
@@ -41,6 +41,14 @@ prepareInsertQuery :: IConnection conn
                    -> InsertQuery p
                    -> IO (PreparedInsertQuery p)
 prepareInsertQuery = prepare
+
+-- | Bracketed prepare operation.
+withPrepareInsertQuery :: IConnection conn
+                       => conn
+                       -> InsertQuery p
+                       -> (PreparedInsertQuery p -> IO a)
+                       -> IO a
+withPrepareInsertQuery = withPrepareNoFetch
 
 -- | Bind parameters, execute statement and get execution result.
 runPreparedInsertQuery :: ToSql SqlValue p

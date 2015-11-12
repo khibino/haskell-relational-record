@@ -12,7 +12,7 @@
 -- This module provides typed 'Delete' running sequence
 -- which intermediate structres are typed.
 module Database.HDBC.Record.Delete (
-  PreparedDelete, prepare, prepareDelete,
+  PreparedDelete, prepare, prepareDelete, withPrepareDelete,
 
   runPreparedDelete, runDelete
   ) where
@@ -23,7 +23,7 @@ import Database.Relational.Query (Delete)
 import Database.Record (ToSql)
 
 import Database.HDBC.Record.Statement
-  (prepareNoFetch, PreparedStatement, runPreparedNoFetch, runNoFetch)
+  (prepareNoFetch, withPrepareNoFetch, PreparedStatement, runPreparedNoFetch, runNoFetch)
 
 
 -- | Typed prepared delete type.
@@ -42,6 +42,14 @@ prepareDelete :: IConnection conn
               -> Delete p
               -> IO (PreparedDelete p)
 prepareDelete = prepare
+
+-- | Bracketed prepare operation.
+withPrepareDelete :: IConnection conn
+              => conn
+              -> Delete p
+              -> (PreparedDelete p -> IO a)
+              -> IO a
+withPrepareDelete = withPrepareNoFetch
 
 -- | Bind parameters, execute statement and get execution result.
 runPreparedDelete :: ToSql SqlValue p

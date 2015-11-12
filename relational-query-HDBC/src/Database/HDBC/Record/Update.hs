@@ -12,7 +12,7 @@
 -- This module provides typed 'Update' running sequence
 -- which intermediate structres are typed.
 module Database.HDBC.Record.Update (
-  PreparedUpdate, prepare, prepareUpdate,
+  PreparedUpdate, prepare, prepareUpdate, withPrepareUpdate,
 
   runPreparedUpdate, runUpdate, mapUpdate
   ) where
@@ -23,7 +23,7 @@ import Database.Relational.Query (Update)
 import Database.Record (ToSql)
 
 import Database.HDBC.Record.Statement
-  (prepareNoFetch, PreparedStatement, runPreparedNoFetch, runNoFetch, mapNoFetch)
+  (prepareNoFetch, withPrepareNoFetch, PreparedStatement, runPreparedNoFetch, runNoFetch, mapNoFetch)
 
 
 -- | Typed prepared update type.
@@ -42,6 +42,14 @@ prepareUpdate :: IConnection conn
               -> Update p
               -> IO (PreparedUpdate p)
 prepareUpdate =  prepare
+
+-- | Bracketed prepare operation.
+withPrepareUpdate :: IConnection conn
+                  => conn
+                  -> Update p
+                  -> (PreparedUpdate p -> IO a)
+                  -> IO a
+withPrepareUpdate = withPrepareNoFetch
 
 -- | Bind parameters, execute statement and get execution result.
 runPreparedUpdate :: ToSql SqlValue p
