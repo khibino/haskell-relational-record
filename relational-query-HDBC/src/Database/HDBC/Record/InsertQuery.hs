@@ -19,11 +19,11 @@ module Database.HDBC.Record.InsertQuery (
 
 import Database.HDBC (IConnection, SqlValue)
 
-import Database.Relational.Query (InsertQuery, untypeInsertQuery)
+import Database.Relational.Query (InsertQuery)
 import Database.Record (ToSql)
 
 import Database.HDBC.Record.Statement
-  (unsafePrepare, PreparedStatement, runPreparedNoFetch)
+  (prepareNoFetch, PreparedStatement, runPreparedNoFetch)
 
 -- | Typed prepared insert query type.
 type PreparedInsertQuery p = PreparedStatement p ()
@@ -33,7 +33,7 @@ prepare :: IConnection conn
         => conn
         -> InsertQuery p
         -> IO (PreparedInsertQuery p)
-prepare conn = unsafePrepare conn . untypeInsertQuery
+prepare = prepareNoFetch
 
 -- | Same as 'prepare'.
 prepareInsertQuery :: IConnection conn
