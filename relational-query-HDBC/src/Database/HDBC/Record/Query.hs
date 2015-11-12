@@ -12,7 +12,7 @@
 -- This module provides typed 'Query' running sequence
 -- which intermediate structres are typed.
 module Database.HDBC.Record.Query (
-  PreparedQuery, prepare, prepareQuery,
+  PreparedQuery, prepare, prepareQuery, withPrepareQuery,
 
   fetch, fetchAll, fetchAll',
   listToUnique, fetchUnique, fetchUnique',
@@ -31,7 +31,7 @@ import Database.Record
   (ToSql, RecordFromSql, FromSql(recordFromSql), runToRecord)
 
 import Database.HDBC.Record.Statement
-  (unsafePrepare, PreparedStatement,
+  (unsafePrepare, withUnsafePrepare, PreparedStatement,
    bind, BoundStatement,
    execute, ExecutedStatement, executed)
 
@@ -52,6 +52,14 @@ prepareQuery :: IConnection conn
              -> Query p a              -- ^ Typed query
              -> IO (PreparedQuery p a) -- ^ Result typed prepared query with parameter type 'p' and result type 'a'
 prepareQuery = prepare
+
+-- | Bracketed prepare operation.
+withPrepareQuery :: IConnection conn
+                 => conn                        -- ^ Database connection
+                 -> Query p a                   -- ^ Typed query
+                 -> (PreparedQuery p a -> IO b) -- ^ Body action to use prepared statement
+                 -> IO b                        -- ^ Result action
+withPrepareQuery conn = withUnsafePrepare conn . untypeQuery
 
 -- | Polymorphic fetch operation.
 fetchRecordsExplicit :: Functor f
@@ -138,4 +146,4 @@ runQuery' :: (IConnection conn, ToSql SqlValue p, FromSql SqlValue a)
           -> Query p a -- ^ Query to get record type 'a' requires parameter 'p'
           -> p         -- ^ Parameter type
           -> IO [a]    -- ^ Action to get records
-runQuery' conn q p = prepare conn q >>= (`runPreparedQuery'` p)
+runQuery' conn q p = withPrepareQuery conn q (`runPreparedQuery'` p)
