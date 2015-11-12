@@ -272,6 +272,9 @@ class UntypeableNoFetch s where
 instance UntypeableNoFetch Insert where
   untypeNoFetch = untypeInsert
 
+instance UntypeableNoFetch InsertQuery where
+  untypeNoFetch = untypeInsertQuery
+
 instance UntypeableNoFetch Update where
   untypeNoFetch = untypeUpdate
 
