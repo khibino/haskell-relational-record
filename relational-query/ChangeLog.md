@@ -1,3 +1,7 @@
+## 0.6.2.0
+
+- Make InsertQuery type as PreparedNoFetch instance.
+
 ## 0.6.1.0
 
 - Add a configuration flag to pring verbose compile-time messages.
