@@ -16,7 +16,7 @@ module Database.HDBC.Record.Insert (
 
   runPreparedInsert, runInsert, mapInsert,
 
-  chunksInsertActions, chunksInsert,
+  chunksInsert,
   ) where
 
 import Database.HDBC (IConnection, SqlValue)
@@ -25,8 +25,8 @@ import Database.Relational.Query (Insert (..))
 import Database.Record (ToSql, fromRecord)
 
 import Database.HDBC.Record.Statement
-  (prepareNoFetch, unsafePrepare, PreparedStatement, untypePrepared, BoundStatement (..),
-   runPreparedNoFetch, runNoFetch, mapNoFetch, executeNoFetch)
+  (prepareNoFetch, withPrepareNoFetch, withUnsafePrepare, PreparedStatement, untypePrepared,
+   BoundStatement (..), runPreparedNoFetch, runNoFetch, mapNoFetch, executeNoFetch)
 
 
 -- | Typed prepared insert type.
@@ -84,25 +84,33 @@ chunks n = rec'  where
     | otherwise  =  Right c : rec' tl  where
       (c, tl) = splitAt n xs
 
--- | Prepare and insert with chunk insert statement. Result is insert action list.
-{-# DEPRECATED chunksInsertActions "Difficult to release around prepared statement resources." #-}
-chunksInsertActions :: (IConnection conn, ToSql SqlValue a)
-                    => conn
-                    -> Insert a
-                    -> [a]
-                    -> IO [ IO [Integer] ]
-chunksInsertActions conn i0 rs = do
-  ins    <- unsafePrepare conn $ untypeInsert i0
-  iChunk <- unsafePrepare conn $ untypeChunkInsert i0
-  let insert (Right c) = do
-        rv <- executeNoFetch $ chunkBind iChunk c
-        return [rv]
-      insert (Left  c) =
-        mapM (runPreparedInsert ins) c
-  return . map insert $ chunks (chunkSizeOfInsert i0) rs
+withPrepareChunksInsert :: (IConnection conn, ToSql SqlValue a)
+                        => conn
+                        -> Insert a
+                        -> (PreparedInsert a -> PreparedStatement [p] () -> Int -> IO b)
+                        -> IO b
+withPrepareChunksInsert conn i0 body =
+  withPrepareNoFetch conn i0
+  (\ins -> withUnsafePrepare conn (untypeChunkInsert i0)
+           (\iChunk -> body ins iChunk $ chunkSizeOfInsert i0)  )
+
+-- Prepare and insert with chunk insert statement.
+chunksInsertActions :: ToSql SqlValue a
+                 => [a]
+                 -> PreparedInsert a
+                 -> PreparedStatement [a] ()
+                 -> Int
+                 -> IO [[Integer]]
+chunksInsertActions rs ins iChunk size =
+    mapM insert $ chunks size rs
+  where
+    insert (Right c) = do
+      rv <- executeNoFetch $ chunkBind iChunk c
+      return [rv]
+    insert (Left  c) =
+      mapM (runPreparedInsert ins) c
 
 -- | Prepare and insert with chunk insert statement.
 chunksInsert :: (IConnection conn, ToSql SqlValue a) => conn -> Insert a -> [a] -> IO [[Integer]]
-chunksInsert conn ins rs = do
-  as <- chunksInsertActions conn ins rs
-  sequence as
+chunksInsert conn ins rs =
+  withPrepareChunksInsert conn ins $ chunksInsertActions rs
