@@ -1,6 +1,8 @@
 
 module Database.PostgreSQL.Parser
-       ( Parser, evalParser
+       ( Parser, runParser, evalParser
+       , eof
+
        , netAddress
        , hostAddress, decMask4
        , v6HostAddress, decMask6
@@ -13,7 +15,7 @@ import Data.Char (isDigit, isHexDigit)
 import Data.Word (Word8, Word16)
 import Numeric (readDec, readHex)
 
-import Text.Parser.List (evalParser, eof, noteP, satisfy', satisfy)
+import Text.Parser.List (runParser, evalParser, eof, noteP, satisfy', satisfy)
 import qualified Text.Parser.List as P
 import Data.PostgreSQL.NetworkAddress (NetAddress (..), HostAddress, V6HostAddress)
 import qualified Data.PostgreSQL.NetworkAddress as D
