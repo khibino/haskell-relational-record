@@ -8,7 +8,7 @@ module Database.Relational.Schema.MySQL
     )
     where
 
-import           Data.Int               (Int32, Int64)
+import           Data.Int               (Int8, Int16, Int32, Int64)
 import           Data.Char              (toLower, toUpper)
 import           Data.Map               (Map, fromList)
 import qualified Data.Map               as Map
@@ -38,6 +38,8 @@ import qualified Database.Relational.Schema.MySQLInfo.TableConstraints  as Tabco
 import           Database.Relational.Schema.MySQLInfo.KeyColumnUsage    (keyColumnUsage)
 import qualified Database.Relational.Schema.MySQLInfo.KeyColumnUsage    as Keycoluse
 
+-- TODO: Need to check unsigned int types to avoid wrong mapping
+
 mapFromSqlDefault :: Map String TypeQ
 mapFromSqlDefault = fromList
     [ ("CHAR",       [t| String |])
@@ -54,8 +56,8 @@ mapFromSqlDefault = fromList
     , ("DATETIME",   [t| LocalTime |])
     , ("TIME",       [t| TimeOfDay |])
     , ("TIMESTAMP",  [t| POSIXTime |])
-    , ("TINYINT",    [t| Int32 |])
-    , ("SMALLINT",   [t| Int32 |])
+    , ("TINYINT",    [t| Int8 |])
+    , ("SMALLINT",   [t| Int16 |])
     , ("MEDIUMINT",  [t| Int32 |])
     , ("INT",        [t| Int32 |])
     , ("INTEGER",    [t| Int32 |])
