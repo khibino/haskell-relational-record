@@ -1,3 +1,7 @@
+## 0.6.3.0
+
+- Add Int8 type as SQL constant int value. (e.g. MySQL)
+
 ## 0.6.2.0
 
 - Make InsertQuery type as PreparedNoFetch instance.
