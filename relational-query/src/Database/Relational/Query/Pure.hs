@@ -21,7 +21,7 @@ module Database.Relational.Query.Pure (
   ) where
 
 import Data.Monoid (mconcat)
-import Data.Int (Int16, Int32, Int64)
+import Data.Int (Int8, Int16, Int32, Int64)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as LB
 import Data.Text (Text)
@@ -78,6 +78,10 @@ class ShowConstantTermsSQL a where
 -- | String interface of 'showConstantTermsSQL''.
 showConstantTermsSQL :: ShowConstantTermsSQL a => a -> [String]
 showConstantTermsSQL =  map showStringSQL . showConstantTermsSQL'
+
+-- | Constant SQL terms of 'Int8'.
+instance ShowConstantTermsSQL Int8 where
+  showConstantTermsSQL' = intTermsSQL
 
 -- | Constant SQL terms of 'Int16'.
 instance ShowConstantTermsSQL Int16 where
