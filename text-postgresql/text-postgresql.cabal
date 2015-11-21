@@ -38,7 +38,7 @@ test-suite pp
   build-depends:         base <5
                        , QuickCheck
                        , quickcheck-simple
-                       , postgresql-text
+                       , text-postgresql
   type:                exitcode-stdio-1.0
   main-is:             ppIso.hs
   hs-source-dirs:      test
