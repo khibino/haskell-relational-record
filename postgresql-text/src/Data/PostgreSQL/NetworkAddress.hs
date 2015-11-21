@@ -29,17 +29,17 @@ type HostAddress = Word32
 
 hostAddress :: Word8 -> Word8 -> Word8 -> Word8 -> HostAddress
 hostAddress a b c d =
-  fromIntegral a `shiftL` 24 .|.
-  fromIntegral b `shiftL` 16 .|.
-  fromIntegral c `shiftL`  8 .|.
-  fromIntegral d
+  fromIntegral a             .|.
+  fromIntegral b `shiftL`  8 .|.
+  fromIntegral c `shiftL` 16 .|.
+  fromIntegral d `shiftL` 24
 
 hostAddressOctets :: HostAddress -> (Word8, Word8, Word8, Word8)
 hostAddressOctets ha =
-    ( getWord8 24,
+    ( getWord8  0,
+      getWord8  8,
       getWord8 16,
-      getWord8 8,
-      getWord8 0 )
+      getWord8 24 )
   where
     getWord8 n = fromIntegral $ (ha `shiftR` n) .&. 0xFF
 
