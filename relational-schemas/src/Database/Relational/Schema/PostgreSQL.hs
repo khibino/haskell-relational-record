@@ -148,6 +148,7 @@ columnRelation = relation' $ do
 
   wheres $ typ ! Type.typcategory' `in'` values [ 'B' -- Boolean types
                                                 , 'D' -- Date/time types
+                                                , 'I' -- Network Address types
                                                 , 'N' -- Numeric types
                                                 , 'S' -- String types
                                                 , 'T' -- typespan types
