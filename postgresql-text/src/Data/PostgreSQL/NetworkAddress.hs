@@ -77,6 +77,6 @@ data NetAddress
   | NetAddress6 !V6HostAddress !Word8
   deriving (Eq, Ord, Show)
 
-newtype Inet = Inet NetAddress
+newtype Inet = Inet NetAddress  deriving (Eq, Ord, Show)
 
-newtype Cidr = Cidr NetAddress
+newtype Cidr = Cidr NetAddress  deriving (Eq, Ord, Show)
