@@ -12,6 +12,8 @@ env:
   - PKG_DIR=HDBC-session
   - PKG_DIR=relational-query-HDBC
   - PKG_DIR=relational-record
+  - PKG_DIR=text-postgresql
+  - PKG_DIR=persistable-types-HDBC-pg
 before_install:
   - date
   - echo $PATH
