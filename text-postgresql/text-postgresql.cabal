@@ -4,16 +4,18 @@
 name:                text-postgresql
 version:             0.0.1.0
 synopsis:            Parser and Printer of PostgreSQL extended types
--- description:
+description:         This package involves parser and printer for
+                     text expressions of PostgreSQL extended types.
+                     - inet type, cidr type
 homepage:            http://khibino.github.io/haskell-relational-record/
 license:             BSD3
 license-file:        LICENSE
 author:              Kei Hibino
 maintainer:          ex8k.hibino@gmail.com
--- copyright:
+copyright:           Copyright (c) 2015 Kei Hibino
 category:            Database
 build-type:          Simple
--- extra-source-files:
+
 cabal-version:       >=1.10
 
 library
@@ -26,7 +28,6 @@ library
                        Text.Parser.List
                        Text.Printer.List
 
-  -- other-extensions:
   build-depends:         base <5
                        , transformers
                        , dlist
