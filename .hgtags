@@ -90,3 +90,4 @@ c0f552b1bb38e233b416ea20ef1ca9f57bd5ffb6 release-relational-query-0_6_2_0
 5fdaa64f12b4c24f013fe4d3ffff24d338620956 release-relational-query-0_6_3_0
 7685d8e0400992d390336c04bc53883bb07449c7 release-relational-schemas-0_1_1_0
 87cebe581b826e56b18988e9ecb40067a1e68ac2 release-relational-query-HDBC-0_3_1_0
+7ca9e60e385cd8f637f2e2ae93ce33b30195074c release-text-postgresql-0_0_1_0
