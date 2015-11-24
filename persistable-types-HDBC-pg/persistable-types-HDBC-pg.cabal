@@ -1,5 +1,5 @@
 name:                persistable-types-HDBC-pg
-version:             0.0.1.0
+version:             0.0.1.1
 synopsis:            HDBC Convertible instances and HRR persistable instances of PostgreSQL extended types
 description:
 homepage:            http://khibino.github.io/haskell-relational-record/
