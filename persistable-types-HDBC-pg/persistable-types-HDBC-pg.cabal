@@ -12,6 +12,11 @@ category:            Database
 build-type:          Simple
 cabal-version:       >=1.10
 
+extra-source-files:
+                     example/inet.sh
+                     example/DS.hs
+                     example/InetExample.hs
+
 library
   exposed-modules:
                        Database.HDBC.PostgreSQL.Instances
