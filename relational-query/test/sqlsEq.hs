@@ -10,6 +10,98 @@ import Data.Int (Int32, Int64)
 import Database.Relational.Query
 
 
+-- Monadic Operators tests
+
+queryX :: Relation () SetA
+queryX = relation $ do
+  a <- query setA
+  return a
+
+queryMaybeX :: Relation () (Maybe SetA)
+queryMaybeX = relation $ do
+  a <- queryMaybe setA
+  return a
+
+onX :: Relation () (Maybe SetA, SetB)
+onX = relation $ do
+  a <- queryMaybe setA
+  b <- query      setB
+  on $ a ?! intA0' .=. just (b ! intB0')
+  return $ (,) |$| a |*| b
+
+wheresX :: Relation () (SetA, SetB)
+wheresX = relation $ do
+  a <- query      setA
+  b <- query      setB
+  wheres $ b ! intB0' .>=. value 3
+  return $ (,) |$| a |*| b
+
+groupByX :: Relation () (Int32, Integer)
+groupByX = aggregateRelation $ do
+  a <- query      setA
+  ga0 <- groupBy $ a ! intA0'
+  return $ (,) |$| ga0 |*| count (a ! intA0')
+
+havingX :: Relation () Int
+havingX = aggregateRelation $ do
+  a <- query      setA
+  let c = count (a ! intA0')
+  having $ c .>. value 1
+  return c
+
+distinctX :: Relation () Int32
+distinctX = relation $ do
+  distinct
+  a <- query      setA
+  return $ a ! intA0'
+
+all'X :: Relation () Int32
+all'X = relation $ do
+  all'
+  a <- query      setA
+  return $ a ! intA0'
+
+assignX :: Update ()
+assignX = derivedUpdate $ \_proj -> do
+  intA0' <-# value (0 :: Int32)
+  return unitPlaceHolder
+
+monadic :: [Test]
+monadic =
+  [ eqProp "query"      queryX
+    "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2 FROM TEST.set_a T0"
+  , eqProp "queryMaybe" queryMaybeX
+    "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2 FROM TEST.set_a T0"
+  , eqProp "on"         onX
+    "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, \
+    \           T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 \
+    \  FROM TEST.set_a T0 RIGHT JOIN TEST.set_b T1 ON (T0.int_a0 = T1.int_b0)"
+  , eqProp "wheres"     wheresX
+    "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, \
+    \           T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 \
+    \  FROM TEST.set_a T0 INNER JOIN TEST.set_b T1 ON (0=0) \
+    \ WHERE (T1.int_b0 >= 3)"
+  , eqProp "groupBy"    groupByX
+    "SELECT ALL T0.int_a0 AS f0, COUNT(T0.int_a0) AS f1 \
+    \  FROM TEST.set_a T0 GROUP BY T0.int_a0"
+  , eqProp "having"     havingX
+    "SELECT ALL COUNT(T0.int_a0) AS f0 FROM TEST.set_a T0 HAVING (COUNT(T0.int_a0) > 1)"
+  , eqProp "distinct"   distinctX
+    "SELECT DISTINCT T0.int_a0 AS f0 FROM TEST.set_a T0"
+  , eqProp "all'"       all'X
+    "SELECT ALL T0.int_a0 AS f0 FROM TEST.set_a T0"
+  , eqProp "update"      assignX
+    "UPDATE TEST.set_a SET int_a0 = 0"
+  ]
+
+_p_monadic :: IO ()
+_p_monadic =
+  mapM_ putStrLn
+  [ show queryX, show queryMaybeX, show onX, show wheresX
+  , show groupByX, show havingX, show distinctX, show all'X
+  , show assignX
+  ]
+
 numBin :: (Projection Flat Int32 -> Projection Flat Int32 -> Projection Flat r) -> Relation () r
 numBin op = relation $ do
   return $ value 5 `op` value 3
@@ -361,7 +453,7 @@ effs =
 
 tests :: [Test]
 tests =
-  concat [ bin, tables, directJoins, join3s, maybes
+  concat [ monadic, bin, tables, directJoins, join3s, maybes
          , groups, orders, partitions, exps, effs]
 
 main :: IO ()
