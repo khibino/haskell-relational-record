@@ -102,31 +102,6 @@ _p_monadic =
   , show assignX
   ]
 
-numBin :: (Projection Flat Int32 -> Projection Flat Int32 -> Projection Flat r) -> Relation () r
-numBin op = relation $ do
-  return $ value 5 `op` value 3
-
-strConcat :: Relation () String
-strConcat = relation $ do
-  return $ value "Hello, " .||. value "World!"
-
-strLike :: Relation () (Maybe Bool)
-strLike = relation $ do
-  return $ value "Hoge" `like` "H%"
-
-_p_numBin :: (Projection Flat Int32 -> Projection Flat Int32 -> Projection Flat r) -> IO ()
-_p_numBin = print . numBin
-
-bin :: [Test]
-bin =
-  [ eqProp "plus"  (numBin (.+.)) "SELECT ALL (5 + 3) AS f0"
-  , eqProp "minus" (numBin (.-.)) "SELECT ALL (5 - 3) AS f0"
-  , eqProp "mult"  (numBin (.*.)) "SELECT ALL (5 * 3) AS f0"
-  , eqProp "div"   (numBin (./.)) "SELECT ALL (5 / 3) AS f0"
-  , eqProp "string concat" strConcat "SELECT ALL ('Hello, ' || 'World!') AS f0"
-  , eqProp "like" strLike "SELECT ALL ('Hoge' LIKE 'H%') AS f0"
-  ]
-
 tables :: [Test]
 tables =
   [ eqProp "setA" setA "SELECT int_a0, str_a1, str_a2 FROM TEST.set_a"
@@ -221,6 +196,31 @@ join3s =
 
 _p_j3s :: IO ()
 _p_j3s =  mapM_ print [show j3left, show j3right]
+
+numBin :: (Projection Flat Int32 -> Projection Flat Int32 -> Projection Flat r) -> Relation () r
+numBin op = relation $ do
+  return $ value 5 `op` value 3
+
+strConcat :: Relation () String
+strConcat = relation $ do
+  return $ value "Hello, " .||. value "World!"
+
+strLike :: Relation () (Maybe Bool)
+strLike = relation $ do
+  return $ value "Hoge" `like` "H%"
+
+_p_numBin :: (Projection Flat Int32 -> Projection Flat Int32 -> Projection Flat r) -> IO ()
+_p_numBin = print . numBin
+
+bin :: [Test]
+bin =
+  [ eqProp "plus"  (numBin (.+.)) "SELECT ALL (5 + 3) AS f0"
+  , eqProp "minus" (numBin (.-.)) "SELECT ALL (5 - 3) AS f0"
+  , eqProp "mult"  (numBin (.*.)) "SELECT ALL (5 * 3) AS f0"
+  , eqProp "div"   (numBin (./.)) "SELECT ALL (5 / 3) AS f0"
+  , eqProp "string concat" strConcat "SELECT ALL ('Hello, ' || 'World!') AS f0"
+  , eqProp "like" strLike "SELECT ALL ('Hoge' LIKE 'H%') AS f0"
+  ]
 
 justX :: Relation () (SetA, Maybe SetB)
 justX =  relation $ do
@@ -453,7 +453,7 @@ effs =
 
 tests :: [Test]
 tests =
-  concat [ monadic, bin, tables, directJoins, join3s, maybes
+  concat [ monadic, tables, directJoins, join3s, bin, maybes
          , groups, orders, partitions, exps, effs]
 
 main :: IO ()
