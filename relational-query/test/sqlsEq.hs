@@ -201,6 +201,9 @@ join3s =
 _p_j3s :: IO ()
 _p_j3s =  mapM_ print [show j3left, show j3right]
 
+
+-- Projection Operators
+
 numBin :: (Projection Flat Int32 -> Projection Flat Int32 -> Projection Flat r) -> Relation () r
 numBin op = relation $ do
   return $ value 5 `op` value 3
@@ -218,10 +221,18 @@ _p_numBin = print . numBin
 
 bin :: [Test]
 bin =
-  [ eqProp "plus"  (numBin (.+.)) "SELECT ALL (5 + 3) AS f0"
+  [ eqProp "equal" (numBin (.=.))  "SELECT ALL (5 = 3) AS f0"
+  , eqProp "lt"    (numBin (.<.))  "SELECT ALL (5 < 3) AS f0"
+  , eqProp "le"    (numBin (.<=.)) "SELECT ALL (5 <= 3) AS f0"
+  , eqProp "gt"    (numBin (.>.))  "SELECT ALL (5 > 3) AS f0"
+  , eqProp "ge"    (numBin (.>=.)) "SELECT ALL (5 >= 3) AS f0"
+  , eqProp "ne"    (numBin (.<>.)) "SELECT ALL (5 <> 3) AS f0"
+
+  , eqProp "plus"  (numBin (.+.)) "SELECT ALL (5 + 3) AS f0"
   , eqProp "minus" (numBin (.-.)) "SELECT ALL (5 - 3) AS f0"
   , eqProp "mult"  (numBin (.*.)) "SELECT ALL (5 * 3) AS f0"
   , eqProp "div"   (numBin (./.)) "SELECT ALL (5 / 3) AS f0"
+
   , eqProp "string concat" strConcat "SELECT ALL ('Hello, ' || 'World!') AS f0"
   , eqProp "like" strLike "SELECT ALL ('Hoge' LIKE 'H%') AS f0"
   ]
