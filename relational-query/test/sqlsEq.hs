@@ -204,8 +204,8 @@ _p_j3s =  mapM_ print [show j3left, show j3right]
 
 -- Projection Operators
 
-numBin :: (Projection Flat Int32 -> Projection Flat Int32 -> Projection Flat r) -> Relation () r
-numBin op = relation $ do
+bin53 :: (Projection Flat Int32 -> Projection Flat Int32 -> Projection Flat r) -> Relation () r
+bin53 op = relation $ do
   return $ value 5 `op` value 3
 
 strConcat :: Relation () String
@@ -216,22 +216,22 @@ strLike :: Relation () (Maybe Bool)
 strLike = relation $ do
   return $ value "Hoge" `like` "H%"
 
-_p_numBin :: (Projection Flat Int32 -> Projection Flat Int32 -> Projection Flat r) -> IO ()
-_p_numBin = print . numBin
+_p_bin53 :: (Projection Flat Int32 -> Projection Flat Int32 -> Projection Flat r) -> IO ()
+_p_bin53 = print . bin53
 
 bin :: [Test]
 bin =
-  [ eqProp "equal" (numBin (.=.))  "SELECT ALL (5 = 3) AS f0"
-  , eqProp "lt"    (numBin (.<.))  "SELECT ALL (5 < 3) AS f0"
-  , eqProp "le"    (numBin (.<=.)) "SELECT ALL (5 <= 3) AS f0"
-  , eqProp "gt"    (numBin (.>.))  "SELECT ALL (5 > 3) AS f0"
-  , eqProp "ge"    (numBin (.>=.)) "SELECT ALL (5 >= 3) AS f0"
-  , eqProp "ne"    (numBin (.<>.)) "SELECT ALL (5 <> 3) AS f0"
+  [ eqProp "equal" (bin53 (.=.))  "SELECT ALL (5 =  3) AS f0"
+  , eqProp "lt"    (bin53 (.<.))  "SELECT ALL (5 <  3) AS f0"
+  , eqProp "le"    (bin53 (.<=.)) "SELECT ALL (5 <= 3) AS f0"
+  , eqProp "gt"    (bin53 (.>.))  "SELECT ALL (5 >  3) AS f0"
+  , eqProp "ge"    (bin53 (.>=.)) "SELECT ALL (5 >= 3) AS f0"
+  , eqProp "ne"    (bin53 (.<>.)) "SELECT ALL (5 <> 3) AS f0"
 
-  , eqProp "plus"  (numBin (.+.)) "SELECT ALL (5 + 3) AS f0"
-  , eqProp "minus" (numBin (.-.)) "SELECT ALL (5 - 3) AS f0"
-  , eqProp "mult"  (numBin (.*.)) "SELECT ALL (5 * 3) AS f0"
-  , eqProp "div"   (numBin (./.)) "SELECT ALL (5 / 3) AS f0"
+  , eqProp "plus"  (bin53 (.+.)) "SELECT ALL (5 + 3) AS f0"
+  , eqProp "minus" (bin53 (.-.)) "SELECT ALL (5 - 3) AS f0"
+  , eqProp "mult"  (bin53 (.*.)) "SELECT ALL (5 * 3) AS f0"
+  , eqProp "div"   (bin53 (./.)) "SELECT ALL (5 / 3) AS f0"
 
   , eqProp "string concat" strConcat "SELECT ALL ('Hello, ' || 'World!') AS f0"
   , eqProp "like" strLike "SELECT ALL ('Hoge' LIKE 'H%') AS f0"
