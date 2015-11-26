@@ -208,6 +208,10 @@ bin53 :: (Projection Flat Int32 -> Projection Flat Int32 -> Projection Flat r) -
 bin53 op = relation $ do
   return $ value 5 `op` value 3
 
+boolTF :: (Projection Flat (Maybe Bool) -> Projection Flat (Maybe Bool) -> Projection Flat r) -> Relation () r
+boolTF op = relation $ do
+  return $ valueTrue `op` valueFalse
+
 strConcat :: Relation () String
 strConcat = relation $ do
   return $ value "Hello, " .||. value "World!"
@@ -227,6 +231,9 @@ bin =
   , eqProp "gt"    (bin53 (.>.))  "SELECT ALL (5 >  3) AS f0"
   , eqProp "ge"    (bin53 (.>=.)) "SELECT ALL (5 >= 3) AS f0"
   , eqProp "ne"    (bin53 (.<>.)) "SELECT ALL (5 <> 3) AS f0"
+
+  , eqProp "and"   (boolTF and')  "SELECT ALL ((0=0) AND (0=1)) AS f0"
+  , eqProp "or"    (boolTF or')   "SELECT ALL ((0=0) AND (0=1)) AS f0"
 
   , eqProp "plus"  (bin53 (.+.)) "SELECT ALL (5 + 3) AS f0"
   , eqProp "minus" (bin53 (.-.)) "SELECT ALL (5 - 3) AS f0"
