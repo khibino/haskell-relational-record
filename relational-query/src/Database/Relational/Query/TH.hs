@@ -62,7 +62,7 @@ module Database.Relational.Query.TH (
   reifyRelation,
   ) where
 
-import Data.Char (toUpper, toLower)
+import Data.Char (toUpper, toLower, isNumber)
 import Data.List (foldl1')
 import Data.Array.IArray ((!))
 
@@ -70,7 +70,7 @@ import Language.Haskell.TH
   (Name, nameBase, Q, reify, Info (VarI), TypeQ, Type (AppT, ConT), ExpQ,
    tupleT, appT, arrowT, Dec, stringE, listE)
 import Language.Haskell.TH.Name.CamelCase
-  (VarName, varName, ConName (ConName), conName, varNameWithPrefix, varCamelcaseName, toVarExp, toTypeCon, toDataCon)
+  (VarName, varName, ConName (ConName), conName, varCamelcaseName, varNameWithPrefix, toVarExp, toTypeCon, toDataCon)
 import Language.Haskell.TH.Lib.Extra (simpleValD, maybeD, integralE)
 
 import Database.Record.TH
@@ -179,13 +179,16 @@ defineColumns recTypeName cols = do
   fmap concat . sequence $ zipWith defC cols [0 :: Int ..]
 
 -- | Make column projection path and constraint key templates using default naming rule.
+--   If any column begins with a number, functions will be prepended with _
 defineColumnsDefault :: ConName                          -- ^ Record type name
                      -> [((String, TypeQ), Maybe TypeQ)] -- ^ Column info list
                      -> Q [Dec]                          -- ^ Column projection path declarations
 defineColumnsDefault recTypeName cols =
   defineColumns recTypeName [((varN n, ct), fmap (withCName n) mayC) | ((n, ct), mayC) <- cols]
-  where varN      name   = varCamelcaseName (name ++ "'")
+  where varN      name   = varNameWithPrefix (name ++ "'") (numberPrefixed name)
         withCName name t = (t, varCamelcaseName ("constraint_key_" ++ name))
+        numberPrefixed [] = ""
+        numberPrefixed (n:_) = if (isNumber n) then "_" else ""
 
 -- | Rule template to infer table derivations.
 defineTableDerivableInstance :: TypeQ -> String -> [String] -> Q [Dec]
