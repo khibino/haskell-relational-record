@@ -10,6 +10,17 @@ import Data.Int (Int32, Int64)
 import Database.Relational.Query
 
 
+tables :: [Test]
+tables =
+  [ eqProp "setA" setA "SELECT int_a0, str_a1, str_a2 FROM TEST.set_a"
+  , eqProp "setB" setB "SELECT int_b0, may_str_b1, str_b2 FROM TEST.set_b"
+  , eqProp "setC" setC "SELECT int_c0, str_c1, int_c2, may_str_c3 FROM TEST.set_c"
+  ]
+
+_p_tables :: IO ()
+_p_tables =  mapM_ print [show setA, show setB, show setC]
+
+
 -- Monadic Operators tests
 
 queryX :: Relation () SetA
@@ -102,15 +113,8 @@ _p_monadic =
   , show assignX
   ]
 
-tables :: [Test]
-tables =
-  [ eqProp "setA" setA "SELECT int_a0, str_a1, str_a2 FROM TEST.set_a"
-  , eqProp "setB" setB "SELECT int_b0, may_str_b1, str_b2 FROM TEST.set_b"
-  , eqProp "setC" setC "SELECT int_c0, str_c1, int_c2, may_str_c3 FROM TEST.set_c"
-  ]
 
-_p_tables :: IO ()
-_p_tables =  mapM_ print [show setA, show setB, show setC]
+-- Direct Join Operators
 
 cross :: Relation () (SetA, SetB)
 cross =  setA `inner` setB `on'` []
@@ -453,7 +457,7 @@ effs =
 
 tests :: [Test]
 tests =
-  concat [ monadic, tables, directJoins, join3s, bin, maybes
+  concat [ tables, monadic, directJoins, join3s, bin, maybes
          , groups, orders, partitions, exps, effs]
 
 main :: IO ()
