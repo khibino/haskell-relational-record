@@ -34,11 +34,6 @@ module Database.Relational.Query.Projectable (
   ProjectableShowSql (unsafeShowSql'), unsafeShowSql,
 
   -- * Operators
-  SqlBinOp,
-  unsafeBinOp,
-
-  unsafeUniOp,
-
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
 
   in', and', or',
@@ -52,6 +47,8 @@ module Database.Relational.Query.Projectable (
 
   casesOrElse, casesOrElse',
   caseSearch, caseSearchMaybe, case', caseMaybe,
+
+  SqlBinOp, unsafeBinOp, unsafeUniOp,
 
   -- * Terms for Window function types
   rank, denseRank, rowNumber, percentRank, cumeDist,
