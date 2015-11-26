@@ -42,8 +42,11 @@ module Database.Relational.Query.Projectable (
   not', exists,
 
   (.||.), (?||?), like, likeMaybe, like', likeMaybe',
-  (.+.), (.-.), (./.), (.*.), negate', fromIntegral', showNum,
-  (?+?), (?-?), (?/?), (?*?), negateMaybe, fromIntegralMaybe, showNumMaybe,
+  (.+.), (.-.), (./.), (.*.),
+  (?+?), (?-?), (?/?), (?*?),
+
+  negate', fromIntegral', showNum,
+  negateMaybe, fromIntegralMaybe, showNumMaybe,
 
   casesOrElse, casesOrElse',
   caseSearch, caseSearchMaybe, case', caseMaybe,
