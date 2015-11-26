@@ -233,7 +233,7 @@ bin =
   , eqProp "ne"    (bin53 (.<>.)) "SELECT ALL (5 <> 3) AS f0"
 
   , eqProp "and"   (boolTF and')  "SELECT ALL ((0=0) AND (0=1)) AS f0"
-  , eqProp "or"    (boolTF or')   "SELECT ALL ((0=0) AND (0=1)) AS f0"
+  , eqProp "or"    (boolTF or')   "SELECT ALL ((0=0) OR  (0=1)) AS f0"
 
   , eqProp "plus"  (bin53 (.+.)) "SELECT ALL (5 + 3) AS f0"
   , eqProp "minus" (bin53 (.-.)) "SELECT ALL (5 - 3) AS f0"
