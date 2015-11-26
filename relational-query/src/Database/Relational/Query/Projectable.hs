@@ -41,8 +41,6 @@ module Database.Relational.Query.Projectable (
 
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
 
-  casesOrElse, casesOrElse',
-  caseSearch, caseSearchMaybe, case', caseMaybe,
   in', and', or',
 
   isNothing, isJust, fromMaybe,
@@ -51,6 +49,9 @@ module Database.Relational.Query.Projectable (
   (.||.), (?||?), like, likeMaybe, like', likeMaybe',
   (.+.), (.-.), (./.), (.*.), negate', fromIntegral', showNum,
   (?+?), (?-?), (?/?), (?*?), negateMaybe, fromIntegralMaybe, showNumMaybe,
+
+  casesOrElse, casesOrElse',
+  caseSearch, caseSearchMaybe, case', caseMaybe,
 
   -- * Terms for Window function types
   rank, denseRank, rowNumber, percentRank, cumeDist,
