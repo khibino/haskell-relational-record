@@ -69,15 +69,19 @@ module Database.Relational.Query.Documentation (
   value, values,
 
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
-  casesOrElse, case',
-  in', and', or',
+
+  and', or', in',
+
+  (.||.), like, like',
+  (.+.), (.-.), (./.), (.*.),
 
   isNothing, isJust, fromMaybe,
 
   not', exists,
 
-  (.||.), like, like',
-  (.+.), (.-.), (./.), (.*.), negate', fromIntegral', showNum,
+  negate', fromIntegral', showNum,
+
+  casesOrElse, case',
 
   -- ** Aggregate and Window Functions
   -- $aggregateFunctions
