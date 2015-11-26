@@ -36,7 +36,7 @@ module Database.Relational.Query.Projectable (
   -- * Operators
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
 
-  in', and', or',
+  and', or', in',
 
   (.||.), (?||?), like, likeMaybe, like', likeMaybe',
   (.+.), (.-.), (./.), (.*.),
