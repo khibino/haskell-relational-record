@@ -73,7 +73,7 @@ module Database.Relational.Query.Documentation (
   and', or', in',
 
   (.||.), like, like',
-  (.+.), (.-.), (./.), (.*.),
+  (.+.), (.-.), (.*.), (./.),
 
   isNothing, isJust, fromMaybe,
 
