@@ -250,6 +250,15 @@ bin =
   , eqProp "div"   (bin53 (./.)) "SELECT ALL (5 / 3) AS f0"
   ]
 
+nothingX :: Relation () (SetA, Maybe SetB)
+nothingX =  relation $ do
+  a <- query setA
+  b <- queryMaybe setB
+
+  wheres $ isNothing b `or'` a ! intA0' .=. value 1
+
+  return $ a >< b
+
 justX :: Relation () (SetA, Maybe SetB)
 justX =  relation $ do
   a <- query setA
@@ -268,9 +277,22 @@ maybeX =  relation $ do
 
   return $ fromMaybe (value 1) (a ?! intA0') >< b
 
+notX :: Relation () (Maybe Bool)
+notX = relation $
+  return $ not' valueFalse
+
+existsX :: Relation () (Maybe Bool)
+existsX = relation $
+  return . exists =<< queryList setA
+
 uni :: [Test]
 uni =
-  [ eqProp "isJust" justX
+  [ eqProp "isNothing" nothingX
+    "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, \
+    \           T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 \
+    \  FROM TEST.set_a T0 LEFT JOIN TEST.set_b T1 ON (0=0) \
+    \ WHERE ((T1.int_b0 IS NULL) OR (T0.int_a0 = 1))"
+  , eqProp "isJust" justX
     "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, \
     \           T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 \
     \  FROM TEST.set_a T0 LEFT JOIN TEST.set_b T1 ON (0=0) \
@@ -279,10 +301,14 @@ uni =
     "SELECT ALL CASE WHEN (T0.int_a0 IS NULL) THEN 1 ELSE T0.int_a0 END AS f0, \
     \           T1.int_b0 AS f1, T1.may_str_b1 AS f2, T1.str_b2 AS f3 \
     \  FROM TEST.set_a T0 RIGHT JOIN TEST.set_b T1 ON (0=0) WHERE (T0.str_a2 = T1.may_str_b1)"
+  , eqProp "not" notX
+    "SELECT ALL (NOT (0=1)) AS f0"
+  , eqProp "exists" existsX
+    "SELECT ALL (EXISTS (SELECT int_a0, str_a1, str_a2 FROM TEST.set_a)) AS f0"
   ]
 
 _p_uni :: IO ()
-_p_uni =  mapM_ print [show justX, show maybeX]
+_p_uni =  mapM_ print [show nothingX, show justX, show maybeX, show notX, show existsX]
 
 groupX :: Relation () (String, Int64)
 groupX =  aggregateRelation $ do
