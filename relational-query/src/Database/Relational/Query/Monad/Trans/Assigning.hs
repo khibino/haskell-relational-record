@@ -38,7 +38,7 @@ import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
-import Database.Relational.Query.Monad.Class (MonadRestrict(..))
+import Database.Relational.Query.Monad.Class (MonadQualify (..), MonadRestrict(..))
 
 
 -- | Type to accumulate assigning context.
@@ -54,6 +54,10 @@ assignings =  lift
 -- | 'MonadRestrict' with ordering.
 instance MonadRestrict c m => MonadRestrict c (Assignings r m) where
   restrict = assignings . restrict
+
+-- | 'MonadQualify' instance.
+instance MonadQualify q m => MonadQualify q (Assignings r m) where
+  liftQualify = assignings . liftQualify
 
 -- | Target of assignment.
 type AssignTarget r v = Pi r v
