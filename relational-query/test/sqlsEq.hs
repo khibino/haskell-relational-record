@@ -268,8 +268,8 @@ maybeX =  relation $ do
 
   return $ fromMaybe (value 1) (a ?! intA0') >< b
 
-maybes :: [Test]
-maybes =
+uni :: [Test]
+uni =
   [ eqProp "isJust" justX
     "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, \
     \           T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 \
@@ -281,8 +281,8 @@ maybes =
     \  FROM TEST.set_a T0 RIGHT JOIN TEST.set_b T1 ON (0=0) WHERE (T0.str_a2 = T1.may_str_b1)"
   ]
 
-_p_maybes :: IO ()
-_p_maybes =  mapM_ print [show justX, show maybeX]
+_p_uni :: IO ()
+_p_uni =  mapM_ print [show justX, show maybeX]
 
 groupX :: Relation () (String, Int64)
 groupX =  aggregateRelation $ do
@@ -481,7 +481,7 @@ effs =
 
 tests :: [Test]
 tests =
-  concat [ tables, monadic, directJoins, join3s, bin, maybes
+  concat [ tables, monadic, directJoins, join3s, bin, uni
          , groups, orders, partitions, exps, effs]
 
 main :: IO ()
