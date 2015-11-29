@@ -505,10 +505,75 @@ effs =
     "DELETE FROM TEST.set_a WHERE (str_a1 = 'A')"
   ]
 
+updateExistsX :: Update ()
+updateExistsX = derivedUpdate $ \proj -> do
+  strA2' <-# value "X"
+  wheres . exists
+    =<< (queryList . relation $ do
+            b <- query setB
+            wheres $ b ! intB0' .=. proj ! intA0'
+            return b)
+  return unitPlaceHolder
+
+updateScalarX :: Update ()
+updateScalarX = derivedUpdate $ \proj -> do
+  strA2' <-# value "X"
+  sb <- queryScalar . unsafeUnique . relation $ do
+    b <- query setB
+    wheres $ b ! intB0' .=. value 0
+    return $ b ! intB0'
+  wheres $ just (proj ! intA0') .=. sb
+  return unitPlaceHolder
+
+deleteExistsX :: Delete ()
+deleteExistsX =  derivedDelete $ \proj -> do
+  wheres . exists
+    =<< (queryList . relation $ do
+            b <- query setB
+            wheres $ b ! intB0' .=. proj ! intA0'
+            return b)
+  return unitPlaceHolder
+
+deleteScalarX :: Delete ()
+deleteScalarX = derivedDelete $ \proj -> do
+  sb <- queryScalar . unsafeUnique . relation $ do
+    b <- query setB
+    wheres $ b ! intB0' .=. value 0
+    return $ b ! intB0'
+  wheres $ just (proj ! intA0') .=. sb
+  return unitPlaceHolder
+
+correlated :: [Test]
+correlated =
+  [ eqProp "update-exists" updateExistsX
+    "UPDATE TEST.set_a SET str_a2 = 'X' \
+    \ WHERE (EXISTS (SELECT ALL T0.int_b0 AS f0, T0.may_str_b1 AS f1, T0.str_b2 AS f2 \
+    \                      FROM TEST.set_b T0 \
+    \                     WHERE (T0.int_b0 = int_a0)))"
+
+  , eqProp "update-scalar" updateScalarX
+    "UPDATE TEST.set_a SET str_a2 = 'X' \
+    \ WHERE (int_a0 = (SELECT ALL T0.int_b0 AS f0 \
+    \                        FROM TEST.set_b T0 \
+    \                       WHERE (T0.int_b0 = 0)))"
+
+  , eqProp "delete-exists" deleteExistsX
+   "DELETE FROM TEST.set_a \
+   \ WHERE (EXISTS (SELECT ALL T0.int_b0 AS f0, T0.may_str_b1 AS f1, T0.str_b2 AS f2 \
+   \                      FROM TEST.set_b T0 \
+   \                     WHERE (T0.int_b0 = int_a0)))"
+
+  , eqProp "delete-scalar" deleteScalarX
+    "DELETE FROM TEST.set_a \
+    \ WHERE (int_a0 = (SELECT ALL T0.int_b0 AS f0 \
+    \                        FROM TEST.set_b T0 \
+    \                       WHERE (T0.int_b0 = 0)))"
+  ]
+
 tests :: [Test]
 tests =
   concat [ tables, monadic, directJoins, join3s, bin, uni
-         , groups, orders, partitions, exps, effs]
+         , groups, orders, partitions, exps, effs, correlated]
 
 main :: IO ()
 main = defaultMain tests

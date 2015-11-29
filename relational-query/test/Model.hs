@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -7,7 +8,7 @@ module Model where
 import Data.Int (Int32, Int64)
 
 import Database.Relational.Query (defaultConfig)
-import Database.Relational.Query.TH (defineTableDefault, makeRelationalRecordDefault)
+import Database.Relational.Query.TH (defineTableDefault, makeRelationalRecordDefault, defineScalarDegree)
 
 
 $(defineTableDefault defaultConfig "TEST" "set_a"
@@ -53,3 +54,5 @@ data Abc =
   }
 
 $(makeRelationalRecordDefault ''Abc)
+
+$(defineScalarDegree [t| Int32 |])
