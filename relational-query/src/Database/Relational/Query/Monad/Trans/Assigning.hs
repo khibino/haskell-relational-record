@@ -51,11 +51,11 @@ newtype Assignings r m a =
 assignings :: Monad m => m a -> Assignings r m a
 assignings =  lift
 
--- | 'MonadRestrict' with ordering.
+-- | 'MonadRestrict' with assigning.
 instance MonadRestrict c m => MonadRestrict c (Assignings r m) where
   restrict = assignings . restrict
 
--- | 'MonadQualify' instance.
+-- | 'MonadQualify' with assigning.
 instance MonadQualify q m => MonadQualify q (Assignings r m) where
   liftQualify = assignings . liftQualify
 
