@@ -1,3 +1,10 @@
+<!-- -*- Markdown -*- -->
+
+## 0.6.4.0
+
+- Fix around correlated sub-queries.
+- Update unit-test cases.
+
 ## 0.6.3.0
 
 - Add Int8 type as SQL constant int value. (e.g. MySQL)
