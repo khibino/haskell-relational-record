@@ -9,7 +9,6 @@ import Database.HDBC.Query.TH (defineTableFromDB)
 import Database.HDBC.Schema.Driver (typeMap)
 import Database.HDBC.Schema.SQLite3 (driverSQLite3)
 import Database.HDBC.Sqlite3 (Connection, connectSqlite3)
-import Database.Record.TH (derivingShow)
 import Language.Haskell.TH (Q, Dec, TypeQ)
 
 connect :: IO Connection
@@ -31,4 +30,4 @@ defineTable tableName =
     (driverSQLite3 { typeMap = convTypes }) -- overwrite the default type map with yours
     "main" -- schema name, ignored by SQLite
     tableName
-    [derivingShow]
+    [''Show]
