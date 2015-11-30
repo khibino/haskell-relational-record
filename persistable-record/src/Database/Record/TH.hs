@@ -66,6 +66,7 @@ module Database.Record.TH (
 import Control.Applicative (pure, (<*>))
 import Data.List (foldl')
 import Data.Array (Array, listArray, (!))
+import Data.Data (Data, Typeable)
 import Language.Haskell.TH.Name.CamelCase
   (ConName(conName), VarName(varName),
    conCamelcaseName, varCamelcaseName, varNameWithPrefix,
@@ -163,25 +164,30 @@ defineHasNotNullKeyInstanceDefault :: String  -- ^ Table name
 defineHasNotNullKeyInstanceDefault =
   defineHasNotNullKeyInstance . recordTypeDefault
 
+{-# DEPRECATED derivingEq "Use TH quasi-quotation like ''Eq instead of this." #-}
 -- | Name to specify deriving 'Eq'
-derivingEq :: ConName
-derivingEq   = conCamelcaseName "Eq"
+derivingEq   :: Name
+derivingEq   = ''Eq
 
+{-# DEPRECATED derivingShow "Use TH quasi-quotation like ''Show instead of this." #-}
 -- | Name to specify deriving 'Show'
-derivingShow :: ConName
-derivingShow = conCamelcaseName "Show"
+derivingShow :: Name
+derivingShow = ''Show
 
+{-# DEPRECATED derivingRead "Use TH quasi-quotation like ''Read instead of this." #-}
 -- | Name to specify deriving 'Read'
-derivingRead :: ConName
-derivingRead = conCamelcaseName "Read"
+derivingRead :: Name
+derivingRead = ''Read
 
+{-# DEPRECATED derivingData "Use TH quasi-quotation like ''Data instead of this." #-}
 -- | Name to specify deriving 'Data'
-derivingData :: ConName
-derivingData = conCamelcaseName "Data"
+derivingData :: Name
+derivingData = ''Data
 
+{-# DEPRECATED derivingTypeable "Use TH quasi-quotation like ''Typeable instead of this." #-}
 -- | Name to specify deriving 'Typeable'
-derivingTypeable :: ConName
-derivingTypeable = conCamelcaseName "Typeable"
+derivingTypeable :: Name
+derivingTypeable = ''Typeable
 
 -- | Record type width expression template.
 recordWidthTemplate :: TypeQ -- ^ Record type constructor.
@@ -209,12 +215,12 @@ defineColumnOffsets typeName' tys = do
 -- | Record type declaration template.
 defineRecordType :: ConName            -- ^ Name of the data type of table record type.
                  -> [(VarName, TypeQ)] -- ^ List of columns in the table. Must be legal, properly cased record columns.
-                 -> [ConName]          -- ^ Deriving type class names.
+                 -> [Name]             -- ^ Deriving type class names.
                  -> Q [Dec]            -- ^ The data type record declaration.
 defineRecordType typeName' columns derives = do
   let typeName = conName typeName'
       fld (n, tq) = varStrictType (varName n) (strictType isStrict tq)
-  rec  <- dataD (cxt []) typeName [] [recC typeName (map fld columns)] (map conName derives)
+  rec  <- dataD (cxt []) typeName [] [recC typeName (map fld columns)] derives
   offs <- defineColumnOffsets typeName' [ty | (_, ty) <- columns]
   return $ rec : offs
 
@@ -224,7 +230,7 @@ columnDefault n t = (varCamelcaseName n, t)
 
 -- | Record type declaration template from SQL table name 'String'
 --   and column name 'String' - type pairs, derivings.
-defineRecordTypeDefault :: String -> [(String, TypeQ)] -> [ConName] -> Q [Dec]
+defineRecordTypeDefault :: String -> [(String, TypeQ)] -> [Name] -> Q [Dec]
 defineRecordTypeDefault table columns =
   defineRecordType
   (recordTypeNameDefault table)
@@ -368,7 +374,7 @@ defineRecord :: TypeQ              -- ^ SQL value type
              -> (VarName, VarName) -- ^ Constructor function name and decompose function name
              -> ConName            -- ^ Record type name
              -> [(VarName, TypeQ)] -- ^ Column schema
-             -> [ConName]          -- ^ Record derivings
+             -> [Name]             -- ^ Record derivings
              -> Q [Dec]            -- ^ Result declarations
 defineRecord
   sqlValueType
@@ -383,7 +389,7 @@ defineRecord
 defineRecordDefault :: TypeQ             -- ^ SQL value type
                     -> String            -- ^ Table name
                     -> [(String, TypeQ)] -- ^ Column names and types
-                    -> [ConName]         -- ^ Record derivings
+                    -> [Name]            -- ^ Record derivings
                     -> Q [Dec]           -- ^ Result declarations
 defineRecordDefault sqlValueType table columns derives = do
   typ     <- defineRecordTypeDefault table columns derives
