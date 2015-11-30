@@ -302,7 +302,7 @@ defineTableTypesAndRecordDefault :: Config            -- ^ Configuration to gene
                                  -> String            -- ^ Schema name
                                  -> String            -- ^ Table name
                                  -> [(String, TypeQ)] -- ^ Column names and types
-                                 -> [ConName]         -- ^ Record derivings
+                                 -> [Name]            -- ^ Record derivings
                                  -> Q [Dec]           -- ^ Result declarations
 defineTableTypesAndRecordDefault config schema table columns derives = do
   recD    <- defineRecordTypeDefault table columns derives
@@ -383,7 +383,7 @@ defineTableDefault :: Config            -- ^ Configuration to generate query wit
                    -> String            -- ^ Schema name string of Database
                    -> String            -- ^ Table name string of Database
                    -> [(String, TypeQ)] -- ^ Column names and types
-                   -> [ConName]         -- ^ derivings for Record type
+                   -> [Name]            -- ^ derivings for Record type
                    -> [Int]             -- ^ Primary key index
                    -> Maybe Int         -- ^ Not null key index
                    -> Q [Dec]           -- ^ Result declarations
