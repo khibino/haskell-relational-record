@@ -304,8 +304,8 @@ defineTableTypesAndRecordDefault :: Config            -- ^ Configuration to gene
                                  -> [(String, TypeQ)] -- ^ Column names and types
                                  -> [ConName]         -- ^ Record derivings
                                  -> Q [Dec]           -- ^ Result declarations
-defineTableTypesAndRecordDefault config schema table columns drives = do
-  recD    <- defineRecordTypeDefault table columns drives
+defineTableTypesAndRecordDefault config schema table columns derives = do
+  recD    <- defineRecordTypeDefault table columns derives
   rconD   <- defineProductConstructorInstanceDefault table [t | (_, t) <- columns]
   tableDs <- defineTableTypesDefault config schema table [(c, Nothing) | c <- columns ]
   return $ recD ++ rconD ++ tableDs
