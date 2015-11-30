@@ -23,11 +23,8 @@ module Language.Haskell.TH.Lib.Extra (
   reportWarning, reportError,
   ) where
 
-import System.IO (hPutStrLn, stderr)
-import System.Environment (getEnvironment)
-
 import Language.Haskell.TH
-  (Ppr, ppr, Q, runQ, runIO,
+  (Ppr, ppr, Q, runQ,
    Name, Dec, sigD, valD, TypeQ, varP, normalB,
    ExpQ, litE, integerL)
 import Language.Haskell.TH.PprLib (Doc)
