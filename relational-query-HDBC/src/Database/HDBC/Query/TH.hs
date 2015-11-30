@@ -34,7 +34,7 @@ import Control.Monad (when, void)
 import Database.HDBC (IConnection, SqlValue, prepare)
 
 import Language.Haskell.TH (Q, runIO, Name, TypeQ, Dec)
-import Language.Haskell.TH.Name.CamelCase (ConName, varCamelcaseName)
+import Language.Haskell.TH.Name.CamelCase (varCamelcaseName)
 import Language.Haskell.TH.Lib.Extra (reportWarning, reportError)
 
 import Database.Record.TH (makeRecordPersistableWithSqlTypeDefault)
@@ -66,7 +66,7 @@ defineTableDefault' :: Config            -- ^ Configuration to generate query wi
                     -> String            -- ^ Schema name
                     -> String            -- ^ Table name
                     -> [(String, TypeQ)] -- ^ List of column name and type
-                    -> [ConName]         -- ^ Derivings
+                    -> [Name]            -- ^ Derivings
                     -> Q [Dec]           -- ^ Result declaration
 defineTableDefault' config schema table columns derives = do
   modelD <- Relational.defineTableTypesAndRecordDefault config schema table columns derives
@@ -78,7 +78,7 @@ defineTableDefault :: Config            -- ^ Configuration to generate query wit
                    -> String            -- ^ Schema name
                    -> String            -- ^ Table name
                    -> [(String, TypeQ)] -- ^ List of column name and type
-                   -> [ConName]         -- ^ Derivings
+                   -> [Name]            -- ^ Derivings
                    -> [Int]             -- ^ Indexes to represent primary key
                    -> Maybe Int         -- ^ Index of not-null key
                    -> Q [Dec]           -- ^ Result declaration
@@ -94,7 +94,7 @@ defineTableFromDB' :: IConnection conn
                    -> Driver conn -- ^ Driver definition
                    -> String      -- ^ Schema name
                    -> String      -- ^ Table name
-                   -> [ConName]   -- ^ Derivings
+                   -> [Name]      -- ^ Derivings
                    -> Q [Dec]     -- ^ Result declaration
 defineTableFromDB' connect config drv scm tbl derives = do
   let getDBinfo = do
@@ -127,7 +127,7 @@ defineTableFromDB :: IConnection conn
                   -> Driver conn -- ^ Driver definition
                   -> String      -- ^ Schema name
                   -> String      -- ^ Table name
-                  -> [ConName]   -- ^ Derivings
+                  -> [Name]      -- ^ Derivings
                   -> Q [Dec]     -- ^ Result declaration
 defineTableFromDB connect = defineTableFromDB' connect defaultConfig
 
