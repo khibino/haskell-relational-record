@@ -4,7 +4,6 @@
 module Database.Relational.Schema.SQLServerSyscat.Types where
 
 import Data.Int (Int32)
-import Database.Record.TH (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
 import Database.Relational.Schema.SQLServerSyscat.Config (config)
@@ -47,4 +46,4 @@ $(defineTableTypesAndRecordDefault config
 -- is_table_type         sys     bit                        1 No
     --("is_table_type", [t|Bool|])
   ]
-  [derivingShow])
+  [''Show])

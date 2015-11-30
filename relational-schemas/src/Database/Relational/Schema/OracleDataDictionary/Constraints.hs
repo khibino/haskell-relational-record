@@ -3,7 +3,6 @@
 
 module Database.Relational.Schema.OracleDataDictionary.Constraints where
 
-import Database.Record.TH (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
 import Database.Relational.Schema.OracleDataDictionary.Config (config)
@@ -37,4 +36,4 @@ $(defineTableTypesAndRecordDefault config
     -- INDEX_NAME                                         VARCHAR2(30)
     -- INVALID                                            VARCHAR2(7)
     -- VIEW_RELATED                                       VARCHAR2(14)
-    ] [derivingShow])
+    ] [''Show])

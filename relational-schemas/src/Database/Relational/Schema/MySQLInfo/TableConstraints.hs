@@ -3,7 +3,6 @@
 
 module Database.Relational.Schema.MySQLInfo.TableConstraints where
 
-import Database.Record.TH           (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
 import Database.Relational.Schema.MySQLInfo.Config (config)
@@ -16,4 +15,4 @@ $(defineTableTypesAndRecordDefault config
     , ("constraint_name"    , [t| String |])
     , ("constraint_type"    , [t| String |])
     ]
-    [derivingShow])
+    [''Show])

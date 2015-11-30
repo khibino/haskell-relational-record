@@ -5,7 +5,6 @@ module Database.Relational.Schema.OracleDataDictionary.ConsColumns where
 
 import Data.Int (Int32)
 
-import Database.Record.TH (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
 import Database.Relational.Schema.OracleDataDictionary.Config (config)
@@ -25,4 +24,4 @@ $(defineTableTypesAndRecordDefault config
     , ("column_name", [t|Maybe String|])
     -- POSITION                                           NUMBER
     , ("position", [t|Maybe Int32|])
-    ] [derivingShow])
+    ] [''Show])

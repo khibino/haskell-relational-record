@@ -4,7 +4,6 @@
 module Database.Relational.Schema.SQLite3Syscat.TableInfo where
 
 import Data.Int (Int16, Int64)
-import Database.Record.TH (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
 import Database.Relational.Schema.SQLite3Syscat.Config (config)
@@ -29,4 +28,4 @@ $(defineTableTypesAndRecordDefault config
 -- pk                    integer             No
     ("pk", [t|Int16|])
   ]
-  [derivingShow])
+  [''Show])

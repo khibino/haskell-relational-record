@@ -15,7 +15,6 @@
 -- Minimum implementation required to generate table constraints.
 module Database.Relational.Schema.DB2Syscat.Tabconst where
 
-import Database.Record.TH (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
 import Database.Relational.Schema.DB2Syscat.Config (config)
@@ -30,4 +29,4 @@ $(defineTableTypesAndRecordDefault config
    --
    ("type"     , [t| String |]),
    ("enforced" , [t| String |])]
-  [derivingShow])
+  [''Show])

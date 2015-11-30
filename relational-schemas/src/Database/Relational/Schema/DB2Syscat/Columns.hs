@@ -15,7 +15,6 @@ module Database.Relational.Schema.DB2Syscat.Columns where
 
 import Data.Int (Int16, Int32, Int64)
 
-import Database.Record.TH (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
 import Database.Relational.Schema.DB2Syscat.Config (config)
@@ -100,4 +99,4 @@ $(defineTableTypesAndRecordDefault config
     ("remarks", [t|Maybe String|])
 
   ]
-  [derivingShow])
+  [''Show])

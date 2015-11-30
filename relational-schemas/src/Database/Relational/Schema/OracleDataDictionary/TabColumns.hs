@@ -7,7 +7,6 @@ import Data.Int (Int32)
 -- import Data.ByteString (ByteString)
 -- import Data.Time.Calendar (Day)
 
-import Database.Record.TH (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
 import Database.Relational.Schema.OracleDataDictionary.Config (config)
@@ -79,4 +78,4 @@ $(defineTableTypesAndRecordDefault config
     , ("data_upgraded", [t|Maybe String|])
     -- HISTOGRAM                                          VARCHAR2(15)
     , ("histogram", [t|Maybe String|])
-    ] [derivingShow])
+    ] [''Show])

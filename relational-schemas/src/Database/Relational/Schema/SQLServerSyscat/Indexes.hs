@@ -5,7 +5,6 @@ module Database.Relational.Schema.SQLServerSyscat.Indexes where
 
 --import Data.ByteString (ByteString)
 import Data.Int (Int32)
-import Database.Record.TH (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
 import Database.Relational.Schema.SQLServerSyscat.Config (config)
@@ -54,4 +53,4 @@ $(defineTableTypesAndRecordDefault config
 -- filter_definition     sys     nvarchar                 max Yes
     --("filter_definition", [t|Maybe ByteString|])
   ]
-  [derivingShow])
+  [''Show])

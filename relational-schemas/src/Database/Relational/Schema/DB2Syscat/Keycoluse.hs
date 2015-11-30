@@ -16,7 +16,6 @@
 module Database.Relational.Schema.DB2Syscat.Keycoluse where
 
 import Data.Int (Int16)
-import Database.Record.TH (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
 import Database.Relational.Schema.DB2Syscat.Config (config)
@@ -28,4 +27,4 @@ $(defineTableTypesAndRecordDefault config
   [("constname", [t| String |]),
    ("colname"  , [t| String |]),
    ("colseq"   , [t| Int16 |])]
-  [derivingShow])
+  [''Show])

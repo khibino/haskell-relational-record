@@ -4,7 +4,6 @@
 module Database.Relational.Schema.SQLServerSyscat.IndexColumns where
 
 import Data.Int (Int32)
-import Database.Record.TH (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
 import Database.Relational.Schema.SQLServerSyscat.Config (config)
@@ -30,4 +29,4 @@ $(defineTableTypesAndRecordDefault config
   -- is_included_column    sys     bit                        1 No
     ("is_included_column", [t|Bool|])
   ]
-  [derivingShow])
+  [''Show])

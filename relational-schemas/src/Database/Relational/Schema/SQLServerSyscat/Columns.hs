@@ -4,7 +4,6 @@
 module Database.Relational.Schema.SQLServerSyscat.Columns where
 
 import Data.Int (Int32)
-import Database.Record.TH (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
 import Database.Relational.Schema.SQLServerSyscat.Config (config)
@@ -66,4 +65,4 @@ $(defineTableTypesAndRecordDefault config
   -- is_column_set         sys     bit                        1 Yes
     --("is_column_set", [t|Maybe Bool|])
   ]
-  [derivingShow])
+  [''Show])

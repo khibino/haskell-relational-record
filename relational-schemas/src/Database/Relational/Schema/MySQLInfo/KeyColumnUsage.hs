@@ -4,7 +4,6 @@
 module Database.Relational.Schema.MySQLInfo.KeyColumnUsage where
 
 import Data.Int                     (Int16)
-import Database.Record.TH           (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
 import Database.Relational.Schema.MySQLInfo.Config (config)
@@ -18,4 +17,4 @@ $(defineTableTypesAndRecordDefault config
     , ("column_name"        , [t| String |])
     , ("ordinal_position"   , [t| Int16 |])
     ]
-    [derivingShow])
+    [''Show])

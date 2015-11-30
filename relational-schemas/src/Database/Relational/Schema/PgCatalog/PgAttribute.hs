@@ -13,7 +13,6 @@ module Database.Relational.Schema.PgCatalog.PgAttribute where
 
 import Data.Int (Int16, Int32)
 
-import Database.Record.TH (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
 import Database.Relational.Schema.PgCatalog.Config (config)
@@ -67,4 +66,4 @@ $(defineTableTypesAndRecordDefault config
 --  attoptions    | text[]    |
     -- ("attoptions"  , [t|String|])
   ]
-  [derivingShow])
+  [''Show])

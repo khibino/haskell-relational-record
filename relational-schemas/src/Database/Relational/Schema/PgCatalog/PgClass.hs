@@ -13,7 +13,6 @@ module Database.Relational.Schema.PgCatalog.PgClass where
 
 import Data.Int (Int32)
 
-import Database.Record.TH (derivingShow)
 import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
 
 import Database.Relational.Schema.PgCatalog.Config (config)
@@ -51,4 +50,4 @@ $(defineTableTypesAndRecordDefault config
  -- relacl         | aclitem[] |
  -- reloptions     | text[]    |
   ]
-  [derivingShow])
+  [''Show])
