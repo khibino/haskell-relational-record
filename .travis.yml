@@ -1,3 +1,4 @@
+sudo: false
 language: haskell
 ghc:
   - 7.8
@@ -19,21 +20,6 @@ before_install:
   - echo $PATH
   - which cabal ; cabal --version ; dpkg -l cabal-install
   - find /usr/local/ghc/*/bin -type f -ls
-  ## Replace GHC 7.4 into platform 2012.2
-  - case "$PATH" in
-      /usr/local/ghc/7.4*)
-        sudo apt-get update ;
-        sudo apt-get --purge remove cabal-install ;
-        sudo apt-get install haskell-platform haskell-platform-prof haskell-platform-doc cabal-install=0.14.0-2 ;
-        export PATH=/usr/bin:$PATH ;
-        echo $PATH ;
-        which cabal ; cabal --version ; dpkg -l cabal-install ;
-        rm /home/travis/.cabal/config ; cabal update
-        ;;
-
-      *)
-        ;;
-    esac
   - which ghc   ; ghc --version   ; dpkg -l ghc ;
   - cd $PKG_DIR
 after_script:
