@@ -1,6 +1,10 @@
 <!-- -*- Markdown -*- -->
 
-## 0.7.4.0
+## 0.7.0.1
+
+- Update this changelog.
+
+## 0.7.0.0
 
 - Use TH quotations for deriving class symbols.
 
