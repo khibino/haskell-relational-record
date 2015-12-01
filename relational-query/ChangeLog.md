@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.7.4.0
+
+- Use TH quotations for deriving class symbols.
+
 ## 0.6.4.0
 
 - Fix around correlated sub-queries.
