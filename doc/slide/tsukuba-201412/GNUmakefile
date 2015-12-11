@@ -35,6 +35,5 @@ all: $(targets)
 
 clean:
 	$(RM) $(targets)
-	$(RM) -r $(glad_imaged)
 ##	$(RM) *.dvi *.pdf
 ##	$(RM) *.aux *.log *.nav *.out *.snm *.toc *.vrb
