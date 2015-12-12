@@ -5,29 +5,47 @@
   <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
   <meta name="author" content="2015-12-12" />
-  <title>Typesafe, Composable query building</title>
+  <title>Composable, Typesafe Query building</title>
   <style type="text/css">code{white-space: pre;}</style>
   <!-- configuration parameters -->
   <meta name="defaultView" content="slideshow" />
   <meta name="controlVis" content="hidden" />
   <style type="text/css">
+div.sourceCode { overflow-x: auto; }
 table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
   margin: 0; padding: 0; vertical-align: baseline; border: none; }
 table.sourceCode { width: 100%; line-height: 100%; }
 td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
 td.sourceCode { padding-left: 5px; }
-code > span.kw { color: #007020; font-weight: bold; }
-code > span.dt { color: #902000; }
-code > span.dv { color: #40a070; }
-code > span.bn { color: #40a070; }
-code > span.fl { color: #40a070; }
-code > span.ch { color: #4070a0; }
-code > span.st { color: #4070a0; }
-code > span.co { color: #60a0b0; font-style: italic; }
-code > span.ot { color: #007020; }
-code > span.al { color: #ff0000; font-weight: bold; }
-code > span.fu { color: #06287e; }
-code > span.er { color: #ff0000; font-weight: bold; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
   </style>
   <!-- style sheet links -->
   <link rel="stylesheet" href="s5/default/slides.css" type="text/css" media="projection" id="slideProj" />
@@ -45,20 +63,14 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <div id="header"></div>
 <div id="footer">
   <h1>Kei Hibino</h1>
-  <h2>Typesafe, Composable query building</h2>
+  <h2>Composable, Typesafe Query building</h2>
 </div>
 </div>
 <div class="presentation">
 <div class="titleslide slide">
-  <h1>Typesafe, Composable query building</h1>
+  <h1>Composable, Typesafe Query building</h1>
   <h2>2015-12-12</h2>
   <h3>Kei Hibino</h3>
-</div>
-<div id="自己紹介" class="slide section level2">
-<h1>自己紹介</h1>
-<p><span class="citation">@khibino</span></p>
-<p>普段は仕事も趣味も Haskell</p>
-<p>ISP でデータベーストランザクションのプログラムとか認証サーバーとか書いてます。</p>
 </div>
 <div id="今日の発表agenda" class="slide section level2">
 <h1>今日の発表/Agenda</h1>
@@ -67,115 +79,125 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <ul>
 <li>http://khibino.github.io/haskell-relatoinal-record/</li>
 </ul></li>
-<li>DSL のウリは Composability と Type Safety です</li>
+<li>DSL のアピールポイントは 合成可能性 と 型安全性 です</li>
 <li>コンパイル時に PostgreSQL のシステムカタログからテーブルスキーマを読み取って、型を自動生成します。</li>
 </ul>
-<p>※ 今日の発表には Haskell のコードが出てきますが、見た目の気分を感じとるぐらいで十分です。 対応するSQLも出るので意味がわかると思います。</p>
+<p>※ 発表には Haskell のコードが出てきますが、見た目の気分を感じとるぐらいで十分です。 対応するSQLも見せるので意味がわかると思います。</p>
+<!--
+* SQL building DSL using Haskell
+    * http://khibino.github.io/haskell-relatoinal-record/
+* The appeal point of this DSL is composability and type-safety
+* Compile time schema loading and generating type informations
+ -->
 </div>
 <div id="結合式の例joined-query-building" class="slide section level2">
 <h1>結合式の例/Joined Query building</h1>
 <p>結合式を組み立てるとき:</p>
 <p>When building joined query:</p>
-<pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.family <span class="kw">AS</span> f2,
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.family <span class="kw">AS</span> f2,
            T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
       <span class="kw">FROM</span> EXAMPLE.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> EXAMPLE.birthday T1
-    <span class="kw">ON</span> (T0.name = T1.name)</code></pre>
+    <span class="kw">ON</span> (T0.name = T1.name)</code></pre></div>
 <!-- 以下のような集合の演算を考えているはず ... -->
-
 <p><span class="LaTeX">$$\{ (p, b) | p \in P, b \in B, \pi_{P.name}(p) = \pi_{B.name}(b) \}$$</span></p>
 </div>
 <div id="集合演算とhaskellset-operation-and-haskell" class="slide section level2">
 <h1>集合演算とHaskell/Set operation and Haskell</h1>
 <p><span class="LaTeX">$$\{ (p, b) | p \in P, b \in B, \pi_{P.name}(p) = \pi_{B.name}(b) \}$$</span></p>
 <p>※ &lt;- と <span class="LaTeX">$\in$</span></p>
-<pre class="sourceCode haskell"><code class="sourceCode haskell">   [ (p, b)
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">   [ (p, b)
    <span class="fu">|</span> p <span class="ot">&lt;-</span> person, b <span class="ot">&lt;-</span> birthday , P.name p <span class="fu">==</span> B.name b ]
    -- 内包表記<span class="fu">/</span><span class="dt">Comprehension</span>
 
 <span class="kw">do</span> { p <span class="ot">&lt;-</span> person; b <span class="ot">&lt;-</span> birthday; P.name p <span class="fu">==</span> B.name b
-   ; return (p, b) }  <span class="co">-- List Monad</span></code></pre>
+   ; return (p, b) }  <span class="co">-- List Monad</span></code></pre></div>
 <p>どちらの記法でも同じの意味/The same meanings</p>
 </div>
 <div id="haskellでdsldsl-using-haskell" class="slide section level2">
 <h1>HaskellでDSL/DSL using Haskell!</h1>
-<pre class="sourceCode haskell"><code class="sourceCode haskell">  <span class="kw">do</span> { p <span class="ot">&lt;-</span> person; b <span class="ot">&lt;-</span> birthday; P.name p <span class="fu">==</span> B.name b
-     ; return (p, b) } <span class="co">-- List Monad</span></code></pre>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">  <span class="kw">do</span> { p <span class="ot">&lt;-</span> person; b <span class="ot">&lt;-</span> birthday; P.name p <span class="fu">==</span> B.name b
+     ; return (p, b) } <span class="co">-- List Monad</span></code></pre></div>
 <p>結合式をリスト内包表記あるいはList Monad のように組み立てる:</p>
 <p>Building a joined query like list comprehension or list monad:</p>
-<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">personAndBirthday ::</span> <span class="dt">Relation</span> () (<span class="dt">Person</span>, <span class="dt">Birthday</span>)
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">personAndBirthday ::</span> <span class="dt">Relation</span> () (<span class="dt">Person</span>, <span class="dt">Birthday</span>)
 personAndBirthday <span class="fu">=</span>  relation <span class="fu">$</span> <span class="kw">do</span>
   p <span class="ot">&lt;-</span> query person
-  b &lt;- query birthday  -- 結合積の集積<span class="fu">/</span><span class="dt">Join</span> product accumulated
+  b &lt;- query birthday  -- 結合積の蓄積
+                       <span class="co">-- Join product accumulated</span>
   on <span class="fu">$</span> p <span class="fu">!</span> Person.name&#39; <span class="fu">.=.</span> b <span class="fu">!</span> Birthday.name&#39;
-  return <span class="fu">$</span> p <span class="fu">&gt;&lt;</span> b</code></pre>
+  return <span class="fu">$</span> p <span class="fu">&gt;&lt;</span> b</code></pre></div>
 </div>
 <div id="組み上がった結合式built-joined-query" class="slide section level2">
 <h1>組み上がった結合式/Built joined query</h1>
-<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">personAndBirthday ::</span> <span class="dt">Relation</span> () (<span class="dt">Person</span>, <span class="dt">Birthday</span>)
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">personAndBirthday ::</span> <span class="dt">Relation</span> () (<span class="dt">Person</span>, <span class="dt">Birthday</span>)
 personAndBirthday <span class="fu">=</span>  relation <span class="fu">$</span> <span class="kw">do</span>
   p <span class="ot">&lt;-</span> query person
-  b &lt;- query birthday  -- 結合積の集積<span class="fu">/</span><span class="dt">Join</span> product accumulated
+  b &lt;- query birthday  -- 結合積の集積
+                       <span class="co">-- Join product accumulated</span>
   on <span class="fu">$</span> p <span class="fu">!</span> Person.name&#39; <span class="fu">.=.</span> b <span class="fu">!</span> Birthday.name&#39;
-  return <span class="fu">$</span> p <span class="fu">&gt;&lt;</span> b</code></pre>
-<pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.family <span class="kw">AS</span> f2,
+  return <span class="fu">$</span> p <span class="fu">&gt;&lt;</span> b</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.family <span class="kw">AS</span> f2,
            T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
       <span class="kw">FROM</span> EXAMPLE.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> EXAMPLE.birthday T1
-        <span class="kw">ON</span> (T0.name = T1.name)</code></pre>
+        <span class="kw">ON</span> (T0.name = T1.name)</code></pre></div>
 </div>
 <div id="例---外部左結合left-outer-join-example" class="slide section level2">
 <h1>例 - 外部左結合/Left outer join example</h1>
-<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">personAndBirthdayL ::</span> <span class="dt">Relation</span> () (<span class="dt">Person</span>, <span class="dt">Maybe</span> <span class="dt">Birthday</span>)
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">personAndBirthdayL ::</span> <span class="dt">Relation</span> () (<span class="dt">Person</span>, <span class="dt">Maybe</span> <span class="dt">Birthday</span>)
 personAndBirthdayL <span class="fu">=</span>  relation <span class="fu">$</span> <span class="kw">do</span>
   p <span class="ot">&lt;-</span> query person
   b <span class="ot">&lt;-</span> queryMaybe birthday
   on <span class="fu">$</span> just (p <span class="fu">!</span> Person.name&#39;) <span class="fu">.=.</span> b <span class="fu">?!</span> Birthday.name&#39;
-  return <span class="fu">$</span> p <span class="fu">&gt;&lt;</span> b</code></pre>
-<pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.family <span class="kw">AS</span> f2,
+  return <span class="fu">$</span> p <span class="fu">&gt;&lt;</span> b</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.family <span class="kw">AS</span> f2,
            T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
       <span class="kw">FROM</span> EXAMPLE.person T0 <span class="kw">LEFT</span> <span class="kw">JOIN</span> EXAMPLE.birthday T1
-        <span class="kw">ON</span> (T0.name = T1.name)</code></pre>
+        <span class="kw">ON</span> (T0.name = T1.name)</code></pre></div>
 </div>
 <div id="例---集約aggregation-example" class="slide section level2">
 <h1>例 - 集約/Aggregation example</h1>
-<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">agesOfFamilies ::</span> <span class="dt">Relation</span> () (<span class="dt">String</span>, <span class="dt">Maybe</span> <span class="dt">Int32</span>)
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">agesOfFamilies ::</span> <span class="dt">Relation</span> () (<span class="dt">String</span>, <span class="dt">Maybe</span> <span class="dt">Int32</span>)
 agesOfFamilies <span class="fu">=</span>  aggregateRelation <span class="fu">$</span> <span class="kw">do</span>
   p <span class="ot">&lt;-</span> query person
   gFam <span class="ot">&lt;-</span> groupBy <span class="fu">$</span> p <span class="fu">!</span> Person.family&#39;    <span class="co">-- Specify grouping key</span>
-  return <span class="fu">$</span> gFam <span class="fu">&gt;&lt;</span> sum&#39; (p <span class="fu">!</span> Person.age&#39;) <span class="co">-- Aggregated results</span></code></pre>
-<pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.family <span class="kw">AS</span> f0, <span class="fu">SUM</span>(T0.age) <span class="kw">AS</span> f1
+  return <span class="fu">$</span> gFam <span class="fu">&gt;&lt;</span> sum&#39; (p <span class="fu">!</span> Person.age&#39;) <span class="co">-- Aggregated results</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.family <span class="kw">AS</span> f0, <span class="fu">SUM</span>(T0.age) <span class="kw">AS</span> f1
       <span class="kw">FROM</span> EXAMPLE.person T0
-  <span class="kw">GROUP</span> <span class="kw">BY</span> T0.family</code></pre>
+  <span class="kw">GROUP</span> <span class="kw">BY</span> T0.family</code></pre></div>
 </div>
 <div id="例---絞り込みrestriction-example" class="slide section level2">
 <h1>例 - 絞り込み/Restriction example</h1>
-<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">sameBirthdayHeisei&#39; ::</span> <span class="dt">Relation</span> () (<span class="dt">Day</span>, <span class="dt">Int64</span>)
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">sameBirthdayHeisei&#39; ::</span> <span class="dt">Relation</span> () (<span class="dt">Day</span>, <span class="dt">Int64</span>)
 sameBirthdayHeisei&#39; <span class="fu">=</span>  aggregateRelation <span class="fu">$</span> <span class="kw">do</span>
   p <span class="ot">&lt;-</span> query person
   b <span class="ot">&lt;-</span> query birthday
   on <span class="fu">$</span> p <span class="fu">!</span> Person.name&#39; <span class="fu">.=.</span> b <span class="fu">!</span> Birthday.name&#39;
-  wheres <span class="fu">$</span> b <span class="fu">!</span> Birthday.day&#39; <span class="fu">.&gt;=.</span> value (fromGregorian <span class="dv">1989</span> <span class="dv">1</span> <span class="dv">8</span>)
+  wheres <span class="fu">$</span>
+    b <span class="fu">!</span> Birthday.day&#39; <span class="fu">.&gt;=.</span> value (fromGregorian <span class="dv">1989</span> <span class="dv">1</span> <span class="dv">8</span>)
   gbd <span class="ot">&lt;-</span> groupBy <span class="fu">$</span> b <span class="fu">!</span> Birthday.day&#39;
   having <span class="fu">$</span> count (p <span class="fu">!</span> Person.name&#39;) <span class="fu">.&gt;.</span> value (<span class="dv">1</span><span class="ot"> ::</span> <span class="dt">Int64</span>)
-  return <span class="fu">$</span> gbd <span class="fu">&gt;&lt;</span> count (p <span class="fu">!</span> Person.name&#39;)</code></pre>
+  return <span class="fu">$</span> gbd <span class="fu">&gt;&lt;</span> count (p <span class="fu">!</span> Person.name&#39;)</code></pre></div>
 <p>平成生まれで誕生日が同じ人を数える</p>
 <p>counts people with the same birthday, who were born in the Heisei period.</p>
-<pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T1.day <span class="kw">AS</span> f0, <span class="fu">COUNT</span>(T0.name) <span class="kw">AS</span> f1
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T1.day <span class="kw">AS</span> f0, <span class="fu">COUNT</span>(T0.name) <span class="kw">AS</span> f1
       <span class="kw">FROM</span> EXAMPLE.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> EXAMPLE.birthday T1
         <span class="kw">ON</span> (T0.name = T1.name)
      <span class="kw">WHERE</span> (T1.day &gt;= <span class="dt">DATE</span> <span class="st">&#39;1989-01-08&#39;</span>)
-  <span class="kw">GROUP</span> <span class="kw">BY</span> T1.day <span class="kw">HAVING</span> (<span class="fu">COUNT</span>(T0.name) &gt; <span class="dv">1</span>)</code></pre>
+  <span class="kw">GROUP</span> <span class="kw">BY</span> T1.day
+    <span class="kw">HAVING</span> (<span class="fu">COUNT</span>(T0.name) &gt; <span class="dv">1</span>)</code></pre></div>
 </div>
 <div id="例---絞り込みrestriction-example-1" class="slide section level2">
 <h1>例 - 絞り込み/Restriction example</h1>
-<pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T1.day <span class="kw">AS</span> f0, <span class="fu">COUNT</span>(T0.name) <span class="kw">AS</span> f1
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T1.day <span class="kw">AS</span> f0, <span class="fu">COUNT</span>(T0.name) <span class="kw">AS</span> f1
       <span class="kw">FROM</span> EXAMPLE.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> EXAMPLE.birthday T1
         <span class="kw">ON</span> (T0.name = T1.name)
      <span class="kw">WHERE</span> (T1.day &gt;= <span class="dt">DATE</span> <span class="st">&#39;1989-01-08&#39;</span>)
-  <span class="kw">GROUP</span> <span class="kw">BY</span> T1.day <span class="kw">HAVING</span> (<span class="fu">COUNT</span>(T0.name) &gt; <span class="dv">1</span>)</code></pre>
+  <span class="kw">GROUP</span> <span class="kw">BY</span> T1.day
+    <span class="kw">HAVING</span> (<span class="fu">COUNT</span>(T0.name) &gt; <span class="dv">1</span>)</code></pre></div>
 </div>
 <div id="例---絞り込みrestriction-example-2" class="slide section level2">
 <h1>例 - 絞り込み/Restriction example</h1>
-<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">sameBirthdayHeisei ::</span> <span class="dt">Relation</span> () (<span class="dt">Day</span>, <span class="dt">Int64</span>)
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">sameBirthdayHeisei ::</span> <span class="dt">Relation</span> () (<span class="dt">Day</span>, <span class="dt">Int64</span>)
 sameBirthdayHeisei <span class="fu">=</span>  aggregateRelation <span class="fu">$</span> <span class="kw">do</span>
   p <span class="ot">&lt;-</span> query person
   b <span class="ot">&lt;-</span> query birthday
@@ -185,32 +207,89 @@ sameBirthdayHeisei <span class="fu">=</span>  aggregateRelation <span class="fu"
   gbd <span class="ot">&lt;-</span> groupBy birthDay
   <span class="kw">let</span> personCount <span class="fu">=</span> count <span class="fu">$</span> p <span class="fu">!</span> Person.name&#39;
   having <span class="fu">$</span> personCount <span class="fu">.&gt;.</span> value <span class="dv">1</span>
-  return <span class="fu">$</span> gbd <span class="fu">&gt;&lt;</span> personCount</code></pre>
+  return <span class="fu">$</span> gbd <span class="fu">&gt;&lt;</span> personCount</code></pre></div>
 </div>
-<div id="例---順序付けordering" class="slide section level2">
-<h1>例 - 順序付け/Ordering</h1>
-<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">personAndBirthdayO ::</span> <span class="dt">Relation</span> () (<span class="dt">Person</span>, <span class="dt">Birthday</span>)
+<div id="例---順序付けordering-example" class="slide section level2">
+<h1>例 - 順序付け/Ordering example</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">personAndBirthdayO ::</span> <span class="dt">Relation</span> () (<span class="dt">Person</span>, <span class="dt">Birthday</span>)
 personAndBirthdayO <span class="fu">=</span>  relation <span class="fu">$</span> <span class="kw">do</span>
   p <span class="ot">&lt;-</span> query person
   b <span class="ot">&lt;-</span> query birthday
   on <span class="fu">$</span> p <span class="fu">!</span> Person.name&#39; <span class="fu">.=.</span> b <span class="fu">!</span> Birthday.name&#39;
   orderBy (b <span class="fu">!</span> Birthday.day&#39;) <span class="dt">Asc</span>  <span class="co">-- Specify ordering key</span>
   orderBy (p <span class="fu">!</span> Person.name&#39;) <span class="dt">Asc</span>
-  return <span class="fu">$</span> p <span class="fu">&gt;&lt;</span> b</code></pre>
+  return <span class="fu">$</span> p <span class="fu">&gt;&lt;</span> b</code></pre></div>
 <p>orders by birthday and then name:</p>
-<pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.family <span class="kw">AS</span> f2,
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.family <span class="kw">AS</span> f2,
            T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
       <span class="kw">FROM</span> EXAMPLE.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> EXAMPLE.birthday T1
         <span class="kw">ON</span> (T0.name = T1.name)
-  <span class="kw">ORDER</span> <span class="kw">BY</span> T1.day <span class="kw">ASC</span>, T0.name <span class="kw">ASC</span></code></pre>
+  <span class="kw">ORDER</span> <span class="kw">BY</span> T1.day <span class="kw">ASC</span>, T0.name <span class="kw">ASC</span></code></pre></div>
 </div>
-<div id="例---順序付けordering-1" class="slide section level2">
-<h1>例 - 順序付け/Ordering</h1>
-<pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.family <span class="kw">AS</span> f2,
+<div id="例---順序付けordering-example-1" class="slide section level2">
+<h1>例 - 順序付け/Ordering example</h1>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.family <span class="kw">AS</span> f2,
            T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
       <span class="kw">FROM</span> EXAMPLE.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> EXAMPLE.birthday T1
         <span class="kw">ON</span> (T0.name = T1.name)
-  <span class="kw">ORDER</span> <span class="kw">BY</span> T1.day <span class="kw">ASC</span>, T0.name <span class="kw">ASC</span></code></pre>
+  <span class="kw">ORDER</span> <span class="kw">BY</span> T1.day <span class="kw">ASC</span>, T0.name <span class="kw">ASC</span></code></pre></div>
+</div>
+<div id="例---プレースホルダーplaceholders-example" class="slide section level2">
+<h1>例 - プレースホルダー/Placeholders example</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">specifyPerson ::</span> <span class="dt">Relation</span> <span class="dt">String</span> (<span class="dt">Person</span>, <span class="dt">Birthday</span>)
+specifyPerson <span class="fu">=</span>  relation&#39; <span class="fu">$</span> <span class="kw">do</span>
+  pb <span class="ot">&lt;-</span> query personAndBirthday <span class="co">-- Re-use predefined</span>
+  (ph, ()) <span class="ot">&lt;-</span> placeholder
+              (\ph&#39; <span class="ot">-&gt;</span> wheres <span class="fu">$</span> pb <span class="fu">!</span> fst&#39; <span class="fu">!</span> Person.name&#39; <span class="fu">.=.</span> ph&#39;)
+  return (ph, pb)</code></pre></div>
+<p>名前をプレースホルダーで指定する:</p>
+<p>specifies a person name using a placeholder:</p>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T2.f0 <span class="kw">AS</span> f0, T2.f1 <span class="kw">AS</span> f1, T2.f2 <span class="kw">AS</span> f2,
+           T2.f3 <span class="kw">AS</span> f3, T2.f4 <span class="kw">AS</span> f4
+  <span class="kw">FROM</span> (<span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.family <span class="kw">AS</span> f2,
+               T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
+              <span class="kw">FROM</span> EXAMPLE.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span>
+                   EXAMPLE.birthday T1
+                <span class="kw">ON</span> (T0.name = T1.name)) T2
+ <span class="kw">WHERE</span> (T2.f0 = ?)</code></pre></div>
+</div>
+<div id="例---プレースホルダーplaceholders-example-1" class="slide section level2">
+<h1>例 - プレースホルダー/Placeholders example</h1>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T2.f0 <span class="kw">AS</span> f0, T2.f1 <span class="kw">AS</span> f1, T2.f2 <span class="kw">AS</span> f2,
+           T2.f3 <span class="kw">AS</span> f3, T2.f4 <span class="kw">AS</span> f4
+  <span class="kw">FROM</span> (<span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.family <span class="kw">AS</span> f2,
+               T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
+              <span class="kw">FROM</span> EXAMPLE.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span>
+                   EXAMPLE.birthday T1
+                <span class="kw">ON</span> (T0.name = T1.name)) T2
+ <span class="kw">WHERE</span> (T2.f0 = ?)</code></pre></div>
+</div>
+<div id="例---ウィンドウ関数window-function-example" class="slide section level2">
+<h1>例 - ウィンドウ関数/Window function example</h1>
+<p>ウィンドウを組み立てる:</p>
+<p>Building windows:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">ageRankOfFamilies ::</span> <span class="dt">Relation</span> () ((<span class="dt">Int64</span>, <span class="dt">String</span>), <span class="dt">Int32</span>)
+ageRankOfFamilies <span class="fu">=</span>  relation <span class="fu">$</span> <span class="kw">do</span>
+  my <span class="ot">&lt;-</span> query myTable
+  return <span class="fu">$</span>
+    rank <span class="ot">`over`</span> <span class="kw">do</span>
+      partitionBy <span class="fu">$</span> my <span class="fu">!</span> family&#39;  <span class="co">-- Monad to build window</span>
+      orderBy (my <span class="fu">!</span> age&#39;) <span class="dt">Desc</span>
+    <span class="fu">&gt;&lt;</span>
+    my <span class="fu">!</span> family&#39; <span class="fu">&gt;&lt;</span> my <span class="fu">!</span> age&#39;</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span>
+       <span class="fu">RANK</span>() <span class="kw">OVER</span> (<span class="kw">PARTITION</span> <span class="kw">BY</span> T0.family
+                    <span class="kw">ORDER</span> <span class="kw">BY</span> T0.age <span class="kw">DESC</span>) <span class="kw">AS</span> f0,
+       T0.family <span class="kw">AS</span> f1, T0.age <span class="kw">AS</span> f2
+  <span class="kw">FROM</span> PUBLIC.my_table T0</code></pre></div>
+</div>
+<div id="例---ウィンドウ関数window-function-example-1" class="slide section level2">
+<h1>例 - ウィンドウ関数/Window function example</h1>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span>
+       <span class="fu">RANK</span>() <span class="kw">OVER</span> (<span class="kw">PARTITION</span> <span class="kw">BY</span> T0.family
+                    <span class="kw">ORDER</span> <span class="kw">BY</span> T0.age <span class="kw">DESC</span>) <span class="kw">AS</span> f0,
+       T0.family <span class="kw">AS</span> f1, T0.age <span class="kw">AS</span> f2
+  <span class="kw">FROM</span> PUBLIC.my_table T0</code></pre></div>
 </div>
 <div id="合成可能composable" class="slide section level2">
 <h1>合成可能/Composable</h1>
@@ -227,32 +306,32 @@ personAndBirthdayO <span class="fu">=</span>  relation <span class="fu">$</span>
 <h1>型安全/Type safety</h1>
 <p>静的型付けされた式を組み立てる演算子</p>
 <p>Operators which builds statically typed expressions</p>
-<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">query ::</span> (<span class="dt">MonadQualify</span> <span class="dt">ConfigureQuery</span> m, <span class="dt">MonadQuery</span> m)
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">query ::</span> (<span class="dt">MonadQualify</span> <span class="dt">ConfigureQuery</span> m, <span class="dt">MonadQuery</span> m)
       <span class="ot">=&gt;</span> <span class="dt">Relation</span> () r
       <span class="ot">-&gt;</span> m (<span class="dt">Projection</span> <span class="dt">Flat</span> r)
 <span class="ot">queryMaybe ::</span> (<span class="dt">MonadQualify</span> <span class="dt">ConfigureQuery</span> m, <span class="dt">MonadQuery</span> m)
            <span class="ot">=&gt;</span> <span class="dt">Relation</span> () r
            <span class="ot">-&gt;</span> m (<span class="dt">Projection</span> <span class="dt">Flat</span> (<span class="dt">Maybe</span> r))
-<span class="ot">on ::</span> <span class="dt">MonadQuery</span> m <span class="ot">=&gt;</span> <span class="dt">Projection</span> <span class="dt">Flat</span> (<span class="dt">Maybe</span> <span class="dt">Bool</span>) <span class="ot">-&gt;</span> m ()</code></pre>
+<span class="ot">on ::</span> <span class="dt">MonadQuery</span> m <span class="ot">=&gt;</span> <span class="dt">Projection</span> <span class="dt">Flat</span> (<span class="dt">Maybe</span> <span class="dt">Bool</span>) <span class="ot">-&gt;</span> m ()</code></pre></div>
 </div>
 <div id="型安全type-safety-1" class="slide section level2">
 <h1>型安全/Type safety</h1>
 <p>静的型付けされた式を組み立てる演算子</p>
 <p>Operators which builds statically typed expressions</p>
-<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">groupBy ::</span> <span class="dt">MonadAggregate</span> m
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">groupBy ::</span> <span class="dt">MonadAggregate</span> m
         <span class="ot">=&gt;</span> <span class="dt">Projection</span> <span class="dt">Flat</span> r
         <span class="co">-- ^ Projection to add into group by</span>
         <span class="ot">-&gt;</span> m (<span class="dt">Projection</span> <span class="dt">Aggregated</span> r)
         <span class="co">-- ^ Result context and aggregated projection</span>
 <span class="ot">count ::</span> <span class="dt">Projection</span> <span class="dt">Flat</span> a <span class="ot">-&gt;</span> <span class="dt">Projection</span> <span class="dt">Aggregated</span> <span class="dt">Int64</span>
 <span class="ot">max&#39;  ::</span> <span class="dt">Ord</span> a
-      <span class="ot">=&gt;</span> <span class="dt">Projection</span> <span class="dt">Flat</span> a <span class="ot">-&gt;</span> <span class="dt">Projection</span> <span class="dt">Aggregated</span> (<span class="dt">Maybe</span> a)</code></pre>
+      <span class="ot">=&gt;</span> <span class="dt">Projection</span> <span class="dt">Flat</span> a <span class="ot">-&gt;</span> <span class="dt">Projection</span> <span class="dt">Aggregated</span> (<span class="dt">Maybe</span> a)</code></pre></div>
 </div>
 <div id="型安全type-safety-2" class="slide section level2">
 <h1>型安全/Type safety</h1>
 <p>静的型付けされた式を組み立てる演算子</p>
 <p>Operators which builds statically typed expressions</p>
-<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">restrict ::</span> <span class="dt">MonadRestrict</span> c m
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">restrict ::</span> <span class="dt">MonadRestrict</span> c m
          <span class="ot">=&gt;</span> <span class="dt">Projection</span> c (<span class="dt">Maybe</span> <span class="dt">Bool</span>)
          <span class="ot">-&gt;</span> m ()
 <span class="ot">wheres ::</span> <span class="dt">MonadRestrict</span> <span class="dt">Flat</span> m
@@ -260,19 +339,22 @@ personAndBirthdayO <span class="fu">=</span>  relation <span class="fu">$</span>
        <span class="ot">-&gt;</span> m ()
 <span class="ot">having ::</span> <span class="dt">MonadRestrict</span> <span class="dt">Aggregated</span> m
        <span class="ot">=&gt;</span> <span class="dt">Projection</span> <span class="dt">Aggregated</span> (<span class="dt">Maybe</span> <span class="dt">Bool</span>)
-       <span class="ot">-&gt;</span> m ()</code></pre>
+       <span class="ot">-&gt;</span> m ()</code></pre></div>
 </div>
 <div id="型安全type-safety-3" class="slide section level2">
 <h1>型安全/Type safety</h1>
 <p>静的型付けされた式を組み立てる演算子</p>
 <p>Operators which builds statically typed expressions</p>
-<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">orderBy ::</span> <span class="dt">Monad</span> m
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">orderBy ::</span> <span class="dt">Monad</span> m
         <span class="ot">=&gt;</span> <span class="dt">Projection</span> c t
         <span class="co">-- ^ Ordering terms to add</span>
         <span class="ot">-&gt;</span> <span class="dt">Order</span>
         <span class="co">-- ^ Order direction -- Asc | Desc</span>
         <span class="ot">-&gt;</span> <span class="dt">Orderings</span> c m ()
-        <span class="co">-- ^ Result context with ordering</span></code></pre>
+        <span class="co">-- ^ Result context with ordering</span></code></pre></div>
+</div>
+<div id="質疑応答discussion" class="slide section level2">
+<h1>質疑応答/Discussion</h1>
 </div>
 </div>
 </body>

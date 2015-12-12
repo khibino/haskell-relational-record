@@ -1,27 +1,24 @@
-% Typesafe, Composable query building
+% Composable, Typesafe Query building
 % 2015-12-12
 % Kei Hibino
-
-自己紹介
------
-
-@khibino
-
-普段は仕事も趣味も Haskell
-
-ISP でデータベーストランザクションのプログラムとか認証サーバーとか書いてます。
-
 
 今日の発表/Agenda
 -----
 
 * 静的型付けの関数型言語である Haskell を使って SQL を組み立てる DSL を作りました
     * http://khibino.github.io/haskell-relatoinal-record/
-* DSL のウリは Composability と Type Safety です
+* DSL のアピールポイントは 合成可能性 と 型安全性 です
 * コンパイル時に PostgreSQL のシステムカタログからテーブルスキーマを読み取って、型を自動生成します。
 
-※ 今日の発表には Haskell のコードが出てきますが、見た目の気分を感じとるぐらいで十分です。
-対応するSQLも出るので意味がわかると思います。
+※ 発表には Haskell のコードが出てきますが、見た目の気分を感じとるぐらいで十分です。
+対応するSQLも見せるので意味がわかると思います。
+
+<!--
+* SQL building DSL using Haskell
+    * http://khibino.github.io/haskell-relatoinal-record/
+* The appeal point of this DSL is composability and type-safety
+* Compile time schema loading and generating type informations
+ -->
 
 結合式の例/Joined Query building
 -----
@@ -76,7 +73,8 @@ Building a joined query like list comprehension or list monad:
 personAndBirthday :: Relation () (Person, Birthday)
 personAndBirthday =  relation $ do
   p <- query person
-  b <- query birthday  -- 結合積の集積/Join product accumulated
+  b <- query birthday  -- 結合積の蓄積
+                       -- Join product accumulated
   on $ p ! Person.name' .=. b ! Birthday.name'
   return $ p >< b
 ~~~~~
@@ -88,7 +86,8 @@ personAndBirthday =  relation $ do
 personAndBirthday :: Relation () (Person, Birthday)
 personAndBirthday =  relation $ do
   p <- query person
-  b <- query birthday  -- 結合積の集積/Join product accumulated
+  b <- query birthday  -- 結合積の集積
+                       -- Join product accumulated
   on $ p ! Person.name' .=. b ! Birthday.name'
   return $ p >< b
 ~~~~~
@@ -145,7 +144,8 @@ sameBirthdayHeisei' =  aggregateRelation $ do
   p <- query person
   b <- query birthday
   on $ p ! Person.name' .=. b ! Birthday.name'
-  wheres $ b ! Birthday.day' .>=. value (fromGregorian 1989 1 8)
+  wheres $
+    b ! Birthday.day' .>=. value (fromGregorian 1989 1 8)
   gbd <- groupBy $ b ! Birthday.day'
   having $ count (p ! Person.name') .>. value (1 :: Int64)
   return $ gbd >< count (p ! Person.name')
@@ -160,7 +160,8 @@ SELECT ALL T1.day AS f0, COUNT(T0.name) AS f1
       FROM EXAMPLE.person T0 INNER JOIN EXAMPLE.birthday T1
         ON (T0.name = T1.name)
      WHERE (T1.day >= DATE '1989-01-08')
-  GROUP BY T1.day HAVING (COUNT(T0.name) > 1)
+  GROUP BY T1.day
+    HAVING (COUNT(T0.name) > 1)
 ~~~~~
 
 例 - 絞り込み/Restriction example
@@ -171,7 +172,8 @@ SELECT ALL T1.day AS f0, COUNT(T0.name) AS f1
       FROM EXAMPLE.person T0 INNER JOIN EXAMPLE.birthday T1
         ON (T0.name = T1.name)
      WHERE (T1.day >= DATE '1989-01-08')
-  GROUP BY T1.day HAVING (COUNT(T0.name) > 1)
+  GROUP BY T1.day
+    HAVING (COUNT(T0.name) > 1)
 ~~~~~
 
 例 - 絞り込み/Restriction example
@@ -191,7 +193,7 @@ sameBirthdayHeisei =  aggregateRelation $ do
   return $ gbd >< personCount
 ~~~~~
 
-例 - 順序付け/Ordering
+例 - 順序付け/Ordering example
 -----
 
 ~~~~~ {.haskell}
@@ -215,7 +217,7 @@ SELECT ALL T0.name AS f0, T0.age AS f1, T0.family AS f2,
   ORDER BY T1.day ASC, T0.name ASC
 ~~~~~
 
-例 - 順序付け/Ordering
+例 - 順序付け/Ordering example
 -----
 
 ~~~~~ {.sql}
@@ -224,6 +226,86 @@ SELECT ALL T0.name AS f0, T0.age AS f1, T0.family AS f2,
       FROM EXAMPLE.person T0 INNER JOIN EXAMPLE.birthday T1
         ON (T0.name = T1.name)
   ORDER BY T1.day ASC, T0.name ASC
+~~~~~
+
+例 - プレースホルダー/Placeholders example
+-----
+
+~~~~~ {.haskell}
+specifyPerson :: Relation String (Person, Birthday)
+specifyPerson =  relation' $ do
+  pb <- query personAndBirthday -- Re-use predefined
+  (ph, ()) <- placeholder
+              (\ph' -> wheres $ pb ! fst' ! Person.name' .=. ph')
+  return (ph, pb)
+~~~~~
+
+名前をプレースホルダーで指定する:
+
+specifies a person name using a placeholder:
+
+~~~~~ {.sql}
+SELECT ALL T2.f0 AS f0, T2.f1 AS f1, T2.f2 AS f2,
+           T2.f3 AS f3, T2.f4 AS f4
+  FROM (SELECT ALL T0.name AS f0, T0.age AS f1, T0.family AS f2,
+	           T1.name AS f3, T1.day AS f4
+              FROM EXAMPLE.person T0 INNER JOIN
+                   EXAMPLE.birthday T1
+                ON (T0.name = T1.name)) T2
+ WHERE (T2.f0 = ?)
+~~~~~
+
+例 - プレースホルダー/Placeholders example
+-----
+
+~~~~~ {.sql}
+SELECT ALL T2.f0 AS f0, T2.f1 AS f1, T2.f2 AS f2,
+           T2.f3 AS f3, T2.f4 AS f4
+  FROM (SELECT ALL T0.name AS f0, T0.age AS f1, T0.family AS f2,
+	           T1.name AS f3, T1.day AS f4
+              FROM EXAMPLE.person T0 INNER JOIN
+                   EXAMPLE.birthday T1
+                ON (T0.name = T1.name)) T2
+ WHERE (T2.f0 = ?)
+~~~~~
+
+
+例 - ウィンドウ関数/Window function example
+-----
+
+ウィンドウを組み立てる:
+
+Building windows:
+
+~~~~~ {.haskell}
+ageRankOfFamilies :: Relation () ((Int64, String), Int32)
+ageRankOfFamilies =  relation $ do
+  my <- query myTable
+  return $
+    rank `over` do
+      partitionBy $ my ! family'  -- Monad to build window
+      orderBy (my ! age') Desc
+    ><
+    my ! family' >< my ! age'
+~~~~~
+
+~~~~~ {.sql}
+SELECT ALL
+       RANK() OVER (PARTITION BY T0.family
+                    ORDER BY T0.age DESC) AS f0,
+       T0.family AS f1, T0.age AS f2
+  FROM PUBLIC.my_table T0
+~~~~~
+
+例 - ウィンドウ関数/Window function example
+-----
+
+~~~~~ {.sql}
+SELECT ALL
+       RANK() OVER (PARTITION BY T0.family
+                    ORDER BY T0.age DESC) AS f0,
+       T0.family AS f1, T0.age AS f2
+  FROM PUBLIC.my_table T0
 ~~~~~
 
 合成可能/Composable
@@ -308,3 +390,6 @@ orderBy :: Monad m
         -> Orderings c m ()
         -- ^ Result context with ordering
 ~~~~~
+
+質疑応答/Discussion
+-----
