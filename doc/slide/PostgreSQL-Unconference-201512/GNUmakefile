@@ -12,7 +12,7 @@ math_opt = --latexmathml
 #math_opt = --mathjax
 
 slide_opts = \
-	--standalone --slide-level=2 \
+	--self-contained --standalone --slide-level=2 \
 	$(math_opt)
 ##	--incremental
 
