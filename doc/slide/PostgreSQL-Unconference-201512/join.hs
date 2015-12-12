@@ -6,6 +6,7 @@ import Data.Int
 import Data.Time
 import Database.Relational.Query
 import Database.Relational.Query.TH
+import Database.Relational.Query.Monad.Trans.Ordering (Orderings)
 
 import Person (Person (Person), person)
 import Birthday (Birthday, birthday)
@@ -149,3 +150,8 @@ nonsense = personAndBirthday `union` personAndBirthdayO
 heiseiBirthday :: MonadRestrict Flat m
                => Projection Flat Birthday -> m ()
 heiseiBirthday b = wheres $ b ! Birthday.day' .>=. value (fromGregorian 1989 1 8)
+
+orderByName :: Monad m
+            => Projection c Person
+            -> Orderings c m ()
+orderByName p = orderBy (p ! Person.name') Asc
