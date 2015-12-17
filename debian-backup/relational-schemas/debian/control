@@ -7,13 +7,13 @@ Build-Depends: debhelper (>= 7.0)
                , cdbs
                , ghc
                , ghc-prof
-               , libghc-persistable-record-dev
-               , libghc-persistable-record-prof
-               , libghc-relational-query-dev
-               , libghc-relational-query-prof
+               , libghc-persistable-record-dev (>= 0.2)
+               , libghc-persistable-record-prof (>= 0.2)
+               , libghc-relational-query-dev (>= 0.7)
+               , libghc-relational-query-prof (>= 0.7)
 Build-Depends-Indep: ghc-doc
-                     , libghc-persistable-record-doc
-                     , libghc-relational-query-doc
+                     , libghc-persistable-record-doc (>= 0.2)
+                     , libghc-relational-query-doc (>= 0.7)
 
 Package: libghc-relational-schemas-dev
 Architecture: any
