@@ -13,22 +13,28 @@ Build-Depends: debhelper (>= 7.0)
                , libghc-hdbc-session-prof
                , libghc-convertible-dev
                , libghc-convertible-prof
+               , libghc-dlist-dev
+               , libghc-dlist-prof
                , libghc-names-th-dev
                , libghc-names-th-prof
                , libghc-persistable-record-dev
                , libghc-persistable-record-prof
-               , libghc-relational-query-dev
-               , libghc-relational-query-prof
+               , libghc-relational-query-dev (>= 0.6.2)
+               , libghc-relational-query-prof (>= 0.6.2)
                , libghc-relational-schemas-dev
                , libghc-relational-schemas-prof
+               , libghc-transformers-dev
+               , libghc-transformers-prof
 Build-Depends-Indep: ghc-doc
                      , libghc-hdbc-doc (>= 2)
                      , libghc-hdbc-session-doc
                      , libghc-convertible-doc
+                     , libghc-dlist-doc
                      , libghc-names-th-doc
                      , libghc-persistable-record-doc
-                     , libghc-relational-query-doc
+                     , libghc-relational-query-doc (>= 0.6.2)
                      , libghc-relational-schemas-doc
+                     , libghc-transformers-doc
 
 Package: libghc-relational-query-hdbc-dev
 Architecture: any
