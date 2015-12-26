@@ -1,4 +1,4 @@
-{-# LANGUAGE MonadComprehensions #-}
+{-# LANGUAGE MonadComprehensions, FlexibleContexts #-}
 module Main where
 
 import Database.Relational.Query    ( query
