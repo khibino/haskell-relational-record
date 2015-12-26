@@ -1,4 +1,4 @@
-name:                relational-query-HDBC-pgTest
+name:                hrr-example-HDBC-postgresql
 version:             0.0.1.0
 synopsis:            Example codes for relational-query-HDBC which depends on PostgreSQL
 description:         This package contains the example codes for relational-query-HDBC which depends on PostgreSQL
