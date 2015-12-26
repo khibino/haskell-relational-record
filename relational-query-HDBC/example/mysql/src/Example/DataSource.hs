@@ -7,7 +7,7 @@ module Example.DataSource
     where
 
 import Language.Haskell.TH                  (Q, Dec, TypeQ)
-import Language.Haskell.TH.Name.CamelCase   (ConName)
+import Language.Haskell.TH.Syntax           (Name)
 
 import Database.HDBC.Query.TH               (defineTableFromDB)
 import Database.HDBC.Schema.Driver          (typeMap)
@@ -29,5 +29,5 @@ config = defaultMySQLConnectInfo {
 connect :: IO Connection
 connect = connectMySQL config
 
-defineTable :: [(String, TypeQ)] -> String -> String -> [ConName] -> Q [Dec]
+defineTable :: [(String, TypeQ)] -> String -> String -> [Name] -> Q [Dec]
 defineTable tmap = defineTableFromDB connect (driverMySQL { typeMap = tmap })
