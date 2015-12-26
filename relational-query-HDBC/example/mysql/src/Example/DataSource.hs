@@ -6,17 +6,17 @@ module Example.DataSource
     )
     where
 
-import Language.Haskell.TH                  (Q, Dec, TypeQ)
-import Language.Haskell.TH.Syntax           (Name)
+import Language.Haskell.TH         (Q, Dec, TypeQ)
+import Language.Haskell.TH.Syntax  (Name)
 
-import Database.HDBC.Query.TH               (defineTableFromDB)
-import Database.HDBC.Schema.Driver          (typeMap)
-import Database.HDBC.Schema.MySQL           (driverMySQL)
-import Database.HDBC.MySQL                  ( Connection
-                                            , connectMySQL
-                                            , MySQLConnectInfo(..)
-                                            , defaultMySQLConnectInfo
-                                            )
+import Database.HDBC.Query.TH      (defineTableFromDB)
+import Database.HDBC.Schema.Driver (typeMap)
+import Database.HDBC.Schema.MySQL  (driverMySQL)
+import Database.HDBC.MySQL         ( Connection
+                                   , connectMySQL
+                                   , MySQLConnectInfo(..)
+                                   , defaultMySQLConnectInfo
+                                   )
 
 config :: MySQLConnectInfo
 config = defaultMySQLConnectInfo {
