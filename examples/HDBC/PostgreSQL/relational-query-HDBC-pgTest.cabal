@@ -1,7 +1,7 @@
 name:                relational-query-HDBC-pgTest
 version:             0.0.1.0
-synopsis:            Test codes for relational-query-HDBC which depends on PostgreSQL
-description:         This package contains the test codes for relational-query-HDBC which depends on PostgreSQL
+synopsis:            Example codes for relational-query-HDBC which depends on PostgreSQL
+description:         This package contains the example codes for relational-query-HDBC which depends on PostgreSQL
 license:             BSD3
 license-file:        LICENSE
 author:              Kei Hibino
