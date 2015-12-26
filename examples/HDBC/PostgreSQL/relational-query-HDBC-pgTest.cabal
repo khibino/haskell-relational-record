@@ -98,16 +98,3 @@ Executable example4
   main-is:             modifyExample.hs
   hs-source-dirs:      example/4, example
   ghc-options:         -Wall
-
-Test-suite postgreSQL
-  build-depends:         relational-query-HDBC
-                       , base <5
-                       , quickcheck-simple
-                       , HDBC-postgresql
-                       , bytestring
-                       , text
-
-  Type:                exitcode-stdio-1.0
-  Main-is:             pgTest.hs
-  hs-source-dirs:      pgTest
-  ghc-options:         -Wall
