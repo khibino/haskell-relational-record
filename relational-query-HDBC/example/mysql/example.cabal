@@ -30,8 +30,8 @@ executable example
     , HDBC-mysql >=0.6 && <0.7
     , HDBC-session
     , names-th
-    , relational-query
-    , relational-query-HDBC
+    , relational-query >= 0.7
+    , relational-query-HDBC >= 0.4
     , time
   default-language:
     Haskell2010
