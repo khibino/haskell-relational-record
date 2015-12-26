@@ -1,4 +1,5 @@
 {-# LANGUAGE MonadComprehensions #-}
+{-# LANGUAGE FlexibleContexts #-}
 module Main where
 
 import Database.Relational.Query    ( query
@@ -24,7 +25,7 @@ import Database.HDBC                (runRaw, quickQuery', fromSql)
 
 import Data.Time                    (Day, fromGregorian)
 import Data.List                    (isInfixOf)
-import Data.Int                     (Int32, Int64)
+import Data.Int                     (Int8, Int64)
 
 import Example.DataSource           (connect)
 import Example.User                 (user)
@@ -61,7 +62,7 @@ main = handleSqlError' $ withConnectionIO connect $ \conn -> do
 
         day = fromGregorian
 
-        sample3 :: Relation () (Int32, Int64)
+        sample3 :: Relation () (Int8, Int64)
         sample3 = aggregateRelation
             [ c >< count (u ! U.id')
             | u  <- query user
