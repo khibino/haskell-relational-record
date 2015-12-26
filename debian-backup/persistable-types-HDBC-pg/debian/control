@@ -1,0 +1,72 @@
+Source: haskell-persistable-types-hdbc-pg
+Maintainer: Kei Hibino <ex8k.hibino@gmail.com>
+Priority: optional
+Section: haskell
+Build-Depends: debhelper (>= 7.0)
+               , haskell-devscripts (>= 0.8)
+               , cdbs
+               , ghc
+               , ghc-prof
+               , libghc-hdbc-dev
+               , libghc-hdbc-prof
+               , libghc-convertible-dev
+               , libghc-convertible-prof
+               , libghc-persistable-record-dev
+               , libghc-persistable-record-prof
+               , libghc-relational-query-hdbc-dev
+               , libghc-relational-query-hdbc-prof
+               , libghc-text-postgresql-dev
+               , libghc-text-postgresql-prof
+Build-Depends-Indep: ghc-doc
+                     , libghc-hdbc-doc
+                     , libghc-convertible-doc
+                     , libghc-persistable-record-doc
+                     , libghc-relational-query-hdbc-doc
+                     , libghc-text-postgresql-doc
+
+Package: libghc-persistable-types-hdbc-pg-dev
+Architecture: any
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
+         , ${misc:Depends}
+Recommends: ${haskell:Recommends}
+Suggests: ${haskell:Suggests}
+Conflicts: ${haskell:Conflicts}
+Provides: ${haskell:Provides}
+Replaces: ${haskell:Replaces}
+Description: HDBC Convertible instances and HRR persistable instances of PostgreSQL extended types
+ .
+ This package provides a library for the Haskell programming language.
+ See http:///www.haskell.org/ for more information on Haskell.
+
+Package: libghc-persistable-types-hdbc-pg-prof
+Architecture: any
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
+         , ${misc:Depends}
+Recommends: ${haskell:Recommends}
+Suggests: ${haskell:Suggests}
+Conflicts: ${haskell:Conflicts}
+Provides: ${haskell:Provides}
+Replaces: ${haskell:Replaces}
+Description: HDBC Convertible instances and HRR persistable instances of PostgreSQL extended types
+ .
+ This package provides a library for the Haskell programming language, compiled
+ for profiling.  See http:///www.haskell.org/ for more information on Haskell.
+
+Package: libghc-persistable-types-hdbc-pg-doc
+Architecture: all
+Section: doc
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
+         , ${misc:Depends}
+Recommends: ${haskell:Recommends}
+Suggests: ${haskell:Suggests}
+Conflicts: ${haskell:Conflicts}
+Provides: ${haskell:Provides}
+Replaces: ${haskell:Replaces}
+Description: HDBC Convertible instances and HRR persistable instances of PostgreSQL extended types
+ .
+ This package provides the documentation for a library for the Haskell
+ programming language.
+ See http:///www.haskell.org/ for more information on Haskell.
