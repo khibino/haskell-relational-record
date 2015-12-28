@@ -29,7 +29,7 @@ create table hrr_datatype_test (
 );
 
 insert into hrr_datatype_test values (
-  'abあい', 'a', 'abあい', 'abあい', 'abあい', 'abあい',
+  'abcd', 'a', 'abcd', 'abcd', 'abあい', 'abあい',
   1234.1234, 1234.12, 1234, 1234.1234, 1234.1234, 1234.1234, 1234.1234, 0.2,
   sysdate, '123456789ABCDEF', 'abcdあいうえ', 'abcdあいうえ',
   '1234abcd', '1234abcd', 'AAAK6mAAAAAABF8AAA', 'AAAK6mAAAAAABF8AAA'
