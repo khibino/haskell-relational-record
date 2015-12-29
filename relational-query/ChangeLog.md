@@ -1,5 +1,10 @@
 <!-- -*- Markdown -*- -->
 
+## 0.7.0.2
+
+- Prepare to drop Expr type and deprecate around it.
+- Fix boolean projection operator types.
+
 ## 0.7.0.1
 
 - Update this changelog.
