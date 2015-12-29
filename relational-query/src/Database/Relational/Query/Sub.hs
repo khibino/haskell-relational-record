@@ -36,7 +36,7 @@ module Database.Relational.Query.Sub (
   ) where
 
 import Data.Maybe (fromMaybe)
-import Data.Array (Array, listArray)
+import Data.Array (listArray)
 import qualified Data.Array as Array
 import Data.Monoid (mempty, (<>), mconcat)
 
@@ -46,7 +46,11 @@ import Database.Relational.Query.Expr.Unsafe (unsafeStringSql)
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL)
 import Database.Relational.Query.Internal.Product
   (NodeAttr(Just', Maybe), ProductTree (Leaf, Join),
-   Node, nodeAttr, nodeTree)
+   nodeAttr, nodeTree)
+import Database.Relational.Query.Internal.Sub
+  (SubQuery (..), UntypedProjection, ProjectionUnit (..),
+   JoinProduct, QueryProduct, QueryProductNode,
+   SetOp (..), BinOp (..), Qualifier (..), Qualified (..))
 import Database.Relational.Query.Component
   (ColumnSQL, columnSQL', showsColumnSQL,
    Config (productUnitSupport), ProductUnitSupport (PUSupported, PUNotSupported),
@@ -59,10 +63,6 @@ import Language.SQL.Keyword (Keyword(..), (|*|))
 import qualified Language.SQL.Keyword as SQL
 
 
-data SetOp = Union | Except | Intersect  deriving Show
-
-newtype BinOp = BinOp (SetOp, Duplication) deriving Show
-
 showsSetOp' :: SetOp -> StringSQL
 showsSetOp' =  d  where
   d Union     = UNION
@@ -73,17 +73,6 @@ showsSetOp :: SetOp -> Duplication -> StringSQL
 showsSetOp op dup0 = showsSetOp' op <> mayDup dup0  where
   mayDup dup@All  = showsDuplication dup
   mayDup Distinct = mempty
-
--- | Sub-query type
-data SubQuery = Table Table.Untyped
-              | Flat Config
-                UntypedProjection Duplication JoinProduct (QueryRestriction Context.Flat)
-                OrderingTerms
-              | Aggregated Config
-                UntypedProjection Duplication JoinProduct (QueryRestriction Context.Flat)
-                [AggregateElem] (QueryRestriction Context.Aggregated) OrderingTerms
-              | Bin BinOp SubQuery SubQuery
-              deriving Show
 
 -- | 'SubQuery' from 'Table'.
 fromTable :: Table r  -- ^ Typed 'Table' metadata
@@ -197,16 +186,6 @@ showSQL = snd . toSQLs
 toSQL :: SubQuery -> String
 toSQL =  showStringSQL . showSQL
 
--- | Qualifier type.
-newtype Qualifier = Qualifier Int  deriving Show
-
--- | Qualified query.
-data Qualified a = Qualified a Qualifier  deriving Show
-
--- | 'Functor' instance of 'Qualified'
-instance Functor Qualified where
-  fmap f (Qualified a i) = Qualified (f a) i
-
 -- | Get qualifier
 qualifier :: Qualified a -> Qualifier
 qualifier (Qualified _ i) = i
@@ -259,20 +238,11 @@ qualifiedForm :: Qualified SubQuery -> StringSQL
 qualifiedForm =  qualifiedSQLas . fmap showUnitSQL
 
 
--- | Projection structure unit
-data ProjectionUnit = Columns (Array Int ColumnSQL)
-                    | Normalized (Qualified Int)
-                    | Scalar SubQuery
-                    deriving Show
-
 projectionUnitFromColumns :: [ColumnSQL] -> ProjectionUnit
 projectionUnitFromColumns cs = Columns $ listArray (0, length cs - 1) cs
 
 projectionUnitFromScalarSubQuery :: SubQuery -> ProjectionUnit
 projectionUnitFromScalarSubQuery =  Scalar
-
--- | Untyped projection. Forgot record type.
-type UntypedProjection = [ProjectionUnit]
 
 unitUntypedProjection :: ProjectionUnit -> UntypedProjection
 unitUntypedProjection =  (:[])
@@ -336,11 +306,6 @@ columnsOfUntypedProjection p = map (columnOfUntypedProjection p) . take w $ [0 .
   where w = widthOfUntypedProjection p
 
 
--- | Product tree specialized by 'SubQuery'.
-type QueryProduct = ProductTree (Qualified SubQuery)
--- | Product node specialized by 'SubQuery'.
-type QueryProductNode = Node (Qualified SubQuery)
-
 -- | Show product tree of query into SQL. StringSQL result.
 showsQueryProduct :: QueryProduct -> StringSQL
 showsQueryProduct =  rec  where
@@ -359,9 +324,6 @@ showsQueryProduct =  rec  where
      urec right',
      ON,
      unsafeStringSql . fromMaybe (valueExpr True) {- or error on compile -}  $ rs]
-
--- | Type for join product of query.
-type JoinProduct = Maybe QueryProduct
 
 -- | Shows join product of query.
 showsJoinProduct :: ProductUnitSupport -> JoinProduct -> StringSQL
