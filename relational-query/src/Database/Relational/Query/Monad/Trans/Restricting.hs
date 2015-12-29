@@ -26,9 +26,7 @@ import Control.Applicative (Applicative, pure, (<$>))
 import Control.Arrow (second)
 import Data.DList (DList, toList)
 
-import Database.Relational.Query.Internal.Sub (QueryRestriction)
-import Database.Relational.Query.Expr (Expr, fromJust)
-import Database.Relational.Query.Projectable (expr)
+import Database.Relational.Query.Internal.Sub (QueryRestriction, Projection)
 
 import Database.Relational.Query.Monad.Class
   (MonadQualify (..), MonadRestrict(..), MonadQuery (..), MonadAggregate(..))
@@ -38,7 +36,7 @@ import Database.Relational.Query.Monad.Class
 --   Type 'c' is context tag of restriction building like
 --   Flat (where) or Aggregated (having).
 newtype Restrictings c m a =
-  Restrictings (WriterT (DList (Expr c Bool)) m a)
+  Restrictings (WriterT (DList (Projection c (Maybe Bool))) m a)
   deriving (MonadTrans, Monad, Functor, Applicative)
 
 -- | Lift to 'Restrictings'
@@ -46,12 +44,12 @@ restrictings :: Monad m => m a -> Restrictings c m a
 restrictings =  lift
 
 -- | Add whole query restriction.
-updateRestriction :: Monad m => Expr c (Maybe Bool) -> Restrictings c m ()
-updateRestriction =  Restrictings . tell . pure . fromJust
+updateRestriction :: Monad m => Projection c (Maybe Bool) -> Restrictings c m ()
+updateRestriction =  Restrictings . tell . pure
 
 -- | 'MonadRestrict' instance.
 instance (Monad q, Functor q) => MonadRestrict c (Restrictings c q) where
-  restrict = updateRestriction . expr
+  restrict = updateRestriction
 
 -- | Restricted 'MonadQualify' instance.
 instance MonadQualify q m => MonadQualify q (Restrictings c m) where

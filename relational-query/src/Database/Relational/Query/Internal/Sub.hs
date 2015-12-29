@@ -22,7 +22,6 @@ module Database.Relational.Query.Internal.Sub
 import Data.Array (Array)
 
 import qualified Database.Relational.Query.Context as Context
-import Database.Relational.Query.Expr (Expr)
 import Database.Relational.Query.Internal.Product
   (ProductTree, Node)
 import Database.Relational.Query.Component
@@ -82,4 +81,4 @@ typedProjection =  Projection
 
 
 -- | Type for restriction of query.
-type QueryRestriction c = [Expr c Bool]
+type QueryRestriction c = [Projection c (Maybe Bool)]

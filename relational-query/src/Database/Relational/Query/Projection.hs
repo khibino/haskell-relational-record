@@ -48,7 +48,7 @@ import qualified Language.SQL.Keyword as SQL
 import Database.Record (HasColumnConstraint, NotNull, NotNullColumnConstraint)
 import qualified Database.Record.KeyConstraint as KeyConstraint
 
-import Database.Relational.Query.Internal.SQL (StringSQL, rowStringSQL, listStringSQL)
+import Database.Relational.Query.Internal.SQL (StringSQL, listStringSQL)
 import Database.Relational.Query.Internal.Sub
   (SubQuery, UntypedProjection, Projection, untypeProjection, typedProjection, Qualified)
 import Database.Relational.Query.Context (Aggregated, Flat)
@@ -61,19 +61,24 @@ import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Relational.Query.Sub
-  (widthOfUntypedProjection, columnsOfUntypedProjection, untypedProjectionFromColumns,
-   untypedProjectionFromColumns, untypedProjectionFromJoinedSubQuery, untypedProjectionFromScalarSubQuery)
+  (widthOfUntypedProjection, untypedProjectionFromColumns, projectionColumns,
+   untypedProjectionFromColumns, untypedProjectionFromJoinedSubQuery, untypedProjectionFromScalarSubQuery,
+   unsafeProjectionStringSql)
 import qualified Database.Relational.Query.Sub as SubQuery
 
 
--- | Width of 'Projection'.
-width :: Projection c r -> Int
-width =  widthOfUntypedProjection . untypeProjection
+-- | Unsafely get SQL term from 'Proejction'.
+unsafeStringSql :: Projection c r -> StringSQL
+unsafeStringSql = unsafeProjectionStringSql
 
 -- | Get column SQL string list of projection.
 columns :: Projection c r -- ^ Source 'Projection'
         -> [ColumnSQL]    -- ^ Result SQL string list
-columns =  columnsOfUntypedProjection . untypeProjection
+columns = projectionColumns
+
+-- | Width of 'Projection'.
+width :: Projection c r -> Int
+width =  widthOfUntypedProjection . untypeProjection
 
 -- | Unsafely get untyped projection.
 untype :: Projection c r -> UntypedProjection
@@ -103,10 +108,6 @@ unsafeFromTable =  unsafeFromColumns . Table.columns
 predicateProjectionFromExpr :: Expr c (Maybe Bool) -> Projection c (Maybe Bool)
 predicateProjectionFromExpr =
   typedProjection . untypedProjectionFromColumns . (:[]) .  columnSQL' . UnsafeExpr.unsafeStringSql
-
--- | Unsafely get SQL term from 'Proejction'.
-unsafeStringSql :: Projection c r -> StringSQL
-unsafeStringSql =  rowStringSQL . map showsColumnSQL . columns
 
 -- | Unsafely generate 'Projection' from SQL expression strings.
 unsafeFromSqlTerms :: [StringSQL] -> Projection c t

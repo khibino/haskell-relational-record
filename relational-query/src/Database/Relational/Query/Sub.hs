@@ -24,12 +24,13 @@ module Database.Relational.Query.Sub (
   -- * Sub-query columns
   column,
 
-  -- * Untyped projection
+  -- * Projection
   ProjectionUnit, UntypedProjection,
 
   untypedProjectionFromColumns, untypedProjectionFromJoinedSubQuery, untypedProjectionFromScalarSubQuery,
   widthOfUntypedProjection, columnsOfUntypedProjection,
 
+  projectionColumns, unsafeProjectionStringSql,
 
   -- * Product of sub-queries
   QueryProduct, QueryProductNode, JoinProduct,
@@ -44,14 +45,15 @@ import qualified Data.Array as Array
 import Data.Monoid (mempty, (<>), mconcat)
 
 import qualified Database.Relational.Query.Context as Context
-import Database.Relational.Query.Expr (valueExpr, exprAnd)
-import Database.Relational.Query.Expr.Unsafe (unsafeStringSql)
-import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL)
+import Database.Relational.Query.Expr (valueExpr)
+import qualified Database.Relational.Query.Expr.Unsafe as Expr
+import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, rowStringSQL, showStringSQL)
 import Database.Relational.Query.Internal.Product
   (NodeAttr(Just', Maybe), ProductTree (Leaf, Join),
    nodeAttr, nodeTree)
 import Database.Relational.Query.Internal.Sub
-  (SubQuery (..), UntypedProjection, ProjectionUnit (..),
+  (SubQuery (..), Projection, untypeProjection,
+   UntypedProjection, ProjectionUnit (..),
    JoinProduct, QueryProduct, QueryProductNode,
    SetOp (..), BinOp (..), Qualifier (..), Qualified (..),
    QueryRestriction)
@@ -309,6 +311,15 @@ columnsOfUntypedProjection :: UntypedProjection -- ^ Source 'Projection'
 columnsOfUntypedProjection p = map (columnOfUntypedProjection p) . take w $ [0 .. ]
   where w = widthOfUntypedProjection p
 
+-- | Get column SQL string list of projection.
+projectionColumns :: Projection c r -- ^ Source 'Projection'
+                  -> [ColumnSQL]    -- ^ Result SQL string list
+projectionColumns =  columnsOfUntypedProjection . untypeProjection
+
+-- | Unsafely get SQL term from 'Proejction'.
+unsafeProjectionStringSql :: Projection c r -> StringSQL
+unsafeProjectionStringSql =  rowStringSQL . map showsColumnSQL . projectionColumns
+
 
 -- | Show product tree of query into SQL. StringSQL result.
 showsQueryProduct :: QueryProduct -> StringSQL
@@ -327,7 +338,7 @@ showsQueryProduct =  rec  where
      joinType (nodeAttr left') (nodeAttr right'), JOIN,
      urec right',
      ON,
-     unsafeStringSql . fromMaybe (valueExpr True) {- or error on compile -}  $ rs]
+     Expr.unsafeStringSql . fromMaybe (valueExpr True) {- or error on compile -}  $ rs]
 
 -- | Shows join product of query.
 showsJoinProduct :: ProductUnitSupport -> JoinProduct -> StringSQL
@@ -340,8 +351,8 @@ showsJoinProduct ups =  maybe (up ups) from  where
 -- | Compose SQL String from 'QueryRestriction'.
 composeRestrict :: Keyword -> QueryRestriction c -> StringSQL
 composeRestrict k = d  where
-  d    []    =  mempty
-  d e@(_:_)  =  k <> unsafeStringSql (foldr1 exprAnd e)
+  d     []    =  mempty
+  d ps@(_:_)  =  k <> foldr1 SQL.and [ unsafeProjectionStringSql p | p <- ps ]
 
 -- | Compose WHERE clause from 'QueryRestriction'.
 composeWhere :: QueryRestriction Context.Flat -> StringSQL
