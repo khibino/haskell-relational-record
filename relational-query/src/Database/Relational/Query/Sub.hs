@@ -33,6 +33,9 @@ module Database.Relational.Query.Sub (
 
   -- * Product of sub-queries
   QueryProduct, QueryProductNode, JoinProduct,
+
+  -- * Query restriction
+  composeWhere, composeHaving
   ) where
 
 import Data.Maybe (fromMaybe)
@@ -41,7 +44,7 @@ import qualified Data.Array as Array
 import Data.Monoid (mempty, (<>), mconcat)
 
 import qualified Database.Relational.Query.Context as Context
-import Database.Relational.Query.Expr (valueExpr)
+import Database.Relational.Query.Expr (valueExpr, exprAnd)
 import Database.Relational.Query.Expr.Unsafe (unsafeStringSql)
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL)
 import Database.Relational.Query.Internal.Product
@@ -51,7 +54,7 @@ import Database.Relational.Query.Internal.Sub
   (SubQuery (..), UntypedProjection, ProjectionUnit (..),
    JoinProduct, QueryProduct, QueryProductNode,
    SetOp (..), BinOp (..), Qualifier (..), Qualified (..),
-   QueryRestriction, composeWhere, composeHaving)
+   QueryRestriction)
 import Database.Relational.Query.Component
   (ColumnSQL, columnSQL', showsColumnSQL,
    Config (productUnitSupport), ProductUnitSupport (PUSupported, PUNotSupported),
@@ -332,3 +335,18 @@ showsJoinProduct ups =  maybe (up ups) from  where
   from qp = FROM <> showsQueryProduct qp
   up PUSupported    = mempty
   up PUNotSupported = error "relation: Unit product support mode is disabled!"
+
+
+-- | Compose SQL String from 'QueryRestriction'.
+composeRestrict :: Keyword -> QueryRestriction c -> StringSQL
+composeRestrict k = d  where
+  d    []    =  mempty
+  d e@(_:_)  =  k <> unsafeStringSql (foldr1 exprAnd e)
+
+-- | Compose WHERE clause from 'QueryRestriction'.
+composeWhere :: QueryRestriction Context.Flat -> StringSQL
+composeWhere =  composeRestrict WHERE
+
+-- | Compose HAVING clause from 'QueryRestriction'.
+composeHaving :: QueryRestriction Context.Aggregated -> StringSQL
+composeHaving =  composeRestrict HAVING
