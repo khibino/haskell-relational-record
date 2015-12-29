@@ -98,6 +98,7 @@ unsafeFromTable :: Table r
                 -> Projection c r
 unsafeFromTable =  unsafeFromColumns . Table.columns
 
+{-# DEPRECATED predicateProjectionFromExpr "Drop in the next version." #-}
 -- | Lift 'Expr' to 'Projection' to use as restrict predicate.
 predicateProjectionFromExpr :: Expr c (Maybe Bool) -> Projection c (Maybe Bool)
 predicateProjectionFromExpr =

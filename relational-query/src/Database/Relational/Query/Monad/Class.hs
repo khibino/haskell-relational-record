@@ -80,6 +80,7 @@ all' =  setDuplication All
 distinct :: MonadQuery m => m ()
 distinct =  setDuplication Distinct
 
+{-# DEPRECATED onE "Drop in the next version." #-}
 -- | Add restriction to last join.
 onE :: MonadQuery m => Expr Flat (Maybe Bool) -> m ()
 onE =  restrictJoin . predicateProjectionFromExpr
@@ -88,6 +89,7 @@ onE =  restrictJoin . predicateProjectionFromExpr
 on :: MonadQuery m => Projection Flat (Maybe Bool) -> m ()
 on =  restrictJoin
 
+{-# DEPRECATED wheresE "Drop in the next version." #-}
 -- | Add restriction to this query. Expr type version.
 wheresE :: MonadRestrict Flat m => Expr Flat (Maybe Bool) -> m ()
 wheresE =  restrict . predicateProjectionFromExpr
@@ -96,6 +98,7 @@ wheresE =  restrict . predicateProjectionFromExpr
 wheres :: MonadRestrict Flat m => Projection Flat (Maybe Bool) -> m ()
 wheres =  restrict
 
+{-# DEPRECATED havingE "Drop in the next version." #-}
 -- | Add restriction to this aggregated query. Expr type version.
 havingE :: MonadRestrict Aggregated m => Expr Aggregated (Maybe Bool) -> m ()
 havingE =  restrict . predicateProjectionFromExpr

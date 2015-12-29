@@ -96,6 +96,7 @@ import Database.Relational.Query.Projection
 import qualified Database.Relational.Query.Projection as Projection
 
 
+{-# DEPRECATED expr "Drop in the next version." #-}
 -- | Project from Projection type into expression type.
 expr :: Projection p a -> Expr p a
 expr =  UnsafeExpr.Expr . Projection.unsafeStringSql

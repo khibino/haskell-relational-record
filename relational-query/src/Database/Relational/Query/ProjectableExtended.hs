@@ -170,6 +170,7 @@ projectPiMaybe' p = project . Projection.piMaybe' p
       -> p c (Maybe b)   -- ^ Narrower projected object. 'Maybe' phantom type result
 (?!?) =  projectPiMaybe'
 
+{-# DEPRECATED (.!) "Drop in the next version." #-}
 -- | Get narrower projected expression along with projectino path
 --   and strip 'Maybe' phantom type off.
 (.!) :: Projection c (Maybe a) -- ^ Source projection type 'p'. 'Maybe' phantom type
@@ -177,6 +178,7 @@ projectPiMaybe' p = project . Projection.piMaybe' p
      -> Expr c b    -- ^ Narrower projected expression. 'Maybe' phantom type is stripped off
 (.!) p = fromJust . projectPiMaybe p
 
+{-# DEPRECATED (.?) "Drop in the next version." #-}
 -- | Get narrower projected expression along with projectino path
 --   and strip 'Maybe' phantom type off.
 --   Projection path leaf is 'Maybe' case.

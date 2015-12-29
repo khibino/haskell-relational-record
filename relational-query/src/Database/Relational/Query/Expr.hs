@@ -11,7 +11,7 @@
 --
 -- This module defines phantom typed SQL expression object.
 -- Contains normal interfaces.
-module Database.Relational.Query.Expr (
+module Database.Relational.Query.Expr {-# DEPRECATED "Drop in next version." #-} (
   -- * Typed SQL Expression
   Expr,
 

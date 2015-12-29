@@ -9,7 +9,7 @@
 --
 -- This module defines phantom typed SQL expression object.
 -- Contains internal structure and unsafe interfaces.
-module Database.Relational.Query.Expr.Unsafe (
+module Database.Relational.Query.Expr.Unsafe {-# DEPRECATED "Drop in next version." #-} (
   -- * Typed SQL Expression
   Expr(Expr), unsafeStringSql, showExpr
   ) where
