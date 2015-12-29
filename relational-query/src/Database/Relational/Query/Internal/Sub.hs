@@ -14,18 +14,26 @@ module Database.Relational.Query.Internal.Sub
        , SetOp (..), BinOp (..), Qualifier (..), Qualified (..)
 
        , Projection, untypeProjection, typedProjection
+
+         -- * Query restriction
+       , QueryRestriction, composeWhere, composeHaving
        )  where
 
+import Data.Monoid (Monoid (..), (<>))
 import Data.Array (Array)
 
 import qualified Database.Relational.Query.Context as Context
+import Database.Relational.Query.Expr (Expr, exprAnd)
+import Database.Relational.Query.Expr.Unsafe (unsafeStringSql)
+import Database.Relational.Query.Internal.SQL (StringSQL)
 import Database.Relational.Query.Internal.Product
   (ProductTree, Node)
 import Database.Relational.Query.Component
-  (ColumnSQL, Config,
-   Duplication (..), QueryRestriction,
+  (ColumnSQL, Config, Duplication (..),
    AggregateElem, OrderingTerms)
 import qualified Database.Relational.Query.Table as Table
+
+import Language.SQL.Keyword (Keyword(..))
 
 
 data SetOp = Union | Except | Intersect  deriving Show
@@ -76,3 +84,21 @@ newtype Projection c t = Projection { untypeProjection :: UntypedProjection }
 
 typedProjection :: UntypedProjection -> Projection c t
 typedProjection =  Projection
+
+
+-- | Type for restriction of query.
+type QueryRestriction c = [Expr c Bool]
+
+-- | Compose SQL String from 'QueryRestriction'.
+composeRestrict :: Keyword -> QueryRestriction c -> StringSQL
+composeRestrict k = d  where
+  d    []    =  mempty
+  d e@(_:_)  =  k <> unsafeStringSql (foldr1 exprAnd e)
+
+-- | Compose WHERE clause from 'QueryRestriction'.
+composeWhere :: QueryRestriction Context.Flat -> StringSQL
+composeWhere =  composeRestrict WHERE
+
+-- | Compose HAVING clause from 'QueryRestriction'.
+composeHaving :: QueryRestriction Context.Aggregated -> StringSQL
+composeHaving =  composeRestrict HAVING

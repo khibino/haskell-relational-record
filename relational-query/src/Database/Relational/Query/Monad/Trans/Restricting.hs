@@ -26,8 +26,8 @@ import Control.Applicative (Applicative, pure, (<$>))
 import Control.Arrow (second)
 import Data.DList (DList, toList)
 
+import Database.Relational.Query.Internal.Sub (QueryRestriction)
 import Database.Relational.Query.Expr (Expr, fromJust)
-import Database.Relational.Query.Component (QueryRestriction)
 import Database.Relational.Query.Projectable (expr)
 
 import Database.Relational.Query.Monad.Class

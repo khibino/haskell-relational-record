@@ -34,7 +34,8 @@ import Database.Relational.Query.Monad.BaseType (ConfigureQuery, askConfig)
 import Database.Relational.Query.Monad.Type (QueryCore, extractCore, OrderedQuery)
 import Database.Relational.Query.Projectable (PlaceHolders)
 
-import Database.Relational.Query.Component (Duplication, QueryRestriction, OrderingTerms)
+import Database.Relational.Query.Component (Duplication, OrderingTerms)
+import Database.Relational.Query.Internal.Sub (QueryRestriction)
 import Database.Relational.Query.Sub (SubQuery, flatSubQuery, JoinProduct)
 import qualified Database.Relational.Query.Sub as SubQuery
 

@@ -50,11 +50,12 @@ import Database.Relational.Query.Internal.Product
 import Database.Relational.Query.Internal.Sub
   (SubQuery (..), UntypedProjection, ProjectionUnit (..),
    JoinProduct, QueryProduct, QueryProductNode,
-   SetOp (..), BinOp (..), Qualifier (..), Qualified (..))
+   SetOp (..), BinOp (..), Qualifier (..), Qualified (..),
+   QueryRestriction, composeWhere, composeHaving)
 import Database.Relational.Query.Component
   (ColumnSQL, columnSQL', showsColumnSQL,
    Config (productUnitSupport), ProductUnitSupport (PUSupported, PUNotSupported),
-   Duplication (..), showsDuplication, QueryRestriction, composeWhere, composeHaving,
+   Duplication (..), showsDuplication,
    AggregateElem, composeGroupBy, OrderingTerms, composeOrderBy)
 import Database.Relational.Query.Table (Table, (!))
 import qualified Database.Relational.Query.Table as Table

@@ -29,10 +29,11 @@ import Control.Monad (void)
 import Database.Record (PersistableWidth)
 
 import Database.Relational.Query.Internal.SQL (StringSQL, showStringSQL)
+import Database.Relational.Query.Internal.Sub (composeWhere)
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Pi (id')
 import Database.Relational.Query.Table (Table, TableDerivable, derivedTable)
-import Database.Relational.Query.Component (Config, defaultConfig, composeWhere, composeSets)
+import Database.Relational.Query.Component (Config, defaultConfig, composeSets)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable
