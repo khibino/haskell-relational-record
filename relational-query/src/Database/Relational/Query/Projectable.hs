@@ -212,7 +212,7 @@ compareBinOp :: (SqlProjectable p, ProjectableShowSql p)
              -> p a -> p a -> p (Maybe Bool)
 compareBinOp =  unsafeBinOp
 
--- | Unsafely make number projection binary operator from string binary operator.
+-- | Unsafely make numrical projection binary operator from string binary operator.
 monoBinOp :: (SqlProjectable p, ProjectableShowSql p)
          => SqlBinOp
          -> p a -> p a -> p a
@@ -251,13 +251,13 @@ monoBinOp =  unsafeBinOp
 
 -- | Logical operator corresponding SQL /AND/ .
 and' :: (OperatorProjectable p, ProjectableShowSql p)
-     => p ft -> p ft -> p (Maybe Bool)
-and' =  compareBinOp SQL.and
+     => p (Maybe Bool) -> p (Maybe Bool) -> p (Maybe Bool)
+and' = monoBinOp SQL.and
 
 -- | Logical operator corresponding SQL /OR/ .
 or' :: (OperatorProjectable p, ProjectableShowSql p)
-    => p ft -> p ft -> p (Maybe Bool)
-or'  =  compareBinOp SQL.or
+    => p (Maybe Bool) -> p (Maybe Bool) -> p (Maybe Bool)
+or'  = monoBinOp SQL.or
 
 -- | Logical operator corresponding SQL /NOT/ .
 not' :: (OperatorProjectable p, ProjectableShowSql p)
