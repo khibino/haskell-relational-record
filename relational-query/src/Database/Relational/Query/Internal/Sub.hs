@@ -80,7 +80,7 @@ type JoinProduct = Maybe QueryProduct
 
 
 -- | Phantom typed projection. Projected into Haskell record type 't'.
-newtype Projection c t = Projection { untypeProjection :: UntypedProjection }
+newtype Projection c t = Projection { untypeProjection :: UntypedProjection }  deriving Show
 
 typedProjection :: UntypedProjection -> Projection c t
 typedProjection =  Projection
