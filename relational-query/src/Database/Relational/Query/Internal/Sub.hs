@@ -12,6 +12,8 @@ module Database.Relational.Query.Internal.Sub
        ( SubQuery (..), UntypedProjection, ProjectionUnit (..)
        , JoinProduct, QueryProduct, QueryProductNode
        , SetOp (..), BinOp (..), Qualifier (..), Qualified (..)
+
+       , Projection, untypeProjection, typedProjection
        )  where
 
 import Data.Array (Array)
@@ -67,3 +69,10 @@ type QueryProductNode = Node (Qualified SubQuery)
 
 -- | Type for join product of query.
 type JoinProduct = Maybe QueryProduct
+
+
+-- | Phantom typed projection. Projected into Haskell record type 't'.
+newtype Projection c t = Projection { untypeProjection :: UntypedProjection }
+
+typedProjection :: UntypedProjection -> Projection c t
+typedProjection =  Projection

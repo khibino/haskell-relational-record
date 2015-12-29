@@ -49,6 +49,8 @@ import Database.Record (HasColumnConstraint, NotNull, NotNullColumnConstraint)
 import qualified Database.Record.KeyConstraint as KeyConstraint
 
 import Database.Relational.Query.Internal.SQL (StringSQL, rowStringSQL, listStringSQL)
+import Database.Relational.Query.Internal.Sub
+  (SubQuery, UntypedProjection, Projection, untypeProjection, typedProjection, Qualified)
 import Database.Relational.Query.Context (Aggregated, Flat)
 import Database.Relational.Query.Component (ColumnSQL, showsColumnSQL, columnSQL')
 import Database.Relational.Query.Table (Table)
@@ -59,17 +61,10 @@ import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Relational.Query.Sub
-  (SubQuery, Qualified,
-   UntypedProjection, widthOfUntypedProjection, columnsOfUntypedProjection, untypedProjectionFromColumns,
+  (widthOfUntypedProjection, columnsOfUntypedProjection, untypedProjectionFromColumns,
    untypedProjectionFromColumns, untypedProjectionFromJoinedSubQuery, untypedProjectionFromScalarSubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
 
-
--- | Phantom typed projection. Projected into Haskell record type 't'.
-newtype Projection c t = Projection { untypeProjection :: UntypedProjection }
-
-typedProjection :: UntypedProjection -> Projection c t
-typedProjection =  Projection
 
 -- | Width of 'Projection'.
 width :: Projection c r -> Int
