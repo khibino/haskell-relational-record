@@ -40,7 +40,7 @@ import Database.Relational.Query.Internal.Sub (NodeAttr (Just', Maybe), Projecti
 import Database.Relational.Query.Internal.Product (restrictProduct, growProduct)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Component (Duplication (All))
-import Database.Relational.Query.Sub (SubQuery, Qualified, JoinProduct)
+import Database.Relational.Query.Internal.Sub (SubQuery, Qualified, JoinProduct)
 import Database.Relational.Query.Projectable (PlaceHolders, unsafeAddPlaceHolders)
 
 import Database.Relational.Query.Monad.BaseType (ConfigureQuery, qualifyQuery, Relation, untypeRelation)

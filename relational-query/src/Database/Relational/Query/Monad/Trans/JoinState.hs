@@ -17,7 +17,7 @@ module Database.Relational.Query.Monad.Trans.JoinState (
 import Prelude hiding (product)
 
 import qualified Database.Relational.Query.Internal.Product as Product
-import Database.Relational.Query.Sub (QueryProductNode, JoinProduct)
+import Database.Relational.Query.Internal.Sub (QueryProductNode, JoinProduct)
 
 
 -- | JoinContext type for QueryJoin.

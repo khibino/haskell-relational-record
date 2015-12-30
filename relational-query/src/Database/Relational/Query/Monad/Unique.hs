@@ -34,8 +34,8 @@ import Database.Relational.Query.Monad.Type (QueryCore, extractCore)
 import Database.Relational.Query.Projectable (PlaceHolders)
 
 import Database.Relational.Query.Component (Duplication)
-import Database.Relational.Query.Internal.Sub (QueryRestriction)
-import Database.Relational.Query.Sub (SubQuery, flatSubQuery, Qualified, JoinProduct)
+import Database.Relational.Query.Internal.Sub (SubQuery, QueryRestriction, Qualified, JoinProduct)
+import Database.Relational.Query.Sub (flatSubQuery)
 
 -- | Unique query monad type.
 newtype QueryUnique a = QueryUnique (QueryCore a)
