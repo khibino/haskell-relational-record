@@ -13,21 +13,24 @@ module Database.Relational.Query.Internal.Sub
        , JoinProduct, QueryProduct, QueryProductNode
        , SetOp (..), BinOp (..), Qualifier (..), Qualified (..)
 
+         -- * Product tree type
+       , NodeAttr (..), ProductTree (..), Node (..)
+
        , Projection, untypeProjection, typedProjection
 
          -- * Query restriction
        , QueryRestriction
        )  where
 
+import Prelude hiding (and, product)
 import Data.Array (Array)
 
 import qualified Database.Relational.Query.Context as Context
-import Database.Relational.Query.Internal.Product
-  (ProductTree, Node)
 import Database.Relational.Query.Component
   (ColumnSQL, Config, Duplication (..),
    AggregateElem, OrderingTerms)
 import qualified Database.Relational.Query.Table as Table
+import qualified Database.Relational.Query.Expr as Expr
 
 
 data SetOp = Union | Except | Intersect  deriving Show
@@ -63,6 +66,20 @@ data ProjectionUnit = Columns (Array Int ColumnSQL)
 
 -- | Untyped projection. Forgot record type.
 type UntypedProjection = [ProjectionUnit]
+
+
+type Expr = Expr.Expr Context.Flat
+
+-- | node attribute for product.
+data NodeAttr = Just' | Maybe deriving Show
+
+-- | Product tree type. Product tree is constructed by left node and right node.
+data ProductTree q = Leaf q
+                   | Join !(Node q) !(Node q) !(Maybe (Expr Bool))
+                   deriving Show
+
+-- | Product node. node attribute and product tree.
+data Node q = Node !NodeAttr !(ProductTree q)  deriving Show
 
 -- | Product tree specialized by 'SubQuery'.
 type QueryProduct = ProductTree (Qualified SubQuery)

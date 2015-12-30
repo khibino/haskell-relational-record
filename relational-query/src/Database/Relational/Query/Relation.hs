@@ -59,7 +59,7 @@ import qualified Database.Relational.Query.Monad.Unique as Unique
 
 import Database.Relational.Query.Component (Duplication (Distinct, All))
 import Database.Relational.Query.Table (Table, TableDerivable, derivedTable)
-import Database.Relational.Query.Internal.Product (NodeAttr(Just', Maybe))
+import Database.Relational.Query.Internal.Sub (NodeAttr(Just', Maybe))
 import Database.Relational.Query.Sub (SubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
 

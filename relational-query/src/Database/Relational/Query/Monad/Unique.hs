@@ -22,7 +22,7 @@ module Database.Relational.Query.Monad.Unique
 import Control.Applicative (Applicative)
 
 import Database.Relational.Query.Context (Flat)
-import Database.Relational.Query.Internal.Product (NodeAttr)
+import Database.Relational.Query.Internal.Sub (NodeAttr)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 

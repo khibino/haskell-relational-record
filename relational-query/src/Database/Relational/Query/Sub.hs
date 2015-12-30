@@ -49,12 +49,12 @@ import Database.Relational.Query.Expr (valueExpr)
 import qualified Database.Relational.Query.Expr.Unsafe as Expr
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, rowStringSQL, showStringSQL)
 import Database.Relational.Query.Internal.Product
-  (NodeAttr(Just', Maybe), ProductTree (Leaf, Join),
-   nodeAttr, nodeTree)
+  (nodeAttr, nodeTree)
 import Database.Relational.Query.Internal.Sub
   (SubQuery (..), Projection, untypeProjection,
    UntypedProjection, ProjectionUnit (..),
    JoinProduct, QueryProduct, QueryProductNode,
+   NodeAttr (Just', Maybe), ProductTree (Leaf, Join),
    SetOp (..), BinOp (..), Qualifier (..), Qualified (..),
    QueryRestriction)
 import Database.Relational.Query.Component
