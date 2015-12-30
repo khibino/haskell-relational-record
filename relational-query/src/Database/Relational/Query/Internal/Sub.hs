@@ -24,13 +24,13 @@ module Database.Relational.Query.Internal.Sub
 
 import Prelude hiding (and, product)
 import Data.Array (Array)
+import Data.DList (DList)
 
 import qualified Database.Relational.Query.Context as Context
 import Database.Relational.Query.Component
   (ColumnSQL, Config, Duplication (..),
    AggregateElem, OrderingTerms)
 import qualified Database.Relational.Query.Table as Table
-import qualified Database.Relational.Query.Expr as Expr
 
 
 data SetOp = Union | Except | Intersect  deriving Show
@@ -68,14 +68,12 @@ data ProjectionUnit = Columns (Array Int ColumnSQL)
 type UntypedProjection = [ProjectionUnit]
 
 
-type Expr = Expr.Expr Context.Flat
-
 -- | node attribute for product.
 data NodeAttr = Just' | Maybe deriving Show
 
 -- | Product tree type. Product tree is constructed by left node and right node.
 data ProductTree q = Leaf q
-                   | Join !(Node q) !(Node q) !(Maybe (Expr Bool))
+                   | Join !(Node q) !(Node q) !(DList (Projection Context.Flat (Maybe Bool)))
                    deriving Show
 
 -- | Product node. node attribute and product tree.

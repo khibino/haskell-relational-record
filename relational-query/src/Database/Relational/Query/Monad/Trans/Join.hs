@@ -36,14 +36,12 @@ import Data.Monoid (Last (Last, getLast))
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Monad.Trans.JoinState
   (JoinContext, primeJoinContext, updateProduct, joinProduct)
-import Database.Relational.Query.Internal.Sub (NodeAttr (Just', Maybe))
+import Database.Relational.Query.Internal.Sub (NodeAttr (Just', Maybe), Projection)
 import Database.Relational.Query.Internal.Product (restrictProduct, growProduct)
-import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
-import Database.Relational.Query.Expr (Expr, fromJust)
 import Database.Relational.Query.Component (Duplication (All))
 import Database.Relational.Query.Sub (SubQuery, Qualified, JoinProduct)
-import Database.Relational.Query.Projectable (PlaceHolders, unsafeAddPlaceHolders, expr)
+import Database.Relational.Query.Projectable (PlaceHolders, unsafeAddPlaceHolders)
 
 import Database.Relational.Query.Monad.BaseType (ConfigureQuery, qualifyQuery, Relation, untypeRelation)
 import Database.Relational.Query.Monad.Class (MonadQualify (..), MonadQuery (..))
@@ -66,10 +64,10 @@ updateContext :: Monad m => (JoinContext -> JoinContext) -> QueryJoin m ()
 updateContext =  QueryJoin . modify
 
 -- | Add last join product restriction.
-updateJoinRestriction :: Monad m => Expr Flat (Maybe Bool) -> QueryJoin m ()
+updateJoinRestriction :: Monad m => Projection Flat (Maybe Bool) -> QueryJoin m ()
 updateJoinRestriction e = updateContext (updateProduct d)  where
   d  Nothing  = error "on: Product is empty! Restrict target product is not found!"
-  d (Just pt) = restrictProduct pt (fromJust e)
+  d (Just pt) = restrictProduct pt e
 
 instance MonadQualify q m => MonadQualify q (QueryJoin m) where
   liftQualify = join' . liftQualify
@@ -77,7 +75,7 @@ instance MonadQualify q m => MonadQualify q (QueryJoin m) where
 -- | Joinable query instance.
 instance MonadQuery (QueryJoin ConfigureQuery) where
   setDuplication     = QueryJoin . lift . tell . Last . Just
-  restrictJoin       = updateJoinRestriction . expr
+  restrictJoin       = updateJoinRestriction
   query'             = queryWithAttr Just'
   queryMaybe' pr     = do
     (ph, pj) <- queryWithAttr Maybe pr

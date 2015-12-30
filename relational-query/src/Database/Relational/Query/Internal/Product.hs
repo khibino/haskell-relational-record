@@ -15,13 +15,13 @@ module Database.Relational.Query.Internal.Product (
   ) where
 
 import Prelude hiding (and, product)
+import Control.Applicative (pure, empty)
 import Data.Monoid ((<>))
 import Data.Foldable (Foldable (foldMap))
+import Data.DList (DList)
 
 import Database.Relational.Query.Context (Flat)
-import Database.Relational.Query.Expr (exprAnd)
-import qualified Database.Relational.Query.Expr as Expr
-import Database.Relational.Query.Internal.Sub (NodeAttr (..), ProductTree (..), Node (..))
+import Database.Relational.Query.Internal.Sub (NodeAttr (..), ProductTree (..), Node (..), Projection)
 
 
 -- | Get node attribute.
@@ -50,7 +50,7 @@ growRight :: Maybe (Node q)            -- ^ Current tree
           -> Node q                    -- ^ Result node
 growRight = d  where
   d Nothing  (naR, q) = node naR q
-  d (Just l) (naR, q) = node Just' $ Join l (node naR q) Nothing
+  d (Just l) (naR, q) = node Just' $ Join l (node naR q) empty
 
 -- | Push new leaf node into product right term.
 growProduct :: Maybe (Node q) -- ^ Current tree
@@ -60,23 +60,22 @@ growProduct =  match  where
   match t (na, q) =  growRight t (na, Leaf q)
 
 -- | Just make product of two node.
-product :: Node q                      -- ^ Left node
-        -> Node q                      -- ^ Right node
-        -> Maybe (Expr.Expr Flat Bool) -- ^ Join restriction
-        -> ProductTree q               -- ^ Result tree
+product :: Node q                               -- ^ Left node
+        -> Node q                               -- ^ Right node
+        -> DList (Projection Flat (Maybe Bool)) -- ^ Join restriction
+        -> ProductTree q                        -- ^ Result tree
 product =  Join
 
 -- | Add restriction into top product of product tree.
-restrictProduct' :: ProductTree q       -- ^ Product to restrict
-                 -> Expr.Expr Flat Bool -- ^ Restriction to add
-                 -> ProductTree q       -- ^ Result product
+restrictProduct' :: ProductTree q                -- ^ Product to restrict
+                 -> Projection Flat (Maybe Bool) -- ^ Restriction to add
+                 -> ProductTree q                -- ^ Result product
 restrictProduct' =  d  where
-  d (Join lp rp Nothing)   rs' = Join lp rp (Just rs')
-  d (Join lp rp (Just rs)) rs' = Join lp rp (Just $ rs `exprAnd` rs')
+  d (Join lp rp rs) rs' = Join lp rp (rs <> pure rs')
   d leaf'@(Leaf _)         _   = leaf' -- or error on compile
 
 -- | Add restriction into top product of product tree node.
-restrictProduct :: Node q              -- ^ Target node which has product to restrict
-                -> Expr.Expr Flat Bool -- ^ Restriction to add
-                -> Node q              -- ^ Result node
+restrictProduct :: Node q                       -- ^ Target node which has product to restrict
+                -> Projection Flat (Maybe Bool) -- ^ Restriction to add
+                -> Node q                       -- ^ Result node
 restrictProduct (Node a t) e = node a (restrictProduct' t e)

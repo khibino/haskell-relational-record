@@ -39,14 +39,12 @@ module Database.Relational.Query.Sub (
   composeWhere, composeHaving
   ) where
 
-import Data.Maybe (fromMaybe)
 import Data.Array (listArray)
 import qualified Data.Array as Array
 import Data.Monoid (mempty, (<>), mconcat)
+import Data.DList (toList)
 
 import qualified Database.Relational.Query.Context as Context
-import Database.Relational.Query.Expr (valueExpr)
-import qualified Database.Relational.Query.Expr.Unsafe as Expr
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, rowStringSQL, showStringSQL)
 import Database.Relational.Query.Internal.Product
   (nodeAttr, nodeTree)
@@ -64,6 +62,7 @@ import Database.Relational.Query.Component
    AggregateElem, composeGroupBy, OrderingTerms, composeOrderBy)
 import Database.Relational.Query.Table (Table, (!))
 import qualified Database.Relational.Query.Table as Table
+import Database.Relational.Query.Pure (showConstantTermsSQL')
 
 import Language.SQL.Keyword (Keyword(..), (|*|))
 import qualified Language.SQL.Keyword as SQL
@@ -342,8 +341,8 @@ showsQueryProduct =  rec  where
     [urec left',
      joinType (nodeAttr left') (nodeAttr right'), JOIN,
      urec right',
-     ON,
-     Expr.unsafeStringSql . fromMaybe (valueExpr True) {- or error on compile -}  $ rs]
+     ON, foldr1 SQL.and $ ps ++ concat [ showConstantTermsSQL' True | null ps ] ]
+    where ps = [ unsafeProjectionStringSql p | p <- toList rs ]
 
 -- | Shows join product of query.
 showsJoinProduct :: ProductUnitSupport -> JoinProduct -> StringSQL
