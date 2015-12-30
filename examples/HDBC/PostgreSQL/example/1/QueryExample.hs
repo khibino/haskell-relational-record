@@ -26,15 +26,6 @@ groupMemberShip =
   , () <- on $ m ?! groupId' .=. just (g ! Group.id')
   ]
 
-groupMemberShipE :: Relation () (Maybe Membership, Group)
-groupMemberShipE =
-  relation
-  [ m >< g
-  | m  <- queryMaybe membership
-  , g  <- query      group
-  , () <- onE $ m .! groupId' .=. g ! Group.id'
-  ]
-
 -- Monadic join style
 userGroup0 :: Relation () (Maybe User, Maybe Group)
 userGroup0 =
@@ -81,18 +72,6 @@ userGroup0' =
   , ()  <- asc $ u ?! User.id'
   ]
 
-
-userGroup0E :: Relation () (Maybe User, Maybe Group)
-userGroup0E =
-  relation
-  [ u   >< mg ?! snd'
-  | u   <- queryMaybe user
-  , mg  <- queryMaybe groupMemberShipE
-
-  , ()  <- onE $ u .! User.id' .=. mg ?!? fst' .! userId'
-
-  , ()  <- asc $ u ?! User.id'
-  ]
 
 haskellUser :: Relation () (String, Maybe String)
 haskellUser =
@@ -153,23 +132,6 @@ userGroup2 =
            ]
 
   , ()  <- on $ u ?! User.id' .=. mg ?!? fst' ?! userId'
-
-  , ()  <- asc $ u ?! User.id'
-  ]
-
-userGroup2E :: Relation () (Maybe User, Maybe Group)
-userGroup2E =
-  relation
-  [ u   >< mg ?! snd'
-  | u   <- queryMaybe user
-  , mg  <- queryMaybe . relation $
-           [ m >< g
-           | m  <- queryMaybe membership
-           , g  <- query      group
-           , () <- onE $ m .! groupId' .=. g ! Group.id'
-           ]
-
-  , ()  <- onE $ u .! User.id' .=. mg ?!? fst' .! userId'
 
   , ()  <- asc $ u ?! User.id'
   ]
