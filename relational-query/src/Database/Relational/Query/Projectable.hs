@@ -13,9 +13,6 @@
 --
 -- This module defines operators on various polymorphic projections.
 module Database.Relational.Query.Projectable (
-  -- * Conversion between individual Projections
-  expr,
-
   -- * Projectable from SQL strings
   SqlProjectable (unsafeProjectSqlTerms'), unsafeProjectSql',
   unsafeProjectSqlTerms, unsafeProjectSql,
@@ -80,11 +77,8 @@ import Database.Record
   (PersistableWidth, PersistableRecordWidth, derivedWidth,
    HasColumnConstraint, NotNull)
 
-import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL, rowStringSQL)
+import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL)
 import Database.Relational.Query.Context (Flat, Aggregated, Exists, OverWindow)
-import Database.Relational.Query.Expr (Expr)
-import qualified Database.Relational.Query.Expr as Expr
-import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr
 
 import Database.Relational.Query.Pure
   (ShowConstantTermsSQL, showConstantTermsSQL', ProductConstructor (..))
@@ -94,12 +88,6 @@ import qualified Database.Relational.Query.Pi as Pi
 import Database.Relational.Query.Projection
   (Projection, ListProjection)
 import qualified Database.Relational.Query.Projection as Projection
-
-
-{-# DEPRECATED expr "Drop in the next version." #-}
--- | Project from Projection type into expression type.
-expr :: Projection p a -> Expr p a
-expr =  UnsafeExpr.Expr . Projection.unsafeStringSql
 
 
 -- | Interface to project SQL terms unsafely.
@@ -126,15 +114,9 @@ instance SqlProjectable (Projection Aggregated) where
 instance SqlProjectable (Projection OverWindow) where
   unsafeProjectSqlTerms' = Projection.unsafeFromSqlTerms
 
--- | Unsafely make 'Expr' from SQL terms.
-instance SqlProjectable (Expr p) where
-  unsafeProjectSqlTerms' = UnsafeExpr.Expr . rowStringSQL
-
 class SqlProjectable p => OperatorProjectable p
 instance OperatorProjectable (Projection Flat)
 instance OperatorProjectable (Projection Aggregated)
-instance OperatorProjectable (Expr Flat)
-instance OperatorProjectable (Expr Aggregated)
 
 -- | Unsafely Project single SQL term.
 unsafeProjectSql' :: SqlProjectable p => StringSQL -> p t
@@ -177,10 +159,6 @@ unsafeShowSql :: ProjectableShowSql p
               => p a    -- ^ Source projection object
               -> String -- ^ Result SQL expression string.
 unsafeShowSql =  showStringSQL . unsafeShowSql'
-
--- | Unsafely get SQL term from 'Expr'.
-instance ProjectableShowSql (Expr p) where
-  unsafeShowSql' = UnsafeExpr.unsafeStringSql
 
 -- | Unsafely get SQL term from 'Proejction'.
 instance ProjectableShowSql (Projection c) where
@@ -547,11 +525,6 @@ instance ProjectableMaybe PlaceHolders where
 instance ProjectableMaybe (Projection c) where
   just         = Projection.just
   flattenMaybe = Projection.flattenMaybe
-
--- | Control phantom 'Maybe' type in SQL expression type 'Expr'.
-instance ProjectableMaybe (Expr p) where
-  just         = Expr.just
-  flattenMaybe = Expr.fromJust
 
 -- | Zipping except for identity element laws.
 class ProjectableApplicative p => ProjectableIdZip p where

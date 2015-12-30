@@ -22,8 +22,6 @@ module Database.Relational.Query.ProjectableExtended (
   -- * Get narrower projections
   (!), (?!), (?!?), (!??),
 
-  (.!), (.?),
-
   -- * Aggregate functions
   unsafeAggregateOp,
   count,
@@ -42,11 +40,10 @@ import Prelude hiding (pi)
 import qualified Language.SQL.Keyword as SQL
 
 import Database.Relational.Query.Context (Flat, Aggregated, OverWindow)
-import Database.Relational.Query.Expr (Expr, fromJust)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable
-  (expr, PlaceHolders, unsafeUniOp,
+  (PlaceHolders, unsafeUniOp,
    ProjectableMaybe (flattenMaybe), ProjectableIdZip (leftId, rightId),
    SqlProjectable)
 import Database.Relational.Query.Pi (Pi)
@@ -131,10 +128,6 @@ some' =  unsafeAggregateOp SQL.SOME
 instance Projectable Projection Projection where
   project = id
 
--- | Project from 'Projection' into 'Expr' 'Projection'.
-instance Projectable Projection Expr where
-  project = expr
-
 projectPi :: Projectable Projection p1 => Projection c a -> Pi a b -> p1 c b
 projectPi p = project . Projection.pi p
 
@@ -169,23 +162,6 @@ projectPiMaybe' p = project . Projection.piMaybe' p
       -> Pi a (Maybe b) -- ^ Projection path. 'Maybe' type leaf
       -> p c (Maybe b)   -- ^ Narrower projected object. 'Maybe' phantom type result
 (?!?) =  projectPiMaybe'
-
-{-# DEPRECATED (.!) "Drop in the next version." #-}
--- | Get narrower projected expression along with projectino path
---   and strip 'Maybe' phantom type off.
-(.!) :: Projection c (Maybe a) -- ^ Source projection type 'p'. 'Maybe' phantom type
-     -> Pi a b      -- ^ Projection path
-     -> Expr c b    -- ^ Narrower projected expression. 'Maybe' phantom type is stripped off
-(.!) p = fromJust . projectPiMaybe p
-
-{-# DEPRECATED (.?) "Drop in the next version." #-}
--- | Get narrower projected expression along with projectino path
---   and strip 'Maybe' phantom type off.
---   Projection path leaf is 'Maybe' case.
-(.?) :: Projection c (Maybe a)    -- ^ Source projection type 'p'. 'Maybe' phantom type
-     -> Pi a (Maybe b) -- ^ Projection path. 'Maybe' type leaf
-     -> Expr c b       -- ^ Narrower projected expression. 'Maybe' phantom type is stripped off
-(.?) p = fromJust . projectPiMaybe' p
 
 
 -- | Interface to compose phantom 'Maybe' nested type.
@@ -250,5 +226,5 @@ flattenPh =  runIds
 --       => p a -> p b -> p c
 -- (>?<) =  generalizedZip'
 
-infixl 8 !, ?!, ?!?, !??, .!, .?
+infixl 8 !, ?!, ?!?, !??
 -- infixl 1 >?<

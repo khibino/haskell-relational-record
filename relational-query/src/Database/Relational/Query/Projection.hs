@@ -22,7 +22,6 @@ module Database.Relational.Query.Projection (
   unsafeFromQualifiedSubQuery,
   unsafeFromScalarSubQuery,
   unsafeFromTable,
-  predicateProjectionFromExpr,
 
   unsafeStringSql,
 
@@ -56,13 +55,11 @@ import Database.Relational.Query.Component (ColumnSQL, showsColumnSQL, columnSQL
 import Database.Relational.Query.Table (Table)
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Pure (ProductConstructor (..))
-import Database.Relational.Query.Expr.Unsafe (Expr)
-import qualified Database.Relational.Query.Expr.Unsafe as UnsafeExpr
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Relational.Query.Sub
-  (widthOfUntypedProjection, untypedProjectionFromColumns, projectionColumns,
-   untypedProjectionFromColumns, untypedProjectionFromJoinedSubQuery, untypedProjectionFromScalarSubQuery,
+  (widthOfUntypedProjection, projectionColumns,
+   untypedProjectionFromJoinedSubQuery, untypedProjectionFromScalarSubQuery,
    unsafeProjectionStringSql, unsafeProjectFromColumns)
 import qualified Database.Relational.Query.Sub as SubQuery
 
@@ -97,12 +94,6 @@ unsafeFromScalarSubQuery =  typedProjection . untypedProjectionFromScalarSubQuer
 unsafeFromTable :: Table r
                 -> Projection c r
 unsafeFromTable =  unsafeProjectFromColumns . Table.columns
-
-{-# DEPRECATED predicateProjectionFromExpr "Drop in the next version." #-}
--- | Lift 'Expr' to 'Projection' to use as restrict predicate.
-predicateProjectionFromExpr :: Expr c (Maybe Bool) -> Projection c (Maybe Bool)
-predicateProjectionFromExpr =
-  typedProjection . untypedProjectionFromColumns . (:[]) .  columnSQL' . UnsafeExpr.unsafeStringSql
 
 -- | Unsafely generate 'Projection' from SQL expression strings.
 unsafeFromSqlTerms :: [StringSQL] -> Projection c t
