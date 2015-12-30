@@ -63,7 +63,7 @@ import Database.Relational.Query.Monad.Class
    MonadAggregate, groupBy, groupBy',
    MonadQuery, query', queryMaybe',
    MonadPartition, partitionBy,
-   distinct, all', on, onE, wheresE, havingE)
+   distinct, all', on)
 import Database.Relational.Query.Monad.Trans.Aggregating
   (key, key', set, bkey, rollup, cube, groupingSets)
 import Database.Relational.Query.Monad.Trans.Ordering (orderBy, asc, desc)
