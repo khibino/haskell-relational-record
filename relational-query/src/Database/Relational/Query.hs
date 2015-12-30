@@ -15,7 +15,6 @@ module Database.Relational.Query (
   module Database.Relational.Query.Pi,
   module Database.Relational.Query.Constraint,
   module Database.Relational.Query.Context,
-  module Database.Relational.Query.Expr,
   module Database.Relational.Query.Component,
   module Database.Relational.Query.Sub,
   module Database.Relational.Query.Projection,
@@ -50,7 +49,6 @@ import Database.Relational.Query.Constraint
    derivedUniqueKey, -- derivedNotNullKey,
    Primary, Unique, NotNull)
 import Database.Relational.Query.Context
-import Database.Relational.Query.Expr hiding (fromJust, just)
 import Database.Relational.Query.Component
   (Config (..), defaultConfig, ProductUnitSupport (..), Order (..))
 import Database.Relational.Query.Sub (SubQuery, unitSQL, queryWidth)
