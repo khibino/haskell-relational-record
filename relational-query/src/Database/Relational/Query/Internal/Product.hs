@@ -15,14 +15,13 @@ module Database.Relational.Query.Internal.Product (
   ) where
 
 import Prelude hiding (and, product)
-import Database.Relational.Query.Context (Flat)
-import Database.Relational.Query.Expr (exprAnd)
-import qualified Database.Relational.Query.Expr as Expr
-import Database.Relational.Query.Internal.Sub
 import Data.Monoid ((<>))
 import Data.Foldable (Foldable (foldMap))
 
-import Database.Relational.Query.Internal.Sub (ProductTree, Node)
+import Database.Relational.Query.Context (Flat)
+import Database.Relational.Query.Expr (exprAnd)
+import qualified Database.Relational.Query.Expr as Expr
+import Database.Relational.Query.Internal.Sub (NodeAttr (..), ProductTree (..), Node (..))
 
 
 -- | Get node attribute.
