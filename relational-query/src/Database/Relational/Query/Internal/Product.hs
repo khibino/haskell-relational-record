@@ -11,14 +11,12 @@
 module Database.Relational.Query.Internal.Product (
   -- * Product tree type
   node, nodeAttr, nodeTree,
-  growProduct, product, restrictProduct,
+  growProduct, restrictProduct,
   ) where
 
 import Prelude hiding (and, product)
 import Control.Applicative (pure, empty)
 import Data.Monoid ((<>))
-import Data.Foldable (Foldable (foldMap))
-import Data.DList (DList)
 
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Internal.Sub (NodeAttr (..), ProductTree (..), Node (..), Projection)
@@ -31,12 +29,6 @@ nodeAttr (Node a _) = a  where
 -- | Get tree from node.
 nodeTree :: Node q -> ProductTree q
 nodeTree (Node _ t) = t
-
--- | Foldable instance of ProductTree
-instance Foldable ProductTree where
-  foldMap f = rec  where
-    rec (Leaf q) = f q
-    rec (Join (Node _ lp) (Node _ rp) _ ) = rec lp <> rec rp
 
 -- | Make product node from node attribute and product tree.
 node :: NodeAttr      -- ^ Node attribute
@@ -58,13 +50,6 @@ growProduct :: Maybe (Node q) -- ^ Current tree
             -> Node q         -- ^ Result node
 growProduct =  match  where
   match t (na, q) =  growRight t (na, Leaf q)
-
--- | Just make product of two node.
-product :: Node q                               -- ^ Left node
-        -> Node q                               -- ^ Right node
-        -> DList (Projection Flat (Maybe Bool)) -- ^ Join restriction
-        -> ProductTree q                        -- ^ Result tree
-product =  Join
 
 -- | Add restriction into top product of product tree.
 restrictProduct' :: ProductTree q                -- ^ Product to restrict
