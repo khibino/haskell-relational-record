@@ -34,8 +34,6 @@ library
                        Database.Relational.Query.Context
                        Database.Relational.Query.Projectable
                        Database.Relational.Query.ProjectableExtended
-                       Database.Relational.Query.Expr
-                       Database.Relational.Query.Expr.Unsafe
                        Database.Relational.Query.Component
                        Database.Relational.Query.Sub
                        Database.Relational.Query.Projection
