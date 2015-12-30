@@ -30,7 +30,7 @@ module Database.Relational.Query.Sub (
   untypedProjectionFromColumns, untypedProjectionFromJoinedSubQuery, untypedProjectionFromScalarSubQuery,
   widthOfUntypedProjection, columnsOfUntypedProjection,
 
-  projectionColumns, unsafeProjectionStringSql,
+  projectionColumns, unsafeProjectionStringSql, unsafeProjectFromColumns,
 
   -- * Product of sub-queries
   QueryProduct, QueryProductNode, JoinProduct,
@@ -51,7 +51,7 @@ import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, rowStringSQ
 import Database.Relational.Query.Internal.Product
   (nodeAttr, nodeTree)
 import Database.Relational.Query.Internal.Sub
-  (SubQuery (..), Projection, untypeProjection,
+  (SubQuery (..), Projection, untypeProjection, typedProjection,
    UntypedProjection, ProjectionUnit (..),
    JoinProduct, QueryProduct, QueryProductNode,
    NodeAttr (Just', Maybe), ProductTree (Leaf, Join),
@@ -319,6 +319,11 @@ projectionColumns =  columnsOfUntypedProjection . untypeProjection
 -- | Unsafely get SQL term from 'Proejction'.
 unsafeProjectionStringSql :: Projection c r -> StringSQL
 unsafeProjectionStringSql =  rowStringSQL . map showsColumnSQL . projectionColumns
+
+-- | Unsafely generate 'Projection' from SQL string list.
+unsafeProjectFromColumns :: [ColumnSQL]    -- ^ SQL string list specifies columns
+                         -> Projection c r -- ^ Result 'Projection'
+unsafeProjectFromColumns =  typedProjection . untypedProjectionFromColumns
 
 
 -- | Show product tree of query into SQL. StringSQL result.

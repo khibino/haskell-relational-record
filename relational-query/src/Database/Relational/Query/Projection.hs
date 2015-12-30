@@ -63,7 +63,7 @@ import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Relational.Query.Sub
   (widthOfUntypedProjection, untypedProjectionFromColumns, projectionColumns,
    untypedProjectionFromColumns, untypedProjectionFromJoinedSubQuery, untypedProjectionFromScalarSubQuery,
-   unsafeProjectionStringSql)
+   unsafeProjectionStringSql, unsafeProjectFromColumns)
 import qualified Database.Relational.Query.Sub as SubQuery
 
 
@@ -85,11 +85,6 @@ untype :: Projection c r -> UntypedProjection
 untype =  untypeProjection
 
 
--- | Unsafely generate 'Projection' from SQL string list.
-unsafeFromColumns :: [ColumnSQL]    -- ^ SQL string list specifies columns
-                  -> Projection c r -- ^ Result 'Projection'
-unsafeFromColumns =  typedProjection . untypedProjectionFromColumns
-
 -- | Unsafely generate  'Projection' from qualified (joined) sub-query.
 unsafeFromQualifiedSubQuery :: Qualified SubQuery -> Projection c t
 unsafeFromQualifiedSubQuery =  typedProjection . untypedProjectionFromJoinedSubQuery
@@ -101,7 +96,7 @@ unsafeFromScalarSubQuery =  typedProjection . untypedProjectionFromScalarSubQuer
 -- | Unsafely generate unqualified 'Projection' from 'Table'.
 unsafeFromTable :: Table r
                 -> Projection c r
-unsafeFromTable =  unsafeFromColumns . Table.columns
+unsafeFromTable =  unsafeProjectFromColumns . Table.columns
 
 {-# DEPRECATED predicateProjectionFromExpr "Drop in the next version." #-}
 -- | Lift 'Expr' to 'Projection' to use as restrict predicate.
@@ -111,13 +106,13 @@ predicateProjectionFromExpr =
 
 -- | Unsafely generate 'Projection' from SQL expression strings.
 unsafeFromSqlTerms :: [StringSQL] -> Projection c t
-unsafeFromSqlTerms =  unsafeFromColumns . map columnSQL'
+unsafeFromSqlTerms =  unsafeProjectFromColumns . map columnSQL'
 
 
 -- | Unsafely trace projection path.
 unsafeProject :: Projection c a' -> Pi a b -> Projection c b'
 unsafeProject p pi' =
-  unsafeFromColumns
+  unsafeProjectFromColumns
   . (`UnsafePi.pi` pi')
   . columns $ p
 
