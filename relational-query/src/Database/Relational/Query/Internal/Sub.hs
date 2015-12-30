@@ -33,8 +33,10 @@ import Database.Relational.Query.Component
 import qualified Database.Relational.Query.Table as Table
 
 
+-- | Set operators
 data SetOp = Union | Except | Intersect  deriving Show
 
+-- | Set binary operators
 newtype BinOp = BinOp (SetOp, Duplication) deriving Show
 
 -- | Sub-query type
@@ -89,8 +91,11 @@ type JoinProduct = Maybe QueryProduct
 
 
 -- | Phantom typed projection. Projected into Haskell record type 't'.
-newtype Projection c t = Projection { untypeProjection :: UntypedProjection }  deriving Show
+newtype Projection c t =
+  Projection
+  { untypeProjection :: UntypedProjection {- ^ Discard projection value type -} }  deriving Show
 
+-- | Unsafely type projection value.
 typedProjection :: UntypedProjection -> Projection c t
 typedProjection =  Projection
 
