@@ -49,6 +49,7 @@ import qualified Database.Relational.Query.Monad.Assign as Assign
 -- | Restriction type with place-holder parameter 'p' and projection record type 'r'.
 newtype Restriction p r = Restriction (Projection Flat r -> Restrict ())
 
+{-# DEPRECATED RestrictionContext "Expand RestrictionContext p r into RestrictedStatement r (PlaceHolders p)." #-}
 -- | Not finalized 'Restrict' monad type.
 type RestrictionContext p r = RestrictedStatement r (PlaceHolders p)
 
@@ -77,6 +78,7 @@ instance TableDerivable r => Show (Restriction p r) where
 -- | UpdateTarget type with place-holder parameter 'p' and projection record type 'r'.
 newtype UpdateTarget p r = UpdateTarget (AssignStatement r ())
 
+{-# DEPRECATED UpdateTargetContext "Expand UpdateTargetContext p r into AssignStatement r (PlaceHolders p)." #-}
 -- | Not finalized 'Target' monad type.
 type UpdateTargetContext p r = AssignStatement r (PlaceHolders p)
 
