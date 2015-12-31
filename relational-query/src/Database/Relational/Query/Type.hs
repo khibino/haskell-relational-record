@@ -44,14 +44,16 @@ import Database.Record (PersistableWidth)
 
 import Database.Relational.Query.Internal.SQL (showStringSQL)
 import Database.Relational.Query.Monad.BaseType (Relation, sqlFromRelationWith)
+import Database.Relational.Query.Monad.Restrict (RestrictedStatement)
+import Database.Relational.Query.Monad.Assign (AssignStatement)
 import Database.Relational.Query.Relation (tableOf)
 import Database.Relational.Query.Effect
-  (Restriction, RestrictionContext, restriction',
-   UpdateTarget, UpdateTargetContext, updateTarget', liftTargetAllColumn',
+  (Restriction, restriction', UpdateTarget, updateTarget', liftTargetAllColumn',
    sqlWhereFromRestriction, sqlFromUpdateTarget)
 import Database.Relational.Query.Pi (Pi)
 import Database.Relational.Query.Component (Config (chunksInsertSize), defaultConfig)
 import Database.Relational.Query.Table (Table, TableDerivable, derivedTable)
+import Database.Relational.Query.Projectable (PlaceHolders)
 import Database.Relational.Query.SQL
   (QuerySuffix, showsQuerySuffix, insertPrefixSQL, insertSQL, insertSizedChunkSQL,
    updateOtherThanKeySQL, updatePrefixSQL, deletePrefixSQL)
@@ -128,13 +130,13 @@ typedUpdate =  typedUpdate' defaultConfig
 targetTable :: TableDerivable r => UpdateTarget p r -> Table r
 targetTable =  const derivedTable
 
--- | Make typed 'Update' from 'Config', derived table and 'UpdateTargetContext'
-derivedUpdate' :: TableDerivable r => Config -> UpdateTargetContext p r -> Update p
+-- | Make typed 'Update' from 'Config', derived table and 'AssignStatement'
+derivedUpdate' :: TableDerivable r => Config -> AssignStatement r (PlaceHolders p) -> Update p
 derivedUpdate' config utc =  typedUpdate' config (targetTable ut) ut  where
   ut = updateTarget' utc
 
--- | Make typed 'Update' from 'defaultConfig', derived table and 'UpdateTargetContext'
-derivedUpdate :: TableDerivable r => UpdateTargetContext p r -> Update p
+-- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement'
+derivedUpdate :: TableDerivable r => AssignStatement r (PlaceHolders p) -> Update p
 derivedUpdate = derivedUpdate' defaultConfig
 
 
@@ -150,7 +152,7 @@ typedUpdateAllColumn tbl r = typedUpdate tbl $ liftTargetAllColumn' r
 --   Update target is all column.
 restrictedUpdateAllColumn :: PersistableWidth r
                            => Table r
-                           -> RestrictionContext p r -- ^ 'Restrict' monad context
+                           -> RestrictedStatement r (PlaceHolders p) -- ^ 'Restrict' monad context
                            -> Update (r, p)
 restrictedUpdateAllColumn tbl = typedUpdateAllColumn tbl . restriction'
 
@@ -158,7 +160,7 @@ restrictedUpdateAllColumn tbl = typedUpdateAllColumn tbl . restriction'
 --   Update target is all column.
 restrictedUpdateTableAllColumn :: (PersistableWidth r, TableDerivable r)
                                => Relation () r
-                               -> RestrictionContext p r
+                               -> RestrictedStatement r (PlaceHolders p)
                                -> Update (r, p)
 restrictedUpdateTableAllColumn =  restrictedUpdateAllColumn . tableOf
 
@@ -251,12 +253,12 @@ restrictedTable :: TableDerivable r => Restriction p r -> Table r
 restrictedTable =  const derivedTable
 
 -- | Make typed 'Delete' from 'Config', derived table and 'RestrictContext'
-derivedDelete' :: TableDerivable r => Config -> RestrictionContext p r -> Delete p
+derivedDelete' :: TableDerivable r => Config -> RestrictedStatement r (PlaceHolders p) -> Delete p
 derivedDelete' config rc = typedDelete' config (restrictedTable rs) rs  where
   rs = restriction' rc
 
 -- | Make typed 'Delete' from 'defaultConfig', derived table and 'RestrictContext'
-derivedDelete :: TableDerivable r => RestrictionContext p r -> Delete p
+derivedDelete :: TableDerivable r => RestrictedStatement r (PlaceHolders p) -> Delete p
 derivedDelete = derivedDelete' defaultConfig
 
 -- | Show delete SQL string
