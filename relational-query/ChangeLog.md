@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.7.1.0
+
+- Deprecate redundant type synonyms.
+
 ## 0.7.0.2
 
 - Prepare to drop Expr type and deprecate around it.
