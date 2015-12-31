@@ -29,25 +29,23 @@ import Control.Monad (void)
 import Database.Record (PersistableWidth)
 
 import Database.Relational.Query.Internal.SQL (StringSQL, showStringSQL)
-import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Pi (id')
 import Database.Relational.Query.Table (Table, TableDerivable, derivedTable)
 import Database.Relational.Query.Component (Config, defaultConfig, composeSets)
 import Database.Relational.Query.Sub (composeWhere)
-import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable
   (PlaceHolders, placeholder, unsafeAddPlaceHolders, (><), rightId)
 
 import Database.Relational.Query.Monad.Trans.Assigning (assignings, (<-#))
-import Database.Relational.Query.Monad.Restrict (Restrict, RestrictedStatement)
+import Database.Relational.Query.Monad.Restrict (RestrictedStatement)
 import qualified Database.Relational.Query.Monad.Restrict as Restrict
 import Database.Relational.Query.Monad.Assign (AssignStatement)
 import qualified Database.Relational.Query.Monad.Assign as Assign
 
 
 -- | Restriction type with place-holder parameter 'p' and projection record type 'r'.
-newtype Restriction p r = Restriction (Projection Flat r -> Restrict ())
+newtype Restriction p r = Restriction (RestrictedStatement r ())
 
 -- | Not finalized 'Restrict' monad type.
 type RestrictionContext p r = RestrictedStatement r (PlaceHolders p)
