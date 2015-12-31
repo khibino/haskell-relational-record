@@ -58,6 +58,7 @@ module Database.Relational.Query.Arrow (
 
   Orderings, Window, Assignings,
 
+  AssignStatement, RestrictedStatement,
   UpdateTargetContext, RestrictionContext,
   ) where
 
@@ -124,9 +125,17 @@ type Window c = QueryA (Monadic.Window c)
 -- | Arrow type corresponding to 'Monadic.Assignings'
 type Assignings r m = QueryA (Monadic.Assignings r m)
 
+-- | Arrow type corresponding to 'Monadic.AssignStatement'
+type AssignStatement r a = Assignings r Restrict (Projection Flat r) a
+
+-- | Arrow type corresponding to 'Monadic.RestrictedStatement'
+type RestrictedStatement r a = QueryA Monadic.Restrict (Projection Flat r) a
+
+{-# DEPRECATED UpdateTargetContext "Expand UpdateTargetContext p r into AssignStatement r (PlaceHolders p)." #-}
 -- | Arrow type corresponding to 'Monadic.UpdateTargetContext'
 type UpdateTargetContext p r = Assignings r Restrict (Projection Flat r) (PlaceHolders p)
 
+{-# DEPRECATED RestrictionContext "Expand RestrictionContext p r into RestrictedStatement r (PlaceHolders p)." #-}
 -- | Arrow type corresponding to 'Monadic.RestrictionContext'
 type RestrictionContext p r = QueryA Monadic.Restrict (Projection Flat r) (PlaceHolders p)
 
@@ -406,20 +415,20 @@ assign t = queryA (`Monadic.assignTo` t)
 
 -- | Same as 'Monadic.derivedUpdate''.
 --   Make 'Update' from assigning statement arrow using configuration.
-derivedUpdate' :: TableDerivable r => Config -> UpdateTargetContext p r -> Update p
+derivedUpdate' :: TableDerivable r => Config -> AssignStatement r (PlaceHolders p) -> Update p
 derivedUpdate' config = Monadic.derivedUpdate' config . runQueryA
 
 -- | Same as 'Monadic.derivedUpdate'.
 --   Make 'Update' from assigning statement arrow.
-derivedUpdate :: TableDerivable r => UpdateTargetContext p r -> Update p
+derivedUpdate :: TableDerivable r => AssignStatement r (PlaceHolders p) -> Update p
 derivedUpdate = Monadic.derivedUpdate . runQueryA
 
 -- | Same as 'Monadic.derivedDelete''.
 --   Make 'Update' from restrict statement arrow using configuration.
-derivedDelete' :: TableDerivable r => Config -> RestrictionContext p r -> Delete p
+derivedDelete' :: TableDerivable r => Config -> RestrictedStatement r (PlaceHolders p) -> Delete p
 derivedDelete' config = Monadic.derivedDelete' config . runQueryA
 
 -- | Same as 'Monadic.derivedDelete'.
 --   Make 'Update' from restrict statement arrow.
-derivedDelete :: TableDerivable r => RestrictionContext p r -> Delete p
+derivedDelete :: TableDerivable r => RestrictedStatement r (PlaceHolders p) -> Delete p
 derivedDelete = Monadic.derivedDelete . runQueryA
