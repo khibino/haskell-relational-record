@@ -59,7 +59,6 @@ module Database.Relational.Query.Arrow (
   Orderings, Window, Assignings,
 
   AssignStatement, RestrictedStatement,
-  UpdateTargetContext, RestrictionContext,
   ) where
 
 import Control.Category (Category)
@@ -76,8 +75,7 @@ import Database.Relational.Query hiding
    groupBy', key, key', set, bkey, rollup, cube, groupingSets,
    orderBy, asc, desc, partitionBy, over,
    derivedUpdate', derivedUpdate, derivedDelete', derivedDelete,
-   QuerySimple, QueryAggregate, QueryUnique, Window,
-   UpdateTargetContext, RestrictionContext)
+   QuerySimple, QueryAggregate, QueryUnique, Window)
 import qualified Database.Relational.Query as Monadic
 import Database.Relational.Query.Projection (ListProjection)
 import Database.Relational.Query.Component (AggregateKey)
@@ -130,14 +128,6 @@ type AssignStatement r a = Assignings r Restrict (Projection Flat r) a
 
 -- | Arrow type corresponding to 'Monadic.RestrictedStatement'
 type RestrictedStatement r a = QueryA Monadic.Restrict (Projection Flat r) a
-
-{-# DEPRECATED UpdateTargetContext "Expand UpdateTargetContext p r into AssignStatement r (PlaceHolders p)." #-}
--- | Arrow type corresponding to 'Monadic.UpdateTargetContext'
-type UpdateTargetContext p r = Assignings r Restrict (Projection Flat r) (PlaceHolders p)
-
-{-# DEPRECATED RestrictionContext "Expand RestrictionContext p r into RestrictedStatement r (PlaceHolders p)." #-}
--- | Arrow type corresponding to 'Monadic.RestrictionContext'
-type RestrictionContext p r = QueryA Monadic.Restrict (Projection Flat r) (PlaceHolders p)
 
 
 -- | Same as 'Monadic.all''. Arrow version.

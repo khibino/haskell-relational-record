@@ -11,10 +11,10 @@
 -- like update and delete.
 module Database.Relational.Query.Effect (
   -- * Object to express simple restriction.
-  Restriction, RestrictionContext, restriction, restriction',
+  Restriction, restriction, restriction',
 
   -- * Object to express update target columns and restriction.
-  UpdateTarget, UpdateTargetContext, updateTarget, updateTarget',
+  UpdateTarget, updateTarget, updateTarget',
   liftTargetAllColumn, liftTargetAllColumn',
   updateTargetAllColumn, updateTargetAllColumn',
 
@@ -46,10 +46,6 @@ import qualified Database.Relational.Query.Monad.Assign as Assign
 -- | Restriction type with place-holder parameter 'p' and projection record type 'r'.
 newtype Restriction p r = Restriction (RestrictedStatement r (PlaceHolders p))
 
-{-# DEPRECATED RestrictionContext "Expand RestrictionContext p r into RestrictedStatement r (PlaceHolders p)." #-}
--- | Not finalized 'Restrict' monad type.
-type RestrictionContext p r = RestrictedStatement r (PlaceHolders p)
-
 -- | Finalize 'Restrict' monad and generate 'Restriction'.
 restriction :: RestrictedStatement r () -> Restriction () r
 restriction = Restriction . ((>> return unitPlaceHolder) .)
@@ -74,10 +70,6 @@ instance TableDerivable r => Show (Restriction p r) where
 
 -- | UpdateTarget type with place-holder parameter 'p' and projection record type 'r'.
 newtype UpdateTarget p r = UpdateTarget (AssignStatement r (PlaceHolders p))
-
-{-# DEPRECATED UpdateTargetContext "Expand UpdateTargetContext p r into AssignStatement r (PlaceHolders p)." #-}
--- | Not finalized 'Target' monad type.
-type UpdateTargetContext p r = AssignStatement r (PlaceHolders p)
 
 -- | Finalize 'Target' monad and generate 'UpdateTarget'.
 updateTarget :: AssignStatement r ()
