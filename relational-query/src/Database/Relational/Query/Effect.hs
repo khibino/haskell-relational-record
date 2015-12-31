@@ -24,7 +24,6 @@ module Database.Relational.Query.Effect (
   ) where
 
 import Data.Monoid ((<>))
-import Control.Monad (void)
 
 import Database.Record (PersistableWidth)
 
@@ -35,7 +34,7 @@ import Database.Relational.Query.Component (Config, defaultConfig, composeSets)
 import Database.Relational.Query.Sub (composeWhere)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable
-  (PlaceHolders, placeholder, unsafeAddPlaceHolders, (><), rightId)
+  (PlaceHolders, placeholder, unitPlaceHolder, unsafeAddPlaceHolders, (><), rightId)
 
 import Database.Relational.Query.Monad.Trans.Assigning (assignings, (<-#))
 import Database.Relational.Query.Monad.Restrict (RestrictedStatement)
@@ -45,18 +44,18 @@ import qualified Database.Relational.Query.Monad.Assign as Assign
 
 
 -- | Restriction type with place-holder parameter 'p' and projection record type 'r'.
-newtype Restriction p r = Restriction (RestrictedStatement r ())
+newtype Restriction p r = Restriction (RestrictedStatement r (PlaceHolders p))
 
 -- | Not finalized 'Restrict' monad type.
 type RestrictionContext p r = RestrictedStatement r (PlaceHolders p)
 
 -- | Finalize 'Restrict' monad and generate 'Restriction'.
 restriction :: RestrictedStatement r () -> Restriction () r
-restriction =  Restriction
+restriction = Restriction . ((>> return unitPlaceHolder) .)
 
 -- | Finalize 'Restrict' monad and generate 'Restriction' with place-holder parameter 'p'
 restriction' :: RestrictedStatement r (PlaceHolders p) -> Restriction p r
-restriction' =  Restriction . (void .)
+restriction' = Restriction
 
 runRestriction :: Restriction p r
                -> RestrictedStatement r (PlaceHolders p)
@@ -73,7 +72,7 @@ instance TableDerivable r => Show (Restriction p r) where
   show = showStringSQL . sqlWhereFromRestriction defaultConfig derivedTable
 
 -- | UpdateTarget type with place-holder parameter 'p' and projection record type 'r'.
-newtype UpdateTarget p r = UpdateTarget (AssignStatement r ())
+newtype UpdateTarget p r = UpdateTarget (AssignStatement r (PlaceHolders p))
 
 -- | Not finalized 'Target' monad type.
 type UpdateTargetContext p r = AssignStatement r (PlaceHolders p)
@@ -81,12 +80,12 @@ type UpdateTargetContext p r = AssignStatement r (PlaceHolders p)
 -- | Finalize 'Target' monad and generate 'UpdateTarget'.
 updateTarget :: AssignStatement r ()
              -> UpdateTarget () r
-updateTarget =  UpdateTarget
+updateTarget =  UpdateTarget . ((>> return unitPlaceHolder) .)
 
 -- | Finalize 'Target' monad and generate 'UpdateTarget' with place-holder parameter 'p'.
 updateTarget' :: AssignStatement r (PlaceHolders p)
               -> UpdateTarget p r
-updateTarget' qf = UpdateTarget $ void . qf
+updateTarget' = UpdateTarget
 
 _runUpdateTarget :: UpdateTarget p r
                  -> AssignStatement r (PlaceHolders p)
