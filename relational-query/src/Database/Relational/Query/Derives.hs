@@ -37,8 +37,9 @@ import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable (placeholder, (.=.))
 import Database.Relational.Query.ProjectableExtended ((!))
 import Database.Relational.Query.Monad.Class (wheres)
+import Database.Relational.Query.Monad.BaseType (Relation)
 import Database.Relational.Query.Relation
-  (Relation, derivedRelation, relation, relation', query, UniqueRelation, unsafeUnique)
+  (derivedRelation, relation, relation', query, UniqueRelation, unsafeUnique)
 import Database.Relational.Query.Constraint
    (Key, Primary, Unique, projectionKey, uniqueKey,
     HasConstraintKey(constraintKey))

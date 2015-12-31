@@ -13,8 +13,6 @@
 -- to compose complex query.
 module Database.Relational.Query.Relation (
   -- * Relation type
-  Relation,
-
   table, derivedRelation, tableOf,
   relation, relation',
   aggregateRelation, aggregateRelation',
