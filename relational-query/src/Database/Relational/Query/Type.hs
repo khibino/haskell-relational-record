@@ -24,7 +24,8 @@ module Database.Relational.Query.Type (
   updateSQL,
 
   -- * Typed insert statement
-  Insert (..), unsafeTypedInsert', unsafeTypedInsert, typedInsert', typedInsert, derivedInsert,
+  Insert (..), untypeChunkInsert, chunkSizeOfInsert,
+  unsafeTypedInsert', unsafeTypedInsert, typedInsert', typedInsert, derivedInsert,
   InsertQuery (..), unsafeTypedInsertQuery, typedInsertQuery', typedInsertQuery, derivedInsertQuery,
 
   insertQuerySQL,
@@ -172,18 +173,25 @@ instance Show (Update p) where
 -- | Insert type to insert record type 'a'.
 data Insert a   =
   Insert
-  { untypeInsert :: String
-  , untypeChunkInsert :: String
-  , chunkSizeOfInsert :: Int
+  { untypeInsert  :: String
+  , chunkedInsert :: Maybe (String, Int)
   }
+
+-- | Statement to use chunked insert
+untypeChunkInsert :: Insert a -> String
+untypeChunkInsert ins = maybe (untypeInsert ins) fst $ chunkedInsert ins
+
+-- | Size to use chunked insert
+chunkSizeOfInsert :: Insert a -> Int
+chunkSizeOfInsert = maybe 1 snd . chunkedInsert
 
 -- | Unsafely make typed 'Insert' from single insert and chunked insert SQL.
 unsafeTypedInsert' :: String -> String -> Int -> Insert a
-unsafeTypedInsert' =  Insert
+unsafeTypedInsert' s = curry (Insert s . Just)
 
 -- | Unsafely make typed 'Insert' from single insert SQL.
 unsafeTypedInsert :: String -> Insert a
-unsafeTypedInsert q = unsafeTypedInsert' q q 1
+unsafeTypedInsert s = Insert s Nothing
 
 -- | Make typed 'Insert' from 'Table' and columns selector 'Pi' with configuration parameter.
 typedInsert' :: Config -> Table r -> Pi r r' -> Insert r'
