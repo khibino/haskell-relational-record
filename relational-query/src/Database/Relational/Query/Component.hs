@@ -42,7 +42,7 @@ module Database.Relational.Query.Component
          composeOrderBy,
 
          -- * Types for assignments
-         AssignColumn, AssignTerm, Assignment, Assignments, composeSets,
+         AssignColumn, AssignTerm, Assignment, Assignments, composeSets, composeValues,
 
          -- * Compose window clause
          composeOver,
@@ -50,7 +50,7 @@ module Database.Relational.Query.Component
 
 import Data.Monoid (Monoid (..), (<>))
 
-import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL)
+import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL, rowConsStringSQL)
 import Language.SQL.Keyword (Keyword(..), (|*|), (.=.))
 
 import qualified Language.SQL.Keyword as SQL
@@ -250,6 +250,12 @@ composeSets as = assigns  where
                [] as
   assigns | null assignList = error "Update assignment list is null!"
           | otherwise       = SET <> commaed assignList
+
+-- | Compose VALUES clause from 'Assignments'.
+composeValues :: Assignments -> StringSQL
+composeValues as = rowConsStringSQL [ showsColumnSQL c | c <- cs ] <> VALUES <>
+                   rowConsStringSQL [ showsColumnSQL c | c <- vs ]  where
+  (cs, vs) = unzip as
 
 
 -- | Compose /OVER (PARTITION BY ... )/ clause.

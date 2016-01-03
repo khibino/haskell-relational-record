@@ -18,19 +18,24 @@ module Database.Relational.Query.Effect (
   liftTargetAllColumn, liftTargetAllColumn',
   updateTargetAllColumn, updateTargetAllColumn',
 
+  -- * Object to express insert terget.
+  InsertTarget, insertTarget, insertTarget',
+
   -- * Generate SQL from restriction.
   sqlWhereFromRestriction,
-  sqlFromUpdateTarget
+  sqlFromUpdateTarget,
+  sqlFromInsertTarget
   ) where
 
 import Data.Monoid ((<>))
 
 import Database.Record (PersistableWidth)
 
-import Database.Relational.Query.Internal.SQL (StringSQL, showStringSQL)
+import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL)
 import Database.Relational.Query.Pi (id')
 import Database.Relational.Query.Table (Table, TableDerivable, derivedTable)
-import Database.Relational.Query.Component (Config, defaultConfig, composeSets)
+import qualified Database.Relational.Query.Table as Table
+import Database.Relational.Query.Component (Config, defaultConfig, composeSets, composeValues)
 import Database.Relational.Query.Sub (composeWhere)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable
@@ -41,6 +46,10 @@ import Database.Relational.Query.Monad.Restrict (RestrictedStatement)
 import qualified Database.Relational.Query.Monad.Restrict as Restrict
 import Database.Relational.Query.Monad.Assign (AssignStatement)
 import qualified Database.Relational.Query.Monad.Assign as Assign
+import Database.Relational.Query.Monad.Register (Register)
+import qualified Database.Relational.Query.Monad.Register as Register
+
+import Language.SQL.Keyword (Keyword(..))
 
 
 -- | Restriction type with place-holder parameter 'p' and projection record type 'r'.
@@ -67,6 +76,7 @@ sqlWhereFromRestriction config tbl (Restriction q) = composeWhere rs
 -- | Show where clause.
 instance TableDerivable r => Show (Restriction p r) where
   show = showStringSQL . sqlWhereFromRestriction defaultConfig derivedTable
+
 
 -- | UpdateTarget type with place-holder parameter 'p' and projection record type 'r'.
 newtype UpdateTarget p r = UpdateTarget (AssignStatement r (PlaceHolders p))
@@ -126,3 +136,22 @@ sqlFromUpdateTarget config tbl (UpdateTarget q) = composeSets (asR tbl) <> compo
 
 instance TableDerivable r => Show (UpdateTarget p r) where
   show = showStringSQL . sqlFromUpdateTarget defaultConfig derivedTable
+
+
+-- | InsertTarget type with place-holder parameter 'p' and projection record type 'r'.
+newtype InsertTarget p r = InsertTarget (Register r (PlaceHolders p))
+
+-- | Finalize 'Register' monad and generate 'InsertTarget'.
+insertTarget :: Register r ()
+             -> InsertTarget () r
+insertTarget =  InsertTarget . (>> return unitPlaceHolder)
+
+-- | Finalize 'Target' monad and generate 'UpdateTarget' with place-holder parameter 'p'.
+insertTarget' :: Register r (PlaceHolders p)
+              -> InsertTarget p r
+insertTarget' = InsertTarget
+
+-- | SQL INSERT statement 'StringSQL' string from 'InsertTarget'
+sqlFromInsertTarget :: Config -> Table r -> InsertTarget p r -> StringSQL
+sqlFromInsertTarget config tbl (InsertTarget q) = INSERT <> INTO <> stringSQL (Table.name tbl) <> composeValues (asR tbl)
+  where (_ph, asR) = Register.extract q config
