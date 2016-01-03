@@ -26,6 +26,7 @@ module Database.Relational.Query.Type (
   -- * Typed insert statement
   Insert (..), untypeChunkInsert, chunkSizeOfInsert,
   unsafeTypedInsert', unsafeTypedInsert, typedInsert', typedInsert, derivedInsert,
+  typedInsertValue', typedInsertValue, derivedInsertValue', derivedInsertValue,
   InsertQuery (..), unsafeTypedInsertQuery, typedInsertQuery', typedInsertQuery, derivedInsertQuery,
 
   insertQuerySQL,
@@ -47,10 +48,11 @@ import Database.Relational.Query.Internal.SQL (showStringSQL)
 import Database.Relational.Query.Monad.BaseType (Relation, sqlFromRelationWith)
 import Database.Relational.Query.Monad.Restrict (RestrictedStatement)
 import Database.Relational.Query.Monad.Assign (AssignStatement)
+import Database.Relational.Query.Monad.Register (Register)
 import Database.Relational.Query.Relation (tableOf)
 import Database.Relational.Query.Effect
-  (Restriction, restriction', UpdateTarget, updateTarget', liftTargetAllColumn',
-   sqlWhereFromRestriction, sqlFromUpdateTarget)
+  (Restriction, restriction', UpdateTarget, updateTarget', liftTargetAllColumn', InsertTarget, insertTarget',
+   sqlWhereFromRestriction, sqlFromUpdateTarget, sqlFromInsertTarget)
 import Database.Relational.Query.Pi (Pi)
 import Database.Relational.Query.Component (Config (chunksInsertSize), defaultConfig)
 import Database.Relational.Query.Table (Table, TableDerivable, derivedTable)
@@ -205,6 +207,26 @@ typedInsert =  typedInsert' defaultConfig
 -- | Table type inferred 'Insert'.
 derivedInsert :: TableDerivable r => Pi r r' -> Insert r'
 derivedInsert =  typedInsert derivedTable
+
+-- | Make typed 'Insert' from 'Config', 'Table' and monadic builded 'InsertTarget' object.
+typedInsertValue' :: Config -> Table r -> InsertTarget p r -> Insert p
+typedInsertValue' config tbl  =
+  unsafeTypedInsert . showStringSQL . sqlFromInsertTarget config tbl
+
+-- | Make typed 'Insert' from 'Table' and monadic builded 'InsertTarget' object.
+typedInsertValue :: Table r -> InsertTarget p r -> Insert p
+typedInsertValue = typedInsertValue' defaultConfig
+
+-- | Make typed 'Insert' from 'Config', derived table and monadic builded 'Register' object.
+derivedInsertValue' :: TableDerivable r => Config -> Register r (PlaceHolders p) -> Insert p
+derivedInsertValue' config rs = typedInsertValue' config (rt rs) $ insertTarget' rs
+  where
+    rt :: TableDerivable r => Register r (PlaceHolders p) -> Table r
+    rt =  const derivedTable
+
+-- | Make typed 'Insert' from 'defaultConfig', derived table and monadic builded 'Register' object.
+derivedInsertValue :: TableDerivable r => Register r (PlaceHolders p) -> Insert p
+derivedInsertValue = derivedInsertValue' defaultConfig
 
 -- | Show insert SQL string.
 instance Show (Insert a) where
