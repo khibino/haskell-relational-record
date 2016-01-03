@@ -77,6 +77,13 @@ assignX = derivedUpdate $ \_proj -> do
   intA0' <-# value (0 :: Int32)
   return unitPlaceHolder
 
+registerX :: Insert ()
+registerX = derivedInsertValue $ do
+  intA0' <-# value 1
+  strA1' <-# value "Hello"
+  strA2' <-# value "World"
+  return unitPlaceHolder
+
 monadic :: [Test]
 monadic =
   [ eqProp "query"      queryX
@@ -103,6 +110,8 @@ monadic =
     "SELECT ALL T0.int_a0 AS f0 FROM TEST.set_a T0"
   , eqProp "update"      assignX
     "UPDATE TEST.set_a SET int_a0 = 0"
+  , eqProp "insert"      registerX
+    "INSERT INTO TEST.set_a (int_a0, str_a1, str_a2) VALUES (1, 'Hello', 'World')"
   ]
 
 _p_monadic :: IO ()
