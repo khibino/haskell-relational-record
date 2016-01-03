@@ -51,6 +51,7 @@ library
                        Database.Relational.Query.Monad.Unique
                        Database.Relational.Query.Monad.Restrict
                        Database.Relational.Query.Monad.Assign
+                       Database.Relational.Query.Monad.Register
                        Database.Relational.Query.Relation
                        Database.Relational.Query.Effect
                        Database.Relational.Query.Scalar
