@@ -8,6 +8,7 @@ import Database.HDBC.Record
 import Database.HDBC.Session
 import qualified One
 import StockGoods
+import qualified StockGoods
 import PgTestDataSource
 
 import Data.Int (Int32)
@@ -46,12 +47,13 @@ pine =  relation .
 insertPine :: InsertQuery ()
 insertPine =  derivedInsertQuery id' pine
 
-fig :: Relation () StockGoods
-fig =  relation .
-  return $ StockGoods |$| value 7 |*| value "Fig" |*| value 200 |*| value 13
-
-insertFig :: InsertQuery ()
-insertFig =  insertQueryStockGoods fig
+insertFig :: Insert ()
+insertFig = derivedInsertValue $ do
+  StockGoods.seq'    <-#  value 7
+  StockGoods.name'   <-#  value "Fig"
+  StockGoods.unit'   <-#  value 200
+  StockGoods.amount' <-#  value 13
+  return unitPlaceHolder
 
 runInsertQuery1 :: InsertQuery () -> IO ()
 runInsertQuery1 ins = handleConnectionIO connect $ \conn -> do
@@ -116,7 +118,7 @@ run = do
   runInsertOne0
   runInsertStocks0
   runInsertQuery1 insertPine
-  runInsertQuery1 insertFig
+  runInsertList insertFig [()]
   runUpdateAndPrint riseOfBanana ()
   runUpdateAndPrint updateCherry (newCherry, (4, "Cherry"))
   runKeyUpdateAndPrint keyUpdateUidName newOrange
