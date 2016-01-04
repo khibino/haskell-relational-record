@@ -761,7 +761,7 @@ $(makeRecordPersistableDefault ''Customer1)
 
 -- |
 -- (original) Deleting data
--- 
+--
 -- Handwritten SQL:
 --
 -- @
@@ -836,7 +836,7 @@ deleteAccount_o2P = derivedDelete $ \proj -> do
 
 -- |
 -- 9.4.2 Data manipulation using correlated subqueries
--- 
+--
 -- Handwritten SQL:
 --
 -- @
@@ -845,7 +845,7 @@ deleteAccount_o2P = derivedDelete $ \proj -> do
 --   FROM employee e
 --   WHERE e.dept_id = d.dept_id);
 -- @
--- 
+--
 -- Generated SQL:
 --
 -- @
@@ -964,21 +964,21 @@ toDay dt = unsafeProjectSql $ "date(" ++ unsafeShowSql dt ++ ")"
 --   VALUES (null, 'Headquarters', '3882 Main St.', 'Waltham', 'MA', '02451');
 -- @
 --
--- Literal version of Generated SQL:
+-- Generated SQL:
 --
 -- @
---   INSERT INTO MAIN.branch (name, address, city, state, zip) SELECT ALL
---   'Headquarters' AS f0, '3882 Main St.' AS f1, 'Waltham' AS f2, 'MA' AS
---   f3, '02451' AS f4
+--  INSERT INTO MAIN.branch (name, address, city, state, zip)
+--  VALUES ('Headquarters', '3882 Main St.', 'Waltham', 'MA', '02451')
 -- @
 --
-insertBranch_s1 :: InsertQuery ()
-insertBranch_s1 = derivedInsertQuery piBranch1 . relation $
-  return $ Branch1 |$| value "Headquarters"
-                   |*| value (Just "3882 Main St.")
-                   |*| value (Just "Waltham")
-                   |*| value (Just "MA")
-                   |*| value (Just "02451")
+insertBranch_s1 :: Insert ()
+insertBranch_s1 = derivedInsertValue $ do
+  Branch.name'     <-#  value "Headquarters"
+  Branch.address'  <-#  value (Just "3882 Main St.")
+  Branch.city'     <-#  value (Just "Waltham")
+  Branch.state'    <-#  value (Just "MA")
+  Branch.zip'      <-#  value (Just "02451")
+  return unitPlaceHolder
 
 -- this is equal to `definePi 1'
 piBranch1 :: Pi Branch Branch1
@@ -1210,7 +1210,7 @@ $(makeRecordPersistableDefault ''Account4)
 --   SELECT ALL T0.cust_id AS f0, T1.name AS f1 FROM MAIN.customer T0 RIGHT
 --   JOIN MAIN.business T1 ON (T0.cust_id = T1.cust_id)
 -- @
--- 
+--
 -- Note: A function using right-out-join can be defined, but unfortunately
 -- SQLite3 does not support it.
 --
@@ -1304,11 +1304,10 @@ main = handleSqlError' $ withConnectionIO connect $ \conn -> do
   runU conn () updateEmployee_o3
   runU conn (("Bush",3),10) updateEmployee_o3P
   runU conn () updateAccount_9_4_2
-  runIQ conn () insertBranch_s1
+  runI conn () insertBranch_s1
   runI conn branch1 insertBranch_s1P
   runIQ conn () insertEmployee_s2
   runIQ conn () insertEmployee_s2U
   runIQ conn employee4 insertEmployee_s2P
   run conn () account_LeftOuterJoin
   putStrLn $ "SQL: " ++ show business_RightOuterJoin -- run conn () business_RightOuterJoin
-
