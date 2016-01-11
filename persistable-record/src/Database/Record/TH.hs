@@ -27,10 +27,6 @@ module Database.Record.TH (
   defineHasPrimaryConstraintInstanceDerived,
   defineHasPrimaryKeyInstance,
   defineHasNotNullKeyInstance,
-  defineHasPrimaryKeyInstanceWithConfig,
-  defineHasNotNullKeyInstanceWithConfig,
-  defineHasPrimaryKeyInstanceDefault,
-  defineHasNotNullKeyInstanceDefault,
 
   -- * Record type
   defineRecordType,
@@ -182,36 +178,6 @@ defineHasNotNullKeyInstance :: TypeQ   -- ^ Type constructor of record
                             -> Q [Dec] -- ^ Declaration of not null key constraint instance
 defineHasNotNullKeyInstance =
   defineHasColumnConstraintInstance [t| NotNull |]
-
--- | Template of 'HasColumnConstraint' 'Primary' instance
---   from SQL schema name and table name 'String' and key index.
-defineHasPrimaryKeyInstanceWithConfig :: NameConfig -> String -> String -> [Int] -> Q [Dec]
-defineHasPrimaryKeyInstanceWithConfig config scm =
-  defineHasPrimaryKeyInstance . recordType config scm
-
--- | Template of 'HasColumnConstraint' 'NotNull' instance
---   from SQL schema name and table name 'String' and key index.
-defineHasNotNullKeyInstanceWithConfig :: NameConfig -> String -> String -> Int -> Q [Dec]
-defineHasNotNullKeyInstanceWithConfig config scm =
-  defineHasNotNullKeyInstance . recordType config scm
-
--- | Template of 'HasColumnConstraint' 'Primary' instance
---   from SQL table name 'String' and key index.
-defineHasPrimaryKeyInstanceDefault :: String  -- ^ Schema name
-                                   -> String  -- ^ Table name
-                                   -> [Int]   -- ^ Key index which specifies this constraint
-                                   -> Q [Dec] -- ^ Declaration of primary key constraint instance
-defineHasPrimaryKeyInstanceDefault =
-  defineHasPrimaryKeyInstanceWithConfig defaultNameConfig
-
--- | Template of 'HasColumnConstraint' 'NotNull' instance
---   from SQL table name 'String' and key index.
-defineHasNotNullKeyInstanceDefault :: String  -- ^ Schema name
-                                   -> String  -- ^ Table name
-                                   -> Int     -- ^ Key index which specifies this constraint
-                                   -> Q [Dec] -- ^ Declaration of not null key constraint instance
-defineHasNotNullKeyInstanceDefault =
-  defineHasNotNullKeyInstanceWithConfig defaultNameConfig
 
 {-# DEPRECATED derivingEq "Use TH quasi-quotation like ''Eq instead of this." #-}
 -- | Name to specify deriving 'Eq'
