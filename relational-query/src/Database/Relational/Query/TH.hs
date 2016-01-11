@@ -119,12 +119,13 @@ defineHasPrimaryKeyInstance recType colType indexes = do
   return $ kc ++ ck
 
 -- | Rule template to infer primary key.
-defineHasPrimaryKeyInstanceDefault :: String  -- ^ Table name
+defineHasPrimaryKeyInstanceDefault :: String  -- ^ Schema name
+                                   -> String  -- ^ Table name
                                    -> TypeQ   -- ^ Column type
                                    -> [Int]   -- ^ Primary key index
                                    -> Q [Dec] -- ^ Declarations of primary constraint key
-defineHasPrimaryKeyInstanceDefault =
-  defineHasPrimaryKeyInstance . recordTypeDefault
+defineHasPrimaryKeyInstanceDefault scm =
+  defineHasPrimaryKeyInstance . recordTypeDefault scm
 
 -- | Rule template to infer not-null key.
 defineHasNotNullKeyInstance :: TypeQ   -- ^ Record type
@@ -134,11 +135,12 @@ defineHasNotNullKeyInstance =
   defineHasColumnConstraintInstance [t| NotNull |]
 
 -- | Rule template to infer not-null key.
-defineHasNotNullKeyInstanceDefault :: String  -- ^ Table name
+defineHasNotNullKeyInstanceDefault :: String  -- ^ Schema name
+                                   -> String  -- ^ Table name
                                    -> Int     -- ^ NotNull key index
                                    -> Q [Dec] -- ^ Declaration of not-null constraint key
-defineHasNotNullKeyInstanceDefault =
-  defineHasNotNullKeyInstance . recordTypeDefault
+defineHasNotNullKeyInstanceDefault scm =
+  defineHasNotNullKeyInstance . recordTypeDefault scm
 
 
 -- | Column projection path 'Pi' template.
@@ -271,9 +273,9 @@ defineProductConstructorInstance recTypeQ recData colTypes =
     |]
 
 -- | Make template for record 'ProductConstructor' instance using default naming rule.
-defineProductConstructorInstanceDefault :: String -> [TypeQ] -> Q [Dec]
-defineProductConstructorInstanceDefault table colTypes = do
-  let typeName = recordTypeNameDefault table
+defineProductConstructorInstanceDefault :: String -> String -> [TypeQ] -> Q [Dec]
+defineProductConstructorInstanceDefault schema table colTypes = do
+  let typeName = recordTypeNameDefault schema table
   defineProductConstructorInstance
     (toTypeCon typeName)
     (toDataCon typeName)
@@ -291,10 +293,10 @@ defineTableTypesDefault config schema table columns = do
              (relationVarNameDefault table)
              (table `varNameWithPrefix` "insert")
              (table `varNameWithPrefix` "insertQuery")
-             (recordTypeDefault table)
+             (recordTypeDefault schema table)
              (tableSQL (normalizedTableName config) schema table)
              (map (fst . fst) columns)
-  colsDs <- defineColumnsDefault (recordTypeNameDefault table) columns
+  colsDs <- defineColumnsDefault (recordTypeNameDefault schema table) columns
   return $ tableDs ++ colsDs
 
 -- | Make templates about table, column and haskell record using default naming rule.
@@ -305,8 +307,8 @@ defineTableTypesAndRecordDefault :: Config            -- ^ Configuration to gene
                                  -> [Name]            -- ^ Record derivings
                                  -> Q [Dec]           -- ^ Result declarations
 defineTableTypesAndRecordDefault config schema table columns derives = do
-  recD    <- defineRecordTypeDefault table columns derives
-  rconD   <- defineProductConstructorInstanceDefault table [t | (_, t) <- columns]
+  recD    <- defineRecordTypeDefault schema table columns derives
+  rconD   <- defineProductConstructorInstanceDefault schema table [t | (_, t) <- columns]
   tableDs <- defineTableTypesDefault config schema table [(c, Nothing) | c <- columns ]
   return $ recD ++ rconD ++ tableDs
 
@@ -362,20 +364,21 @@ defineSqlsWithPrimaryKeyDefault table  =
     upd = table `varNameWithPrefix` "update"
 
 -- | All templates about primary key.
-defineWithPrimaryKeyDefault :: String  -- ^ Table name string
+defineWithPrimaryKeyDefault :: String  -- ^ Schema name
+                            -> String  -- ^ Table name string
                             -> TypeQ   -- ^ Type of primary key
                             -> [Int]   -- ^ Indexes specifies primary key
                             -> Q [Dec] -- ^ Result declarations
-defineWithPrimaryKeyDefault table keyType ixs = do
-  instD <- defineHasPrimaryKeyInstanceDefault table keyType ixs
-  let recType  = recordTypeDefault table
+defineWithPrimaryKeyDefault schema table keyType ixs = do
+  instD <- defineHasPrimaryKeyInstanceDefault schema table keyType ixs
+  let recType  = recordTypeDefault schema table
       tableE   = tableVarExpDefault table
       relE     = relationVarExpDefault table
   sqlsD <- defineSqlsWithPrimaryKeyDefault table keyType recType relE tableE
   return $ instD ++ sqlsD
 
 -- | All templates about not-null key.
-defineWithNotNullKeyDefault :: String -> Int -> Q [Dec]
+defineWithNotNullKeyDefault :: String -> String -> Int -> Q [Dec]
 defineWithNotNullKeyDefault =  defineHasNotNullKeyInstanceDefault
 
 -- | Generate all templtes about table using default naming rule.
@@ -393,8 +396,8 @@ defineTableDefault config schema table columns derives primaryIxs mayNotNullIdx 
       keyType   = foldl1' pairT . map (snd . (columns !!)) $ primaryIxs
   primD <- case primaryIxs of
     []  -> return []
-    ixs -> defineWithPrimaryKeyDefault table keyType ixs
-  nnD   <- maybeD (\i -> defineWithNotNullKeyDefault table i) mayNotNullIdx
+    ixs -> defineWithPrimaryKeyDefault schema table keyType ixs
+  nnD   <- maybeD (\i -> defineWithNotNullKeyDefault schema table i) mayNotNullIdx
   return $ tblD ++ primD ++ nnD
 
 
