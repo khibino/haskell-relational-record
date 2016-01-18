@@ -276,13 +276,14 @@ tableVarExpDefault :: String -- ^ Table name string
                    -> ExpQ   -- ^ Result var Exp
 tableVarExpDefault =  toVarExp . tableVarNameDefault
 
-relationVarNameDefault :: String -> VarName
-relationVarNameDefault =  varCamelcaseName
+relationVarNameDefault :: String -> String -> VarName
+relationVarNameDefault = const varCamelcaseName
 
 -- | Make 'Relation' variable expression template from table name using default naming rule.
-relationVarExpDefault :: String -- ^ Table name string
-                      -> ExpQ -- ^ Result var Exp
-relationVarExpDefault =  toVarExp . relationVarNameDefault
+relationVarExpDefault :: String -- ^ Schema name string
+                      -> String -- ^ Table name string
+                      -> ExpQ   -- ^ Result var Exp
+relationVarExpDefault scm = toVarExp . relationVarNameDefault scm
 
 -- | Make template for 'ProductConstructor' instance.
 defineProductConstructorInstance :: TypeQ -> ExpQ -> [TypeQ] -> Q [Dec]
@@ -315,7 +316,7 @@ defineTableTypesWithConfig config schema table columns = do
   let recConfig = recordConfig $ nameConfig config
   tableDs <- defineTableTypes
              (tableVarNameDefault table)
-             (relationVarNameDefault table)
+             (relationVarNameDefault schema table)
              (table `varNameWithPrefix` "insert")
              (table `varNameWithPrefix` "insertQuery")
              (recordType recConfig schema table)
@@ -422,7 +423,7 @@ defineWithPrimaryKeyWithConfig config schema table keyType ixs = do
   instD <- defineHasPrimaryKeyInstanceWithConfig config schema table keyType ixs
   let recType  = recordType (recordConfig $ nameConfig config) schema table
       tableE   = tableVarExpDefault table
-      relE     = relationVarExpDefault table
+      relE     = relationVarExpDefault schema table
   sqlsD <- defineSqlsWithPrimaryKeyDefault table keyType recType relE tableE
   return $ instD ++ sqlsD
 
