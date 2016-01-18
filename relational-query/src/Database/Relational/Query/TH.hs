@@ -19,6 +19,7 @@
 -- so mapping between list of untyped SQL type and Haskell record type will be done too.
 module Database.Relational.Query.TH (
   -- * All templates about table
+  defineTableWithConfig,
   defineTableDefault,
 
   -- * Inlining typed 'Query'
@@ -26,12 +27,15 @@ module Database.Relational.Query.TH (
   inlineQuery,
 
   -- * Column projections and basic 'Relation' for Haskell record
+  defineTableTypesAndRecordWithConfig,
   defineTableTypesAndRecordDefault,
 
   -- * Constraint key templates
   defineHasPrimaryKeyInstance,
+  defineHasPrimaryKeyInstanceWithConfig,
   defineHasPrimaryKeyInstanceDefault,
   defineHasNotNullKeyInstance,
+  defineHasNotNullKeyInstanceWithConfig,
   defineHasNotNullKeyInstanceDefault,
   defineScalarDegree,
 
@@ -39,7 +43,7 @@ module Database.Relational.Query.TH (
   defineColumns, defineColumnsDefault,
 
   -- * Table metadata type and basic 'Relation'
-  defineTableTypes, defineTableTypesDefault,
+  defineTableTypes, defineTableTypesWithConfig, defineTableTypesDefault,
 
   -- * Basic SQL templates generate rules
   definePrimaryQuery,
@@ -48,6 +52,7 @@ module Database.Relational.Query.TH (
   -- * Var expression templates
   derivationExpDefault,
   tableVarExpDefault,
+  relationVarExpWithConfig,
   relationVarExpDefault,
 
   -- * Derived SQL templates from table definitions
