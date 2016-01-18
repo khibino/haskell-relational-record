@@ -74,13 +74,13 @@ import Language.Haskell.TH.Name.CamelCase
 import Language.Haskell.TH.Lib.Extra (simpleValD, maybeD, integralE)
 
 import Database.Record.TH
-  (recordTypeNameDefault, recordTypeDefault, columnOffsetsVarNameDefault,
-   defineRecordTypeDefault,
-   defineHasColumnConstraintInstance)
+  (columnOffsetsVarNameDefault, recordTypeName, recordType,
+   defineRecordTypeWithConfig, defineHasColumnConstraintInstance)
 import qualified Database.Record.TH as Record
 
 import Database.Relational.Query
-  (Table, Pi, id', Relation, Config (normalizedTableName), ProductConstructor (..),
+  (Table, Pi, id', Relation, ProductConstructor (..),
+   NameConfig (..), Config (normalizedTableName, nameConfig), defaultConfig,
    relationalQuerySQL, Query, relationalQuery, KeyUpdate,
    Insert, derivedInsert, InsertQuery, derivedInsertQuery,
    HasConstraintKey(constraintKey), Primary, NotNull, primary, primaryUpdate)
@@ -119,13 +119,23 @@ defineHasPrimaryKeyInstance recType colType indexes = do
   return $ kc ++ ck
 
 -- | Rule template to infer primary key.
+defineHasPrimaryKeyInstanceWithConfig :: Config  -- ^ configuration parameters
+                                      -> String  -- ^ Schema name
+                                      -> String  -- ^ Table name
+                                      -> TypeQ   -- ^ Column type
+                                      -> [Int]   -- ^ Primary key index
+                                      -> Q [Dec] -- ^ Declarations of primary constraint key
+defineHasPrimaryKeyInstanceWithConfig config scm =
+  defineHasPrimaryKeyInstance . recordType (recordConfig $ nameConfig config) scm
+
+-- | Rule template to infer primary key.
 defineHasPrimaryKeyInstanceDefault :: String  -- ^ Schema name
                                    -> String  -- ^ Table name
                                    -> TypeQ   -- ^ Column type
                                    -> [Int]   -- ^ Primary key index
                                    -> Q [Dec] -- ^ Declarations of primary constraint key
-defineHasPrimaryKeyInstanceDefault scm =
-  defineHasPrimaryKeyInstance . recordTypeDefault scm
+defineHasPrimaryKeyInstanceDefault =
+  defineHasPrimaryKeyInstanceWithConfig defaultConfig
 
 -- | Rule template to infer not-null key.
 defineHasNotNullKeyInstance :: TypeQ   -- ^ Record type
@@ -135,12 +145,21 @@ defineHasNotNullKeyInstance =
   defineHasColumnConstraintInstance [t| NotNull |]
 
 -- | Rule template to infer not-null key.
+defineHasNotNullKeyInstanceWithConfig :: Config  -- ^ configuration parameters
+                                      -> String  -- ^ Schema name
+                                      -> String  -- ^ Table name
+                                      -> Int     -- ^ NotNull key index
+                                      -> Q [Dec] -- ^ Declaration of not-null constraint key
+defineHasNotNullKeyInstanceWithConfig config scm =
+  defineHasNotNullKeyInstance . recordType (recordConfig $ nameConfig config) scm
+
+-- | Rule template to infer not-null key.
 defineHasNotNullKeyInstanceDefault :: String  -- ^ Schema name
                                    -> String  -- ^ Table name
                                    -> Int     -- ^ NotNull key index
                                    -> Q [Dec] -- ^ Declaration of not-null constraint key
-defineHasNotNullKeyInstanceDefault scm =
-  defineHasNotNullKeyInstance . recordTypeDefault scm
+defineHasNotNullKeyInstanceDefault =
+  defineHasNotNullKeyInstanceWithConfig defaultConfig
 
 
 -- | Column projection path 'Pi' template.
@@ -191,8 +210,8 @@ defineColumnsDefault recTypeName cols =
 
 -- | Rule template to infer table derivations.
 defineTableDerivableInstance :: TypeQ -> String -> [String] -> Q [Dec]
-defineTableDerivableInstance recordType table columns =
-  [d| instance TableDerivable $recordType where
+defineTableDerivableInstance recordType' table columns =
+  [d| instance TableDerivable $recordType' where
         derivedTable = Table.table $(stringE table) $(listE $ map stringE columns)
     |]
 
@@ -203,18 +222,18 @@ defineTableDerivations :: VarName -- ^ Table declaration variable name
                        -> VarName -- ^ InsertQuery statement declaration variable name
                        -> TypeQ   -- ^ Record type
                        -> Q [Dec] -- ^ Table and Relation declaration
-defineTableDerivations tableVar' relVar' insVar' insQVar' recordType = do
+defineTableDerivations tableVar' relVar' insVar' insQVar' recordType' = do
   let tableVar = varName tableVar'
-  tableDs <- simpleValD tableVar [t| Table $recordType |]
+  tableDs <- simpleValD tableVar [t| Table $recordType' |]
              [| derivedTable |]
   let relVar   = varName relVar'
-  relDs   <- simpleValD relVar   [t| Relation () $recordType |]
+  relDs   <- simpleValD relVar   [t| Relation () $recordType' |]
              [| derivedRelation |]
   let insVar   = varName insVar'
-  insDs   <- simpleValD insVar   [t| Insert $recordType |]
+  insDs   <- simpleValD insVar   [t| Insert $recordType' |]
              [| derivedInsert id' |]
   let insQVar  = varName insQVar'
-  insQDs  <- simpleValD insQVar  [t| forall p . Relation p $recordType -> InsertQuery p |]
+  insQDs  <- simpleValD insQVar  [t| forall p . Relation p $recordType' -> InsertQuery p |]
              [| derivedInsertQuery id' |]
   return $ concat [tableDs, relDs, insDs, insQDs]
 
@@ -227,9 +246,9 @@ defineTableTypes :: VarName  -- ^ Table declaration variable name
                  -> String   -- ^ Table name in SQL ex. FOO_SCHEMA.table0
                  -> [String] -- ^ Column names
                  -> Q [Dec]  -- ^ Table and Relation declaration
-defineTableTypes tableVar' relVar' insVar' insQVar' recordType table columns = do
-  iDs <- defineTableDerivableInstance recordType table columns
-  dDs <- defineTableDerivations tableVar' relVar' insVar' insQVar' recordType
+defineTableTypes tableVar' relVar' insVar' insQVar' recordType' table columns = do
+  iDs <- defineTableDerivableInstance recordType' table columns
+  dDs <- defineTableDerivations tableVar' relVar' insVar' insQVar' recordType'
   return $ iDs ++ dDs
 
 tableSQL :: Bool -> String -> String -> String
@@ -272,14 +291,42 @@ defineProductConstructorInstance recTypeQ recData colTypes =
         productConstructor = $(recData)
     |]
 
--- | Make template for record 'ProductConstructor' instance using default naming rule.
-defineProductConstructorInstanceDefault :: String -> String -> [TypeQ] -> Q [Dec]
-defineProductConstructorInstanceDefault schema table colTypes = do
-  let typeName = recordTypeNameDefault schema table
+-- | Make template for record 'ProductConstructor' instance using specified naming rule.
+defineProductConstructorInstanceWithConfig :: Config -> String -> String -> [TypeQ] -> Q [Dec]
+defineProductConstructorInstanceWithConfig config schema table colTypes = do
+  let typeName = recordTypeName (recordConfig $ nameConfig config) schema table
   defineProductConstructorInstance
     (toTypeCon typeName)
     (toDataCon typeName)
     colTypes
+
+-- | Make template for record 'ProductConstructor' instance using default naming rule.
+defineProductConstructorInstanceDefault :: String -> String -> [TypeQ] -> Q [Dec]
+defineProductConstructorInstanceDefault =
+  defineProductConstructorInstanceWithConfig defaultConfig
+
+-- | Make templates about table and column metadatas using specified naming rule.
+defineTableTypesWithConfig :: Config                           -- ^ Configuration to generate query with
+                           -> String                           -- ^ Schema name
+                           -> String                           -- ^ Table name
+                           -> [((String, TypeQ), Maybe TypeQ)] -- ^ Column names and types and constraint type
+                           -> Q [Dec]                          -- ^ Result declarations
+defineTableTypesWithConfig config schema table columns = do
+  let recConfig = recordConfig $ nameConfig config
+  tableDs <- defineTableTypes
+             (tableVarNameDefault table)
+             (relationVarNameDefault table)
+             (table `varNameWithPrefix` "insert")
+             (table `varNameWithPrefix` "insertQuery")
+             (recordType recConfig schema table)
+             (tableSQL (normalizedTableName config) schema table)
+             (map (fst . fst) columns)
+  colsDs <- defineColumnsDefault (recordTypeName recConfig schema table) columns
+  return $ tableDs ++ colsDs
+
+defaultRecordConfig :: Config -> Config
+defaultRecordConfig config =
+  config { nameConfig = (nameConfig config) { recordConfig = Record.defaultNameConfig } }
 
 -- | Make templates about table and column metadatas using default naming rule.
 defineTableTypesDefault :: Config                           -- ^ Configuration to generate query with
@@ -287,17 +334,21 @@ defineTableTypesDefault :: Config                           -- ^ Configuration t
                         -> String                           -- ^ Table name
                         -> [((String, TypeQ), Maybe TypeQ)] -- ^ Column names and types and constraint type
                         -> Q [Dec]                          -- ^ Result declarations
-defineTableTypesDefault config schema table columns = do
-  tableDs <- defineTableTypes
-             (tableVarNameDefault table)
-             (relationVarNameDefault table)
-             (table `varNameWithPrefix` "insert")
-             (table `varNameWithPrefix` "insertQuery")
-             (recordTypeDefault schema table)
-             (tableSQL (normalizedTableName config) schema table)
-             (map (fst . fst) columns)
-  colsDs <- defineColumnsDefault (recordTypeNameDefault schema table) columns
-  return $ tableDs ++ colsDs
+defineTableTypesDefault config =
+  defineTableTypesWithConfig $ defaultRecordConfig config
+
+-- | Make templates about table, column and haskell record using specified naming rule.
+defineTableTypesAndRecordWithConfig :: Config            -- ^ Configuration to generate query with
+                                    -> String            -- ^ Schema name
+                                    -> String            -- ^ Table name
+                                    -> [(String, TypeQ)] -- ^ Column names and types
+                                    -> [Name]            -- ^ Record derivings
+                                    -> Q [Dec]           -- ^ Result declarations
+defineTableTypesAndRecordWithConfig config schema table columns derives = do
+  recD    <- defineRecordTypeWithConfig (recordConfig $ nameConfig config) schema table columns derives
+  rconD   <- defineProductConstructorInstanceWithConfig config schema table [t | (_, t) <- columns]
+  tableDs <- defineTableTypesWithConfig config schema table [(c, Nothing) | c <- columns ]
+  return $ recD ++ rconD ++ tableDs
 
 -- | Make templates about table, column and haskell record using default naming rule.
 defineTableTypesAndRecordDefault :: Config            -- ^ Configuration to generate query with
@@ -306,11 +357,8 @@ defineTableTypesAndRecordDefault :: Config            -- ^ Configuration to gene
                                  -> [(String, TypeQ)] -- ^ Column names and types
                                  -> [Name]            -- ^ Record derivings
                                  -> Q [Dec]           -- ^ Result declarations
-defineTableTypesAndRecordDefault config schema table columns derives = do
-  recD    <- defineRecordTypeDefault schema table columns derives
-  rconD   <- defineProductConstructorInstanceDefault schema table [t | (_, t) <- columns]
-  tableDs <- defineTableTypesDefault config schema table [(c, Nothing) | c <- columns ]
-  return $ recD ++ rconD ++ tableDs
+defineTableTypesAndRecordDefault config =
+  defineTableTypesAndRecordWithConfig $ defaultRecordConfig config
 
 -- | Template of derived primary 'Query'.
 definePrimaryQuery :: VarName -- ^ Variable name of result declaration
@@ -364,22 +412,50 @@ defineSqlsWithPrimaryKeyDefault table  =
     upd = table `varNameWithPrefix` "update"
 
 -- | All templates about primary key.
-defineWithPrimaryKeyDefault :: String  -- ^ Schema name
-                            -> String  -- ^ Table name string
-                            -> TypeQ   -- ^ Type of primary key
-                            -> [Int]   -- ^ Indexes specifies primary key
-                            -> Q [Dec] -- ^ Result declarations
-defineWithPrimaryKeyDefault schema table keyType ixs = do
-  instD <- defineHasPrimaryKeyInstanceDefault schema table keyType ixs
-  let recType  = recordTypeDefault schema table
+defineWithPrimaryKeyWithConfig :: Config
+                               -> String  -- ^ Schema name
+                               -> String  -- ^ Table name string
+                               -> TypeQ   -- ^ Type of primary key
+                               -> [Int]   -- ^ Indexes specifies primary key
+                               -> Q [Dec] -- ^ Result declarations
+defineWithPrimaryKeyWithConfig config schema table keyType ixs = do
+  instD <- defineHasPrimaryKeyInstanceWithConfig config schema table keyType ixs
+  let recType  = recordType (recordConfig $ nameConfig config) schema table
       tableE   = tableVarExpDefault table
       relE     = relationVarExpDefault table
   sqlsD <- defineSqlsWithPrimaryKeyDefault table keyType recType relE tableE
   return $ instD ++ sqlsD
 
+-- | All templates about primary key.
+defineWithPrimaryKeyDefault :: String  -- ^ Schema name
+                            -> String  -- ^ Table name string
+                            -> TypeQ   -- ^ Type of primary key
+                            -> [Int]   -- ^ Indexes specifies primary key
+                            -> Q [Dec] -- ^ Result declarations
+defineWithPrimaryKeyDefault = defineWithPrimaryKeyWithConfig defaultConfig
+
 -- | All templates about not-null key.
-defineWithNotNullKeyDefault :: String -> String -> Int -> Q [Dec]
-defineWithNotNullKeyDefault =  defineHasNotNullKeyInstanceDefault
+defineWithNotNullKeyWithConfig :: Config -> String -> String -> Int -> Q [Dec]
+defineWithNotNullKeyWithConfig = defineHasNotNullKeyInstanceWithConfig
+
+-- | Generate all templtes about table using specified naming rule.
+defineTableWithConfig :: Config            -- ^ Configuration to generate query with
+                      -> String            -- ^ Schema name string of Database
+                      -> String            -- ^ Table name string of Database
+                      -> [(String, TypeQ)] -- ^ Column names and types
+                      -> [Name]            -- ^ derivings for Record type
+                      -> [Int]             -- ^ Primary key index
+                      -> Maybe Int         -- ^ Not null key index
+                      -> Q [Dec]           -- ^ Result declarations
+defineTableWithConfig config schema table columns derives primaryIxs mayNotNullIdx = do
+  tblD  <- defineTableTypesAndRecordWithConfig config schema table columns derives
+  let pairT x y = appT (appT (tupleT 2) x) y
+      keyType   = foldl1' pairT . map (snd . (columns !!)) $ primaryIxs
+  primD <- case primaryIxs of
+    []  -> return []
+    ixs -> defineWithPrimaryKeyWithConfig config schema table keyType ixs
+  nnD   <- maybeD (\i -> defineWithNotNullKeyWithConfig config schema table i) mayNotNullIdx
+  return $ tblD ++ primD ++ nnD
 
 -- | Generate all templtes about table using default naming rule.
 defineTableDefault :: Config            -- ^ Configuration to generate query with
@@ -390,15 +466,7 @@ defineTableDefault :: Config            -- ^ Configuration to generate query wit
                    -> [Int]             -- ^ Primary key index
                    -> Maybe Int         -- ^ Not null key index
                    -> Q [Dec]           -- ^ Result declarations
-defineTableDefault config schema table columns derives primaryIxs mayNotNullIdx = do
-  tblD  <- defineTableTypesAndRecordDefault config schema table columns derives
-  let pairT x y = appT (appT (tupleT 2) x) y
-      keyType   = foldl1' pairT . map (snd . (columns !!)) $ primaryIxs
-  primD <- case primaryIxs of
-    []  -> return []
-    ixs -> defineWithPrimaryKeyDefault schema table keyType ixs
-  nnD   <- maybeD (\i -> defineWithNotNullKeyDefault schema table i) mayNotNullIdx
-  return $ tblD ++ primD ++ nnD
+defineTableDefault config = defineTableWithConfig $ defaultRecordConfig config
 
 
 -- | Unsafely inlining SQL string 'Query' in compile type.
@@ -439,7 +507,7 @@ inlineQuery relVar rel config sufs qns = do
 -- | Generate all templates against defined record like type constructor
 --   other than depending on sql-value type.
 makeRelationalRecordDefault :: Name    -- ^ Type constructor name
-                             -> Q [Dec] -- ^ Result declaration
+                            -> Q [Dec] -- ^ Result declaration
 makeRelationalRecordDefault recTypeName = do
   let recTypeConName = ConName recTypeName
   ((tyCon, dataCon), (mayNs, cts)) <- Record.reifyRecordType recTypeName
