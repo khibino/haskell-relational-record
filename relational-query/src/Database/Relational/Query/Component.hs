@@ -17,7 +17,12 @@ module Database.Relational.Query.Component
          ColumnSQL, columnSQL, columnSQL', showsColumnSQL,
 
          -- * Configuration type for query
-         Config (productUnitSupport, chunksInsertSize, normalizedTableName, verboseAsCompilerWarning),
+         NameConfig (..),
+         Config ( productUnitSupport
+                , chunksInsertSize
+                , normalizedTableName
+                , verboseAsCompilerWarning
+                , nameConfig),
          defaultConfig,
          ProductUnitSupport (..), Duplication (..),
 
@@ -54,6 +59,8 @@ import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringS
 import Language.SQL.Keyword (Keyword(..), (|*|), (.=.))
 
 import qualified Language.SQL.Keyword as SQL
+import Language.Haskell.TH.Name.CamelCase (VarName, varCamelcaseName)
+import qualified Database.Record.TH as RecordTH
 
 
 -- | Simple wrap type
@@ -84,6 +91,15 @@ showsColumnSQL (ColumnSQL c) = c
 instance Show ColumnSQL where
   show = stringFromColumnSQL
 
+-- | 'NameConfig' type to customize names of expanded templates.
+data NameConfig =
+  NameConfig
+  { recordConfig       ::  RecordTH.NameConfig
+  , relationVarName    ::  String -> String -> VarName
+  }
+
+instance Show NameConfig where
+  show = const "<NameConfig>"
 
 -- | Configuration type.
 data Config =
@@ -92,6 +108,7 @@ data Config =
   , chunksInsertSize          ::  Int
   , normalizedTableName       ::  Bool
   , verboseAsCompilerWarning  ::  Bool
+  , nameConfig                ::  NameConfig
   } deriving Show
 
 -- | Default configuration.
@@ -101,6 +118,9 @@ defaultConfig =
          , chunksInsertSize          =  256
          , normalizedTableName       =  True
          , verboseAsCompilerWarning  =  False
+         , nameConfig                =  NameConfig { recordConfig     =  RecordTH.defaultNameConfig
+                                                   , relationVarName  =  const varCamelcaseName
+                                                   }
          }
 
 -- | Unit of product is supported or not.
