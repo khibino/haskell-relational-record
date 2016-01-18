@@ -276,14 +276,11 @@ tableVarExpDefault :: String -- ^ Table name string
                    -> ExpQ   -- ^ Result var Exp
 tableVarExpDefault =  toVarExp . tableVarNameDefault
 
-relationVarNameDefault :: String -> String -> VarName
-relationVarNameDefault = const varCamelcaseName
-
 -- | Make 'Relation' variable expression template from table name using default naming rule.
 relationVarExpDefault :: String -- ^ Schema name string
                       -> String -- ^ Table name string
                       -> ExpQ   -- ^ Result var Exp
-relationVarExpDefault scm = toVarExp . relationVarNameDefault scm
+relationVarExpDefault scm = toVarExp . relationVarName (nameConfig defaultConfig) scm
 
 -- | Make template for 'ProductConstructor' instance.
 defineProductConstructorInstance :: TypeQ -> ExpQ -> [TypeQ] -> Q [Dec]
@@ -313,10 +310,11 @@ defineTableTypesWithConfig :: Config                           -- ^ Configuratio
                            -> [((String, TypeQ), Maybe TypeQ)] -- ^ Column names and types and constraint type
                            -> Q [Dec]                          -- ^ Result declarations
 defineTableTypesWithConfig config schema table columns = do
-  let recConfig = recordConfig $ nameConfig config
+  let nmconfig = nameConfig config
+      recConfig = recordConfig nmconfig
   tableDs <- defineTableTypes
              (tableVarNameDefault table)
-             (relationVarNameDefault schema table)
+             (relationVarName nmconfig schema table)
              (table `varNameWithPrefix` "insert")
              (table `varNameWithPrefix` "insertQuery")
              (recordType recConfig schema table)
