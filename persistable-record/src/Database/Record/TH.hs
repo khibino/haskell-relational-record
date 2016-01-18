@@ -98,7 +98,7 @@ import Database.Record.Persistable (unsafePersistableRecordWidth, runPersistable
 import qualified Database.Record.Persistable as Persistable
 
 
--- | 'RecordConfig' type to customize record template.
+-- | 'NameConfig' type to customize names of expanded record templates.
 data NameConfig =
   NameConfig
   { recordTypeName  ::  String -> String -> ConName
@@ -111,7 +111,7 @@ data NameConfig =
 instance Show NameConfig where
   show = const "<nameConfig>"
 
--- | Default implementation of 'RecordConfig' type
+-- | Default implementation of 'NameConfig' type
 defaultNameConfig :: NameConfig
 defaultNameConfig =
   NameConfig
