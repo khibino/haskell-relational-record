@@ -298,11 +298,6 @@ defineProductConstructorInstanceWithConfig config schema table colTypes = do
     (toDataCon typeName)
     colTypes
 
--- | Make template for record 'ProductConstructor' instance using default naming rule.
-defineProductConstructorInstanceDefault :: String -> String -> [TypeQ] -> Q [Dec]
-defineProductConstructorInstanceDefault =
-  defineProductConstructorInstanceWithConfig defaultConfig
-
 -- | Make templates about table and column metadatas using specified naming rule.
 defineTableTypesWithConfig :: Config                           -- ^ Configuration to generate query with
                            -> String                           -- ^ Schema name
@@ -424,14 +419,6 @@ defineWithPrimaryKeyWithConfig config schema table keyType ixs = do
       relE     = relationVarExpDefault schema table
   sqlsD <- defineSqlsWithPrimaryKeyDefault table keyType recType relE tableE
   return $ instD ++ sqlsD
-
--- | All templates about primary key.
-defineWithPrimaryKeyDefault :: String  -- ^ Schema name
-                            -> String  -- ^ Table name string
-                            -> TypeQ   -- ^ Type of primary key
-                            -> [Int]   -- ^ Indexes specifies primary key
-                            -> Q [Dec] -- ^ Result declarations
-defineWithPrimaryKeyDefault = defineWithPrimaryKeyWithConfig defaultConfig
 
 -- | All templates about not-null key.
 defineWithNotNullKeyWithConfig :: Config -> String -> String -> Int -> Q [Dec]
