@@ -107,6 +107,10 @@ data NameConfig =
     -- ^ Make column variable symbol name from table name and column name in SQL
   }
 
+-- | Dummy show instance. Handy to define show instance recursively.
+instance Show NameConfig where
+  show = const "<nameConfig>"
+
 -- | Default implementation of 'RecordConfig' type
 defaultNameConfig :: NameConfig
 defaultNameConfig =
