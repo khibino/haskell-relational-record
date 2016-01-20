@@ -330,18 +330,13 @@ defineTableTypesWithConfig config schema table columns = do
   colsDs <- defineColumnsDefault (recordTypeName recConfig schema table) columns
   return $ tableDs ++ colsDs
 
-defaultRecordConfig :: Config -> Config
-defaultRecordConfig config =
-  config { nameConfig = (nameConfig config) { recordConfig = Record.defaultNameConfig } }
-
 -- | Make templates about table and column metadatas using default naming rule.
 defineTableTypesDefault :: Config                           -- ^ Configuration to generate query with
                         -> String                           -- ^ Schema name
                         -> String                           -- ^ Table name
                         -> [((String, TypeQ), Maybe TypeQ)] -- ^ Column names and types and constraint type
                         -> Q [Dec]                          -- ^ Result declarations
-defineTableTypesDefault config =
-  defineTableTypesWithConfig $ defaultRecordConfig config
+defineTableTypesDefault = defineTableTypesWithConfig
 
 -- | Make templates about table, column and haskell record using specified naming rule.
 defineTableTypesAndRecordWithConfig :: Config            -- ^ Configuration to generate query with
@@ -363,8 +358,7 @@ defineTableTypesAndRecordDefault :: Config            -- ^ Configuration to gene
                                  -> [(String, TypeQ)] -- ^ Column names and types
                                  -> [Name]            -- ^ Record derivings
                                  -> Q [Dec]           -- ^ Result declarations
-defineTableTypesAndRecordDefault config =
-  defineTableTypesAndRecordWithConfig $ defaultRecordConfig config
+defineTableTypesAndRecordDefault = defineTableTypesAndRecordWithConfig
 
 -- | Template of derived primary 'Query'.
 definePrimaryQuery :: VarName -- ^ Variable name of result declaration
@@ -464,7 +458,7 @@ defineTableDefault :: Config            -- ^ Configuration to generate query wit
                    -> [Int]             -- ^ Primary key index
                    -> Maybe Int         -- ^ Not null key index
                    -> Q [Dec]           -- ^ Result declarations
-defineTableDefault config = defineTableWithConfig $ defaultRecordConfig config
+defineTableDefault = defineTableWithConfig
 
 
 -- | Unsafely inlining SQL string 'Query' in compile type.
