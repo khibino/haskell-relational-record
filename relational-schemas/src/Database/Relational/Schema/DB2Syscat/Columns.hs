@@ -15,12 +15,12 @@ module Database.Relational.Schema.DB2Syscat.Columns where
 
 import Data.Int (Int16, Int32, Int64)
 
-import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
+import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.DB2Syscat.Config (config)
 
 
-$(defineTableTypesAndRecordDefault config
+$(defineTableTypesAndRecord config
   "SYSCAT" "columns"
   [
     -- column                         schema    type               length         NULL

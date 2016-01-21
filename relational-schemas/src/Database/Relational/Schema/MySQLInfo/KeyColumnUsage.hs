@@ -4,12 +4,12 @@
 module Database.Relational.Schema.MySQLInfo.KeyColumnUsage where
 
 import Data.Int                     (Int16)
-import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
+import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.MySQLInfo.Config (config)
 
 
-$(defineTableTypesAndRecordDefault config
+$(defineTableTypesAndRecord config
     "INFORMATION_SCHEMA" "key_column_usage"
     [ ("constraint_name"    , [t| String |])
     , ("table_schema"       , [t| String |])

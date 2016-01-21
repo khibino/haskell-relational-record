@@ -4,12 +4,12 @@
 module Database.Relational.Schema.SQLite3Syscat.IndexList where
 
 import Data.Int (Int64)
-import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
+import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.SQLite3Syscat.Config (config)
 
 
-$(defineTableTypesAndRecordDefault config
+$(defineTableTypesAndRecord config
   "pragma" "index_list"
   [
 -- pragma "main.index_list"

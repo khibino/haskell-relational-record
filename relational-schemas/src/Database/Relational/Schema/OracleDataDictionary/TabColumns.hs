@@ -7,12 +7,12 @@ import Data.Int (Int32)
 -- import Data.ByteString (ByteString)
 -- import Data.Time.Calendar (Day)
 
-import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
+import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.OracleDataDictionary.Config (config)
 
 
-$(defineTableTypesAndRecordDefault config
+$(defineTableTypesAndRecord config
     "SYS" "dba_tab_columns"
     -- Column                                    NULL?    Datatype
     -- ----------------------------------------- -------- ----------------------------

@@ -13,12 +13,12 @@ module Database.Relational.Schema.PgCatalog.PgNamespace where
 
 import Data.Int (Int32)
 
-import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
+import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.PgCatalog.Config (config)
 
 
-$(defineTableTypesAndRecordDefault config
+$(defineTableTypesAndRecord config
   "PG_CATALOG" "pg_namespace"
   [("oid"    , [t| Int32 |]),
  -- nspname  | name      | not null

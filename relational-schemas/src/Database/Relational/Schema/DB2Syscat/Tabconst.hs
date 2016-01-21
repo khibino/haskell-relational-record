@@ -15,13 +15,13 @@
 -- Minimum implementation required to generate table constraints.
 module Database.Relational.Schema.DB2Syscat.Tabconst where
 
-import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
+import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.DB2Syscat.Config (config)
 
 
 -- Not all column is mapped. Minimum implementation.
-$(defineTableTypesAndRecordDefault config
+$(defineTableTypesAndRecord config
   "SYSCAT" "tabconst"
   [("constname", [t| String |]),
    ("tabschema", [t| String |]),

@@ -4,12 +4,12 @@
 module Database.Relational.Schema.MySQLInfo.Columns where
 
 import Data.Int                     (Int16)
-import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
+import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.MySQLInfo.Config (config)
 
 
-$(defineTableTypesAndRecordDefault config
+$(defineTableTypesAndRecord config
     "INFORMATION_SCHEMA" "columns"
     [ ("table_schema",      [t|String|])
     , ("table_name",        [t|String|])

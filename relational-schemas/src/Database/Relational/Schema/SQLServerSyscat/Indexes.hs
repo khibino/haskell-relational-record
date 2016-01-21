@@ -5,12 +5,12 @@ module Database.Relational.Schema.SQLServerSyscat.Indexes where
 
 --import Data.ByteString (ByteString)
 import Data.Int (Int32)
-import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
+import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.SQLServerSyscat.Config (config)
 
 
-$(defineTableTypesAndRecordDefault config
+$(defineTableTypesAndRecord config
   "sys" "indexes"
   [
 -- View "sys.indexes"

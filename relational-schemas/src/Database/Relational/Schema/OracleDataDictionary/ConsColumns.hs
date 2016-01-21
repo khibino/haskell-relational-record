@@ -5,12 +5,12 @@ module Database.Relational.Schema.OracleDataDictionary.ConsColumns where
 
 import Data.Int (Int32)
 
-import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
+import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.OracleDataDictionary.Config (config)
 
 
-$(defineTableTypesAndRecordDefault config
+$(defineTableTypesAndRecord config
     "SYS" "dba_cons_columns"
     -- Column                                    NULL?    Datatype
     -- ----------------------------------------- -------- ----------------------------

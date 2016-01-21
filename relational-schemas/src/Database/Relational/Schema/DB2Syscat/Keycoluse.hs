@@ -16,13 +16,13 @@
 module Database.Relational.Schema.DB2Syscat.Keycoluse where
 
 import Data.Int (Int16)
-import Database.Relational.Query.TH (defineTableTypesAndRecordDefault)
+import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.DB2Syscat.Config (config)
 
 
 -- Not all column is mapped. Minimum implementation.
-$(defineTableTypesAndRecordDefault config
+$(defineTableTypesAndRecord config
   "SYSCAT" "keycoluse"
   [("constname", [t| String |]),
    ("colname"  , [t| String |]),
