@@ -69,7 +69,7 @@ defineTableDefault' :: Config            -- ^ Configuration to generate query wi
                     -> [Name]            -- ^ Derivings
                     -> Q [Dec]           -- ^ Result declaration
 defineTableDefault' config schema table columns derives = do
-  modelD <- Relational.defineTableTypesAndRecordDefault config schema table columns derives
+  modelD <- Relational.defineTableTypesAndRecord config schema table columns derives
   sqlvD  <- makeRecordPersistableWithSqlTypeDefault [t| SqlValue |] schema table $ length columns
   return $ modelD ++ sqlvD
 
@@ -83,7 +83,7 @@ defineTableDefault :: Config            -- ^ Configuration to generate query wit
                    -> Maybe Int         -- ^ Index of not-null key
                    -> Q [Dec]           -- ^ Result declaration
 defineTableDefault config schema table columns derives primary notNull = do
-  modelD <- Relational.defineTableDefault config schema table columns derives primary notNull
+  modelD <- Relational.defineTable config schema table columns derives primary notNull
   sqlvD  <- makeRecordPersistableWithSqlTypeDefault [t| SqlValue |] schema table $ length columns
   return $ modelD ++ sqlvD
 
