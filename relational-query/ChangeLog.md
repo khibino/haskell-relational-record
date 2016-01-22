@@ -1,5 +1,12 @@
 <!-- -*- Markdown -*- -->
 
+## 0.8.0.0
+
+- Drop unsafe Expr type.
+- Drop redundant type synonyms around DELETE and UPDATE.
+- Add Register monad to add build-able INSERT statement
+- Configurable relation template names.
+
 ## 0.7.1.0
 
 - Deprecate redundant type synonyms.
