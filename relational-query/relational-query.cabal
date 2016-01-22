@@ -1,5 +1,5 @@
 name:                relational-query
-version:             0.8.0.0
+version:             0.8.0.1
 synopsis:            Typeful, Modular, Relational, algebraic query engine
 description:         This package contiains typeful relation structure and
                      relational-algebraic query building DSL which can
@@ -78,7 +78,7 @@ library
                        , template-haskell
                        , sql-words >=0.1.1
                        , names-th
-                       , persistable-record >= 0.2
+                       , persistable-record >= 0.3
 
   hs-source-dirs:      src
   ghc-options:         -Wall

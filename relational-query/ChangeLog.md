@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.8.0.1
+
+- Fix build-depends.
+
 ## 0.8.0.0
 
 - Drop unsafe Expr type.
