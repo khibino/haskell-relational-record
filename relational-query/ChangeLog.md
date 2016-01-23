@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.8.0.2
+
+- Update documentation.
+
 ## 0.8.0.1
 
 - Fix build-depends.
