@@ -41,9 +41,10 @@ class (Functor m, Monad m, MonadQualify ConfigureQuery m) => MonadQuery m where
   -- | Add restriction to last join.
   restrictJoin :: Projection Flat (Maybe Bool) -- ^ 'Projection' which represent restriction
                -> m ()                         -- ^ Restricted query context
+  -- | Join sub-query with place-holder parameter 'p'. query result is not 'Maybe'.
   query' :: Relation p r
          -> m (PlaceHolders p, Projection Flat r)
-
+  -- | Join sub-query with place-holder parameter 'p'. Query result is 'Maybe'.
   queryMaybe' :: Relation p r
               -> m (PlaceHolders p, Projection Flat (Maybe r))
 
