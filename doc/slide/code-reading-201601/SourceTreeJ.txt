@@ -1,0 +1,637 @@
+% Haskell Relational Record, 機能と構成
+% 2016-01-31
+% Kei Hibino
+
+
+DSL デザイン/機能
+=====
+
+クエリの結合
+-----
+
+$$\{ (x, y) | x \in X, y \in Y, \pi_1(x) = \pi_2(y) \}$$
+
+~~~~~ {.haskell}
+-- Comprehension
+[ (x, y) | x <- xs, y <- ys, fst x == snd y ]
+
+-- List Monad
+do { x <- xs; y <- ys; fst x == snd y; return (x, y) }
+
+~~~~~
+
+結合クエリを List内包表記あるいは List Monad のように組み立てる
+
+~~~~~ {.haskell}
+personAndBirthday :: Relation () (Person, Birthday)
+personAndBirthday =  relation $ do
+  p <- query person    -- Join product accumulated
+  b <- query birthday
+  on $ p ! Person.name' .=. b ! Birthday.name'
+  return $ p >< b
+~~~~~
+
+組み上がった結合式/Built joined query
+-----
+
+~~~~~ {.haskell}
+personAndBirthday :: Relation () (Person, Birthday)
+personAndBirthday =  relation $ do
+  p <- query person
+  b <- query birthday  -- 結合積の集積
+                       -- Join product accumulated
+  on $ p ! Person.name' .=. b ! Birthday.name'
+  return $ p >< b
+~~~~~
+
+~~~~~ {.sql}
+SELECT ALL T0.name AS f0, T0.age AS f1, T0.family AS f2,
+           T1.name AS f3, T1.day AS f4
+      FROM EXAMPLE.person T0 INNER JOIN EXAMPLE.birthday T1
+        ON (T0.name = T1.name)
+~~~~~
+
+結合/Join
+-----
+
+~~~~~ {.haskell}
+query :: (MonadQualify ConfigureQuery m, MonadQuery m)
+      => Relation () r
+      -> m (Projection Flat r)
+
+-- Used for outer join
+queryMaybe :: (MonadQualify ConfigureQuery m, MonadQuery m)
+           => Relation () r
+           -> m (Projection Flat (Maybe r))
+~~~~~
+
+`query`, `queryMaybe` は結合したテーブル式の `Projection` を返す
+
+~~~~~ {.sql}
+SELECT .. FROM ...
+            -- Accumulating uniquely qualified
+            -- ( like 'as T0', 'as T1' ... )
+            -- table forms of SQL FROM clause
+~~~~~
+
+
+例 - 外部左結合/Left outer join
+-----
+
+~~~~~ {.haskell}
+personAndBirthdayL :: Relation () (Person, Maybe Birthday)
+personAndBirthdayL =  relation $ do
+  p <- query person
+  b <- queryMaybe birthday
+  on $ just (p ! Person.name') .=. b ?! Birthday.name'
+  return $ p >< b
+~~~~~
+
+~~~~~ {.sql}
+SELECT ALL T0.name AS f0, T0.age AS f1, T0.family AS f2,
+           T1.name AS f3, T1.day AS f4
+      FROM EXAMPLE.person T0 LEFT JOIN EXAMPLE.birthday T1
+        ON (T0.name = T1.name)
+~~~~~
+
+Aggregation
+-----
+
+~~~~~ {.haskell}
+groupBy :: MonadAggregate m
+        => Projection Flat r
+        -- ^ Projection to add into group by
+        -> m (Projection Aggregated r)
+        -- ^ Result context and aggregated projection
+
+count :: Projection Flat a -> Projection Aggregated Int64
+max'  :: Ord a
+      => Projection Flat a -> Projection Aggregated (Maybe a)
+~~~~~
+
+`groupBy` は `MonadAggregate` の monad 制約
+(`MonadQuery` より制限が強い)の下でのみ利用できる。
+
+`groupBy` は集約した(Aggregated)文脈の型を持つ `Projection` の値を返す。
+
+~~~~~ {.sql}
+SELECT .. GROUP BY ...
+                -- Accumulating keys
+                -- of SQL GROUP BY clause
+~~~~~
+
+
+例 - 集約/Aggregation
+-----
+
+~~~~~ {.haskell}
+agesOfFamilies :: Relation () (String, Maybe Int32)
+agesOfFamilies =  aggregateRelation $ do
+  p <- query person
+  gFam <- groupBy $ p ! Person.family'
+          -- Specify grouping key
+  return $ gFam >< sum' (p ! Person.age')
+          -- Aggregated results
+~~~~~
+
+~~~~~ {.sql}
+SELECT ALL T0.family AS f0, SUM(T0.age) AS f1
+      FROM EXAMPLE.person T0
+  GROUP BY T0.family
+~~~~~
+
+絞り込み/Restrict
+-----
+
+~~~~~ {.haskell}
+restrict :: MonadRestrict c m
+         => Projection c (Maybe Bool)
+         -> m ()
+
+wheres :: MonadRestrict Flat m
+       => Projection Flat (Maybe Bool)
+       -> m ()
+~~~~~
+
+WHERE 節に絞り込み条件を加える
+
+~~~~~ {.sql}
+SELECT .. WHERE x AND y AND ...
+             -- Accumulating AND predicates
+             -- of SQL WHERE clause
+~~~~~
+
+
+絞り込み/Restrict
+-----
+
+~~~~~ {.haskell}
+restrict :: MonadRestrict c m
+         => Projection c (Maybe Bool)
+         -> m ()
+
+having :: MonadRestrict Aggregated m
+       => Projection Aggregated (Maybe Bool)
+       -> m ()
+~~~~~
+
+HAVING 節に絞り込み条件を加える。
+集約した(Aggregated)文脈の型を持つ `Projection` のみが利用できる
+
+~~~~~ {.sql}
+SELECT .. HAVING x AND y AND ...
+              -- Accumulating AND predicates
+              -- of SQL HAVING clause
+~~~~~
+
+
+例 - 絞り込み/Restriction
+-----
+
+~~~~~ {.haskell}
+sameBirthdayHeisei' :: Relation () (Day, Int64)
+sameBirthdayHeisei' =  aggregateRelation $ do
+  p <- query person
+  b <- query birthday
+  on $ p ! Person.name' .=. b ! Birthday.name'
+  wheres $
+    b ! Birthday.day' .>=. value (fromGregorian 1989 1 8)
+  gbd <- groupBy $ b ! Birthday.day'
+  having $ count (p ! Person.name') .>. value (1 :: Int64)
+  return $ gbd >< count (p ! Person.name')
+~~~~~
+
+平成生まれで誕生日が同じ人を数える
+
+<!--
+~~~~~ {.sql}
+SELECT ALL T1.day AS f0, COUNT(T0.name) AS f1
+      FROM EXAMPLE.person T0 INNER JOIN EXAMPLE.birthday T1
+        ON (T0.name = T1.name)
+     WHERE (T1.day >= DATE '1989-01-08')
+  GROUP BY T1.day
+    HAVING (COUNT(T0.name) > 1)
+~~~~~
+ -->
+
+絞り込み/Restriction
+-----
+
+~~~~~ {.sql}
+SELECT ALL T1.day AS f0, COUNT(T0.name) AS f1
+      FROM EXAMPLE.person T0 INNER JOIN EXAMPLE.birthday T1
+        ON (T0.name = T1.name)
+     WHERE (T1.day >= DATE '1989-01-08')
+  GROUP BY T1.day
+    HAVING (COUNT(T0.name) > 1)
+~~~~~
+
+例 - 絞り込み/Restriction - let
+-----
+
+~~~~~ {.haskell}
+sameBirthdayHeisei :: Relation () (Day, Int64)
+sameBirthdayHeisei =  aggregateRelation $ do
+  p <- query person
+  b <- query birthday
+  on $ p ! Person.name' .=. b ! Birthday.name'
+  let birthDay = b ! Birthday.day'
+  wheres $ birthDay .>=. value (fromGregorian 1989 1 8)
+  gbd <- groupBy birthDay
+  let personCount = count $ p ! Person.name'
+  having $ personCount .>. value 1
+  return $ gbd >< personCount
+~~~~~
+
+Ordering
+-----
+
+~~~~~ {.haskell}
+orderBy :: Monad m
+        => Projection c t
+        -- ^ Ordering terms to add
+        -> Order
+        -- ^ Order direction -- Asc | Desc
+        -> Orderings c m ()
+        -- ^ Result context with ordering
+~~~~~
+
+文脈に合わせた `Projection` の型を持った値のみが利用できる。
+
+~~~~~ {.sql}
+SELECT .. ORDER BY ...
+                -- Accumulating terms of ORDER BY clause
+~~~~~
+
+例 - 順序付け/Ordering
+-----
+
+~~~~~ {.haskell}
+personAndBirthdayO :: Relation () (Person, Birthday)
+personAndBirthdayO =  relation $ do
+  p <- query person
+  b <- query birthday
+  on $ p ! Person.name' .=. b ! Birthday.name'
+  orderBy (b ! Birthday.day') Asc  -- Specify ordering key
+  orderBy (p ! Person.name') Asc
+  return $ p >< b
+~~~~~
+
+orders by birthday and then name:
+
+~~~~~ {.sql}
+SELECT ALL T0.name AS f0, T0.age AS f1, T0.family AS f2,
+           T1.name AS f3, T1.day AS f4
+      FROM EXAMPLE.person T0 INNER JOIN EXAMPLE.birthday T1
+        ON (T0.name = T1.name)
+  ORDER BY T1.day ASC, T0.name ASC
+~~~~~
+
+例 - 順序付け/Ordering
+-----
+
+~~~~~ {.sql}
+SELECT ALL T0.name AS f0, T0.age AS f1, T0.family AS f2,
+           T1.name AS f3, T1.day AS f4
+      FROM EXAMPLE.person T0 INNER JOIN EXAMPLE.birthday T1
+        ON (T0.name = T1.name)
+  ORDER BY T1.day ASC, T0.name ASC
+~~~~~
+
+プレースホルダー/Placeholders
+-----
+
+~~~~~ {.haskell}
+placeholder ::
+  (PersistableWidth t, SqlProjectable p, Monad m) =>
+  (p t -> m a) -> m (PlaceHolders t, a)
+~~~~~
+
+組み立てのモナドの式に placeholder を与える
+
+
+例 - プレースホルダー/Placeholders
+-----
+
+~~~~~ {.haskell}
+specifyPerson :: Relation String (Person, Birthday)
+specifyPerson =  relation' $ do
+  pb <- query personAndBirthday -- Re-use predefined
+  (ph, ()) <- placeholder
+              (\ph' ->
+                wheres $ pb ! fst' ! Person.name' .=. ph')
+  return (ph, pb)
+~~~~~
+
+名前をプレースホルダーで指定する:
+
+~~~~~ {.sql}
+SELECT ALL T2.f0 AS f0, T2.f1 AS f1, T2.f2 AS f2,
+           T2.f3 AS f3, T2.f4 AS f4
+  FROM (SELECT ALL T0.name AS f0, T0.age AS f1, T0.family AS f2,
+	           T1.name AS f3, T1.day AS f4
+              FROM EXAMPLE.person T0 INNER JOIN
+                   EXAMPLE.birthday T1
+                ON (T0.name = T1.name)) T2
+ WHERE (T2.f0 = ?)
+~~~~~
+
+例 - プレースホルダー/Placeholders
+-----
+
+~~~~~ {.sql}
+SELECT ALL T2.f0 AS f0, T2.f1 AS f1, T2.f2 AS f2,
+           T2.f3 AS f3, T2.f4 AS f4
+  FROM (SELECT ALL T0.name AS f0, T0.age AS f1, T0.family AS f2,
+	           T1.name AS f3, T1.day AS f4
+              FROM EXAMPLE.person T0 INNER JOIN
+                   EXAMPLE.birthday T1
+                ON (T0.name = T1.name)) T2
+ WHERE (T2.f0 = ?)
+~~~~~
+
+
+例 - ウィンドウ関数/Window function
+-----
+
+ウィンドウを組み立てる:
+
+Building windows:
+
+~~~~~ {.haskell}
+ageRankOfFamilies :: Relation () ((Int64, String), Int32)
+ageRankOfFamilies =  relation $ do
+  my <- query myTable
+  return $
+    rank `over` do
+      partitionBy $ my ! family'  -- Monad to build window
+      orderBy (my ! age') Desc
+    ><
+    my ! family' >< my ! age'
+~~~~~
+
+~~~~~ {.sql}
+SELECT ALL
+       RANK() OVER (PARTITION BY T0.family
+                    ORDER BY T0.age DESC) AS f0,
+       T0.family AS f1, T0.age AS f2
+  FROM PUBLIC.my_table T0
+~~~~~
+
+例 - ウィンドウ関数/Window function
+-----
+
+~~~~~ {.sql}
+SELECT ALL
+       RANK() OVER (PARTITION BY T0.family
+                    ORDER BY T0.age DESC) AS f0,
+       T0.family AS f1, T0.age AS f2
+  FROM PUBLIC.my_table T0
+~~~~~
+
+Map SQL Values to a Haskell Record
+-----
+
+Mapping to records using Applicative style:
+
+~~~~~ {.haskell}
+(|$|) :: (ProjectableFunctor p, ProductConstructor (a -> b))
+      => (a -> b)
+      -> p a
+      -> p b
+(|*|) :: ProjectableApplicative p
+      => p (a -> b)
+      -> p a
+      -> p b
+~~~~~
+
+Record Mapping - Projections
+-----
+
+Assign record types to an SQL projection:
+
+~~~~~ {.haskell}
+personAndBirthdayT :: Relation () PersonAndBirthday
+personAndBirthdayT =  relation $ do
+  p <- query person
+  b <- query birthday
+  wheres $ p ! Person.name' .=. b ! Birthday.name'
+  -- Build record phantom type
+  return $ PersonAndBirthday |$| p |*| b
+
+(|$|) :: ProductConstructor (a -> b)
+      => (a -> b) -> Projection c a -> Projection c b
+(|*|) :: Projection c (a -> b) -> Projection c a -> Projection c b
+~~~~~
+
+~~~~~ {.sql}
+SELECT ALL T0.name AS f0, T0.age AS f1, T0.address AS f2,
+           T1.name AS f3, T1.day AS f4
+      FROM PUBLIC.person T0 INNER JOIN PUBLIC.birthday T1
+        ON (T0.name = T1.name)
+~~~~~
+
+Record Mapping - Column Selectors
+-----
+
+Column selectors can be mapped to a record:
+
+~~~~~ {.haskell}
+Birthday.day' :: Pi Birthday Day
+
+uncurryPB :: Pi (Person, Birthday) PersonAndBirthday
+uncurryPB =  PersonAndBirthday |$| fst' |*| snd'
+
+(|$|) :: ProductConstructor (a -> b)
+      => (a -> b) -> Pi r a -> Pi r b
+(|*|) :: Pi r (a -> b) -> Pi r a -> Pi r b
+~~~~~
+
+Record Mapping - Placeholders
+-----
+
+Placeholders can be mapped to a record:
+
+~~~~~ {.haskell}
+personAndBirthdayP2 :: Relation Person PersonAndBirthday
+personAndBirthdayP2 =  relation' $ do
+  p <- query person
+  b <- query birthday
+  (ph0, ()) <- placeholder (\ph0' -> on $ p ! Person.name'     .=. ph0')
+  (ph1, ()) <- placeholder (\ph1' -> on $ p ! Person.age'      .=. ph1')
+  (ph2, ()) <- placeholder (\ph2' -> on $ p ! Person.address'  .=. ph2')
+
+  return (Person |$| ph0 |*| ph1 |*| ph2,
+          PersonAndBirthday |$| p |*| b)
+
+(|$|) :: ProductConstructor (a -> b)
+      => (a -> b) -> Placeholders a -> Placeholders b
+(|*|) :: Placeholders (a -> b) -> Placeholders a -> Placeholders b
+~~~~~
+
+Generated SQL:
+
+~~~~~ {.sql}
+SELECT ALL T0.name AS f0, T0.age AS f1, T0.address AS f2,
+           T1.name AS f3, T1.day AS f4
+      FROM PUBLIC.person T0 INNER JOIN PUBLIC.birthday T1
+        ON (((T0.name = ?) AND (T0.age = ?)) AND (T0.address = ?))
+~~~~~
+
+Record Mapping - Placeholders
+-----
+
+Generated SQL:
+
+~~~~~ {.sql}
+SELECT ALL T0.name AS f0, T0.age AS f1, T0.address AS f2,
+           T1.name AS f3, T1.day AS f4
+      FROM PUBLIC.person T0 INNER JOIN PUBLIC.birthday T1
+        ON (((T0.name = ?) AND (T0.age = ?)) AND (T0.address = ?))
+~~~~~
+
+Record Mapping - Record Placeholders
+-----
+
+Record-typed placeholder:
+
+~~~~~ {.haskell}
+placeholder :: (PersistableWidth t, Monad m)
+            => (Projection c t -> m a) -> m (PlaceHolders t, a)
+
+personAndBirthdayP :: Relation Person PersonAndBirthday
+personAndBirthdayP =  relation' $ do
+  p <- query person
+  b <- query birthday
+  (ph, ()) <- placeholder (\ph' -> wheres $ p .=. ph')
+  return $ (ph, PersonAndBirthday |$| p |*| b)
+~~~~~
+row value of Placeholders:
+
+~~~~~ {.sql}
+SELECT ALL T0.name AS f0, T0.age AS f1, T0.address AS f2,
+           T1.name AS f3, T1.day AS f4
+      FROM PUBLIC.person T0 INNER JOIN PUBLIC.birthday T1
+        ON ((T0.name, T0.age, T0.address) = (?, ?, ?))
+~~~~~
+
+
+HRR の構成
+=====
+
+HRR を構成する Hackage
+-----
+
+* sql-words
+* persistable-record
+* relational-query
+* relational-schema
+* relational-query-HDBC
+
+HRR を構成する Hackage
+-----
+
+* sql-words
+* persistable-record
+* relational-query  x
+* relational-schema
+* relational-query-HDBC
+
+SQLを組み立てるDSLを定義している relational-query package を主に
+
+HRR を構成する Hackage
+-----
+
+* relational-query
+    + SQL を組み立てる DSL 定義
+        - Monadic style による SQL(木) の組立て
+        - SQL の projection と haskell のレコードセレクタの対応付け
+
+HRR を構成する Hackage
+-----
+
+* persistable-record
+    + SQL の値のリストと Haskell のレコード間の変換
+* relational-schema
+    + RDBMS から Table schema を取得するための query の定義
+* sql-words
+    + SQL の単語連結
+* relational-query-HDBC
+    + HDBC を使って実際に SQL を発行
+
+HRR で多用している手法
+-----
+
+* 幽霊型 - Phantom Type
+* Monad Transformer
+* Template Haskell
+
+
+幽霊型 - Phantom Type
+-----
+
+1. 幽霊型を untype する
+2. untype された文脈の Writer へ追加する あるいは State を更新する
+
+WriterT
+-----
+
+* `Monoid w => m (a, w)`
+    + `return`   <-->  `mempty`
+    + `(>>=)`    <-->  `(<>)`, `mappend`
+    + `tell x`   <-->  `(<> x)`
+
+StateT
+-----
+
+* `s -> m (a, s)`
+    + `get` <--> `\s -> m (s, s)`
+    + `put` <--> `\s' -> \s -> m ((), s')`
+    + `modify` <--> `\f -> \s -> m ((), f s)`
+
+Monad Transformer の利用
+-----
+
+* Database.Relational.Query.Monad.Class
+    + interface
+
+* Database.Relational.Query.Monad.Trans.*
+    + implementation
+
+Monad Transformer の利用
+-----
+
+* Query組み立てのための monad stack
+    + SQL文の各節を Monad Transformer の文脈に保存
+    + 文脈を monad stack に積み上げる
+
+<!-- Build context of each SQL clause is saved in monad transformer of Query Building monad stack. -->
+
+Monad Transformer の利用
+-----
+
+* Query組み立てのための monad stack
+    + SQL文の各節を Monad Transformer の文脈に保存
+
+Database.Relational.Query.Monad.Trans.*
+
+```
+  SELECT ...
+    FROM ... -- State , join tree              -- Join
+   WHERE ... -- Writer, restrictions monoid    -- Restricting
+GROUP BY ... -- Writer, group by terms monoid  -- Aggregating
+  HAVING ... -- Writer, restrictions monoid    -- Restricting
+ORDER BY ... -- Writer, ordering key and spec list monoid  -- Ordering
+```
+
+Template Haskell の利用
+-----
+
+* Haskell のレコードセレクタに対応付けられた、安全な projection をコンパイル時に生成
+    + key :: r -> a ---->  key' :: Pi r a
+
+Database.Relational.Query.Pi
+Database.Relational.Query.TH
+
+Question
+-----

@@ -1,0 +1,544 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="2016-01-31" />
+  <title>Haskell Relational Record, 機能と構成</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <!-- configuration parameters -->
+  <meta name="defaultView" content="slideshow" />
+  <meta name="controlVis" content="hidden" />
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  <!-- style sheet links -->
+  <link rel="stylesheet" href="s5/default/slides.css" type="text/css" media="projection" id="slideProj" />
+  <link rel="stylesheet" href="s5/default/outline.css" type="text/css" media="screen" id="outlineStyle" />
+  <link rel="stylesheet" href="s5/default/print.css" type="text/css" media="print" id="slidePrint" />
+  <link rel="stylesheet" href="s5/default/opera.css" type="text/css" media="projection" id="operaFix" />
+  <!-- S5 JS -->
+  <script src="s5/default/slides.js" type="text/javascript"></script>
+  <script src="http://math.etsu.edu/LaTeXMathML/LaTeXMathML.js" type="text/javascript"></script>
+</head>
+<body>
+<div class="layout">
+<div id="controls"></div>
+<div id="currentSlide"></div>
+<div id="header"></div>
+<div id="footer">
+  <h1>Kei Hibino</h1>
+  <h2>Haskell Relational Record, 機能と構成</h2>
+</div>
+</div>
+<div class="presentation">
+<div class="titleslide slide">
+  <h1>Haskell Relational Record, 機能と構成</h1>
+  <h2>2016-01-31</h2>
+  <h3>Kei Hibino</h3>
+</div>
+<div id="dsl-デザイン機能" class="titleslide slide section level1"><h1>DSL デザイン/機能</h1></div><div id="クエリの結合" class="slide section level2">
+<h1>クエリの結合</h1>
+<p><span class="LaTeX">$$\{ (x, y) | x \in X, y \in Y, \pi_1(x) = \pi_2(y) \}$$</span></p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- Comprehension</span>
+[ (x, y) <span class="fu">|</span> x <span class="ot">&lt;-</span> xs, y <span class="ot">&lt;-</span> ys, fst x <span class="fu">==</span> snd y ]
+
+<span class="co">-- List Monad</span>
+<span class="kw">do</span> { x <span class="ot">&lt;-</span> xs; y <span class="ot">&lt;-</span> ys; fst x <span class="fu">==</span> snd y; return (x, y) }</code></pre></div>
+<p>結合クエリを List内包表記あるいは List Monad のように組み立てる</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">personAndBirthday ::</span> <span class="dt">Relation</span> () (<span class="dt">Person</span>, <span class="dt">Birthday</span>)
+personAndBirthday <span class="fu">=</span>  relation <span class="fu">$</span> <span class="kw">do</span>
+  p <span class="ot">&lt;-</span> query person    <span class="co">-- Join product accumulated</span>
+  b <span class="ot">&lt;-</span> query birthday
+  on <span class="fu">$</span> p <span class="fu">!</span> Person.name&#39; <span class="fu">.=.</span> b <span class="fu">!</span> Birthday.name&#39;
+  return <span class="fu">$</span> p <span class="fu">&gt;&lt;</span> b</code></pre></div>
+</div><div id="組み上がった結合式built-joined-query" class="slide section level2">
+<h1>組み上がった結合式/Built joined query</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">personAndBirthday ::</span> <span class="dt">Relation</span> () (<span class="dt">Person</span>, <span class="dt">Birthday</span>)
+personAndBirthday <span class="fu">=</span>  relation <span class="fu">$</span> <span class="kw">do</span>
+  p <span class="ot">&lt;-</span> query person
+  b <span class="ot">&lt;-</span> query birthday  <span class="co">-- 結合積の集積</span>
+                       <span class="co">-- Join product accumulated</span>
+  on <span class="fu">$</span> p <span class="fu">!</span> Person.name&#39; <span class="fu">.=.</span> b <span class="fu">!</span> Birthday.name&#39;
+  return <span class="fu">$</span> p <span class="fu">&gt;&lt;</span> b</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.family <span class="kw">AS</span> f2,
+           T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
+      <span class="kw">FROM</span> EXAMPLE.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> EXAMPLE.birthday T1
+        <span class="kw">ON</span> (T0.name = T1.name)</code></pre></div>
+</div><div id="結合join" class="slide section level2">
+<h1>結合/Join</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">query ::</span> (<span class="dt">MonadQualify</span> <span class="dt">ConfigureQuery</span> m, <span class="dt">MonadQuery</span> m)
+      <span class="ot">=&gt;</span> <span class="dt">Relation</span> () r
+      <span class="ot">-&gt;</span> m (<span class="dt">Projection</span> <span class="dt">Flat</span> r)
+
+<span class="co">-- Used for outer join</span>
+<span class="ot">queryMaybe ::</span> (<span class="dt">MonadQualify</span> <span class="dt">ConfigureQuery</span> m, <span class="dt">MonadQuery</span> m)
+           <span class="ot">=&gt;</span> <span class="dt">Relation</span> () r
+           <span class="ot">-&gt;</span> m (<span class="dt">Projection</span> <span class="dt">Flat</span> (<span class="dt">Maybe</span> r))</code></pre></div>
+<p><code>query</code>, <code>queryMaybe</code> は結合したテーブル式の <code>Projection</code> を返す</p>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> .. <span class="kw">FROM</span> ...
+            <span class="co">-- Accumulating uniquely qualified</span>
+            <span class="co">-- ( like &#39;as T0&#39;, &#39;as T1&#39; ... )</span>
+            <span class="co">-- table forms of SQL FROM clause</span></code></pre></div>
+</div><div id="例---外部左結合left-outer-join" class="slide section level2">
+<h1>例 - 外部左結合/Left outer join</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">personAndBirthdayL ::</span> <span class="dt">Relation</span> () (<span class="dt">Person</span>, <span class="dt">Maybe</span> <span class="dt">Birthday</span>)
+personAndBirthdayL <span class="fu">=</span>  relation <span class="fu">$</span> <span class="kw">do</span>
+  p <span class="ot">&lt;-</span> query person
+  b <span class="ot">&lt;-</span> queryMaybe birthday
+  on <span class="fu">$</span> just (p <span class="fu">!</span> Person.name&#39;) <span class="fu">.=.</span> b <span class="fu">?!</span> Birthday.name&#39;
+  return <span class="fu">$</span> p <span class="fu">&gt;&lt;</span> b</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.family <span class="kw">AS</span> f2,
+           T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
+      <span class="kw">FROM</span> EXAMPLE.person T0 <span class="kw">LEFT</span> <span class="kw">JOIN</span> EXAMPLE.birthday T1
+        <span class="kw">ON</span> (T0.name = T1.name)</code></pre></div>
+</div><div id="aggregation" class="slide section level2">
+<h1>Aggregation</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">groupBy ::</span> <span class="dt">MonadAggregate</span> m
+        <span class="ot">=&gt;</span> <span class="dt">Projection</span> <span class="dt">Flat</span> r
+        <span class="co">-- ^ Projection to add into group by</span>
+        <span class="ot">-&gt;</span> m (<span class="dt">Projection</span> <span class="dt">Aggregated</span> r)
+        <span class="co">-- ^ Result context and aggregated projection</span>
+
+<span class="ot">count ::</span> <span class="dt">Projection</span> <span class="dt">Flat</span> a <span class="ot">-&gt;</span> <span class="dt">Projection</span> <span class="dt">Aggregated</span> <span class="dt">Int64</span>
+<span class="ot">max&#39;  ::</span> <span class="dt">Ord</span> a
+      <span class="ot">=&gt;</span> <span class="dt">Projection</span> <span class="dt">Flat</span> a <span class="ot">-&gt;</span> <span class="dt">Projection</span> <span class="dt">Aggregated</span> (<span class="dt">Maybe</span> a)</code></pre></div>
+<p><code>groupBy</code> は <code>MonadAggregate</code> の monad 制約 (<code>MonadQuery</code> より制限が強い)の下でのみ利用できる。</p>
+<p><code>groupBy</code> は集約した(Aggregated)文脈の型を持つ <code>Projection</code> の値を返す。</p>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> .. <span class="kw">GROUP</span> <span class="kw">BY</span> ...
+                <span class="co">-- Accumulating keys</span>
+                <span class="co">-- of SQL GROUP BY clause</span></code></pre></div>
+</div><div id="例---集約aggregation" class="slide section level2">
+<h1>例 - 集約/Aggregation</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">agesOfFamilies ::</span> <span class="dt">Relation</span> () (<span class="dt">String</span>, <span class="dt">Maybe</span> <span class="dt">Int32</span>)
+agesOfFamilies <span class="fu">=</span>  aggregateRelation <span class="fu">$</span> <span class="kw">do</span>
+  p <span class="ot">&lt;-</span> query person
+  gFam <span class="ot">&lt;-</span> groupBy <span class="fu">$</span> p <span class="fu">!</span> Person.family&#39;
+          <span class="co">-- Specify grouping key</span>
+  return <span class="fu">$</span> gFam <span class="fu">&gt;&lt;</span> sum&#39; (p <span class="fu">!</span> Person.age&#39;)
+          <span class="co">-- Aggregated results</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.family <span class="kw">AS</span> f0, <span class="fu">SUM</span>(T0.age) <span class="kw">AS</span> f1
+      <span class="kw">FROM</span> EXAMPLE.person T0
+  <span class="kw">GROUP</span> <span class="kw">BY</span> T0.family</code></pre></div>
+</div><div id="絞り込みrestrict" class="slide section level2">
+<h1>絞り込み/Restrict</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">restrict ::</span> <span class="dt">MonadRestrict</span> c m
+         <span class="ot">=&gt;</span> <span class="dt">Projection</span> c (<span class="dt">Maybe</span> <span class="dt">Bool</span>)
+         <span class="ot">-&gt;</span> m ()
+
+<span class="ot">wheres ::</span> <span class="dt">MonadRestrict</span> <span class="dt">Flat</span> m
+       <span class="ot">=&gt;</span> <span class="dt">Projection</span> <span class="dt">Flat</span> (<span class="dt">Maybe</span> <span class="dt">Bool</span>)
+       <span class="ot">-&gt;</span> m ()</code></pre></div>
+<p>WHERE 節に絞り込み条件を加える</p>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> .. <span class="kw">WHERE</span> x <span class="kw">AND</span> y <span class="kw">AND</span> ...
+             <span class="co">-- Accumulating AND predicates</span>
+             <span class="co">-- of SQL WHERE clause</span></code></pre></div>
+</div><div id="絞り込みrestrict-1" class="slide section level2">
+<h1>絞り込み/Restrict</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">restrict ::</span> <span class="dt">MonadRestrict</span> c m
+         <span class="ot">=&gt;</span> <span class="dt">Projection</span> c (<span class="dt">Maybe</span> <span class="dt">Bool</span>)
+         <span class="ot">-&gt;</span> m ()
+
+<span class="ot">having ::</span> <span class="dt">MonadRestrict</span> <span class="dt">Aggregated</span> m
+       <span class="ot">=&gt;</span> <span class="dt">Projection</span> <span class="dt">Aggregated</span> (<span class="dt">Maybe</span> <span class="dt">Bool</span>)
+       <span class="ot">-&gt;</span> m ()</code></pre></div>
+<p>HAVING 節に絞り込み条件を加える。 集約した(Aggregated)文脈の型を持つ <code>Projection</code> のみが利用できる</p>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> .. <span class="kw">HAVING</span> x <span class="kw">AND</span> y <span class="kw">AND</span> ...
+              <span class="co">-- Accumulating AND predicates</span>
+              <span class="co">-- of SQL HAVING clause</span></code></pre></div>
+</div><div id="例---絞り込みrestriction" class="slide section level2">
+<h1>例 - 絞り込み/Restriction</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">sameBirthdayHeisei&#39; ::</span> <span class="dt">Relation</span> () (<span class="dt">Day</span>, <span class="dt">Int64</span>)
+sameBirthdayHeisei&#39; <span class="fu">=</span>  aggregateRelation <span class="fu">$</span> <span class="kw">do</span>
+  p <span class="ot">&lt;-</span> query person
+  b <span class="ot">&lt;-</span> query birthday
+  on <span class="fu">$</span> p <span class="fu">!</span> Person.name&#39; <span class="fu">.=.</span> b <span class="fu">!</span> Birthday.name&#39;
+  wheres <span class="fu">$</span>
+    b <span class="fu">!</span> Birthday.day&#39; <span class="fu">.&gt;=.</span> value (fromGregorian <span class="dv">1989</span> <span class="dv">1</span> <span class="dv">8</span>)
+  gbd <span class="ot">&lt;-</span> groupBy <span class="fu">$</span> b <span class="fu">!</span> Birthday.day&#39;
+  having <span class="fu">$</span> count (p <span class="fu">!</span> Person.name&#39;) <span class="fu">.&gt;.</span> value (<span class="dv">1</span><span class="ot"> ::</span> <span class="dt">Int64</span>)
+  return <span class="fu">$</span> gbd <span class="fu">&gt;&lt;</span> count (p <span class="fu">!</span> Person.name&#39;)</code></pre></div>
+<p>平成生まれで誕生日が同じ人を数える</p>
+<!--
+~~~~~ {.sql}
+SELECT ALL T1.day AS f0, COUNT(T0.name) AS f1
+      FROM EXAMPLE.person T0 INNER JOIN EXAMPLE.birthday T1
+        ON (T0.name = T1.name)
+     WHERE (T1.day >= DATE '1989-01-08')
+  GROUP BY T1.day
+    HAVING (COUNT(T0.name) > 1)
+~~~~~
+ -->
+</div><div id="絞り込みrestriction" class="slide section level2">
+<h1>絞り込み/Restriction</h1>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T1.day <span class="kw">AS</span> f0, <span class="fu">COUNT</span>(T0.name) <span class="kw">AS</span> f1
+      <span class="kw">FROM</span> EXAMPLE.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> EXAMPLE.birthday T1
+        <span class="kw">ON</span> (T0.name = T1.name)
+     <span class="kw">WHERE</span> (T1.day &gt;= <span class="dt">DATE</span> <span class="st">&#39;1989-01-08&#39;</span>)
+  <span class="kw">GROUP</span> <span class="kw">BY</span> T1.day
+    <span class="kw">HAVING</span> (<span class="fu">COUNT</span>(T0.name) &gt; <span class="dv">1</span>)</code></pre></div>
+</div><div id="例---絞り込みrestriction---let" class="slide section level2">
+<h1>例 - 絞り込み/Restriction - let</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">sameBirthdayHeisei ::</span> <span class="dt">Relation</span> () (<span class="dt">Day</span>, <span class="dt">Int64</span>)
+sameBirthdayHeisei <span class="fu">=</span>  aggregateRelation <span class="fu">$</span> <span class="kw">do</span>
+  p <span class="ot">&lt;-</span> query person
+  b <span class="ot">&lt;-</span> query birthday
+  on <span class="fu">$</span> p <span class="fu">!</span> Person.name&#39; <span class="fu">.=.</span> b <span class="fu">!</span> Birthday.name&#39;
+  <span class="kw">let</span> birthDay <span class="fu">=</span> b <span class="fu">!</span> Birthday.day&#39;
+  wheres <span class="fu">$</span> birthDay <span class="fu">.&gt;=.</span> value (fromGregorian <span class="dv">1989</span> <span class="dv">1</span> <span class="dv">8</span>)
+  gbd <span class="ot">&lt;-</span> groupBy birthDay
+  <span class="kw">let</span> personCount <span class="fu">=</span> count <span class="fu">$</span> p <span class="fu">!</span> Person.name&#39;
+  having <span class="fu">$</span> personCount <span class="fu">.&gt;.</span> value <span class="dv">1</span>
+  return <span class="fu">$</span> gbd <span class="fu">&gt;&lt;</span> personCount</code></pre></div>
+</div><div id="ordering" class="slide section level2">
+<h1>Ordering</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">orderBy ::</span> <span class="dt">Monad</span> m
+        <span class="ot">=&gt;</span> <span class="dt">Projection</span> c t
+        <span class="co">-- ^ Ordering terms to add</span>
+        <span class="ot">-&gt;</span> <span class="dt">Order</span>
+        <span class="co">-- ^ Order direction -- Asc | Desc</span>
+        <span class="ot">-&gt;</span> <span class="dt">Orderings</span> c m ()
+        <span class="co">-- ^ Result context with ordering</span></code></pre></div>
+<p>文脈に合わせた <code>Projection</code> の型を持った値のみが利用できる。</p>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> .. <span class="kw">ORDER</span> <span class="kw">BY</span> ...
+                <span class="co">-- Accumulating terms of ORDER BY clause</span></code></pre></div>
+</div><div id="例---順序付けordering" class="slide section level2">
+<h1>例 - 順序付け/Ordering</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">personAndBirthdayO ::</span> <span class="dt">Relation</span> () (<span class="dt">Person</span>, <span class="dt">Birthday</span>)
+personAndBirthdayO <span class="fu">=</span>  relation <span class="fu">$</span> <span class="kw">do</span>
+  p <span class="ot">&lt;-</span> query person
+  b <span class="ot">&lt;-</span> query birthday
+  on <span class="fu">$</span> p <span class="fu">!</span> Person.name&#39; <span class="fu">.=.</span> b <span class="fu">!</span> Birthday.name&#39;
+  orderBy (b <span class="fu">!</span> Birthday.day&#39;) <span class="dt">Asc</span>  <span class="co">-- Specify ordering key</span>
+  orderBy (p <span class="fu">!</span> Person.name&#39;) <span class="dt">Asc</span>
+  return <span class="fu">$</span> p <span class="fu">&gt;&lt;</span> b</code></pre></div>
+<p>orders by birthday and then name:</p>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.family <span class="kw">AS</span> f2,
+           T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
+      <span class="kw">FROM</span> EXAMPLE.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> EXAMPLE.birthday T1
+        <span class="kw">ON</span> (T0.name = T1.name)
+  <span class="kw">ORDER</span> <span class="kw">BY</span> T1.day <span class="kw">ASC</span>, T0.name <span class="kw">ASC</span></code></pre></div>
+</div><div id="例---順序付けordering-1" class="slide section level2">
+<h1>例 - 順序付け/Ordering</h1>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.family <span class="kw">AS</span> f2,
+           T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
+      <span class="kw">FROM</span> EXAMPLE.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> EXAMPLE.birthday T1
+        <span class="kw">ON</span> (T0.name = T1.name)
+  <span class="kw">ORDER</span> <span class="kw">BY</span> T1.day <span class="kw">ASC</span>, T0.name <span class="kw">ASC</span></code></pre></div>
+</div><div id="プレースホルダーplaceholders" class="slide section level2">
+<h1>プレースホルダー/Placeholders</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">placeholder <span class="ot">::</span>
+  (<span class="dt">PersistableWidth</span> t, <span class="dt">SqlProjectable</span> p, <span class="dt">Monad</span> m) <span class="ot">=&gt;</span>
+  (p t <span class="ot">-&gt;</span> m a) <span class="ot">-&gt;</span> m (<span class="dt">PlaceHolders</span> t, a)</code></pre></div>
+<p>組み立てのモナドの式に placeholder を与える</p>
+</div><div id="例---プレースホルダーplaceholders" class="slide section level2">
+<h1>例 - プレースホルダー/Placeholders</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">specifyPerson ::</span> <span class="dt">Relation</span> <span class="dt">String</span> (<span class="dt">Person</span>, <span class="dt">Birthday</span>)
+specifyPerson <span class="fu">=</span>  relation&#39; <span class="fu">$</span> <span class="kw">do</span>
+  pb <span class="ot">&lt;-</span> query personAndBirthday <span class="co">-- Re-use predefined</span>
+  (ph, ()) <span class="ot">&lt;-</span> placeholder
+              (\ph&#39; <span class="ot">-&gt;</span>
+                wheres <span class="fu">$</span> pb <span class="fu">!</span> fst&#39; <span class="fu">!</span> Person.name&#39; <span class="fu">.=.</span> ph&#39;)
+  return (ph, pb)</code></pre></div>
+<p>名前をプレースホルダーで指定する:</p>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T2.f0 <span class="kw">AS</span> f0, T2.f1 <span class="kw">AS</span> f1, T2.f2 <span class="kw">AS</span> f2,
+           T2.f3 <span class="kw">AS</span> f3, T2.f4 <span class="kw">AS</span> f4
+  <span class="kw">FROM</span> (<span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.family <span class="kw">AS</span> f2,
+               T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
+              <span class="kw">FROM</span> EXAMPLE.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span>
+                   EXAMPLE.birthday T1
+                <span class="kw">ON</span> (T0.name = T1.name)) T2
+ <span class="kw">WHERE</span> (T2.f0 = ?)</code></pre></div>
+</div><div id="例---プレースホルダーplaceholders-1" class="slide section level2">
+<h1>例 - プレースホルダー/Placeholders</h1>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T2.f0 <span class="kw">AS</span> f0, T2.f1 <span class="kw">AS</span> f1, T2.f2 <span class="kw">AS</span> f2,
+           T2.f3 <span class="kw">AS</span> f3, T2.f4 <span class="kw">AS</span> f4
+  <span class="kw">FROM</span> (<span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.family <span class="kw">AS</span> f2,
+               T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
+              <span class="kw">FROM</span> EXAMPLE.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span>
+                   EXAMPLE.birthday T1
+                <span class="kw">ON</span> (T0.name = T1.name)) T2
+ <span class="kw">WHERE</span> (T2.f0 = ?)</code></pre></div>
+</div><div id="例---ウィンドウ関数window-function" class="slide section level2">
+<h1>例 - ウィンドウ関数/Window function</h1>
+<p>ウィンドウを組み立てる:</p>
+<p>Building windows:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">ageRankOfFamilies ::</span> <span class="dt">Relation</span> () ((<span class="dt">Int64</span>, <span class="dt">String</span>), <span class="dt">Int32</span>)
+ageRankOfFamilies <span class="fu">=</span>  relation <span class="fu">$</span> <span class="kw">do</span>
+  my <span class="ot">&lt;-</span> query myTable
+  return <span class="fu">$</span>
+    rank <span class="ot">`over`</span> <span class="kw">do</span>
+      partitionBy <span class="fu">$</span> my <span class="fu">!</span> family&#39;  <span class="co">-- Monad to build window</span>
+      orderBy (my <span class="fu">!</span> age&#39;) <span class="dt">Desc</span>
+    <span class="fu">&gt;&lt;</span>
+    my <span class="fu">!</span> family&#39; <span class="fu">&gt;&lt;</span> my <span class="fu">!</span> age&#39;</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span>
+       <span class="fu">RANK</span>() <span class="kw">OVER</span> (<span class="kw">PARTITION</span> <span class="kw">BY</span> T0.family
+                    <span class="kw">ORDER</span> <span class="kw">BY</span> T0.age <span class="kw">DESC</span>) <span class="kw">AS</span> f0,
+       T0.family <span class="kw">AS</span> f1, T0.age <span class="kw">AS</span> f2
+  <span class="kw">FROM</span> PUBLIC.my_table T0</code></pre></div>
+</div><div id="例---ウィンドウ関数window-function-1" class="slide section level2">
+<h1>例 - ウィンドウ関数/Window function</h1>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span>
+       <span class="fu">RANK</span>() <span class="kw">OVER</span> (<span class="kw">PARTITION</span> <span class="kw">BY</span> T0.family
+                    <span class="kw">ORDER</span> <span class="kw">BY</span> T0.age <span class="kw">DESC</span>) <span class="kw">AS</span> f0,
+       T0.family <span class="kw">AS</span> f1, T0.age <span class="kw">AS</span> f2
+  <span class="kw">FROM</span> PUBLIC.my_table T0</code></pre></div>
+</div><div id="map-sql-values-to-a-haskell-record" class="slide section level2">
+<h1>Map SQL Values to a Haskell Record</h1>
+<p>Mapping to records using Applicative style:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">(|$|) ::</span> (<span class="dt">ProjectableFunctor</span> p, <span class="dt">ProductConstructor</span> (a <span class="ot">-&gt;</span> b))
+      <span class="ot">=&gt;</span> (a <span class="ot">-&gt;</span> b)
+      <span class="ot">-&gt;</span> p a
+      <span class="ot">-&gt;</span> p b
+<span class="ot">(|*|) ::</span> <span class="dt">ProjectableApplicative</span> p
+      <span class="ot">=&gt;</span> p (a <span class="ot">-&gt;</span> b)
+      <span class="ot">-&gt;</span> p a
+      <span class="ot">-&gt;</span> p b</code></pre></div>
+</div><div id="record-mapping---projections" class="slide section level2">
+<h1>Record Mapping - Projections</h1>
+<p>Assign record types to an SQL projection:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">personAndBirthdayT ::</span> <span class="dt">Relation</span> () <span class="dt">PersonAndBirthday</span>
+personAndBirthdayT <span class="fu">=</span>  relation <span class="fu">$</span> <span class="kw">do</span>
+  p <span class="ot">&lt;-</span> query person
+  b <span class="ot">&lt;-</span> query birthday
+  wheres <span class="fu">$</span> p <span class="fu">!</span> Person.name&#39; <span class="fu">.=.</span> b <span class="fu">!</span> Birthday.name&#39;
+  <span class="co">-- Build record phantom type</span>
+  return <span class="fu">$</span> <span class="dt">PersonAndBirthday</span> <span class="fu">|$|</span> p <span class="fu">|*|</span> b
+
+<span class="ot">(|$|) ::</span> <span class="dt">ProductConstructor</span> (a <span class="ot">-&gt;</span> b)
+      <span class="ot">=&gt;</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> <span class="dt">Projection</span> c a <span class="ot">-&gt;</span> <span class="dt">Projection</span> c b
+<span class="ot">(|*|) ::</span> <span class="dt">Projection</span> c (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> <span class="dt">Projection</span> c a <span class="ot">-&gt;</span> <span class="dt">Projection</span> c b</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.address <span class="kw">AS</span> f2,
+           T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
+      <span class="kw">FROM</span> PUBLIC.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> PUBLIC.birthday T1
+        <span class="kw">ON</span> (T0.name = T1.name)</code></pre></div>
+</div><div id="record-mapping---column-selectors" class="slide section level2">
+<h1>Record Mapping - Column Selectors</h1>
+<p>Column selectors can be mapped to a record:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">Birthday.day&#39;<span class="ot"> ::</span> <span class="dt">Pi</span> <span class="dt">Birthday</span> <span class="dt">Day</span>
+
+<span class="ot">uncurryPB ::</span> <span class="dt">Pi</span> (<span class="dt">Person</span>, <span class="dt">Birthday</span>) <span class="dt">PersonAndBirthday</span>
+uncurryPB <span class="fu">=</span>  <span class="dt">PersonAndBirthday</span> <span class="fu">|$|</span> fst&#39; <span class="fu">|*|</span> snd&#39;
+
+<span class="ot">(|$|) ::</span> <span class="dt">ProductConstructor</span> (a <span class="ot">-&gt;</span> b)
+      <span class="ot">=&gt;</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> <span class="dt">Pi</span> r a <span class="ot">-&gt;</span> <span class="dt">Pi</span> r b
+<span class="ot">(|*|) ::</span> <span class="dt">Pi</span> r (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> <span class="dt">Pi</span> r a <span class="ot">-&gt;</span> <span class="dt">Pi</span> r b</code></pre></div>
+</div><div id="record-mapping---placeholders" class="slide section level2">
+<h1>Record Mapping - Placeholders</h1>
+<p>Placeholders can be mapped to a record:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">personAndBirthdayP2 ::</span> <span class="dt">Relation</span> <span class="dt">Person</span> <span class="dt">PersonAndBirthday</span>
+personAndBirthdayP2 <span class="fu">=</span>  relation&#39; <span class="fu">$</span> <span class="kw">do</span>
+  p <span class="ot">&lt;-</span> query person
+  b <span class="ot">&lt;-</span> query birthday
+  (ph0, ()) <span class="ot">&lt;-</span> placeholder (\ph0&#39; <span class="ot">-&gt;</span> on <span class="fu">$</span> p <span class="fu">!</span> Person.name&#39;     <span class="fu">.=.</span> ph0&#39;)
+  (ph1, ()) <span class="ot">&lt;-</span> placeholder (\ph1&#39; <span class="ot">-&gt;</span> on <span class="fu">$</span> p <span class="fu">!</span> Person.age&#39;      <span class="fu">.=.</span> ph1&#39;)
+  (ph2, ()) <span class="ot">&lt;-</span> placeholder (\ph2&#39; <span class="ot">-&gt;</span> on <span class="fu">$</span> p <span class="fu">!</span> Person.address&#39;  <span class="fu">.=.</span> ph2&#39;)
+
+  return (<span class="dt">Person</span> <span class="fu">|$|</span> ph0 <span class="fu">|*|</span> ph1 <span class="fu">|*|</span> ph2,
+          <span class="dt">PersonAndBirthday</span> <span class="fu">|$|</span> p <span class="fu">|*|</span> b)
+
+<span class="ot">(|$|) ::</span> <span class="dt">ProductConstructor</span> (a <span class="ot">-&gt;</span> b)
+      <span class="ot">=&gt;</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> <span class="dt">Placeholders</span> a <span class="ot">-&gt;</span> <span class="dt">Placeholders</span> b
+<span class="ot">(|*|) ::</span> <span class="dt">Placeholders</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> <span class="dt">Placeholders</span> a <span class="ot">-&gt;</span> <span class="dt">Placeholders</span> b</code></pre></div>
+<p>Generated SQL:</p>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.address <span class="kw">AS</span> f2,
+           T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
+      <span class="kw">FROM</span> PUBLIC.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> PUBLIC.birthday T1
+        <span class="kw">ON</span> (((T0.name = ?) <span class="kw">AND</span> (T0.age = ?)) <span class="kw">AND</span> (T0.address = ?))</code></pre></div>
+</div><div id="record-mapping---placeholders-1" class="slide section level2">
+<h1>Record Mapping - Placeholders</h1>
+<p>Generated SQL:</p>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.address <span class="kw">AS</span> f2,
+           T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
+      <span class="kw">FROM</span> PUBLIC.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> PUBLIC.birthday T1
+        <span class="kw">ON</span> (((T0.name = ?) <span class="kw">AND</span> (T0.age = ?)) <span class="kw">AND</span> (T0.address = ?))</code></pre></div>
+</div><div id="record-mapping---record-placeholders" class="slide section level2">
+<h1>Record Mapping - Record Placeholders</h1>
+<p>Record-typed placeholder:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">placeholder ::</span> (<span class="dt">PersistableWidth</span> t, <span class="dt">Monad</span> m)
+            <span class="ot">=&gt;</span> (<span class="dt">Projection</span> c t <span class="ot">-&gt;</span> m a) <span class="ot">-&gt;</span> m (<span class="dt">PlaceHolders</span> t, a)
+
+<span class="ot">personAndBirthdayP ::</span> <span class="dt">Relation</span> <span class="dt">Person</span> <span class="dt">PersonAndBirthday</span>
+personAndBirthdayP <span class="fu">=</span>  relation&#39; <span class="fu">$</span> <span class="kw">do</span>
+  p <span class="ot">&lt;-</span> query person
+  b <span class="ot">&lt;-</span> query birthday
+  (ph, ()) <span class="ot">&lt;-</span> placeholder (\ph&#39; <span class="ot">-&gt;</span> wheres <span class="fu">$</span> p <span class="fu">.=.</span> ph&#39;)
+  return <span class="fu">$</span> (ph, <span class="dt">PersonAndBirthday</span> <span class="fu">|$|</span> p <span class="fu">|*|</span> b)</code></pre></div>
+<p>row value of Placeholders:</p>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">SELECT</span> <span class="kw">ALL</span> T0.name <span class="kw">AS</span> f0, T0.age <span class="kw">AS</span> f1, T0.address <span class="kw">AS</span> f2,
+           T1.name <span class="kw">AS</span> f3, T1.day <span class="kw">AS</span> f4
+      <span class="kw">FROM</span> PUBLIC.person T0 <span class="kw">INNER</span> <span class="kw">JOIN</span> PUBLIC.birthday T1
+        <span class="kw">ON</span> ((T0.name, T0.age, T0.address) = (?, ?, ?))</code></pre></div>
+</div>
+<div id="hrr-の構成" class="titleslide slide section level1"><h1>HRR の構成</h1></div><div id="hrr-を構成する-hackage" class="slide section level2">
+<h1>HRR を構成する Hackage</h1>
+<ul>
+<li>sql-words</li>
+<li>persistable-record</li>
+<li>relational-query</li>
+<li>relational-schema</li>
+<li>relational-query-HDBC</li>
+</ul>
+</div><div id="hrr-を構成する-hackage-1" class="slide section level2">
+<h1>HRR を構成する Hackage</h1>
+<ul>
+<li>sql-words</li>
+<li>persistable-record</li>
+<li>relational-query x</li>
+<li>relational-schema</li>
+<li>relational-query-HDBC</li>
+</ul>
+<p>SQLを組み立てるDSLを定義している relational-query package を主に</p>
+</div><div id="hrr-を構成する-hackage-2" class="slide section level2">
+<h1>HRR を構成する Hackage</h1>
+<ul>
+<li>relational-query
+<ul>
+<li>SQL を組み立てる DSL 定義
+<ul>
+<li>Monadic style による SQL(木) の組立て</li>
+<li>SQL の projection と haskell のレコードセレクタの対応付け</li>
+</ul></li>
+</ul></li>
+</ul>
+</div><div id="hrr-を構成する-hackage-3" class="slide section level2">
+<h1>HRR を構成する Hackage</h1>
+<ul>
+<li>persistable-record
+<ul>
+<li>SQL の値のリストと Haskell のレコード間の変換</li>
+</ul></li>
+<li>relational-schema
+<ul>
+<li>RDBMS から Table schema を取得するための query の定義</li>
+</ul></li>
+<li>sql-words
+<ul>
+<li>SQL の単語連結</li>
+</ul></li>
+<li>relational-query-HDBC
+<ul>
+<li>HDBC を使って実際に SQL を発行</li>
+</ul></li>
+</ul>
+</div><div id="hrr-で多用している手法" class="slide section level2">
+<h1>HRR で多用している手法</h1>
+<ul>
+<li>幽霊型 - Phantom Type</li>
+<li>Monad Transformer</li>
+<li>Template Haskell</li>
+</ul>
+</div><div id="幽霊型---phantom-type" class="slide section level2">
+<h1>幽霊型 - Phantom Type</h1>
+<ol style="list-style-type: decimal">
+<li>幽霊型を untype する</li>
+<li>untype された文脈の Writer へ追加する あるいは State を更新する</li>
+</ol>
+</div><div id="writert" class="slide section level2">
+<h1>WriterT</h1>
+<ul>
+<li><code>Monoid w =&gt; m (a, w)</code>
+<ul>
+<li><code>return</code> &lt;--&gt; <code>mempty</code></li>
+<li><code>(&gt;&gt;=)</code> &lt;--&gt; <code>(&lt;&gt;)</code>, <code>mappend</code></li>
+<li><code>tell x</code> &lt;--&gt; <code>(&lt;&gt; x)</code></li>
+</ul></li>
+</ul>
+</div><div id="statet" class="slide section level2">
+<h1>StateT</h1>
+<ul>
+<li><code>s -&gt; m (a, s)</code>
+<ul>
+<li><code>get</code> &lt;--&gt; <code>\s -&gt; m (s, s)</code></li>
+<li><code>put</code> &lt;--&gt; <code>\s' -&gt; \s -&gt; m ((), s')</code></li>
+<li><code>modify</code> &lt;--&gt; <code>\f -&gt; \s -&gt; m ((), f s)</code></li>
+</ul></li>
+</ul>
+</div><div id="monad-transformer-の利用" class="slide section level2">
+<h1>Monad Transformer の利用</h1>
+<ul>
+<li>Database.Relational.Query.Monad.Class
+<ul>
+<li>interface</li>
+</ul></li>
+<li>Database.Relational.Query.Monad.Trans.*
+<ul>
+<li>implementation</li>
+</ul></li>
+</ul>
+</div><div id="monad-transformer-の利用-1" class="slide section level2">
+<h1>Monad Transformer の利用</h1>
+<ul>
+<li>Query組み立てのための monad stack
+<ul>
+<li>SQL文の各節を Monad Transformer の文脈に保存</li>
+<li>文脈を monad stack に積み上げる</li>
+</ul></li>
+</ul>
+<!-- Build context of each SQL clause is saved in monad transformer of Query Building monad stack. -->
+</div><div id="monad-transformer-の利用-2" class="slide section level2">
+<h1>Monad Transformer の利用</h1>
+<ul>
+<li>Query組み立てのための monad stack
+<ul>
+<li>SQL文の各節を Monad Transformer の文脈に保存</li>
+</ul></li>
+</ul>
+<p>Database.Relational.Query.Monad.Trans.*</p>
+<pre><code>  SELECT ...
+    FROM ... -- State , join tree              -- Join
+   WHERE ... -- Writer, restrictions monoid    -- Restricting
+GROUP BY ... -- Writer, group by terms monoid  -- Aggregating
+  HAVING ... -- Writer, restrictions monoid    -- Restricting
+ORDER BY ... -- Writer, ordering key and spec list monoid  -- Ordering</code></pre>
+</div><div id="template-haskell-の利用" class="slide section level2">
+<h1>Template Haskell の利用</h1>
+<ul>
+<li>Haskell のレコードセレクタに対応付けられた、安全な projection をコンパイル時に生成
+<ul>
+<li>key :: r -&gt; a ----&gt; key' :: Pi r a</li>
+</ul></li>
+</ul>
+<p>Database.Relational.Query.Pi Database.Relational.Query.TH</p>
+</div><div id="question" class="slide section level2">
+<h1>Question</h1>
+</div>
+</div>
+</body>
+</html>

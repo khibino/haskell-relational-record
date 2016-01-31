@@ -1016,7 +1016,7 @@ $(makeRecordPersistableDefault ''Branch1)
 -- @
 --
 insertBranch_s1P :: Insert Branch1
-insertBranch_s1P = typedInsert tableOfBranch piBranch1
+insertBranch_s1P = derivedInsert piBranch1
 
 -- |
 -- (from script) The insert statement
