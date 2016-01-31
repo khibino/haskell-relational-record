@@ -621,7 +621,8 @@ Database.Relational.Query.Monad.Trans.*
    WHERE ... -- Writer, restrictions monoid    -- Restricting
 GROUP BY ... -- Writer, group by terms monoid  -- Aggregating
   HAVING ... -- Writer, restrictions monoid    -- Restricting
-ORDER BY ... -- Writer, ordering key and spec list monoid  -- Ordering
+ORDER BY ... -- Writer, ordering key and spec list monoid
+                -- Ordering
 ```
 
 Template Haskell の利用

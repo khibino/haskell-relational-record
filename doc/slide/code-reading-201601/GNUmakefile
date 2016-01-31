@@ -13,8 +13,8 @@ math_opt = --latexmathml
 
 slide_opts = \
 	$(math_opt) \
-	--standalone --slide-level=2
-##	--self-contained --standalone --slide-level=2
+	--self-contained --standalone --slide-level=2
+##	--standalone --slide-level=2
 ##	--incremental
 
 %.html: %.txt
