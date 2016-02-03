@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.8.0.3
+
+- Drop unreferenced overloading.
+
 ## 0.8.0.2
 
 - Update documentation.
