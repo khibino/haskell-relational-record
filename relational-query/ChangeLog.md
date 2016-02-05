@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.8.0.4
+
+- Drop unused pragma.
+
 ## 0.8.0.3
 
 - Drop unreferenced overloading.
