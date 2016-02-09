@@ -23,7 +23,7 @@ clean:
 	make clean-hs
 	cabal clean
 	[ ! -d .debian-build ] || rm -r .debian-build
-	test ! -d src || find src \( -name '*.o' -o -name '*.hi' \) -exec rm {} \;
+	test ! -d src || find src \( -name '*.o' -o -name '*.hi' -o -name '*.dyn_o' -o  -name '*.dyn_hi' \) -exec rm {} \;
 
 clean-hs:
 	test ! -d src || find src -name '*_flymake.hs' -exec rm {} \;
