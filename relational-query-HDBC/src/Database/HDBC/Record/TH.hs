@@ -13,14 +13,13 @@
 -- This module provides DB-record templates depends on HDBC.
 module Database.HDBC.Record.TH (
   derivePersistableInstanceFromConvertible,
-  derivePersistableInstanceFromValue,
   ) where
 
 import Data.Convertible (convert)
 import Language.Haskell.TH (Q, Dec, Type)
 import Database.HDBC (SqlValue)
 import Database.HDBC.SqlValueExtra ()
-import Database.Record (FromSql (..), valueFromSql, ToSql(..), valueToSql)
+import Database.Record (FromSql (..), ToSql(..))
 import Database.Record.FromSql (valueRecordFromSql)
 import Database.Record.ToSql (valueRecordToSql)
 
@@ -34,15 +33,4 @@ derivePersistableInstanceFromConvertible typ =
 
       instance ToSql SqlValue $(typ)  where
         recordToSql = valueRecordToSql convert
-    |]
-
--- | Template to declare HDBC instances of DB-record against single value type.
-derivePersistableInstanceFromValue :: Q Type  -- ^ Type to implement instances
-                                   -> Q [Dec] -- ^ Result declarations
-derivePersistableInstanceFromValue typ =
-  [d| instance FromSql SqlValue $(typ)  where
-        recordFromSql = valueFromSql
-
-      instance ToSql SqlValue $(typ)  where
-        recordToSql = valueToSql
     |]
