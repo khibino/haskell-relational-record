@@ -26,6 +26,7 @@ module Database.Record.FromSql (
   FromSql (recordFromSql),
   takeRecord, toRecord,
 
+  valueRecordFromSql,
   valueFromSql
   ) where
 
@@ -154,6 +155,10 @@ takeRecord =  runTakeRecord recordFromSql
 --   Convert from list of SQL type ['q'] into haskell type 'a'.
 toRecord :: FromSql q a => [q] -> a
 toRecord =  runToRecord recordFromSql
+
+-- | Derivation rule of 'RecordFromSql' proof object for value convert function.
+valueRecordFromSql :: (q -> a) -> RecordFromSql q a
+valueRecordFromSql d = createRecordFromSql $ \qs -> (d $ head qs, tail qs)
 
 -- | Derived 'RecordFromSql' from persistable value.
 valueFromSql :: PersistableValue q a => RecordFromSql q a

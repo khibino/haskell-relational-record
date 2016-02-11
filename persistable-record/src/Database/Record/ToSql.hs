@@ -24,6 +24,7 @@ module Database.Record.ToSql (
   ToSql (recordToSql),
   putRecord, putEmpty, fromRecord, wrapToSql,
 
+  valueRecordToSql,
   valueToSql,
 
   -- * Make parameter list for updating with key
@@ -125,6 +126,10 @@ putEmpty =  putRecord
 --   Convert from haskell type 'a' into list of SQL type ['q'].
 fromRecord :: ToSql q a => a -> [q]
 fromRecord =  runToSqlM . putRecord
+
+-- | Derivation rule of 'RecordToSql' proof object for value convert function.
+valueRecordToSql :: (a -> q) -> RecordToSql q a
+valueRecordToSql = createRecordToSql . ((:[]) .)
 
 -- | Derived 'RecordToSql' from persistable value.
 valueToSql :: PersistableValue q a => RecordToSql q a
