@@ -31,7 +31,7 @@ import Database.Record.TH (deriveNotNullType)
 import Database.Record.Instances ()
 import Database.Relational.Query.TH (defineScalarDegree)
 
-import Database.HDBC.Record.TH (derivePersistableInstanceFromValue)
+import Database.HDBC.Record.TH (derivePersistableInstanceFromConvertible)
 
 
 -- | Wrapper type which represents type constructor.
@@ -113,6 +113,6 @@ derivePersistableInstancesFromConvertibleSqlValues =  do
   svs <- convertibleSqlValues
   ws <- mapInstanceD deriveNotNullType (toList $ Set.difference svs wds)
   let svl = toList svs
-  ps <- mapInstanceD derivePersistableInstanceFromValue svl
+  ps <- mapInstanceD derivePersistableInstanceFromConvertible svl
   ss <- mapInstanceD defineScalarDegree svl
   return $ ws ++ ps ++ ss
