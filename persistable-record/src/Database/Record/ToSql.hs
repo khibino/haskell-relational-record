@@ -25,7 +25,6 @@ module Database.Record.ToSql (
   putRecord, putEmpty, fromRecord, wrapToSql,
 
   valueRecordToSql,
-  valueToSql,
 
   -- * Make parameter list for updating with key
   updateValuesByUnique',
@@ -38,15 +37,13 @@ module Database.Record.ToSql (
 
 import Data.Array (listArray, (!))
 import Data.Set (toList, fromList, (\\))
-import Control.Applicative (pure)
 import Control.Monad.Trans.Writer (Writer, execWriter, tell)
 import Data.DList (DList)
 import qualified Data.DList as DList
 
 import Database.Record.Persistable
   (PersistableSqlType, runPersistableNullValue, PersistableType (persistableType),
-   PersistableRecordWidth, runPersistableRecordWidth, PersistableWidth(persistableWidth),
-   PersistableValue, persistableValue, fromValue)
+   PersistableRecordWidth, runPersistableRecordWidth, PersistableWidth(persistableWidth))
 import Database.Record.KeyConstraint
   (Primary, Unique, KeyConstraint, HasKeyConstraint(keyConstraint), unique, indexes)
 
@@ -130,10 +127,6 @@ fromRecord =  runToSqlM . putRecord
 -- | Derivation rule of 'RecordToSql' proof object for value convert function.
 valueRecordToSql :: (a -> q) -> RecordToSql q a
 valueRecordToSql = createRecordToSql . ((:[]) .)
-
--- | Derived 'RecordToSql' from persistable value.
-valueToSql :: PersistableValue q a => RecordToSql q a
-valueToSql =  RecordToSql $ tell . pure . fromValue persistableValue
 
 -- | Make untyped indexes to update column from key indexes and record width.
 --   Expected by update form like
