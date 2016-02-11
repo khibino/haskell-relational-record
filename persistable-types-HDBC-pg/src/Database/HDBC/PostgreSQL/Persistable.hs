@@ -3,12 +3,13 @@
 
 module Database.HDBC.PostgreSQL.Persistable () where
 
+import Data.Convertible (convert)
 import Data.PostgreSQL.NetworkAddress (Inet, Cidr)
 import Database.HDBC (SqlValue)
 import Database.HDBC.Record.Persistable ()
 import Database.Record.Persistable (PersistableWidth (..), unsafeValueWidth)
-import Database.Record.FromSql (FromSql (..), valueFromSql)
-import Database.Record.ToSql (ToSql (..), valueToSql)
+import Database.Record.FromSql (FromSql (..), valueRecordFromSql)
+import Database.Record.ToSql (ToSql (..), valueRecordToSql)
 
 import Database.HDBC.PostgreSQL.Instances ()
 
@@ -20,13 +21,13 @@ instance PersistableWidth Cidr where
   persistableWidth = unsafeValueWidth
 
 instance FromSql SqlValue Inet where
-  recordFromSql = valueFromSql
+  recordFromSql = valueRecordFromSql convert
 
 instance FromSql SqlValue Cidr where
-  recordFromSql = valueFromSql
+  recordFromSql = valueRecordFromSql convert
 
 instance ToSql SqlValue Inet where
-  recordToSql = valueToSql
+  recordToSql = valueRecordToSql convert
 
 instance ToSql SqlValue Cidr where
-  recordToSql = valueToSql
+  recordToSql = valueRecordToSql convert
