@@ -20,14 +20,9 @@ module Database.Record.Persistable (
   PersistableRecordWidth, runPersistableRecordWidth,
   unsafePersistableRecordWidth, unsafeValueWidth, (<&>), maybeWidth,
 
-  -- * Bidirectional conversion between single column type and SQL type
-  PersistableSqlValue, persistableSqlValue,
-  toValue, fromValue,
-
   -- * Inference rules for proof objects
 
   PersistableType(..), sqlNullValue,
-  PersistableValue (..), fromSql, toSql,
   PersistableWidth (..), derivedWidth
   ) where
 
@@ -43,26 +38,6 @@ runPersistableNullValue (PersistableSqlType q) = q
 unsafePersistableSqlTypeFromNull :: q                    -- ^ SQL null value of SQL type 'q'
                                  -> PersistableSqlType q -- ^ Result proof object
 unsafePersistableSqlTypeFromNull =  PersistableSqlType
-
-
--- | Proof object to specify value type 'a' is convertible with SQL type 'q'
-data PersistableSqlValue q a = PersistableSqlValue (q -> a) (a -> q)
-
--- | Run 'PersistableSqlValue' proof object. Convert from SQL type 'q' into Haskell type 'a'.
-toValue :: PersistableSqlValue q a -- ^ Proof object which has capability to convert
-        -> q                       -- ^ SQL type
-        -> a                       -- ^ Haskell type
-toValue   (PersistableSqlValue f _) = f
-
--- | Run 'PersistableSqlValue' proof object. Convert from Haskell type 'a' into SQL type 'q'.
-fromValue :: PersistableSqlValue q a -- ^ Proof object which has capability to convert
-          -> a                       -- ^ Haskell type
-          -> q                       -- ^ SQL type
-fromValue (PersistableSqlValue _ g) = g
-
--- | Axiom of 'PersistableSqlValue' for SQL type 'q' and Haskell type 'a'.
-persistableSqlValue :: PersistableSqlType q -> (q -> a) -> (a -> q) -> PersistableSqlValue q a
-persistableSqlValue =  const PersistableSqlValue
 
 
 -- | Proof object to specify width of Haskell type 'a'
@@ -125,17 +100,3 @@ instance PersistableWidth () where
 derivedWidth :: PersistableWidth a => (PersistableRecordWidth a, Int)
 derivedWidth =  (pw, runPersistableRecordWidth pw) where
   pw = persistableWidth
-
-
--- | Interface of inference rule for 'PersistableSqlValue' proof object
-class PersistableType q => PersistableValue q a where
-  -- | Infer 'PersistableSqlValue' proof object.
-  persistableValue :: PersistableSqlValue q a
-
--- | Run inferred 'PersistableSqlValue' proof object. Convert from SQL type 'q' into Haskell type 'a'.
-fromSql :: PersistableValue q a => q -> a
-fromSql =  toValue persistableValue
-
--- | Run inferred 'PersistableSqlValue' proof object. Convert from Haskell type 'a' into SQL type 'q'.
-toSql :: PersistableValue q a => a -> q
-toSql =  fromValue persistableValue
