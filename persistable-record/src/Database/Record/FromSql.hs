@@ -26,11 +26,10 @@ module Database.Record.FromSql (
   FromSql (recordFromSql),
   takeRecord, toRecord,
 
-  valueFromSql
+  valueRecordFromSql,
   ) where
 
-import Database.Record.Persistable
-  (PersistableType, PersistableValue, persistableValue, toValue)
+import Database.Record.Persistable (PersistableType)
 import qualified Database.Record.Persistable as Persistable
 import Database.Record.KeyConstraint
   (HasColumnConstraint(columnConstraint), ColumnConstraint, NotNull, index)
@@ -155,6 +154,6 @@ takeRecord =  runTakeRecord recordFromSql
 toRecord :: FromSql q a => [q] -> a
 toRecord =  runToRecord recordFromSql
 
--- | Derived 'RecordFromSql' from persistable value.
-valueFromSql :: PersistableValue q a => RecordFromSql q a
-valueFromSql =  RecordFromSql $ \qs -> (toValue persistableValue $ head qs, tail qs)
+-- | Derivation rule of 'RecordFromSql' proof object for value convert function.
+valueRecordFromSql :: (q -> a) -> RecordFromSql q a
+valueRecordFromSql d = createRecordFromSql $ \qs -> (d $ head qs, tail qs)

@@ -40,13 +40,12 @@ import Database.Record.KeyConstraint
    deriveComposite, unique, derivedCompositePrimary, derivedUniqueConstraint)
 import Database.Record.Persistable
   (PersistableSqlType, PersistableType(..), sqlNullValue,
-   PersistableSqlValue, PersistableValue(..), fromSql, toSql,
    PersistableRecordWidth, PersistableWidth(..), derivedWidth)
 import Database.Record.FromSql
-  (RecordFromSql, FromSql(..), valueFromSql,
+  (RecordFromSql, FromSql(..), valueRecordFromSql,
    runTakeRecord, takeRecord, runToRecord, toRecord)
 import Database.Record.ToSql
-  (ToSqlM, RecordToSql, ToSql(..), valueToSql,
+  (ToSqlM, RecordToSql, ToSql(..), valueRecordToSql,
    runFromRecord, wrapToSql, putRecord, putEmpty, fromRecord,
    updateValuesByUnique, updateValuesByPrimary)
 
