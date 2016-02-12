@@ -11,21 +11,21 @@ import Database.Relational.Query (defaultConfig)
 import Database.Relational.Query.TH (defineTableDefault, makeRelationalRecordDefault, defineScalarDegree)
 
 
-$(defineTableDefault defaultConfig "TEST" "set_a"
+$(defineTable defaultConfig "TEST" "set_a"
   [ ("int_a0" ,    [t| Int32  |])
   , ("str_a1" ,    [t| String |])
   , ("str_a2" ,    [t| String |]) ]
   [] [0] $ Just 0)
 
 
-$(defineTableDefault defaultConfig "TEST" "set_b"
+$(defineTable defaultConfig "TEST" "set_b"
   [ ("int_b0" ,    [t| Int32  |])
   , ("may_str_b1" ,    [t| Maybe String |])
   , ("str_b2" ,    [t| String |]) ]
   [] [0] $ Just 0)
 
 
-$(defineTableDefault defaultConfig "TEST" "set_c"
+$(defineTable defaultConfig "TEST" "set_c"
   [ ("int_c0" ,    [t| Int32  |])
   , ("str_c1" ,    [t| String |])
   , ("int_c2" ,    [t| Int64  |])
@@ -33,7 +33,7 @@ $(defineTableDefault defaultConfig "TEST" "set_c"
   [] [0] $ Just 0)
 
 
-$(defineTableDefault defaultConfig "TEST" "set_i"
+$(defineTable defaultConfig "TEST" "set_i"
   [ ("int_i0" ,    [t| Int32 |])  ]
   [] [0] $ Just 0)
 
