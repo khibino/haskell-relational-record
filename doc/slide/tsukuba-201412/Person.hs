@@ -6,7 +6,7 @@ import Data.Int
 import Database.Relational.Query
 import Database.Relational.Query.TH
 
-$(defineTableDefault defaultConfig
+$(defineTable defaultConfig
   "PUBLIC" "person"
   [ ("name"   , [t| String |])
   , ("age"    , [t| Int32  |])

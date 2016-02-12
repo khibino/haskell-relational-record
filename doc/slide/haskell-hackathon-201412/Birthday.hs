@@ -7,7 +7,7 @@ import Database.Relational.Query
 import Database.Relational.Query.TH
 import Database.HDBC.Query.TH ()
 
-$(defineTableDefault defaultConfig
+$(defineTable defaultConfig
   "PUBLIC" "birthday"
   [ ("name"   , [t| String |])
   , ("day"    , [t| Day    |])
