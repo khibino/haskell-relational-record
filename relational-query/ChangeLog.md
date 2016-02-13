@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.8.0.5
+
+- Update tests along with deprecations.
+
 ## 0.8.0.4
 
 - Drop unused pragma.
