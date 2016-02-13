@@ -8,7 +8,7 @@ module Model where
 import Data.Int (Int32, Int64)
 
 import Database.Relational.Query (defaultConfig)
-import Database.Relational.Query.TH (defineTableDefault, makeRelationalRecordDefault, defineScalarDegree)
+import Database.Relational.Query.TH (defineTable, makeRelationalRecordDefault, defineScalarDegree)
 
 
 $(defineTable defaultConfig "TEST" "set_a"
