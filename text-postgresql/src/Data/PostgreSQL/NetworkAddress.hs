@@ -29,6 +29,7 @@ import Data.Bits ((.&.), (.|.), shiftL, shiftR)
 -- | Host address type along with IPv4 address string.
 data V4HostAddress =
   V4HostAddress !Word8 !Word8 !Word8 !Word8
+  deriving (Eq, Ord, Show)
 
 v4HostAddressOctets :: V4HostAddress -> (Word8, Word8, Word8, Word8)
 v4HostAddressOctets (V4HostAddress a b c d) = (a, b, c, d)
