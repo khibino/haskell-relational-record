@@ -83,7 +83,7 @@ v6HostAddress ha = do
 netAddress :: Printer NetAddress
 netAddress = d  where
   d (NetAddress4 ha m) = do
-    hostAddress ha
+    v4HostAddress ha
     slash
     dec m
   d (NetAddress6 v6 m) = do

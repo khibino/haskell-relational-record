@@ -126,7 +126,7 @@ optional' x p =
 
 netAddress :: Parser NetAddress
 netAddress =
-  NetAddress4 <$> hostAddress   <*> optional' mask4bits (slash *> decMask4) <|>
+  NetAddress4 <$> v4HostAddress <*> optional' mask4bits (slash *> decMask4) <|>
   NetAddress6 <$> v6HostAddress <*> optional' mask6bits (slash *> decMask6)
 
 _exampleNetAddress :: [Either String NetAddress]

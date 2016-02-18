@@ -89,7 +89,7 @@ v6HostAddressWords (V6HostAddress a b c d e f g h) =
 
 
 data NetAddress
-  = NetAddress4 !HostAddress   !Word8
+  = NetAddress4 !V4HostAddress !Word8
   | NetAddress6 !V6HostAddress !Word8
   deriving (Eq, Ord, Show)
 
