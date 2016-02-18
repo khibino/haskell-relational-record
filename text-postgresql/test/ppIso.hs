@@ -15,6 +15,11 @@ import Database.PostgreSQL.Printer (Printer, execPrinter)
 import qualified Database.PostgreSQL.Printer as Printer
 
 
+instance Arbitrary V4HostAddress where
+  arbitrary =
+    V4HostAddress
+    <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
+
 instance Arbitrary V6HostAddress where
   arbitrary =
     V6HostAddress
@@ -37,9 +42,9 @@ isoProp :: Eq a => Printer a -> Parser a -> a -> Bool
 isoProp pr ps a =
   Right a == (evalParser ps $ execPrinter pr a)
 
-prop_hostAddressIso :: HostAddress -> Bool
-prop_hostAddressIso =
-  isoProp Printer.hostAddress Parser.hostAddress
+prop_v4HostAddressIso :: V4HostAddress -> Bool
+prop_v4HostAddressIso =
+  isoProp Printer.v4HostAddress Parser.v4HostAddress
 
 prop_v6HostAddressIso :: V6HostAddress -> Bool
 prop_v6HostAddressIso =
@@ -51,7 +56,7 @@ prop_netAddressIso =
 
 tests :: [Test]
 tests =
-  [ qcTest "v4 address iso - print parse"      prop_hostAddressIso
+  [ qcTest "v4 address iso - print parse"      prop_v4HostAddressIso
   , qcTest "v6 address iso - print parse"      prop_v6HostAddressIso
   , qcTest "network address iso - print parse" prop_netAddressIso
   ]
