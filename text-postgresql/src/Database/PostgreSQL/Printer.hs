@@ -1,9 +1,11 @@
 
 module Database.PostgreSQL.Printer
        ( Printer, execPrinter
-       , hostAddress
+       , v4HostAddress
        , v6HostAddress
        , netAddress
+
+       , hostAddress
        ) where
 
 import Numeric (showInt, showHex)
@@ -11,7 +13,8 @@ import Numeric (showInt, showHex)
 import Text.Printer.List (token, list, execPrinter)
 import qualified Text.Printer.List as P
 import Data.PostgreSQL.NetworkAddress
-  (HostAddress, hostAddressOctets, V6HostAddress, v6HostAddressWords, NetAddress (..))
+  (HostAddress, hostAddressOctets,
+   V4HostAddress, v4HostAddressOctets, V6HostAddress, v6HostAddressWords, NetAddress (..))
 
 
 type Printer a = P.Printer Char a
@@ -35,6 +38,17 @@ colon = token ':'
 
 slash :: PrintM ()
 slash = token '/'
+
+v4HostAddress :: Printer V4HostAddress
+v4HostAddress ha = do
+  let (a, b, c, d) = v4HostAddressOctets ha
+  dec a
+  dot
+  dec b
+  dot
+  dec c
+  dot
+  dec d
 
 hostAddress :: Printer HostAddress
 hostAddress ha = do

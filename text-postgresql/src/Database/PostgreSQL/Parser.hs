@@ -4,8 +4,10 @@ module Database.PostgreSQL.Parser
        , eof
 
        , netAddress
-       , hostAddress, decMask4
+       , v4HostAddress, decMask4
        , v6HostAddress, decMask6
+
+       , hostAddress
        ) where
 
 import Control.Applicative ((<$>), pure, (<*>), (<*), (*>), (<|>), many, some, optional)
@@ -17,7 +19,7 @@ import Numeric (readDec, readHex)
 
 import Text.Parser.List (runParser, evalParser, eof, noteP, satisfy', satisfy)
 import qualified Text.Parser.List as P
-import Data.PostgreSQL.NetworkAddress (NetAddress (..), HostAddress, V6HostAddress)
+import Data.PostgreSQL.NetworkAddress (NetAddress (..), HostAddress, V4HostAddress, V6HostAddress)
 import qualified Data.PostgreSQL.NetworkAddress as D
 
 
@@ -69,12 +71,15 @@ colon = char ':'
 slash :: Parser Char
 slash = char '/'
 
+v4HostAddress :: Parser V4HostAddress
+v4HostAddress = D.V4HostAddress <$> decW8 <* dot <*> decW8 <* dot <*> decW8 <* dot <*> decW8
+
 hostAddress :: Parser HostAddress
 hostAddress = D.hostAddress <$> decW8 <* dot <*> decW8 <* dot <*> decW8 <* dot <*> decW8
 
-_exampleHostAddress :: [Either String HostAddress]
+_exampleHostAddress :: [Either String V4HostAddress]
 _exampleHostAddress =
-  [ evalParser (hostAddress <* eof) s
+  [ evalParser (v4HostAddress <* eof) s
   | s <- [ "0.0.0.0", "192.168.0.1" ]
   ]
 
