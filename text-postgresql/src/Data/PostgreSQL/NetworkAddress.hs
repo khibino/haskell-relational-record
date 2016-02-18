@@ -44,7 +44,10 @@ hostAddressOctets ha =
     getWord8 n = fromIntegral $ (ha `shiftR` n) .&. 0xFF
 
 
--- | Not same as HostAddress6 of network package, because HostAddress6 has host-byteorder.
+-- | Host address type along with IPv6 address string.
+--   Each 'Word16' value is host byte order.
+--   Host byte order is portable in programs on its own host.
+--   Network byte order is only needed, when communicating other hosts.
 data V6HostAddress =
   V6HostAddress !Word16 !Word16 !Word16 !Word16 !Word16 !Word16 !Word16 !Word16
   deriving (Eq, Ord, Show)
