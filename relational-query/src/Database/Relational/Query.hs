@@ -50,7 +50,7 @@ import Database.Relational.Query.Constraint
    Primary, Unique, NotNull)
 import Database.Relational.Query.Context
 import Database.Relational.Query.Component
-  (NameConfig (..), Config (..), defaultConfig, ProductUnitSupport (..), Order (..))
+  (NameConfig (..), SchemaNameMode (..), Config (..), defaultConfig, ProductUnitSupport (..), Order (..))
 import Database.Relational.Query.Sub (SubQuery, unitSQL, queryWidth)
 import Database.Relational.Query.Projection (Projection, list)
 import Database.Relational.Query.Projectable
