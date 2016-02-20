@@ -16,14 +16,11 @@ module Data.PostgreSQL.NetworkAddress
        , v6HostAddress, v6HostAddressL, v6HostAddressR
 
        , Inet (..), Cidr (..)
-
-       , HostAddress, hostAddress, hostAddressOctets
        ) where
 
 import Control.Applicative (pure)
 import Control.Monad (guard)
-import Data.Word (Word8, Word16, Word32)
-import Data.Bits ((.&.), (.|.), shiftL, shiftR)
+import Data.Word (Word8, Word16)
 
 
 -- | Host address type along with IPv4 address string.
@@ -33,28 +30,6 @@ data V4HostAddress =
 
 v4HostAddressOctets :: V4HostAddress -> (Word8, Word8, Word8, Word8)
 v4HostAddressOctets (V4HostAddress a b c d) = (a, b, c, d)
-
-{-# DEPRECATED HostAddress "Use V4HostAddress instead of this. " #-}
--- | Same as HostAddress of network package. Definition to reduce dependency.
-type HostAddress = Word32
-
-{-# DEPRECATED hostAddress "Implementation based on mis-understand. Use V4HostAddress. " #-}
-hostAddress :: Word8 -> Word8 -> Word8 -> Word8 -> HostAddress
-hostAddress a b c d =
-  fromIntegral a             .|.
-  fromIntegral b `shiftL`  8 .|.
-  fromIntegral c `shiftL` 16 .|.
-  fromIntegral d `shiftL` 24
-
-{-# DEPRECATED hostAddressOctets "Implementation based on mis-understand. Use v4HostAddressOctets. " #-}
-hostAddressOctets :: HostAddress -> (Word8, Word8, Word8, Word8)
-hostAddressOctets ha =
-    ( getWord8  0,
-      getWord8  8,
-      getWord8 16,
-      getWord8 24 )
-  where
-    getWord8 n = fromIntegral $ (ha `shiftR` n) .&. 0xFF
 
 
 -- | Host address type along with IPv6 address string.
