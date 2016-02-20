@@ -18,8 +18,10 @@ module Database.Relational.Query.Component
 
          -- * Configuration type for query
          NameConfig (..),
+         SchemaNameMode (..),
          Config ( productUnitSupport
                 , chunksInsertSize
+                , schemaNameMode
                 , normalizedTableName
                 , verboseAsCompilerWarning
                 , nameConfig),
@@ -101,11 +103,17 @@ data NameConfig =
 instance Show NameConfig where
   show = const "<NameConfig>"
 
+data SchemaNameMode
+  = SchemaQualified
+  | SchemaNotQualified
+  deriving (Eq, Show)
+
 -- | Configuration type.
 data Config =
   Config
   { productUnitSupport        ::  ProductUnitSupport
   , chunksInsertSize          ::  Int
+  , schemaNameMode            ::  SchemaNameMode
   , normalizedTableName       ::  Bool
   , verboseAsCompilerWarning  ::  Bool
   , nameConfig                ::  NameConfig
@@ -116,6 +124,7 @@ defaultConfig :: Config
 defaultConfig =
   Config { productUnitSupport        =  PUSupported
          , chunksInsertSize          =  256
+         , schemaNameMode            =  SchemaQualified
          , normalizedTableName       =  True
          , verboseAsCompilerWarning  =  False
          , nameConfig                =  NameConfig { recordConfig     =  RecordTH.defaultNameConfig
