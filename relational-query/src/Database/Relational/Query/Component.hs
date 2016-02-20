@@ -111,12 +111,12 @@ data SchemaNameMode
 -- | Configuration type.
 data Config =
   Config
-  { productUnitSupport        ::  ProductUnitSupport
-  , chunksInsertSize          ::  Int
-  , schemaNameMode            ::  SchemaNameMode
-  , normalizedTableName       ::  Bool
-  , verboseAsCompilerWarning  ::  Bool
-  , nameConfig                ::  NameConfig
+  { productUnitSupport        ::  !ProductUnitSupport
+  , chunksInsertSize          ::  !Int
+  , schemaNameMode            ::  !SchemaNameMode
+  , normalizedTableName       ::  !Bool
+  , verboseAsCompilerWarning  ::  !Bool
+  , nameConfig                ::  !NameConfig
   } deriving Show
 
 -- | Default configuration.
