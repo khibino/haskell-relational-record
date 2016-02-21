@@ -103,9 +103,10 @@ data NameConfig =
 instance Show NameConfig where
   show = const "<NameConfig>"
 
+-- | Schema name qualify mode in SQL string.
 data SchemaNameMode
-  = SchemaQualified
-  | SchemaNotQualified
+  = SchemaQualified     -- ^ Schema qualified table name in SQL string
+  | SchemaNotQualified  -- ^ Not qualified table name in SQL string
   deriving (Eq, Show)
 
 -- | Configuration type.
