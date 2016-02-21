@@ -259,13 +259,13 @@ defineTableTypes tableVar' relVar' insVar' insQVar' recordType' table columns = 
   return $ iDs ++ dDs
 
 tableSQL :: Bool -> String -> String -> String
-tableSQL normalize schema table = normalizeS schema ++ '.' : normalizeT table  where
+tableSQL normalize schema table = normalizeS ++ '.' : normalizeT  where
   normalizeS
-    | normalize = map toUpper
-    | otherwise = id
+    | normalize = map toUpper schema
+    | otherwise = schema
   normalizeT
-    | normalize = map toLower
-    | otherwise = id
+    | normalize = map toLower table
+    | otherwise = table
 
 derivationVarNameDefault :: String -> VarName
 derivationVarNameDefault =  (`varNameWithPrefix` "derivationFrom")
