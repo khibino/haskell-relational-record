@@ -85,7 +85,8 @@ import qualified Database.Record.TH as Record
 
 import Database.Relational.Query
   (Table, Pi, id', Relation, ProductConstructor (..),
-   NameConfig (..), Config (normalizedTableName, nameConfig), defaultConfig,
+   NameConfig (..), SchemaNameMode (..),
+   Config (normalizedTableName, schemaNameMode, nameConfig), defaultConfig,
    relationalQuerySQL, Query, relationalQuery, KeyUpdate,
    Insert, derivedInsert, InsertQuery, derivedInsertQuery,
    HasConstraintKey(constraintKey), Primary, NotNull, primary, primaryUpdate)
@@ -258,14 +259,17 @@ defineTableTypes tableVar' relVar' insVar' insQVar' recordType' table columns = 
   dDs <- defineTableDerivations tableVar' relVar' insVar' insQVar' recordType'
   return $ iDs ++ dDs
 
-tableSQL :: Bool -> String -> String -> String
-tableSQL normalize schema table = normalizeS ++ '.' : normalizeT  where
-  normalizeS
-    | normalize = map toUpper schema
-    | otherwise = schema
-  normalizeT
-    | normalize = map toLower table
-    | otherwise = table
+tableSQL :: Bool -> SchemaNameMode -> String -> String -> String
+tableSQL normalize snm schema table = case snm of
+  SchemaQualified     ->  normalizeS ++ '.' : normalizeT
+  SchemaNotQualified  ->  normalizeS
+  where
+    normalizeS
+      | normalize = map toUpper schema
+      | otherwise = schema
+    normalizeT
+      | normalize = map toLower table
+      | otherwise = table
 
 derivationVarNameDefault :: String -> VarName
 derivationVarNameDefault =  (`varNameWithPrefix` "derivationFrom")
@@ -328,7 +332,7 @@ defineTableTypesWithConfig config schema table columns = do
              (table `varNameWithPrefix` "insert")
              (table `varNameWithPrefix` "insertQuery")
              (recordType recConfig schema table)
-             (tableSQL (normalizedTableName config) schema table)
+             (tableSQL (normalizedTableName config) (schemaNameMode config) schema table)
              (map (fst . fst) columns)
   colsDs <- defineColumnsDefault (recordTypeName recConfig schema table) columns
   return $ tableDs ++ colsDs
