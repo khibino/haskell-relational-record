@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.8.1.0
+
+- Add schemaNameMode configuration.
+
 ## 0.8.0.5
 
 - Update tests along with deprecations.
