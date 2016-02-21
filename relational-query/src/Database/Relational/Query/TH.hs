@@ -262,7 +262,7 @@ defineTableTypes tableVar' relVar' insVar' insQVar' recordType' table columns = 
 tableSQL :: Bool -> SchemaNameMode -> String -> String -> String
 tableSQL normalize snm schema table = case snm of
   SchemaQualified     ->  normalizeS ++ '.' : normalizeT
-  SchemaNotQualified  ->  normalizeS
+  SchemaNotQualified  ->  normalizeT
   where
     normalizeS
       | normalize = map toUpper schema
