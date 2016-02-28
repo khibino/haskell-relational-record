@@ -160,6 +160,14 @@ instance ShowConstantTermsSQL TimeOfDay where
 instance ShowConstantTermsSQL LocalTime where
   showConstantTermsSQL' = constantTimeTerms TIMESTAMP "%Y-%m-%d %H:%M:%S"
 
+-- | Constant SQL terms of 'ZonedTime'.
+instance ShowConstantTermsSQL ZonedTime where
+  showConstantTermsSQL' = constantTimeTerms TIMESTAMPTZ "%Y-%m-%d %H:%M:%S%z"
+
+-- | Constant SQL terms of 'ZonedTime'.
+instance ShowConstantTermsSQL UTCTime where
+  showConstantTermsSQL' = constantTimeTerms TIMESTAMPTZ "%Y-%m-%d %H:%M:%S%z"
+
 showMaybeTerms :: ShowConstantTermsSQL a => PersistableRecordWidth a -> Maybe a -> [StringSQL]
 showMaybeTerms wa = d  where
   d (Just a) = showConstantTermsSQL' a
