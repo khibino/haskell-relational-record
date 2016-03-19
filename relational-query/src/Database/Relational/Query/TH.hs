@@ -44,6 +44,7 @@ module Database.Relational.Query.TH (
 
   -- * Table metadata type and basic 'Relation'
   defineTableTypes, defineTableTypesWithConfig, defineTableTypesDefault,
+  defineTableDerivableInstance, defineTableDerivations,
 
   -- * Basic SQL templates generate rules
   definePrimaryQuery,
