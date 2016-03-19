@@ -40,7 +40,7 @@ module Database.Relational.Query.TH (
   defineScalarDegree,
 
   -- * Column projections
-  defineColumns, defineColumnsDefault,
+  defineColumns, defineColumnsDefault, defineColumnsDefault',
 
   -- * Table metadata type and basic 'Relation'
   defineTableTypes, defineTableTypesWithConfig, defineTableTypesDefault,
@@ -203,17 +203,32 @@ columnTemplate mayConstraint recType var' iExp colType = do
 defineColumns :: ConName                                      -- ^ Record type name
               -> [((VarName, TypeQ), Maybe (TypeQ, VarName))] -- ^ Column info list
               -> Q [Dec]                                      -- ^ Column projection path declarations
-defineColumns recTypeName cols = do
-  let defC ((cn, ct), mayCon) ix = columnTemplate mayCon (toTypeCon recTypeName) cn
-                                   [| $(toVarExp . columnOffsetsVarNameDefault $ conName recTypeName) ! $(integralE ix) |] ct
+defineColumns recTypeName =
+  defineColumns' (conName recTypeName) (toTypeCon recTypeName)
+
+-- | Column projection path 'Pi' templates.
+defineColumns' :: Name                                         -- ^ Record type name
+               -> TypeQ                                        -- ^ Record type
+               -> [((VarName, TypeQ), Maybe (TypeQ, VarName))] -- ^ Column info list
+               -> Q [Dec]                                      -- ^ Column projection path declarations
+defineColumns' recTypeName recType cols = do
+  let defC ((cn, ct), mayCon) ix = columnTemplate mayCon recType cn
+                                   [| $(toVarExp . columnOffsetsVarNameDefault $ recTypeName) ! $(integralE ix) |] ct
   fmap concat . sequence $ zipWith defC cols [0 :: Int ..]
 
 -- | Make column projection path and constraint key templates using default naming rule.
 defineColumnsDefault :: ConName                          -- ^ Record type name
                      -> [((String, TypeQ), Maybe TypeQ)] -- ^ Column info list
                      -> Q [Dec]                          -- ^ Column projection path declarations
-defineColumnsDefault recTypeName cols =
-  defineColumns recTypeName [((varN n, ct), fmap (withCName n) mayC) | ((n, ct), mayC) <- cols]
+defineColumnsDefault recTypeName =
+    defineColumnsDefault' (conName recTypeName) (toTypeCon recTypeName)
+
+defineColumnsDefault' :: Name                             -- ^ Record type name
+                      -> TypeQ                            -- ^ Record type
+                      -> [((String, TypeQ), Maybe TypeQ)] -- ^ Column info list
+                      -> Q [Dec]                          -- ^ Column projection path declarations
+defineColumnsDefault' recTypeName recType cols =
+  defineColumns' recTypeName recType [((varN n, ct), fmap (withCName n) mayC) | ((n, ct), mayC) <- cols]
   where varN      name   = varCamelcaseName (name ++ "'")
         withCName name t = (t, varCamelcaseName ("constraint_key_" ++ name))
 
