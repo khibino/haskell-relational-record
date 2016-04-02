@@ -7,7 +7,7 @@ license:             BSD3
 license-file:        LICENSE
 author:              Kei Hibino
 maintainer:          ex8k.hibino@gmail.com
-copyright:           Copyright (c) 2014 Kei Hibino
+copyright:           Copyright (c) 2014-2016 Kei Hibino
 category:            Database
 build-type:          Simple
 cabal-version:       >=1.10
@@ -19,6 +19,7 @@ library
   build-depends:       base <5
                      , relational-query >=0.3
                      , relational-query-HDBC
+                     , persistable-types-HDBC-pg
 
   hs-source-dirs:    src
   ghc-options:       -Wall
