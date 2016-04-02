@@ -1,4 +1,4 @@
-name:                example
+name:                hrr-example-HDBC-MySQL
 version:             0.1.0.0
 synopsis:            mysql driver example
 -- description:
