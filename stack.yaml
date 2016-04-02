@@ -5,14 +5,16 @@ packages:
   - persistable-types-HDBC-pg/
   - relational-query/
   - relational-query-HDBC/
-#  - relational-query-HDBC/example/mysql/
-#  - relational-query-HDBC/example/Oracle/
-#  - relational-query-HDBC-pgTest/
   - relational-record/
-#  - relational-record-examples/
   - relational-schemas/
   - sql-words/
   - text-postgresql/
+
+#  - relational-record-examples/
+#  - examples/HDBC/MySQL/
+#  - examples/HDBC/Oracle/
+#  - examples/HDBC/PostgreSQL
+
 extra-deps:
 #  - HDBC-mysql-0.6.6.1
 #  - HDBC-odbc-2.4.0.1
