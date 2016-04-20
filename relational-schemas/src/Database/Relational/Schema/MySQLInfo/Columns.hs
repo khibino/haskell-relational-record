@@ -18,5 +18,6 @@ $(defineTableTypesAndRecord config
     , ("column_default",    [t|Maybe String|])
     , ("is_nullable",       [t|String|])
     , ("data_type",         [t|String|])
+    , ("column_type",       [t|String|])
     ]
     [''Show])

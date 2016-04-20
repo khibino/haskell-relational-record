@@ -79,7 +79,7 @@ getType mapFromSql rec = do
            Map.lookup key mapFromSqlDefault
     return (normalizeColumn $ Columns.columnName rec, mayNull typ)
     where
-        key = map toUpper $ Columns.dataType rec
+        key = map toUpper $ Columns.columnType rec
         mayNull typ = if notNull rec
                       then typ
                       else [t|Maybe $(typ)|]
