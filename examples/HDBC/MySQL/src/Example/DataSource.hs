@@ -9,7 +9,7 @@ module Example.DataSource
 import Language.Haskell.TH         (Q, Dec, TypeQ)
 import Language.Haskell.TH.Syntax  (Name)
 
-import Database.HDBC.Query.TH      (defineTableFromDB)
+import Database.HDBC.Query.TH      (defineTableFromDB')
 import Database.HDBC.Schema.Driver (typeMap)
 import Database.HDBC.Schema.MySQL  (driverMySQL)
 import Database.HDBC.MySQL         ( Connection
@@ -17,6 +17,7 @@ import Database.HDBC.MySQL         ( Connection
                                    , MySQLConnectInfo(..)
                                    , defaultMySQLConnectInfo
                                    )
+import Database.Relational.Schema.MySQLInfo.Config (config)
 
 config :: MySQLConnectInfo
 config = defaultMySQLConnectInfo {
@@ -30,4 +31,4 @@ connect :: IO Connection
 connect = connectMySQL config
 
 defineTable :: [(String, TypeQ)] -> String -> String -> [Name] -> Q [Dec]
-defineTable tmap = defineTableFromDB connect (driverMySQL { typeMap = tmap })
+defineTable tmap = defineTableFromDB' connect config (driverMySQL { typeMap = tmap })
