@@ -100,6 +100,8 @@ module Database.Relational.Query.Documentation (
 
   -- ** Maybe Projections
   -- $maybeProjection
+  just, flattenMaybe,
+
   (?!), (?!?),
   (<?.>), (<?.?>),
 
@@ -296,6 +298,11 @@ Several operators are defined to manipulate relation set.
 -}
 
 {- $maybeProjection
+Some operators are provided to manage projections with 'Maybe' phantom type.
+
+'just' operator creates 'Maybe' typed projection,
+'flattenMaybe' operator joins nested 'Maybe' typed projection.
+
 'Maybe' type flavor of operators against projection path, projection and aggregation are also provided.
 
 For example,
