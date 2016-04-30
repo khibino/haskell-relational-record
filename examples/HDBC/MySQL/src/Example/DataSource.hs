@@ -19,8 +19,8 @@ import Database.HDBC.MySQL         ( Connection
                                    )
 import Database.Relational.Schema.MySQLInfo.Config (config)
 
-config :: MySQLConnectInfo
-config = defaultMySQLConnectInfo {
+connConfig :: MySQLConnectInfo
+connConfig = defaultMySQLConnectInfo {
               mysqlUser     = "hrr-tester"
             , mysqlPassword = ""
             , mysqlDatabase = "TEST"
@@ -28,7 +28,7 @@ config = defaultMySQLConnectInfo {
             }
 
 connect :: IO Connection
-connect = connectMySQL config
+connect = connectMySQL connConfig
 
 defineTable :: [(String, TypeQ)] -> String -> String -> [Name] -> Q [Dec]
 defineTable tmap = defineTableFromDB' connect config (driverMySQL { typeMap = tmap })
