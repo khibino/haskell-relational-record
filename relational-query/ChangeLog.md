@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.8.2.0
+
+- Add TIMESTAMPTZ literal of PostgreSQL.
+
 ## 0.8.1.0
 
 - Add schemaNameMode configuration.
