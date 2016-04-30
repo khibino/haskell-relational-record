@@ -161,10 +161,12 @@ instance ShowConstantTermsSQL LocalTime where
   showConstantTermsSQL' = constantTimeTerms TIMESTAMP "%Y-%m-%d %H:%M:%S"
 
 -- | Constant SQL terms of 'ZonedTime'.
+--   This generates ***NOT STANDARD*** SQL of TIMESTAMPTZ literal.
 instance ShowConstantTermsSQL ZonedTime where
   showConstantTermsSQL' = constantTimeTerms TIMESTAMPTZ "%Y-%m-%d %H:%M:%S%z"
 
--- | Constant SQL terms of 'ZonedTime'.
+-- | Constant SQL terms of 'UTCTime'.
+--   This generates ***NOT STANDARD*** SQL of TIMESTAMPTZ literal with UTC timezone.
 instance ShowConstantTermsSQL UTCTime where
   showConstantTermsSQL' = constantTimeTerms TIMESTAMPTZ "%Y-%m-%d %H:%M:%S%z"
 
