@@ -64,7 +64,7 @@ notNull info = isTrue . TableInfo.notnull $ info
 
 -- for backward compatibility
 normalizeMap :: Map String TypeQ -> Map String TypeQ
-normalizeMap = Map.fromList . map (first toUpper) . Map.toList
+normalizeMap = Map.fromList . map (first $ map toUpper) . Map.toList
 
 getType :: Map String TypeQ -> TableInfo -> Maybe (String, TypeQ)
 getType mapFromSql info = do
