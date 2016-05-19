@@ -28,7 +28,15 @@ extra-source-files:    sql/3.7.1.sh
                        sql/sql-memo
                        examples.db
 
+flag binary
+  description:         building binary, too
+  default:             False
+
 executable examples
+  if flag(binary)
+    buildable:         True
+  else
+    buildable:         False
   hs-source-dirs:      src
   main-is:             examples.hs
   other-modules:       Account
