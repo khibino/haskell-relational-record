@@ -14,6 +14,7 @@ import Data.ByteString (ByteString)
 import Data.Char (toLower, toUpper)
 import Data.Int (Int8, Int16, Int32, Int64)
 import Data.Map (Map)
+import Data.Time (Day, LocalTime)
 import Database.Record.Instances ()
 import Database.Relational.Query (Query)
 import Database.Relational.Query.Type (unsafeTypedQuery)
@@ -48,6 +49,9 @@ mapFromSqlDefault =
                  , ("REAL",       [t|Double|])
                  , ("DOUBLE",     [t|Double|])
                  , ("FLOAT",      [t|Float|])
+
+                 , ("DATE",       [t|Day|])
+                 , ("DATETIME",   [t|LocalTime|])
                  ]
 
 normalizeColumn :: String -> String
