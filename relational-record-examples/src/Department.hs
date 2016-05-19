@@ -2,6 +2,6 @@
 
 module Department where
 
-import DataSource (defineTable)
+import Database.Record.TH.SQLite3 (defineTable)
 
-$(defineTable "department")
+$(defineTable "examples.db" "department")

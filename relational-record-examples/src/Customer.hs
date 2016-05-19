@@ -2,6 +2,6 @@
 
 module Customer where
 
-import DataSource (defineTable)
+import Database.Record.TH.SQLite3 (defineTable)
 
-$(defineTable "customer")
+$(defineTable "examples.db" "customer")

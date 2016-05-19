@@ -4,15 +4,9 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-import Database.Record
+import Database.Relational.Query.SQLite3
 
-import Database.Relational.Query
-
-import Database.HDBC (IConnection, SqlValue, rollback)
-import Database.HDBC.Query.TH (makeRecordPersistableDefault)
-import Database.HDBC.Record (runDelete, runInsert, runInsertQuery, runQuery, runUpdate)
-import Database.HDBC.Session (withConnectionIO, handleSqlError')
-
+import Prelude hiding (product)
 import Data.Int (Int32, Int64)
 import Data.Time (Day, LocalTime)
 
@@ -38,10 +32,6 @@ import qualified Transaction
 import Transaction (transaction)
 import qualified Employee
 import Employee (Employee, employee, tableOfEmployee)
-
-import DataSource (connect)
-
-import Prelude hiding (product)
 
 allAccount :: Relation () Account
 allAccount = relation $ query account
@@ -1229,7 +1219,7 @@ run :: (Show a, IConnection conn, FromSql SqlValue a, ToSql SqlValue p)
     => conn -> p -> Relation p a -> IO ()
 run conn param rel = do
   putStrLn $ "SQL: " ++ show rel
-  records <- runQuery conn (relationalQuery rel) param
+  records <- runRelation conn rel param
   mapM_ print records
   putStrLn ""
   rollback conn
@@ -1271,7 +1261,7 @@ runD conn param dlt = do
   rollback conn
 
 main :: IO ()
-main = handleSqlError' $ withConnectionIO connect $ \conn -> do
+main = handleSqlError' $ withConnectionIO (connectSqlite3 "examples.db") $ \conn -> do
   run conn () allAccount
   run conn () account_4_3_3a
   run conn () account_4_3_3aT

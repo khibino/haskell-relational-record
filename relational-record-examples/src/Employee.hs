@@ -2,6 +2,6 @@
 
 module Employee where
 
-import DataSource (defineTable)
+import Database.Record.TH.SQLite3 (defineTable)
 
-$(defineTable "employee")
+$(defineTable "examples.db" "employee")

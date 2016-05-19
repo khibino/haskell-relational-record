@@ -3,9 +3,9 @@
 module Transaction where
 
 import Database.Relational.Query (Relation)
-import DataSource (defineTable)
+import Database.Record.TH.SQLite3 (defineTable)
 
-$(defineTable "transaction0")
+$(defineTable "examples.db" "transaction0")
 
 type Transaction = Transaction0
 
