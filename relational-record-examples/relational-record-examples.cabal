@@ -45,6 +45,8 @@ library
                      , relational-query >= 0.7
                      , relational-query-HDBC >= 0.4
                      , template-haskell
+                     -- not link directly but query type map
+                     , relatoinal-schema >= 0.1.3
 
 executable examples
   if flag(binary)
