@@ -196,14 +196,14 @@ relationalQuery :: Relation p r -> Query p r
 
 OK. Let's execute our relation on "examples.db":
 
-    % cabal configure
+    % cabal configure -f binary
     % cabal build
     % cabal repl executable:examples
-    > conn <- connect
-    > run conn () account1
-    SQL: SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2, T0.open_date AS f3, T0.close_date AS f4, T0.last_activity_date AS f5, T0.status AS f6, T0.open_branch_id AS f7, T0.open_emp_id AS f8, T0.avail_balance AS f9, T0.pending_balance AS f10 FROM MAIN.account T0 WHERE (T0.product_cd IN ('CHK', 'SAV', 'CD', 'MM'))
-    Account {accountId = 1, productCd = "CHK", custId = 1, openDate = 2000-01-15, closeDate = Nothing, lastActivityDate = Just 2005-01-04, status = "ACTIVE", openBranchId = Just 2, openEmpId = Just 10, availBalance = Just 1057.75, pendingBalance = Just 1057.75}
-    Account {accountId = 2, productCd = "SAV", custId = 1, openDate = 2000-01-15, closeDate = Nothing, lastActivityDate = Just 2004-12-19, status = "ACTIVE", openBranchId = Just 2, openEmpId = Just 10, availBalance = Just 500.0, pendingBalance = Just 500.0}
+    > conn <- connectSqlite3 "examples.db"
+    > run conn () join_5_1_3
+    SQL: SELECT ALL T0.account_id AS f0, T0.cust_id AS f1, T0.open_date AS f2, T0.product_cd AS f3 FROM (MAIN.account T0 INNER JOIN MAIN.employee T1 ON (T0.open_emp_id = T1.emp_id)) INNER JOIN MAIN.branch T2 ON (T1.assigned_branch_id = T2.branch_id) WHERE (T1.start_date <= '2004-01-01') AND ((T1.title = 'Teller') OR (T1.title = 'Head Teller')) AND (T2.name = 'Woburn Branch')
+    Account3 {a3AccountId = 1, a3CustId = 1, a3OpenDate = 2000-01-15, a3ProductCd = "CHK"}
+    Account3 {a3AccountId = 2, a3CustId = 1, a3OpenDate = 2000-01-15, a3ProductCd = "SAV"}
     ...
 
 Great!
