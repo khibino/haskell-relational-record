@@ -14,7 +14,7 @@ defineTable :: FilePath -> String -> Q [Dec]
 defineTable fileName tableName =
   defineTableFromDB
     (connectSqlite3 fileName)
-    (driverSQLite3 { typeMap = [("FLOAT", [t|Double|])] }) -- overwrite the default type map with yours
+    (driverSQLite3 { typeMap = [("FLOAT", [t|Double|]), ("INTEGER", [t|Int|])] }) -- overwrite the default type map with yours
     "main" -- schema name, ignored by SQLite
     tableName
     [''Show]
