@@ -8,7 +8,7 @@ title: Technical information
 - [Relational Record Released!](http://htmlpreview.github.io/?https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/haskell-hackathon-201412/HRR.html), Kei Hibino, 2014.12.20
 - [Haskell Relational Record's Query-Building DSL](http://htmlpreview.github.io/?https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/tsukuba-201412/DSL.html), Kei Hibino, 2014.12.25
 
-### Papers in Englihs
+### Papers in English
 
 - [Experience Report: Haskell Relational Record](pdf/hrr-haskell-sympo2015-rejected.pdf) -- submitted to Haskell Symposium 2015 and REJECTED
 
