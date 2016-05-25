@@ -12,6 +12,10 @@ title: Technical information
 
 - [Experience Report: Haskell Relational Record](pdf/hrr-haskell-sympo2015-rejected.pdf) -- submitted to Haskell Symposium 2015 and REJECTED
 
+### Slides in Japanese
+
+- [Haskell Relational Record, 機能と構成](https://htmlpreview.github.io/?https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/code-reading-201601/SourceTreeJ.html), Kei Hibino, 2016.1.31
+
 ### Articles in Japanese
 
 - [Extending Query, Relational, Typeful, Composable](http://khibino.hatenadiary.jp/entry/20131219/1387423818), Kei Hibino, 2013.12.19
