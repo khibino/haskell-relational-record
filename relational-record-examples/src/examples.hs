@@ -1222,7 +1222,6 @@ run conn param rel = do
   records <- runRelation conn rel param
   mapM_ print records
   putStrLn ""
-  rollback conn
 
 runI :: (IConnection conn, ToSql SqlValue p)
      => conn -> p -> Insert p -> IO ()
