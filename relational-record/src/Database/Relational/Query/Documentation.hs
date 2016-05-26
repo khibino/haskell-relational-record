@@ -111,6 +111,8 @@ module Database.Relational.Query.Documentation (
 
   -- ** Placeholders
   -- $placeholders
+  placeholder,
+
   query',
   left',
   relation',
@@ -319,6 +321,10 @@ contain documentation of other 'Maybe' flavor projection operators.
  -}
 
 {- $placeholders
+'placeholders' operator takes
+a lambda-form which argument is 'Projection' typed placeholders and its scope is restricted by that lambda-form
+and then creates dummy value with 'Placeholders' typed which propagate placeholder type information into 'Relation' layer.
+
 Placeholders' flavor of operators against query operation and set operation are also provided, to realize type safe placeholders.
 
 'query'', 'left'', 'relation'', 'updateTarget'', 'restriction'', and 'union''
