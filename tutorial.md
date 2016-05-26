@@ -56,24 +56,24 @@ Here is the content of "Account.hs":
 
 module Account where
 
-import DataSource (defineTable)
+import Database.Record.TH.SQLite3 (defineTable)
 
-$(defineTable "account")
+$(defineTable "examples.db" "account")
 {% endhighlight %}
 
 This code generates the `Account` data type as follows:
 
 {% highlight haskell %}
 data Account
-  = Account {accountId :: !GHC.Int.Int64,
+  = Account {accountId :: !Int,
              productCd :: !String,
-             custId :: !GHC.Int.Int64,
+             custId :: !Int,
              openDate :: !Day,
              closeDate :: !(Maybe Day),
              lastActivityDate :: !(Maybe Day),
              status :: !String,
-             openBranchId :: !(Maybe GHC.Int.Int64),
-             openEmpId :: !(Maybe GHC.Int.Int64),
+             openBranchId :: !(Maybe Int),
+             openEmpId :: !(Maybe Int),
              availBalance :: !(Maybe Double),
              pendingBalance :: !(Maybe Double)}
   deriving (Show)
@@ -85,61 +85,16 @@ account =  ...
 -- Column selectors for This DSL
 accountId' :: Pi Account GHC.Int.Int64
 accountId'
-  = definePi 0
+  = ...
 productCd' :: Pi Account String
 productCd'
-  = definePi 1
+  = ...
 custId' :: Pi Account GHC.Int.Int64
 custId'
-  = definePi 2
+  = ...
 ....
 {% endhighlight %}
 
-"DataSource.hs" is a bit complicated:
-
-{% highlight haskell %}
-{-# LANGUAGE TemplateHaskell #-}
-
-module DataSource (
-    connect, convTypes, defineTable
-  ) where
-
-import Data.Time (Day, LocalTime)
-import Database.HDBC.Query.TH (defineTableFromDB)
-import Database.HDBC.Schema.Driver (typeMap)
-import Database.HDBC.Schema.SQLite3 (driverSQLite3)
-import Database.HDBC.Sqlite3 (Connection, connectSqlite3)
-import Database.Record.TH (derivingShow)
-import Language.Haskell.TH (Q, Dec, TypeQ)
-import Language.Haskell.TH.Name.CamelCase (ConName)
-
-connect :: IO Connection
-connect = connectSqlite3 "examples.db"
-
-convTypes :: [(String, TypeQ)]
-convTypes =
-    [ ("float", [t|Double|])
-    , ("date", [t|Day|])
-    , ("datetime", [t|LocalTime|])
-    , ("double", [t|Double|])
-    , ("varchar", [t|String|])
-    ]
-
-defineTable :: String -> Q [Dec]
-defineTable tableName =
-  defineTableFromDB
-    connect
-    (driverSQLite3 { typeMap = convTypes }) -- overwrite the default type map with yours
-    "main" -- schema name, ignored by SQLite
-    tableName
-    [derivingShow]
-{% endhighlight %}
-
-* A `Connection` to "examples.db" will be made.
-* `convTypes` defines data mappings for ambiguous types in SQLite. You don't have to understand this at the moment.
-* `defineTable` is a wrapper for the magic function `defineTableFromDB` which is the heart of code generation.
-
-Using "DataSource.hs", we need to prepare modules for other tables than Account, of course.
 
 ### Defining relations
 
@@ -180,18 +135,18 @@ run :: (Show a, IConnection conn, FromSql SqlValue a, ToSql SqlValue p)
        => conn -> p -> Relation p a -> IO ()
 run conn param rel = do
   putStrLn $ "SQL: " ++ show rel
-  records <- runQuery conn (relationalQuery rel) param
+  records <- runRelation conn rel param
   mapM_ print records
   putStrLn ""
 {% endhighlight %}
 
-`run` shows the generated SQL statement first and then the results of the query. Here are the signatures of the two important functions above:
+`run` shows the generated SQL statement first and then the results of the query. Here are the signatures of the important function above:
 
 {% highlight haskell %}
-runQuery :: (IConnection conn, ToSql SqlValue p, FromSql SqlValue a) =>
-            conn -> Query p a -> p -> IO [a]
-
-relationalQuery :: Relation p r -> Query p r
+runRelation :: (IConnection conn,
+                ToSql SqlValue p,
+                FromSql SqlValue a) =>
+               conn -> Relation p a -> p -> IO [a]
 {% endhighlight %}
 
 OK. Let's execute our relation on "examples.db":
