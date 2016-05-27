@@ -98,7 +98,7 @@ custId'
 
 ### Defining relations
 
-Next we define a simple relation in "src/examples.hs":
+Next we define a simple relation (SELECT statement) in "src/examples.hs":
 
 {% highlight haskell %}
 account1 :: Relation () Account
