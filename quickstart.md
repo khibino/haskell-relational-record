@@ -20,6 +20,7 @@ To install the Haskell "relational-record" library, run the following commands:
 
 ### The first relation
 
+In HRR, select statements are called relations.
 Let's define our first relation. Copy the following to "hello.hs":
 
 {% highlight haskell %}
