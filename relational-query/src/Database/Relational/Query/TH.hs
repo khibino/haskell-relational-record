@@ -67,6 +67,7 @@ module Database.Relational.Query.TH (
   reifyRelation,
   ) where
 
+import Control.Monad (join)
 import Data.Char (toUpper, toLower)
 import Data.List (foldl1')
 import Data.Array.IArray ((!))
@@ -274,7 +275,8 @@ tableSQL normalize snm iq schema table = case snm of
 
 quote :: IdentifierQuotation -> String -> String
 quote NoQuotation    s = s
-quote (Quotation qc) s = qc : s ++ qc : [] -- TODO: Escaping.
+quote (Quotation qc) s = qc : s ++ qc : []
+  where escape q = join . (fmap (\c -> if c == q then [q, q] else [c]))
 
 derivationVarNameDefault :: String -> VarName
 derivationVarNameDefault =  (`varNameWithPrefix` "derivationFrom")
