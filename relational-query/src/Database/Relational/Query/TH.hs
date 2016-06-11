@@ -270,9 +270,11 @@ tableSQL normalize snm iq schema table = case snm of
     normalizeT
       | normalize = map toLower table
       | otherwise = table
-    qt s = case iq of
-             NoQuotation -> s
-             Quotation qc -> qc : s ++ qc : [] -- TODO: Escaping.
+    qt = quote iq
+
+quote :: IdentifierQuotation -> String -> String
+quote NoQuotation    s = s
+quote (Quotation qc) s = qc : s ++ qc : [] -- TODO: Escaping.
 
 derivationVarNameDefault :: String -> VarName
 derivationVarNameDefault =  (`varNameWithPrefix` "derivationFrom")
@@ -336,7 +338,7 @@ defineTableTypesWithConfig config schema table columns = do
              (table `varNameWithPrefix` "insertQuery")
              (recordType recConfig schema table)
              (tableSQL (normalizedTableName config) (schemaNameMode config) (identifierQuotation config) schema table)
-             (map (fst . fst) columns)
+             (map ((quote (identifierQuotation config)) . fst . fst) columns)
   colsDs <- defineColumnsDefault (recordTypeName recConfig schema table) columns
   return $ tableDs ++ colsDs
 
