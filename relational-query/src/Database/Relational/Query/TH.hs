@@ -274,9 +274,9 @@ tableSQL normalize snm iq schema table = case snm of
     qt = quote iq
 
 quote :: IdentifierQuotation -> String -> String
-quote NoQuotation    s = s
-quote (Quotation qc) s = qc : s ++ qc : []
-  where escape q = join . (fmap (\c -> if c == q then [q, q] else [c]))
+quote NoQuotation   s = s
+quote (Quotation q) s = q : (escape s) ++ q : []
+  where escape = join . (fmap (\c -> if c == q then [q, q] else [c]))
 
 derivationVarNameDefault :: String -> VarName
 derivationVarNameDefault =  (`varNameWithPrefix` "derivationFrom")
