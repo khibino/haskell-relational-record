@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.8.2.2
+
+- Update for GHC 8.
+
 ## 0.8.2.1
 
 - Fix constraint of build-depends.
