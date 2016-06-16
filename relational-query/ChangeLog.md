@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.8.2.1
+
+- Fix constraint of build-depends.
+
 ## 0.8.2.0
 
 - Add TIMESTAMPTZ literal of PostgreSQL.
