@@ -76,6 +76,7 @@ library
                        , text
                        , dlist
                        , template-haskell
+                       , th-reify-compat
                        , sql-words >=0.1.4
                        , names-th
                        , persistable-record >= 0.3
