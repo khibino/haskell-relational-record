@@ -74,10 +74,11 @@ import Language.Haskell.TH.Name.CamelCase
    conCamelcaseName, varCamelcaseName, varNameWithPrefix,
    toTypeCon, toDataCon, toVarExp)
 import Language.Haskell.TH.Lib.Extra (integralE, simpleValD)
+import Language.Haskell.TH.Compat.Data (dataD', unDataD)
 import Language.Haskell.TH
   (Q, newName, nameBase, reify, Info(TyConI), Name,
    TypeQ, conT, Con (NormalC, RecC),
-   Dec(DataD), dataD, sigD, valD,
+   Dec, sigD, valD,
    ExpQ, Exp(ConE), conE, varE, lamE, listE, sigE,
    varP, conP, normalB, recC,
    cxt, varStrictType, strictType, isStrict)
@@ -223,7 +224,7 @@ defineRecordType :: ConName            -- ^ Name of the data type of table recor
 defineRecordType typeName' columns derives = do
   let typeName = conName typeName'
       fld (n, tq) = varStrictType (varName n) (strictType isStrict tq)
-  rec  <- dataD (cxt []) typeName [] [recC typeName (map fld columns)] derives
+  rec  <- dataD' (cxt []) typeName [] [recC typeName (map fld columns)] derives
   offs <- defineColumnOffsets typeName' [ty | (_, ty) <- columns]
   return $ rec : offs
 
@@ -345,11 +346,13 @@ makeRecordPersistableWithSqlTypeDefault sqlValueType =
 
 recordInfo' :: Info -> Maybe ((TypeQ, ExpQ), (Maybe [Name], [TypeQ]))
 recordInfo' =  d  where
-  d (TyConI (DataD _cxt tcn _bs [r] _ds)) = case r of
-    NormalC dcn ts     -> Just ((conT tcn, conE dcn), (Nothing, [return t | (_, t) <- ts]))
-    RecC    dcn vts    -> Just ((conT tcn, conE dcn), (Just ns, ts))
-      where (ns, ts) = unzip [(n, return t) | (n, _, t) <- vts]
-    _                  -> Nothing
+  d (TyConI tcon) = do
+    (_cxt, tcn, _bs, _mk, [r], _ds) <- unDataD tcon
+    case r of
+      NormalC dcn ts   -> Just ((conT tcn, conE dcn), (Nothing, [return t | (_, t) <- ts]))
+      RecC    dcn vts  -> Just ((conT tcn, conE dcn), (Just ns, ts))
+        where (ns, ts) = unzip [(n, return t) | (n, _, t) <- vts]
+      _                -> Nothing
   d _                  =  Nothing
 
 -- | Low-level reify interface for record type name.

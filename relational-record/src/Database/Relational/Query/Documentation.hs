@@ -100,6 +100,8 @@ module Database.Relational.Query.Documentation (
 
   -- ** Maybe Projections
   -- $maybeProjection
+  just, flattenMaybe,
+
   (?!), (?!?),
   (<?.>), (<?.?>),
 
@@ -109,6 +111,8 @@ module Database.Relational.Query.Documentation (
 
   -- ** Placeholders
   -- $placeholders
+  placeholder,
+
   query',
   left',
   relation',
@@ -296,6 +300,11 @@ Several operators are defined to manipulate relation set.
 -}
 
 {- $maybeProjection
+Some operators are provided to manage projections with 'Maybe' phantom type.
+
+'just' operator creates 'Maybe' typed projection,
+'flattenMaybe' operator joins nested 'Maybe' typed projection.
+
 'Maybe' type flavor of operators against projection path, projection and aggregation are also provided.
 
 For example,
@@ -312,6 +321,10 @@ contain documentation of other 'Maybe' flavor projection operators.
  -}
 
 {- $placeholders
+'placeholders' operator takes
+a lambda-form which argument is 'Projection' typed placeholders and its scope is restricted by that lambda-form
+and then creates dummy value with 'Placeholders' typed which propagate placeholder type information into 'Relation' layer.
+
 Placeholders' flavor of operators against query operation and set operation are also provided, to realize type safe placeholders.
 
 'query'', 'left'', 'relation'', 'updateTarget'', 'restriction'', and 'union''

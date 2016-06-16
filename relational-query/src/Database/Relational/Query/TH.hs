@@ -6,7 +6,7 @@
 
 -- |
 -- Module      : Database.Relational.Query.TH
--- Copyright   : 2013 Kei Hibino
+-- Copyright   : 2013-2016 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
@@ -72,8 +72,9 @@ import Data.List (foldl1')
 import Data.Array.IArray ((!))
 
 import Language.Haskell.TH
-  (Name, nameBase, Q, reify, Info (VarI), TypeQ, Type (AppT, ConT), ExpQ,
+  (Name, nameBase, Q, reify, TypeQ, Type (AppT, ConT), ExpQ,
    tupleT, appT, arrowT, Dec, stringE, listE)
+import Language.Haskell.TH.Compat.Reify (unVarI)
 import Language.Haskell.TH.Name.CamelCase
   (VarName, varName, ConName (ConName), conName, varNameWithPrefix, varCamelcaseName, toVarExp, toTypeCon, toDataCon)
 import Language.Haskell.TH.Lib.Extra (simpleValD, maybeD, integralE)
@@ -487,8 +488,8 @@ reifyRelation :: Name           -- ^ Variable name which has Relation type
               -> Q (Type, Type) -- ^ Extracted param type and result type from Relation type
 reifyRelation relVar = do
   relInfo <- reify relVar
-  case relInfo of
-    VarI _ (AppT (AppT (ConT prn) p) r) _ _
+  case unVarI relInfo of
+    Just (_, (AppT (AppT (ConT prn) p) r), _)
       | prn == ''Relation    ->  return (p, r)
     _                        ->
       fail $ "expandRelation: Variable must have Relation type: " ++ show relVar

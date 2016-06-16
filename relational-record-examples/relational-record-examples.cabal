@@ -1,5 +1,5 @@
 name:                relational-record-examples
-version:             0.2.0.3
+version:             0.3.1.1
 synopsis:            Examples of Haskell Relationa Record
 description:         Provides examples of Haskell Relational Record
 license:             BSD3
@@ -28,14 +28,37 @@ extra-source-files:    sql/3.7.1.sh
                        sql/sql-memo
                        examples.db
 
+flag binary
+  description:         building binary, too
+  default:             False
+
+library
+  default-language:    Haskell2010
+  ghc-options:         -Wall
+  exposed-modules:     Database.Relational.Query.SQLite3
+                       Database.Record.TH.SQLite3
+  build-depends:       base < 5
+                     , HDBC
+                     , HDBC-session
+                     , HDBC-sqlite3
+                     , persistable-record >= 0.2
+                     , relational-query >= 0.7
+                     , relational-query-HDBC >= 0.4
+                     , template-haskell
+                     -- not link directly but query type map
+                     , relational-schemas >= 0.1.3
+
 executable examples
+  if flag(binary)
+    buildable:         True
+  else
+    buildable:         False
   hs-source-dirs:      src
   main-is:             examples.hs
   other-modules:       Account
                        Branch
                        Business
                        Customer
-                       DataSource
                        Department
                        Employee
                        Individual
@@ -43,14 +66,9 @@ executable examples
                        Product
                        ProductType
                        Transaction
-  build-depends:       base <5
-                     , HDBC
-                     , HDBC-session
-                     , HDBC-sqlite3
-                     , names-th
-                     , persistable-record >= 0.2
+  build-depends:       base < 5
                      , relational-query >= 0.7
-                     , relational-query-HDBC >= 0.4
+                     , relational-record-examples
                      , template-haskell
                      , time
   default-language:    Haskell2010

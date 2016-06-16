@@ -2,6 +2,6 @@
 
 module Individual where
 
-import DataSource (defineTable)
+import Database.Record.TH.SQLite3 (defineTable)
 
-$(defineTable "individual")
+$(defineTable "examples.db" "individual")

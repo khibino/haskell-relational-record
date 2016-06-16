@@ -4,15 +4,9 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-import Database.Record
+import Database.Relational.Query.SQLite3
 
-import Database.Relational.Query
-
-import Database.HDBC (IConnection, SqlValue, rollback)
-import Database.HDBC.Query.TH (makeRecordPersistableDefault)
-import Database.HDBC.Record (runDelete, runInsert, runInsertQuery, runQuery, runUpdate)
-import Database.HDBC.Session (withConnectionIO, handleSqlError')
-
+import Prelude hiding (product)
 import Data.Int (Int64)
 import Data.Time (Day, LocalTime)
 
@@ -38,10 +32,6 @@ import qualified Transaction
 import Transaction (transaction)
 import qualified Employee
 import Employee (Employee, employee, tableOfEmployee)
-
-import DataSource (connect)
-
-import Prelude hiding (product)
 
 allAccount :: Relation () Account
 allAccount = relation $ query account
@@ -81,7 +71,7 @@ account_4_3_3a = relation $ do
 --   ('CHK', 'SAV', 'CD', 'MM'))
 -- @
 --
-account_4_3_3aT :: Relation () (((Int64, String), Int64), Maybe Double)
+account_4_3_3aT :: Relation () (((Int, String), Int), Maybe Double)
 account_4_3_3aT = relation $ do
   a  <- query account
   wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
@@ -108,9 +98,9 @@ account_4_3_3aR = relation $ do
                     |*| a ! Account.availBalance'
 
 data Account1 = Account1
-  { a1AccountId :: Int64
+  { a1AccountId :: Int
   , a1ProductCd :: String
-  , a1CustId :: Int64
+  , a1CustId :: Int
   , a1AvailBalance :: Maybe Double
   } deriving (Show)
 
@@ -236,7 +226,7 @@ selfJoin_5_3aT = relation $ do
 --   WHERE (T1.product_cd = 'SAV')
 -- @
 --
-union_6_4_1a_Flat :: Relation () (Maybe Int64, Maybe Int64)
+union_6_4_1a_Flat :: Relation () (Maybe Int, Maybe Int)
 union_6_4_1a_Flat = relation (do
     e  <- query employee
     wheres $ e ! Employee.title' .=. just (value "Teller")
@@ -262,19 +252,19 @@ union_6_4_1a_Flat = relation (do
 --   T2.f0 ASC
 -- @
 --
-union_6_4_1a_Nest :: Relation () (Maybe Int64, Maybe Int64)
+union_6_4_1a_Nest :: Relation () (Maybe Int, Maybe Int)
 union_6_4_1a_Nest = relation $ do
   ea <- query $ employee_6_4_1a `union` account_6_4_1a
   asc $ ea ! fst'
   return ea
 
-employee_6_4_1a :: Relation () (Maybe Int64, Maybe Int64)
+employee_6_4_1a :: Relation () (Maybe Int, Maybe Int)
 employee_6_4_1a = relation $ do
   e  <- query employee
   wheres $ e ! Employee.title' .=. just (value "Teller")
   return $ just (e ! Employee.empId') >< e ! Employee.assignedBranchId'
 
-account_6_4_1a :: Relation () (Maybe Int64, Maybe Int64)
+account_6_4_1a :: Relation () (Maybe Int, Maybe Int)
 account_6_4_1a = relation $ do
   a  <- query account
   wheres $ a ! Account.productCd' .=. value "SAV"
@@ -298,7 +288,7 @@ account_6_4_1a = relation $ do
 --  MAIN.account T0 GROUP BY T0.open_emp_id ORDER BY T0.open_emp_id ASC
 -- @
 --
-group_8_1a :: Relation () (Maybe Int64, Int64)
+group_8_1a :: Relation () (Maybe Int, Int64)
 group_8_1a = aggregateRelation $ do
   a  <- query account
   g  <- groupBy $ a ! Account.openEmpId'
@@ -344,7 +334,7 @@ account_4_3_3b = relation' $ do
 --   (T1.product_type_cd = ?)))
 -- @
 --
-account_4_3_3bT :: Relation String (((Int64, String), Int64), Maybe Double)
+account_4_3_3bT :: Relation String (((Int, String), Int), Maybe Double)
 account_4_3_3bT = relation' $ do
   a <- query account
   (phProductCd,p) <- queryList' product_4_3_3b
@@ -422,7 +412,7 @@ account_4_3_3c = relation $ do
 --   T0 ORDER BY T0.open_emp_id ASC, T0.product_cd ASC
 -- @
 --
-account_3_7 :: Relation () (Maybe Int64, String)
+account_3_7 :: Relation () (Maybe Int, String)
 account_3_7 = relation $ do
   a <- query account
   let proj = (,) |$| a ! Account.openEmpId'
@@ -458,7 +448,7 @@ account_3_7_1 = relation $ do
                     |*| a ! Account.availBalance'
 
 data Account2 = Account2
-  { a2AccountId :: Int64
+  { a2AccountId :: Int
   , a2ProductCd :: String
   , a2OpenDate :: Day
   , a2AvailBalance :: Maybe Double
@@ -500,7 +490,7 @@ employee_3_7_3 = relation $ do
                      |*| e ! Employee.lname'
 
 data Employee1 = Employee1
-  { e1EmpId :: Int64
+  { e1EmpId :: Int
   , e1Title :: Maybe String
   , e1StartDate :: Day
   , e1Fname :: String
@@ -622,7 +612,7 @@ employee_4_3_2P = relation' . placeholder $ \ph -> do
                      |*| date
 
 data Employee2 = Employee2
-  { e2EmpId :: Int64
+  { e2EmpId :: Int
   , e2Fname :: String
   , e2Lname :: String
   , e2StartDate :: Day
@@ -674,8 +664,8 @@ join_5_1_3 = relation $ do
                     |*| a ! Account.productCd'
 
 data Account3 = Account3
-  { a3AccountId :: Int64
-  , a3CustId :: Int64
+  { a3AccountId :: Int
+  , a3CustId :: Int
   , a3OpenDate :: Day
   , a3ProductCd :: String
   } deriving (Show)
@@ -746,7 +736,7 @@ customer_9_4 = relation $ do
   return (customer1 c)
 
 data Customer1 = Customer1
-  { c1Custid :: Int64
+  { c1Custid :: Int
   , c1CustTypeCd :: String
   , c1City :: Maybe String
   } deriving (Show)
@@ -794,7 +784,7 @@ deleteAccount_o1 = typedDelete tableOfAccount . restriction $ \proj -> do
 --     fmap fst $ placeholder (\ph -> wheres $ proj ! Account.accountId' .=. ph)
 -- @
 --
-deleteAccount_o1P :: Delete Int64
+deleteAccount_o1P :: Delete Int
 deleteAccount_o1P = derivedDelete $ \proj -> do
   fmap fst $ placeholder (\ph -> wheres $ proj ! Account.accountId' .=. ph)
 
@@ -828,7 +818,7 @@ deleteAccount_o2 = typedDelete tableOfAccount . restriction $ \proj -> do
 --   ?))
 -- @
 --
-deleteAccount_o2P :: Delete (Int64,Int64)
+deleteAccount_o2P :: Delete (Int, Int)
 deleteAccount_o2P = derivedDelete $ \proj -> do
   (phMin,()) <- placeholder (\ph -> wheres $ proj ! Account.accountId' .>=. ph)
   (phMax,()) <- placeholder (\ph -> wheres $ proj ! Account.accountId' .<=. ph)
@@ -904,7 +894,7 @@ updateEmployee_o3 = typedUpdate tableOfEmployee . updateTarget $ \proj -> do
 --     return (phLname >< phDeptId >< phEmpId)
 -- @
 --
-updateEmployee_o3P :: Update ((String,Int64),Int64)
+updateEmployee_o3P :: Update ((String,Int),Int)
 updateEmployee_o3P = derivedUpdate $ \proj -> do
   (phLname,()) <- placeholder (\ph -> Employee.lname' <-# ph)
   (phDeptId,()) <- placeholder (\ph -> Employee.deptId' <-# just ph)
@@ -1072,9 +1062,9 @@ data Employee3 = Employee3
   { e3Fname :: String
   , e3Lname :: String
   , e3StartDate :: Day
-  , e3DeptId :: Maybe Int64
+  , e3DeptId :: Maybe Int
   , e3Title :: Maybe String
-  , e3AssignedBranchId :: Maybe Int64
+  , e3AssignedBranchId :: Maybe Int
   }
 
 $(makeRecordPersistableDefault ''Employee3)
@@ -1185,8 +1175,8 @@ account_LeftOuterJoin = relation $ do
                     |*| i ?! Individual.lname'
 
 data Account4 = Account4
-  { a4AccountId :: Int64
-  , a4CustId :: Int64
+  { a4AccountId :: Int
+  , a4CustId :: Int
   , a4Fname :: Maybe String
   , a4Lname :: Maybe String
   } deriving (Show)
@@ -1214,7 +1204,7 @@ $(makeRecordPersistableDefault ''Account4)
 -- Note: A function using right-out-join can be defined, but unfortunately
 -- SQLite3 does not support it.
 --
-business_RightOuterJoin :: Relation () (Maybe Int64, String)
+business_RightOuterJoin :: Relation () (Maybe Int, String)
 business_RightOuterJoin = relation $ do
   c <- queryMaybe customer
   b <- query business
@@ -1229,10 +1219,9 @@ run :: (Show a, IConnection conn, FromSql SqlValue a, ToSql SqlValue p)
     => conn -> p -> Relation p a -> IO ()
 run conn param rel = do
   putStrLn $ "SQL: " ++ show rel
-  records <- runQuery conn (relationalQuery rel) param
+  records <- runRelation conn rel param
   mapM_ print records
   putStrLn ""
-  rollback conn
 
 runI :: (IConnection conn, ToSql SqlValue p)
      => conn -> p -> Insert p -> IO ()
@@ -1271,7 +1260,7 @@ runD conn param dlt = do
   rollback conn
 
 main :: IO ()
-main = handleSqlError' $ withConnectionIO connect $ \conn -> do
+main = handleSqlError' $ withConnectionIO (connectSqlite3 "examples.db") $ \conn -> do
   run conn () allAccount
   run conn () account_4_3_3a
   run conn () account_4_3_3aT

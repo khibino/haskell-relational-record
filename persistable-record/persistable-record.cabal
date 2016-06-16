@@ -1,5 +1,5 @@
 name:                persistable-record
-version:             0.4.0.0
+version:             0.4.0.1
 synopsis:            Binding between SQL database values and haskell records.
 description:         This package contiains types to represent table constraints and
                      interfaces to bind between SQL database values and Haskell records.
@@ -8,7 +8,7 @@ license:             BSD3
 license-file:        LICENSE
 author:              Kei Hibino
 maintainer:          ex8k.hibino@gmail.com
-copyright:           Copyright (c) 2013 Kei Hibino
+copyright:           Copyright (c) 2013-2016 Kei Hibino
 category:            Database
 build-type:          Simple
 cabal-version:       >=1.10
@@ -25,6 +25,7 @@ library
 
   build-depends:          base <5
                         , template-haskell
+                        , th-data-compat
                         , array
                         , containers
                         , transformers

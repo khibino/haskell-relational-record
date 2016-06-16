@@ -2,8 +2,8 @@
 
 module Product where
 
-import DataSource (defineTable)
+import Database.Record.TH.SQLite3 (defineTable)
 import Prelude hiding (product)
 
-$(defineTable "product")
+$(defineTable "examples.db" "product")
 

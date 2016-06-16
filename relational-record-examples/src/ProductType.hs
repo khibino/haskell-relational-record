@@ -2,6 +2,6 @@
 
 module ProductType where
 
-import DataSource (defineTable)
+import Database.Record.TH.SQLite3 (defineTable)
 
-$(defineTable "product_type")
+$(defineTable "examples.db" "product_type")

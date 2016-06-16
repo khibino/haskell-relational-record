@@ -8,11 +8,13 @@ module Database.Relational.Schema.SQLite3 (
 import qualified Data.Map as Map
 import qualified Database.Relational.Schema.SQLite3Syscat.TableInfo as TableInfo
 
+import Control.Arrow (first)
 import Control.Applicative ((<|>))
 import Data.ByteString (ByteString)
-import Data.Char (toLower)
-import Data.Int (Int64)
+import Data.Char (toLower, toUpper)
+import Data.Int (Int8, Int16, Int32, Int64)
 import Data.Map (Map)
+import Data.Time (Day, LocalTime)
 import Database.Record.Instances ()
 import Database.Relational.Query (Query)
 import Database.Relational.Query.Type (unsafeTypedQuery)
@@ -23,19 +25,40 @@ import Language.Haskell.TH (TypeQ)
 
 --{-# ANN module "HLint: ignore Redundant $" #-}
 
+-- <https://www.sqlite.org/datatype3.html>
+-- SQLite3 is dynamic typing,
+-- so assign narrower constraints in this default mapping.
+-- Using upper case typenames along with SQLite3 document.
 mapFromSqlDefault :: Map String TypeQ
 mapFromSqlDefault =
-    Map.fromList [ ("integer", [t|Int64|])
-                 , ("real",    [t|Double|])
-                 , ("text",    [t|String|])
-                 , ("blob",    [t|ByteString|])
+    Map.fromList [ ("INT",        [t|Int32|])
+                 , ("INTEGER",    [t|Int32|])
+                 , ("TINYINT",    [t|Int8|])
+                 , ("SMALLINT",   [t|Int16|])
+                 , ("MEDIUMINT",  [t|Int32|])
+                 , ("BIGINT",     [t|Int64|])
+                 , ("INT2",       [t|Int16|])
+                 , ("INT8",       [t|Int64|])
+
+                 , ("CHARACTER",  [t|String|])
+                 , ("VARCHAR",    [t|String|])
+                 , ("TEXT",       [t|String|])
+
+                 , ("BLOB",       [t|ByteString|])
+
+                 , ("REAL",       [t|Double|])
+                 , ("DOUBLE",     [t|Double|])
+                 , ("FLOAT",      [t|Float|])
+
+                 , ("DATE",       [t|Day|])
+                 , ("DATETIME",   [t|LocalTime|])
                  ]
 
 normalizeColumn :: String -> String
 normalizeColumn = map toLower
 
 normalizeType :: String -> String
-normalizeType = normalizeColumn . takeWhile (not . flip elem " (")
+normalizeType = map toUpper . takeWhile (not . flip elem " (")
 
 notNull :: TableInfo -> Bool
 notNull info = isTrue . TableInfo.notnull $ info
@@ -43,9 +66,13 @@ notNull info = isTrue . TableInfo.notnull $ info
     isTrue 0 = False
     isTrue _ = True
 
+-- for backward compatibility
+normalizeMap :: Map String TypeQ -> Map String TypeQ
+normalizeMap = Map.fromList . map (first $ map toUpper) . Map.toList
+
 getType :: Map String TypeQ -> TableInfo -> Maybe (String, TypeQ)
 getType mapFromSql info = do
-    typ <- Map.lookup key mapFromSql
+    typ <- Map.lookup key (normalizeMap {- for backward compatibility -} mapFromSql)
            <|>
            Map.lookup key mapFromSqlDefault
     return (normalizeColumn (TableInfo.name info), mayNull typ)

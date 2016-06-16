@@ -2,6 +2,6 @@
 
 module Business where
 
-import DataSource (defineTable)
+import Database.Record.TH.SQLite3 (defineTable)
 
-$(defineTable "business")
+$(defineTable "examples.db" "business")

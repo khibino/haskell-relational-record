@@ -29,7 +29,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy as LT
 import Text.Printf (PrintfArg, printf)
-import Data.Time (FormatTime, Day, TimeOfDay, LocalTime, formatTime)
+import Data.Time (FormatTime, Day, TimeOfDay, LocalTime, UTCTime, ZonedTime, formatTime)
 import Data.Time.Locale.Compat (defaultTimeLocale)
 
 import Language.SQL.Keyword (Keyword (..))
@@ -159,6 +159,16 @@ instance ShowConstantTermsSQL TimeOfDay where
 -- | Constant SQL terms of 'LocalTime'.
 instance ShowConstantTermsSQL LocalTime where
   showConstantTermsSQL' = constantTimeTerms TIMESTAMP "%Y-%m-%d %H:%M:%S"
+
+-- | Constant SQL terms of 'ZonedTime'.
+--   This generates ***NOT STANDARD*** SQL of TIMESTAMPTZ literal.
+instance ShowConstantTermsSQL ZonedTime where
+  showConstantTermsSQL' = constantTimeTerms TIMESTAMPTZ "%Y-%m-%d %H:%M:%S%z"
+
+-- | Constant SQL terms of 'UTCTime'.
+--   This generates ***NOT STANDARD*** SQL of TIMESTAMPTZ literal with UTC timezone.
+instance ShowConstantTermsSQL UTCTime where
+  showConstantTermsSQL' = constantTimeTerms TIMESTAMPTZ "%Y-%m-%d %H:%M:%S%z"
 
 showMaybeTerms :: ShowConstantTermsSQL a => PersistableRecordWidth a -> Maybe a -> [StringSQL]
 showMaybeTerms wa = d  where

@@ -2,6 +2,6 @@
 
 module Branch where
 
-import DataSource (defineTable)
+import Database.Record.TH.SQLite3 (defineTable)
 
-$(defineTable "branch")
+$(defineTable "examples.db" "branch")

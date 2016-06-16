@@ -1,5 +1,5 @@
 name:                relational-query
-version:             0.8.1.0
+version:             0.8.2.2
 synopsis:            Typeful, Modular, Relational, algebraic query engine
 description:         This package contiains typeful relation structure and
                      relational-algebraic query building DSL which can
@@ -14,7 +14,7 @@ license:             BSD3
 license-file:        LICENSE
 author:              Kei Hibino
 maintainer:          ex8k.hibino@gmail.com
-copyright:           Copyright (c) 2013 Kei Hibino
+copyright:           Copyright (c) 2013-2016 Kei Hibino
 category:            Database
 build-type:          Simple
 cabal-version:       >=1.10
@@ -76,7 +76,8 @@ library
                        , text
                        , dlist
                        , template-haskell
-                       , sql-words >=0.1.1
+                       , th-reify-compat
+                       , sql-words >=0.1.4
                        , names-th
                        , persistable-record >= 0.3
 
