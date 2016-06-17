@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fsimpl-tick-factor=200 #-}
 {-# LANGUAGE MonadComprehensions, FlexibleContexts #-}
 module Main where
 
