@@ -47,6 +47,7 @@ library
                        , convertible
                        , template-haskell
                        , dlist
+                       , th-data-compat
 
                        , names-th
                        , persistable-record >= 0.4

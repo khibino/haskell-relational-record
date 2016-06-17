@@ -21,8 +21,9 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 
 import Language.Haskell.TH
-  (Q, Dec (InstanceD), Type(AppT, ConT),
+  (Q, Dec, Type(AppT, ConT),
    Info (ClassI), reify)
+import Language.Haskell.TH.Compat.Data (unInstanceD)
 import Data.Convertible (Convertible)
 import Database.HDBC (SqlValue)
 import Database.HDBC.SqlValueExtra ()
@@ -67,8 +68,8 @@ convertibleSqlValues' =  cvInfo >>= d0  where
   cvInfo = reify ''Convertible
   unknownDeclaration =
     fail . ("convertibleSqlValues: Unknown declaration pattern: " ++)
-  d0 (ClassI _ is) = fmap catMaybes . mapM d1 $ is  where
-    d1 (InstanceD _cxt (AppT (AppT (ConT _n) a) b) _ds)
+  d0 (ClassI _ is) = fmap catMaybes $ mapM (d1 . unInstanceD) is  where
+    d1 (Just (_cxt, (AppT (AppT (ConT _n) a) b), _ds))
       = do qvt <- sqlValueType
            return
              $ if qvt == a || qvt == b
@@ -76,8 +77,8 @@ convertibleSqlValues' =  cvInfo >>= d0  where
                  (ConT _, ConT _) -> Just (a, b)
                  _                -> Nothing
                else Nothing
-    d1 decl
-      =    unknownDeclaration $ show decl
+    d1  _
+      =    unknownDeclaration $ show is
   d0 cls           = unknownDeclaration $ show cls
 
 -- | Get types which are 'Convertible' with.
@@ -95,9 +96,9 @@ persistableWidthTypes =  cvInfo >>= d0  where
   cvInfo = reify ''PersistableWidth
   unknownDeclaration =
     fail . ("persistableWidthTypes: Unknown declaration pattern: " ++)
-  d0 (ClassI _ is) = fmap fromList . mapM d1 $ is  where
-    d1 (InstanceD _cxt (AppT (ConT _n) a) _ds) = return a
-    d1 decl                                    = unknownDeclaration $ show decl
+  d0 (ClassI _ is) = fmap fromList $ mapM (d1 . unInstanceD) is  where
+    d1 (Just (_cxt, (AppT (ConT _n) a), _ds))  = return a
+    d1  _                                      = unknownDeclaration $ show is
   d0 cls           = unknownDeclaration $ show cls
 
 -- | Map instance declarations.
