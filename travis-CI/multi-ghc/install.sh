@@ -8,8 +8,7 @@ do_install() {
 
 set -x
 
-for subdir in $subdirs ; do
-    check_dir $subdir
-    echo "Prereqs of $name ... "
-    ( cd $subdir && do_install )
-done
+subdir=relational-record
+check_dir $subdir
+echo "Prereqs of $name ... "
+( cd $subdir && do_install )
