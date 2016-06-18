@@ -1,0 +1,23 @@
+# -*- sh -*-
+
+subdirs='
+names-th
+sql-words
+persistable-record
+relational-query
+relational-schemas
+HDBC-session
+relational-query-HDBC
+text-postgresql
+persistable-types-HDBC-pg
+'
+
+check_dir() {
+    name="$1"
+
+    [ x$name != x ] || exit 1
+    if [ ! -d $name ]; then
+        echo "Directory not found: $name"
+        exit 1
+    fi
+}
