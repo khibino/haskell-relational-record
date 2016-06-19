@@ -9,7 +9,7 @@ license:             BSD3
 license-file:        LICENSE
 author:              Kei Hibino
 maintainer:          ex8k.hibino@gmail.com
-copyright:           Copyright (c) 2015 Kei Hibino
+copyright:           Copyright (c) 2015-2016 Kei Hibino
 category:            Database
 build-type:          Simple
 
