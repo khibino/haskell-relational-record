@@ -158,3 +158,4 @@ a25aa5f5cb59a01b1d60857020a9c8e91c050237 release-text-postgresql-0_0_2_1
 ad2ce7efc1ed08d81cf0946a7be6d3a816d5cf34 release-relational-schemas-0_1_3_1
 5f339ba23924631a1416169e062b97731cf98c19 release-relational-query-HDBC-0_6_0_2
 cd86507dd8329a1ee511096931399dd259975642 release-persistable-types-HDBC-pg-0_0_1_4
+9a13a942c29a3f2af66acfc61f9b0498f5886ff2 release-relational-query-0_8_3_0
