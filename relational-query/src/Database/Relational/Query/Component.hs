@@ -24,9 +24,10 @@ module Database.Relational.Query.Component
                 , schemaNameMode
                 , normalizedTableName
                 , verboseAsCompilerWarning
-                , nameConfig),
+                , nameConfig
+                , identifierQuotation),
          defaultConfig,
-         ProductUnitSupport (..), Duplication (..),
+         ProductUnitSupport (..), Duplication (..), IdentifierQuotation (..),
 
          -- * Duplication attribute
          showsDuplication,
@@ -118,6 +119,7 @@ data Config =
   , normalizedTableName       ::  !Bool
   , verboseAsCompilerWarning  ::  !Bool
   , nameConfig                ::  !NameConfig
+  , identifierQuotation       ::  !IdentifierQuotation
   } deriving Show
 
 -- | Default configuration.
@@ -131,11 +133,14 @@ defaultConfig =
          , nameConfig                =  NameConfig { recordConfig     =  RecordTH.defaultNameConfig
                                                    , relationVarName  =  const varCamelcaseName
                                                    }
+         , identifierQuotation       =  NoQuotation
          }
 
 -- | Unit of product is supported or not.
 data ProductUnitSupport = PUSupported | PUNotSupported  deriving Show
 
+-- | Configuration for quotation of identifiers of SQL.
+data IdentifierQuotation = NoQuotation | Quotation Char deriving Show
 
 -- | Result record duplication attribute
 data Duplication = All | Distinct  deriving Show

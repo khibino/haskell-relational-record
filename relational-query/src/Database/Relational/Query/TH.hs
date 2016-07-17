@@ -67,6 +67,7 @@ module Database.Relational.Query.TH (
   reifyRelation,
   ) where
 
+import Control.Monad (join)
 import Data.Char (toUpper, toLower)
 import Data.List (foldl1')
 import Data.Array.IArray ((!))
@@ -86,8 +87,8 @@ import qualified Database.Record.TH as Record
 
 import Database.Relational.Query
   (Table, Pi, id', Relation, ProductConstructor (..),
-   NameConfig (..), SchemaNameMode (..),
-   Config (normalizedTableName, schemaNameMode, nameConfig), defaultConfig,
+   NameConfig (..), SchemaNameMode (..), IdentifierQuotation (..),
+   Config (normalizedTableName, schemaNameMode, nameConfig, identifierQuotation), defaultConfig,
    relationalQuerySQL, Query, relationalQuery, KeyUpdate,
    Insert, derivedInsert, InsertQuery, derivedInsertQuery,
    HasConstraintKey(constraintKey), Primary, NotNull, primary, primaryUpdate)
@@ -260,10 +261,10 @@ defineTableTypes tableVar' relVar' insVar' insQVar' recordType' table columns = 
   dDs <- defineTableDerivations tableVar' relVar' insVar' insQVar' recordType'
   return $ iDs ++ dDs
 
-tableSQL :: Bool -> SchemaNameMode -> String -> String -> String
-tableSQL normalize snm schema table = case snm of
-  SchemaQualified     ->  normalizeS ++ '.' : normalizeT
-  SchemaNotQualified  ->  normalizeT
+tableSQL :: Bool -> SchemaNameMode -> IdentifierQuotation -> String -> String -> String
+tableSQL normalize snm iq schema table = case snm of
+  SchemaQualified     ->  (qt normalizeS) ++ '.' : (qt normalizeT)
+  SchemaNotQualified  ->  (qt normalizeT)
   where
     normalizeS
       | normalize = map toUpper schema
@@ -271,6 +272,12 @@ tableSQL normalize snm schema table = case snm of
     normalizeT
       | normalize = map toLower table
       | otherwise = table
+    qt = quote iq
+
+quote :: IdentifierQuotation -> String -> String
+quote NoQuotation   s = s
+quote (Quotation q) s = q : (escape s) ++ q : []
+  where escape = join . (fmap (\c -> if c == q then [q, q] else [c]))
 
 derivationVarNameDefault :: String -> VarName
 derivationVarNameDefault =  (`varNameWithPrefix` "derivationFrom")
@@ -333,8 +340,8 @@ defineTableTypesWithConfig config schema table columns = do
              (table `varNameWithPrefix` "insert")
              (table `varNameWithPrefix` "insertQuery")
              (recordType recConfig schema table)
-             (tableSQL (normalizedTableName config) (schemaNameMode config) schema table)
-             (map (fst . fst) columns)
+             (tableSQL (normalizedTableName config) (schemaNameMode config) (identifierQuotation config) schema table)
+             (map ((quote (identifierQuotation config)) . fst . fst) columns)
   colsDs <- defineColumnsDefault (recordTypeName recConfig schema table) columns
   return $ tableDs ++ colsDs
 
