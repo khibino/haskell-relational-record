@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.8.2.3
+
+- Add tested-with meta-data.
+
 ## 0.8.2.2
 
 - Update for GHC 8.
