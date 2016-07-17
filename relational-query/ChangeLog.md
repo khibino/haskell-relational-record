@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.8.3.0
+
+- Add configuration to quote SQL string of table names.
+
 ## 0.8.2.3
 
 - Add tested-with meta-data.
