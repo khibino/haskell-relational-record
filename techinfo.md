@@ -11,6 +11,7 @@ title: Technical information
 ### Papers in English
 
 - [Experience Report: Haskell Relational Record](pdf/hrr-haskell-sympo2015-rejected.pdf) -- submitted to Haskell Symposium 2015 and REJECTED
+- [Haskell Relational Record - A Pragmatic Embedded System for Type-Safe and Composable SQL Queries](pdf/hrr-haskell-sympo2016-rejected.pdf) -- submitted to Haskell Symposium 2016 and REJECTED
 
 ### Slides in Japanese
 
