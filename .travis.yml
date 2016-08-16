@@ -16,6 +16,9 @@ matrix:
     - env: CABALVER=1.24 GHCVER=8.0.1
       compiler: ": #GHC 8.0.1"
       addons: {apt: {packages: [cabal-install-1.24,ghc-8.0.1], sources: [hvr-ghc]}}
+    - env: DEBIANVER=wheezy CABALVER=1.16 GHCVER=7.4.1
+      compiler: ": Debian wheezy"
+      addons: {apt: {packages: [cabal-install-1.16,ghc-7.4.1], sources: [hvr-ghc]}}
     - env: CABALVER=1.16 GHCVER=7.4.2
       compiler: ": #GHC 7.4.2"
       addons: {apt: {packages: [cabal-install-1.16,ghc-7.4.2], sources: [hvr-ghc]}}
@@ -56,6 +59,13 @@ matrix:
 before_install:
  - unset CC
  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
+ - case "$DEBIANVER" in
+     wheezy)
+       export CABAL_CONSTRAINTS='--constraint=text==0.11.2.0 --constraint=transformers==0.3.0.0 --constraint=dlist==0.5' ;
+     ;;
+     *)
+     ;;
+   esac
 
 install:
  - cabal --version

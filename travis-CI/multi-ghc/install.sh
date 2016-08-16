@@ -1,7 +1,7 @@
 #!/bin/sh
 
 do_install() {
-    cabal install --only-dependencies --enable-tests --enable-benchmarks
+    cabal install $CABAL_CONSTRAINTS --only-dependencies --enable-tests --enable-benchmarks
 }
 
 . ./travis-CI/multi-ghc/sh-defs

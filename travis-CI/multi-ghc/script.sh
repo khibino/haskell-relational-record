@@ -1,7 +1,7 @@
 #!/bin/sh
 
 do_script() {
-    cabal configure --enable-tests --enable-benchmarks -v2  # -v2 provides useful information for debugging
+    cabal configure $CABAL_CONSTRAINTS --enable-tests --enable-benchmarks -v2  # -v2 provides useful information for debugging
     cabal build   # this builds all libraries and executables (including tests/benchmarks)
     cabal test
     cabal check
@@ -11,7 +11,7 @@ do_script() {
     # If there are no other `.tar.gz` files in `dist`, this can be even simpler:
     # `cabal install --force-reinstalls dist/*-*.tar.gz`
     SRC_TGZ=$(cabal info . | awk '{print $2;exit}').tar.gz &&
-        (cd dist && cabal install --force-reinstalls "$SRC_TGZ")
+        (cd dist && cabal install $CABAL_CONSTRAINTS --force-reinstalls "$SRC_TGZ")
 }
 
 . ./travis-CI/multi-ghc/sh-defs
