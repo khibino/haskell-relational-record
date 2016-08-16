@@ -78,7 +78,7 @@ data NodeAttr = Just' | Maybe deriving Show
 
 type QS = Qualified SubQuery
 
-type QueryRestrictionsBuilder = DList (Projection Context.Flat (Maybe Bool))
+type QueryRestrictionBuilder = DList (Projection Context.Flat (Maybe Bool))
 
 -- | Product tree type. Product tree is constructed by left node and right node.
 data ProductTree rs
@@ -90,12 +90,12 @@ data ProductTree rs
 data Node rs = Node !NodeAttr !(ProductTree rs)  deriving (Show, Functor)
 
 -- | Product tree specialized by 'SubQuery'.
-type QueryProduct = ProductTree QueryRestrictionsBuilder
+type QueryProduct = ProductTree QueryRestrictionBuilder
 -- | Product node specialized by 'SubQuery'.
-type QueryProductNode = Node QueryRestrictionsBuilder
+type QueryProductNode = Node QueryRestrictionBuilder
 
-type ProductTreeBuilder = ProductTree QueryRestrictionsBuilder
-type ProductBuilder = Node QueryRestrictionsBuilder
+type ProductTreeBuilder = ProductTree QueryRestrictionBuilder
+type ProductBuilder = Node QueryRestrictionBuilder
 
 -- | Type for join product of query.
 type JoinProduct = Maybe QueryProduct
