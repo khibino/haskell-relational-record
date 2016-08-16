@@ -14,8 +14,8 @@ module Database.Relational.Query.Internal.Product (
   ) where
 
 import Prelude hiding (and, product)
-import Control.Applicative (pure, empty)
-import Data.Monoid ((<>))
+import Control.Applicative (pure)
+import Data.Monoid ((<>), mempty)
 
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Internal.Sub
@@ -29,7 +29,7 @@ growRight :: Maybe ProductBuilder           -- ^ Current tree
           -> ProductBuilder                 -- ^ Result node
 growRight = d  where
   d Nothing  (naR, q) = Node naR q
-  d (Just l) (naR, q) = Node Just' $ Join l (Node naR q) empty
+  d (Just l) (naR, q) = Node Just' $ Join l (Node naR q) mempty
 
 -- | Push new leaf node into product right term.
 growProduct :: Maybe ProductBuilder           -- ^ Current tree
