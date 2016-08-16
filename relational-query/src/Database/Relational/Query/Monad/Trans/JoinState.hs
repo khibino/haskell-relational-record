@@ -31,12 +31,8 @@ primeJoinContext :: JoinContext
 primeJoinContext =  JoinContext Nothing
 
 -- | Update product of 'JoinContext'.
-updateProduct' :: (Maybe ProductBuilder -> Maybe ProductBuilder) -> JoinContext -> JoinContext
-updateProduct' uf ctx = ctx { product = uf . product $ ctx }
-
--- | Update product of 'JoinContext'.
 updateProduct :: (Maybe ProductBuilder -> ProductBuilder) -> JoinContext -> JoinContext
-updateProduct uf = updateProduct' (Just . uf)
+updateProduct uf ctx = ctx { product = Just . uf . product $ ctx }
 
 -- |  Finalize context to extract accumulated query product.
 joinProduct :: JoinContext -> JoinProduct
