@@ -10,7 +10,7 @@
 -- This module defines product structure to compose SQL join.
 module Database.Relational.Query.Internal.Product (
   -- * Product tree type
-  node, nodeAttr, nodeTree,
+  node,
   growProduct, restrictProduct,
   ) where
 
@@ -21,14 +21,6 @@ import Data.Monoid ((<>))
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Internal.Sub (NodeAttr (..), ProductTree (..), Node (..), Projection)
 
-
--- | Get node attribute.
-nodeAttr :: Node q -> NodeAttr
-nodeAttr (Node a _) = a  where
-
--- | Get tree from node.
-nodeTree :: Node q -> ProductTree q
-nodeTree (Node _ t) = t
 
 -- | Make product node from node attribute and product tree.
 node :: NodeAttr      -- ^ Node attribute

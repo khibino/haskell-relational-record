@@ -34,6 +34,7 @@ module Database.Relational.Query.Sub (
 
   -- * Product of sub-queries
   QueryProduct, QueryProductNode, JoinProduct,
+  nodeTree,
 
   -- * Query restriction
   composeWhere, composeHaving
@@ -46,13 +47,11 @@ import Data.DList (toList)
 
 import qualified Database.Relational.Query.Context as Context
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, rowStringSQL, showStringSQL)
-import Database.Relational.Query.Internal.Product
-  (nodeAttr, nodeTree)
 import Database.Relational.Query.Internal.Sub
   (SubQuery (..), Projection, untypeProjection, typedProjection,
    UntypedProjection, ProjectionUnit (..),
    JoinProduct, QueryProduct, QueryProductNode,
-   NodeAttr (Just', Maybe), ProductTree (Leaf, Join),
+   NodeAttr (Just', Maybe), ProductTree (Leaf, Join), Node (Node),
    SetOp (..), BinOp (..), Qualifier (..), Qualified (..),
    QueryRestriction)
 import Database.Relational.Query.Component
@@ -324,6 +323,14 @@ unsafeProjectFromColumns :: [ColumnSQL]    -- ^ SQL string list specifies column
                          -> Projection c r -- ^ Result 'Projection'
 unsafeProjectFromColumns =  typedProjection . untypedProjectionFromColumns
 
+
+-- | Get node attribute.
+nodeAttr :: Node q -> NodeAttr
+nodeAttr (Node a _) = a  where
+
+-- | Get tree from node.
+nodeTree :: Node q -> ProductTree q
+nodeTree (Node _ t) = t
 
 -- | Show product tree of query into SQL. StringSQL result.
 showsQueryProduct :: QueryProduct -> StringSQL
