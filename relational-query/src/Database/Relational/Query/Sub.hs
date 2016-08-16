@@ -33,7 +33,7 @@ module Database.Relational.Query.Sub (
   projectionColumns, unsafeProjectionStringSql, unsafeProjectFromColumns,
 
   -- * Product of sub-queries
-  QueryProductTree, QueryProduct, JoinProduct, NodeAttr,
+  JoinProduct, NodeAttr,
   nodeTree,
   ProductBuilder,
 
@@ -51,7 +51,7 @@ import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, rowStringSQ
 import Database.Relational.Query.Internal.Sub
   (SubQuery (..), Projection, untypeProjection, typedProjection,
    UntypedProjection, ProjectionUnit (..),
-   JoinProduct, QueryProductTree, QueryProduct, ProductBuilder,
+   JoinProduct, QueryProductTree, ProductBuilder,
    NodeAttr (Just', Maybe), ProductTree (Leaf, Join), Node (Node),
    SetOp (..), BinOp (..), Qualifier (..), Qualified (..),
    QueryRestriction)
