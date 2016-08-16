@@ -17,13 +17,13 @@ module Database.Relational.Query.Monad.Trans.JoinState (
 import Prelude hiding (product)
 
 import qualified Database.Relational.Query.Sub as Product
-import Database.Relational.Query.Sub (QueryProductNode, JoinProduct)
+import Database.Relational.Query.Sub (ProductBuilder, JoinProduct)
 
 
 -- | JoinContext type for QueryJoin.
 newtype JoinContext =
   JoinContext
-  { product  :: Maybe QueryProductNode
+  { product  :: Maybe ProductBuilder
   }
 
 -- | Initial 'JoinContext'.
@@ -31,11 +31,11 @@ primeJoinContext :: JoinContext
 primeJoinContext =  JoinContext Nothing
 
 -- | Update product of 'JoinContext'.
-updateProduct' :: (Maybe QueryProductNode -> Maybe QueryProductNode) -> JoinContext -> JoinContext
+updateProduct' :: (Maybe ProductBuilder -> Maybe ProductBuilder) -> JoinContext -> JoinContext
 updateProduct' uf ctx = ctx { product = uf . product $ ctx }
 
 -- | Update product of 'JoinContext'.
-updateProduct :: (Maybe QueryProductNode -> QueryProductNode) -> JoinContext -> JoinContext
+updateProduct :: (Maybe ProductBuilder -> ProductBuilder) -> JoinContext -> JoinContext
 updateProduct uf = updateProduct' (Just . uf)
 
 -- |  Finalize context to extract accumulated query product.

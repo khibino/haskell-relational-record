@@ -35,6 +35,7 @@ module Database.Relational.Query.Sub (
   -- * Product of sub-queries
   QueryProduct, QueryProductNode, JoinProduct, NodeAttr,
   nodeTree,
+  ProductBuilder,
 
   -- * Query restriction
   QueryRestriction,
@@ -51,7 +52,7 @@ import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, rowStringSQ
 import Database.Relational.Query.Internal.Sub
   (SubQuery (..), Projection, untypeProjection, typedProjection,
    UntypedProjection, ProjectionUnit (..),
-   JoinProduct, QueryProduct, QueryProductNode,
+   JoinProduct, QueryProduct, QueryProductNode, ProductBuilder,
    NodeAttr (Just', Maybe), ProductTree (Leaf, Join), Node (Node),
    SetOp (..), BinOp (..), Qualifier (..), Qualified (..),
    QueryRestriction)
