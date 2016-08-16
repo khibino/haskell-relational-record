@@ -45,7 +45,6 @@ module Database.Relational.Query.Sub (
 import Data.Array (listArray)
 import qualified Data.Array as Array
 import Data.Monoid (mempty, (<>), mconcat)
-import Data.DList (toList)
 
 import qualified Database.Relational.Query.Context as Context
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, rowStringSQL, showStringSQL)
@@ -351,7 +350,7 @@ showsQueryProduct =  rec  where
      joinType (nodeAttr left') (nodeAttr right'), JOIN,
      urec right',
      ON, foldr1 SQL.and $ ps ++ concat [ showConstantTermsSQL' True | null ps ] ]
-    where ps = [ unsafeProjectionStringSql p | p <- toList rs ]
+    where ps = [ unsafeProjectionStringSql p | p <- rs ]
 
 -- | Shows join product of query.
 showsJoinProduct :: ProductUnitSupport -> JoinProduct -> StringSQL

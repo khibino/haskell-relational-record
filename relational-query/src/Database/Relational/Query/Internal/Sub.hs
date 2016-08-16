@@ -90,9 +90,9 @@ data ProductTree rs
 data Node rs = Node !NodeAttr !(ProductTree rs)  deriving (Show, Functor)
 
 -- | Product tree specialized by 'SubQuery'.
-type QueryProduct = ProductTree QueryRestrictionBuilder
+type QueryProduct = ProductTree (QueryRestriction Flat)
 -- | Product node specialized by 'SubQuery'.
-type QueryProductNode = Node QueryRestrictionBuilder
+type QueryProductNode = Node (QueryRestriction Flat)
 
 type ProductTreeBuilder = ProductTree QueryRestrictionBuilder
 type ProductBuilder = Node QueryRestrictionBuilder

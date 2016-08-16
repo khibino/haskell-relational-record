@@ -15,6 +15,7 @@ module Database.Relational.Query.Monad.Trans.JoinState (
   ) where
 
 import Prelude hiding (product)
+import Data.DList (toList)
 
 import qualified Database.Relational.Query.Sub as Product
 import Database.Relational.Query.Sub (ProductBuilder, JoinProduct)
@@ -36,4 +37,4 @@ updateProduct uf ctx = ctx { product = Just . uf . product $ ctx }
 
 -- |  Finalize context to extract accumulated query product.
 joinProduct :: JoinContext -> JoinProduct
-joinProduct =  fmap Product.nodeTree . product
+joinProduct =  fmap (fmap toList . Product.nodeTree) . product
