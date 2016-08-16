@@ -25,7 +25,7 @@ module Database.Relational.Query.Sub (
   column,
 
   -- * Projection
-  ProjectionUnit, UntypedProjection,
+  Projection, ProjectionUnit, UntypedProjection,
 
   untypedProjectionFromColumns, untypedProjectionFromJoinedSubQuery, untypedProjectionFromScalarSubQuery,
   widthOfUntypedProjection, columnsOfUntypedProjection,
@@ -33,7 +33,7 @@ module Database.Relational.Query.Sub (
   projectionColumns, unsafeProjectionStringSql, unsafeProjectFromColumns,
 
   -- * Product of sub-queries
-  QueryProduct, QueryProductNode, JoinProduct,
+  QueryProduct, QueryProductNode, JoinProduct, NodeAttr,
   nodeTree,
 
   -- * Query restriction
