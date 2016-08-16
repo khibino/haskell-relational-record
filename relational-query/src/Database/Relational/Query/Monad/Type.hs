@@ -15,7 +15,7 @@ module Database.Relational.Query.Monad.Type
        ) where
 
 import Database.Relational.Query.Component (Duplication)
-import Database.Relational.Query.Internal.Sub (JoinProduct, QueryRestriction)
+import Database.Relational.Query.Sub (JoinProduct, QueryRestriction)
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Projection (Projection)
 import Database.Relational.Query.Projectable (PlaceHolders)

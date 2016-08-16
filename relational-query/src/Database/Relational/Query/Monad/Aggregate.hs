@@ -34,8 +34,7 @@ import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Component
   (AggregateColumnRef, Duplication, OrderingTerms, AggregateElem, composeOver, showsColumnSQL)
-import Database.Relational.Query.Internal.Sub (SubQuery, QueryRestriction, JoinProduct)
-import Database.Relational.Query.Sub (aggregatedSubQuery)
+import Database.Relational.Query.Sub (SubQuery, QueryRestriction, JoinProduct, aggregatedSubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
 import Database.Relational.Query.Projectable (PlaceHolders, SqlProjectable)
 

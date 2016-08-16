@@ -22,7 +22,6 @@ module Database.Relational.Query.Monad.Unique
 import Control.Applicative (Applicative)
 
 import Database.Relational.Query.Context (Flat)
-import Database.Relational.Query.Internal.Sub (NodeAttr)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
@@ -34,8 +33,9 @@ import Database.Relational.Query.Monad.Type (QueryCore, extractCore)
 import Database.Relational.Query.Projectable (PlaceHolders)
 
 import Database.Relational.Query.Component (Duplication)
-import Database.Relational.Query.Internal.Sub (SubQuery, QueryRestriction, Qualified, JoinProduct)
-import Database.Relational.Query.Sub (flatSubQuery)
+import Database.Relational.Query.Sub
+  (SubQuery, QueryRestriction, Qualified, JoinProduct, NodeAttr, flatSubQuery)
+
 
 -- | Unique query monad type.
 newtype QueryUnique a = QueryUnique (QueryCore a)

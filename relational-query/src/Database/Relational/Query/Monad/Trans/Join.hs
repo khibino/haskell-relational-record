@@ -36,11 +36,10 @@ import Data.Monoid (Last (Last, getLast))
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Monad.Trans.JoinState
   (JoinContext, primeJoinContext, updateProduct, joinProduct)
-import Database.Relational.Query.Internal.Sub (NodeAttr (Just', Maybe), Projection)
+import Database.Relational.Query.Internal.Sub (NodeAttr (Just', Maybe), SubQuery, Qualified, JoinProduct, Projection)
 import Database.Relational.Query.Internal.Product (restrictProduct, growProduct)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Component (Duplication (All))
-import Database.Relational.Query.Internal.Sub (SubQuery, Qualified, JoinProduct)
 import Database.Relational.Query.Projectable (PlaceHolders, unsafeAddPlaceHolders)
 
 import Database.Relational.Query.Monad.BaseType (ConfigureQuery, qualifyQuery, Relation, untypeRelation)

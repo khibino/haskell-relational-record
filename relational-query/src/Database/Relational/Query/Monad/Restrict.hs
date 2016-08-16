@@ -20,7 +20,7 @@ module Database.Relational.Query.Monad.Restrict (
   extract
   ) where
 
-import Database.Relational.Query.Internal.Sub (QueryRestriction)
+import Database.Relational.Query.Sub (QueryRestriction)
 import Database.Relational.Query.Component (Config)
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Projection (Projection)
