@@ -16,7 +16,7 @@ module Database.Relational.Query.Internal.Sub
 
          -- * Product tree type
        , NodeAttr (..), ProductTree (..), Node (..)
-       , JoinProduct, QueryProductTree, QueryProduct
+       , JoinProduct, QueryProductTree
        , ProductTreeBuilder, ProductBuilder
 
        , Projection, untypeProjection, typedProjection
@@ -91,8 +91,6 @@ data Node rs = Node !NodeAttr !(ProductTree rs)  deriving (Show, Functor)
 
 -- | Product tree specialized by 'SubQuery'.
 type QueryProductTree = ProductTree (QueryRestriction Flat)
--- | Product node specialized by 'SubQuery'.
-type QueryProduct = Node (QueryRestriction Flat)
 
 type ProductTreeBuilder = ProductTree QueryRestrictionBuilder
 type ProductBuilder = Node QueryRestrictionBuilder
