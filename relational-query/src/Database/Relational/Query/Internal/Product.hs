@@ -9,8 +9,7 @@
 --
 -- This module defines product structure to compose SQL join.
 module Database.Relational.Query.Internal.Product (
-  -- * Product tree type
-  node,
+  -- * Interfaces to manipulate ProductTree type
   growProduct, restrictProduct,
   ) where
 
