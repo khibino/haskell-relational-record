@@ -89,10 +89,13 @@ data ProductTree rs
 -- | Product node. node attribute and product tree.
 data Node rs = Node !NodeAttr !(ProductTree rs)  deriving (Show, Functor)
 
--- | Product tree specialized by 'SubQuery'.
+-- | Product tree with join restriction.
 type QueryProductTree = ProductTree (QueryRestriction Flat)
 
+-- | Product tree with join restriction builder.
 type ProductTreeBuilder = ProductTree QueryRestrictionBuilder
+
+-- | Product noe with join restriction builder.
 type ProductBuilder = Node QueryRestrictionBuilder
 
 -- | Type for join product of query.
