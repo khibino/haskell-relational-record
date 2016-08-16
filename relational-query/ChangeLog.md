@@ -1,5 +1,10 @@
 <!-- -*- Markdown -*- -->
 
+## 0.8.3.1
+
+- Refactor around sub-query and its builder.
+- Compatibility with dlist-0.5.
+
 ## 0.8.3.0
 
 - Add configuration to quote SQL string of table names.
