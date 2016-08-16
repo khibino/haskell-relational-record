@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveFunctor #-}
+
 -- |
 -- Module      : Database.Relational.Query.Internal.Sub
 -- Copyright   : 2015 Kei Hibino
@@ -82,10 +84,10 @@ type QueryRestrictionsBuilder = DList (Projection Context.Flat (Maybe Bool))
 data ProductTree rs
   = Leaf QS
   | Join !(Node rs) !(Node rs) !rs
-  deriving Show
+  deriving (Show, Functor)
 
 -- | Product node. node attribute and product tree.
-data Node rs = Node !NodeAttr !(ProductTree rs)  deriving Show
+data Node rs = Node !NodeAttr !(ProductTree rs)  deriving (Show, Functor)
 
 -- | Product tree specialized by 'SubQuery'.
 type QueryProduct = ProductTree QueryRestrictionsBuilder
