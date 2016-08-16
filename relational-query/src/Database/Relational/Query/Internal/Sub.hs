@@ -29,7 +29,7 @@ import Prelude hiding (and, product)
 import Data.Array (Array)
 import Data.DList (DList)
 
-import qualified Database.Relational.Query.Context as Context
+import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Component
   (ColumnSQL, Config, Duplication (..),
    AggregateElem, OrderingTerms)
@@ -45,11 +45,11 @@ newtype BinOp = BinOp (SetOp, Duplication) deriving Show
 -- | Sub-query type
 data SubQuery = Table Table.Untyped
               | Flat Config
-                UntypedProjection Duplication JoinProduct (QueryRestriction Context.Flat)
+                UntypedProjection Duplication JoinProduct (QueryRestriction Flat)
                 OrderingTerms
               | Aggregated Config
-                UntypedProjection Duplication JoinProduct (QueryRestriction Context.Flat)
-                [AggregateElem] (QueryRestriction Context.Aggregated) OrderingTerms
+                UntypedProjection Duplication JoinProduct (QueryRestriction Flat)
+                [AggregateElem] (QueryRestriction Aggregated) OrderingTerms
               | Bin BinOp SubQuery SubQuery
               deriving Show
 
@@ -78,7 +78,7 @@ data NodeAttr = Just' | Maybe deriving Show
 
 type QS = Qualified SubQuery
 
-type QueryRestrictionBuilder = DList (Projection Context.Flat (Maybe Bool))
+type QueryRestrictionBuilder = DList (Projection Flat (Maybe Bool))
 
 -- | Product tree type. Product tree is constructed by left node and right node.
 data ProductTree rs
