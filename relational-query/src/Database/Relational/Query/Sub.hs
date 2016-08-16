@@ -37,6 +37,7 @@ module Database.Relational.Query.Sub (
   nodeTree,
 
   -- * Query restriction
+  QueryRestriction,
   composeWhere, composeHaving
   ) where
 
