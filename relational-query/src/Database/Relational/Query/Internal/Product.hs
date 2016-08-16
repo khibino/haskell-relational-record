@@ -21,19 +21,13 @@ import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Internal.Sub (NodeAttr (..), ProductTree (..), Node (..), Projection)
 
 
--- | Make product node from node attribute and product tree.
-node :: NodeAttr      -- ^ Node attribute
-     -> ProductTree q -- ^ Product tree
-     -> Node q        -- ^ Result node
-node =  Node
-
 -- | Push new tree into product right term.
 growRight :: Maybe (Node q)            -- ^ Current tree
           -> (NodeAttr, ProductTree q) -- ^ New tree to push into right
           -> Node q                    -- ^ Result node
 growRight = d  where
-  d Nothing  (naR, q) = node naR q
-  d (Just l) (naR, q) = node Just' $ Join l (node naR q) empty
+  d Nothing  (naR, q) = Node naR q
+  d (Just l) (naR, q) = Node Just' $ Join l (Node naR q) empty
 
 -- | Push new leaf node into product right term.
 growProduct :: Maybe (Node q) -- ^ Current tree
@@ -54,4 +48,4 @@ restrictProduct' =  d  where
 restrictProduct :: Node q                       -- ^ Target node which has product to restrict
                 -> Projection Flat (Maybe Bool) -- ^ Restriction to add
                 -> Node q                       -- ^ Result node
-restrictProduct (Node a t) e = node a (restrictProduct' t e)
+restrictProduct (Node a t) e = Node a (restrictProduct' t e)
