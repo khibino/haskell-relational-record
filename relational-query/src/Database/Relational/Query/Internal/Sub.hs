@@ -2,7 +2,7 @@
 
 -- |
 -- Module      : Database.Relational.Query.Internal.Sub
--- Copyright   : 2015 Kei Hibino
+-- Copyright   : 2015-2016 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com

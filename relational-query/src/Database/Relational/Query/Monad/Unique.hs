@@ -5,7 +5,7 @@
 
 -- |
 -- Module      : Database.Relational.Query.Monad.Unique
--- Copyright   : 2013 Kei Hibino
+-- Copyright   : 2014-2016 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com

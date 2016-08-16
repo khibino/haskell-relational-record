@@ -4,7 +4,7 @@
 
 -- |
 -- Module      : Database.Relational.Query.Monad.Assign
--- Copyright   : 2013 Kei Hibino
+-- Copyright   : 2013-2016 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
