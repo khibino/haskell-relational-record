@@ -16,7 +16,7 @@ module Database.Relational.Query.Internal.Sub
 
          -- * Product tree type
        , NodeAttr (..), ProductTree (..), Node (..)
-       , JoinProduct, QueryProduct, QueryProductNode
+       , JoinProduct, QueryProductTree, QueryProductNode
        , ProductTreeBuilder, ProductBuilder
 
        , Projection, untypeProjection, typedProjection
@@ -90,7 +90,7 @@ data ProductTree rs
 data Node rs = Node !NodeAttr !(ProductTree rs)  deriving (Show, Functor)
 
 -- | Product tree specialized by 'SubQuery'.
-type QueryProduct = ProductTree (QueryRestriction Flat)
+type QueryProductTree = ProductTree (QueryRestriction Flat)
 -- | Product node specialized by 'SubQuery'.
 type QueryProductNode = Node (QueryRestriction Flat)
 
@@ -98,7 +98,7 @@ type ProductTreeBuilder = ProductTree QueryRestrictionBuilder
 type ProductBuilder = Node QueryRestrictionBuilder
 
 -- | Type for join product of query.
-type JoinProduct = Maybe QueryProduct
+type JoinProduct = Maybe QueryProductTree
 
 
 -- | Phantom typed projection. Projected into Haskell record type 't'.

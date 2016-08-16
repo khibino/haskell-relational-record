@@ -33,7 +33,7 @@ module Database.Relational.Query.Sub (
   projectionColumns, unsafeProjectionStringSql, unsafeProjectFromColumns,
 
   -- * Product of sub-queries
-  QueryProduct, QueryProductNode, JoinProduct, NodeAttr,
+  QueryProductTree, QueryProductNode, JoinProduct, NodeAttr,
   nodeTree,
   ProductBuilder,
 
@@ -51,7 +51,7 @@ import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, rowStringSQ
 import Database.Relational.Query.Internal.Sub
   (SubQuery (..), Projection, untypeProjection, typedProjection,
    UntypedProjection, ProjectionUnit (..),
-   JoinProduct, QueryProduct, QueryProductNode, ProductBuilder,
+   JoinProduct, QueryProductTree, QueryProductNode, ProductBuilder,
    NodeAttr (Just', Maybe), ProductTree (Leaf, Join), Node (Node),
    SetOp (..), BinOp (..), Qualifier (..), Qualified (..),
    QueryRestriction)
@@ -334,7 +334,7 @@ nodeTree :: Node rs -> ProductTree rs
 nodeTree (Node _ t) = t
 
 -- | Show product tree of query into SQL. StringSQL result.
-showsQueryProduct :: QueryProduct -> StringSQL
+showsQueryProduct :: QueryProductTree -> StringSQL
 showsQueryProduct =  rec  where
   joinType Just' Just' = INNER
   joinType Just' Maybe = LEFT
