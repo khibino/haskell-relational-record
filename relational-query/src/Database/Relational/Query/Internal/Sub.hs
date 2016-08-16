@@ -73,18 +73,20 @@ type UntypedProjection = [ProjectionUnit]
 -- | node attribute for product.
 data NodeAttr = Just' | Maybe deriving Show
 
+type QS = Qualified SubQuery
+
 -- | Product tree type. Product tree is constructed by left node and right node.
-data ProductTree q = Leaf q
-                   | Join !(Node q) !(Node q) !(DList (Projection Context.Flat (Maybe Bool)))
+data ProductTree = Leaf QS
+                 | Join !Node !Node !(DList (Projection Context.Flat (Maybe Bool)))
                    deriving Show
 
 -- | Product node. node attribute and product tree.
-data Node q = Node !NodeAttr !(ProductTree q)  deriving Show
+data Node = Node !NodeAttr !ProductTree  deriving Show
 
 -- | Product tree specialized by 'SubQuery'.
-type QueryProduct = ProductTree (Qualified SubQuery)
+type QueryProduct = ProductTree
 -- | Product node specialized by 'SubQuery'.
-type QueryProductNode = Node (Qualified SubQuery)
+type QueryProductNode = Node
 
 -- | Type for join product of query.
 type JoinProduct = Maybe QueryProduct
