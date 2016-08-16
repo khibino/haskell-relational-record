@@ -326,11 +326,11 @@ unsafeProjectFromColumns =  typedProjection . untypedProjectionFromColumns
 
 
 -- | Get node attribute.
-nodeAttr :: Node -> NodeAttr
+nodeAttr :: Node rs -> NodeAttr
 nodeAttr (Node a _) = a  where
 
 -- | Get tree from node.
-nodeTree :: Node -> ProductTree
+nodeTree :: Node rs -> ProductTree rs
 nodeTree (Node _ t) = t
 
 -- | Show product tree of query into SQL. StringSQL result.

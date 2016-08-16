@@ -15,6 +15,7 @@ module Database.Relational.Query.Internal.Sub
          -- * Product tree type
        , NodeAttr (..), ProductTree (..), Node (..)
        , JoinProduct, QueryProduct, QueryProductNode
+       , ProductTreeBuilder, ProductBuilder
 
        , Projection, untypeProjection, typedProjection
 
@@ -75,18 +76,24 @@ data NodeAttr = Just' | Maybe deriving Show
 
 type QS = Qualified SubQuery
 
+type QueryRestrictionsBuilder = DList (Projection Context.Flat (Maybe Bool))
+
 -- | Product tree type. Product tree is constructed by left node and right node.
-data ProductTree = Leaf QS
-                 | Join !Node !Node !(DList (Projection Context.Flat (Maybe Bool)))
-                   deriving Show
+data ProductTree rs
+  = Leaf QS
+  | Join !(Node rs) !(Node rs) !rs
+  deriving Show
 
 -- | Product node. node attribute and product tree.
-data Node = Node !NodeAttr !ProductTree  deriving Show
+data Node rs = Node !NodeAttr !(ProductTree rs)  deriving Show
 
 -- | Product tree specialized by 'SubQuery'.
-type QueryProduct = ProductTree
+type QueryProduct = ProductTree QueryRestrictionsBuilder
 -- | Product node specialized by 'SubQuery'.
-type QueryProductNode = Node
+type QueryProductNode = Node QueryRestrictionsBuilder
+
+type ProductTreeBuilder = ProductTree QueryRestrictionsBuilder
+type ProductBuilder = Node QueryRestrictionsBuilder
 
 -- | Type for join product of query.
 type JoinProduct = Maybe QueryProduct
