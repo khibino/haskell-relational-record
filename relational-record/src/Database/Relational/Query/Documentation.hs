@@ -218,7 +218,7 @@ Some operators are defined to build query structures in monadic context.
 
 'distinct' operator and 'all'' operator specify SELECT DISTINCT or SELECT ALL, the last specified in monad is used.
 
-'(<-#)' operator assigns update target column and projection value to build update statement structure.
+'<-#' operator assigns update target column and projection value to build update statement structure.
  -}
 
 {- $directJoin
