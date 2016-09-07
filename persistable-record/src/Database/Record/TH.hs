@@ -228,10 +228,6 @@ defineRecordType typeName' columns derives = do
   offs <- defineColumnOffsets typeName' [ty | (_, ty) <- columns]
   return $ rec : offs
 
--- | Generate column name from 'String'.
-columnDefault :: String -> TypeQ -> (VarName, TypeQ)
-columnDefault n t = (varCamelcaseName n, t)
-
 -- | Record type declaration template with configured names.
 defineRecordTypeWithConfig :: NameConfig -> String -> String -> [(String, TypeQ)] -> [Name] -> Q [Dec]
 defineRecordTypeWithConfig config schema table columns =
