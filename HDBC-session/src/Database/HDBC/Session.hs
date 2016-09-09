@@ -14,7 +14,9 @@
 module Database.HDBC.Session (
   -- * Bracketed session
   -- $bracketedSession
-  withConnection, withConnectionIO, withConnectionIO',
+  withConnectionIO, withConnectionIO',
+
+  withConnection,
 
   -- * Show errors
   -- $showErrors
