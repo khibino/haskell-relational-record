@@ -14,6 +14,7 @@
 module Database.HDBC.Session (
   -- * Bracketed session
   -- $bracketedSession
+  withConnectionCommit,
   withConnectionIO, withConnectionIO',
 
   withConnection,
@@ -78,6 +79,18 @@ withConnectionIO :: IConnection conn
                  -> (conn -> IO a) -- ^ Transaction body
                  -> IO a           -- ^ Result transaction action
 withConnectionIO =  withConnection bracket id
+
+-- | Same as 'withConnectionIO' other than issuing commit at the end of transaction body.
+--   In other words, the transaction with no exception is committed.
+withConnectionCommit :: IConnection conn
+                     => IO conn        -- ^ Connect action
+                     -> (conn -> IO a) -- ^ Transaction body
+                     -> IO a           -- ^ Result transaction action
+withConnectionCommit conn body =
+  withConnectionIO conn $ \c -> do
+    x <- body c
+    HDBC.commit c
+    return x
 
 -- | Same as 'withConnectionIO' other than wrapping transaction body in 'handleSqlError''.
 withConnectionIO' :: IConnection conn
