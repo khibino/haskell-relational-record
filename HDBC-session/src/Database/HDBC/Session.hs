@@ -82,6 +82,7 @@ withConnectionIO =  withConnection bracket id
 
 -- | Same as 'withConnectionIO' other than issuing commit at the end of transaction body.
 --   In other words, the transaction with no exception is committed.
+--   Handy defintion for simple transactions.
 withConnectionCommit :: IConnection conn
                      => IO conn        -- ^ Connect action
                      -> (conn -> IO a) -- ^ Transaction body
