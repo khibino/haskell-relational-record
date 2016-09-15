@@ -370,7 +370,7 @@ Demo
 expansion of Template Haskell
 
 
-Conclusion and future work
+Conclusion
 -----
 
 * Composable
