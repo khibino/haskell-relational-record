@@ -28,4 +28,4 @@ title: Technical information
 
 ### Slides of others
 
-- [Composable, type-safe SQL generation in Haskell - ](https://github.com/charlydagos/haskell-sql-edsl-demo/blob/master/slides/presentation.md), Carlos D'Agostino 2016.5.19, HaskellerZ Meetup, Zürich
+- [Composable, type-safe SQL generation in Haskell](https://github.com/charlydagos/haskell-sql-edsl-demo/blob/master/slides/presentation.md), Carlos D'Agostino, 2016.5.19, HaskellerZ Meetup, Zürich
