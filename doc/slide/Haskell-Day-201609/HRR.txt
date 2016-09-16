@@ -255,6 +255,24 @@ SELECT ALL
   FROM PUBLIC.my_table T0
 ~~~~~
 
+Demo
+-----
+
+expansion of Template Haskell
+
+
+Conclusion
+-----
+
+* Composable
+    * Haskell expressions in HRR DSL bound to variables are reusable.
+* Type Safety
+    * Statically type checking makes composition of small expressions safer.
+
+Question
+-----
+
+
 Structure
 =====
 
@@ -364,20 +382,3 @@ having :: MonadRestrict Aggregated m
        => Projection Aggregated (Maybe Bool)
        -> m ()
 ~~~~~
-
-Demo
------
-
-expansion of Template Haskell
-
-
-Conclusion
------
-
-* Composable
-    * Haskell expressions in HRR DSL bound to variables are reusable.
-* Type Safety
-    * Statically type checking makes composition of small expressions safer.
-
-Question
------
