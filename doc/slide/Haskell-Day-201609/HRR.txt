@@ -258,7 +258,9 @@ SELECT ALL
 Demo
 -----
 
-expansion of Template Haskell
+* expansion of Template Haskell
+
+* aggregation type check
 
 
 Conclusion

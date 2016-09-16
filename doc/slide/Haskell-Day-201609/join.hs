@@ -47,8 +47,9 @@ sameBirthdayHeisei =  aggregateRelation $ do
   wheres $ birthDay .>=. value (fromGregorian 1989 1 8)
   gbd <- groupBy birthDay
   let personCount = count $ p ! Person.name'
-  having $ personCount .>. value 1
+  having $ personCount .>. value (1 :: Int64)
   return $ gbd >< personCount
+  -- return $ gbd >< birthDay
 
 birthdayHeiseiDesc :: Relation () (Day, Int64)
 birthdayHeiseiDesc =  aggregateRelation $ do
