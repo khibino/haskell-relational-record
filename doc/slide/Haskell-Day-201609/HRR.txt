@@ -1,5 +1,5 @@
 % Haskell Relational Record
-  Composable, Typesafe Query building
+  Composable, Typesafe SQL building
 % Kei Hibino
 % 2016-09-17
 
@@ -9,6 +9,7 @@ Concepts
 * SQL building DSL using Haskell
     * http://khibino.github.io/haskell-relatoinal-record/
 * Composability and Type-Safety
+    * Want to find errors of SQL at compile time
 * Compile time schema loading and generating type informations
 
 Intro
