@@ -243,6 +243,23 @@ ageRankOfFamilies <span class="fu">=</span>  relation <span class="fu">$</span> 
                     <span class="kw">ORDER</span> <span class="kw">BY</span> T0.age <span class="kw">DESC</span>) <span class="kw">AS</span> f0,
        T0.family <span class="kw">AS</span> f1, T0.age <span class="kw">AS</span> f2
   <span class="kw">FROM</span> PUBLIC.my_table T0</code></pre></div>
+</div><div id="demo" class="slide section level2">
+<h1>Demo</h1>
+<p>expansion of Template Haskell</p>
+</div><div id="conclusion" class="slide section level2">
+<h1>Conclusion</h1>
+<ul>
+<li>Composable
+<ul>
+<li>Haskell expressions in HRR DSL bound to variables are reusable.</li>
+</ul></li>
+<li>Type Safety
+<ul>
+<li>Statically type checking makes composition of small expressions safer.</li>
+</ul></li>
+</ul>
+</div><div id="question" class="slide section level2">
+<h1>Question</h1>
 </div>
 <div id="structure" class="titleslide slide section level1"><h1>Structure</h1></div><div id="structure-concepts" class="slide section level2">
 <h1>Structure / Concepts</h1>
@@ -315,23 +332,6 @@ ageRankOfFamilies <span class="fu">=</span>  relation <span class="fu">$</span> 
 <span class="ot">having ::</span> <span class="dt">MonadRestrict</span> <span class="dt">Aggregated</span> m
        <span class="ot">=&gt;</span> <span class="dt">Projection</span> <span class="dt">Aggregated</span> (<span class="dt">Maybe</span> <span class="dt">Bool</span>)
        <span class="ot">-&gt;</span> m ()</code></pre></div>
-</div><div id="demo" class="slide section level2">
-<h1>Demo</h1>
-<p>expansion of Template Haskell</p>
-</div><div id="conclusion" class="slide section level2">
-<h1>Conclusion</h1>
-<ul>
-<li>Composable
-<ul>
-<li>Haskell expressions in HRR DSL bound to variables are reusable.</li>
-</ul></li>
-<li>Type Safety
-<ul>
-<li>Statically type checking makes composition of small expressions safer.</li>
-</ul></li>
-</ul>
-</div><div id="question" class="slide section level2">
-<h1>Question</h1>
 </div>
 </div>
 </body>
