@@ -44,7 +44,7 @@ $$\{ (p, b) | p \in P, b \in B, \pi_{P.name}(p) = \pi_{B.name}(b) \}$$
    | p <- person, b <- birthday , P.name p == B.name b ]
    -- List Comprehension
 
-do { p <- person; b <- birthday; P.name p == B.name b
+do { p <- person; b <- birthday; guard (P.name p == B.name b)
    ; return (p, b) }  -- List Monad
 ~~~~~
 
@@ -54,7 +54,7 @@ Intro / DSL using Haskell!
 -----
 
 ~~~~~ {.haskell}
-  do { p <- person; b <- birthday; P.name p == B.name b
+  do { p <- person; b <- birthday; guard (P.name p == B.name b)
      ; return (p, b) } -- List Monad
 ~~~~~
 
