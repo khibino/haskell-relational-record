@@ -16,7 +16,7 @@ $$\{ (x, y) | x \in X, y \in Y, \pi_1(x) = \pi_2(y) \}$$
 [ (x, y) | x <- xs, y <- ys, fst x == snd y ]
 
 -- List Monad
-do { x <- xs; y <- ys; fst x == snd y; return (x, y) }
+do { x <- xs; y <- ys; guard (fst x == snd y); return (x, y) }
 
 ~~~~~
 
