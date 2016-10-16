@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.8.4.0
+
+- Export Register interface type from Query module.
+
 ## 0.8.3.1
 
 - Refactor around sub-query and its builder.
