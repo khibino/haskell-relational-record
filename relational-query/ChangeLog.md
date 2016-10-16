@@ -1,6 +1,6 @@
 <!-- -*- Markdown -*- -->
 
-## 0.8.4.0
+## 0.8.3.2
 
 - Export Register interface type from Query module.
 
