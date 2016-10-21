@@ -5,18 +5,37 @@ title: Quick start
 
 ### Preparing HRR
 
+Following installation methods are selectable
+
+#### Debian sid
+
+    % sudo apt-get install haskell-relational-record
+
+#### OpenSUSE
+
+    OpenSUSE Tumbleweed
+
+    # zypper addrepo http://download.opensuse.org/repositories/devel:languages:haskell:lts:6/openSUSE_Tumbleweed/devel:languages:haskell:lts:6.repo
+    # zypper refresh
+    # zypper install ghc-relational-record
+
+#### Build with cabal
+
 To start using [Haskell Relational Record](http://khibino.github.io/haskell-relational-record/) (HRR), you need to install:
 
 1. [Glasgow Haskell Compiler](https://www.haskell.org/ghc/) (GHC) + the "cabal" command
     - We recommend using the [Haskell Platform](https://www.haskell.org/platform/)
 2. The Haskell ["relational-record"](http://hackage.haskell.org/package/relational-record) library
-3. Relational database system
-    - In this quickstart, we assume that [SQLite](http://www.sqlite.org/) version 3 has been installed
 
 To install the Haskell "relational-record" library, run the following commands:
 
     % cabal update
     % cabal install relational-record
+
+### Prepare Relational database system
+
+Relational database system
+    - In this quickstart, we assume that [SQLite](http://www.sqlite.org/) version 3 has been installed
 
 ### The first relation
 
