@@ -19,6 +19,10 @@ Following installation methods are selectable
     # zypper refresh
     # zypper install ghc-relational-record
 
+#### Build with stack
+
+    % stack build relational-record
+
 #### Build with cabal
 
 To start using [Haskell Relational Record](http://khibino.github.io/haskell-relational-record/) (HRR), you need to install:
