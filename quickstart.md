@@ -7,7 +7,7 @@ title: Quick start
 
 Following installation methods are selectable
 
-#### Debian sid [install-on-debian-sid]
+#### <a name="install-on-debian-sid"></a> Debian sid
 
     % sudo apt-get install haskell-relational-record
 
