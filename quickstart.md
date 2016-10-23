@@ -3,7 +3,7 @@ layout: default
 title: Quick start
 ---
 
-### Preparing HRR
+### <a name="preparing-hrr"></a> Preparing HRR
 
 Following installation methods are selectable
 
@@ -36,12 +36,12 @@ To install the Haskell "relational-record" library, run the following commands:
     % cabal update
     % cabal install relational-record
 
-### Prepare Relational database system
+### <a name="prepare-rdb"></a> Prepare Relational database system
 
 Relational database system
     - In this quickstart, we assume that [SQLite](http://www.sqlite.org/) version 3 has been installed
 
-### The first relation
+### <a name="first-relation"></a> The first relation
 
 In HRR, select statements are called relations.
 Let's define our first relation. Copy the following to "hello.hs":
@@ -73,7 +73,7 @@ OK. Next, let's execute the SQL produced above in SQLite:
 
 We got "0\|Hello"! Note that "dummy.db" is just a dummy file.
 
-### Composing relations
+### <a name="composing-relation"></a> Composing relations
 
 Next, let's compose relations. Copy the following to "helloworld.hs":
 

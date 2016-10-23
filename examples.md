@@ -496,11 +496,11 @@ FROM MAIN.account T0
 WHERE (NOT (T0.product_cd IN ('CHK', 'SAV', 'CD', 'MM')))
 {% endhighlight %}
 
-#### Joins
+#### <a name="joins"></a> Joins
 
 The combinations of `query` and `queryMaybe` express inner joins, left outer joins, right outer joins, and full outer joins.
 
-#### Inner join
+#### <a name="inner-join"></a> Inner join
 
 SQL:
 
@@ -531,7 +531,7 @@ FROM MAIN.employee T0 INNER JOIN MAIN.department T1
 ON (T0.dept_id = T1.dept_id)
 {% endhighlight %}
 
-#### Left outer join
+#### <a name="left-join"></a> Left outer join
 
 SQL:
 
@@ -575,7 +575,7 @@ FROM MAIN.account T0 LEFT JOIN MAIN.individual T1
 ON (T0.cust_id = T1.cust_id)
 {% endhighlight %}
 
-#### Right outer join
+#### <a name="right-join"></a> Right outer join
 
 SQL:
 
@@ -701,7 +701,7 @@ FROM MAIN.employee T0 INNER JOIN MAIN.employee T1
 ON (T0.superior_emp_id = T1.emp_id)
 {% endhighlight %}
 
-####Sorting compound query results
+#### Sorting compound query results
 
 SQL:
 
@@ -925,7 +925,7 @@ Generated SQL:
 INSERT INTO MAIN.branch (name, address, city, state, zip)
 SELECT ALL 'Headquarters' AS f0,
            '3882 Main St.' AS f1,
-           'Waltham' AS f2, 
+           'Waltham' AS f2,
            'MA' AS f3, '02451' AS f4
 {% endhighlight %}
 
@@ -1171,7 +1171,7 @@ Generated SQL:
 
 {% highlight sql %}
 UPDATE MAIN.account
-SET last_activity_date = 
+SET last_activity_date =
   date((SELECT ALL MAX (T1.f0) AS f0
         FROM (SELECT ALL T0.txn_date AS f0
              FROM MAIN.transaction0 T0
