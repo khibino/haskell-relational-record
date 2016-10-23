@@ -7,11 +7,11 @@ title: Quick start
 
 Following installation methods are selectable
 
-#### <a name="install-on-debian-sid"></a> Debian sid
+#### <a name="install-on-debian"></a> Debian sid
 
     % sudo apt-get install haskell-relational-record
 
-#### OpenSUSE
+#### <a name="install-on-opensuse"></a> OpenSUSE
 
     OpenSUSE Tumbleweed
 
@@ -19,11 +19,11 @@ Following installation methods are selectable
     # zypper refresh
     # zypper install ghc-relational-record
 
-#### Build with stack
+#### <a name="build-with-stack"></a> Build with stack
 
     % stack build relational-record
 
-#### Build with cabal
+#### <a name="build-with-cabal"></a> Build with cabal
 
 To start using [Haskell Relational Record](http://khibino.github.io/haskell-relational-record/) (HRR), you need to install:
 
