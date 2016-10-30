@@ -52,7 +52,7 @@ module Database.Record.TH (
   reifyRecordType,
 
   -- * Templates about record type name
-  NameConfig,  defaultNameConfig,
+  NameConfig(..),  defaultNameConfig,
 
   recordTypeName, recordType,
 
