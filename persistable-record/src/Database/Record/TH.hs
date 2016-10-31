@@ -52,7 +52,7 @@ module Database.Record.TH (
   reifyRecordType,
 
   -- * Templates about record type name
-  NameConfig(..),  defaultNameConfig,
+  NameConfig,  defaultNameConfig,
 
   recordTypeName, recordType,
 
@@ -109,7 +109,8 @@ data NameConfig =
 instance Show NameConfig where
   show = const "<nameConfig>"
 
--- | Default implementation of 'NameConfig' type
+-- | Default implementation of 'NameConfig' type.
+--   To customize this, use record update syntax.
 defaultNameConfig :: NameConfig
 defaultNameConfig =
   NameConfig
