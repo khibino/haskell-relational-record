@@ -53,8 +53,9 @@ module Database.Record.TH (
 
   -- * Templates about record type name
   NameConfig,  defaultNameConfig,
+  recordTypeName, columnName,
 
-  recordTypeName, recordType,
+  recordType,
 
   columnOffsetsVarNameDefault,
 
