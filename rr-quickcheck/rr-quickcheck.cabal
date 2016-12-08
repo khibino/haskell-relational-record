@@ -23,7 +23,10 @@ library
   other-extensions:    TemplateHaskell, MultiParamTypeClasses, FlexibleInstances
   build-depends:         base <5
                        , QuickCheck >=2
+                       , HDBC
+                       , HDBC-session
                        , relational-query
                        , relational-query-HDBC
   hs-source-dirs:      src
+  ghc-options:         -Wall
   default-language:    Haskell2010
