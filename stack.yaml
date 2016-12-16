@@ -21,4 +21,4 @@ extra-deps:
 #  - HDBC-postgresql-2.3.2.3
 #  - HDBC-sqlite3-2.3.3.1
   - quickcheck-simple-0.1.0.0
-resolver: lts-7.9
+resolver: ghc-8.0.1
