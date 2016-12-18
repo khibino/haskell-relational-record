@@ -1,22 +1,16 @@
 {-# LANGUAGE FlexibleInstances #-}
 
 module Test.Relational.QuickCheck.Arbitrary (
-  Selector (..), qJoin1,
+  Selector (..), Ranged (..),
   ) where
 
-import Test.QuickCheck (Arbitrary (..), Gen, elements, listOf, Property, ioProperty)
+import Test.QuickCheck (Arbitrary (..), Gen, elements, listOf)
 import Control.Applicative ((<$>), (<*>))
-import Control.Monad (unless)
 import Data.Int (Int64)
-import Data.List (sort)
-import Database.HDBC (IConnection, rollback)
-import Database.HDBC.Session (withConnectionIO')
 import Database.Relational.Query
 import Database.Relational.Query.Pi.Unsafe (unsafeExpandIndexes)
-import Database.HDBC.Record (runQuery')
 
 import Test.Relational.QuickCheck.Model
-import Test.Relational.QuickCheck.Transaction (initializeTable)
 
 
 data Selector r =
@@ -58,37 +52,3 @@ instance Arbitrary (Ranged B) where
     <$> range10
     <*> range10
     <*> range10
-
-qJoin1 :: IConnection conn
-       => IO conn
-       -> Selector A
-       -> Selector B
-       -> Ranged A
-       -> Ranged B
-       -> Property
-qJoin1 connect pa pb as0 bs0 = ioProperty . withConnectionIO' connect $ \conn -> do
-  let select = relationalQuery . relation $ do
-        x  <-  query relA
-        y  <-  query relB
-        on $ x ! sql pa .=. y ! sql pb
-        orderBy x Asc
-        orderBy y Asc
-        return $ (,) |$| x |*| y
-      as = runRanged as0
-      bs = runRanged bs0
-  initializeTable conn as
-  initializeTable conn bs
-  qresult  <-  runQuery' conn select ()
-  let expect =
-        sort
-        [ (a, b)
-        | a <- as
-        , b <- bs
-        , let x = int pa a
-              y = int pb b
-        , x == y
-        ]
-  let judge = qresult == expect
-  unless judge . putStr $ unlines [show qresult, "  =/=", show expect]
-  rollback conn
-  return judge

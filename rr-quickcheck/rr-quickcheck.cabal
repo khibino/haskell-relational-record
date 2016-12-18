@@ -20,6 +20,8 @@ library
                        Test.Relational.QuickCheck.Model
                        Test.Relational.QuickCheck.Transaction
                        Test.Relational.QuickCheck.Arbitrary
+
+                       Test.Relational.QuickCheck.Tests
   -- other-modules:
   other-extensions:    TemplateHaskell, MultiParamTypeClasses, FlexibleInstances
   build-depends:         base <5
