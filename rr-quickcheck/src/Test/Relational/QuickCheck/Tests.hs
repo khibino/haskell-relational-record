@@ -1,5 +1,5 @@
 module Test.Relational.QuickCheck.Tests (
-  qJoin1,
+  qPred1, qJoin1,
   ) where
 
 import Test.QuickCheck (Property, ioProperty)
@@ -12,8 +12,40 @@ import Database.HDBC.Record (runQuery')
 
 import Test.Relational.QuickCheck.Transaction (initializeTable)
 import Test.Relational.QuickCheck.Model
-import Test.Relational.QuickCheck.Arbitrary (Selector (..), Ranged (..), )
+import Test.Relational.QuickCheck.Arbitrary
+  (Selector (..), D(..), Pred (..), predSQL, predHask, Ranged (..), )
 
+
+qPred1 :: IConnection conn
+       => IO conn
+       -> D (Pred A)
+       -> Ranged A
+       -> Property
+qPred1 connect pa0 as0 = ioProperty . withConnectionIO' connect $ \conn -> do
+  let pa = unD pa0
+      select = relationalQuery . relation $ do
+        x  <-  query relA
+        wheres $ predSQL x pa
+        orderBy x Asc
+        return x
+      as = runRanged as0
+  print select
+
+  initializeTable conn as
+  qresult  <-  runQuery' conn select ()
+  let expect =
+        sort
+        [ a
+        | a  <-  as
+        , predHask a pa
+        ]
+  print qresult
+  print expect
+
+  let judge = qresult == expect
+  unless judge . putStr $ unlines [show qresult, "  =/=", show expect]
+  rollback conn
+  return judge
 
 qJoin1 :: IConnection conn
        => IO conn
