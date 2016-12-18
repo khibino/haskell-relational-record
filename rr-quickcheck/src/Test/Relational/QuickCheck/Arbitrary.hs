@@ -13,9 +13,10 @@ import Database.HDBC (IConnection, rollback)
 import Database.HDBC.Session (withConnectionIO')
 import Database.Relational.Query
 import Database.Relational.Query.Pi.Unsafe (unsafeExpandIndexes)
-import Database.HDBC.Record (runQuery', runInsert)
+import Database.HDBC.Record (runQuery')
 
 import Test.Relational.QuickCheck.Model
+import Test.Relational.QuickCheck.Transaction (initializeTable)
 
 
 data Selector r =
@@ -58,12 +59,6 @@ instance Arbitrary (Ranged B) where
     <*> range10
     <*> range10
 
-insertA :: Insert A
-insertA = derivedInsert id'
-
-insertB :: Insert B
-insertB = derivedInsert id'
-
 qJoin1 :: IConnection conn
        => IO conn
        -> Selector A
@@ -81,8 +76,8 @@ qJoin1 connect pa pb as0 bs0 = ioProperty . withConnectionIO' connect $ \conn ->
         return $ (,) |$| x |*| y
       as = runRanged as0
       bs = runRanged bs0
-  mapM_ (runInsert conn insertA) as
-  mapM_ (runInsert conn insertB) bs
+  initializeTable conn as
+  initializeTable conn bs
   qresult  <-  runQuery' conn select ()
   let expect =
         sort
