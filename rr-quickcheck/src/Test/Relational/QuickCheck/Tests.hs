@@ -56,10 +56,7 @@ qPred1 connect pa0 as0 =
       return x
     expect =
       sort
-      [ a
-      | a  <-  as
-      , predHask a pa
-      ]
+      [ a | a  <-  as, predHask a pa ]
 
 qJoin1 :: IConnection conn
        => IO conn
@@ -87,9 +84,6 @@ qJoin1 connect pa pb cmp as0 bs0 =
     expect =
       sort
       [ (a, b)
-      | a <- as
-      , b <- bs
-      , let x = int pa a
-            y = int pb b
-      , cmpHask cmp x y
+      | a <- as, b <- bs
+      , cmpHask cmp (int pa a) (int pb b)
       ]
