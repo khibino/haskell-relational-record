@@ -15,7 +15,7 @@ import Database.HDBC.Record (runQuery', runInsert)
 
 import Test.Relational.QuickCheck.Model
 import Test.Relational.QuickCheck.Arbitrary
-  (Selector (..), D(..), Pred (..), predSQL, predHask, Ranged (..), )
+  (Selector (..), D(..), Pred (..), predSQL, predHask, Cmp (..), cmpSQL, cmpHask, Ranged (..), )
 
 
 initializeTable :: (IConnection conn, TableDerivable a, ToSql SqlValue a)
@@ -65,10 +65,11 @@ qJoin1 :: IConnection conn
        => IO conn
        -> Selector A
        -> Selector B
+       -> Cmp
        -> Ranged A
        -> Ranged B
        -> Property
-qJoin1 connect pa pb as0 bs0 =
+qJoin1 connect pa pb cmp as0 bs0 =
     propQueryList connect initialize select expect
   where
     as = runRanged as0
@@ -79,7 +80,7 @@ qJoin1 connect pa pb as0 bs0 =
     select = relationalQuery . relation $ do
       x  <-  query relA
       y  <-  query relB
-      on $ x ! sql pa .=. y ! sql pb
+      on $ cmpSQL cmp (x ! sql pa) (y ! sql pb)
       orderBy x Asc
       orderBy y Asc
       return $ (,) |$| x |*| y
@@ -90,5 +91,5 @@ qJoin1 connect pa pb as0 bs0 =
       , b <- bs
       , let x = int pa a
             y = int pb b
-      , x == y
+      , cmpHask cmp x y
       ]
