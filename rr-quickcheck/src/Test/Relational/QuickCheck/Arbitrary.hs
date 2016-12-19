@@ -236,21 +236,21 @@ predHask r = d  where
 newtype Ranged a = Ranged { runRanged :: [a] }
   deriving (Eq, Show)
 
-range10 :: (Num a, Enum a) => Gen a
-range10 = elements [0 .. 10]
+range5 :: (Num a, Enum a) => Gen a
+range5 = elements [-5 .. 5]
 
 instance Arbitrary (Ranged A) where
   arbitrary =
     (Ranged <$>) . listOf $
     A
-    <$> range10
-    <*> range10
-    <*> range10
+    <$> range5
+    <*> range5
+    <*> range5
 
 instance Arbitrary (Ranged B) where
   arbitrary =
     (Ranged <$>) . listOf $
     B
-    <$> range10
-    <*> range10
-    <*> range10
+    <$> range5
+    <*> range5
+    <*> range5
