@@ -85,12 +85,15 @@ newtype D a =
   D { unD :: a }
   deriving Show
 
+rangeN :: (Num a, Enum a) => a -> Gen a
+rangeN n = elements [-n .. n]
+
 genVarExpr :: Gen (Selector a) -> Gen (VarExpr a)
 genVarExpr gs =
     frequency
     [ (3, Column <$> gs)
-    , (1, VLeft  <$> rec' <*> arbitrary <*> elements [-10 .. 10])
-    , (1, VRight <$> elements [-10 .. 10] <*> arbitrary <*> rec')
+    , (1, VLeft  <$> rec' <*> arbitrary <*> rangeN 5)
+    , (1, VRight <$> rangeN 5 <*> arbitrary <*> rec')
     ]
   where
     rec' = genVarExpr gs
@@ -236,21 +239,18 @@ predHask r = d  where
 newtype Ranged a = Ranged { runRanged :: [a] }
   deriving (Eq, Show)
 
-range5 :: (Num a, Enum a) => Gen a
-range5 = elements [-5 .. 5]
-
 instance Arbitrary (Ranged A) where
   arbitrary =
     (Ranged <$>) . listOf $
     A
-    <$> range5
-    <*> range5
-    <*> range5
+    <$> rangeN 5
+    <*> rangeN 5
+    <*> rangeN 5
 
 instance Arbitrary (Ranged B) where
   arbitrary =
     (Ranged <$>) . listOf $
     B
-    <$> range5
-    <*> range5
-    <*> range5
+    <$> rangeN 5
+    <*> rangeN 5
+    <*> rangeN 5
