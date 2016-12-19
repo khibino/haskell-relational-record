@@ -18,7 +18,6 @@ cabal-version:       >=1.10
 library
   exposed-modules:
                        Test.Relational.QuickCheck.Model
-                       Test.Relational.QuickCheck.Transaction
                        Test.Relational.QuickCheck.Arbitrary
 
                        Test.Relational.QuickCheck.Tests

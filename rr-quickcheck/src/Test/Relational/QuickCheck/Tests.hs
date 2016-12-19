@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Test.Relational.QuickCheck.Tests (
   qPred1, qJoin1,
   ) where
@@ -5,16 +7,22 @@ module Test.Relational.QuickCheck.Tests (
 import Test.QuickCheck (Property, ioProperty)
 import Control.Monad (unless)
 import Data.List (sort)
-import Database.HDBC (IConnection, rollback)
+import Database.HDBC (IConnection, rollback, SqlValue)
 import Database.HDBC.Session (withConnectionIO')
+import Database.Record (ToSql)
 import Database.Relational.Query
-import Database.HDBC.Record (runQuery')
+import Database.HDBC.Record (runQuery', runInsert)
 
-import Test.Relational.QuickCheck.Transaction (initializeTable)
 import Test.Relational.QuickCheck.Model
 import Test.Relational.QuickCheck.Arbitrary
   (Selector (..), D(..), Pred (..), predSQL, predHask, Ranged (..), )
 
+
+initializeTable :: (IConnection conn, TableDerivable a, ToSql SqlValue a)
+                => conn
+                -> [a]
+                -> IO ()
+initializeTable conn xs = mapM_ (runInsert conn $ derivedInsert id') xs
 
 qPred1 :: IConnection conn
        => IO conn
