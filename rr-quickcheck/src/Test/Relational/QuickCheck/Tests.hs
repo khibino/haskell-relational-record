@@ -9,7 +9,7 @@ import Control.Monad (unless)
 import Data.List (sort)
 import Database.HDBC (IConnection, rollback, SqlValue)
 import Database.HDBC.Session (withConnectionIO')
-import Database.Record (ToSql)
+import Database.Record (FromSql, ToSql)
 import Database.Relational.Query
 import Database.HDBC.Record (runQuery', runInsert)
 
@@ -24,36 +24,42 @@ initializeTable :: (IConnection conn, TableDerivable a, ToSql SqlValue a)
                 -> IO ()
 initializeTable conn xs = mapM_ (runInsert conn $ derivedInsert id') xs
 
+propQueryList :: (Eq a, Show a, FromSql SqlValue a, IConnection conn)
+              => IO conn
+              -> (conn -> IO ())
+              -> Query () a
+              -> [a]
+              -> Property
+propQueryList connect initialize select expect =
+  ioProperty . withConnectionIO' connect $ \conn -> do
+    initialize conn
+    qresult  <-  runQuery' conn select ()
+    let judge = qresult == expect
+    unless judge . putStr $ unlines [show qresult, "  =/=", show expect]
+    rollback conn
+    return judge
+
 qPred1 :: IConnection conn
        => IO conn
        -> D (Pred A)
        -> Ranged A
        -> Property
-qPred1 connect pa0 as0 = ioProperty . withConnectionIO' connect $ \conn -> do
-  let pa = unD pa0
-      select = relationalQuery . relation $ do
-        x  <-  query relA
-        wheres $ predSQL x pa
-        orderBy x Asc
-        return x
-      as = runRanged as0
-  print select
-
-  initializeTable conn as
-  qresult  <-  runQuery' conn select ()
-  let expect =
-        sort
-        [ a
-        | a  <-  as
-        , predHask a pa
-        ]
-  print qresult
-  print expect
-
-  let judge = qresult == expect
-  unless judge . putStr $ unlines [show qresult, "  =/=", show expect]
-  rollback conn
-  return judge
+qPred1 connect pa0 as0 =
+    propQueryList connect (`initializeTable` as) select expect
+  where
+    pa = unD pa0
+    as = runRanged as0
+    select = relationalQuery . relation $ do
+      x  <-  query relA
+      wheres $ predSQL x pa
+      orderBy x Asc
+      return x
+    expect =
+      sort
+      [ a
+      | a  <-  as
+      , predHask a pa
+      ]
 
 qJoin1 :: IConnection conn
        => IO conn
@@ -62,29 +68,27 @@ qJoin1 :: IConnection conn
        -> Ranged A
        -> Ranged B
        -> Property
-qJoin1 connect pa pb as0 bs0 = ioProperty . withConnectionIO' connect $ \conn -> do
-  let select = relationalQuery . relation $ do
-        x  <-  query relA
-        y  <-  query relB
-        on $ x ! sql pa .=. y ! sql pb
-        orderBy x Asc
-        orderBy y Asc
-        return $ (,) |$| x |*| y
-      as = runRanged as0
-      bs = runRanged bs0
-  initializeTable conn as
-  initializeTable conn bs
-  qresult  <-  runQuery' conn select ()
-  let expect =
-        sort
-        [ (a, b)
-        | a <- as
-        , b <- bs
-        , let x = int pa a
-              y = int pb b
-        , x == y
-        ]
-  let judge = qresult == expect
-  unless judge . putStr $ unlines [show qresult, "  =/=", show expect]
-  rollback conn
-  return judge
+qJoin1 connect pa pb as0 bs0 =
+    propQueryList connect initialize select expect
+  where
+    as = runRanged as0
+    bs = runRanged bs0
+    initialize conn = do
+      initializeTable conn as
+      initializeTable conn bs
+    select = relationalQuery . relation $ do
+      x  <-  query relA
+      y  <-  query relB
+      on $ x ! sql pa .=. y ! sql pb
+      orderBy x Asc
+      orderBy y Asc
+      return $ (,) |$| x |*| y
+    expect =
+      sort
+      [ (a, b)
+      | a <- as
+      , b <- bs
+      , let x = int pa a
+            y = int pb b
+      , x == y
+      ]
