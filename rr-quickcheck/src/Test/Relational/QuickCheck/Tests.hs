@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 module Test.Relational.QuickCheck.Tests (
-  qPred1, qJoin1,
+  prop_pred0, prop_join0,
   ) where
 
 import Test.QuickCheck (Property, ioProperty)
@@ -24,13 +24,13 @@ initializeTable :: (IConnection conn, TableDerivable a, ToSql SqlValue a)
                 -> IO ()
 initializeTable conn xs = mapM_ (runInsert conn $ derivedInsert id') xs
 
-propQueryList :: (Eq a, Show a, FromSql SqlValue a, IConnection conn)
-              => IO conn
-              -> (conn -> IO ())
-              -> Query () a
-              -> [a]
-              -> Property
-propQueryList connect initialize select expect =
+propQueryResult :: (Eq a, Show a, FromSql SqlValue a, IConnection conn)
+                => IO conn
+                -> (conn -> IO ())
+                -> Query () a
+                -> [a]
+                -> Property
+propQueryResult connect initialize select expect =
   ioProperty . withConnectionIO' connect $ \conn -> do
     initialize conn
     qresult  <-  runQuery' conn select ()
@@ -39,13 +39,13 @@ propQueryList connect initialize select expect =
     rollback conn
     return judge
 
-qPred1 :: IConnection conn
-       => IO conn
-       -> D (Pred A)
-       -> Ranged A
-       -> Property
-qPred1 connect pa0 as0 =
-    propQueryList connect (`initializeTable` as) select expect
+prop_pred0 :: IConnection conn
+           => IO conn
+           -> D (Pred A)
+           -> Ranged A
+           -> Property
+prop_pred0 connect pa0 as0 =
+    propQueryResult connect (`initializeTable` as) select expect
   where
     pa = unD pa0
     as = runRanged as0
@@ -58,16 +58,16 @@ qPred1 connect pa0 as0 =
       sort
       [ a | a  <-  as, predHask a pa ]
 
-qJoin1 :: IConnection conn
-       => IO conn
-       -> Selector A
-       -> Selector B
-       -> Cmp
-       -> Ranged A
-       -> Ranged B
-       -> Property
-qJoin1 connect pa pb cmp as0 bs0 =
-    propQueryList connect initialize select expect
+prop_join0 :: IConnection conn
+           => IO conn
+           -> Selector A
+           -> Selector B
+           -> Cmp
+           -> Ranged A
+           -> Ranged B
+           -> Property
+prop_join0 connect pa pb cmp as0 bs0 =
+    propQueryResult connect initialize select expect
   where
     as = runRanged as0
     bs = runRanged bs0
