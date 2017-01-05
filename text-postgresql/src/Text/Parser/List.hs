@@ -8,10 +8,9 @@ module Text.Parser.List
 import Control.Applicative (pure)
 import Control.Monad (guard)
 import Control.Monad.Trans.State.Strict (StateT (..), evalStateT, get, put)
+import Control.Monad.Trans.Except (Except, runExcept, withExcept, throwE)
 import Data.Monoid (Last (..))
 import Data.Maybe (fromMaybe)
-
-import Control.Monad.Either.Plus (EitherP (..), emap, leftP)
 
 
 type Error = Last String
@@ -19,16 +18,16 @@ type Error = Last String
 unError :: String -> Error -> String
 unError s = fromMaybe s . getLast
 
-type Parser t = StateT [t] (EitherP Error)
+type Parser t = StateT [t] (Except Error)
 
 runParser :: Parser t a -> [t] -> Either String (a, [t])
-runParser p = unEitherP . emap (unError "runParser: parse error.") . runStateT p
+runParser p = runExcept . withExcept (unError "runParser: parse error.") . runStateT p
 
 evalParser :: Parser t a -> [t] -> Either String a
-evalParser p = unEitherP . emap (unError "evalParser: parse error.") . evalStateT p
+evalParser p = runExcept . withExcept (unError "evalParser: parse error.") . evalStateT p
 
-errorE :: String -> EitherP Error a
-errorE = leftP . Last . Just
+errorE :: String -> Except Error a
+errorE = throwE . Last . Just
 
 errorP :: String -> Parser t a
 errorP = StateT . const . errorE
