@@ -1,10 +1,13 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 module Test.Relational.QuickCheck.Tests (
+  tests,
+
   prop_pred0, prop_join0,
   ) where
 
 import Test.QuickCheck (Property, ioProperty)
+import Test.QuickCheck.Simple (Test, qcTest)
 import Control.Monad (unless)
 import Data.List (sort)
 import Database.HDBC (IConnection, rollback, SqlValue)
@@ -87,3 +90,11 @@ prop_join0 connect pa pb cmp as0 bs0 =
       | a <- as, b <- bs
       , cmpHask cmp (int pa a) (int pb b)
       ]
+
+tests :: IConnection conn
+      => IO conn
+      -> [Test]
+tests connect =
+  [ qcTest "predicates 0"  $ prop_pred0 connect
+  , qcTest "join 0"        $ prop_join0 connect
+  ]

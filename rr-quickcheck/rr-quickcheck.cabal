@@ -25,6 +25,7 @@ library
   other-extensions:    TemplateHaskell, MultiParamTypeClasses, FlexibleInstances
   build-depends:         base <5
                        , QuickCheck >=2
+                       , quickcheck-simple
                        , HDBC
                        , HDBC-session
                        , persistable-record
