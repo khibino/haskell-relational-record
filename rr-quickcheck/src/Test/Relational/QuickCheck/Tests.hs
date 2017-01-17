@@ -3,7 +3,8 @@
 module Test.Relational.QuickCheck.Tests (
   tests,
 
-  prop_pred0, prop_join0,
+  prop_pred0,
+  prop_join0, prop_join1,
   ) where
 
 import Test.QuickCheck (Property, ioProperty)
@@ -91,10 +92,44 @@ prop_join0 connect pa pb cmp as0 bs0 =
       , cmpHask cmp (int pa a) (int pb b)
       ]
 
+prop_join1 :: IConnection conn
+           => IO conn
+           -> D (Pred A)
+           -> D (Pred B)
+           -> Ranged A
+           -> Ranged B
+           -> Property
+prop_join1 connect pa0 pb0 as0 bs0 =
+    propQueryResult connect initialize select expect
+  where
+    as = runRanged as0
+    bs = runRanged bs0
+    pa = unD pa0
+    pb = unD pb0
+    initialize conn = do
+      initializeTable conn as
+      initializeTable conn bs
+    select = relationalQuery . relation $ do
+      x  <-  query relA
+      y  <-  query relB
+      wheres $ predSQL x pa
+      wheres $ predSQL y pb
+      orderBy x Asc
+      orderBy y Asc
+      return $ (,) |$| x |*| y
+    expect =
+      sort
+      [ (a, b)
+      | a <- as, b <- bs
+      , predHask a pa
+      , predHask b pb
+      ]
+
 tests :: IConnection conn
       => IO conn
       -> [Test]
 tests connect =
   [ qcTest "predicates 0"  $ prop_pred0 connect
   , qcTest "join 0"        $ prop_join0 connect
+  , qcTest "join 1"        $ prop_join1 connect
   ]
