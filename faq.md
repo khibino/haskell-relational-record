@@ -15,3 +15,4 @@ Q. I received SQL syntax errors of MySQL or SQLite3 for union statement like ```
 
 A. The only sub-set SQL syntax support of MySQL or SQLite3 causes this problem.
 You can avoid this problem like ```relation (query $ rel1 `unionAll` rel2) `unionAll` rel3```.
+There is detail information about this issue at https://github.com/khibino/haskell-relational-record/pull/27.
