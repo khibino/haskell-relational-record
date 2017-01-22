@@ -3,6 +3,8 @@ layout: default
 title: Frequently Asked Questions
 ---
 
+### Frequently Asked Questions
+
 Q. I received "Table xxx doesn't exist" error of MySQL.
 
 A. Table names of SQL are Case sensitive in MySQL default configurations on UNIX systems.
