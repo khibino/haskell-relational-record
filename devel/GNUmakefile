@@ -23,6 +23,7 @@ clean:
 	make clean-hs
 	cabal clean
 	[ ! -d .debian-build ] || rm -r .debian-build
+	[ ! -d .stack-work ] || rm -r .stack-work
 	test ! -d src || find src \( -name '*.o' -o -name '*.hi' -o -name '*.dyn_o' -o  -name '*.dyn_hi' \) -exec rm {} \;
 
 clean-hs:
