@@ -1,0 +1,7 @@
+## -*- sh -*-
+
+do_mysql_root() {
+    cmd=$1
+    $cmd
+    $cmd | mysql -p -u root
+}
