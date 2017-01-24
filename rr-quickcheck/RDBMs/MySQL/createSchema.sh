@@ -7,8 +7,8 @@ set -x
 createdb_command() {
     cat <<EOF
 CREATE SCHEMA ARBITRARY0;
-GRANT ALL ON ARBITRARY0.* TO "$USER"@'localhost';
-GRANT GRANT OPTION ON ARBITRARY0.* TO "$USER"@'localhost';
+GRANT ALL ON ARBITRARY0.* TO ${USER}@'localhost';
+GRANT GRANT OPTION ON ARBITRARY0.* TO ${USER}@'localhost';
 EOF
 }
 
