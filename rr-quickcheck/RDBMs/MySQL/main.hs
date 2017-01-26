@@ -8,4 +8,4 @@ main =
   defaultMain . tests $
   connectMySQL
   defaultMySQLConnectInfo
-  { mysqlUser = "", mysqlPassword = "testpassword", mysqlDatabase = "ARBITRARY0" }
+  { mysqlUser = "hrr-tester", mysqlDatabase = "ARBITRARY0" }
