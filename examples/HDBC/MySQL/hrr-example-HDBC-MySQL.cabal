@@ -27,7 +27,7 @@ executable example
       base >=4.6 && <5
     , template-haskell >=2.8
     , HDBC >=2.3
-    , HDBC-mysql >=0.6 && <0.7
+    , HDBC-mysql >=0.6 && <0.8
     , HDBC-session
     , names-th
     , relational-query >= 0.7
