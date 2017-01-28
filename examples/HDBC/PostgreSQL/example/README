@@ -1,20 +1,20 @@
 This example requires user access to PostgreSQL database
-which is named 'testdb' over UNIX domain socket.
+which is named 'hrrtest' over UNIX domain socket.
 
-## Creating 'testdb'
+## Creating 'hrrtest'
 
-    % createdb testdb
+    % createdb hrrtest
 
 
 ## Example 1 case
 
-    % ./1/create.sh
-    % runghc -i1 ./1/queryExample.hs
+    % psql hrrtest < ./1/create.sql
+    % runghc -i1 ./1/query.hs
 
 ...
 
 
 ## Example 3 case
 
-    % ./3/create.sh
+    % psql hrrtest < ./3/create.sql
     % runghc -i3 ./3/query.hs

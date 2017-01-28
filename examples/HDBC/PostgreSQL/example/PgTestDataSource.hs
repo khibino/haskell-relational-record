@@ -10,7 +10,7 @@ import Database.HDBC.Schema.Driver (typeMap)
 import Database.HDBC.Query.TH (defineTableFromDB)
 
 connect :: IO Connection
-connect = connectPostgreSQL "dbname=testdb"
+connect = connectPostgreSQL "dbname=hrrtest"
 
 defineTable :: [(String, TypeQ)] -> String -> String -> [Name] -> Q [Dec]
 defineTable tmap =
