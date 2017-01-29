@@ -1,5 +1,4 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-# OPTIONS_GHC -fsimpl-tick-factor=200 #-}
 
 -- |
 -- Module      : Database.Relational.Query.Relation
