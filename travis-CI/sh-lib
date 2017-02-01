@@ -1,0 +1,12 @@
+## -*- sh -*-
+
+custom_retry() {
+    i=0
+    until "$@" ; do
+        if [ $i -ge 3 ]; then
+            break;
+        fi
+        sleep 1
+        i=$(expr $i + 1)
+    done
+}

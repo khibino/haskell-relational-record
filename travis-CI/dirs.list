@@ -1,0 +1,11 @@
+dirs='
+names-th
+sql-words
+persistable-record
+relational-query
+relational-schemas
+HDBC-session
+relational-query-HDBC
+text-postgresql
+persistable-types-HDBC-pg
+'
