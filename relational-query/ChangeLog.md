@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.8.3.3
+
+- simpl-tick-factor work-around to avoid bug of GHC
+
 ## 0.8.3.2
 
 - Export Register interface type from Query module.
