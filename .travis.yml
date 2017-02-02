@@ -64,7 +64,7 @@ before_install:
          ;;
        '')
          case "$GHCVER" in
-           7.6.*|7.4.*)
+           7.[64].*)
               export CABAL_CONSTRAINTS='--constraint=time==1.4'
               ;;
            *)

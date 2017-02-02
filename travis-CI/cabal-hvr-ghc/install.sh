@@ -26,7 +26,7 @@ custom_retry cabal update -v
 sed -i 's/^jobs:/-- jobs:/' ${HOME}/.cabal/config
 
 install_package() {
-    cabal install $CABAL_JOBS $CABAL_CONSTRAINTS --only-dependencies --enable-tests --enable-benchmarks
+    cabal install -v2 $CABAL_JOBS $CABAL_CONSTRAINTS --only-dependencies --enable-tests --enable-benchmarks
 }
 
 # install_package() {
