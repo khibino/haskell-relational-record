@@ -87,7 +87,7 @@ library
                        , persistable-record >= 0.3
 
   hs-source-dirs:      src
-  ghc-options:         -Wall
+  ghc-options:         -Wall -fsimpl-tick-factor=200
 
   default-language:     Haskell2010
 
