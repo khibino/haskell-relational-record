@@ -8,6 +8,8 @@ set -x
 
 script_build() {
     STACK_YAML=stack-travis.yaml stack build
+    STACK_YAML=stack-travis.yaml stack test
+    ## '--coverage' may change result of fail or success
     STACK_YAML=stack-travis.yaml stack test --coverage
 }
 
