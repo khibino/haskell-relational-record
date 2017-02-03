@@ -64,10 +64,11 @@ instance Functor Qualified where
   fmap f (Qualified a i) = Qualified (f a) i
 
 -- | Projection structure unit
-data ProjectionUnit = Columns (Array Int ColumnSQL)
-                    | Normalized (Qualified Int)
-                    | Scalar SubQuery
-                    deriving Show
+data ProjectionUnit
+  = Columns (Array Int ColumnSQL)
+  | Normalized (Qualified Int)
+  | Scalar SubQuery
+  deriving Show
 
 -- | Untyped projection. Forgot record type.
 type UntypedProjection = [ProjectionUnit]
