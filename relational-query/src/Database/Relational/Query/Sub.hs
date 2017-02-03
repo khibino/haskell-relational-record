@@ -243,22 +243,16 @@ qualifiedForm :: Qualified SubQuery -> StringSQL
 qualifiedForm =  qualifiedSQLas . fmap showUnitSQL
 
 
-projectionUnitFromColumns :: [ColumnSQL] -> ProjectionUnit
-projectionUnitFromColumns cs = Columns $ listArray (0, length cs - 1) cs
-
-projectionUnitFromScalarSubQuery :: SubQuery -> ProjectionUnit
-projectionUnitFromScalarSubQuery =  Scalar
-
 unitUntypedProjection :: ProjectionUnit -> UntypedProjection
 unitUntypedProjection =  (:[])
 
 -- | Make untyped projection from columns.
 untypedProjectionFromColumns :: [ColumnSQL] -> UntypedProjection
-untypedProjectionFromColumns =  unitUntypedProjection . projectionUnitFromColumns
+untypedProjectionFromColumns cs =  unitUntypedProjection . Columns $ listArray (0, length cs - 1) cs
 
 -- | Make untyped projection from scalar sub-query.
 untypedProjectionFromScalarSubQuery :: SubQuery -> UntypedProjection
-untypedProjectionFromScalarSubQuery =  unitUntypedProjection . projectionUnitFromScalarSubQuery
+untypedProjectionFromScalarSubQuery =  unitUntypedProjection . Scalar
 
 -- | Make untyped projection from joined sub-query.
 untypedProjectionFromJoinedSubQuery :: Qualified SubQuery -> UntypedProjection
