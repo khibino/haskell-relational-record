@@ -66,7 +66,7 @@ instance Functor Qualified where
 -- | Projection structure unit
 data ProjectionUnit
   = Columns (Array Int ColumnSQL)
-  | Normalized (Qualified Int)     -- ^ normalized column reference line T<n>.f<n>
+  | Normalized (Qualified Int)     -- ^ normalized sub-query reference T<n> with Int width
   | Scalar SubQuery                -- ^ scalar sub-query
   deriving Show
 
