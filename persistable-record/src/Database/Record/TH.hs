@@ -40,6 +40,7 @@ module Database.Record.TH (
   makeRecordPersistableWithSqlTypeFromDefined,
   makeRecordPersistableWithSqlTypeDefaultFromDefined,
   defineColumnOffsets,
+  defineColumnOffsets',
 
   recordWidthTemplate,
 
@@ -207,13 +208,20 @@ recordWidthTemplate ty =
 defineColumnOffsets :: ConName -- ^ Record type constructor.
                     -> [TypeQ] -- ^ Types of record columns.
                     -> Q [Dec] -- ^ Declaration of 'PersistableWidth' instance.
-defineColumnOffsets typeName' tys = do
-  let ofsVar = columnOffsetsVarNameDefault $ conName typeName'
+defineColumnOffsets typeName' =
+  defineColumnOffsets' (conName typeName') (toTypeCon typeName')
+
+defineColumnOffsets' :: Name -- ^ Record type name
+                     -> TypeQ -- ^ Record type
+                     -> [TypeQ] -- ^ Types of record columns.
+                     -> Q [Dec] -- ^ Declaration of 'PersistableWidth' instance.
+defineColumnOffsets' name recType tys = do
+  let ofsVar = columnOffsetsVarNameDefault name
       widthIxE = integralE $ length tys
   ar <- simpleValD (varName ofsVar) [t| Array Int Int |]
         [| listArray (0 :: Int, $widthIxE) $
            scanl (+) (0 :: Int) $(listE $ map recordWidthTemplate tys) |]
-  pw <- [d| instance PersistableWidth $(toTypeCon typeName') where
+  pw <- [d| instance PersistableWidth $recType where
               persistableWidth = unsafePersistableRecordWidth $ $(toVarExp ofsVar) ! $widthIxE
           |]
   return $ ar ++ pw
