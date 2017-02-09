@@ -26,7 +26,6 @@ module Database.Relational.Query.Internal.Sub
        )  where
 
 import Prelude hiding (and, product)
-import Data.Array (Array)
 import Data.DList (DList)
 
 import Database.Relational.Query.Context (Flat, Aggregated)
@@ -65,7 +64,7 @@ instance Functor Qualified where
 
 -- | Projection structure unit
 data ProjectionUnit
-  = Columns (Array Int ColumnSQL)
+  = RawColumn ColumnSQL            -- ^ used in immediate value or unsafe operations
   | Normalized (Qualified Int)     -- ^ normalized sub-query reference T<n> with Int width
   | Scalar SubQuery                -- ^ scalar sub-query
   deriving Show

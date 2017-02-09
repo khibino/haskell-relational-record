@@ -42,8 +42,6 @@ module Database.Relational.Query.Sub (
   composeWhere, composeHaving
   ) where
 
-import Data.Array (listArray)
-import qualified Data.Array as Array
 import Data.Monoid (mempty, (<>), mconcat)
 
 import qualified Database.Relational.Query.Context as Context
@@ -248,7 +246,7 @@ unitUntypedProjection =  (:[])
 
 -- | Make untyped projection from columns.
 untypedProjectionFromColumns :: [ColumnSQL] -> UntypedProjection
-untypedProjectionFromColumns cs =  unitUntypedProjection . Columns $ listArray (0, length cs - 1) cs
+untypedProjectionFromColumns =  map RawColumn
 
 -- | Make untyped projection from scalar sub-query.
 untypedProjectionFromScalarSubQuery :: SubQuery -> UntypedProjection
@@ -267,16 +265,15 @@ untypedProjectionFromJoinedSubQuery qs = d $ unQualify qs  where  --  unitUntype
 -- | ProjectionUnit width.
 widthOfProjectionUnit :: ProjectionUnit -> Int
 widthOfProjectionUnit =  d  where
-  d (Columns a)     = mx - mn + 1 where (mn, mx) = Array.bounds a
+  d (RawColumn _)   = 1
   d (Normalized qw) = unQualify qw
   d (Scalar _)      = 1
 
 -- | Get column of ProjectionUnit.
 columnOfProjectionUnit :: ProjectionUnit -> Int -> ColumnSQL
 columnOfProjectionUnit =  d  where
-  d (Columns a) i | mn <= i && i <= mx = a Array.! i
-                  | otherwise          = error $ "index out of bounds (unit): " ++ show i
-    where (mn, mx) = Array.bounds a
+  d (RawColumn e)   0                  = e
+  d (RawColumn _)   i                  = error $ "index out of bounds (raw-column unit): " ++ show i
   d (Normalized qw) i | i < w          = qualifier qw `columnFromId` i
                       | otherwise      = error $ "index out of bounds (normalized unit): " ++ show i
     where w = unQualify qw
