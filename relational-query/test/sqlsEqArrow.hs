@@ -129,6 +129,52 @@ join3s =
 _p_j3s :: IO ()
 _p_j3s =  mapM_ print [show j3left, show j3right]
 
+nestedPiRec :: Relation () SetA
+nestedPiRec = relation $ proc () -> do
+  ar <- (query . relation $ proc () -> do
+            a <- query setA -< ()
+            returnA -< value "Hello" >< a) -< ()
+  returnA -< ar ! snd'
+
+nestedPiCol :: Relation () String
+nestedPiCol = relation $ proc () -> do
+  ar <- (query . relation $ proc () -> do
+            a <- query setA -< ()
+            returnA -< a >< value "Hello") -< ()
+  returnA -< ar ! snd'
+
+nestedPi :: Relation () String
+nestedPi = relation $ proc () -> do
+  ar <- (query . relation $ proc () -> do
+            a <- query setA -< ()
+            returnA -< (value "Hello" >< a) >< value "World") -< ()
+  returnA -< ar ! snd'
+
+nested :: [Test]
+nested =
+  [ eqProp "nested pi record" nestedPiRec
+    "SELECT ALL T1.f1 AS f0, T1.f2 AS f1, T1.f3 AS f2 \
+    \  FROM (SELECT ALL 'Hello' AS f0, \
+    \                   T0.int_a0 AS f1, T0.str_a1 AS f2, T0.str_a2 AS f3 \
+    \              FROM TEST.set_a T0) T1"
+
+  , eqProp "nested pi column" nestedPiCol
+    "SELECT ALL T1.f3 AS f0 \
+    \      FROM (SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, \
+    \                       'Hello' AS f3 \
+    \                  FROM TEST.set_a T0) T1"
+
+  , eqProp "nested pi both" nestedPi
+    "SELECT ALL T1.f4 AS f0 \
+    \      FROM (SELECT ALL 'Hello' AS f0, \
+    \                       T0.int_a0 AS f1, T0.str_a1 AS f2, T0.str_a2 AS f3, \
+    \                       'World' AS f4 \
+    \                  FROM TEST.set_a T0) T1"
+  ]
+
+_p_nested :: IO ()
+_p_nested =  mapM_ print [show nestedPiRec, show nestedPiCol, show nestedPi]
+
 justX :: Relation () (SetA, Maybe SetB)
 justX =  relation $ proc () -> do
   a <- query setA -< ()
@@ -357,7 +403,7 @@ effs =
 
 tests :: [Test]
 tests =
-  concat [ bin, tables, directJoins, join3s, maybes
+  concat [ bin, tables, directJoins, join3s, nested, maybes
          , groups, orders, partitions, exps, effs]
 
 main :: IO ()
