@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveTraversable #-}
 
 -- |
 -- Module      : Database.Relational.Query.Internal.Sub
@@ -27,6 +27,8 @@ module Database.Relational.Query.Internal.Sub
 
 import Prelude hiding (and, product)
 import Data.DList (DList)
+import Data.Foldable (Foldable)
+import Data.Traversable (Traversable)
 
 import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Component
@@ -58,12 +60,12 @@ newtype Qualifier = Qualifier Int  deriving Show
 -- | Qualified query.
 data Qualified a =
   Qualified Qualifier a
-  deriving (Show, Functor)
+  deriving (Show, Functor, Foldable, Traversable)
 
 -- | Projection structure unit
 data ProjectionUnit
   = RawColumn ColumnSQL            -- ^ used in immediate value or unsafe operations
-  | Normalized (Qualified Int)     -- ^ normalized sub-query reference T<n> with Int width
+  | SubQueryRef (Qualified Int)    -- ^ normalized sub-query reference T<n> with Int index
   | Scalar SubQuery                -- ^ scalar sub-query
   deriving Show
 

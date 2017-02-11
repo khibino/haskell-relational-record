@@ -42,7 +42,9 @@ module Database.Relational.Query.Sub (
   composeWhere, composeHaving
   ) where
 
+import Control.Applicative ((<$>))
 import Data.Monoid (mempty, (<>), mconcat)
+import Data.Traversable (traverse)
 
 import qualified Database.Relational.Query.Context as Context
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, rowStringSQL, showStringSQL)
@@ -255,7 +257,7 @@ untypedProjectionFromScalarSubQuery =  unitUntypedProjection . Scalar
 -- | Make untyped projection from joined sub-query.
 untypedProjectionFromJoinedSubQuery :: Qualified SubQuery -> UntypedProjection
 untypedProjectionFromJoinedSubQuery qs = d $ unQualify qs  where  --  unitUntypedProjection . Sub
-  normalized = unitUntypedProjection . Normalized $ fmap width qs
+  normalized = SubQueryRef <$> traverse (\q -> [0 .. width q - 1]) qs
   d (Table _)               =  untypedProjectionFromColumns . map (column qs)
                                $ take (queryWidth qs) [0..]
   d (Bin {})                =  normalized
@@ -266,7 +268,7 @@ untypedProjectionFromJoinedSubQuery qs = d $ unQualify qs  where  --  unitUntype
 widthOfProjectionUnit :: ProjectionUnit -> Int
 widthOfProjectionUnit =  d  where
   d (RawColumn _)   = 1
-  d (Normalized qw) = unQualify qw
+  d (SubQueryRef _) = 1
   d (Scalar _)      = 1
 
 -- | Get column of ProjectionUnit.
@@ -274,9 +276,8 @@ columnOfProjectionUnit :: ProjectionUnit -> Int -> ColumnSQL
 columnOfProjectionUnit =  d  where
   d (RawColumn e)   0                  = e
   d (RawColumn _)   i                  = error $ "index out of bounds (raw-column unit): " ++ show i
-  d (Normalized qw) i | i < w          = qualifier qw `columnFromId` i
-                      | otherwise      = error $ "index out of bounds (normalized unit): " ++ show i
-    where w = unQualify qw
+  d (SubQueryRef qi) 0                 = qualifier qi `columnFromId` unQualify qi
+  d (SubQueryRef _)  i                 = error $ "index out of bounds (sub-query-ref unit): " ++ show i
   d (Scalar sub)    0                  = columnSQL' $ showUnitSQL sub
   d (Scalar _)      i                  = error $ "index out of bounds (scalar unit): " ++ show i
 
