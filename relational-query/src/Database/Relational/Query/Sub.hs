@@ -256,7 +256,7 @@ untypedProjectionFromScalarSubQuery =  unitUntypedProjection . Scalar
 
 -- | Make untyped projection from joined sub-query.
 untypedProjectionFromJoinedSubQuery :: Qualified SubQuery -> UntypedProjection
-untypedProjectionFromJoinedSubQuery qs = d $ unQualify qs  where  --  unitUntypedProjection . Sub
+untypedProjectionFromJoinedSubQuery qs = d $ unQualify qs  where
   normalized = SubQueryRef <$> traverse (\q -> [0 .. width q - 1]) qs
   d (Table _)               =  untypedProjectionFromColumns . map (column qs)
                                $ take (queryWidth qs) [0..]
