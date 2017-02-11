@@ -56,11 +56,11 @@ data SubQuery = Table Table.Untyped
 newtype Qualifier = Qualifier Int  deriving Show
 
 -- | Qualified query.
-data Qualified a = Qualified a Qualifier  deriving Show
+data Qualified a = Qualified Qualifier a  deriving Show
 
 -- | 'Functor' instance of 'Qualified'
 instance Functor Qualified where
-  fmap f (Qualified a i) = Qualified (f a) i
+  fmap f (Qualified q a) = Qualified q (f a)
 
 -- | Projection structure unit
 data ProjectionUnit

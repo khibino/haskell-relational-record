@@ -191,15 +191,15 @@ toSQL =  showStringSQL . showSQL
 
 -- | Get qualifier
 qualifier :: Qualified a -> Qualifier
-qualifier (Qualified _ i) = i
+qualifier (Qualified q _) = q
 
 -- | Unqualify.
 unQualify :: Qualified a -> a
-unQualify (Qualified a _) = a
+unQualify (Qualified _ a) = a
 
 -- | Add qualifier
 qualify :: a -> Qualifier -> Qualified a
-qualify =  Qualified
+qualify a q = Qualified q a
 
 columnN :: Int -> StringSQL
 columnN i = stringSQL $ 'f' : show i
