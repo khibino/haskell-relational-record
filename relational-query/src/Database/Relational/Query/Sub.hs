@@ -215,7 +215,7 @@ showQualifier (Qualifier i) = stringSQL $ 'T' : show i
 
 -- | Binary operator to qualify.
 (<.>) :: Qualifier -> ColumnSQL -> ColumnSQL
-i <.> n = fmap (showQualifier i SQL.<.>) n
+i <.> n = (showQualifier i SQL.<.>) <$> n
 
 -- | Qualified expression from qualifier and projection index.
 columnFromId :: Qualifier -> Int -> ColumnSQL
