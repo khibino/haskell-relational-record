@@ -223,7 +223,8 @@ i <.> n = (showQualifier i SQL.<.>) <$> n
 columnFromId :: Qualifier -> Int -> ColumnSQL
 columnFromId qi i = qi <.> columnSQL' (columnN i)
 
--- | From 'Qualified' SQL string into 'String'.
+-- | From 'Qualified' SQL string into qualified formed 'String'
+--  like (SELECT ...) AS T<n>
 qualifiedSQLas :: Qualified StringSQL -> StringSQL
 qualifiedSQLas q = unQualify q <> showQualifier (qualifier q)
 
@@ -240,13 +241,6 @@ column qs =  d (unQualify qs)  where
   d (Flat _ up _ _ _ _) i           = columnOfUntypedProjection up i
   d (Aggregated _ up _ _ _ _ _ _) i = columnOfUntypedProjection up i
 
--- | Get qualified SQL string, like (SELECT ...) AS T0
-qualifiedForm :: Qualified SubQuery -> StringSQL
-qualifiedForm =  qualifiedSQLas . fmap showUnitSQL
-
-
-unitUntypedProjection :: ProjectionUnit -> UntypedProjection
-unitUntypedProjection =  (:[])
 
 -- | Make untyped projection from columns.
 untypedProjectionFromColumns :: [ColumnSQL] -> UntypedProjection
@@ -254,7 +248,7 @@ untypedProjectionFromColumns =  map RawColumn
 
 -- | Make untyped projection from scalar sub-query.
 untypedProjectionFromScalarSubQuery :: SubQuery -> UntypedProjection
-untypedProjectionFromScalarSubQuery =  unitUntypedProjection . Scalar
+untypedProjectionFromScalarSubQuery = (:[]) . Scalar
 
 -- | Make untyped projection from joined sub-query.
 untypedProjectionFromJoinedSubQuery :: Qualified SubQuery -> UntypedProjection
@@ -325,7 +319,7 @@ showsQueryProduct =  rec  where
   urec n = case nodeTree n of
     p@(Leaf _)     -> rec p
     p@(Join {})    -> SQL.paren (rec p)
-  rec (Leaf q)               = qualifiedForm q
+  rec (Leaf q)               = qualifiedSQLas $ fmap showUnitSQL q
   rec (Join left' right' rs) =
     mconcat
     [urec left',
