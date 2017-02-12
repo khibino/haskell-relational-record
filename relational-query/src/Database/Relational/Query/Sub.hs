@@ -28,9 +28,11 @@ module Database.Relational.Query.Sub (
   Projection, ProjectionUnit, UntypedProjection,
 
   untypedProjectionFromColumns, untypedProjectionFromJoinedSubQuery, untypedProjectionFromScalarSubQuery,
-  widthOfUntypedProjection, columnsOfUntypedProjection,
 
   projectionColumns, unsafeProjectionStringSql, unsafeProjectFromColumns,
+
+  -- deprecated interfaces
+  widthOfUntypedProjection, columnsOfUntypedProjection,
 
   -- * Product of sub-queries
   JoinProduct, NodeAttr,
