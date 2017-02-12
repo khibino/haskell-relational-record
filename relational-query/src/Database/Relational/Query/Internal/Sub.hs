@@ -62,7 +62,7 @@ data Qualified a =
   Qualified Qualifier a
   deriving (Show, Functor, Foldable, Traversable)
 
--- | Projection structure unit
+-- | Projection structure unit with single column width
 data ProjectionUnit
   = RawColumn ColumnSQL            -- ^ used in immediate value or unsafe operations
   | SubQueryRef (Qualified Int)    -- ^ normalized sub-query reference T<n> with Int index
