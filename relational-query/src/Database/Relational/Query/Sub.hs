@@ -50,7 +50,7 @@ import qualified Database.Relational.Query.Context as Context
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, rowStringSQL, showStringSQL)
 import Database.Relational.Query.Internal.Sub
   (SubQuery (..), Projection, untypeProjection, typedProjection,
-   UntypedProjection, ProjectionUnit (..),
+   UntypedProjection, untypedProjectionWidth, ProjectionUnit (..),
    JoinProduct, QueryProductTree, ProductBuilder,
    NodeAttr (Just', Maybe), ProductTree (Leaf, Join), Node (Node),
    SetOp (..), BinOp (..), Qualifier (..), Qualified (..),
@@ -126,8 +126,8 @@ width :: SubQuery -> Int
 width =  d  where
   d (Table u)                     = Table.width' u
   d (Bin _ l _)                   = width l
-  d (Flat _ up _ _ _ _)           = widthOfUntypedProjection up
-  d (Aggregated _ up _ _ _ _ _ _) = widthOfUntypedProjection up
+  d (Flat _ up _ _ _ _)           = untypedProjectionWidth up
+  d (Aggregated _ up _ _ _ _ _ _) = untypedProjectionWidth up
 
 -- | SQL to query table.
 fromTableToSQL :: Table.Untyped -> StringSQL
@@ -271,16 +271,17 @@ columnOfProjectionUnit = d  where
   d (SubQueryRef qi)  = qualifier qi `columnFromId` unQualify qi
   d (Scalar sub)      = columnSQL' $ showUnitSQL sub
 
+{-# DEPRECATED widthOfUntypedProjection "prepare to drop public interface. use untypedProjectionWidth internally." #-}
 -- | Width of 'UntypedProjection'.
 widthOfUntypedProjection :: UntypedProjection -> Int
-widthOfUntypedProjection = length
+widthOfUntypedProjection = untypedProjectionWidth
 
 -- | Get column SQL string of 'UntypedProjection'.
 columnOfUntypedProjection :: UntypedProjection -- ^ Source 'Projection'
                           -> Int               -- ^ Column index
                           -> ColumnSQL         -- ^ Result SQL string
 columnOfUntypedProjection up i
-  | 0 <= i && i < widthOfUntypedProjection up  =  columnOfProjectionUnit $ up !! i
+  | 0 <= i && i < untypedProjectionWidth up    =  columnOfProjectionUnit $ up !! i
   | otherwise                                  =  error $ "columnOfUntypedProjection: index out of bounds: " ++ show i
 
 {-# DEPRECATED columnsOfUntypedProjection "prepare to drop unused interface." #-}

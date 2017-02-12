@@ -19,7 +19,7 @@ module Database.Relational.Query.Internal.Sub
        , JoinProduct, QueryProductTree
        , ProductTreeBuilder, ProductBuilder
 
-       , UntypedProjection, ProjectionUnit (..)
+       , UntypedProjection, untypedProjectionWidth, ProjectionUnit (..)
        , Projection, untypeProjection, typedProjection
 
          -- * Query restriction
@@ -102,6 +102,10 @@ data ProjectionUnit
 
 -- | Untyped projection. Forgot record type.
 type UntypedProjection = [ProjectionUnit]
+
+-- | Width of 'UntypedProjection'.
+untypedProjectionWidth :: UntypedProjection -> Int
+untypedProjectionWidth = length
 
 -- | Phantom typed projection. Projected into Haskell record type 't'.
 newtype Projection c t =
