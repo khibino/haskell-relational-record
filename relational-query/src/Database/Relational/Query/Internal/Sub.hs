@@ -20,7 +20,7 @@ module Database.Relational.Query.Internal.Sub
        , ProductTreeBuilder, ProductBuilder
 
        , UntypedProjection, untypedProjectionWidth, ProjectionUnit (..)
-       , Projection, untypeProjection, typedProjection
+       , Projection, untypeProjection, typedProjection, projectionWidth
 
          -- * Query restriction
        , QueryRestriction
@@ -115,6 +115,10 @@ newtype Projection c t =
 -- | Unsafely type projection value.
 typedProjection :: UntypedProjection -> Projection c t
 typedProjection =  Projection
+
+-- | Width of 'Projection'.
+projectionWidth :: Projection c r -> Int
+projectionWidth = length . untypeProjection
 
 
 -- | Type for restriction of query.

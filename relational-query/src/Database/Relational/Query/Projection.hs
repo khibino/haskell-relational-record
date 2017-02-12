@@ -49,7 +49,8 @@ import qualified Database.Record.KeyConstraint as KeyConstraint
 
 import Database.Relational.Query.Internal.SQL (StringSQL, listStringSQL)
 import Database.Relational.Query.Internal.Sub
-  (SubQuery, UntypedProjection, Projection, untypeProjection, typedProjection, Qualified)
+  (SubQuery, Qualified, UntypedProjection,
+   Projection, untypeProjection, typedProjection, projectionWidth)
 import Database.Relational.Query.Context (Aggregated, Flat)
 import Database.Relational.Query.Component (ColumnSQL, showsColumnSQL, columnSQL')
 import Database.Relational.Query.Table (Table)
@@ -58,7 +59,7 @@ import Database.Relational.Query.Pure (ProductConstructor (..))
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Relational.Query.Sub
-  (widthOfUntypedProjection, projectionColumns,
+  (projectionColumns,
    untypedProjectionFromJoinedSubQuery, untypedProjectionFromScalarSubQuery,
    unsafeProjectionStringSql, unsafeProjectFromColumns)
 import qualified Database.Relational.Query.Sub as SubQuery
@@ -75,7 +76,7 @@ columns = projectionColumns
 
 -- | Width of 'Projection'.
 width :: Projection c r -> Int
-width =  widthOfUntypedProjection . untypeProjection
+width = projectionWidth
 
 -- | Unsafely get untyped projection.
 untype :: Projection c r -> UntypedProjection
