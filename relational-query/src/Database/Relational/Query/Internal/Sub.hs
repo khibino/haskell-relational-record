@@ -62,16 +62,6 @@ data Qualified a =
   Qualified Qualifier a
   deriving (Show, Functor, Foldable, Traversable)
 
--- | Projection structure unit with single column width
-data ProjectionUnit
-  = RawColumn ColumnSQL            -- ^ used in immediate value or unsafe operations
-  | SubQueryRef (Qualified Int)    -- ^ normalized sub-query reference T<n> with Int index
-  | Scalar SubQuery                -- ^ scalar sub-query
-  deriving Show
-
--- | Untyped projection. Forgot record type.
-type UntypedProjection = [ProjectionUnit]
-
 
 -- | node attribute for product.
 data NodeAttr = Just' | Maybe deriving Show
@@ -101,6 +91,16 @@ type ProductBuilder = Node QueryRestrictionBuilder
 -- | Type for join product of query.
 type JoinProduct = Maybe QueryProductTree
 
+
+-- | Projection structure unit with single column width
+data ProjectionUnit
+  = RawColumn ColumnSQL            -- ^ used in immediate value or unsafe operations
+  | SubQueryRef (Qualified Int)    -- ^ normalized sub-query reference T<n> with Int index
+  | Scalar SubQuery                -- ^ scalar sub-query
+  deriving Show
+
+-- | Untyped projection. Forgot record type.
+type UntypedProjection = [ProjectionUnit]
 
 -- | Phantom typed projection. Projected into Haskell record type 't'.
 newtype Projection c t =
