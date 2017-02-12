@@ -11,7 +11,7 @@
 --
 -- This module defines sub-query structure used in query products.
 module Database.Relational.Query.Internal.Sub
-       ( SubQuery (..), UntypedProjection, ProjectionUnit (..)
+       ( SubQuery (..)
        , SetOp (..), BinOp (..), Qualifier (..), Qualified (..)
 
          -- * Product tree type
@@ -19,6 +19,7 @@ module Database.Relational.Query.Internal.Sub
        , JoinProduct, QueryProductTree
        , ProductTreeBuilder, ProductBuilder
 
+       , UntypedProjection, ProjectionUnit (..)
        , Projection, untypeProjection, typedProjection
 
          -- * Query restriction
