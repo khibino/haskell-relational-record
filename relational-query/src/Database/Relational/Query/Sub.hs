@@ -264,43 +264,29 @@ untypedProjectionFromJoinedSubQuery qs = d $ unQualify qs  where
   d (Flat {})               =  normalized
   d (Aggregated {})         =  normalized
 
--- | ProjectionUnit width.
-widthOfProjectionUnit :: ProjectionUnit -> Int
-widthOfProjectionUnit =  d  where
-  d (RawColumn _)   = 1
-  d (SubQueryRef _) = 1
-  d (Scalar _)      = 1
-
--- | Get column of ProjectionUnit.
-columnOfProjectionUnit :: ProjectionUnit -> Int -> ColumnSQL
-columnOfProjectionUnit =  d  where
-  d (RawColumn e)   0                  = e
-  d (RawColumn _)   i                  = error $ "index out of bounds (raw-column unit): " ++ show i
-  d (SubQueryRef qi) 0                 = qualifier qi `columnFromId` unQualify qi
-  d (SubQueryRef _)  i                 = error $ "index out of bounds (sub-query-ref unit): " ++ show i
-  d (Scalar sub)    0                  = columnSQL' $ showUnitSQL sub
-  d (Scalar _)      i                  = error $ "index out of bounds (scalar unit): " ++ show i
+-- | Convert from ProjectionUnit into column.
+columnOfProjectionUnit :: ProjectionUnit -> ColumnSQL
+columnOfProjectionUnit = d  where
+  d (RawColumn e)     = e
+  d (SubQueryRef qi)  = qualifier qi `columnFromId` unQualify qi
+  d (Scalar sub)      = columnSQL' $ showUnitSQL sub
 
 -- | Width of 'UntypedProjection'.
 widthOfUntypedProjection :: UntypedProjection -> Int
-widthOfUntypedProjection =  sum . map widthOfProjectionUnit
+widthOfUntypedProjection = length
 
 -- | Get column SQL string of 'UntypedProjection'.
 columnOfUntypedProjection :: UntypedProjection -- ^ Source 'Projection'
                           -> Int               -- ^ Column index
                           -> ColumnSQL         -- ^ Result SQL string
-columnOfUntypedProjection up i' = rec up i' where
-  rec []       _        = error $ "index out of bounds: " ++ show i'
-  rec (u : us) i
-    | i < widthOfProjectionUnit u = columnOfProjectionUnit u i
-    | i < 0             = error $ "index out of bounds: " ++ show i
-    | otherwise         = rec us (i - widthOfProjectionUnit u)
+columnOfUntypedProjection up i
+  | 0 <= i && i < widthOfUntypedProjection up  =  columnOfProjectionUnit $ up !! i
+  | otherwise                                  =  error $ "columnOfUntypedProjection: index out of bounds: " ++ show i
 
 -- | Get column SQL string list of projection.
 columnsOfUntypedProjection :: UntypedProjection -- ^ Source 'Projection'
                            -> [ColumnSQL]       -- ^ Result SQL string list
-columnsOfUntypedProjection p = map (columnOfUntypedProjection p) . take w $ [0 .. ]
-  where w = widthOfUntypedProjection p
+columnsOfUntypedProjection = map columnOfProjectionUnit
 
 -- | Get column SQL string list of projection.
 projectionColumns :: Projection c r -- ^ Source 'Projection'
