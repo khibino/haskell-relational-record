@@ -159,7 +159,7 @@ selectPrefixSQL :: UntypedProjection -> Duplication -> StringSQL
 selectPrefixSQL up da = SELECT <> showsDuplication da <>
                         SQL.fold (|*|) columns'  where
   columns' = zipWith asColumnN
-             (columnsOfUntypedProjection up)
+             (map columnOfProjectionUnit up)
              [(0 :: Int)..]
 
 -- | SQL string for nested-query and toplevel-SQL.
@@ -283,6 +283,7 @@ columnOfUntypedProjection up i
   | 0 <= i && i < widthOfUntypedProjection up  =  columnOfProjectionUnit $ up !! i
   | otherwise                                  =  error $ "columnOfUntypedProjection: index out of bounds: " ++ show i
 
+{-# DEPRECATED columnsOfUntypedProjection "prepare to drop unused interface." #-}
 -- | Get column SQL string list of projection.
 columnsOfUntypedProjection :: UntypedProjection -- ^ Source 'Projection'
                            -> [ColumnSQL]       -- ^ Result SQL string list
@@ -291,7 +292,7 @@ columnsOfUntypedProjection = map columnOfProjectionUnit
 -- | Get column SQL string list of projection.
 projectionColumns :: Projection c r -- ^ Source 'Projection'
                   -> [ColumnSQL]    -- ^ Result SQL string list
-projectionColumns =  columnsOfUntypedProjection . untypeProjection
+projectionColumns = map columnOfProjectionUnit . untypeProjection
 
 -- | Unsafely get SQL term from 'Proejction'.
 unsafeProjectionStringSql :: Projection c r -> StringSQL
