@@ -63,8 +63,8 @@ import Database.Relational.Query.Internal.SQL
   (StringSQL, stringSQL, rowStringSQL, showStringSQL,
    ColumnSQL, columnSQL', showsColumnSQL, )
 import Database.Relational.Query.Internal.Sub
-  (SubQuery (..), Projection, untypeProjection,
-   UntypedProjection, untypedProjectionWidth, ProjectionUnit (..),
+  (SubQuery (..), Projection,
+   UntypedProjection, ProjectionUnit (..),
    JoinProduct, QueryProductTree, ProductBuilder,
    NodeAttr (Just', Maybe), ProductTree (Leaf, Join), Node (Node),
    SetOp (..), BinOp (..), Qualifier (..), Qualified (..),
@@ -138,8 +138,8 @@ width :: SubQuery -> Int
 width =  d  where
   d (Table u)                     = UntypedTable.width' u
   d (Bin _ l _)                   = width l
-  d (Flat _ up _ _ _ _)           = untypedProjectionWidth up
-  d (Aggregated _ up _ _ _ _ _ _) = untypedProjectionWidth up
+  d (Flat _ up _ _ _ _)           = Internal.untypedProjectionWidth up
+  d (Aggregated _ up _ _ _ _ _ _) = Internal.untypedProjectionWidth up
 
 -- | SQL to query table.
 fromTableToSQL :: UntypedTable.Untyped -> StringSQL
@@ -285,15 +285,17 @@ columnOfProjectionUnit = d  where
 {-# DEPRECATED widthOfUntypedProjection "prepare to drop public interface. use untypedProjectionWidth internally." #-}
 -- | Width of 'UntypedProjection'.
 widthOfUntypedProjection :: UntypedProjection -> Int
-widthOfUntypedProjection = untypedProjectionWidth
+widthOfUntypedProjection = Internal.untypedProjectionWidth
 
 -- | Get column SQL string of 'UntypedProjection'.
 columnOfUntypedProjection :: UntypedProjection -- ^ Source 'Projection'
                           -> Int               -- ^ Column index
                           -> ColumnSQL         -- ^ Result SQL string
 columnOfUntypedProjection up i
-  | 0 <= i && i < untypedProjectionWidth up    =  columnOfProjectionUnit $ up !! i
-  | otherwise                                  =  error $ "columnOfUntypedProjection: index out of bounds: " ++ show i
+  | 0 <= i && i < Internal.untypedProjectionWidth up  =
+    columnOfProjectionUnit $ up !! i
+  | otherwise                                         =
+    error $ "columnOfUntypedProjection: index out of bounds: " ++ show i
 
 {-# DEPRECATED columnsOfUntypedProjection "prepare to drop unused interface." #-}
 -- | Get column SQL string list of projection.
@@ -304,7 +306,7 @@ columnsOfUntypedProjection = map columnOfProjectionUnit
 -- | Get column SQL string list of projection.
 projectionColumns :: Projection c r -- ^ Source 'Projection'
                   -> [ColumnSQL]    -- ^ Result SQL string list
-projectionColumns = map columnOfProjectionUnit . untypeProjection
+projectionColumns = map columnOfProjectionUnit . Internal.untypeProjection
 
 -- | Unsafely get SQL term from 'Proejction'.
 unsafeProjectionStringSql :: Projection c r -> StringSQL
