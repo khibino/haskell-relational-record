@@ -21,7 +21,10 @@ module Database.Relational.Query.Component
          module Database.Relational.Query.Internal.Config,
 
          -- * Duplication attribute
-         Duplication (..), showsDuplication,
+         -- re-export
+         Duplication (..),
+
+         showsDuplication,
 
          -- * Types for aggregation
          AggregateColumnRef,
@@ -37,14 +40,21 @@ module Database.Relational.Query.Component
          AggregateKey, aggregateKeyProjection, aggregateKeyElement, unsafeAggregateKey,
 
          -- * Types for ordering
+         -- re-export
          Order (..), OrderColumn, OrderingTerm,
+
          composeOrderBy,
 
          -- deprecated interfaces
          OrderingTerms,
 
          -- * Types for assignments
-         AssignColumn, AssignTerm, Assignment, Assignments, composeSets, composeValues,
+         -- re-export
+         AssignColumn, AssignTerm, Assignment,
+
+         Assignments,
+
+         composeSets, composeValues,
 
          -- * Compose window clause
          composeOver,
@@ -61,6 +71,10 @@ import Database.Relational.Query.Internal.Config
    Config (..), defaultConfig,)
 import Database.Relational.Query.Internal.SQL (StringSQL, rowConsStringSQL)
 import qualified Database.Relational.Query.Internal.SQL as Internal
+import Database.Relational.Query.Internal.BaseSQL
+  (Duplication (..),
+   Order (..), OrderColumn, OrderingTerm,
+   AssignColumn, AssignTerm, Assignment,)
 
 
 {-# DEPRECATED ColumnSQL, columnSQL, columnSQL', showsColumnSQL "prepare to drop public interface. internally use Database.Relational.Query.Internal.SQL.*" #-}
@@ -79,9 +93,6 @@ columnSQL' = Internal.columnSQL'
 showsColumnSQL :: ColumnSQL -> StringSQL
 showsColumnSQL = Internal.showsColumnSQL
 
-
--- | Result record duplication attribute
-data Duplication = All | Distinct  deriving Show
 
 -- | Compose duplication attribute string.
 showsDuplication :: Duplication -> StringSQL
@@ -181,21 +192,12 @@ unsafeAggregateKey :: (a, AggregateElem) -> AggregateKey a
 unsafeAggregateKey = AggregateKey
 
 
--- | Order direction. Ascendant or Descendant.
-data Order = Asc | Desc  deriving Show
-
--- | Type for order-by column
-type OrderColumn = ColumnSQL
-
--- | Type for order-by term
-type OrderingTerm = (Order, OrderColumn)
-
 {-# DEPRECATED OrderingTerms "use [OrderingTerm]." #-}
 -- | Type for order-by terms
 type OrderingTerms = [OrderingTerm]
 
 -- | Compose ORDER BY clause from OrderingTerms
-composeOrderBy :: OrderingTerms -> StringSQL
+composeOrderBy :: [OrderingTerm] -> StringSQL
 composeOrderBy =  d where
   d []       = mempty
   d ts@(_:_) = ORDER <> BY <> commaed (map showsOt ts)
@@ -203,15 +205,6 @@ composeOrderBy =  d where
   order Asc  = ASC
   order Desc = DESC
 
-
--- | Column SQL String
-type AssignColumn = ColumnSQL
-
--- | Value SQL String
-type AssignTerm   = ColumnSQL
-
--- | Assignment pair
-type Assignment = (AssignColumn, AssignTerm)
 
 -- | Assignment pair list.
 type Assignments = [Assignment]
