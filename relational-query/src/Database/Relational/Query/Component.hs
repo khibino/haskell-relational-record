@@ -193,11 +193,12 @@ composeOrderBy =  d where
   order Desc = DESC
 
 
+{-# DEPRECATED Assignments "use [Assignment]." #-}
 -- | Assignment pair list.
 type Assignments = [Assignment]
 
 -- | Compose SET clause from 'Assignments'.
-composeSets :: Assignments -> StringSQL
+composeSets :: [Assignment] -> StringSQL
 composeSets as = assigns  where
   assignList = foldr (\ (col, term) r ->
                        (showsColumnSQL col .=. showsColumnSQL term) : r)
@@ -206,7 +207,7 @@ composeSets as = assigns  where
           | otherwise       = SET <> commaed assignList
 
 -- | Compose VALUES clause from 'Assignments'.
-composeValues :: Assignments -> StringSQL
+composeValues :: [Assignment] -> StringSQL
 composeValues as = rowConsStringSQL [ showsColumnSQL c | c <- cs ] <> VALUES <>
                    rowConsStringSQL [ showsColumnSQL c | c <- vs ]  where
   (cs, vs) = unzip as
