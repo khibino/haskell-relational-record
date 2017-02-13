@@ -19,7 +19,7 @@ module Database.Relational.Query.Component
 
          -- * Configuration type for query
          NameConfig (..),
-         SchemaNameMode (..),
+         ProductUnitSupport (..), SchemaNameMode (..), IdentifierQuotation (..),
          Config ( productUnitSupport
                 , chunksInsertSize
                 , schemaNameMode
@@ -28,10 +28,9 @@ module Database.Relational.Query.Component
                 , nameConfig
                 , identifierQuotation),
          defaultConfig,
-         ProductUnitSupport (..), Duplication (..), IdentifierQuotation (..),
 
          -- * Duplication attribute
-         showsDuplication,
+         Duplication (..), showsDuplication,
 
          -- * Types for aggregation
          AggregateColumnRef,
@@ -94,11 +93,17 @@ data NameConfig =
 instance Show NameConfig where
   show = const "<NameConfig>"
 
+-- | Unit of product is supported or not.
+data ProductUnitSupport = PUSupported | PUNotSupported  deriving Show
+
 -- | Schema name qualify mode in SQL string.
 data SchemaNameMode
   = SchemaQualified     -- ^ Schema qualified table name in SQL string
   | SchemaNotQualified  -- ^ Not qualified table name in SQL string
   deriving (Eq, Show)
+
+-- | Configuration for quotation of identifiers of SQL.
+data IdentifierQuotation = NoQuotation | Quotation Char deriving Show
 
 -- | Configuration type.
 data Config =
@@ -125,12 +130,6 @@ defaultConfig =
                                                    }
          , identifierQuotation       =  NoQuotation
          }
-
--- | Unit of product is supported or not.
-data ProductUnitSupport = PUSupported | PUNotSupported  deriving Show
-
--- | Configuration for quotation of identifiers of SQL.
-data IdentifierQuotation = NoQuotation | Quotation Char deriving Show
 
 -- | Result record duplication attribute
 data Duplication = All | Distinct  deriving Show
