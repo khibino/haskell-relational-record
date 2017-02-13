@@ -197,7 +197,7 @@ composeOrderBy =  d where
 -- | Assignment pair list.
 type Assignments = [Assignment]
 
--- | Compose SET clause from 'Assignments'.
+-- | Compose SET clause from ['Assignment'].
 composeSets :: [Assignment] -> StringSQL
 composeSets as = assigns  where
   assignList = foldr (\ (col, term) r ->
@@ -206,7 +206,7 @@ composeSets as = assigns  where
   assigns | null assignList = error "Update assignment list is null!"
           | otherwise       = SET <> commaed assignList
 
--- | Compose VALUES clause from 'Assignments'.
+-- | Compose VALUES clause from ['Assignment'].
 composeValues :: [Assignment] -> StringSQL
 composeValues as = rowConsStringSQL [ showsColumnSQL c | c <- cs ] <> VALUES <>
                    rowConsStringSQL [ showsColumnSQL c | c <- vs ]  where
