@@ -32,10 +32,11 @@ module Database.Relational.Query.Sub (
 
   untypedProjectionFromJoinedSubQuery, untypedProjectionFromScalarSubQuery,
 
-  projectionColumns, unsafeProjectionStringSql, unsafeProjectFromColumns,
+  projectionColumns, unsafeProjectionStringSql,
 
   -- deprecated interfaces
   untypedProjectionFromColumns,
+  unsafeProjectFromColumns,
   widthOfUntypedProjection, columnsOfUntypedProjection,
 
   -- * Product of sub-queries
@@ -55,7 +56,7 @@ import Data.Traversable (traverse)
 import qualified Database.Relational.Query.Context as Context
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, rowStringSQL, showStringSQL)
 import Database.Relational.Query.Internal.Sub
-  (SubQuery (..), Projection, untypeProjection, typedProjection,
+  (SubQuery (..), Projection, untypeProjection,
    UntypedProjection, untypedProjectionWidth, ProjectionUnit (..),
    JoinProduct, QueryProductTree, ProductBuilder,
    NodeAttr (Just', Maybe), ProductTree (Leaf, Join), Node (Node),
@@ -304,10 +305,11 @@ projectionColumns = map columnOfProjectionUnit . untypeProjection
 unsafeProjectionStringSql :: Projection c r -> StringSQL
 unsafeProjectionStringSql =  rowStringSQL . map showsColumnSQL . projectionColumns
 
+{-# DEPRECATED unsafeProjectFromColumns "prepare to drop unused interface. use Database.Relational.Query.Internal.Sub.projectFromColumns. " #-}
 -- | Unsafely generate 'Projection' from SQL string list.
 unsafeProjectFromColumns :: [ColumnSQL]    -- ^ SQL string list specifies columns
                          -> Projection c r -- ^ Result 'Projection'
-unsafeProjectFromColumns =  typedProjection . map RawColumn
+unsafeProjectFromColumns = I.projectFromColumns
 
 
 -- | Get node attribute.

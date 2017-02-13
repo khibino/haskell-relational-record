@@ -51,6 +51,7 @@ import Database.Relational.Query.Internal.SQL (StringSQL, listStringSQL)
 import Database.Relational.Query.Internal.Sub
   (SubQuery, Qualified, UntypedProjection,
    Projection, untypeProjection, typedProjection, projectionWidth)
+import qualified Database.Relational.Query.Internal.Sub as Internal
 import Database.Relational.Query.Context (Aggregated, Flat)
 import Database.Relational.Query.Component (ColumnSQL, showsColumnSQL, columnSQL')
 import Database.Relational.Query.Table (Table)
@@ -61,7 +62,7 @@ import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Relational.Query.Sub
   (projectionColumns,
    untypedProjectionFromJoinedSubQuery, untypedProjectionFromScalarSubQuery,
-   unsafeProjectionStringSql, unsafeProjectFromColumns)
+   unsafeProjectionStringSql)
 import qualified Database.Relational.Query.Sub as SubQuery
 
 
@@ -94,17 +95,17 @@ unsafeFromScalarSubQuery =  typedProjection . untypedProjectionFromScalarSubQuer
 -- | Unsafely generate unqualified 'Projection' from 'Table'.
 unsafeFromTable :: Table r
                 -> Projection c r
-unsafeFromTable =  unsafeProjectFromColumns . Table.columns
+unsafeFromTable = Internal.projectFromColumns . Table.columns
 
 -- | Unsafely generate 'Projection' from SQL expression strings.
 unsafeFromSqlTerms :: [StringSQL] -> Projection c t
-unsafeFromSqlTerms =  unsafeProjectFromColumns . map columnSQL'
+unsafeFromSqlTerms = Internal.projectFromColumns . map columnSQL'
 
 
 -- | Unsafely trace projection path.
 unsafeProject :: Projection c a' -> Pi a b -> Projection c b'
 unsafeProject p pi' =
-  unsafeProjectFromColumns
+  Internal.projectFromColumns
   . (`UnsafePi.pi` pi')
   . columns $ p
 
