@@ -25,8 +25,8 @@ module Database.Relational.Query.Component
                 , schemaNameMode
                 , normalizedTableName
                 , verboseAsCompilerWarning
-                , nameConfig
-                , identifierQuotation),
+                , identifierQuotation
+                , nameConfig),
          defaultConfig,
 
          -- * Duplication attribute
