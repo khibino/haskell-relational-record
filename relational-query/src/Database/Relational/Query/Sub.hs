@@ -53,6 +53,9 @@ import Control.Applicative ((<$>))
 import Data.Monoid (mempty, (<>), mconcat)
 import Data.Traversable (traverse)
 
+import Language.SQL.Keyword (Keyword(..), (|*|))
+import qualified Language.SQL.Keyword as SQL
+
 import qualified Database.Relational.Query.Context as Context
 import Database.Relational.Query.Internal.SQL
   (StringSQL, stringSQL, rowStringSQL, showStringSQL,
@@ -72,9 +75,6 @@ import Database.Relational.Query.Component
 import Database.Relational.Query.Table (Table, (!))
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Pure (showConstantTermsSQL')
-
-import Language.SQL.Keyword (Keyword(..), (|*|))
-import qualified Language.SQL.Keyword as SQL
 
 
 showsSetOp' :: SetOp -> StringSQL
