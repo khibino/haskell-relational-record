@@ -113,8 +113,8 @@ data Config =
   , schemaNameMode            ::  !SchemaNameMode
   , normalizedTableName       ::  !Bool
   , verboseAsCompilerWarning  ::  !Bool
-  , nameConfig                ::  !NameConfig
   , identifierQuotation       ::  !IdentifierQuotation
+  , nameConfig                ::  !NameConfig
   } deriving Show
 
 -- | Default configuration.
@@ -125,10 +125,10 @@ defaultConfig =
          , schemaNameMode            =  SchemaQualified
          , normalizedTableName       =  True
          , verboseAsCompilerWarning  =  False
+         , identifierQuotation       =  NoQuotation
          , nameConfig                =  NameConfig { recordConfig     =  RecordTH.defaultNameConfig
                                                    , relationVarName  =  const varCamelcaseName
                                                    }
-         , identifierQuotation       =  NoQuotation
          }
 
 -- | Result record duplication attribute
