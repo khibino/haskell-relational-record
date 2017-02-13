@@ -21,7 +21,8 @@ module Database.Relational.Query.Internal.Sub
        , ProductTreeBuilder, ProductBuilder
 
        , UntypedProjection, untypedProjectionWidth, ProjectionUnit (..)
-       , Projection, untypeProjection, typedProjection, projectionWidth, projectFromColumns
+       , Projection, untypeProjection, typedProjection, projectionWidth
+       , projectFromColumns, projectFromScalarSubQuery
 
          -- * Query restriction
        , QueryRestriction
@@ -137,6 +138,10 @@ projectionWidth = length . untypeProjection
 projectFromColumns :: [ColumnSQL]    -- ^ SQL string list specifies columns
                    -> Projection c r -- ^ Result 'Projection'
 projectFromColumns =  typedProjection . map RawColumn
+
+-- | Unsafely generate 'Projection' from scalar sub-query.
+projectFromScalarSubQuery :: SubQuery -> Projection c t
+projectFromScalarSubQuery = typedProjection . (:[]) . Scalar
 
 
 -- | Type for restriction of query.

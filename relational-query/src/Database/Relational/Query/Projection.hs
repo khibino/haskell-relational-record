@@ -61,7 +61,7 @@ import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Relational.Query.Sub
   (projectionColumns,
-   untypedProjectionFromJoinedSubQuery, untypedProjectionFromScalarSubQuery,
+   untypedProjectionFromJoinedSubQuery,
    unsafeProjectionStringSql)
 import qualified Database.Relational.Query.Sub as SubQuery
 
@@ -90,7 +90,7 @@ unsafeFromQualifiedSubQuery =  typedProjection . untypedProjectionFromJoinedSubQ
 
 -- | Unsafely generate 'Projection' from scalar sub-query.
 unsafeFromScalarSubQuery :: SubQuery -> Projection c t
-unsafeFromScalarSubQuery =  typedProjection . untypedProjectionFromScalarSubQuery
+unsafeFromScalarSubQuery = Internal.projectFromScalarSubQuery
 
 -- | Unsafely generate unqualified 'Projection' from 'Table'.
 unsafeFromTable :: Table r

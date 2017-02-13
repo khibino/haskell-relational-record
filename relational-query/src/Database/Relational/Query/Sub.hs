@@ -30,12 +30,12 @@ module Database.Relational.Query.Sub (
   -- * Projection
   Projection, ProjectionUnit, UntypedProjection,
 
-  untypedProjectionFromJoinedSubQuery, untypedProjectionFromScalarSubQuery,
+  untypedProjectionFromJoinedSubQuery,
 
   projectionColumns, unsafeProjectionStringSql,
 
   -- deprecated interfaces
-  untypedProjectionFromColumns,
+  untypedProjectionFromColumns, untypedProjectionFromScalarSubQuery,
   unsafeProjectFromColumns,
   widthOfUntypedProjection, columnsOfUntypedProjection,
 
@@ -256,6 +256,7 @@ column qs =  d (Internal.unQualify qs)  where
 untypedProjectionFromColumns :: [ColumnSQL] -> UntypedProjection
 untypedProjectionFromColumns =  map RawColumn
 
+{-# DEPRECATED untypedProjectionFromScalarSubQuery "prepare to drop public interface. use ( (:[]) . Scalar )." #-}
 -- | Make untyped projection from scalar sub-query.
 untypedProjectionFromScalarSubQuery :: SubQuery -> UntypedProjection
 untypedProjectionFromScalarSubQuery = (:[]) . Scalar
