@@ -37,8 +37,11 @@ module Database.Relational.Query.Component
          AggregateKey, aggregateKeyProjection, aggregateKeyElement, unsafeAggregateKey,
 
          -- * Types for ordering
-         Order (..), OrderColumn, OrderingTerm, OrderingTerms,
+         Order (..), OrderColumn, OrderingTerm,
          composeOrderBy,
+
+         -- deprecated interfaces
+         OrderingTerms,
 
          -- * Types for assignments
          AssignColumn, AssignTerm, Assignment, Assignments, composeSets, composeValues,
@@ -187,6 +190,7 @@ type OrderColumn = ColumnSQL
 -- | Type for order-by term
 type OrderingTerm = (Order, OrderColumn)
 
+{-# DEPRECATED OrderingTerms "use [OrderingTerm]." #-}
 -- | Type for order-by terms
 type OrderingTerms = [OrderingTerm]
 
