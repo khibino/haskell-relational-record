@@ -59,13 +59,13 @@ module Database.Relational.Query.Component
 
 import Data.Monoid (Monoid (..), (<>))
 
-import Database.Relational.Query.Internal.SQL (StringSQL, rowConsStringSQL)
-import qualified Database.Relational.Query.Internal.SQL as Internal
 import Language.SQL.Keyword (Keyword(..), (|*|), (.=.))
-
 import qualified Language.SQL.Keyword as SQL
 import Language.Haskell.TH.Name.CamelCase (VarName, varCamelcaseName)
 import qualified Database.Record.TH as RecordTH
+
+import Database.Relational.Query.Internal.SQL (StringSQL, rowConsStringSQL)
+import qualified Database.Relational.Query.Internal.SQL as Internal
 
 
 {-# DEPRECATED ColumnSQL, columnSQL, columnSQL', showsColumnSQL "prepare to drop public interface. internally use Database.Relational.Query.Internal.SQL.*" #-}
