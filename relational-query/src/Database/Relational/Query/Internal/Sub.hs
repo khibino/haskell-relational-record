@@ -12,7 +12,8 @@
 -- This module defines sub-query structure used in query products.
 module Database.Relational.Query.Internal.Sub
        ( SubQuery (..)
-       , SetOp (..), BinOp (..), Qualifier (..), Qualified (..)
+       , SetOp (..), BinOp (..), Qualifier (..)
+       , Qualified (..), qualifier, unQualify, qualify
 
          -- * Product tree type
        , NodeAttr (..), ProductTree (..), Node (..)
@@ -62,6 +63,18 @@ newtype Qualifier = Qualifier Int  deriving Show
 data Qualified a =
   Qualified Qualifier a
   deriving (Show, Functor, Foldable, Traversable)
+
+-- | Get qualifier
+qualifier :: Qualified a -> Qualifier
+qualifier (Qualified q _) = q
+
+-- | Unqualify.
+unQualify :: Qualified a -> a
+unQualify (Qualified _ a) = a
+
+-- | Add qualifier
+qualify :: Qualifier -> a -> Qualified a
+qualify = Qualified
 
 
 -- | node attribute for product.

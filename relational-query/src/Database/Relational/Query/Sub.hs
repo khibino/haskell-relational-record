@@ -18,8 +18,11 @@ module Database.Relational.Query.Sub (
 
   -- * Qualified Sub-query
   Qualifier (Qualifier),
-  Qualified, qualifier, unQualify, qualify,
+  Qualified,
   queryWidth,
+
+  -- deprecated interfaces
+  qualifier, unQualify, qualify,
 
   -- * Sub-query columns
   column,
@@ -57,6 +60,7 @@ import Database.Relational.Query.Internal.Sub
    NodeAttr (Just', Maybe), ProductTree (Leaf, Join), Node (Node),
    SetOp (..), BinOp (..), Qualifier (..), Qualified (..),
    QueryRestriction)
+import qualified Database.Relational.Query.Internal.Sub as I
 import Database.Relational.Query.Component
   (ColumnSQL, columnSQL', showsColumnSQL,
    Config (productUnitSupport), ProductUnitSupport (PUSupported, PUNotSupported),
@@ -193,17 +197,20 @@ showSQL = snd . toSQLs
 toSQL :: SubQuery -> String
 toSQL =  showStringSQL . showSQL
 
+{-# DEPRECATED qualifier "prepare to drop public interface. use Database.Relational.Query.Internal.Sub.qualifier." #-}
 -- | Get qualifier
 qualifier :: Qualified a -> Qualifier
-qualifier (Qualified q _) = q
+qualifier = I.qualifier
 
+{-# DEPRECATED unQualify "prepare to drop public interface. use Database.Relational.Query.Internal.Sub.unQualify." #-}
 -- | Unqualify.
 unQualify :: Qualified a -> a
-unQualify (Qualified _ a) = a
+unQualify = I.unQualify
 
+{-# DEPRECATED qualify "prepare to drop public interface. use Database.Relational.Query.Internal.Sub.qualify." #-}
 -- | Add qualifier
 qualify :: a -> Qualifier -> Qualified a
-qualify a q = Qualified q a
+qualify a q = I.qualify q a
 
 columnN :: Int -> StringSQL
 columnN i = stringSQL $ 'f' : show i
@@ -226,16 +233,16 @@ columnFromId qi i = qi <.> columnSQL' (columnN i)
 -- | From 'Qualified' SQL string into qualified formed 'String'
 --  like (SELECT ...) AS T<n>
 qualifiedSQLas :: Qualified StringSQL -> StringSQL
-qualifiedSQLas q = unQualify q <> showQualifier (qualifier q)
+qualifiedSQLas q = I.unQualify q <> showQualifier (I.qualifier q)
 
 -- | Width of 'Qualified' 'SubQUery'.
 queryWidth :: Qualified SubQuery -> Int
-queryWidth =  width . unQualify
+queryWidth =  width . I.unQualify
 
 -- | Get column SQL string of 'SubQuery'.
 column :: Qualified SubQuery -> Int -> ColumnSQL
-column qs =  d (unQualify qs)  where
-  q = qualifier qs
+column qs =  d (I.unQualify qs)  where
+  q = I.qualifier qs
   d (Table u)           i           = q <.> (u ! i)
   d (Bin {})            i           = q `columnFromId` i
   d (Flat _ up _ _ _ _) i           = columnOfUntypedProjection up i
@@ -252,7 +259,7 @@ untypedProjectionFromScalarSubQuery = (:[]) . Scalar
 
 -- | Make untyped projection from joined sub-query.
 untypedProjectionFromJoinedSubQuery :: Qualified SubQuery -> UntypedProjection
-untypedProjectionFromJoinedSubQuery qs = d $ unQualify qs  where
+untypedProjectionFromJoinedSubQuery qs = d $ I.unQualify qs  where
   normalized = SubQueryRef <$> traverse (\q -> [0 .. width q - 1]) qs
   d (Table _)               =  untypedProjectionFromColumns . map (column qs)
                                $ take (queryWidth qs) [0..]
@@ -264,7 +271,7 @@ untypedProjectionFromJoinedSubQuery qs = d $ unQualify qs  where
 columnOfProjectionUnit :: ProjectionUnit -> ColumnSQL
 columnOfProjectionUnit = d  where
   d (RawColumn e)     = e
-  d (SubQueryRef qi)  = qualifier qi `columnFromId` unQualify qi
+  d (SubQueryRef qi)  = I.qualifier qi `columnFromId` I.unQualify qi
   d (Scalar sub)      = columnSQL' $ showUnitSQL sub
 
 {-# DEPRECATED widthOfUntypedProjection "prepare to drop public interface. use untypedProjectionWidth internally." #-}

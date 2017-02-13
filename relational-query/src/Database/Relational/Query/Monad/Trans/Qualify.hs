@@ -22,7 +22,7 @@ import Control.Applicative (Applicative)
 import Control.Monad (liftM)
 
 import Database.Relational.Query.Sub (Qualified)
-import qualified Database.Relational.Query.Sub as SubQuery
+import qualified Database.Relational.Query.Internal.Sub as SubQuery
 
 
 type AliasId = Int
@@ -53,4 +53,4 @@ qualifyQuery :: Monad m
              -> Qualify m (Qualified query) -- ^ Result with updated state
 qualifyQuery query =
   do n <- newAlias
-     return . SubQuery.qualify query $ SubQuery.Qualifier n
+     return $ SubQuery.qualify (SubQuery.Qualifier n) query
