@@ -69,6 +69,7 @@ library
                        Database.Relational.Query.Internal.ContextType
                        Database.Relational.Query.Internal.SQL
                        Database.Relational.Query.Internal.BaseSQL
+                       Database.Relational.Query.Internal.GroupingSQL
                        Database.Relational.Query.Internal.UntypedTable
                        Database.Relational.Query.Internal.Product
                        Database.Relational.Query.Internal.Sub

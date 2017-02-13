@@ -75,6 +75,9 @@ import Database.Relational.Query.Internal.BaseSQL
   (Duplication (..),
    Order (..), OrderColumn, OrderingTerm,
    AssignColumn, AssignTerm, Assignment,)
+import Database.Relational.Query.Internal.GroupingSQL
+  (AggregateColumnRef,
+   AggregateBitKey (..), AggregateSet (..), AggregateElem (..), )
 
 
 {-# DEPRECATED ColumnSQL, columnSQL, columnSQL', showsColumnSQL "prepare to drop public interface. internally use Database.Relational.Query.Internal.SQL.*" #-}
@@ -100,22 +103,6 @@ showsDuplication =  dup  where
   dup All      = ALL
   dup Distinct = DISTINCT
 
-
--- | Type for group-by term
-type AggregateColumnRef = ColumnSQL
-
--- | Type for group key.
-newtype AggregateBitKey = AggregateBitKey [AggregateColumnRef] deriving Show
-
--- | Type for grouping set
-newtype AggregateSet = AggregateSet [AggregateElem] deriving Show
-
--- | Type for group-by tree
-data AggregateElem = ColumnRef AggregateColumnRef
-                   | Rollup [AggregateBitKey]
-                   | Cube   [AggregateBitKey]
-                   | GroupingSets [AggregateSet]
-                   deriving Show
 
 -- | Single term aggregation element.
 aggregateColumnRef :: AggregateColumnRef -> AggregateElem
