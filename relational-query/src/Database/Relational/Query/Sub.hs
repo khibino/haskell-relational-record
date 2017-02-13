@@ -54,7 +54,9 @@ import Data.Monoid (mempty, (<>), mconcat)
 import Data.Traversable (traverse)
 
 import qualified Database.Relational.Query.Context as Context
-import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, rowStringSQL, showStringSQL)
+import Database.Relational.Query.Internal.SQL
+  (StringSQL, stringSQL, rowStringSQL, showStringSQL,
+   ColumnSQL, columnSQL', showsColumnSQL, )
 import Database.Relational.Query.Internal.Sub
   (SubQuery (..), Projection, untypeProjection,
    UntypedProjection, untypedProjectionWidth, ProjectionUnit (..),
@@ -64,8 +66,7 @@ import Database.Relational.Query.Internal.Sub
    QueryRestriction)
 import qualified Database.Relational.Query.Internal.Sub as Internal
 import Database.Relational.Query.Component
-  (ColumnSQL, columnSQL', showsColumnSQL,
-   Config (productUnitSupport), ProductUnitSupport (PUSupported, PUNotSupported),
+  (Config (productUnitSupport), ProductUnitSupport (PUSupported, PUNotSupported),
    Duplication (..), showsDuplication,
    AggregateElem, composeGroupBy, OrderingTerms, composeOrderBy)
 import Database.Relational.Query.Table (Table, (!))

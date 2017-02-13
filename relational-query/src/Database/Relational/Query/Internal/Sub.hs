@@ -34,8 +34,9 @@ import Data.Foldable (Foldable)
 import Data.Traversable (Traversable)
 
 import Database.Relational.Query.Internal.ContextType (Flat, Aggregated)
+import Database.Relational.Query.Internal.SQL (ColumnSQL)
 import Database.Relational.Query.Component
-  (ColumnSQL, Config, Duplication (..),
+  (Config, Duplication (..),
    AggregateElem, OrderingTerms)
 import qualified Database.Relational.Query.Table as Table
 

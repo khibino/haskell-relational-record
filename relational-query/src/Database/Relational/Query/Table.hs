@@ -24,7 +24,7 @@ import qualified Data.Array as Array
 
 import Database.Record (PersistableWidth)
 
-import Database.Relational.Query.Component (ColumnSQL, columnSQL)
+import Database.Relational.Query.Internal.SQL (ColumnSQL, columnSQL)
 
 
 -- | Untyped typed table type

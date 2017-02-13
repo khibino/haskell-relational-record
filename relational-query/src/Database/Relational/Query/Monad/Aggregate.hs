@@ -29,11 +29,12 @@ module Database.Relational.Query.Monad.Aggregate (
 import Data.Functor.Identity (Identity (runIdentity))
 import Data.Monoid ((<>))
 
+import Database.Relational.Query.Internal.SQL (showsColumnSQL)
 import Database.Relational.Query.Context (Flat, Aggregated, OverWindow)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Component
-  (AggregateColumnRef, Duplication, OrderingTerms, AggregateElem, composeOver, showsColumnSQL)
+  (AggregateColumnRef, Duplication, OrderingTerms, AggregateElem, composeOver)
 import Database.Relational.Query.Sub (SubQuery, QueryRestriction, JoinProduct, aggregatedSubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
 import Database.Relational.Query.Projectable (PlaceHolders, SqlProjectable)

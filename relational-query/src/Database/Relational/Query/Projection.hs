@@ -47,13 +47,14 @@ import qualified Language.SQL.Keyword as SQL
 import Database.Record (HasColumnConstraint, NotNull, NotNullColumnConstraint)
 import qualified Database.Record.KeyConstraint as KeyConstraint
 
-import Database.Relational.Query.Internal.SQL (StringSQL, listStringSQL)
+import Database.Relational.Query.Internal.SQL
+  (StringSQL, listStringSQL,
+   ColumnSQL, showsColumnSQL, columnSQL', )
 import Database.Relational.Query.Internal.Sub
   (SubQuery, Qualified, UntypedProjection,
    Projection, untypeProjection, typedProjection, projectionWidth)
 import qualified Database.Relational.Query.Internal.Sub as Internal
 import Database.Relational.Query.Context (Aggregated, Flat)
-import Database.Relational.Query.Component (ColumnSQL, showsColumnSQL, columnSQL')
 import Database.Relational.Query.Table (Table)
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Pure (ProductConstructor (..))
