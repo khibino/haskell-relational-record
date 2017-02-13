@@ -65,6 +65,7 @@ library
                        Database.Relational.Query.TH
 
   other-modules:
+                       Database.Relational.Query.Internal.ContextType
                        Database.Relational.Query.Internal.SQL
                        Database.Relational.Query.Internal.Product
                        Database.Relational.Query.Internal.Sub
