@@ -17,7 +17,7 @@ import Prelude hiding (and, product)
 import Control.Applicative (pure)
 import Data.Monoid ((<>), mempty)
 
-import Database.Relational.Query.Context (Flat)
+import Database.Relational.Query.Internal.ContextType (Flat)
 import Database.Relational.Query.Internal.Sub
   (NodeAttr (..), ProductTree (..), Node (..), Projection, Qualified, SubQuery,
    ProductTreeBuilder, ProductBuilder)
