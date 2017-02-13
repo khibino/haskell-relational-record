@@ -1,6 +1,6 @@
 -- |
 -- Module      : Database.Relational.Query.Table
--- Copyright   : 2013 Kei Hibino
+-- Copyright   : 2013-2017 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
@@ -10,6 +10,7 @@
 -- This module defines table type which has table metadatas.
 module Database.Relational.Query.Table (
   -- * Untyped table type
+  -- deprecated interfaces
   Untyped, name', width', columns', (!),
 
   -- * Phantom typed table type
@@ -19,39 +20,33 @@ module Database.Relational.Query.Table (
   TableDerivable (..)
   ) where
 
-import Data.Array (Array, listArray, elems)
-import qualified Data.Array as Array
+import Data.Array (listArray)
 
 import Database.Record (PersistableWidth)
 
+import qualified Database.Relational.Query.Internal.UntypedTable as Untyped
 import Database.Relational.Query.Internal.SQL (ColumnSQL, columnSQL)
 
 
+{-# DEPRECATED Untyped, name', width', columns', (!) "prepare to drop public interface. internally use Database.Relational.Query.Internal.UntypedTable.*" #-}
 -- | Untyped typed table type
-data Untyped = Untyped String Int (Array Int ColumnSQL)  deriving Show
+type Untyped = Untyped.Untyped
 
 -- | Name string of table in SQL
 name' :: Untyped -> String
-name'       (Untyped n _ _) = n
+name' = Untyped.name'
 
 -- | Width of table
 width' :: Untyped -> Int
-width'      (Untyped _ w _) = w
-
--- | Column name strings in SQL
-columnArray :: Untyped -> Array Int ColumnSQL
-columnArray (Untyped _ _ c) = c
+width' = Untyped.width'
 
 -- | Column name strings in SQL
 columns' :: Untyped -> [ColumnSQL]
-columns' =  elems . columnArray
+columns' = Untyped.columns'
 
--- | Column name string in SQL specified by index
-(!) :: Untyped
-    -> Int       -- ^ Column index
-    -> ColumnSQL -- ^ Column name String in SQL
-t ! i = columnArray t Array.! i
-
+-- | Column name strings in SQL
+(!) :: Untyped -> Int -> ColumnSQL
+(!) = (Untyped.!)
 
 -- | Phantom typed table type
 newtype Table r = Table Untyped
@@ -78,7 +73,7 @@ columns =  columns' . unType
 
 -- | Column name string in SQL specified by index
 index :: Table r
-      -> Int    -- ^ Column index
+      -> Int       -- ^ Column index
       -> ColumnSQL -- ^ Column name String in SQL
 index =  (!) . unType
 
@@ -88,7 +83,7 @@ toMaybe (Table t) = Table t
 
 -- | Unsafely generate phantom typed table type.
 table :: String -> [String] -> Table r
-table n f = Table $ Untyped n w fa  where
+table n f = Table $ Untyped.Untyped n w fa  where
   w  = length f
   fa = listArray (0, w - 1) $ map columnSQL f
 

@@ -68,6 +68,7 @@ library
                        Database.Relational.Query.Internal.Config
                        Database.Relational.Query.Internal.ContextType
                        Database.Relational.Query.Internal.SQL
+                       Database.Relational.Query.Internal.UntypedTable
                        Database.Relational.Query.Internal.Product
                        Database.Relational.Query.Internal.Sub
                        Database.Relational.Query.Monad.Trans.JoinState
