@@ -71,13 +71,9 @@ columnSQL =  columnSQL' . stringSQL
 columnSQL' :: StringSQL -> ColumnSQL
 columnSQL' =  ColumnSQL
 
--- | String from ColumnSQL
-stringFromColumnSQL :: ColumnSQL -> String
-stringFromColumnSQL =  showStringSQL . showsColumnSQL
-
 -- | StringSQL from ColumnSQL
 showsColumnSQL :: ColumnSQL -> StringSQL
 showsColumnSQL (ColumnSQL c) = c
 
 instance Show ColumnSQL where
-  show = stringFromColumnSQL
+  show = showStringSQL . showsColumnSQL
