@@ -1,10 +1,9 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE FlexibleInstances #-}
 
 -- |
 -- Module      : Database.Relational.Query.Component
--- Copyright   : 2013 Kei Hibino
+-- Copyright   : 2013-2017 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
@@ -14,6 +13,8 @@
 -- This module provides untyped components for query.
 module Database.Relational.Query.Component
        ( -- * Type for column SQL string
+
+         -- deprecated interfaces
          ColumnSQL, columnSQL, columnSQL', showsColumnSQL,
 
          -- * Configuration type for query
@@ -58,7 +59,8 @@ module Database.Relational.Query.Component
 
 import Data.Monoid (Monoid (..), (<>))
 
-import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL, rowConsStringSQL)
+import Database.Relational.Query.Internal.SQL (StringSQL, rowConsStringSQL)
+import qualified Database.Relational.Query.Internal.SQL as Internal
 import Language.SQL.Keyword (Keyword(..), (|*|), (.=.))
 
 import qualified Language.SQL.Keyword as SQL
@@ -66,33 +68,21 @@ import Language.Haskell.TH.Name.CamelCase (VarName, varCamelcaseName)
 import qualified Database.Record.TH as RecordTH
 
 
--- | Simple wrap type
-newtype ColumnSQL' a = ColumnSQL a
-
-instance Functor ColumnSQL' where
-  fmap f (ColumnSQL c) = ColumnSQL $ f c
-
+{-# DEPRECATED ColumnSQL, columnSQL, columnSQL', showsColumnSQL "prepare to drop public interface. internally use Database.Relational.Query.Internal.SQL.*" #-}
 -- | Column SQL string type
-type ColumnSQL = ColumnSQL' StringSQL
+type ColumnSQL = Internal.ColumnSQL
 
 -- | 'ColumnSQL' from string
 columnSQL :: String -> ColumnSQL
-columnSQL =  columnSQL' . stringSQL
+columnSQL = Internal.columnSQL
 
 -- | 'ColumnSQL' from 'StringSQL'
 columnSQL' :: StringSQL -> ColumnSQL
-columnSQL' =  ColumnSQL
-
--- | String from ColumnSQL
-stringFromColumnSQL :: ColumnSQL -> String
-stringFromColumnSQL =  showStringSQL . showsColumnSQL
+columnSQL' = Internal.columnSQL'
 
 -- | StringSQL from ColumnSQL
 showsColumnSQL :: ColumnSQL -> StringSQL
-showsColumnSQL (ColumnSQL c) = c
-
-instance Show ColumnSQL where
-  show = stringFromColumnSQL
+showsColumnSQL = Internal.showsColumnSQL
 
 -- | 'NameConfig' type to customize names of expanded templates.
 data NameConfig =

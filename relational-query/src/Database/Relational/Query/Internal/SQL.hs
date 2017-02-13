@@ -1,6 +1,8 @@
+{-# LANGUAGE FlexibleInstances #-}
+
 -- |
 -- Module      : Database.Relational.Query.Internal.SQL
--- Copyright   : 2014 Kei Hibino
+-- Copyright   : 2014-2017 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
@@ -14,6 +16,8 @@ module Database.Relational.Query.Internal.SQL (
   rowStringSQL, rowPlaceHolderStringSQL,
 
   rowConsStringSQL, listStringSQL,
+
+  ColumnSQL, columnSQL, columnSQL', showsColumnSQL,
   ) where
 
 import Language.SQL.Keyword (Keyword, word, wordShow, fold, (|*|), paren)
@@ -48,3 +52,32 @@ rowConsStringSQL =  paren . fold (|*|)
 -- | List String of SQL.
 listStringSQL :: [StringSQL] -> StringSQL
 listStringSQL =  paren . fold (|*|)
+
+
+-- | Simple wrap type
+newtype ColumnSQL' a = ColumnSQL a
+
+instance Functor ColumnSQL' where
+  fmap f (ColumnSQL c) = ColumnSQL $ f c
+
+-- | Column SQL string type
+type ColumnSQL = ColumnSQL' StringSQL
+
+-- | 'ColumnSQL' from string
+columnSQL :: String -> ColumnSQL
+columnSQL =  columnSQL' . stringSQL
+
+-- | 'ColumnSQL' from 'StringSQL'
+columnSQL' :: StringSQL -> ColumnSQL
+columnSQL' =  ColumnSQL
+
+-- | String from ColumnSQL
+stringFromColumnSQL :: ColumnSQL -> String
+stringFromColumnSQL =  showStringSQL . showsColumnSQL
+
+-- | StringSQL from ColumnSQL
+showsColumnSQL :: ColumnSQL -> StringSQL
+showsColumnSQL (ColumnSQL c) = c
+
+instance Show ColumnSQL where
+  show = stringFromColumnSQL
