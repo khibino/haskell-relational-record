@@ -16,7 +16,8 @@ module Database.Relational.Query.Internal.Sub
        , Qualified (..), qualifier, unQualify, qualify
 
          -- * Product tree type
-       , NodeAttr (..), ProductTree (..), Node (..)
+       , NodeAttr (..), ProductTree (..)
+       , Node (..), nodeAttr, nodeTree
        , JoinProduct, QueryProductTree
        , ProductTreeBuilder, ProductBuilder
 
@@ -94,6 +95,14 @@ data ProductTree rs
 
 -- | Product node. node attribute and product tree.
 data Node rs = Node !NodeAttr !(ProductTree rs)  deriving (Show, Functor)
+
+-- | Get node attribute.
+nodeAttr :: Node rs -> NodeAttr
+nodeAttr (Node a _) = a  where
+
+-- | Get tree from node.
+nodeTree :: Node rs -> ProductTree rs
+nodeTree (Node _ t) = t
 
 -- | Product tree with join restriction.
 type QueryProductTree = ProductTree (QueryRestriction Flat)

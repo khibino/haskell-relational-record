@@ -66,7 +66,7 @@ import Database.Relational.Query.Internal.Sub
   (SubQuery (..), Projection,
    UntypedProjection, ProjectionUnit (..),
    JoinProduct, QueryProductTree, ProductBuilder,
-   NodeAttr (Just', Maybe), ProductTree (Leaf, Join), Node (Node),
+   NodeAttr (Just', Maybe), ProductTree (Leaf, Join), Node,
    SetOp (..), BinOp (..), Qualifier (..), Qualified (..),
    QueryRestriction)
 import qualified Database.Relational.Query.Internal.Sub as Internal
@@ -319,13 +319,10 @@ unsafeProjectFromColumns :: [ColumnSQL]    -- ^ SQL string list specifies column
 unsafeProjectFromColumns = Internal.projectFromColumns
 
 
--- | Get node attribute.
-nodeAttr :: Node rs -> NodeAttr
-nodeAttr (Node a _) = a  where
-
+{-# DEPRECATED nodeTree "prepare to drop unused interface. use Database.Relational.Query.Internal.Sub.nodeTree. " #-}
 -- | Get tree from node.
 nodeTree :: Node rs -> ProductTree rs
-nodeTree (Node _ t) = t
+nodeTree = Internal.nodeTree
 
 -- | Show product tree of query into SQL. StringSQL result.
 showsQueryProduct :: QueryProductTree -> StringSQL
@@ -341,7 +338,7 @@ showsQueryProduct =  rec  where
   rec (Join left' right' rs) =
     mconcat
     [urec left',
-     joinType (nodeAttr left') (nodeAttr right'), JOIN,
+     joinType (Internal.nodeAttr left') (Internal.nodeAttr right'), JOIN,
      urec right',
      ON, foldr1 SQL.and $ ps ++ concat [ showConstantTermsSQL' True | null ps ] ]
     where ps = [ unsafeProjectionStringSql p | p <- rs ]
