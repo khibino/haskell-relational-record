@@ -36,9 +36,9 @@ import Data.Traversable (Traversable)
 import Database.Relational.Query.Internal.Config (Config)
 import Database.Relational.Query.Internal.ContextType (Flat, Aggregated)
 import Database.Relational.Query.Internal.SQL (ColumnSQL)
+import Database.Relational.Query.Internal.UntypedTable (Untyped)
 import Database.Relational.Query.Component
   (Duplication (..), AggregateElem, OrderingTerms)
-import qualified Database.Relational.Query.Table as Table
 
 
 -- | Set operators
@@ -48,7 +48,7 @@ data SetOp = Union | Except | Intersect  deriving Show
 newtype BinOp = BinOp (SetOp, Duplication) deriving Show
 
 -- | Sub-query type
-data SubQuery = Table Table.Untyped
+data SubQuery = Table Untyped
               | Flat Config
                 UntypedProjection Duplication JoinProduct (QueryRestriction Flat)
                 OrderingTerms

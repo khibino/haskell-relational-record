@@ -70,10 +70,12 @@ import Database.Relational.Query.Internal.Sub
    SetOp (..), BinOp (..), Qualifier (..), Qualified (..),
    QueryRestriction)
 import qualified Database.Relational.Query.Internal.Sub as Internal
+import Database.Relational.Query.Internal.UntypedTable ((!))
+import qualified Database.Relational.Query.Internal.UntypedTable as UntypedTable
 import Database.Relational.Query.Component
   (Duplication (..), showsDuplication,
    AggregateElem, composeGroupBy, OrderingTerms, composeOrderBy)
-import Database.Relational.Query.Table (Table, (!))
+import Database.Relational.Query.Table (Table)
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Pure (showConstantTermsSQL')
 
@@ -134,23 +136,23 @@ intersect =  setBin Intersect
 -- | Width of 'SubQuery'.
 width :: SubQuery -> Int
 width =  d  where
-  d (Table u)                     = Table.width' u
+  d (Table u)                     = UntypedTable.width' u
   d (Bin _ l _)                   = width l
   d (Flat _ up _ _ _ _)           = untypedProjectionWidth up
   d (Aggregated _ up _ _ _ _ _ _) = untypedProjectionWidth up
 
 -- | SQL to query table.
-fromTableToSQL :: Table.Untyped -> StringSQL
+fromTableToSQL :: UntypedTable.Untyped -> StringSQL
 fromTableToSQL t =
-  SELECT <> SQL.fold (|*|) [showsColumnSQL c | c <- Table.columns' t] <>
-  FROM <> stringSQL (Table.name' t)
+  SELECT <> SQL.fold (|*|) [showsColumnSQL c | c <- UntypedTable.columns' t] <>
+  FROM <> stringSQL (UntypedTable.name' t)
 
 -- | Generate normalized column SQL from table.
-fromTableToNormalizedSQL :: Table.Untyped -> StringSQL
+fromTableToNormalizedSQL :: UntypedTable.Untyped -> StringSQL
 fromTableToNormalizedSQL t = SELECT <> SQL.fold (|*|) columns' <>
-                             FROM <> stringSQL (Table.name' t)  where
+                             FROM <> stringSQL (UntypedTable.name' t)  where
   columns' = zipWith asColumnN
-             (Table.columns' t)
+             (UntypedTable.columns' t)
              [(0 :: Int)..]
 
 -- | Normalized column SQL
@@ -176,7 +178,7 @@ selectPrefixSQL up da = SELECT <> showsDuplication da <>
 toSQLs :: SubQuery
        -> (StringSQL, StringSQL) -- ^ sub-query SQL and top-level SQL
 toSQLs =  d  where
-  d (Table u)               = (stringSQL $ Table.name' u, fromTableToSQL u)
+  d (Table u)               = (stringSQL $ UntypedTable.name' u, fromTableToSQL u)
   d (Bin (BinOp (op, da)) l r) = (SQL.paren q, q)  where
     q = mconcat [normalizedSQL l, showsSetOp op da, normalizedSQL r]
   d (Flat cf up da pd rs od)   = (SQL.paren q, q)  where
