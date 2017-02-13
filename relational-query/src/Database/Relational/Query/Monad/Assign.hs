@@ -20,7 +20,7 @@ module Database.Relational.Query.Monad.Assign (
   ) where
 
 import Database.Relational.Query.Internal.Config (Config)
-import Database.Relational.Query.Sub (QueryRestriction)
+import Database.Relational.Query.Internal.Sub (QueryRestriction)
 import Database.Relational.Query.Component (Assignments)
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Table (Table)

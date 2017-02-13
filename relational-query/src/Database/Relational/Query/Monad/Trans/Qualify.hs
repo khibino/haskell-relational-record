@@ -21,7 +21,7 @@ import Control.Monad.Trans.State (StateT, runStateT, get, modify)
 import Control.Applicative (Applicative)
 import Control.Monad (liftM)
 
-import Database.Relational.Query.Sub (Qualified)
+import Database.Relational.Query.Internal.Sub (Qualified)
 import qualified Database.Relational.Query.Internal.Sub as Internal
 
 

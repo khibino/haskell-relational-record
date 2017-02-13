@@ -26,7 +26,7 @@ import Control.Applicative (Applicative, pure, (<$>))
 import Control.Arrow (second)
 import Data.DList (DList, toList)
 
-import Database.Relational.Query.Sub (QueryRestriction, Projection)
+import Database.Relational.Query.Internal.Sub (QueryRestriction, Projection)
 
 import Database.Relational.Query.Monad.Class
   (MonadQualify (..), MonadRestrict(..), MonadQuery (..), MonadAggregate(..))
