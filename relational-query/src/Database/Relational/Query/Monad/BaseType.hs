@@ -25,7 +25,7 @@ module Database.Relational.Query.Monad.BaseType
 import Data.Functor.Identity (Identity, runIdentity)
 import Control.Applicative ((<$>))
 
-import Database.Relational.Query.Component (Config, defaultConfig)
+import Database.Relational.Query.Internal.Config (Config, defaultConfig)
 import Database.Relational.Query.Internal.SQL (StringSQL, showStringSQL)
 import Database.Relational.Query.Sub (Qualified, SubQuery, showSQL)
 import qualified Database.Relational.Query.Monad.Trans.Qualify as Qualify

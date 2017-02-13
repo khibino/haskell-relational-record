@@ -44,6 +44,7 @@ import Data.Monoid ((<>))
 
 import Database.Record (PersistableWidth)
 
+import Database.Relational.Query.Internal.Config (Config (chunksInsertSize), defaultConfig)
 import Database.Relational.Query.Internal.SQL (showStringSQL)
 import Database.Relational.Query.Monad.BaseType (Relation, sqlFromRelationWith)
 import Database.Relational.Query.Monad.Restrict (RestrictedStatement)
@@ -54,7 +55,6 @@ import Database.Relational.Query.Effect
   (Restriction, restriction', UpdateTarget, updateTarget', liftTargetAllColumn', InsertTarget, insertTarget',
    sqlWhereFromRestriction, sqlFromUpdateTarget, sqlFromInsertTarget)
 import Database.Relational.Query.Pi (Pi)
-import Database.Relational.Query.Component (Config (chunksInsertSize), defaultConfig)
 import Database.Relational.Query.Table (Table, TableDerivable, derivedTable)
 import Database.Relational.Query.Projectable (PlaceHolders)
 import Database.Relational.Query.SQL

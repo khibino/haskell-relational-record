@@ -56,6 +56,8 @@ import Data.Traversable (traverse)
 import Language.SQL.Keyword (Keyword(..), (|*|))
 import qualified Language.SQL.Keyword as SQL
 
+import Database.Relational.Query.Internal.Config
+  (Config (productUnitSupport), ProductUnitSupport (PUSupported, PUNotSupported))
 import qualified Database.Relational.Query.Context as Context
 import Database.Relational.Query.Internal.SQL
   (StringSQL, stringSQL, rowStringSQL, showStringSQL,
@@ -69,8 +71,7 @@ import Database.Relational.Query.Internal.Sub
    QueryRestriction)
 import qualified Database.Relational.Query.Internal.Sub as Internal
 import Database.Relational.Query.Component
-  (Config (productUnitSupport), ProductUnitSupport (PUSupported, PUNotSupported),
-   Duplication (..), showsDuplication,
+  (Duplication (..), showsDuplication,
    AggregateElem, composeGroupBy, OrderingTerms, composeOrderBy)
 import Database.Relational.Query.Table (Table, (!))
 import qualified Database.Relational.Query.Table as Table

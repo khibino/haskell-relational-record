@@ -31,11 +31,12 @@ import Data.Monoid ((<>))
 
 import Database.Record (PersistableWidth)
 
+import Database.Relational.Query.Internal.Config (Config, defaultConfig)
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL)
 import Database.Relational.Query.Pi (id')
 import Database.Relational.Query.Table (Table, TableDerivable, derivedTable)
 import qualified Database.Relational.Query.Table as Table
-import Database.Relational.Query.Component (Config, defaultConfig, composeSets, composeValues)
+import Database.Relational.Query.Component (composeSets, composeValues)
 import Database.Relational.Query.Sub (composeWhere)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable

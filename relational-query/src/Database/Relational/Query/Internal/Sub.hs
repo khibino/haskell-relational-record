@@ -33,11 +33,11 @@ import Data.DList (DList)
 import Data.Foldable (Foldable)
 import Data.Traversable (Traversable)
 
+import Database.Relational.Query.Internal.Config (Config)
 import Database.Relational.Query.Internal.ContextType (Flat, Aggregated)
 import Database.Relational.Query.Internal.SQL (ColumnSQL)
 import Database.Relational.Query.Component
-  (Config, Duplication (..),
-   AggregateElem, OrderingTerms)
+  (Duplication (..), AggregateElem, OrderingTerms)
 import qualified Database.Relational.Query.Table as Table
 
 

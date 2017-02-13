@@ -15,7 +15,8 @@ module Database.Relational.Query.Monad.Register (
   extract,
   ) where
 
-import Database.Relational.Query.Component (Config, Assignments)
+import Database.Relational.Query.Internal.Config (Config)
+import Database.Relational.Query.Component (Assignments)
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Monad.BaseType (ConfigureQuery, configureQuery)
 import Database.Relational.Query.Monad.Trans.Assigning (Assignings, extractAssignments)
