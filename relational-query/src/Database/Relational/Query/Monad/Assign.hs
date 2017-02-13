@@ -19,9 +19,9 @@ module Database.Relational.Query.Monad.Assign (
   extract,
   ) where
 
+import Database.Relational.Query.Internal.BaseSQL (Assignment)
 import Database.Relational.Query.Internal.Config (Config)
 import Database.Relational.Query.Internal.Sub (QueryRestriction)
-import Database.Relational.Query.Component (Assignments)
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Projection (Projection)
@@ -43,5 +43,5 @@ type AssignStatement r a = Projection Flat r -> Assign r a
 -- updateStatement =  assignings . restrictings . Identity
 
 -- | Run 'Assign'.
-extract :: Assign r a -> Config -> ((a, Table r -> Assignments), QueryRestriction Flat)
+extract :: Assign r a -> Config -> ((a, Table r -> [Assignment]), QueryRestriction Flat)
 extract =  Restrict.extract . extractAssignments

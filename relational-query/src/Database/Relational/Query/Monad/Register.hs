@@ -15,8 +15,8 @@ module Database.Relational.Query.Monad.Register (
   extract,
   ) where
 
+import Database.Relational.Query.Internal.BaseSQL (Assignment)
 import Database.Relational.Query.Internal.Config (Config)
-import Database.Relational.Query.Component (Assignments)
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Monad.BaseType (ConfigureQuery, configureQuery)
 import Database.Relational.Query.Monad.Trans.Assigning (Assignings, extractAssignments)
@@ -26,5 +26,5 @@ import Database.Relational.Query.Monad.Trans.Assigning (Assignings, extractAssig
 type Register r = Assignings r ConfigureQuery
 
 -- | Run 'InsertStatement'.
-extract :: Assignings r ConfigureQuery a -> Config -> (a, Table r -> Assignments)
+extract :: Assignings r ConfigureQuery a -> Config -> (a, Table r -> [Assignment])
 extract = configureQuery . extractAssignments

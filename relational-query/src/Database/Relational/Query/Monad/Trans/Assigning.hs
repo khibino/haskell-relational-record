@@ -32,7 +32,7 @@ import Control.Arrow (second)
 import Data.Monoid (mconcat)
 import Data.DList (DList, toList)
 
-import Database.Relational.Query.Component (Assignment, Assignments)
+import Database.Relational.Query.Internal.BaseSQL (Assignment)
 import Database.Relational.Query.Pi (Pi)
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Projection (Projection)
@@ -81,5 +81,5 @@ infix 4 <-#
 -- | Run 'Assignings' to get 'Assignments'
 extractAssignments :: (Monad m, Functor m)
                    => Assignings r m a
-                   -> m (a, Table r -> Assignments)
+                   -> m (a, Table r -> [Assignment])
 extractAssignments (Assignings ac) = second (toList .) <$> runWriterT ac
