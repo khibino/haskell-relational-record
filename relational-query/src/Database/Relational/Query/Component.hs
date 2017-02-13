@@ -27,8 +27,10 @@ module Database.Relational.Query.Component
          showsDuplication,
 
          -- * Types for aggregation
+         -- re-export
          AggregateColumnRef,
 
+         -- re-export
          AggregateBitKey, AggregateSet, AggregateElem,
 
          aggregateColumnRef, aggregateEmpty,

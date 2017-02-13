@@ -36,9 +36,9 @@ import Data.Traversable (Traversable)
 import Database.Relational.Query.Internal.Config (Config)
 import Database.Relational.Query.Internal.ContextType (Flat, Aggregated)
 import Database.Relational.Query.Internal.SQL (ColumnSQL)
+import Database.Relational.Query.Internal.BaseSQL (Duplication (..), OrderingTerm)
+import Database.Relational.Query.Internal.GroupingSQL (AggregateElem)
 import Database.Relational.Query.Internal.UntypedTable (Untyped)
-import Database.Relational.Query.Component
-  (Duplication (..), AggregateElem, OrderingTerm)
 
 
 -- | Set operators
