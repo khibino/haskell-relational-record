@@ -38,7 +38,7 @@ import Database.Relational.Query.Internal.ContextType (Flat, Aggregated)
 import Database.Relational.Query.Internal.SQL (ColumnSQL)
 import Database.Relational.Query.Internal.UntypedTable (Untyped)
 import Database.Relational.Query.Component
-  (Duplication (..), AggregateElem, OrderingTerms)
+  (Duplication (..), AggregateElem, OrderingTerm)
 
 
 -- | Set operators
@@ -51,10 +51,10 @@ newtype BinOp = BinOp (SetOp, Duplication) deriving Show
 data SubQuery = Table Untyped
               | Flat Config
                 UntypedProjection Duplication JoinProduct (QueryRestriction Flat)
-                OrderingTerms
+                [OrderingTerm]
               | Aggregated Config
                 UntypedProjection Duplication JoinProduct (QueryRestriction Flat)
-                [AggregateElem] (QueryRestriction Aggregated) OrderingTerms
+                [AggregateElem] (QueryRestriction Aggregated) [OrderingTerm]
               | Bin BinOp SubQuery SubQuery
               deriving Show
 

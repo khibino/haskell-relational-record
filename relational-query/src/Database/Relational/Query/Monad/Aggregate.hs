@@ -34,7 +34,7 @@ import Database.Relational.Query.Context (Flat, Aggregated, OverWindow)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Component
-  (AggregateColumnRef, Duplication, OrderingTerms, AggregateElem, composeOver)
+  (AggregateColumnRef, Duplication, OrderingTerm, AggregateElem, composeOver)
 import Database.Relational.Query.Sub (SubQuery, QueryRestriction, JoinProduct, aggregatedSubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
 import Database.Relational.Query.Projectable (PlaceHolders, SqlProjectable)
@@ -64,7 +64,7 @@ instance MonadRestrict Flat q => MonadRestrict Flat (Restrictings Aggregated q) 
   restrict = restrictings . restrict
 
 extract :: AggregatedQuery p r
-        -> ConfigureQuery (((((((PlaceHolders p, Projection Aggregated r), OrderingTerms),
+        -> ConfigureQuery (((((((PlaceHolders p, Projection Aggregated r), [OrderingTerm]),
                                QueryRestriction Aggregated),
                               [AggregateElem]),
                              QueryRestriction Flat),
@@ -84,7 +84,7 @@ toSubQuery q = do
   c <- askConfig
   return $ aggregatedSubQuery c (Projection.untype pj) da pd rs ag grs ot
 
-extractWindow :: Window c a -> ((a, OrderingTerms), [AggregateColumnRef])
+extractWindow :: Window c a -> ((a, [OrderingTerm]), [AggregateColumnRef])
 extractWindow =  runIdentity . extractAggregateTerms . extractOrderingTerms
 
 -- | Operator to make window function result projection using built 'Window' monad.

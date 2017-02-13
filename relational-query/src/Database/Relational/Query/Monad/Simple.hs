@@ -34,7 +34,7 @@ import Database.Relational.Query.Monad.BaseType (ConfigureQuery, askConfig)
 import Database.Relational.Query.Monad.Type (QueryCore, extractCore, OrderedQuery)
 import Database.Relational.Query.Projectable (PlaceHolders)
 
-import Database.Relational.Query.Component (Duplication, OrderingTerms)
+import Database.Relational.Query.Component (Duplication, OrderingTerm)
 import Database.Relational.Query.Sub (SubQuery, QueryRestriction, JoinProduct, flatSubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
 
@@ -50,7 +50,7 @@ simple :: ConfigureQuery a -> QuerySimple a
 simple =  orderings . restrictings . join'
 
 extract :: SimpleQuery p r
-        -> ConfigureQuery (((((PlaceHolders p, Projection Flat r), OrderingTerms), QueryRestriction Flat),
+        -> ConfigureQuery (((((PlaceHolders p, Projection Flat r), [OrderingTerm]), QueryRestriction Flat),
                            JoinProduct), Duplication)
 extract =  extractCore . extractOrderingTerms
 

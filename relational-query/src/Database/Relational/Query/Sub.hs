@@ -74,7 +74,7 @@ import Database.Relational.Query.Internal.UntypedTable ((!))
 import qualified Database.Relational.Query.Internal.UntypedTable as UntypedTable
 import Database.Relational.Query.Component
   (Duplication (..), showsDuplication,
-   AggregateElem, composeGroupBy, OrderingTerms, composeOrderBy)
+   AggregateElem, composeGroupBy, OrderingTerm, composeOrderBy)
 import Database.Relational.Query.Table (Table)
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Pure (showConstantTermsSQL')
@@ -102,7 +102,7 @@ flatSubQuery :: Config
              -> Duplication
              -> JoinProduct
              -> QueryRestriction Context.Flat
-             -> OrderingTerms
+             -> [OrderingTerm]
              -> SubQuery
 flatSubQuery = Flat
 
@@ -114,7 +114,7 @@ aggregatedSubQuery :: Config
                    -> QueryRestriction Context.Flat
                    -> [AggregateElem]
                    -> QueryRestriction Context.Aggregated
-                   -> OrderingTerms
+                   -> [OrderingTerm]
                    -> SubQuery
 aggregatedSubQuery = Aggregated
 

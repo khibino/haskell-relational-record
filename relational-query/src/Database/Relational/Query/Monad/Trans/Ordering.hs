@@ -16,7 +16,7 @@
 -- from query into query with ordering.
 module Database.Relational.Query.Monad.Trans.Ordering (
   -- * Transformer into query with ordering
-  Orderings, orderings, OrderingTerms,
+  Orderings, orderings,
 
   -- * API of query with ordering
   orderBy, asc, desc,
@@ -32,7 +32,7 @@ import Control.Arrow (second)
 import Data.DList (DList, toList)
 
 import Database.Relational.Query.Component
-  (Order(Asc, Desc), OrderColumn, OrderingTerm, OrderingTerms)
+  (Order(Asc, Desc), OrderColumn, OrderingTerm)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
@@ -110,5 +110,5 @@ desc :: (Monad m, ProjectableOrdering (Projection c))
 desc =  updateOrderBys Desc
 
 -- | Run 'Orderings' to get 'OrderingTerms'
-extractOrderingTerms :: (Monad m, Functor m) => Orderings c m a -> m (a, OrderingTerms)
+extractOrderingTerms :: (Monad m, Functor m) => Orderings c m a -> m (a, [OrderingTerm])
 extractOrderingTerms (Orderings oc) = second toList <$> runWriterT oc
