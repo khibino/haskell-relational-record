@@ -30,11 +30,12 @@ module Database.Relational.Query.Sub (
   -- * Projection
   Projection, ProjectionUnit, UntypedProjection,
 
-  untypedProjectionFromColumns, untypedProjectionFromJoinedSubQuery, untypedProjectionFromScalarSubQuery,
+  untypedProjectionFromJoinedSubQuery, untypedProjectionFromScalarSubQuery,
 
   projectionColumns, unsafeProjectionStringSql, unsafeProjectFromColumns,
 
   -- deprecated interfaces
+  untypedProjectionFromColumns,
   widthOfUntypedProjection, columnsOfUntypedProjection,
 
   -- * Product of sub-queries
@@ -249,6 +250,7 @@ column qs =  d (I.unQualify qs)  where
   d (Aggregated _ up _ _ _ _ _ _) i = columnOfUntypedProjection up i
 
 
+{-# DEPRECATED untypedProjectionFromColumns "prepare to drop public interface. use (map RawColumn)." #-}
 -- | Make untyped projection from columns.
 untypedProjectionFromColumns :: [ColumnSQL] -> UntypedProjection
 untypedProjectionFromColumns =  map RawColumn
@@ -261,7 +263,7 @@ untypedProjectionFromScalarSubQuery = (:[]) . Scalar
 untypedProjectionFromJoinedSubQuery :: Qualified SubQuery -> UntypedProjection
 untypedProjectionFromJoinedSubQuery qs = d $ I.unQualify qs  where
   normalized = SubQueryRef <$> traverse (\q -> [0 .. width q - 1]) qs
-  d (Table _)               =  untypedProjectionFromColumns . map (column qs)
+  d (Table _)               =  map RawColumn . map (column qs)
                                $ take (queryWidth qs) [0..]
   d (Bin {})                =  normalized
   d (Flat {})               =  normalized
@@ -305,7 +307,7 @@ unsafeProjectionStringSql =  rowStringSQL . map showsColumnSQL . projectionColum
 -- | Unsafely generate 'Projection' from SQL string list.
 unsafeProjectFromColumns :: [ColumnSQL]    -- ^ SQL string list specifies columns
                          -> Projection c r -- ^ Result 'Projection'
-unsafeProjectFromColumns =  typedProjection . untypedProjectionFromColumns
+unsafeProjectFromColumns =  typedProjection . map RawColumn
 
 
 -- | Get node attribute.
