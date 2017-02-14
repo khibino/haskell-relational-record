@@ -62,9 +62,9 @@ module Database.Relational.Query.Component
          composeOver,
        ) where
 
-import Data.Monoid (Monoid (..), (<>))
+import Data.Monoid ((<>))
 
-import Language.SQL.Keyword (Keyword(..), (|*|))
+import Language.SQL.Keyword (Keyword(..))
 import qualified Language.SQL.Keyword as SQL
 
 import Database.Relational.Query.Internal.Config
@@ -76,9 +76,7 @@ import qualified Database.Relational.Query.Internal.SQL as Internal
 import Database.Relational.Query.Internal.BaseSQL
   (Duplication (..), Order (..),)
 import qualified Database.Relational.Query.Internal.BaseSQL as BaseSQL
-import Database.Relational.Query.Internal.GroupingSQL
-  (AggregateColumnRef,
-   AggregateBitKey (..), AggregateSet (..), AggregateElem (..), AggregateKey (..), )
+import qualified Database.Relational.Query.Internal.GroupingSQL as GroupingSQL
 
 
 {-# DEPRECATED ColumnSQL, columnSQL, columnSQL', showsColumnSQL "prepare to drop public interface. internally use Database.Relational.Query.Internal.SQL.*" #-}
@@ -104,76 +102,82 @@ showsDuplication :: Duplication -> StringSQL
 showsDuplication = BaseSQL.showsDuplication
 
 
+{-# DEPRECATED
+  AggregateColumnRef,
+  AggregateBitKey, AggregateSet, AggregateElem,
+  AggregateKey,
+
+  aggregateColumnRef, aggregateEmpty,
+  aggregatePowerKey, aggregateGroupingSet,
+  aggregateRollup, aggregateCube, aggregateSets,
+
+  composeGroupBy, composePartitionBy,
+
+  aggregateKeyProjection, aggregateKeyElement, unsafeAggregateKey
+
+  "prepare to drop public interface. internally use Database.Relational.Query.Internal.GroupingSQL.*" #-}
+-- | Type for group-by term
+type AggregateColumnRef = GroupingSQL.AggregateColumnRef
+
+-- | Type for group key.
+type AggregateBitKey = GroupingSQL.AggregateBitKey
+
+-- | Type for grouping set
+type AggregateSet = GroupingSQL.AggregateSet
+
+-- | Type for group-by tree
+type AggregateElem = GroupingSQL.AggregateElem
+
+-- | Typeful aggregate element.
+type AggregateKey a = GroupingSQL.AggregateKey a
+
 -- | Single term aggregation element.
 aggregateColumnRef :: AggregateColumnRef -> AggregateElem
-aggregateColumnRef =  ColumnRef
+aggregateColumnRef = GroupingSQL.aggregateColumnRef
 
 -- | Key of aggregation power set.
 aggregatePowerKey :: [AggregateColumnRef] -> AggregateBitKey
-aggregatePowerKey =  AggregateBitKey
+aggregatePowerKey = GroupingSQL.aggregatePowerKey
 
 -- | Single grouping set.
 aggregateGroupingSet :: [AggregateElem] -> AggregateSet
-aggregateGroupingSet =  AggregateSet
+aggregateGroupingSet = GroupingSQL.aggregateGroupingSet
 
 -- | Rollup aggregation element.
 aggregateRollup :: [AggregateBitKey] -> AggregateElem
-aggregateRollup =  Rollup
+aggregateRollup = GroupingSQL.aggregateRollup
 
 -- | Cube aggregation element.
 aggregateCube :: [AggregateBitKey] -> AggregateElem
-aggregateCube =  Cube
+aggregateCube = GroupingSQL.aggregateCube
 
 -- | Grouping sets aggregation.
 aggregateSets :: [AggregateSet] -> AggregateElem
-aggregateSets =  GroupingSets
+aggregateSets = GroupingSQL.aggregateSets
 
 -- | Empty aggregation.
 aggregateEmpty :: [AggregateElem]
-aggregateEmpty =  []
-
-showsAggregateColumnRef :: AggregateColumnRef -> StringSQL
-showsAggregateColumnRef =  showsColumnSQL
-
-commaed :: [StringSQL] -> StringSQL
-commaed =  SQL.fold (|*|)
-
-pComma :: (a -> StringSQL) -> [a] -> StringSQL
-pComma qshow =  SQL.paren . commaed . map qshow
-
-showsAggregateBitKey :: AggregateBitKey -> StringSQL
-showsAggregateBitKey (AggregateBitKey ts) = pComma showsAggregateColumnRef ts
+aggregateEmpty = GroupingSQL.aggregateEmpty
 
 -- | Compose GROUP BY clause from AggregateElem list.
 composeGroupBy :: [AggregateElem] -> StringSQL
-composeGroupBy =  d where
-  d []       = mempty
-  d es@(_:_) = GROUP <> BY <> rec es
-  keyList op ss = op <> pComma showsAggregateBitKey ss
-  rec = commaed . map showsE
-  showsGs (AggregateSet s) = SQL.paren $ rec s
-  showsE (ColumnRef t)     = showsAggregateColumnRef t
-  showsE (Rollup ss)       = keyList ROLLUP ss
-  showsE (Cube   ss)       = keyList CUBE   ss
-  showsE (GroupingSets ss) = GROUPING <> SETS <> pComma showsGs ss
+composeGroupBy = GroupingSQL.composeGroupBy
 
 -- | Compose PARTITION BY clause from AggregateColumnRef list.
 composePartitionBy :: [AggregateColumnRef] -> StringSQL
-composePartitionBy =  d where
-  d []       = mempty
-  d ts@(_:_) = PARTITION <> BY <> commaed (map showsAggregateColumnRef ts)
+composePartitionBy = GroupingSQL.composePartitionBy
 
 -- | Extract typed projection from 'AggregateKey'.
 aggregateKeyProjection :: AggregateKey a -> a
-aggregateKeyProjection (AggregateKey (p, _c)) = p
+aggregateKeyProjection = GroupingSQL.aggregateKeyProjection
 
 -- | Extract untyped term from 'AggregateKey'.
 aggregateKeyElement :: AggregateKey a -> AggregateElem
-aggregateKeyElement (AggregateKey (_p, c)) = c
+aggregateKeyElement = GroupingSQL.aggregateKeyElement
 
 -- | Unsafely bind typed-projection and untyped-term into 'AggregateKey'.
 unsafeAggregateKey :: (a, AggregateElem) -> AggregateKey a
-unsafeAggregateKey = AggregateKey
+unsafeAggregateKey = GroupingSQL.unsafeAggregateKey
 
 
 {-# DEPRECATED OrderingTerms "use [OrderingTerm]." #-}
