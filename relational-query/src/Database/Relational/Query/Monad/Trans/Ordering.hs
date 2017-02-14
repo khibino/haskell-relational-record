@@ -31,7 +31,7 @@ import Control.Applicative (Applicative, pure, (<$>))
 import Control.Arrow (second)
 import Data.DList (DList, toList)
 
-import Database.Relational.Query.Component
+import Database.Relational.Query.Internal.BaseSQL
   (Order(Asc, Desc), OrderColumn, OrderingTerm)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection

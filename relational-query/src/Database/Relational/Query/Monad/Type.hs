@@ -14,7 +14,7 @@ module Database.Relational.Query.Monad.Type
          OrderedQuery,
        ) where
 
-import Database.Relational.Query.Component (Duplication)
+import Database.Relational.Query.Internal.BaseSQL (Duplication)
 import Database.Relational.Query.Internal.Sub (JoinProduct, QueryRestriction)
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Projection (Projection)
