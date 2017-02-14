@@ -25,6 +25,8 @@ module Database.Relational.Query.Component
          Duplication (..), showsDuplication,
 
          -- * Types for aggregation
+         AggregateKey,
+
          -- deprecated interfaces
          AggregateColumnRef,
          AggregateBitKey, AggregateSet, AggregateElem,
@@ -32,7 +34,6 @@ module Database.Relational.Query.Component
          aggregatePowerKey, aggregateGroupingSet,
          aggregateRollup, aggregateCube, aggregateSets,
          composeGroupBy, composePartitionBy,
-         AggregateKey,
          aggregateKeyProjection, aggregateKeyElement, unsafeAggregateKey,
 
          -- * Types for ordering
@@ -69,6 +70,7 @@ import qualified Database.Relational.Query.Internal.SQL as Internal
 import Database.Relational.Query.Internal.BaseSQL
   (Duplication (..), Order (..),)
 import qualified Database.Relational.Query.Internal.BaseSQL as BaseSQL
+import Database.Relational.Query.Internal.GroupingSQL (AggregateKey)
 import qualified Database.Relational.Query.Internal.GroupingSQL as GroupingSQL
 
 
@@ -103,7 +105,6 @@ showsDuplication = BaseSQL.showsDuplication
 {-# DEPRECATED
   AggregateColumnRef,
   AggregateBitKey, AggregateSet, AggregateElem,
-  AggregateKey,
 
   aggregateColumnRef, aggregateEmpty,
   aggregatePowerKey, aggregateGroupingSet,
@@ -125,9 +126,6 @@ type AggregateSet = GroupingSQL.AggregateSet
 
 -- | Type for group-by tree
 type AggregateElem = GroupingSQL.AggregateElem
-
--- | Typeful aggregate element.
-type AggregateKey a = GroupingSQL.AggregateKey a
 
 -- | Single term aggregation element.
 aggregateColumnRef :: AggregateColumnRef -> AggregateElem
