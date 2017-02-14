@@ -223,6 +223,7 @@ composeValues :: [Assignment] -> StringSQL
 composeValues = BaseSQL.composeValues
 
 
+{-# DEPRECATED composeOver "prepare to drop public interface." #-}
 -- | Compose /OVER (PARTITION BY ... )/ clause.
 composeOver :: [AggregateColumnRef] -> OrderingTerms -> StringSQL
 composeOver pts ots =
