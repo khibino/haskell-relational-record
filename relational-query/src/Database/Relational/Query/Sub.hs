@@ -40,7 +40,7 @@ module Database.Relational.Query.Sub (
   widthOfUntypedProjection, columnsOfUntypedProjection,
 
   -- * Product of sub-queries
-  JoinProduct, NodeAttr,
+  JoinProduct, NodeAttr (..),
   nodeTree,
   ProductBuilder,
 

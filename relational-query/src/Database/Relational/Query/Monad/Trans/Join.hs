@@ -34,9 +34,9 @@ import Data.Maybe (fromMaybe)
 import Data.Monoid (Last (Last, getLast))
 
 import Database.Relational.Query.Internal.BaseSQL (Duplication (All))
-import Database.Relational.Query.Internal.Sub (NodeAttr (Just', Maybe), SubQuery, Qualified, JoinProduct, Projection)
 import Database.Relational.Query.Internal.Product (restrictProduct, growProduct)
 
+import Database.Relational.Query.Sub (NodeAttr (Just', Maybe), SubQuery, Qualified, JoinProduct, Projection)
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Monad.Trans.JoinState
   (JoinContext, primeJoinContext, updateProduct, joinProduct)
