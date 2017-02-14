@@ -148,7 +148,14 @@ aggregateRelation :: QueryAggregate (Projection Aggregated r) -> Relation () r
 aggregateRelation =  aggregateRelation' . addUnitPH
 
 
--- | Restriction function type for direct style join operator.
+-- | Restriction predicate function type for direct style join operator,
+--   used on predicates of direct join style as follows.
+--
+-- @
+--   do xy <- query $
+--            relX `inner` relY `on'` [ \x y -> ... ] -- this lambda form has JoinRestriction type
+--      ...
+-- @
 type JoinRestriction a b = Projection Flat a -> Projection Flat b -> Projection Flat (Maybe Bool)
 
 -- | Basic direct join operation with place-holder parameters.
