@@ -62,6 +62,10 @@ import qualified Database.Relational.Query.Context as Context
 import Database.Relational.Query.Internal.SQL
   (StringSQL, stringSQL, rowStringSQL, showStringSQL,
    ColumnSQL, columnSQL', showsColumnSQL, )
+import Database.Relational.Query.Internal.BaseSQL
+  (Duplication (..), showsDuplication, OrderingTerm, composeOrderBy, )
+import Database.Relational.Query.Internal.GroupingSQL
+  (AggregateElem, composeGroupBy, )
 import Database.Relational.Query.Internal.Sub
   (SubQuery (..), Projection,
    UntypedProjection, ProjectionUnit (..),
@@ -73,9 +77,6 @@ import qualified Database.Relational.Query.Internal.Sub as Internal
 import Database.Relational.Query.Internal.UntypedTable ((!))
 import qualified Database.Relational.Query.Internal.UntypedTable as UntypedTable
 
-import Database.Relational.Query.Component
-  (Duplication (..), showsDuplication,
-   AggregateElem, composeGroupBy, OrderingTerm, composeOrderBy)
 import Database.Relational.Query.Table (Table)
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Pure (showConstantTermsSQL')

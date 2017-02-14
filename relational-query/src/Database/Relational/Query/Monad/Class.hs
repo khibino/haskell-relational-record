@@ -4,7 +4,7 @@
 
 -- |
 -- Module      : Database.Relational.Query.Monad.Class
--- Copyright   : 2013 Kei Hibino
+-- Copyright   : 2013-2017 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
@@ -21,8 +21,10 @@ module Database.Relational.Query.Monad.Class
          on, wheres, having,
        ) where
 
+import Database.Relational.Query.Internal.BaseSQL (Duplication (..))
+import Database.Relational.Query.Internal.GroupingSQL (AggregateKey)
+
 import Database.Relational.Query.Context (Flat, Aggregated)
-import Database.Relational.Query.Component (Duplication (..), AggregateKey)
 import Database.Relational.Query.Projection (Projection)
 import Database.Relational.Query.Projectable (PlaceHolders)
 import Database.Relational.Query.Monad.BaseType (ConfigureQuery, Relation)

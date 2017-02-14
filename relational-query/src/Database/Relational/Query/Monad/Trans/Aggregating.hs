@@ -36,11 +36,12 @@ import Data.DList (DList, toList)
 
 import Data.Functor.Identity (Identity (runIdentity))
 
-import Database.Relational.Query.Context (Flat, Aggregated, Set, Power, SetList)
-import Database.Relational.Query.Component
+import Database.Relational.Query.Internal.GroupingSQL
   (AggregateColumnRef, AggregateElem, aggregateColumnRef, AggregateSet, aggregateGroupingSet,
    AggregateBitKey, aggregatePowerKey, aggregateRollup, aggregateCube, aggregateSets,
    AggregateKey, aggregateKeyProjection, aggregateKeyElement, unsafeAggregateKey)
+
+import Database.Relational.Query.Context (Flat, Aggregated, Set, Power, SetList)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Monad.Class
