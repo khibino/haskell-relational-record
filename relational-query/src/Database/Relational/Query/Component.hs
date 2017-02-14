@@ -79,7 +79,10 @@ import qualified Database.Relational.Query.Internal.BaseSQL as BaseSQL
 import qualified Database.Relational.Query.Internal.GroupingSQL as GroupingSQL
 
 
-{-# DEPRECATED ColumnSQL, columnSQL, columnSQL', showsColumnSQL "prepare to drop public interface. internally use Database.Relational.Query.Internal.SQL.*" #-}
+{-# DEPRECATED
+  ColumnSQL,
+  columnSQL, columnSQL', showsColumnSQL
+  "prepare to drop public interface. internally use Database.Relational.Query.Internal.SQL.*" #-}
 -- | Column SQL string type
 type ColumnSQL = Internal.ColumnSQL
 
@@ -96,7 +99,9 @@ showsColumnSQL :: ColumnSQL -> StringSQL
 showsColumnSQL = Internal.showsColumnSQL
 
 
-{-# DEPRECATED showsDuplication "prepare to drop public interface. internally use Database.Relational.Query.Internal.BaseSQL.showsDuplication" #-}
+{-# DEPRECATED
+    showsDuplication
+    "prepare to drop public interface. internally use Database.Relational.Query.Internal.BaseSQL.showsDuplication" #-}
 -- | Compose duplication attribute string.
 showsDuplication :: Duplication -> StringSQL
 showsDuplication = BaseSQL.showsDuplication
@@ -184,7 +189,10 @@ unsafeAggregateKey = GroupingSQL.unsafeAggregateKey
 -- | Type for order-by terms
 type OrderingTerms = [OrderingTerm]
 
-{-# DEPRECATED OrderColumn, OrderingTerm, composeOrderBy "prepare to drop public interface. internally use Database.Relational.Query.Internal.BaseSQL.*" #-}
+{-# DEPRECATED
+   OrderColumn, OrderingTerm,
+   composeOrderBy
+   "prepare to drop public interface. internally use Database.Relational.Query.Internal.BaseSQL.*" #-}
 -- | Type for order-by column
 type OrderColumn = BaseSQL.OrderColumn
 
@@ -200,7 +208,10 @@ composeOrderBy = BaseSQL.composeOrderBy
 -- | Assignment pair list.
 type Assignments = [Assignment]
 
-{-# DEPRECATED AssignColumn, AssignTerm, Assignment, composeSets, composeValues "prepare to drop public interface. internally use Database.Relational.Query.Internal.BaseSQL.*" #-}
+{-# DEPRECATED
+   AssignColumn, AssignTerm, Assignment,
+   composeSets, composeValues
+   "prepare to drop public interface. internally use Database.Relational.Query.Internal.BaseSQL.*" #-}
 -- | Column SQL String of assignment
 type AssignColumn = BaseSQL.AssignColumn
 
