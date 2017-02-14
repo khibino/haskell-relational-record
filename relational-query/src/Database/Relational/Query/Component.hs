@@ -21,10 +21,8 @@ module Database.Relational.Query.Component
          module Database.Relational.Query.Internal.Config,
 
          -- * Duplication attribute
-         -- re-export
-         Duplication (..),
-
-         showsDuplication,
+         -- deprecated interfaces - import Duplication from internal module
+         Duplication (..), showsDuplication,
 
          -- * Types for aggregation
          -- re-export
@@ -45,21 +43,20 @@ module Database.Relational.Query.Component
          aggregateKeyProjection, aggregateKeyElement, unsafeAggregateKey,
 
          -- * Types for ordering
-         -- re-export
-         Order (..), OrderColumn, OrderingTerm,
+         Order (..),
 
-         composeOrderBy,
+         -- deprecated interfaces
+         OrderColumn, OrderingTerm, composeOrderBy,
 
          -- deprecated interfaces
          OrderingTerms,
 
          -- * Types for assignments
-         -- re-export
-         AssignColumn, AssignTerm, Assignment,
+         -- deprecated interfaces
+         AssignColumn, AssignTerm, Assignment, composeSets, composeValues,
 
+         -- deprecated interfaces
          Assignments,
-
-         composeSets, composeValues,
 
          -- * Compose window clause
          composeOver,
@@ -67,19 +64,18 @@ module Database.Relational.Query.Component
 
 import Data.Monoid (Monoid (..), (<>))
 
-import Language.SQL.Keyword (Keyword(..), (|*|), (.=.))
+import Language.SQL.Keyword (Keyword(..), (|*|))
 import qualified Language.SQL.Keyword as SQL
 
 import Database.Relational.Query.Internal.Config
   (NameConfig (..),
    ProductUnitSupport (..), SchemaNameMode (..), IdentifierQuotation (..),
    Config (..), defaultConfig,)
-import Database.Relational.Query.Internal.SQL (StringSQL, rowConsStringSQL)
+import Database.Relational.Query.Internal.SQL (StringSQL)
 import qualified Database.Relational.Query.Internal.SQL as Internal
 import Database.Relational.Query.Internal.BaseSQL
-  (Duplication (..),
-   Order (..), OrderColumn, OrderingTerm,
-   AssignColumn, AssignTerm, Assignment,)
+  (Duplication (..), Order (..),)
+import qualified Database.Relational.Query.Internal.BaseSQL as BaseSQL
 import Database.Relational.Query.Internal.GroupingSQL
   (AggregateColumnRef,
    AggregateBitKey (..), AggregateSet (..), AggregateElem (..), AggregateKey (..), )
@@ -102,11 +98,10 @@ showsColumnSQL :: ColumnSQL -> StringSQL
 showsColumnSQL = Internal.showsColumnSQL
 
 
+{-# DEPRECATED showsDuplication "prepare to drop public interface. internally use Database.Relational.Query.Internal.BaseSQL.showsDuplication" #-}
 -- | Compose duplication attribute string.
 showsDuplication :: Duplication -> StringSQL
-showsDuplication =  dup  where
-  dup All      = ALL
-  dup Distinct = DISTINCT
+showsDuplication = BaseSQL.showsDuplication
 
 
 -- | Single term aggregation element.
@@ -185,34 +180,39 @@ unsafeAggregateKey = AggregateKey
 -- | Type for order-by terms
 type OrderingTerms = [OrderingTerm]
 
+{-# DEPRECATED OrderColumn, OrderingTerm, composeOrderBy "prepare to drop public interface. internally use Database.Relational.Query.Internal.BaseSQL.*" #-}
+-- | Type for order-by column
+type OrderColumn = BaseSQL.OrderColumn
+
+-- | Type for order-by term
+type OrderingTerm = BaseSQL.OrderingTerm
+
 -- | Compose ORDER BY clause from OrderingTerms
 composeOrderBy :: [OrderingTerm] -> StringSQL
-composeOrderBy =  d where
-  d []       = mempty
-  d ts@(_:_) = ORDER <> BY <> commaed (map showsOt ts)
-  showsOt (o, e) = showsColumnSQL e <> order o
-  order Asc  = ASC
-  order Desc = DESC
+composeOrderBy = BaseSQL.composeOrderBy
 
 
 {-# DEPRECATED Assignments "use [Assignment]." #-}
 -- | Assignment pair list.
 type Assignments = [Assignment]
 
+{-# DEPRECATED AssignColumn, AssignTerm, Assignment, composeSets, composeValues "prepare to drop public interface. internally use Database.Relational.Query.Internal.BaseSQL.*" #-}
+-- | Column SQL String of assignment
+type AssignColumn = BaseSQL.AssignColumn
+
+-- | Value SQL String of assignment
+type AssignTerm   = BaseSQL.AssignTerm
+
+-- | Assignment pair
+type Assignment = BaseSQL.Assignment
+
 -- | Compose SET clause from ['Assignment'].
 composeSets :: [Assignment] -> StringSQL
-composeSets as = assigns  where
-  assignList = foldr (\ (col, term) r ->
-                       (showsColumnSQL col .=. showsColumnSQL term) : r)
-               [] as
-  assigns | null assignList = error "Update assignment list is null!"
-          | otherwise       = SET <> commaed assignList
+composeSets = BaseSQL.composeSets
 
 -- | Compose VALUES clause from ['Assignment'].
 composeValues :: [Assignment] -> StringSQL
-composeValues as = rowConsStringSQL [ showsColumnSQL c | c <- cs ] <> VALUES <>
-                   rowConsStringSQL [ showsColumnSQL c | c <- vs ]  where
-  (cs, vs) = unzip as
+composeValues = BaseSQL.composeValues
 
 
 -- | Compose /OVER (PARTITION BY ... )/ clause.

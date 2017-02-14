@@ -9,16 +9,29 @@
 --
 -- This module provides base structure of SQL syntax tree.
 module Database.Relational.Query.Internal.BaseSQL (
-  Duplication (..),
-  Order (..), OrderColumn, OrderingTerm,
-  AssignColumn, AssignTerm, Assignment,
+  Duplication (..), showsDuplication,
+  Order (..), OrderColumn, OrderingTerm, composeOrderBy,
+  AssignColumn, AssignTerm, Assignment, composeSets, composeValues,
   ) where
 
-import Database.Relational.Query.Internal.SQL (ColumnSQL)
+import Data.Monoid (Monoid (..), (<>))
+
+import Language.SQL.Keyword (Keyword(..), (|*|), (.=.))
+import qualified Language.SQL.Keyword as SQL
+
+import Database.Relational.Query.Internal.SQL
+  (StringSQL, rowConsStringSQL, ColumnSQL, showsColumnSQL)
 
 
 -- | Result record duplication attribute
 data Duplication = All | Distinct  deriving Show
+
+-- | Compose duplication attribute string.
+showsDuplication :: Duplication -> StringSQL
+showsDuplication =  dup  where
+  dup All      = ALL
+  dup Distinct = DISTINCT
+
 
 -- | Order direction. Ascendant or Descendant.
 data Order = Asc | Desc  deriving Show
@@ -29,6 +42,16 @@ type OrderColumn = ColumnSQL
 -- | Type for order-by term
 type OrderingTerm = (Order, OrderColumn)
 
+-- | Compose ORDER BY clause from OrderingTerms
+composeOrderBy :: [OrderingTerm] -> StringSQL
+composeOrderBy =  d where
+  d []       = mempty
+  d ts@(_:_) = ORDER <> BY <> SQL.fold (|*|) (map showsOt ts)
+  showsOt (o, e) = showsColumnSQL e <> order o
+  order Asc  = ASC
+  order Desc = DESC
+
+
 -- | Column SQL String of assignment
 type AssignColumn = ColumnSQL
 
@@ -37,3 +60,18 @@ type AssignTerm   = ColumnSQL
 
 -- | Assignment pair
 type Assignment = (AssignColumn, AssignTerm)
+
+-- | Compose SET clause from ['Assignment'].
+composeSets :: [Assignment] -> StringSQL
+composeSets as = assigns  where
+  assignList = foldr (\ (col, term) r ->
+                       (showsColumnSQL col .=. showsColumnSQL term) : r)
+               [] as
+  assigns | null assignList = error "Update assignment list is null!"
+          | otherwise       = SET <> SQL.fold (|*|) assignList
+
+-- | Compose VALUES clause from ['Assignment'].
+composeValues :: [Assignment] -> StringSQL
+composeValues as = rowConsStringSQL [ showsColumnSQL c | c <- cs ] <> VALUES <>
+                   rowConsStringSQL [ showsColumnSQL c | c <- vs ]  where
+  (cs, vs) = unzip as
