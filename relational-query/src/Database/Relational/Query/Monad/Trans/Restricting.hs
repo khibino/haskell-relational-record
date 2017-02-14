@@ -4,7 +4,7 @@
 
 -- |
 -- Module      : Database.Relational.Query.Monad.Trans.Restricting
--- Copyright   : 2014-2016 Kei Hibino
+-- Copyright   : 2014-2017 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com

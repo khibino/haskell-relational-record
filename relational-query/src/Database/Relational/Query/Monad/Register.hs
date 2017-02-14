@@ -1,6 +1,6 @@
 -- |
 -- Module      : Database.Relational.Query.Monad.Register
--- Copyright   : 2015 Kei Hibino
+-- Copyright   : 2015-2017 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
