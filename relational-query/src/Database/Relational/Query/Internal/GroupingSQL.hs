@@ -11,6 +11,7 @@
 module Database.Relational.Query.Internal.GroupingSQL (
   AggregateColumnRef,
   AggregateBitKey (..), AggregateSet (..), AggregateElem (..),
+  AggregateKey (..),
   ) where
 
 import Database.Relational.Query.Internal.SQL (ColumnSQL)
@@ -31,3 +32,6 @@ data AggregateElem = ColumnRef AggregateColumnRef
                    | Cube   [AggregateBitKey]
                    | GroupingSets [AggregateSet]
                    deriving Show
+
+-- | Typeful aggregate element.
+newtype AggregateKey a = AggregateKey (a, AggregateElem)

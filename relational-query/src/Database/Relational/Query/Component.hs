@@ -39,7 +39,10 @@ module Database.Relational.Query.Component
 
          composeGroupBy, composePartitionBy,
 
-         AggregateKey, aggregateKeyProjection, aggregateKeyElement, unsafeAggregateKey,
+         -- re-export
+         AggregateKey,
+
+         aggregateKeyProjection, aggregateKeyElement, unsafeAggregateKey,
 
          -- * Types for ordering
          -- re-export
@@ -79,7 +82,7 @@ import Database.Relational.Query.Internal.BaseSQL
    AssignColumn, AssignTerm, Assignment,)
 import Database.Relational.Query.Internal.GroupingSQL
   (AggregateColumnRef,
-   AggregateBitKey (..), AggregateSet (..), AggregateElem (..), )
+   AggregateBitKey (..), AggregateSet (..), AggregateElem (..), AggregateKey (..), )
 
 
 {-# DEPRECATED ColumnSQL, columnSQL, columnSQL', showsColumnSQL "prepare to drop public interface. internally use Database.Relational.Query.Internal.SQL.*" #-}
@@ -164,9 +167,6 @@ composePartitionBy :: [AggregateColumnRef] -> StringSQL
 composePartitionBy =  d where
   d []       = mempty
   d ts@(_:_) = PARTITION <> BY <> commaed (map showsAggregateColumnRef ts)
-
--- | Typeful aggregate element.
-newtype AggregateKey a = AggregateKey (a, AggregateElem)
 
 -- | Extract typed projection from 'AggregateKey'.
 aggregateKeyProjection :: AggregateKey a -> a
