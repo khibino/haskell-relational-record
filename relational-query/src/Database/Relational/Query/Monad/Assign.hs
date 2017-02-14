@@ -21,8 +21,8 @@ module Database.Relational.Query.Monad.Assign (
 
 import Database.Relational.Query.Internal.BaseSQL (Assignment)
 import Database.Relational.Query.Internal.Config (Config)
-import Database.Relational.Query.Internal.Sub (QueryRestriction)
 
+import Database.Relational.Query.Sub (QueryRestriction)
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Projection (Projection)

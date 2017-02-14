@@ -9,6 +9,8 @@
 --
 -- This module provides state definition for
 -- "Database.Relational.Query.Monad.Trans.Join".
+--
+-- This is not public interface.
 module Database.Relational.Query.Monad.Trans.JoinState (
   -- * Join context
   JoinContext, primeJoinContext, updateProduct, joinProduct

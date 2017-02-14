@@ -10,6 +10,8 @@
 -- Portability : unknown
 --
 -- This module defines monad transformer which qualify uniquely SQL table forms.
+--
+-- This is not public interface.
 module Database.Relational.Query.Monad.Trans.Qualify (
   -- * Qualify monad
   Qualify, qualify,
