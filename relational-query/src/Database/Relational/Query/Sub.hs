@@ -72,6 +72,7 @@ import Database.Relational.Query.Internal.Sub
 import qualified Database.Relational.Query.Internal.Sub as Internal
 import Database.Relational.Query.Internal.UntypedTable ((!))
 import qualified Database.Relational.Query.Internal.UntypedTable as UntypedTable
+
 import Database.Relational.Query.Component
   (Duplication (..), showsDuplication,
    AggregateElem, composeGroupBy, OrderingTerm, composeOrderBy)

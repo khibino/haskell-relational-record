@@ -29,10 +29,12 @@ module Database.Relational.Query.Effect (
 
 import Data.Monoid ((<>))
 
+import Language.SQL.Keyword (Keyword(..))
 import Database.Record (PersistableWidth)
 
 import Database.Relational.Query.Internal.Config (Config, defaultConfig)
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL)
+
 import Database.Relational.Query.Pi (id')
 import Database.Relational.Query.Table (Table, TableDerivable, derivedTable)
 import qualified Database.Relational.Query.Table as Table
@@ -41,7 +43,6 @@ import Database.Relational.Query.Sub (composeWhere)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable
   (PlaceHolders, placeholder, unitPlaceHolder, unsafeAddPlaceHolders, (><), rightId)
-
 import Database.Relational.Query.Monad.Trans.Assigning (assignings, (<-#))
 import Database.Relational.Query.Monad.Restrict (RestrictedStatement)
 import qualified Database.Relational.Query.Monad.Restrict as Restrict
@@ -49,8 +50,6 @@ import Database.Relational.Query.Monad.Assign (AssignStatement)
 import qualified Database.Relational.Query.Monad.Assign as Assign
 import Database.Relational.Query.Monad.Register (Register)
 import qualified Database.Relational.Query.Monad.Register as Register
-
-import Language.SQL.Keyword (Keyword(..))
 
 
 -- | Restriction type with place-holder parameter 'p' and projection record type 'r'.

@@ -3,7 +3,7 @@
 
 -- |
 -- Module      : Database.Relational.Query.Scalar
--- Copyright   : 2013 Kei Hibino
+-- Copyright   : 2013-2017 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
@@ -17,6 +17,7 @@ module Database.Relational.Query.Scalar (
   ) where
 
 import Language.Haskell.TH (Q, TypeQ, Dec)
+
 import Database.Record (PersistableWidth)
 
 

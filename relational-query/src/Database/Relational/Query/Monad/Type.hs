@@ -16,6 +16,7 @@ module Database.Relational.Query.Monad.Type
 
 import Database.Relational.Query.Internal.BaseSQL (Duplication)
 import Database.Relational.Query.Internal.Sub (JoinProduct, QueryRestriction)
+
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Projection (Projection)
 import Database.Relational.Query.Projectable (PlaceHolders)

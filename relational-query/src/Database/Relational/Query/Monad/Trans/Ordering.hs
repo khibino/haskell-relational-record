@@ -33,9 +33,9 @@ import Data.DList (DList, toList)
 
 import Database.Relational.Query.Internal.BaseSQL
   (Order(Asc, Desc), OrderColumn, OrderingTerm)
+
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
-
 import Database.Relational.Query.Monad.Class
   (MonadQualify (..), MonadRestrict(..), MonadQuery(..), MonadAggregate(..), MonadPartition(..))
 

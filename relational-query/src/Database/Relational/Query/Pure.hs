@@ -2,7 +2,7 @@
 
 -- |
 -- Module      : Database.Relational.Query.Pure
--- Copyright   : 2013 Kei Hibino
+-- Copyright   : 2013-2017 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
@@ -37,6 +37,7 @@ import Database.Record
   (PersistableWidth, persistableWidth, PersistableRecordWidth)
 import Database.Record.Persistable
   (runPersistableRecordWidth)
+
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL)
 
 

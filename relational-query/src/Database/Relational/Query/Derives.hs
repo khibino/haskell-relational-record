@@ -2,7 +2,7 @@
 
 -- |
 -- Module      : Database.Relational.Query.Derives
--- Copyright   : 2013 Kei Hibino
+-- Copyright   : 2013-2017 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
@@ -30,6 +30,7 @@ module Database.Relational.Query.Derives (
 
 import Database.Record (PersistableWidth, ToSql (recordToSql))
 import Database.Record.ToSql (unsafeUpdateValuesWithIndexes)
+
 import Database.Relational.Query.Table (Table, TableDerivable)
 import Database.Relational.Query.Pi.Unsafe (Pi, unsafeExpandIndexes)
 import Database.Relational.Query.Projection (Projection)

@@ -3,7 +3,7 @@
 
 -- |
 -- Module      : Database.Relational.Query.Arrow
--- Copyright   : 2015 Kei Hibino
+-- Copyright   : 2015-2017 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
@@ -65,6 +65,7 @@ import Control.Category (Category)
 import Control.Arrow (Arrow, Kleisli (..))
 
 import Database.Record
+
 import Database.Relational.Query hiding
   (all', distinct,
    query, queryMaybe, query', queryMaybe',

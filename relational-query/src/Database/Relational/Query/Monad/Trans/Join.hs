@@ -5,7 +5,7 @@
 
 -- |
 -- Module      : Database.Relational.Query.Monad.Trans.Join
--- Copyright   : 2013-2016 Kei Hibino
+-- Copyright   : 2013-2017 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
@@ -33,15 +33,15 @@ import Control.Arrow (second, (***))
 import Data.Maybe (fromMaybe)
 import Data.Monoid (Last (Last, getLast))
 
+import Database.Relational.Query.Internal.BaseSQL (Duplication (All))
+import Database.Relational.Query.Internal.Sub (NodeAttr (Just', Maybe), SubQuery, Qualified, JoinProduct, Projection)
+import Database.Relational.Query.Internal.Product (restrictProduct, growProduct)
+
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Monad.Trans.JoinState
   (JoinContext, primeJoinContext, updateProduct, joinProduct)
-import Database.Relational.Query.Internal.Sub (NodeAttr (Just', Maybe), SubQuery, Qualified, JoinProduct, Projection)
-import Database.Relational.Query.Internal.Product (restrictProduct, growProduct)
 import qualified Database.Relational.Query.Projection as Projection
-import Database.Relational.Query.Internal.BaseSQL (Duplication (All))
 import Database.Relational.Query.Projectable (PlaceHolders, unsafeAddPlaceHolders)
-
 import Database.Relational.Query.Monad.BaseType (ConfigureQuery, qualifyQuery, Relation, untypeRelation)
 import Database.Relational.Query.Monad.Class (MonadQualify (..), MonadQuery (..))
 

@@ -24,7 +24,6 @@ module Database.Relational.Query.Monad.Trans.Assigning (
   extractAssignments
   ) where
 
-import Database.Relational.Query.Context (Flat)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Writer (WriterT, runWriterT, tell)
 import Control.Applicative (Applicative, pure, (<$>))
@@ -33,11 +32,12 @@ import Data.Monoid (mconcat)
 import Data.DList (DList, toList)
 
 import Database.Relational.Query.Internal.BaseSQL (Assignment)
+
+import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Pi (Pi)
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
-
 import Database.Relational.Query.Monad.Class (MonadQualify (..), MonadRestrict(..))
 
 

@@ -22,12 +22,14 @@ module Database.Relational.Query.Monad.Assign (
 import Database.Relational.Query.Internal.BaseSQL (Assignment)
 import Database.Relational.Query.Internal.Config (Config)
 import Database.Relational.Query.Internal.Sub (QueryRestriction)
+
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Table (Table)
 import Database.Relational.Query.Projection (Projection)
 import Database.Relational.Query.Monad.Restrict (Restrict)
 import qualified Database.Relational.Query.Monad.Restrict as Restrict
 import Database.Relational.Query.Monad.Trans.Assigning (Assignings, extractAssignments)
+
 
 -- | Target update monad type used from update statement and merge statement.
 type Assign r = Assignings r Restrict

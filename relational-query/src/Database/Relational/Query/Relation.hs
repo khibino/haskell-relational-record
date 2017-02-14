@@ -42,6 +42,9 @@ module Database.Relational.Query.Relation (
 
 import Control.Applicative ((<$>))
 
+import Database.Relational.Query.Internal.BaseSQL (Duplication (Distinct, All))
+import Database.Relational.Query.Internal.Sub (NodeAttr(Just', Maybe))
+
 import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Monad.BaseType
   (ConfigureQuery, qualifyQuery,
@@ -54,13 +57,9 @@ import Database.Relational.Query.Monad.Aggregate (QueryAggregate, AggregatedQuer
 import qualified Database.Relational.Query.Monad.Aggregate as Aggregate
 import Database.Relational.Query.Monad.Unique (QueryUnique, unsafeUniqueSubQuery)
 import qualified Database.Relational.Query.Monad.Unique as Unique
-
-import Database.Relational.Query.Internal.BaseSQL (Duplication (Distinct, All))
 import Database.Relational.Query.Table (Table, TableDerivable, derivedTable)
-import Database.Relational.Query.Internal.Sub (NodeAttr(Just', Maybe))
 import Database.Relational.Query.Sub (SubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
-
 import Database.Relational.Query.Scalar (ScalarDegree)
 import Database.Relational.Query.Pi (Pi)
 import Database.Relational.Query.Projection

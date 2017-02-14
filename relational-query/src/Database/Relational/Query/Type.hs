@@ -46,6 +46,7 @@ import Database.Record (PersistableWidth)
 
 import Database.Relational.Query.Internal.Config (Config (chunksInsertSize), defaultConfig)
 import Database.Relational.Query.Internal.SQL (showStringSQL)
+
 import Database.Relational.Query.Monad.BaseType (Relation, sqlFromRelationWith)
 import Database.Relational.Query.Monad.Restrict (RestrictedStatement)
 import Database.Relational.Query.Monad.Assign (AssignStatement)

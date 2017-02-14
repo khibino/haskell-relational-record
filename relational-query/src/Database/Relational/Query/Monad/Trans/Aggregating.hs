@@ -4,7 +4,7 @@
 
 -- |
 -- Module      : Database.Relational.Query.Monad.Trans.Aggregating
--- Copyright   : 2013 Kei Hibino
+-- Copyright   : 2013-2017 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
@@ -43,7 +43,6 @@ import Database.Relational.Query.Component
    AggregateKey, aggregateKeyProjection, aggregateKeyElement, unsafeAggregateKey)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
-
 import Database.Relational.Query.Monad.Class
   (MonadQualify (..), MonadRestrict(..), MonadQuery(..), MonadAggregate(..), MonadPartition(..))
 

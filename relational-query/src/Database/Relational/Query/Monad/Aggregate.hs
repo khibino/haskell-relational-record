@@ -30,6 +30,7 @@ import Data.Functor.Identity (Identity (runIdentity))
 import Data.Monoid ((<>))
 
 import Database.Relational.Query.Internal.SQL (showsColumnSQL)
+
 import Database.Relational.Query.Context (Flat, Aggregated, OverWindow)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
@@ -38,7 +39,6 @@ import Database.Relational.Query.Component
 import Database.Relational.Query.Sub (SubQuery, QueryRestriction, JoinProduct, aggregatedSubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
 import Database.Relational.Query.Projectable (PlaceHolders, SqlProjectable)
-
 import Database.Relational.Query.Monad.Class (MonadRestrict(..))
 import Database.Relational.Query.Monad.Trans.Restricting
   (Restrictings, restrictings, extractRestrict)

@@ -26,6 +26,8 @@ import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 
+import Database.Relational.Query.Internal.BaseSQL (Duplication, OrderingTerm)
+
 import Database.Relational.Query.Monad.Trans.Join (join')
 import Database.Relational.Query.Monad.Trans.Restricting (restrictings)
 import Database.Relational.Query.Monad.Trans.Ordering
@@ -34,7 +36,6 @@ import Database.Relational.Query.Monad.BaseType (ConfigureQuery, askConfig)
 import Database.Relational.Query.Monad.Type (QueryCore, extractCore, OrderedQuery)
 import Database.Relational.Query.Projectable (PlaceHolders)
 
-import Database.Relational.Query.Internal.BaseSQL (Duplication, OrderingTerm)
 import Database.Relational.Query.Sub (SubQuery, QueryRestriction, JoinProduct, flatSubQuery)
 import qualified Database.Relational.Query.Sub as SubQuery
 

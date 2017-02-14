@@ -5,7 +5,7 @@
 
 -- |
 -- Module      : Database.Relational.Query.Monad.Unique
--- Copyright   : 2014-2016 Kei Hibino
+-- Copyright   : 2014-2017 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
@@ -21,18 +21,17 @@ module Database.Relational.Query.Monad.Unique
 
 import Control.Applicative (Applicative)
 
+import Database.Relational.Query.Internal.BaseSQL (Duplication)
+
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
-
+import Database.Relational.Query.Projectable (PlaceHolders)
 import Database.Relational.Query.Monad.Class (MonadQualify, MonadQuery)
 import Database.Relational.Query.Monad.Trans.Join (unsafeSubQueryWithAttr)
 import Database.Relational.Query.Monad.Trans.Restricting (restrictings)
 import Database.Relational.Query.Monad.BaseType (ConfigureQuery, askConfig)
 import Database.Relational.Query.Monad.Type (QueryCore, extractCore)
-import Database.Relational.Query.Projectable (PlaceHolders)
-
-import Database.Relational.Query.Internal.BaseSQL (Duplication)
 import Database.Relational.Query.Sub
   (SubQuery, QueryRestriction, Qualified, JoinProduct, NodeAttr, flatSubQuery)
 

@@ -4,7 +4,7 @@
 
 -- |
 -- Module      : Database.Relational.Query.Constraint
--- Copyright   : 2013 Kei Hibino
+-- Copyright   : 2013-2017 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
@@ -33,14 +33,14 @@ module Database.Relational.Query.Constraint (
   ) where
 
 
-import Database.Relational.Query.Pi (Pi)
-import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
+import Database.Record (PersistableRecordWidth, PersistableWidth (persistableWidth))
 import Database.Record.KeyConstraint
   (KeyConstraint, unsafeSpecifyKeyConstraint,
    Primary, Unique, NotNull)
-
 import qualified Database.Record.KeyConstraint as C
-import Database.Record (PersistableRecordWidth, PersistableWidth (persistableWidth))
+
+import Database.Relational.Query.Pi (Pi)
+import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 
 
 -- | Constraint Key proof object. Constraint type 'c', record type 'r' and columns type 'ct'.

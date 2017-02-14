@@ -31,12 +31,12 @@ import Data.Monoid (mconcat, (<>))
 
 import Language.SQL.Keyword (Keyword(..), (.=.), (|*|))
 import qualified Language.SQL.Keyword as SQL
-
 import Database.Record.ToSql (untypedUpdateValuesIndex)
 
 import Database.Relational.Query.Internal.SQL
   (StringSQL, stringSQL, showStringSQL, rowConsStringSQL,
    ColumnSQL, showsColumnSQL, showsColumnSQL, )
+
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Relational.Query.Table (Table, name, columns)

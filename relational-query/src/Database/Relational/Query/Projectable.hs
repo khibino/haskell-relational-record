@@ -4,7 +4,7 @@
 
 -- |
 -- Module      : Database.Relational.Query.Projectable
--- Copyright   : 2013 Kei Hibino
+-- Copyright   : 2013-2017 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
@@ -84,7 +84,6 @@ import Database.Relational.Query.Pure
   (ShowConstantTermsSQL, showConstantTermsSQL', ProductConstructor (..))
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi as Pi
-
 import Database.Relational.Query.Projection
   (Projection, ListProjection)
 import qualified Database.Relational.Query.Projection as Projection

@@ -1,6 +1,6 @@
 -- |
 -- Module      : Database.Relational.Query.Pi
--- Copyright   : 2013 Kei Hibino
+-- Copyright   : 2013-2017 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
@@ -23,6 +23,7 @@ import Database.Record.Persistable
 
 import Database.Relational.Query.Pi.Unsafe
   (Pi, pfmap, pap, (<.>), (<?.>), (<?.?>), definePi)
+
 
 -- | Identity projection path.
 id' :: PersistableWidth a => Pi a a
