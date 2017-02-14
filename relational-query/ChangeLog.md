@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.8.3.5
+
+- Deprecate some exported interfaces which are internal definitions.
+
 ## 0.8.3.4
 
 - Update this changelog
