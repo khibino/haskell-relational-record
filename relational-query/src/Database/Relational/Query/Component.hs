@@ -25,21 +25,14 @@ module Database.Relational.Query.Component
          Duplication (..), showsDuplication,
 
          -- * Types for aggregation
-         -- re-export
+         -- deprecated interfaces
          AggregateColumnRef,
-
-         -- re-export
          AggregateBitKey, AggregateSet, AggregateElem,
-
          aggregateColumnRef, aggregateEmpty,
          aggregatePowerKey, aggregateGroupingSet,
          aggregateRollup, aggregateCube, aggregateSets,
-
          composeGroupBy, composePartitionBy,
-
-         -- re-export
          AggregateKey,
-
          aggregateKeyProjection, aggregateKeyElement, unsafeAggregateKey,
 
          -- * Types for ordering
