@@ -1,6 +1,6 @@
 -- |
 -- Module      : Database.Relational.Query.Documentation
--- Copyright   : 2014-2016 Kei Hibino
+-- Copyright   : 2014-2017 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
@@ -39,6 +39,8 @@ module Database.Relational.Query.Documentation (
   -- $directJoin
   inner, left, right, full,
   on',
+
+  JoinRestriction,
 
   -- *** Finalize Context
   -- $finalize
@@ -227,6 +229,7 @@ Not monadic style join is supported by some direct join operators.
 'inner', 'left', 'right', 'full' operators can construct join products directly like SQL.
 'inner' operator is INNER JOIN of SQL, 'left' operator is LEFT OUTER JOIN of SQL, and so on.
 'on'' operator specifies condition of join product.
+'JoinRestriction' is the type of lambda form which expresses condition of join product.
  -}
 
 {- $finalize
