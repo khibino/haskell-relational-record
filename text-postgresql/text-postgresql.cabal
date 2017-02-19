@@ -9,12 +9,12 @@ license:             BSD3
 license-file:        LICENSE
 author:              Kei Hibino
 maintainer:          ex8k.hibino@gmail.com
-copyright:           Copyright (c) 2015-2016 Kei Hibino
+copyright:           Copyright (c) 2015-2017 Kei Hibino
 category:            Database
 build-type:          Simple
 
 cabal-version:       >=1.10
-tested-with:           GHC == 8.0.1
+tested-with:           GHC == 8.0.1, GHC == 8.0.2
                      , GHC == 7.10.1, GHC == 7.10.2, GHC == 7.10.3
                      , GHC == 7.8.1, GHC == 7.8.2, GHC == 7.8.3, GHC == 7.8.4
                      , GHC == 7.6.1, GHC == 7.6.2, GHC == 7.6.3
