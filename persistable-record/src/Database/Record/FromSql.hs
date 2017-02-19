@@ -1,6 +1,8 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DefaultSignatures #-}
 
 -- |
 -- Module      : Database.Record.FromSql
@@ -29,13 +31,15 @@ module Database.Record.FromSql (
   valueRecordFromSql,
   ) where
 
+import GHC.Generics (Generic, Rep, U1 (..), K1 (..), M1 (..), (:*:)(..), to)
+import Control.Applicative ((<$>), Applicative (pure, (<*>)))
+import Control.Monad (liftM, ap)
+
 import Database.Record.Persistable (PersistableType)
 import qualified Database.Record.Persistable as Persistable
 import Database.Record.KeyConstraint
   (HasColumnConstraint(columnConstraint), ColumnConstraint, NotNull, index)
 
-import Control.Monad (liftM, ap)
-import Control.Applicative ((<$>), Applicative(pure, (<*>)))
 
 {- $recordFromSql
 Structure of 'RecordFromSql' 'q' 'a' is similar to parser.
@@ -128,6 +132,9 @@ class FromSql q a where
   -- | 'RecordFromSql' proof object.
   recordFromSql :: RecordFromSql q a
 
+  default recordFromSql :: (Generic a, GFromSql q (Rep a)) => RecordFromSql q a
+  recordFromSql = to <$> gFromSql
+
 -- | Inference rule of 'RecordFromSql' proof object which can convert
 --   from list of SQL type ['q'] into Haskell tuple ('a', 'b') type.
 instance (FromSql q a, FromSql q b) => FromSql q (a, b)  where
@@ -157,3 +164,19 @@ toRecord =  runToRecord recordFromSql
 -- | Derivation rule of 'RecordFromSql' proof object for value convert function.
 valueRecordFromSql :: (q -> a) -> RecordFromSql q a
 valueRecordFromSql d = createRecordFromSql $ \qs -> (d $ head qs, tail qs)
+
+
+class GFromSql q f where
+  gFromSql :: RecordFromSql q (f a)
+
+instance GFromSql q U1 where
+  gFromSql = createRecordFromSql $ (,) U1
+
+instance (GFromSql q a, GFromSql q b) => GFromSql q (a :*: b) where
+  gFromSql = (:*:) <$> gFromSql <*> gFromSql
+
+instance GFromSql q a => GFromSql q (M1 i c a) where
+  gFromSql = M1 <$> gFromSql
+
+instance FromSql q a => GFromSql q (K1 i a) where
+  gFromSql = K1 <$> recordFromSql
