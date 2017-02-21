@@ -26,7 +26,7 @@ custom_retry cabal update -v
 sed -i 's/^jobs:/-- jobs:/' ${HOME}/.cabal/config
 
 install_package() {
-    cabal install -v2 $CABAL_JOBS $CABAL_CONSTRAINTS --only-dependencies --enable-tests --enable-benchmarks
+    cabal install -v2 $CABAL_JOBS $CABAL_FLAGS $CABAL_CONSTRAINTS --only-dependencies --enable-tests --enable-benchmarks
 }
 
 # install_package() {
@@ -54,7 +54,7 @@ install_package() {
 #         echo "cabal build-cache MISS";
 #         rm -rf ${cabsnap_dir};
 #         mkdir -p $HOME/.ghc $HOME/.cabal/lib $HOME/.cabal/share $HOME/.cabal/bin;
-#         cabal install $CABAL_JOBS $CABAL_CONSTRAINTS --only-dependencies --enable-tests --enable-benchmarks;
+#         cabal install $CABAL_JOBS $CABAL_FLAGS $CABAL_CONSTRAINTS --only-dependencies --enable-tests --enable-benchmarks;
 #     fi
 
 #     # snapshot package-db on cache miss
