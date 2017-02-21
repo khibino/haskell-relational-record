@@ -10,6 +10,9 @@ cache:
 before_cache:
   - rm -fv $HOME/.cabal/packages/hackage.haskell.org/build-reports.log
   - rm -fv $HOME/.cabal/packages/hackage.haskell.org/00-index.tar
+  - rm -fv $HOME/.cabal/packages/hackage.haskell.org/00-index.tar.gz
+  - rm -fv $HOME/.cabal/packages/hackage.haskell.org/00-index.tar.etag
+  - rm -fv $HOME/.cabal/packages/hackage.haskell.org/00-index.cache
 
 matrix:
   include:
