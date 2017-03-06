@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Project top page
+title: Project site
 ---
 
 ### <a name="what-is-hrr"></a> What is HRR?
