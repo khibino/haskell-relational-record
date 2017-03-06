@@ -25,7 +25,7 @@ Following installation methods are selectable
 
 #### <a name="build-with-cabal"></a> Build with cabal
 
-To start using [Haskell Relational Record](https://khibino.github.io/haskell-relational-record/) (HRR), you need to install:
+To start using [Haskell Relational Record](index.html) (HRR), you need to install:
 
 1. [Glasgow Haskell Compiler](https://www.haskell.org/ghc/) (GHC) + the "cabal" command
     - We recommend using the [Haskell Platform](https://www.haskell.org/platform/)
