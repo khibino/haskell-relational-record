@@ -5,8 +5,8 @@ title: Technical information
 
 ### Slides in English
 
-- [Haskell Relational Record's Query-Building DSL](http://htmlpreview.github.io/?https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/tsukuba-201412/DSL.html), Kei Hibino, 2014.12.25
-- [Relational Record Released!](http://htmlpreview.github.io/?https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/haskell-hackathon-201412/HRR.html), Kei Hibino, 2014.12.20, Haskell Mokumoku kai, Japan
+- [Haskell Relational Record's Query-Building DSL](https://htmlpreview.github.io/?https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/tsukuba-201412/DSL.html), Kei Hibino, 2014.12.25
+- [Relational Record Released!](https://htmlpreview.github.io/?https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/haskell-hackathon-201412/HRR.html), Kei Hibino, 2014.12.20, Haskell Mokumoku kai, Japan
 
 ### Papers in English
 

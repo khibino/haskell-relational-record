@@ -5,7 +5,7 @@ title: Tutorial
 
 ### Preparing
 
-This is a tiny tutorial of Haskell Relational Record (HRR). This tutorial assumes that SQLite version 3 and HRR are already installed. If not, please install them first (see [quick start](http://khibino.github.io/haskell-relational-record/quickstart.html)).
+This is a tiny tutorial of Haskell Relational Record (HRR). This tutorial assumes that SQLite version 3 and HRR are already installed. If not, please install them first (see [quick start](https://khibino.github.io/haskell-relational-record/quickstart.html)).
 
 Also, please download "relational-record-examples" as follows:
 

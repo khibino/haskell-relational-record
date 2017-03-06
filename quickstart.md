@@ -25,11 +25,11 @@ Following installation methods are selectable
 
 #### <a name="build-with-cabal"></a> Build with cabal
 
-To start using [Haskell Relational Record](http://khibino.github.io/haskell-relational-record/) (HRR), you need to install:
+To start using [Haskell Relational Record](https://khibino.github.io/haskell-relational-record/) (HRR), you need to install:
 
 1. [Glasgow Haskell Compiler](https://www.haskell.org/ghc/) (GHC) + the "cabal" command
     - We recommend using the [Haskell Platform](https://www.haskell.org/platform/)
-2. The Haskell ["relational-record"](http://hackage.haskell.org/package/relational-record) library
+2. The Haskell ["relational-record"](https://hackage.haskell.org/package/relational-record) library
 
 To install the Haskell "relational-record" library, run the following commands:
 
@@ -39,7 +39,7 @@ To install the Haskell "relational-record" library, run the following commands:
 ### <a name="prepare-rdb"></a> Prepare Relational database system
 
 Relational database system
-    - In this quickstart, we assume that [SQLite](http://www.sqlite.org/) version 3 has been installed
+    - In this quickstart, we assume that [SQLite](https://www.sqlite.org/) version 3 has been installed
 
 ### <a name="first-relation"></a> The first relation
 
