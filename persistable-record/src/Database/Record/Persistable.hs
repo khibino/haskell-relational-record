@@ -52,6 +52,9 @@ newtype PersistableRecordWidth a =
 runPersistableRecordWidth :: PersistableRecordWidth a -> Int
 runPersistableRecordWidth = getSum . getConst . unPRW
 
+instance Show (PersistableRecordWidth a) where
+  show = ("PRW " ++) . show . runPersistableRecordWidth
+
 -- | Unsafely generate 'PersistableRecordWidth' proof object from specified width of Haskell type 'a'.
 unsafePersistableRecordWidth :: Int                      -- ^ Specify width of Haskell type 'a'
                              -> PersistableRecordWidth a -- ^ Result proof object
