@@ -3,7 +3,7 @@
 
 -- |
 -- Module      : Database.Record.Persistable
--- Copyright   : 2013 Kei Hibino
+-- Copyright   : 2013-2017 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
@@ -26,6 +26,9 @@ module Database.Record.Persistable (
   PersistableWidth (..), derivedWidth
   ) where
 
+import Control.Applicative ((<$>), (<*>), Const (..))
+import Data.Monoid (mempty, Sum (..))
+
 
 -- | Proof object to specify type 'q' is SQL type
 newtype PersistableSqlType q = PersistableSqlType q
@@ -43,16 +46,16 @@ unsafePersistableSqlTypeFromNull =  PersistableSqlType
 -- | Proof object to specify width of Haskell type 'a'
 --   when converting to SQL type list.
 newtype PersistableRecordWidth a =
-  PersistableRecordWidth Int
+  PersistableRecordWidth { unPRW :: Const (Sum Int) a }
 
 -- | Get width 'Int' value of record type 'a'.
 runPersistableRecordWidth :: PersistableRecordWidth a -> Int
-runPersistableRecordWidth (PersistableRecordWidth w) = w
+runPersistableRecordWidth = getSum . getConst . unPRW
 
 -- | Unsafely generate 'PersistableRecordWidth' proof object from specified width of Haskell type 'a'.
 unsafePersistableRecordWidth :: Int                      -- ^ Specify width of Haskell type 'a'
                              -> PersistableRecordWidth a -- ^ Result proof object
-unsafePersistableRecordWidth =  PersistableRecordWidth
+unsafePersistableRecordWidth =  PersistableRecordWidth . Const . Sum
 
 -- | Unsafely generate 'PersistableRecordWidth' proof object for Haskell type 'a' which is single column type.
 unsafeValueWidth :: PersistableRecordWidth a
@@ -60,15 +63,15 @@ unsafeValueWidth =  unsafePersistableRecordWidth 1
 
 -- | Derivation rule of 'PersistableRecordWidth' for tuple (,) type.
 (<&>) :: PersistableRecordWidth a -> PersistableRecordWidth b -> PersistableRecordWidth (a, b)
-a <&> b = PersistableRecordWidth $ runPersistableRecordWidth a + runPersistableRecordWidth b
+a <&> b = PersistableRecordWidth $ (,) <$> unPRW a <*> unPRW b
 
 -- | Derivation rule of 'PersistableRecordWidth' from from Haskell type 'a' into for Haskell type 'Maybe' 'a'.
 maybeWidth :: PersistableRecordWidth a -> PersistableRecordWidth (Maybe a)
-maybeWidth =  PersistableRecordWidth . runPersistableRecordWidth
+maybeWidth = PersistableRecordWidth . (Just <$>) . unPRW
 
 -- | Axiom of 'PersistableRecordWidth' for Haskell unit () type.
 voidWidth :: PersistableRecordWidth ()
-voidWidth =  unsafePersistableRecordWidth 0
+voidWidth = PersistableRecordWidth $ Const mempty
 
 
 -- | Interface of inference rule for 'PersistableSqlType' proof object
