@@ -8,6 +8,7 @@ import Database.Record
   (PersistableType (..),
    FromSql (..), valueRecordFromSql,
    ToSql (..), valueRecordToSql)
+import Database.Record.KeyConstraint (HasColumnConstraint (..), NotNull, unsafeSpecifyColumnConstraint)
 import Database.Record.Persistable (unsafePersistableSqlTypeFromNull)
 
 
@@ -44,8 +45,14 @@ data Group =
 data Membership =
   Membership
   { user   ::  User
-  , group  ::  Group
+  , group  ::  Maybe Group
   } deriving (Eq, Show)
+
+instance HasColumnConstraint NotNull User where
+  columnConstraint = unsafeSpecifyColumnConstraint 0
+
+instance HasColumnConstraint NotNull Group where
+  columnConstraint = unsafeSpecifyColumnConstraint 0
 
 instance FromSql String User where
   recordFromSql = User <$> recordFromSql <*> recordFromSql <*> recordFromSql

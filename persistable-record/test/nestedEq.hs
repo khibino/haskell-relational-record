@@ -14,6 +14,6 @@ main =
   [ eqTest
     "nestedEq"
     (Membership { user  = User { uid = 1, uname = "Kei Hibino", note = "HRR developer" }
-                , group = Group { gid = 1, gname = "Haskellers" }
+                , group = Just $ Group { gid = 1, gname = "Haskellers" }
                 } )
     (toRecord ["1", "Kei Hibino", "HRR developer", "1", "Haskellers"]) ]
