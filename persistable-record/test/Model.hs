@@ -1,20 +1,27 @@
 {-# OPTIONS -fno-warn-orphans #-}
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
 module Model where
 
-import Control.Applicative ((<$>), (<*>))
+import GHC.Generics (Generic)
 
 import Database.Record
   (PersistableType (..), PersistableWidth (..),
    FromSql (..), valueRecordFromSql,
    ToSql (..), valueRecordToSql, wrapToSql, putRecord)
 import Database.Record.KeyConstraint (HasColumnConstraint (..), NotNull, unsafeSpecifyColumnConstraint)
-import Database.Record.Persistable (unsafePersistableSqlTypeFromNull, unsafePersistableRecordWidth)
+import Database.Record.Persistable (unsafePersistableSqlTypeFromNull, unsafeValueWidth, )
 
 
 instance PersistableType String where
   persistableType = unsafePersistableSqlTypeFromNull "<null>"
 
+
+instance PersistableWidth String where
+  persistableWidth = unsafeValueWidth
+
+instance PersistableWidth Int where
+  persistableWidth = unsafeValueWidth
 
 instance FromSql String String where
   recordFromSql = valueRecordFromSql id
@@ -34,19 +41,19 @@ data User =
   { uid    ::  Int
   , uname  ::  String
   , note   ::  String
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, Generic)
 
 data Group =
   Group
   { gid    ::  Int
   , gname  ::  String
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, Generic)
 
 data Membership =
   Membership
   { user   ::  User
   , group  ::  Maybe Group
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, Generic)
 
 instance HasColumnConstraint NotNull User where
   columnConstraint = unsafeSpecifyColumnConstraint 0
@@ -55,19 +62,11 @@ instance HasColumnConstraint NotNull Group where
   columnConstraint = unsafeSpecifyColumnConstraint 0
 
 instance PersistableWidth User where
-  persistableWidth = unsafePersistableRecordWidth 3
-
 instance PersistableWidth Group where
-  persistableWidth = unsafePersistableRecordWidth 2
 
 instance FromSql String User where
-  recordFromSql = User <$> recordFromSql <*> recordFromSql <*> recordFromSql
-
 instance FromSql String Group where
-  recordFromSql = Group <$> recordFromSql <*> recordFromSql
-
 instance FromSql String Membership where
-  recordFromSql = Membership <$> recordFromSql <*> recordFromSql
 
 instance ToSql String User where
   recordToSql = wrapToSql $ \u -> do
