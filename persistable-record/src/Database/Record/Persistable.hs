@@ -85,10 +85,6 @@ a <&> b = (,) `wmap` a `wap` b
 maybeWidth :: PersistableRecordWidth a -> PersistableRecordWidth (Maybe a)
 maybeWidth = wmap Just
 
--- | Axiom of 'PersistableRecordWidth' for Haskell unit () type.
-voidWidth :: PersistableRecordWidth ()
-voidWidth = PersistableRecordWidth $ Const mempty
-
 
 -- | Interface of inference rule for 'PersistableSqlType' proof object
 class Eq q => PersistableType q where
@@ -115,8 +111,7 @@ instance PersistableWidth a => PersistableWidth (Maybe a) where
   persistableWidth = maybeWidth persistableWidth
 
 -- | Inference rule of 'PersistableRecordWidth' for Haskell unit () type. Derive from axiom.
-instance PersistableWidth () where
-  persistableWidth = voidWidth
+instance PersistableWidth ()  -- default generic instance
 
 -- | Pass type parameter and inferred width value.
 derivedWidth :: PersistableWidth a => (PersistableRecordWidth a, Int)
