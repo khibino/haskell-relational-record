@@ -102,22 +102,6 @@ class PersistableWidth a where
   default persistableWidth :: (Generic a, GPersistableWidth (Rep a)) => PersistableRecordWidth a
   persistableWidth = to `wmap` gPersistableWidth
 
--- | Inference rule of 'PersistableRecordWidth' proof object for tuple ('a', 'b') type.
-instance (PersistableWidth a, PersistableWidth b) => PersistableWidth (a, b) where
-  persistableWidth = persistableWidth <&> persistableWidth
-
--- | Inference rule of 'PersistableRecordWidth' proof object for 'Maybe' type.
-instance PersistableWidth a => PersistableWidth (Maybe a) where
-  persistableWidth = maybeWidth persistableWidth
-
--- | Inference rule of 'PersistableRecordWidth' for Haskell unit () type. Derive from axiom.
-instance PersistableWidth ()  -- default generic instance
-
--- | Pass type parameter and inferred width value.
-derivedWidth :: PersistableWidth a => (PersistableRecordWidth a, Int)
-derivedWidth =  (pw, runPersistableRecordWidth pw) where
-  pw = persistableWidth
-
 
 class GPersistableWidth f where
   gPersistableWidth :: PersistableRecordWidth (f a)
@@ -133,3 +117,20 @@ instance (GPersistableWidth a) => GPersistableWidth (M1 i c a) where
 
 instance PersistableWidth a => GPersistableWidth (K1 i a) where
   gPersistableWidth = K1 `wmap` persistableWidth
+
+
+-- | Inference rule of 'PersistableRecordWidth' proof object for tuple ('a', 'b') type.
+instance (PersistableWidth a, PersistableWidth b) => PersistableWidth (a, b) where
+  persistableWidth = persistableWidth <&> persistableWidth
+
+-- | Inference rule of 'PersistableRecordWidth' proof object for 'Maybe' type.
+instance PersistableWidth a => PersistableWidth (Maybe a) where
+  persistableWidth = maybeWidth persistableWidth
+
+-- | Inference rule of 'PersistableRecordWidth' for Haskell unit () type. Derive from axiom.
+instance PersistableWidth ()  -- default generic instance
+
+-- | Pass type parameter and inferred width value.
+derivedWidth :: PersistableWidth a => (PersistableRecordWidth a, Int)
+derivedWidth =  (pw, runPersistableRecordWidth pw) where
+  pw = persistableWidth
