@@ -61,12 +61,12 @@ instance HasColumnConstraint NotNull User where
 instance HasColumnConstraint NotNull Group where
   columnConstraint = unsafeSpecifyColumnConstraint 0
 
-instance PersistableWidth User where
-instance PersistableWidth Group where
+instance PersistableWidth User
+instance PersistableWidth Group
 
-instance FromSql String User where
-instance FromSql String Group where
-instance FromSql String Membership where
+instance FromSql String User
+instance FromSql String Group
+instance FromSql String Membership
 
 instance ToSql String User where
   recordToSql = wrapToSql $ \u -> do
