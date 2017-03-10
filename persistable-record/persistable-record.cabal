@@ -51,6 +51,8 @@ test-suite nested
   build-depends:          base <5
                         , quickcheck-simple
                         , persistable-record
+  if flag(ghc74-generic)
+    build-depends:        ghc-prim == 0.2.*
 
   type:                 exitcode-stdio-1.0
   main-is:              nestedEq.hs
