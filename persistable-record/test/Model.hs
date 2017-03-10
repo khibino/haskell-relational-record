@@ -68,18 +68,6 @@ instance FromSql String User
 instance FromSql String Group
 instance FromSql String Membership
 
-instance ToSql String User where
-  recordToSql = wrapToSql $ \u -> do
-    putRecord $ uid u
-    putRecord $ uname u
-    putRecord $ note u
-
-instance ToSql String Group where
-  recordToSql = wrapToSql $ \g -> do
-    putRecord $ gid g
-    putRecord $ gname g
-
-instance ToSql String Membership where
-  recordToSql = wrapToSql $ \m -> do
-    putRecord $ user m
-    putRecord $ group m
+instance ToSql String User
+instance ToSql String Group
+instance ToSql String Membership
