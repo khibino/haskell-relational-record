@@ -1,6 +1,8 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DefaultSignatures #-}
 
 -- |
 -- Module      : Database.Record.ToSql
@@ -35,6 +37,7 @@ module Database.Record.ToSql (
   unsafeUpdateValuesWithIndexes
   ) where
 
+import GHC.Generics (Generic, Rep, U1 (..), K1 (..), M1 (..), (:*:)(..), from)
 import Data.Array (listArray, (!))
 import Data.Set (toList, fromList, (\\))
 import Control.Monad.Trans.Writer (Writer, execWriter, tell)
@@ -79,6 +82,10 @@ createRecordToSql f =  wrapToSql $ tell . DList.fromList . f
 emptyToSql :: RecordToSql q a
 emptyToSql = wrapToSql . const $ tell DList.empty
 
+-- unsafely map record
+mapToSql :: (a -> b) -> RecordToSql q b -> RecordToSql q a
+mapToSql f x = wrapToSql $ runRecordToSql x . f
+
 -- unsafely put product record
 productToSql :: (c -> (a -> b -> ToSqlM q ()) -> ToSqlM q ())
              -> RecordToSql q a -> RecordToSql q b -> RecordToSql q c
@@ -103,6 +110,25 @@ infixl 4 <&>
 class ToSql q a where
   -- | Infer 'RecordToSql' proof object.
   recordToSql :: RecordToSql q a
+
+  default recordToSql :: (Generic a, GToSql q (Rep a)) => RecordToSql q a
+  recordToSql = from `mapToSql` gToSql
+
+class GToSql q f where
+  gToSql :: RecordToSql q (f a)
+
+instance GToSql q U1 where
+  gToSql = wrapToSql $ \U1 -> tell DList.empty
+
+instance (GToSql q a, GToSql q b) => GToSql q (a :*: b) where
+  gToSql = productToSql (\ (a:*:b) f -> f a b) gToSql gToSql
+
+instance GToSql q a => GToSql q (M1 i c a) where
+  gToSql = (\(M1 a) -> a) `mapToSql` gToSql
+
+instance ToSql q a => GToSql q (K1 i a) where
+  gToSql = (\(K1 a) -> a) `mapToSql` recordToSql
+
 
 -- | Inference rule of 'RecordToSql' proof object which can convert
 --   from Haskell tuple ('a', 'b') type into list of SQL type ['q'].
