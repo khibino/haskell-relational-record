@@ -35,4 +35,14 @@ main =
                              , group = Nothing
                              } )
     ["1", "Kei Hibino", "HRR developer", "<null>", "<null>"]
+  , eqTest
+    "toRecord pair"
+    (User { uid = 1, uname = "Kei Hibino", note = "HRR developer" },
+     Just $ Group { gid = 1, gname = "Haskellers" })
+    (toRecord ["1", "Kei Hibino", "HRR developer", "1", "Haskellers"])
+  , eqTest
+    "fromRecord pair"
+    (fromRecord $ (User { uid = 1, uname = "Kei Hibino", note = "HRR developer" },
+                   Just $ Group { gid = 1, gname = "Haskellers" }))
+    ["1", "Kei Hibino", "HRR developer", "1", "Haskellers"]
   ]
