@@ -3,7 +3,8 @@
 
 import Test.QuickCheck.Simple (defaultMain, eqTest)
 
-import Database.Record (toRecord, fromRecord)
+import Database.Record (toRecord, fromRecord, persistableWidth, PersistableRecordWidth)
+import Database.Record.Persistable (runPersistableRecordWidth)
 
 import Model (User (..), Group (..), Membership (..))
 
@@ -35,6 +36,7 @@ main =
                              , group = Nothing
                              } )
     ["1", "Kei Hibino", "HRR developer", "<null>", "<null>"]
+
   , eqTest
     "toRecord pair"
     (User { uid = 1, uname = "Kei Hibino", note = "HRR developer" },
@@ -45,4 +47,9 @@ main =
     (fromRecord $ (User { uid = 1, uname = "Kei Hibino", note = "HRR developer" },
                    Just $ Group { gid = 1, gname = "Haskellers" }))
     ["1", "Kei Hibino", "HRR developer", "1", "Haskellers"]
+  , eqTest
+    "width pair"
+    (runPersistableRecordWidth (persistableWidth :: PersistableRecordWidth User) +
+     runPersistableRecordWidth (persistableWidth :: PersistableRecordWidth Group))
+    (runPersistableRecordWidth (persistableWidth :: PersistableRecordWidth (User, Group)))
   ]
