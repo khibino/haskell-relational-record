@@ -75,11 +75,20 @@ createRecordToSql :: (a -> [q])      -- ^ Convert function body
                   -> RecordToSql q a -- ^ Result proof object
 createRecordToSql f =  wrapToSql $ tell . DList.fromList . f
 
--- | Derivation rule of 'RecordToSql' proof object for Haskell tuple (,) type.
-(<&>) :: RecordToSql q a -> RecordToSql q b -> RecordToSql q (a, b)
-ra <&> rb = RecordToSql $ \(a, b) -> do
+-- unsafely put empty record
+emptyToSql :: RecordToSql q a
+emptyToSql = wrapToSql . const $ tell DList.empty
+
+-- unsafely put product record
+productToSql :: (c -> (a, b)) -> RecordToSql q a -> RecordToSql q b -> RecordToSql q c
+productToSql d ra rb = RecordToSql $ \c -> do
+  let (a, b) = d c
   runRecordToSql ra a
   runRecordToSql rb b
+
+-- | Derivation rule of 'RecordToSql' proof object for Haskell tuple (,) type.
+(<&>) :: RecordToSql q a -> RecordToSql q b -> RecordToSql q (a, b)
+(<&>) = productToSql id
 
 -- | Derivation rule of 'RecordToSql' proof object for Haskell 'Maybe' type.
 maybeRecord :: PersistableSqlType q -> PersistableRecordWidth a -> RecordToSql q a -> RecordToSql q (Maybe a)
