@@ -78,10 +78,6 @@ createRecordToSql :: (a -> [q])      -- ^ Convert function body
                   -> RecordToSql q a -- ^ Result proof object
 createRecordToSql f =  wrapToSql $ tell . DList.fromList . f
 
--- unsafely put empty record
-emptyToSql :: RecordToSql q a
-emptyToSql = wrapToSql . const $ tell DList.empty
-
 -- unsafely map record
 mapToSql :: (a -> b) -> RecordToSql q b -> RecordToSql q a
 mapToSql f x = wrapToSql $ runRecordToSql x . f
@@ -132,8 +128,7 @@ instance ToSql q a => GToSql q (K1 i a) where
 
 -- | Inference rule of 'RecordToSql' proof object which can convert
 --   from Haskell tuple ('a', 'b') type into list of SQL type ['q'].
-instance (ToSql q a, ToSql q b) => ToSql q (a, b) where
-  recordToSql = recordToSql <&> recordToSql
+instance (ToSql q a, ToSql q b) => ToSql q (a, b)  -- default generic instance
 
 -- | Inference rule of 'RecordToSql' proof object which can convert
 --   from Haskell 'Maybe' type into list of SQL type ['q'].
@@ -142,8 +137,7 @@ instance (PersistableType q, PersistableWidth a, ToSql q a) => ToSql q (Maybe a)
 
 -- | Inference rule of 'RecordToSql' proof object which can convert
 --   from Haskell unit () type into /empty/ list of SQL type ['q'].
-instance ToSql q () where
-  recordToSql = wrapToSql $ \() -> tell DList.empty
+instance ToSql q ()  -- default generic instance
 
 -- | Run inferred 'RecordToSql' proof object.
 --   Context to convert haskell record type 'a' into SQL type 'q' list.

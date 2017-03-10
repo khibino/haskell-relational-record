@@ -8,7 +8,7 @@ import GHC.Generics (Generic)
 import Database.Record
   (PersistableType (..), PersistableWidth (..),
    FromSql (..), valueRecordFromSql,
-   ToSql (..), valueRecordToSql, wrapToSql, putRecord)
+   ToSql (..), valueRecordToSql)
 import Database.Record.KeyConstraint (HasColumnConstraint (..), NotNull, unsafeSpecifyColumnConstraint)
 import Database.Record.Persistable (unsafePersistableSqlTypeFromNull, unsafeValueWidth, )
 
