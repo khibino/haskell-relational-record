@@ -120,8 +120,7 @@ instance PersistableWidth a => GPersistableWidth (K1 i a) where
 
 
 -- | Inference rule of 'PersistableRecordWidth' proof object for tuple ('a', 'b') type.
-instance (PersistableWidth a, PersistableWidth b) => PersistableWidth (a, b) where
-  persistableWidth = persistableWidth <&> persistableWidth
+instance (PersistableWidth a, PersistableWidth b) => PersistableWidth (a, b)  -- default generic instance
 
 -- | Inference rule of 'PersistableRecordWidth' proof object for 'Maybe' type.
 instance PersistableWidth a => PersistableWidth (Maybe a) where
