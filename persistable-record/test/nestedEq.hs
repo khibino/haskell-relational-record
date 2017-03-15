@@ -52,4 +52,9 @@ main =
     (runPersistableRecordWidth (persistableWidth :: PersistableRecordWidth User) +
      runPersistableRecordWidth (persistableWidth :: PersistableRecordWidth Group))
     (runPersistableRecordWidth (persistableWidth :: PersistableRecordWidth (User, Group)))
+  , eqTest
+    "width record"
+    (runPersistableRecordWidth (persistableWidth :: PersistableRecordWidth User) +
+     runPersistableRecordWidth (persistableWidth :: PersistableRecordWidth (Maybe Group)))
+    (runPersistableRecordWidth (persistableWidth :: PersistableRecordWidth Membership))
   ]

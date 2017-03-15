@@ -63,6 +63,7 @@ instance HasColumnConstraint NotNull Group where
 
 instance PersistableWidth User
 instance PersistableWidth Group
+instance PersistableWidth Membership
 
 instance FromSql String User
 instance FromSql String Group
