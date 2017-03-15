@@ -24,14 +24,18 @@ module Database.Record.Persistable (
   unsafePersistableRecordWidth, unsafeValueWidth, (<&>), maybeWidth,
 
   -- * Inference rules for proof objects
-
   PersistableType(..), sqlNullValue,
   PersistableWidth (..), derivedWidth,
+
+  genericFieldOffsets,
   ) where
 
 import GHC.Generics (Generic, Rep, U1 (..), K1 (..), M1 (..), (:*:)(..), to)
-import Control.Applicative ((<$>), (<*>), Const (..))
+import Control.Applicative ((<$>), pure, (<*>), Const (..))
 import Data.Monoid (mempty, Sum (..))
+import Data.Array (Array, listArray, bounds, (!))
+import Data.DList (DList)
+import qualified Data.DList as DList
 
 
 -- | Proof object to specify type 'q' is SQL type
@@ -99,24 +103,35 @@ sqlNullValue =  runPersistableNullValue persistableType
 class PersistableWidth a where
   persistableWidth :: PersistableRecordWidth a
 
-  default persistableWidth :: (Generic a, GPersistableWidth (Rep a)) => PersistableRecordWidth a
-  persistableWidth = to `wmap` gPersistableWidth
+  default persistableWidth :: (Generic a, GFieldWidthList (Rep a)) => PersistableRecordWidth a
+  persistableWidth = PersistableRecordWidth $ pmapConst (Sum . lastA) genericFieldOffsets
+    where
+      lastA a = a ! (snd $ bounds a)
 
 
-class GPersistableWidth f where
-  gPersistableWidth :: PersistableRecordWidth (f a)
+pmapConst :: (a -> b) -> Const a c -> Const b c
+pmapConst f = Const . f . getConst
 
-instance GPersistableWidth U1 where
-  gPersistableWidth = PersistableRecordWidth $ Const mempty
+class GFieldWidthList f where
+  gFieldWidthList :: Const (DList Int) (f a)
 
-instance (GPersistableWidth a, GPersistableWidth b) => GPersistableWidth (a :*: b) where
-  gPersistableWidth = (:*:) `wmap` gPersistableWidth `wap` gPersistableWidth
+instance GFieldWidthList U1 where
+  gFieldWidthList = Const mempty
 
-instance (GPersistableWidth a) => GPersistableWidth (M1 i c a) where
-  gPersistableWidth = M1 `wmap` gPersistableWidth
+instance (GFieldWidthList a, GFieldWidthList b) => GFieldWidthList (a :*: b) where
+  gFieldWidthList = (:*:) <$> gFieldWidthList <*> gFieldWidthList
 
-instance PersistableWidth a => GPersistableWidth (K1 i a) where
-  gPersistableWidth = K1 `wmap` persistableWidth
+instance GFieldWidthList a => GFieldWidthList (M1 i c a) where
+  gFieldWidthList = M1 <$> gFieldWidthList
+
+instance PersistableWidth a => GFieldWidthList (K1 i a) where
+  gFieldWidthList = K1 <$> (pmapConst (pure . getSum) . unPRW) persistableWidth
+
+offsets :: [Int] -> Array Int Int
+offsets ws = listArray (0, length ws) $ scanl (+) 0 ws
+
+genericFieldOffsets :: (Generic a, GFieldWidthList (Rep a)) => Const (Array Int Int) a
+genericFieldOffsets = pmapConst (offsets . DList.toList) $ to <$> gFieldWidthList
 
 
 -- | Inference rule of 'PersistableRecordWidth' proof object for tuple ('a', 'b') type.
