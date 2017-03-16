@@ -77,6 +77,7 @@ wf `pap` prw = ProductConst $ unPC wf <*> unPC prw
 -- | Get width 'Int' value of record type 'a'.
 runPersistableRecordWidth :: PersistableRecordWidth a -> Int
 runPersistableRecordWidth = getSum . getConst . unPC
+{-# INLINE runPersistableRecordWidth #-}
 
 instance Show a => Show (ProductConst a b) where
   show = ("PC " ++) . show . getConst . unPC
@@ -85,10 +86,12 @@ instance Show a => Show (ProductConst a b) where
 unsafePersistableRecordWidth :: Int                      -- ^ Specify width of Haskell type 'a'
                              -> PersistableRecordWidth a -- ^ Result proof object
 unsafePersistableRecordWidth = ProductConst . Const . Sum
+{-# INLINE unsafePersistableRecordWidth #-}
 
 -- | Unsafely generate 'PersistableRecordWidth' proof object for Haskell type 'a' which is single column type.
 unsafeValueWidth :: PersistableRecordWidth a
 unsafeValueWidth =  unsafePersistableRecordWidth 1
+{-# INLINE unsafeValueWidth #-}
 
 -- | Derivation rule of 'PersistableRecordWidth' for tuple (,) type.
 (<&>) :: PersistableRecordWidth a -> PersistableRecordWidth b -> PersistableRecordWidth (a, b)
