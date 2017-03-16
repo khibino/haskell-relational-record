@@ -68,12 +68,12 @@ module Database.Record.TH (
 import GHC.Generics (Generic)
 import Control.Applicative (pure, (<*>))
 import Data.List (foldl')
-import Data.Array (Array, listArray, (!))
+import Data.Array (Array)
 import Data.Data (Data, Typeable)
 import Language.Haskell.TH.Name.CamelCase
   (ConName(conName), VarName(varName),
    conCamelcaseName, varCamelcaseName, varNameWithPrefix,
-   toTypeCon, toDataCon, toVarExp)
+   toTypeCon, toDataCon)
 import Language.Haskell.TH.Lib.Extra (integralE, simpleValD)
 import Language.Haskell.TH.Compat.Data (dataD', unDataD)
 import Language.Haskell.TH
@@ -89,11 +89,13 @@ import Database.Record
    HasKeyConstraint(keyConstraint), derivedCompositePrimary,
    PersistableRecordWidth, PersistableWidth(persistableWidth),
    FromSql(recordFromSql), RecordFromSql,
-   ToSql(recordToSql), RecordToSql, wrapToSql, putRecord, putEmpty)
+   ToSql, RecordToSql, wrapToSql, putRecord, putEmpty)
 
 import Database.Record.KeyConstraint
   (unsafeSpecifyColumnConstraint, unsafeSpecifyNotNullValue, unsafeSpecifyKeyConstraint)
-import Database.Record.Persistable (unsafePersistableRecordWidth, runPersistableRecordWidth)
+import Database.Record.Persistable
+  (runPersistableRecordWidth,
+   ProductConst, getProductConst, genericFieldOffsets)
 import qualified Database.Record.Persistable as Persistable
 
 
@@ -211,10 +213,8 @@ defineColumnOffsets typeName' tys = do
   let ofsVar = columnOffsetsVarNameDefault $ conName typeName'
       widthIxE = integralE $ length tys
   ar <- simpleValD (varName ofsVar) [t| Array Int Int |]
-        [| listArray (0 :: Int, $widthIxE) $
-           scanl (+) (0 :: Int) $(listE $ map recordWidthTemplate tys) |]
-  pw <- [d| instance PersistableWidth $(toTypeCon typeName') where
-              persistableWidth = unsafePersistableRecordWidth $ $(toVarExp ofsVar) ! $widthIxE
+        [| getProductConst (genericFieldOffsets :: ProductConst (Array Int Int) $(toTypeCon typeName')) |]
+  pw <- [d| instance PersistableWidth $(toTypeCon typeName')
           |]
   return $ ar ++ pw
 
@@ -294,11 +294,8 @@ definePersistableInstance :: TypeQ   -- ^ SQL value type.
                            -> Int     -- ^ Count of record columns.
                            -> Q [Dec] -- ^ Instance declarations for 'Persistable'.
 definePersistableInstance sqlType typeCon parserName printerName _width = do
-  [d| instance FromSql $sqlType $typeCon where
-        recordFromSql = $(toVarExp parserName)
-
-      instance ToSql $sqlType $typeCon where
-        recordToSql = $(toVarExp printerName)
+  [d| instance FromSql $sqlType $typeCon
+      instance ToSql $sqlType $typeCon
     |]
 
 -- | All templates depending on SQL value type.
