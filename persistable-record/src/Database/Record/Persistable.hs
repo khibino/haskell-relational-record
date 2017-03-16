@@ -32,7 +32,7 @@ module Database.Record.Persistable (
 
 import GHC.Generics (Generic, Rep, U1 (..), K1 (..), M1 (..), (:*:)(..), to)
 import Control.Applicative ((<$>), pure, (<*>), Const (..))
-import Data.Monoid (mempty, Sum (..))
+import Data.Monoid (Monoid, mempty, Sum (..))
 import Data.Array (Array, listArray, bounds, (!))
 import Data.DList (DList)
 import qualified Data.DList as DList
@@ -60,11 +60,11 @@ newtype ProductConst a b =
 type PersistableRecordWidth a = ProductConst (Sum Int) a
 
 -- unsafely map PersistableRecordWidth
-pmap :: (a -> b) -> PersistableRecordWidth a -> PersistableRecordWidth b
+pmap :: Monoid e => (a -> b) -> ProductConst e a -> ProductConst e b
 f `pmap` prw = ProductConst $ f <$> unPC prw
 
 -- unsafely ap PersistableRecordWidth
-pap :: PersistableRecordWidth (a -> b) -> PersistableRecordWidth a -> PersistableRecordWidth b
+pap :: Monoid e => ProductConst e (a -> b) -> ProductConst e a -> ProductConst e b
 wf `pap` prw = ProductConst $ unPC wf <*> unPC prw
 
 
