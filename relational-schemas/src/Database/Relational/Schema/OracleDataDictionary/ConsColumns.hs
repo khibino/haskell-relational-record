@@ -1,10 +1,11 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Database.Relational.Schema.OracleDataDictionary.ConsColumns where
 
+import GHC.Generics (Generic)
 import Data.Int (Int32)
-
 import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.OracleDataDictionary.Config (config)
@@ -24,4 +25,4 @@ $(defineTableTypesAndRecord config
     , ("column_name", [t|Maybe String|])
     -- POSITION                                           NUMBER
     , ("position", [t|Maybe Int32|])
-    ] [''Show])
+    ] [''Show, ''Generic])

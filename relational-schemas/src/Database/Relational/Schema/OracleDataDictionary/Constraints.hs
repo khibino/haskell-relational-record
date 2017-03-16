@@ -1,8 +1,10 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Database.Relational.Schema.OracleDataDictionary.Constraints where
 
+import GHC.Generics (Generic)
 import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.OracleDataDictionary.Config (config)
@@ -36,4 +38,4 @@ $(defineTableTypesAndRecord config
     -- INDEX_NAME                                         VARCHAR2(30)
     -- INVALID                                            VARCHAR2(7)
     -- VIEW_RELATED                                       VARCHAR2(14)
-    ] [''Show])
+    ] [''Show, ''Generic])

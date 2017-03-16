@@ -1,12 +1,11 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Database.Relational.Schema.OracleDataDictionary.TabColumns where
 
+import GHC.Generics (Generic)
 import Data.Int (Int32)
--- import Data.ByteString (ByteString)
--- import Data.Time.Calendar (Day)
-
 import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.OracleDataDictionary.Config (config)
@@ -78,4 +77,4 @@ $(defineTableTypesAndRecord config
     , ("data_upgraded", [t|Maybe String|])
     -- HISTOGRAM                                          VARCHAR2(15)
     , ("histogram", [t|Maybe String|])
-    ] [''Show])
+    ] [''Show, ''Generic])

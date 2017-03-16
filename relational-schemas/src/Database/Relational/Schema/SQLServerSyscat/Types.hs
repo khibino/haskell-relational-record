@@ -1,8 +1,10 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Database.Relational.Schema.SQLServerSyscat.Types where
 
+import GHC.Generics (Generic)
 import Data.Int (Int32)
 import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
@@ -46,4 +48,4 @@ $(defineTableTypesAndRecord config
 -- is_table_type         sys     bit                        1 No
     --("is_table_type", [t|Bool|])
   ]
-  [''Show])
+  [''Show, ''Generic])

@@ -1,8 +1,10 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Database.Relational.Schema.SQLite3Syscat.TableInfo where
 
+import GHC.Generics (Generic)
 import Data.Int (Int16, Int64)
 import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
@@ -28,4 +30,4 @@ $(defineTableTypesAndRecord config
 -- pk                    integer             No
     ("pk", [t|Int16|])
   ]
-  [''Show])
+  [''Show, ''Generic])

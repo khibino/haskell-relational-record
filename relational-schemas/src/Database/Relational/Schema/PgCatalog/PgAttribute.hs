@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 -- |
 -- Module      : Database.HDBC.Schema.PgCatalog.PgAttribute
@@ -11,8 +12,8 @@
 -- Portability : unknown
 module Database.Relational.Schema.PgCatalog.PgAttribute where
 
+import GHC.Generics (Generic)
 import Data.Int (Int16, Int32)
-
 import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.PgCatalog.Config (config)
@@ -66,4 +67,4 @@ $(defineTableTypesAndRecord config
 --  attoptions    | text[]    |
     -- ("attoptions"  , [t|String|])
   ]
-  [''Show])
+  [''Show, ''Generic])

@@ -1,9 +1,10 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Database.Relational.Schema.SQLServerSyscat.Indexes where
 
---import Data.ByteString (ByteString)
+import GHC.Generics (Generic)
 import Data.Int (Int32)
 import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
@@ -53,4 +54,4 @@ $(defineTableTypesAndRecord config
 -- filter_definition     sys     nvarchar                 max Yes
     --("filter_definition", [t|Maybe ByteString|])
   ]
-  [''Show])
+  [''Show, ''Generic])

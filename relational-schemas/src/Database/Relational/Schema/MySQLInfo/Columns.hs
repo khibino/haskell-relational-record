@@ -1,8 +1,10 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Database.Relational.Schema.MySQLInfo.Columns where
 
+import GHC.Generics (Generic)
 import Data.Int                     (Int16)
 import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
@@ -19,4 +21,4 @@ $(defineTableTypesAndRecord config
     , ("is_nullable",       [t|String|])
     , ("data_type",         [t|String|])
     ]
-    [''Show])
+    [''Show, ''Generic])

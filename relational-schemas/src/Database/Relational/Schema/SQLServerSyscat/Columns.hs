@@ -1,8 +1,10 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Database.Relational.Schema.SQLServerSyscat.Columns where
 
+import GHC.Generics (Generic)
 import Data.Int (Int32)
 import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
@@ -65,4 +67,4 @@ $(defineTableTypesAndRecord config
   -- is_column_set         sys     bit                        1 Yes
     --("is_column_set", [t|Maybe Bool|])
   ]
-  [''Show])
+  [''Show, ''Generic])

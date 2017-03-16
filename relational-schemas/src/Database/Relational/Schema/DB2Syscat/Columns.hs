@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 -- |
 -- Module      : Database.Relational.Schema.DB2Syscat.Columns
@@ -13,8 +14,8 @@
 -- Generate template of SYSCAT.columns system catalog table.
 module Database.Relational.Schema.DB2Syscat.Columns where
 
+import GHC.Generics (Generic)
 import Data.Int (Int16, Int32, Int64)
-
 import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.DB2Syscat.Config (config)
@@ -99,4 +100,4 @@ $(defineTableTypesAndRecord config
     ("remarks", [t|Maybe String|])
 
   ]
-  [''Show])
+  [''Show, ''Generic])

@@ -1,8 +1,10 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Database.Relational.Schema.SQLite3Syscat.IndexInfo where
 
+import GHC.Generics (Generic)
 import Data.Int (Int64)
 import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
@@ -22,4 +24,4 @@ $(defineTableTypesAndRecord config
 -- name                  text                No
     ("name", [t|String|])
   ]
-  [''Show])
+  [''Show, ''Generic])

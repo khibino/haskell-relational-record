@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 -- |
 -- Module      : Database.Relational.Schema.PgCatalog.PgConstraint
@@ -11,8 +12,8 @@
 -- Portability : unknown
 module Database.Relational.Schema.PgCatalog.PgConstraint where
 
+import GHC.Generics (Generic)
 import Data.Int (Int32)
-
 import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.PgCatalog.Config (config)
@@ -48,4 +49,4 @@ $(defineTableTypesAndRecord config
  -- conbin        | pg_node_tree |
  -- consrc        | text         |
   ]
-  [''Show])
+  [''Show, ''Generic])

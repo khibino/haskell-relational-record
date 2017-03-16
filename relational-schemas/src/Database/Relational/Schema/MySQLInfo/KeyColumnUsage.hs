@@ -1,8 +1,10 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Database.Relational.Schema.MySQLInfo.KeyColumnUsage where
 
+import GHC.Generics (Generic)
 import Data.Int                     (Int16)
 import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
@@ -17,4 +19,4 @@ $(defineTableTypesAndRecord config
     , ("column_name"        , [t| String |])
     , ("ordinal_position"   , [t| Int16 |])
     ]
-    [''Show])
+    [''Show, ''Generic])

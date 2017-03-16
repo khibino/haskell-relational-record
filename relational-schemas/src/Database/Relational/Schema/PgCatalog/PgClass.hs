@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 -- |
 -- Module      : Database.Relational.Schema.PgCatalog.PgClass
@@ -11,8 +12,8 @@
 -- Portability : unknown
 module Database.Relational.Schema.PgCatalog.PgClass where
 
+import GHC.Generics (Generic)
 import Data.Int (Int32)
-
 import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.PgCatalog.Config (config)
@@ -50,4 +51,4 @@ $(defineTableTypesAndRecord config
  -- relacl         | aclitem[] |
  -- reloptions     | text[]    |
   ]
-  [''Show])
+  [''Show, ''Generic])

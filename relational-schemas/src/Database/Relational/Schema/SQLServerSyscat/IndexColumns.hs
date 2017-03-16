@@ -1,8 +1,10 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Database.Relational.Schema.SQLServerSyscat.IndexColumns where
 
+import GHC.Generics (Generic)
 import Data.Int (Int32)
 import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
@@ -29,4 +31,4 @@ $(defineTableTypesAndRecord config
   -- is_included_column    sys     bit                        1 No
     ("is_included_column", [t|Bool|])
   ]
-  [''Show])
+  [''Show, ''Generic])

@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 -- |
 -- Module      : Database.Relational.Schema.DB2Syscat.Tabconst
@@ -15,6 +16,7 @@
 -- Minimum implementation required to generate table constraints.
 module Database.Relational.Schema.DB2Syscat.Tabconst where
 
+import GHC.Generics (Generic)
 import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.DB2Syscat.Config (config)
@@ -29,4 +31,4 @@ $(defineTableTypesAndRecord config
    --
    ("type"     , [t| String |]),
    ("enforced" , [t| String |])]
-  [''Show])
+  [''Show, ''Generic])

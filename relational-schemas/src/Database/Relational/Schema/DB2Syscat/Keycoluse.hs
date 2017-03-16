@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 -- |
 -- Module      : Database.Relational.Schema.DB2Syscat.Keycoluse
@@ -15,6 +16,7 @@
 -- Minimum implementation required to generate table constraints.
 module Database.Relational.Schema.DB2Syscat.Keycoluse where
 
+import GHC.Generics (Generic)
 import Data.Int (Int16)
 import Database.Relational.Query.TH (defineTableTypesAndRecord)
 
@@ -27,4 +29,4 @@ $(defineTableTypesAndRecord config
   [("constname", [t| String |]),
    ("colname"  , [t| String |]),
    ("colseq"   , [t| Int16 |])]
-  [''Show])
+  [''Show, ''Generic])
