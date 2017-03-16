@@ -4,7 +4,7 @@
 
 -- |
 -- Module      : Database.Relational.Schema.DB2Syscat.Keycoluse
--- Copyright   : 2013 Kei Hibino
+-- Copyright   : 2013-2017 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
