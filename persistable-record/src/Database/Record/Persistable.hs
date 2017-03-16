@@ -72,8 +72,8 @@ wf `pap` prw = ProductConst $ unPC wf <*> unPC prw
 runPersistableRecordWidth :: PersistableRecordWidth a -> Int
 runPersistableRecordWidth = getSum . getConst . unPC
 
-instance Show (PersistableRecordWidth a) where
-  show = ("PRW " ++) . show . runPersistableRecordWidth
+instance Show a => Show (ProductConst a b) where
+  show = ("PC " ++) . show . getConst . unPC
 
 -- | Unsafely generate 'PersistableRecordWidth' proof object from specified width of Haskell type 'a'.
 unsafePersistableRecordWidth :: Int                      -- ^ Specify width of Haskell type 'a'
