@@ -226,9 +226,9 @@ defineRecordType :: ConName            -- ^ Name of the data type of table recor
 defineRecordType typeName' columns derives = do
   let typeName = conName typeName'
       fld (n, tq) = varStrictType (varName n) (strictType isStrict tq)
-  rec  <- dataD' (cxt []) typeName [] [recC typeName (map fld columns)] derives
+  rec'  <- dataD' (cxt []) typeName [] [recC typeName (map fld columns)] derives
   offs <- defineColumnOffsets typeName' [ty | (_, ty) <- columns]
-  return $ rec : offs
+  return $ rec' : offs
 
 -- | Record type declaration template with configured names.
 defineRecordTypeWithConfig :: NameConfig -> String -> String -> [(String, TypeQ)] -> [Name] -> Q [Dec]
