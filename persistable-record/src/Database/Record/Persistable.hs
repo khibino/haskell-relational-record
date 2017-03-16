@@ -60,6 +60,7 @@ newtype ProductConst a b =
 
 getProductConst :: ProductConst a b -> a
 getProductConst = getConst . unPC
+{-# INLINE getProductConst #-}
 
 -- | Proof object to specify width of Haskell type 'a'
 --   when converting to SQL type list.
