@@ -65,7 +65,7 @@ module Database.Record.TH (
   deriveNotNullType
   ) where
 
-
+import GHC.Generics (Generic)
 import Control.Applicative (pure, (<*>))
 import Data.List (foldl')
 import Data.Array (Array, listArray, (!))
@@ -77,7 +77,7 @@ import Language.Haskell.TH.Name.CamelCase
 import Language.Haskell.TH.Lib.Extra (integralE, simpleValD)
 import Language.Haskell.TH.Compat.Data (dataD', unDataD)
 import Language.Haskell.TH
-  (Q, newName, nameBase, reify, Info(TyConI), Name,
+  (Q, reportWarning, newName, nameBase, reify, Info(TyConI), Name,
    TypeQ, conT, Con (NormalC, RecC),
    Dec, sigD, valD,
    ExpQ, Exp(ConE), conE, varE, lamE, listE, sigE,
@@ -226,7 +226,12 @@ defineRecordType :: ConName            -- ^ Name of the data type of table recor
 defineRecordType typeName' columns derives = do
   let typeName = conName typeName'
       fld (n, tq) = varStrictType (varName n) (strictType isStrict tq)
-  rec'  <- dataD' (cxt []) typeName [] [recC typeName (map fld columns)] derives
+  derives1 <- if (''Generic `notElem` derives)
+              then do reportWarning "HRR needs Generic instance, please add ''Generic manually."
+                      return $ ''Generic : derives
+                      {- DROP this hack in future version ups. -}
+              else    return   derives
+  rec' <- dataD' (cxt []) typeName [] [recC typeName (map fld columns)] derives1
   offs <- defineColumnOffsets typeName' [ty | (_, ty) <- columns]
   return $ rec' : offs
 
