@@ -77,7 +77,7 @@ import Language.Haskell.TH.Name.CamelCase
 import Language.Haskell.TH.Lib.Extra (integralE, simpleValD)
 import Language.Haskell.TH.Compat.Data (dataD', unDataD)
 import Language.Haskell.TH
-  (Q, reportWarning, newName, nameBase, reify, Info(TyConI), Name,
+  (Q, report, newName, nameBase, reify, Info(TyConI), Name,
    TypeQ, conT, Con (NormalC, RecC),
    Dec, sigD, valD,
    ExpQ, Exp(ConE), conE, varE, lamE, listE, sigE,
@@ -227,7 +227,7 @@ defineRecordType typeName' columns derives = do
   let typeName = conName typeName'
       fld (n, tq) = varStrictType (varName n) (strictType isStrict tq)
   derives1 <- if (''Generic `notElem` derives)
-              then do reportWarning "HRR needs Generic instance, please add ''Generic manually."
+              then do report False "HRR needs Generic instance, please add ''Generic manually."
                       return $ ''Generic : derives
                       {- DROP this hack in future version ups. -}
               else    return   derives
