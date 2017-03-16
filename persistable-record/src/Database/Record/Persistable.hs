@@ -51,23 +51,26 @@ unsafePersistableSqlTypeFromNull :: q                    -- ^ SQL null value of 
 unsafePersistableSqlTypeFromNull =  PersistableSqlType
 
 
+-- Restricted in product isomorphism record type b
+newtype ProductConst a b =
+  ProductConst { unPC :: Const a b }
+
 -- | Proof object to specify width of Haskell type 'a'
 --   when converting to SQL type list.
-newtype PersistableRecordWidth a =
-  PersistableRecordWidth { unPRW :: Const (Sum Int) a }
+type PersistableRecordWidth a = ProductConst (Sum Int) a
 
 -- unsafely map PersistableRecordWidth
-wmap :: (a -> b) -> PersistableRecordWidth a -> PersistableRecordWidth b
-f `wmap` prw = PersistableRecordWidth $ f <$> unPRW prw
+pmap :: (a -> b) -> PersistableRecordWidth a -> PersistableRecordWidth b
+f `pmap` prw = ProductConst $ f <$> unPC prw
 
 -- unsafely ap PersistableRecordWidth
-wap :: PersistableRecordWidth (a -> b) -> PersistableRecordWidth a -> PersistableRecordWidth b
-wf `wap` prw = PersistableRecordWidth $ unPRW wf <*> unPRW prw
+pap :: PersistableRecordWidth (a -> b) -> PersistableRecordWidth a -> PersistableRecordWidth b
+wf `pap` prw = ProductConst $ unPC wf <*> unPC prw
 
 
 -- | Get width 'Int' value of record type 'a'.
 runPersistableRecordWidth :: PersistableRecordWidth a -> Int
-runPersistableRecordWidth = getSum . getConst . unPRW
+runPersistableRecordWidth = getSum . getConst . unPC
 
 instance Show (PersistableRecordWidth a) where
   show = ("PRW " ++) . show . runPersistableRecordWidth
@@ -75,7 +78,7 @@ instance Show (PersistableRecordWidth a) where
 -- | Unsafely generate 'PersistableRecordWidth' proof object from specified width of Haskell type 'a'.
 unsafePersistableRecordWidth :: Int                      -- ^ Specify width of Haskell type 'a'
                              -> PersistableRecordWidth a -- ^ Result proof object
-unsafePersistableRecordWidth =  PersistableRecordWidth . Const . Sum
+unsafePersistableRecordWidth = ProductConst . Const . Sum
 
 -- | Unsafely generate 'PersistableRecordWidth' proof object for Haskell type 'a' which is single column type.
 unsafeValueWidth :: PersistableRecordWidth a
@@ -83,11 +86,11 @@ unsafeValueWidth =  unsafePersistableRecordWidth 1
 
 -- | Derivation rule of 'PersistableRecordWidth' for tuple (,) type.
 (<&>) :: PersistableRecordWidth a -> PersistableRecordWidth b -> PersistableRecordWidth (a, b)
-a <&> b = (,) `wmap` a `wap` b
+a <&> b = (,) `pmap` a `pap` b
 
 -- | Derivation rule of 'PersistableRecordWidth' from from Haskell type 'a' into for Haskell type 'Maybe' 'a'.
 maybeWidth :: PersistableRecordWidth a -> PersistableRecordWidth (Maybe a)
-maybeWidth = wmap Just
+maybeWidth = pmap Just
 
 
 -- | Interface of inference rule for 'PersistableSqlType' proof object
@@ -104,7 +107,7 @@ class PersistableWidth a where
   persistableWidth :: PersistableRecordWidth a
 
   default persistableWidth :: (Generic a, GFieldWidthList (Rep a)) => PersistableRecordWidth a
-  persistableWidth = PersistableRecordWidth $ pmapConst (Sum . lastA) genericFieldOffsets
+  persistableWidth = ProductConst $ pmapConst (Sum . lastA) genericFieldOffsets
     where
       lastA a = a ! (snd $ bounds a)
 
@@ -125,7 +128,7 @@ instance GFieldWidthList a => GFieldWidthList (M1 i c a) where
   gFieldWidthList = M1 <$> gFieldWidthList
 
 instance PersistableWidth a => GFieldWidthList (K1 i a) where
-  gFieldWidthList = K1 <$> (pmapConst (pure . getSum) . unPRW) persistableWidth
+  gFieldWidthList = K1 <$> (pmapConst (pure . getSum) . unPC) persistableWidth
 
 offsets :: [Int] -> Array Int Int
 offsets ws = listArray (0, length ws) $ scanl (+) 0 ws
