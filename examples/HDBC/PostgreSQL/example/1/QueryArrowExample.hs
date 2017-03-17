@@ -1,9 +1,10 @@
 {-# LANGUAGE Arrows #-}
-{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module QueryArrowExample where
 
+import GHC.Generics (Generic)
 import Database.Record
 
 import Database.Relational.Query.Arrow
@@ -54,7 +55,7 @@ haskUserGroup =
     returnA -< u   >< mg ?! snd'
 
 data UserOrGroup = UserOrGroup { mayUser :: Maybe User, mayGroup :: Maybe Group }
-                   deriving Show
+                   deriving (Show, Generic)
 
 $(makeRecordPersistableDefault ''UserOrGroup)
 

@@ -1,9 +1,10 @@
 {-# LANGUAGE MonadComprehensions #-}
-{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module QueryExample where
 
+import GHC.Generics (Generic)
 import Database.Record
 
 import Database.Relational.Query
@@ -56,7 +57,7 @@ haskUserGroup =
   ]
 
 data UserOrGroup = UserOrGroup { mayUser :: Maybe User, mayGroup :: Maybe Group }
-                   deriving Show
+                   deriving (Show, Generic)
 
 $(makeRecordPersistableDefault ''UserOrGroup)
 
