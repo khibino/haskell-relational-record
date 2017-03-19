@@ -18,9 +18,6 @@ module Database.Record.TH (
   defineRecord,
   defineRecordWithConfig,
 
-  -- * Deriving class symbols
-  derivingEq, derivingShow, derivingRead, derivingData, derivingTypeable,
-
   -- * Table constraint specified by key
   defineHasColumnConstraintInstance,
   defineHasPrimaryConstraintInstanceDerived,
@@ -69,7 +66,6 @@ import GHC.Generics (Generic)
 import Control.Applicative (pure, (<*>))
 import Data.List (foldl')
 import Data.Array (Array)
-import Data.Data (Data, Typeable)
 import Language.Haskell.TH.Name.CamelCase
   (ConName(conName), VarName(varName),
    conCamelcaseName, varCamelcaseName, varNameWithPrefix,
@@ -171,31 +167,6 @@ defineHasNotNullKeyInstance :: TypeQ   -- ^ Type constructor of record
                             -> Q [Dec] -- ^ Declaration of not null key constraint instance
 defineHasNotNullKeyInstance =
   defineHasColumnConstraintInstance [t| NotNull |]
-
-{-# DEPRECATED derivingEq "Use TH quasi-quotation like ''Eq instead of this." #-}
--- | Name to specify deriving 'Eq'
-derivingEq   :: Name
-derivingEq   = ''Eq
-
-{-# DEPRECATED derivingShow "Use TH quasi-quotation like ''Show instead of this." #-}
--- | Name to specify deriving 'Show'
-derivingShow :: Name
-derivingShow = ''Show
-
-{-# DEPRECATED derivingRead "Use TH quasi-quotation like ''Read instead of this." #-}
--- | Name to specify deriving 'Read'
-derivingRead :: Name
-derivingRead = ''Read
-
-{-# DEPRECATED derivingData "Use TH quasi-quotation like ''Data instead of this." #-}
--- | Name to specify deriving 'Data'
-derivingData :: Name
-derivingData = ''Data
-
-{-# DEPRECATED derivingTypeable "Use TH quasi-quotation like ''Typeable instead of this." #-}
--- | Name to specify deriving 'Typeable'
-derivingTypeable :: Name
-derivingTypeable = ''Typeable
 
 -- | Record type width expression template.
 recordWidthTemplate :: TypeQ -- ^ Record type constructor.
