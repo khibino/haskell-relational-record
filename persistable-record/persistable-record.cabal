@@ -32,6 +32,9 @@ library
                         Database.Record
                         Database.Record.TH
 
+  other-modules:
+                        Database.Record.InternalTH
+
   build-depends:          base <5
                         , template-haskell
                         , th-data-compat
