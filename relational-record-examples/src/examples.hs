@@ -3,9 +3,11 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 import Database.Relational.Query.SQLite3
 
+import GHC.Generics (Generic)
 import Prelude hiding (product)
 import Data.Int (Int64)
 import Data.Time (Day, LocalTime)
@@ -102,7 +104,7 @@ data Account1 = Account1
   , a1ProductCd :: String
   , a1CustId :: Int
   , a1AvailBalance :: Maybe Double
-  } deriving (Show)
+  } deriving (Show, Generic)
 
 $(makeRecordPersistableDefault ''Account1)
 
@@ -452,7 +454,7 @@ data Account2 = Account2
   , a2ProductCd :: String
   , a2OpenDate :: Day
   , a2AvailBalance :: Maybe Double
-  } deriving (Show)
+  } deriving (Show, Generic)
 
 $(makeRecordPersistableDefault ''Account2)
 
@@ -495,7 +497,7 @@ data Employee1 = Employee1
   , e1StartDate :: Day
   , e1Fname :: String
   , e1Lname' :: String
-  } deriving (Show)
+  } deriving (Show, Generic)
 
 $(makeRecordPersistableDefault ''Employee1)
 
@@ -616,7 +618,7 @@ data Employee2 = Employee2
   , e2Fname :: String
   , e2Lname :: String
   , e2StartDate :: Day
-  } deriving (Show)
+  } deriving (Show, Generic)
 
 $(makeRecordPersistableDefault ''Employee2)
 
@@ -668,7 +670,7 @@ data Account3 = Account3
   , a3CustId :: Int
   , a3OpenDate :: Day
   , a3ProductCd :: String
-  } deriving (Show)
+  } deriving (Show, Generic)
 
 $(makeRecordPersistableDefault ''Account3)
 
@@ -739,7 +741,7 @@ data Customer1 = Customer1
   { c1Custid :: Int
   , c1CustTypeCd :: String
   , c1City :: Maybe String
-  } deriving (Show)
+  } deriving (Show, Generic)
 
 customer1 :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c))
           => Projection c Customer -> Projection c Customer1
@@ -993,7 +995,7 @@ data Branch1 = Branch1
   , b1City :: Maybe String
   , b1State :: Maybe String
   , b1Zip :: Maybe String
-  }
+  } deriving (Generic)
 
 $(makeRecordPersistableDefault ''Branch1)
 
@@ -1065,7 +1067,7 @@ data Employee3 = Employee3
   , e3DeptId :: Maybe Int
   , e3Title :: Maybe String
   , e3AssignedBranchId :: Maybe Int
-  }
+  } deriving (Generic)
 
 $(makeRecordPersistableDefault ''Employee3)
 
@@ -1109,7 +1111,7 @@ data Employee4 = Employee4
   , e4Lname :: String
   , e4StartDate :: Day
   , e4Title :: Maybe String
-  }
+  } deriving (Generic)
 
 $(makeRecordPersistableDefault ''Employee4)
 
@@ -1179,7 +1181,7 @@ data Account4 = Account4
   , a4CustId :: Int
   , a4Fname :: Maybe String
   , a4Lname :: Maybe String
-  } deriving (Show)
+  } deriving (Show, Generic)
 
 $(makeRecordPersistableDefault ''Account4)
 

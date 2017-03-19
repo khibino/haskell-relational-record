@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, MultiParamTypeClasses, FlexibleInstances #-}
+{-# LANGUAGE TemplateHaskell, MultiParamTypeClasses, FlexibleInstances, DeriveGeneric #-}
 
 module Product where
 
@@ -6,4 +6,3 @@ import Database.Record.TH.SQLite3 (defineTable)
 import Prelude hiding (product)
 
 $(defineTable "examples.db" "product")
-

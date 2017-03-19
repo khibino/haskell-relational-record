@@ -4,6 +4,7 @@ module Database.Record.TH.SQLite3 (
     defineTable
   ) where
 
+import GHC.Generics (Generic)
 import Database.HDBC.Query.TH (defineTableFromDB)
 import Database.HDBC.Schema.Driver (typeMap)
 import Database.HDBC.Schema.SQLite3 (driverSQLite3)
@@ -17,4 +18,4 @@ defineTable fileName tableName =
     (driverSQLite3 { typeMap = [("FLOAT", [t|Double|]), ("INTEGER", [t|Int|])] }) -- overwrite the default type map with yours
     "main" -- schema name, ignored by SQLite
     tableName
-    [''Show]
+    [''Show, ''Generic]
