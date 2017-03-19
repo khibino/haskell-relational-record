@@ -40,9 +40,6 @@ module Database.Record.TH (
 
   recordWidthTemplate,
 
-  defineRecordParser,
-  defineRecordPrinter,
-
   definePersistableInstance,
 
   -- * Reify
@@ -63,8 +60,6 @@ module Database.Record.TH (
   ) where
 
 import GHC.Generics (Generic)
-import Control.Applicative (pure, (<*>))
-import Data.List (foldl')
 import Data.Array (Array)
 import Language.Haskell.TH.Name.CamelCase
   (ConName(conName), VarName(varName),
@@ -73,19 +68,18 @@ import Language.Haskell.TH.Name.CamelCase
 import Language.Haskell.TH.Lib.Extra (integralE, simpleValD)
 import Language.Haskell.TH.Compat.Data (dataD', unDataD)
 import Language.Haskell.TH
-  (Q, report, newName, nameBase, reify, Info(TyConI), Name,
+  (Q, report, nameBase, reify, Info(TyConI), Name,
    TypeQ, conT, Con (NormalC, RecC),
-   Dec, sigD, valD,
-   ExpQ, Exp(ConE), conE, varE, lamE, listE, sigE,
-   varP, conP, normalB, recC,
+   Dec,
+   ExpQ, conE, listE, sigE,
+   recC,
    cxt, varStrictType, strictType, isStrict)
 
 import Database.Record
   (HasColumnConstraint(columnConstraint), Primary, NotNull,
    HasKeyConstraint(keyConstraint), derivedCompositePrimary,
    PersistableRecordWidth, PersistableWidth(persistableWidth),
-   FromSql(recordFromSql), RecordFromSql,
-   ToSql, RecordToSql, wrapToSql, putRecord, putEmpty)
+   FromSql, ToSql, )
 
 import Database.Record.KeyConstraint
   (unsafeSpecifyColumnConstraint, unsafeSpecifyNotNullValue, unsafeSpecifyKeyConstraint)
@@ -214,48 +208,6 @@ defineRecordTypeWithConfig config schema table columns =
   [ (columnName config schema n, t) | (n, t) <- columns ]
 
 
--- | Record parser template.
-defineRecordParser :: TypeQ         -- ^ SQL value type.
-                   -> VarName       -- ^ Name of record parser.
-                   -> (TypeQ, ExpQ) -- ^ Record type constructor and data constructor.
-                   -> Int           -- ^ Count of record columns.
-                   -> Q [Dec]       -- ^ Declaration of record construct function from SQL values.
-defineRecordParser sqlValType name' (tyCon, dataCon) width = do
-  let name = varName name'
-  sig <- sigD name [t| RecordFromSql $sqlValType $tyCon |]
-  var <- valD (varP name)
-         (normalB
-          (foldl' (\a x -> [| $a <*> $x |]) [| pure $dataCon |]
-           $ replicate width [| recordFromSql |])
-         )
-         []
-  return [sig, var]
-
-dataConInfo :: Exp -> Q Name
-dataConInfo =  d  where
-  d (ConE n) = return n
-  d e        = fail $ "Not record data constructor: " ++ show e
-
--- | Record printer template.
-defineRecordPrinter :: TypeQ         -- ^ SQL value type.
-                    -> VarName       -- ^ Name of record printer.
-                    -> (TypeQ, ExpQ) -- ^ Record type constructor and data constructor.
-                    -> Int           -- ^ Count of record columns.
-                    -> Q [Dec]       -- ^ Declaration of record construct function from SQL values.
-defineRecordPrinter sqlValType name' (tyCon, dataCon) width = do
-  let name = varName name'
-  sig <- sigD name [t| RecordToSql $sqlValType $tyCon |]
-  names <- mapM (newName . ('f':) . show) [1 .. width]
-  dcn <- dataCon >>= dataConInfo
-  var <- valD (varP name)
-         (normalB [| wrapToSql
-                     $(lamE
-                       [ conP dcn [ varP n | n <- names ] ]
-                       (foldr (\a x -> [| $a >> $x |]) [| putEmpty () |]
-                        [ [| putRecord $(varE n) |] | n <- names ])) |])
-         []
-  return [sig, var]
-
 -- | Record parser and printer instance templates for converting
 --   between list of SQL type and Haskell record type.
 definePersistableInstance :: TypeQ   -- ^ SQL value type.
@@ -277,12 +229,10 @@ makeRecordPersistableWithSqlType :: TypeQ              -- ^ SQL value type.
                                  -> Q [Dec]            -- ^ Result declarations.
 makeRecordPersistableWithSqlType
   sqlValueType
-  (cF, dF) conPair@(tyCon, _)
+  (cF, dF) (tyCon, _)
   width = do
-  fromSQL  <- defineRecordParser sqlValueType cF conPair width
-  toSQL    <- defineRecordPrinter sqlValueType dF conPair width
   instSQL  <- definePersistableInstance sqlValueType tyCon cF dF width
-  return $ fromSQL ++ toSQL ++ instSQL
+  return instSQL
 
 -- | Default name of record construction function from SQL table name.
 fromSqlNameDefault :: String -> VarName
