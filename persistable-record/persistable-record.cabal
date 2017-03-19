@@ -27,6 +27,7 @@ library
                         Database.Record.FromSql
                         Database.Record.ToSql
                         Database.Record.Persistable
+                        Database.Record.TupleInstances
                         Database.Record.Instances
                         Database.Record.KeyConstraint
                         Database.Record

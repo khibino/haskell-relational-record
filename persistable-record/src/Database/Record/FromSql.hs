@@ -153,10 +153,6 @@ instance FromSql q a => GFromSql q (K1 i a) where
 
 
 -- | Inference rule of 'RecordFromSql' proof object which can convert
---   from list of SQL type ['q'] into Haskell tuple ('a', 'b') type.
-instance (FromSql q a, FromSql q b) => FromSql q (a, b)  -- default generic instance
-
--- | Inference rule of 'RecordFromSql' proof object which can convert
 --   from list of SQL type ['q'] into Haskell 'Maybe' type.
 instance (HasColumnConstraint NotNull a, FromSql q a, PersistableType q)
          => FromSql q (Maybe a)  where

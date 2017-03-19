@@ -147,9 +147,6 @@ genericFieldOffsets :: (Generic a, GFieldWidthList (Rep a)) => ProductConst (Arr
 genericFieldOffsets = pmapConst (offsets . DList.toList) $ to `pmap` gFieldWidthList
 
 
--- | Inference rule of 'PersistableRecordWidth' proof object for tuple ('a', 'b') type.
-instance (PersistableWidth a, PersistableWidth b) => PersistableWidth (a, b)  -- default generic instance
-
 -- | Inference rule of 'PersistableRecordWidth' proof object for 'Maybe' type.
 instance PersistableWidth a => PersistableWidth (Maybe a) where
   persistableWidth = maybeWidth persistableWidth

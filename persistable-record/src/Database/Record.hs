@@ -48,6 +48,7 @@ import Database.Record.ToSql
   (ToSqlM, RecordToSql, ToSql(..), valueRecordToSql,
    runFromRecord, wrapToSql, putRecord, putEmpty, fromRecord,
    updateValuesByUnique, updateValuesByPrimary)
+import Database.Record.TupleInstances ()
 
 {- $concepts
 On most drivers for SQL database,

@@ -56,7 +56,10 @@ module Database.Record.TH (
   persistableFunctionNamesDefault,
 
   -- * Not nullable single column type
-  deriveNotNullType
+  deriveNotNullType,
+
+  -- * Template for tuple types
+  defineTupleInstances,
   ) where
 
 import GHC.Generics (Generic)
@@ -87,6 +90,7 @@ import Database.Record.Persistable
   (runPersistableRecordWidth,
    ProductConst, getProductConst, genericFieldOffsets)
 import qualified Database.Record.Persistable as Persistable
+import Database.Record.InternalTH (defineTupleInstances)
 
 
 -- | 'NameConfig' type to customize names of expanded record templates.

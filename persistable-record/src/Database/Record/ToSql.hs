@@ -127,10 +127,6 @@ instance ToSql q a => GToSql q (K1 i a) where
 
 
 -- | Inference rule of 'RecordToSql' proof object which can convert
---   from Haskell tuple ('a', 'b') type into list of SQL type ['q'].
-instance (ToSql q a, ToSql q b) => ToSql q (a, b)  -- default generic instance
-
--- | Inference rule of 'RecordToSql' proof object which can convert
 --   from Haskell 'Maybe' type into list of SQL type ['q'].
 instance (PersistableType q, PersistableWidth a, ToSql q a) => ToSql q (Maybe a)  where
   recordToSql = maybeRecord persistableType persistableWidth recordToSql
