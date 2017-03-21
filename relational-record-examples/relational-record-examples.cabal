@@ -33,8 +33,7 @@ flag binary
   default:             False
 
 library
-  default-language:    Haskell2010
-  ghc-options:         -Wall
+  hs-source-dirs:      lib
   exposed-modules:     Database.Relational.Query.SQLite3
                        Database.Record.TH.SQLite3
   build-depends:       base < 5
@@ -47,6 +46,8 @@ library
                      , template-haskell
                      -- not link directly but query type map
                      , relational-schemas >= 0.1.3
+  default-language:    Haskell2010
+  ghc-options:         -Wall
 
 executable examples
   if flag(binary)
