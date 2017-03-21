@@ -7,7 +7,9 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- This module is documentation module for relational record.
+-- This module is documentation module for relational-record.
+-- The project page of relational-record is
+-- http://khibino.github.io/haskell-relational-record/ .
 module Database.Relational.Query.Documentation (
   -- * Concepts
   -- $concepts
