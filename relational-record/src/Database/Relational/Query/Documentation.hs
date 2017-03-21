@@ -158,6 +158,7 @@ module Database.Relational.Query.Documentation (
   prepareQuery,
   fetch,
   runQuery,
+  runQuery',
 
   -- ** Insert Values
   -- $insertValue
@@ -378,6 +379,9 @@ Actions to manage generalized SQL statements.
 
 {- $select
 Actions to manage SELECT statements.
+
+'runQuery' function is lazy-read and 'runQuery'' function is strict version,
+please use carefully.
  -}
 
 {- $insertValue
