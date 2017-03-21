@@ -13,7 +13,7 @@ import Data.Time (Day, LocalTime)
 import qualified Account
 import Account (Account, account, tableOfAccount)
 import qualified Branch
-import Branch (Branch, branch, tableOfBranch)
+import Branch (Branch, branch)
 import qualified Business
 import Business (business)
 import qualified Customer
