@@ -4,7 +4,7 @@ module Database.Record.InternalTH (
   defineTupleInstances
   ) where
 
-import Control.Applicative ((<$>), pure)
+import Control.Applicative ((<$>))
 import Control.Monad (replicateM)
 import Data.List (foldl')
 import Language.Haskell.TH
@@ -17,28 +17,31 @@ import Database.Record.FromSql (FromSql)
 import Database.Record.ToSql (ToSql)
 
 
-tupleInstance :: Int -> Name -> Q [Dec]
-tupleInstance n clazz = do
-  ns <- replicateM n (newName "t")
+persistableWidth :: Int -> [Name] -> Q [Dec]
+persistableWidth n ns = do
+  let vs = map varT ns -- same vars vs
   (:[]) <$> instanceD
-    (mapM (classP clazz . (:[]) . varT) ns)
-    (appT (conT clazz) . foldl' appT (tupleT n) $ map varT ns)
+    -- in template-haskell 2.8 or older, Pred is not Type
+    (mapM (classP ''PersistableWidth . (:[])) vs)
+    [t| PersistableWidth $(foldl' appT (tupleT n) vs) |]
     []
 
-tupleInstance2 :: Int -> Name -> Q [Dec]
-tupleInstance2 n clazz = do
-  ns <- replicateM n (newName "t")
-  q <- varT =<< newName "q"
-  let qT = pure q -- same var q
+tupleInstance2 :: Int -> Name -> [Name] -> Name -> Q [Dec]
+tupleInstance2 n q ns clazz = do
+  let vs = map varT ns -- same vars vs
+      qT = varT q -- same var q
   (:[]) <$> instanceD
-    (mapM (classP clazz . ([qT] ++) . (:[]) . varT) ns)
-    (appT (appT (conT clazz) qT) . foldl' appT (tupleT n) $ map varT ns)
+    -- in template-haskell 2.8 or older, Pred is not Type
+    (mapM (\v -> classP clazz [qT, v]) vs)
+    [t| $(conT clazz) $qT $(foldl' appT (tupleT n) vs) |]
     []
 
 -- | Template to define tuple instances of persistable-record classes.
 defineTupleInstances :: Int -> Q [Dec]
-defineTupleInstances n =
+defineTupleInstances n = do
+  ns <- replicateM n $ newName "a"
+  q  <- newName "q"
   concat <$> sequence
-  [ tupleInstance  n ''PersistableWidth
-  , tupleInstance2 n ''FromSql
-  , tupleInstance2 n ''ToSql]
+    [ persistableWidth n ns
+    , tupleInstance2 n q ns ''FromSql
+    , tupleInstance2 n q ns ''ToSql]
