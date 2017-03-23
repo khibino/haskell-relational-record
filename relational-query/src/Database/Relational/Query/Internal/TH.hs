@@ -34,6 +34,7 @@ tuplePi n i = do
          []
   return [sig, val]
 
+-- | Make templates of projection paths for tuple types.
 defineTuplePi :: Int -> Q [Dec]
 defineTuplePi n =
   concat <$> mapM (tuplePi n) [0 .. n - 1]
