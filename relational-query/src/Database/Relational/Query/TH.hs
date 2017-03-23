@@ -42,6 +42,8 @@ module Database.Relational.Query.TH (
   -- * Column projections
   defineColumns, defineColumnsDefault,
 
+  defineTuplePi,
+
   -- * Table metadata type and basic 'Relation'
   defineTableTypes, defineTableTypesWithConfig, defineTableTypesDefault,
 
@@ -92,6 +94,7 @@ import Database.Relational.Query
    Insert, derivedInsert, InsertQuery, derivedInsertQuery,
    HasConstraintKey(constraintKey), Primary, NotNull, primary, primaryUpdate)
 
+import Database.Relational.Query.Internal.TH (defineTuplePi)
 import Database.Relational.Query.Scalar (defineScalarDegree)
 import Database.Relational.Query.Constraint (Key, unsafeDefineConstraintKey)
 import Database.Relational.Query.Table (TableDerivable (..))
