@@ -13,6 +13,7 @@ module Database.Relational.Query (
   module Database.Relational.Query.SQL,
   module Database.Relational.Query.Pure,
   module Database.Relational.Query.Pi,
+  module Database.Relational.Query.Pi.Tuple,
   module Database.Relational.Query.Constraint,
   module Database.Relational.Query.Context,
   module Database.Relational.Query.Component,
@@ -43,6 +44,7 @@ import Database.Relational.Query.Table (Table, TableDerivable (..))
 import Database.Relational.Query.SQL (updateOtherThanKeySQL, insertSQL)
 import Database.Relational.Query.Pure
 import Database.Relational.Query.Pi
+import Database.Relational.Query.Pi.Tuple
 import Database.Relational.Query.Constraint
   (Key, tableConstraint, projectionKey,
    uniqueKey, -- notNullKey,
