@@ -54,14 +54,8 @@ listStringSQL :: [StringSQL] -> StringSQL
 listStringSQL =  paren . fold (|*|)
 
 
--- | Simple wrap type
-newtype ColumnSQL' a = ColumnSQL a
-
-instance Functor ColumnSQL' where
-  fmap f (ColumnSQL c) = ColumnSQL $ f c
-
 -- | Column SQL string type
-type ColumnSQL = ColumnSQL' StringSQL
+type ColumnSQL = StringSQL
 
 -- | 'ColumnSQL' from string
 columnSQL :: String -> ColumnSQL
@@ -69,11 +63,10 @@ columnSQL =  columnSQL' . stringSQL
 
 -- | 'ColumnSQL' from 'StringSQL'
 columnSQL' :: StringSQL -> ColumnSQL
-columnSQL' =  ColumnSQL
+columnSQL' = id
 
 -- | StringSQL from ColumnSQL
 showsColumnSQL :: ColumnSQL -> StringSQL
-showsColumnSQL (ColumnSQL c) = c
+showsColumnSQL = id
 
-instance Show ColumnSQL where
-  show = showStringSQL . showsColumnSQL
+{-# DEPRECATED ColumnSQL, columnSQL, columnSQL', showsColumnSQL "ColumnSQL type is deprecated. Use StringSQL type synonym." #-}
