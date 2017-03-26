@@ -16,8 +16,6 @@ module Database.Relational.Query.Internal.SQL (
   rowStringSQL, rowPlaceHolderStringSQL,
 
   rowConsStringSQL, listStringSQL,
-
-  ColumnSQL, columnSQL, columnSQL', showsColumnSQL,
   ) where
 
 import Language.SQL.Keyword (Keyword, word, wordShow, fold, (|*|), paren)
@@ -52,21 +50,3 @@ rowConsStringSQL =  paren . fold (|*|)
 -- | List String of SQL.
 listStringSQL :: [StringSQL] -> StringSQL
 listStringSQL =  paren . fold (|*|)
-
-
--- | Column SQL string type
-type ColumnSQL = StringSQL
-
--- | 'ColumnSQL' from string
-columnSQL :: String -> ColumnSQL
-columnSQL =  columnSQL' . stringSQL
-
--- | 'ColumnSQL' from 'StringSQL'
-columnSQL' :: StringSQL -> ColumnSQL
-columnSQL' = id
-
--- | StringSQL from ColumnSQL
-showsColumnSQL :: ColumnSQL -> StringSQL
-showsColumnSQL = id
-
-{-# DEPRECATED ColumnSQL, columnSQL, columnSQL', showsColumnSQL "ColumnSQL type is deprecated. Use StringSQL type synonym." #-}
