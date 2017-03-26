@@ -84,7 +84,7 @@ import qualified Database.Record.TH as Record
 import Database.Relational.Query
   (Table, Pi, id', Relation, ProductConstructor (..),
    NameConfig (..), SchemaNameMode (..), IdentifierQuotation (..),
-   Config (normalizedTableName, schemaNameMode, nameConfig, identifierQuotation), defaultConfig,
+   Config (normalizedTableName, schemaNameMode, nameConfig, identifierQuotation),
    relationalQuerySQL, Query, relationalQuery, KeyUpdate,
    Insert, derivedInsert, InsertQuery, derivedInsertQuery,
    HasConstraintKey(constraintKey), Primary, NotNull, primary, primaryUpdate)
