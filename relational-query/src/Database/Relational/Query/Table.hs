@@ -21,7 +21,7 @@ import Data.Array (listArray)
 import Database.Record (PersistableWidth)
 
 import Database.Relational.Query.Internal.UntypedTable (Untyped (Untyped), name', width', columns', (!))
-import Database.Relational.Query.Internal.SQL (ColumnSQL, columnSQL)
+import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, )
 
 
 -- | Phantom typed table type
@@ -44,13 +44,13 @@ width :: Table r -> Int
 width  = width' . unType
 
 -- | Column name strings in SQL
-columns :: Table r -> [ColumnSQL]
+columns :: Table r -> [StringSQL]
 columns =  columns' . unType
 
 -- | Column name string in SQL specified by index
 index :: Table r
       -> Int       -- ^ Column index
-      -> ColumnSQL -- ^ Column name String in SQL
+      -> StringSQL -- ^ Column name String in SQL
 index =  (!) . unType
 
 -- | Cast phantom type into 'Maybe' type.
@@ -61,7 +61,7 @@ toMaybe (Table t) = Table t
 table :: String -> [String] -> Table r
 table n f = Table $ Untyped n w fa  where
   w  = length f
-  fa = listArray (0, w - 1) $ map columnSQL f
+  fa = listArray (0, w - 1) $ map stringSQL f
 
 -- | Inference rule of 'Table' existence.
 class PersistableWidth r => TableDerivable r where
