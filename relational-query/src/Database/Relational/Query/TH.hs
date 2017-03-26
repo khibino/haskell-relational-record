@@ -20,7 +20,6 @@
 module Database.Relational.Query.TH (
   -- * All templates about table
   defineTable,
-  defineTableDefault,
 
   -- * Inlining typed 'Query'
   unsafeInlineQuery,
@@ -28,15 +27,12 @@ module Database.Relational.Query.TH (
 
   -- * Column projections and basic 'Relation' for Haskell record
   defineTableTypesAndRecord,
-  defineTableTypesAndRecordDefault,
 
   -- * Constraint key templates
   defineHasPrimaryKeyInstance,
   defineHasPrimaryKeyInstanceWithConfig,
-  defineHasPrimaryKeyInstanceDefault,
   defineHasNotNullKeyInstance,
   defineHasNotNullKeyInstanceWithConfig,
-  defineHasNotNullKeyInstanceDefault,
   defineScalarDegree,
 
   -- * Column projections
@@ -45,7 +41,7 @@ module Database.Relational.Query.TH (
   defineTuplePi,
 
   -- * Table metadata type and basic 'Relation'
-  defineTableTypes, defineTableTypesWithConfig, defineTableTypesDefault,
+  defineTableTypes, defineTableTypesWithConfig,
 
   -- * Basic SQL templates generate rules
   definePrimaryQuery,
@@ -55,7 +51,6 @@ module Database.Relational.Query.TH (
   derivationExpDefault,
   tableVarExpDefault,
   relationVarExp,
-  relationVarExpDefault,
 
   -- * Derived SQL templates from table definitions
   defineSqlsWithPrimaryKey,
@@ -138,16 +133,6 @@ defineHasPrimaryKeyInstanceWithConfig :: Config  -- ^ configuration parameters
 defineHasPrimaryKeyInstanceWithConfig config scm =
   defineHasPrimaryKeyInstance . recordType (recordConfig $ nameConfig config) scm
 
-{-# DEPRECATED defineHasPrimaryKeyInstanceDefault "Use ' defineHasPrimaryKeyInstanceWithConfig defaultConfig ' instead of this." #-}
--- | Rule template to infer primary key.
-defineHasPrimaryKeyInstanceDefault :: String  -- ^ Schema name
-                                   -> String  -- ^ Table name
-                                   -> TypeQ   -- ^ Column type
-                                   -> [Int]   -- ^ Primary key index
-                                   -> Q [Dec] -- ^ Declarations of primary constraint key
-defineHasPrimaryKeyInstanceDefault =
-  defineHasPrimaryKeyInstanceWithConfig defaultConfig
-
 -- | Rule template to infer not-null key.
 defineHasNotNullKeyInstance :: TypeQ   -- ^ Record type
                             -> Int     -- ^ Column index
@@ -163,15 +148,6 @@ defineHasNotNullKeyInstanceWithConfig :: Config  -- ^ configuration parameters
                                       -> Q [Dec] -- ^ Declaration of not-null constraint key
 defineHasNotNullKeyInstanceWithConfig config scm =
   defineHasNotNullKeyInstance . recordType (recordConfig $ nameConfig config) scm
-
-{-# DEPRECATED defineHasNotNullKeyInstanceDefault "Use ' defineHasNotNullKeyInstanceWithConfig defaultConfig ' instead of this." #-}
--- | Rule template to infer not-null key.
-defineHasNotNullKeyInstanceDefault :: String  -- ^ Schema name
-                                   -> String  -- ^ Table name
-                                   -> Int     -- ^ NotNull key index
-                                   -> Q [Dec] -- ^ Declaration of not-null constraint key
-defineHasNotNullKeyInstanceDefault =
-  defineHasNotNullKeyInstanceWithConfig defaultConfig
 
 
 -- | Column projection path 'Pi' template.
@@ -304,13 +280,6 @@ relationVarExp :: Config -- ^ Configuration which has  naming rules of templates
                          -> ExpQ   -- ^ Result var Exp
 relationVarExp config scm = toVarExp . relationVarName (nameConfig config) scm
 
-{-# DEPRECATED relationVarExpDefault "Use ' relationVarExp defaultConfig ' instead of this." #-}
--- | Make 'Relation' variable expression template from table name using default naming rule.
-relationVarExpDefault :: String -- ^ Schema name string
-                      -> String -- ^ Table name string
-                      -> ExpQ   -- ^ Result var Exp
-relationVarExpDefault = relationVarExp defaultConfig
-
 -- | Make template for 'ProductConstructor' instance.
 defineProductConstructorInstance :: TypeQ -> ExpQ -> [TypeQ] -> Q [Dec]
 defineProductConstructorInstance recTypeQ recData colTypes =
@@ -347,15 +316,6 @@ defineTableTypesWithConfig config schema table columns = do
   colsDs <- defineColumnsDefault (recordTypeName recConfig schema table) columns
   return $ tableDs ++ colsDs
 
-{-# DEPRECATED defineTableTypesDefault "Use defineTableTypesWithConfig instead of this." #-}
--- | Make templates about table and column metadatas using default naming rule.
-defineTableTypesDefault :: Config                           -- ^ Configuration to generate query with
-                        -> String                           -- ^ Schema name
-                        -> String                           -- ^ Table name
-                        -> [((String, TypeQ), Maybe TypeQ)] -- ^ Column names and types and constraint type
-                        -> Q [Dec]                          -- ^ Result declarations
-defineTableTypesDefault = defineTableTypesWithConfig
-
 -- | Make templates about table, column and haskell record using specified naming rule.
 defineTableTypesAndRecord :: Config            -- ^ Configuration to generate query with
                           -> String            -- ^ Schema name
@@ -368,16 +328,6 @@ defineTableTypesAndRecord config schema table columns derives = do
   rconD   <- defineProductConstructorInstanceWithConfig config schema table [t | (_, t) <- columns]
   tableDs <- defineTableTypesWithConfig config schema table [(c, Nothing) | c <- columns ]
   return $ recD ++ rconD ++ tableDs
-
-{-# DEPRECATED defineTableTypesAndRecordDefault "Use defineTableTypesAndRecord instead of this." #-}
--- | Make templates about table, column and haskell record using default naming rule.
-defineTableTypesAndRecordDefault :: Config            -- ^ Configuration to generate query with
-                                 -> String            -- ^ Schema name
-                                 -> String            -- ^ Table name
-                                 -> [(String, TypeQ)] -- ^ Column names and types
-                                 -> [Name]            -- ^ Record derivings
-                                 -> Q [Dec]           -- ^ Result declarations
-defineTableTypesAndRecordDefault = defineTableTypesAndRecord
 
 -- | Template of derived primary 'Query'.
 definePrimaryQuery :: VarName -- ^ Variable name of result declaration
@@ -467,18 +417,6 @@ defineTable config schema table columns derives primaryIxs mayNotNullIdx = do
     ixs -> defineWithPrimaryKey config schema table keyType ixs
   nnD   <- maybeD (\i -> defineWithNotNullKeyWithConfig config schema table i) mayNotNullIdx
   return $ tblD ++ primD ++ nnD
-
-{-# DEPRECATED defineTableDefault "Use defineTable instead of this." #-}
--- | Generate all templtes about table using default naming rule.
-defineTableDefault :: Config            -- ^ Configuration to generate query with
-                   -> String            -- ^ Schema name string of Database
-                   -> String            -- ^ Table name string of Database
-                   -> [(String, TypeQ)] -- ^ Column names and types
-                   -> [Name]            -- ^ derivings for Record type
-                   -> [Int]             -- ^ Primary key index
-                   -> Maybe Int         -- ^ Not null key index
-                   -> Q [Dec]           -- ^ Result declarations
-defineTableDefault = defineTable
 
 
 -- | Unsafely inlining SQL string 'Query' in compile type.
