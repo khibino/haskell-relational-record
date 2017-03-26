@@ -51,8 +51,7 @@ import Database.Relational.Query.Internal.Config
   (Config (productUnitSupport), ProductUnitSupport (PUSupported, PUNotSupported))
 import qualified Database.Relational.Query.Context as Context
 import Database.Relational.Query.Internal.SQL
-  (StringSQL, stringSQL, rowStringSQL, showStringSQL,
-   ColumnSQL, columnSQL', showsColumnSQL, )
+  (StringSQL, stringSQL, rowStringSQL, showStringSQL, )
 import Database.Relational.Query.Internal.BaseSQL
   (Duplication (..), showsDuplication, OrderingTerm, composeOrderBy, )
 import Database.Relational.Query.Internal.GroupingSQL
@@ -137,7 +136,7 @@ width =  d  where
 -- | SQL to query table.
 fromTableToSQL :: UntypedTable.Untyped -> StringSQL
 fromTableToSQL t =
-  SELECT <> SQL.fold (|*|) [showsColumnSQL c | c <- UntypedTable.columns' t] <>
+  SELECT <> SQL.fold (|*|) (UntypedTable.columns' t) <>
   FROM <> stringSQL (UntypedTable.name' t)
 
 -- | Generate normalized column SQL from table.
@@ -199,20 +198,20 @@ toSQL =  showStringSQL . showSQL
 columnN :: Int -> StringSQL
 columnN i = stringSQL $ 'f' : show i
 
-asColumnN :: ColumnSQL -> Int -> StringSQL
-c `asColumnN` n = showsColumnSQL c `SQL.as` columnN n
+asColumnN :: StringSQL -> Int -> StringSQL
+c `asColumnN` n =c `SQL.as` columnN n
 
 -- | Alias string from qualifier
 showQualifier :: Qualifier -> StringSQL
 showQualifier (Qualifier i) = stringSQL $ 'T' : show i
 
 -- | Binary operator to qualify.
-(<.>) :: Qualifier -> ColumnSQL -> ColumnSQL
+(<.>) :: Qualifier -> StringSQL -> StringSQL
 i <.> n = showQualifier i SQL.<.> n
 
 -- | Qualified expression from qualifier and projection index.
-columnFromId :: Qualifier -> Int -> ColumnSQL
-columnFromId qi i = qi <.> columnSQL' (columnN i)
+columnFromId :: Qualifier -> Int -> StringSQL
+columnFromId qi i = qi <.> columnN i
 
 -- | From 'Qualified' SQL string into qualified formed 'String'
 --  like (SELECT ...) AS T<n>
@@ -224,7 +223,7 @@ queryWidth :: Qualified SubQuery -> Int
 queryWidth =  width . Internal.unQualify
 
 -- | Get column SQL string of 'SubQuery'.
-column :: Qualified SubQuery -> Int -> ColumnSQL
+column :: Qualified SubQuery -> Int -> StringSQL
 column qs =  d (Internal.unQualify qs)  where
   q = Internal.qualifier qs
   d (Table u)           i           = q <.> (u ! i)
@@ -244,16 +243,16 @@ untypedProjectionFromJoinedSubQuery qs = d $ Internal.unQualify qs  where
   d (Aggregated {})         =  normalized
 
 -- | Convert from ProjectionUnit into column.
-columnOfProjectionUnit :: ProjectionUnit -> ColumnSQL
+columnOfProjectionUnit :: ProjectionUnit -> StringSQL
 columnOfProjectionUnit = d  where
   d (RawColumn e)     = e
   d (SubQueryRef qi)  = Internal.qualifier qi `columnFromId` Internal.unQualify qi
-  d (Scalar sub)      = columnSQL' $ showUnitSQL sub
+  d (Scalar sub)      = showUnitSQL sub
 
 -- | Get column SQL string of 'UntypedProjection'.
 columnOfUntypedProjection :: UntypedProjection -- ^ Source 'Projection'
                           -> Int               -- ^ Column index
-                          -> ColumnSQL         -- ^ Result SQL string
+                          -> StringSQL         -- ^ Result SQL string
 columnOfUntypedProjection up i
   | 0 <= i && i < Internal.untypedProjectionWidth up  =
     columnOfProjectionUnit $ up !! i
@@ -262,12 +261,12 @@ columnOfUntypedProjection up i
 
 -- | Get column SQL string list of projection.
 projectionColumns :: Projection c r -- ^ Source 'Projection'
-                  -> [ColumnSQL]    -- ^ Result SQL string list
+                  -> [StringSQL]    -- ^ Result SQL string list
 projectionColumns = map columnOfProjectionUnit . Internal.untypeProjection
 
 -- | Unsafely get SQL term from 'Proejction'.
 unsafeProjectionStringSql :: Projection c r -> StringSQL
-unsafeProjectionStringSql =  rowStringSQL . map showsColumnSQL . projectionColumns
+unsafeProjectionStringSql =  rowStringSQL . projectionColumns
 
 
 -- | Show product tree of query into SQL. StringSQL result.
