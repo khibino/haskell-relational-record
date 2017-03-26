@@ -32,7 +32,6 @@ import Data.Monoid ((<>))
 import Language.SQL.Keyword (Keyword(..))
 import qualified Language.SQL.Keyword as SQL
 
-import Database.Relational.Query.Internal.SQL (showsColumnSQL)
 import Database.Relational.Query.Internal.BaseSQL (Duplication, OrderingTerm, composeOrderBy)
 import Database.Relational.Query.Internal.GroupingSQL (AggregateColumnRef, AggregateElem, composePartitionBy)
 
@@ -97,7 +96,7 @@ over :: SqlProjectable (Projection c)
      -> Projection c a
 wp `over` win =
   Projection.unsafeFromSqlTerms
-  [ showsColumnSQL c <> OVER <> SQL.paren (composePartitionBy pt <> composeOrderBy ot)
+  [ c <> OVER <> SQL.paren (composePartitionBy pt <> composeOrderBy ot)
   | c <- Projection.columns wp
   ]  where (((), ot), pt) = extractWindow win
 
