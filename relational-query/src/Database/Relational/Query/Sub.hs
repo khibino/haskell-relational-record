@@ -21,9 +21,6 @@ module Database.Relational.Query.Sub (
   Qualified,
   queryWidth,
 
-  -- deprecated interfaces
-  qualifier, unQualify, qualify,
-
   -- * Sub-query columns
   column,
 
@@ -34,14 +31,8 @@ module Database.Relational.Query.Sub (
 
   projectionColumns, unsafeProjectionStringSql,
 
-  -- deprecated interfaces
-  untypedProjectionFromColumns, untypedProjectionFromScalarSubQuery,
-  unsafeProjectFromColumns,
-  widthOfUntypedProjection, columnsOfUntypedProjection,
-
   -- * Product of sub-queries
   JoinProduct, NodeAttr (..),
-  nodeTree,
   ProductBuilder,
 
   -- * Query restriction
@@ -205,21 +196,6 @@ showSQL = snd . toSQLs
 toSQL :: SubQuery -> String
 toSQL =  showStringSQL . showSQL
 
-{-# DEPRECATED qualifier "prepare to drop public interface. use Database.Relational.Query.Internal.Sub.qualifier." #-}
--- | Get qualifier
-qualifier :: Qualified a -> Qualifier
-qualifier = Internal.qualifier
-
-{-# DEPRECATED unQualify "prepare to drop public interface. use Database.Relational.Query.Internal.Sub.unQualify." #-}
--- | Unqualify.
-unQualify :: Qualified a -> a
-unQualify = Internal.unQualify
-
-{-# DEPRECATED qualify "prepare to drop public interface. use Database.Relational.Query.Internal.Sub.qualify." #-}
--- | Add qualifier
-qualify :: a -> Qualifier -> Qualified a
-qualify a q = Internal.qualify q a
-
 columnN :: Int -> StringSQL
 columnN i = stringSQL $ 'f' : show i
 
@@ -257,16 +233,6 @@ column qs =  d (Internal.unQualify qs)  where
   d (Aggregated _ up _ _ _ _ _ _) i = columnOfUntypedProjection up i
 
 
-{-# DEPRECATED untypedProjectionFromColumns "prepare to drop public interface. use (map RawColumn)." #-}
--- | Make untyped projection from columns.
-untypedProjectionFromColumns :: [ColumnSQL] -> UntypedProjection
-untypedProjectionFromColumns =  map RawColumn
-
-{-# DEPRECATED untypedProjectionFromScalarSubQuery "prepare to drop public interface. use ( (:[]) . Scalar )." #-}
--- | Make untyped projection from scalar sub-query.
-untypedProjectionFromScalarSubQuery :: SubQuery -> UntypedProjection
-untypedProjectionFromScalarSubQuery = (:[]) . Scalar
-
 -- | Make untyped projection from joined sub-query.
 untypedProjectionFromJoinedSubQuery :: Qualified SubQuery -> UntypedProjection
 untypedProjectionFromJoinedSubQuery qs = d $ Internal.unQualify qs  where
@@ -284,11 +250,6 @@ columnOfProjectionUnit = d  where
   d (SubQueryRef qi)  = Internal.qualifier qi `columnFromId` Internal.unQualify qi
   d (Scalar sub)      = columnSQL' $ showUnitSQL sub
 
-{-# DEPRECATED widthOfUntypedProjection "prepare to drop public interface. use untypedProjectionWidth internally." #-}
--- | Width of 'UntypedProjection'.
-widthOfUntypedProjection :: UntypedProjection -> Int
-widthOfUntypedProjection = Internal.untypedProjectionWidth
-
 -- | Get column SQL string of 'UntypedProjection'.
 columnOfUntypedProjection :: UntypedProjection -- ^ Source 'Projection'
                           -> Int               -- ^ Column index
@@ -299,12 +260,6 @@ columnOfUntypedProjection up i
   | otherwise                                         =
     error $ "columnOfUntypedProjection: index out of bounds: " ++ show i
 
-{-# DEPRECATED columnsOfUntypedProjection "prepare to drop unused interface." #-}
--- | Get column SQL string list of projection.
-columnsOfUntypedProjection :: UntypedProjection -- ^ Source 'Projection'
-                           -> [ColumnSQL]       -- ^ Result SQL string list
-columnsOfUntypedProjection = map columnOfProjectionUnit
-
 -- | Get column SQL string list of projection.
 projectionColumns :: Projection c r -- ^ Source 'Projection'
                   -> [ColumnSQL]    -- ^ Result SQL string list
@@ -314,17 +269,6 @@ projectionColumns = map columnOfProjectionUnit . Internal.untypeProjection
 unsafeProjectionStringSql :: Projection c r -> StringSQL
 unsafeProjectionStringSql =  rowStringSQL . map showsColumnSQL . projectionColumns
 
-{-# DEPRECATED unsafeProjectFromColumns "prepare to drop unused interface. use Database.Relational.Query.Internal.Sub.projectFromColumns. " #-}
--- | Unsafely generate 'Projection' from SQL string list.
-unsafeProjectFromColumns :: [ColumnSQL]    -- ^ SQL string list specifies columns
-                         -> Projection c r -- ^ Result 'Projection'
-unsafeProjectFromColumns = Internal.projectFromColumns
-
-
-{-# DEPRECATED nodeTree "prepare to drop unused interface. use Database.Relational.Query.Internal.Sub.nodeTree. " #-}
--- | Get tree from node.
-nodeTree :: Node rs -> ProductTree rs
-nodeTree = Internal.nodeTree
 
 -- | Show product tree of query into SQL. StringSQL result.
 showsQueryProduct :: QueryProductTree -> StringSQL
@@ -333,7 +277,7 @@ showsQueryProduct =  rec  where
   joinType Just' Maybe = LEFT
   joinType Maybe Just' = RIGHT
   joinType Maybe Maybe = FULL
-  urec n = case nodeTree n of
+  urec n = case Internal.nodeTree n of
     p@(Leaf _)     -> rec p
     p@(Join {})    -> SQL.paren (rec p)
   rec (Leaf q)               = qualifiedSQLas $ fmap showUnitSQL q
