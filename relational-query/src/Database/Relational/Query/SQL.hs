@@ -34,8 +34,7 @@ import qualified Language.SQL.Keyword as SQL
 import Database.Record.ToSql (untypedUpdateValuesIndex)
 
 import Database.Relational.Query.Internal.SQL
-  (StringSQL, stringSQL, showStringSQL, rowConsStringSQL,
-   ColumnSQL, showsColumnSQL, showsColumnSQL, )
+  (StringSQL, stringSQL, showStringSQL, rowConsStringSQL, )
 
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
@@ -57,22 +56,22 @@ updatePrefixSQL table = UPDATE <> stringSQL (name table)
 -- | Generate update SQL by specified key and table.
 --   Columns name list of table are also required.
 updateSQL' :: String      -- ^ Table name
-           -> [ColumnSQL] -- ^ Column name list to update
-           -> [ColumnSQL] -- ^ Key column name list
+           -> [StringSQL] -- ^ Column name list to update
+           -> [StringSQL] -- ^ Key column name list
            -> String      -- ^ Result SQL
 updateSQL' table cols key =
   showStringSQL $ mconcat
   [UPDATE, stringSQL table, SET, SQL.fold (|*|) updAssigns,
    WHERE, SQL.fold SQL.and keyAssigns]
   where
-    assigns cs = [ showsColumnSQL c .=. "?" | c <- cs ]
+    assigns cs = [ c .=. "?" | c <- cs ]
     updAssigns = assigns cols
     keyAssigns = assigns key
 
 -- | Generate update SQL by specified key and table.
 --   Columns name list of table are also required.
 updateOtherThanKeySQL' :: String      -- ^ Table name
-                       -> [ColumnSQL] -- ^ Column name list
+                       -> [StringSQL] -- ^ Column name list
                        -> [Int]       -- ^ Key column indexes
                        -> String      -- ^ Result SQL
 updateOtherThanKeySQL' table cols ixs =
@@ -95,7 +94,7 @@ updateOtherThanKeySQL tbl key =
 -- | Generate prefix string of insert SQL.
 insertPrefixSQL :: Pi r r' -> Table r -> StringSQL
 insertPrefixSQL pi' table =
-  INSERT <> INTO <> stringSQL (name table) <> rowConsStringSQL [showsColumnSQL c | c <- cols]  where
+  INSERT <> INTO <> stringSQL (name table) <> rowConsStringSQL cols  where
     cols = Projection.columns . Projection.pi (Projection.unsafeFromTable table) $ pi'
 
 -- | Generate records chunk insert SQL.
