@@ -28,11 +28,11 @@ import Data.Monoid (Monoid (..), (<>))
 import Language.SQL.Keyword (Keyword(..), (|*|))
 import qualified Language.SQL.Keyword as SQL
 
-import Database.Relational.Query.Internal.SQL (StringSQL, ColumnSQL, showsColumnSQL)
+import Database.Relational.Query.Internal.SQL (StringSQL)
 
 
 -- | Type for group-by term
-type AggregateColumnRef = ColumnSQL
+type AggregateColumnRef = StringSQL
 
 -- | Type for group key.
 newtype AggregateBitKey = AggregateBitKey [AggregateColumnRef] deriving Show
@@ -78,9 +78,6 @@ aggregateSets =  GroupingSets
 aggregateEmpty :: [AggregateElem]
 aggregateEmpty =  []
 
-showsAggregateColumnRef :: AggregateColumnRef -> StringSQL
-showsAggregateColumnRef =  showsColumnSQL
-
 commaed :: [StringSQL] -> StringSQL
 commaed =  SQL.fold (|*|)
 
@@ -88,7 +85,7 @@ pComma :: (a -> StringSQL) -> [a] -> StringSQL
 pComma qshow =  SQL.paren . commaed . map qshow
 
 showsAggregateBitKey :: AggregateBitKey -> StringSQL
-showsAggregateBitKey (AggregateBitKey ts) = pComma showsAggregateColumnRef ts
+showsAggregateBitKey (AggregateBitKey ts) = pComma id ts
 
 -- | Compose GROUP BY clause from AggregateElem list.
 composeGroupBy :: [AggregateElem] -> StringSQL
@@ -98,7 +95,7 @@ composeGroupBy =  d where
   keyList op ss = op <> pComma showsAggregateBitKey ss
   rec = commaed . map showsE
   showsGs (AggregateSet s) = SQL.paren $ rec s
-  showsE (ColumnRef t)     = showsAggregateColumnRef t
+  showsE (ColumnRef t)     = t
   showsE (Rollup ss)       = keyList ROLLUP ss
   showsE (Cube   ss)       = keyList CUBE   ss
   showsE (GroupingSets ss) = GROUPING <> SETS <> pComma showsGs ss
@@ -107,7 +104,7 @@ composeGroupBy =  d where
 composePartitionBy :: [AggregateColumnRef] -> StringSQL
 composePartitionBy =  d where
   d []       = mempty
-  d ts@(_:_) = PARTITION <> BY <> commaed (map showsAggregateColumnRef ts)
+  d ts@(_:_) = PARTITION <> BY <> commaed ts
 
 -- | Extract typed projection from 'AggregateKey'.
 aggregateKeyProjection :: AggregateKey a -> a
