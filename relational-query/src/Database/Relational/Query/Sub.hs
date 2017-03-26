@@ -61,7 +61,7 @@ import Database.Relational.Query.Internal.Sub
   (SubQuery (..), Projection,
    UntypedProjection, ProjectionUnit (..),
    JoinProduct, QueryProductTree, ProductBuilder,
-   NodeAttr (Just', Maybe), ProductTree (Leaf, Join), Node,
+   NodeAttr (Just', Maybe), ProductTree (Leaf, Join),
    SetOp (..), BinOp (..), Qualifier (..), Qualified (..),
    QueryRestriction)
 import qualified Database.Relational.Query.Internal.Sub as Internal
