@@ -20,7 +20,7 @@ import Language.SQL.Keyword (Keyword(..), (|*|), (.=.))
 import qualified Language.SQL.Keyword as SQL
 
 import Database.Relational.Query.Internal.SQL
-  (StringSQL, rowConsStringSQL, ColumnSQL, showsColumnSQL)
+  (StringSQL, rowConsStringSQL)
 
 
 -- | Result record duplication attribute
@@ -37,7 +37,7 @@ showsDuplication =  dup  where
 data Order = Asc | Desc  deriving Show
 
 -- | Type for order-by column
-type OrderColumn = ColumnSQL
+type OrderColumn = StringSQL
 
 -- | Type for order-by term
 type OrderingTerm = (Order, OrderColumn)
@@ -47,16 +47,16 @@ composeOrderBy :: [OrderingTerm] -> StringSQL
 composeOrderBy =  d where
   d []       = mempty
   d ts@(_:_) = ORDER <> BY <> SQL.fold (|*|) (map showsOt ts)
-  showsOt (o, e) = showsColumnSQL e <> order o
+  showsOt (o, e) = e <> order o
   order Asc  = ASC
   order Desc = DESC
 
 
 -- | Column SQL String of assignment
-type AssignColumn = ColumnSQL
+type AssignColumn = StringSQL
 
 -- | Value SQL String of assignment
-type AssignTerm   = ColumnSQL
+type AssignTerm   = StringSQL
 
 -- | Assignment pair
 type Assignment = (AssignColumn, AssignTerm)
@@ -65,13 +65,12 @@ type Assignment = (AssignColumn, AssignTerm)
 composeSets :: [Assignment] -> StringSQL
 composeSets as = assigns  where
   assignList = foldr (\ (col, term) r ->
-                       (showsColumnSQL col .=. showsColumnSQL term) : r)
+                       (col .=. term) : r)
                [] as
   assigns | null assignList = error "Update assignment list is null!"
           | otherwise       = SET <> SQL.fold (|*|) assignList
 
 -- | Compose VALUES clause from ['Assignment'].
 composeValues :: [Assignment] -> StringSQL
-composeValues as = rowConsStringSQL [ showsColumnSQL c | c <- cs ] <> VALUES <>
-                   rowConsStringSQL [ showsColumnSQL c | c <- vs ]  where
+composeValues as = rowConsStringSQL cs <> VALUES <> rowConsStringSQL vs  where
   (cs, vs) = unzip as
