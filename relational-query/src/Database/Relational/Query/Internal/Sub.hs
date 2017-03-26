@@ -36,7 +36,7 @@ import Data.Traversable (Traversable)
 
 import Database.Relational.Query.Internal.Config (Config)
 import Database.Relational.Query.Internal.ContextType (Flat, Aggregated)
-import Database.Relational.Query.Internal.SQL (ColumnSQL)
+import Database.Relational.Query.Internal.SQL (StringSQL)
 import Database.Relational.Query.Internal.BaseSQL (Duplication (..), OrderingTerm)
 import Database.Relational.Query.Internal.GroupingSQL (AggregateElem)
 import Database.Relational.Query.Internal.UntypedTable (Untyped)
@@ -119,7 +119,7 @@ type JoinProduct = Maybe QueryProductTree
 
 -- | Projection structure unit with single column width
 data ProjectionUnit
-  = RawColumn ColumnSQL            -- ^ used in immediate value or unsafe operations
+  = RawColumn StringSQL            -- ^ used in immediate value or unsafe operations
   | SubQueryRef (Qualified Int)    -- ^ normalized sub-query reference T<n> with Int index
   | Scalar SubQuery                -- ^ scalar sub-query
   deriving Show
@@ -145,7 +145,7 @@ projectionWidth :: Projection c r -> Int
 projectionWidth = length . untypeProjection
 
 -- | Unsafely generate 'Projection' from SQL string list.
-projectFromColumns :: [ColumnSQL]    -- ^ SQL string list specifies columns
+projectFromColumns :: [StringSQL]    -- ^ SQL string list specifies columns
                    -> Projection c r -- ^ Result 'Projection'
 projectFromColumns =  typedProjection . map RawColumn
 
