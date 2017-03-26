@@ -47,9 +47,7 @@ import qualified Language.SQL.Keyword as SQL
 import Database.Record (HasColumnConstraint, NotNull, NotNullColumnConstraint)
 import qualified Database.Record.KeyConstraint as KeyConstraint
 
-import Database.Relational.Query.Internal.SQL
-  (StringSQL, listStringSQL,
-   ColumnSQL, showsColumnSQL, columnSQL', )
+import Database.Relational.Query.Internal.SQL (StringSQL, listStringSQL, )
 import Database.Relational.Query.Internal.Sub
   (SubQuery, Qualified, UntypedProjection,
    Projection, untypeProjection, typedProjection, projectionWidth)
@@ -74,7 +72,7 @@ unsafeStringSql = unsafeProjectionStringSql
 
 -- | Get column SQL string list of projection.
 columns :: Projection c r -- ^ Source 'Projection'
-        -> [ColumnSQL]    -- ^ Result SQL string list
+        -> [StringSQL]    -- ^ Result SQL string list
 columns = projectionColumns
 
 -- | Width of 'Projection'.
@@ -101,7 +99,7 @@ unsafeFromTable = Internal.projectFromColumns . Table.columns
 
 -- | Unsafely generate 'Projection' from SQL expression strings.
 unsafeFromSqlTerms :: [StringSQL] -> Projection c t
-unsafeFromSqlTerms = Internal.projectFromColumns . map columnSQL'
+unsafeFromSqlTerms = Internal.projectFromColumns
 
 
 -- | Unsafely trace projection path.
@@ -158,7 +156,7 @@ notNullMaybeConstraint =  const KeyConstraint.columnConstraint
 
 -- | Unsafely get SQL string expression of not null key projection.
 unsafeStringSqlNotNullMaybe :: HasColumnConstraint NotNull r => Projection c (Maybe r) -> StringSQL
-unsafeStringSqlNotNullMaybe p = showsColumnSQL . (!!  KeyConstraint.index (notNullMaybeConstraint p)) . columns $ p
+unsafeStringSqlNotNullMaybe p = (!!  KeyConstraint.index (notNullMaybeConstraint p)) . columns $ p
 
 -- | Projectable fmap of 'Projection' type.
 pfmap :: ProductConstructor (a -> b)
