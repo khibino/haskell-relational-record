@@ -15,11 +15,11 @@ module Database.Relational.Query.Internal.UntypedTable (
 import Data.Array (Array, elems)
 import qualified Data.Array as Array
 
-import Database.Relational.Query.Internal.SQL (ColumnSQL)
+import Database.Relational.Query.Internal.SQL (StringSQL)
 
 
 -- | Untyped typed table type
-data Untyped = Untyped String Int (Array Int ColumnSQL)  deriving Show
+data Untyped = Untyped String Int (Array Int StringSQL)  deriving Show
 
 -- | Name string of table in SQL
 name' :: Untyped -> String
@@ -30,15 +30,15 @@ width' :: Untyped -> Int
 width'      (Untyped _ w _) = w
 
 -- | Column name strings in SQL
-columnArray :: Untyped -> Array Int ColumnSQL
+columnArray :: Untyped -> Array Int StringSQL
 columnArray (Untyped _ _ c) = c
 
 -- | Column name strings in SQL
-columns' :: Untyped -> [ColumnSQL]
+columns' :: Untyped -> [StringSQL]
 columns' =  elems . columnArray
 
 -- | Column name string in SQL specified by index
 (!) :: Untyped
     -> Int       -- ^ Column index
-    -> ColumnSQL -- ^ Column name String in SQL
+    -> StringSQL -- ^ Column name String in SQL
 t ! i = columnArray t Array.! i
