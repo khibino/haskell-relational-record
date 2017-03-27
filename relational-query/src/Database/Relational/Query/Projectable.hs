@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -86,8 +84,6 @@ import Database.Relational.Query.Internal.ProjectableClass
 import Database.Relational.Query.Context (Flat, Aggregated, Exists, OverWindow)
 import Database.Relational.Query.Pure
   (ShowConstantTermsSQL, showConstantTermsSQL', )
-import Database.Relational.Query.Pi (Pi)
-import qualified Database.Relational.Query.Pi as Pi
 import Database.Relational.Query.Projection
   (Projection, ListProjection)
 import qualified Database.Relational.Query.Projection as Projection
@@ -546,22 +542,6 @@ instance ProjectableFunctor PlaceHolders where
 -- | Compose record type 'PlaceHolders' using applicative style.
 instance ProjectableApplicative PlaceHolders where
   pf |*| pa = unsafeCastPlaceHolders (pf >< pa)
-
--- | Compose seed of record type 'Projection'.
-instance ProjectableFunctor (Projection c) where
-  (|$|) = Projection.pfmap
-
--- | Compose record type 'Projection' using applicative style.
-instance ProjectableApplicative (Projection c) where
-  (|*|) = Projection.pap
-
--- | Compose seed of projection path 'Pi' which has record result type.
-instance ProjectableFunctor (Pi a) where
-  (|$|) = Pi.pfmap
-
--- | Compose projection path 'Pi' which has record result type using applicative style.
-instance ProjectableApplicative (Pi a) where
-  (|*|) = Pi.pap
 
 infixl 7 .*., ./., ?*?, ?/?
 infixl 6 .+., .-., ?+?, ?-?

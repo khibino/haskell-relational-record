@@ -36,7 +36,9 @@ import Database.Record.Persistable
   (PersistableRecordWidth, runPersistableRecordWidth, unsafePersistableRecordWidth, (<&>),
    PersistableWidth (persistableWidth), maybeWidth)
 
-import Database.Relational.Query.Pure (ProductConstructor (..))
+import Database.Relational.Query.Internal.ProjectableClass
+  (ProductConstructor (..), ProjectableFunctor (..), ProjectableApplicative (..), )
+
 
 -- | Projection path primary structure type.
 data Pi' r0 r1 = Leftest Int
@@ -87,6 +89,14 @@ pap b@(Pi _ wb) c@(Pi _ wc) =
    Pi
    (Map $ unsafeExpandIndexes b ++ unsafeExpandIndexes c)
    (unsafeCastRecordWidth $ wb <&> wc)
+
+-- | Compose seed of projection path 'Pi' which has record result type.
+instance ProjectableFunctor (Pi a) where
+  (|$|) = pfmap
+
+-- | Compose projection path 'Pi' which has record result type using applicative style.
+instance ProjectableApplicative (Pi a) where
+  (|*|) = pap
 
 -- | Get record width proof object.
 width' :: Pi r ct -> PersistableRecordWidth ct

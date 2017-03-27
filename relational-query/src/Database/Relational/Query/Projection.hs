@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE FlexibleContexts #-}
 
 -- |
@@ -52,6 +53,8 @@ import Database.Relational.Query.Internal.Sub
   (SubQuery, Qualified, UntypedProjection,
    Projection, untypeProjection, typedProjection, projectionWidth)
 import qualified Database.Relational.Query.Internal.Sub as Internal
+import Database.Relational.Query.Internal.ProjectableClass
+  (ProjectableFunctor (..), ProjectableApplicative (..), )
 
 import Database.Relational.Query.Context (Aggregated, Flat)
 import Database.Relational.Query.Table (Table)
@@ -166,6 +169,14 @@ _ `pfmap` p = unsafeCast p
 -- | Projectable ap of 'Projection' type.
 pap :: Projection c (a -> b) -> Projection c a -> Projection c b
 pf `pap` pa = typedProjection $ untypeProjection pf ++ untypeProjection pa
+
+-- | Compose seed of record type 'Projection'.
+instance ProjectableFunctor (Projection c) where
+  (|$|) = pfmap
+
+-- | Compose record type 'Projection' using applicative style.
+instance ProjectableApplicative (Projection c) where
+  (|*|) = pap
 
 -- | Projection type for row list.
 data ListProjection p t = List [p t]
