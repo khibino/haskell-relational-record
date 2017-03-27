@@ -70,7 +70,7 @@ import Data.Array.IArray ((!))
 
 import Language.Haskell.TH
   (Name, nameBase, Q, reify, TypeQ, Type (AppT, ConT), ExpQ,
-   tupleT, appT, arrowT, Dec, stringE, listE)
+   tupleT, appT, Dec, stringE, listE)
 import Language.Haskell.TH.Compat.Reify (unVarI)
 import Language.Haskell.TH.Name.CamelCase
   (VarName, varName, ConName (ConName), conName, varNameWithPrefix, varCamelcaseName, toVarExp, toTypeCon, toDataCon)
@@ -82,14 +82,14 @@ import Database.Record.TH
 import qualified Database.Record.TH as Record
 
 import Database.Relational.Query
-  (Table, Pi, id', Relation, ProductConstructor (..),
+  (Table, Pi, id', Relation,
    NameConfig (..), SchemaNameMode (..), IdentifierQuotation (..),
    Config (normalizedTableName, schemaNameMode, nameConfig, identifierQuotation),
    relationalQuerySQL, Query, relationalQuery, KeyUpdate,
    Insert, derivedInsert, InsertQuery, derivedInsertQuery,
    HasConstraintKey(constraintKey), Primary, NotNull, primary, primaryUpdate)
 
-import Database.Relational.Query.Internal.TH (defineTuplePi)
+import Database.Relational.Query.Internal.TH (defineProductConstructorInstance, defineTuplePi)
 import Database.Relational.Query.Scalar (defineScalarDegree)
 import Database.Relational.Query.Constraint (Key, unsafeDefineConstraintKey)
 import Database.Relational.Query.Table (TableDerivable (..))
@@ -279,13 +279,6 @@ relationVarExp :: Config -- ^ Configuration which has  naming rules of templates
                          -> String -- ^ Table name string
                          -> ExpQ   -- ^ Result var Exp
 relationVarExp config scm = toVarExp . relationVarName (nameConfig config) scm
-
--- | Make template for 'ProductConstructor' instance.
-defineProductConstructorInstance :: TypeQ -> ExpQ -> [TypeQ] -> Q [Dec]
-defineProductConstructorInstance recTypeQ recData colTypes =
-  [d| instance ProductConstructor $(foldr (appT . (arrowT `appT`)) recTypeQ colTypes) where
-        productConstructor = $(recData)
-    |]
 
 -- | Make template for record 'ProductConstructor' instance using specified naming rule.
 defineProductConstructorInstanceWithConfig :: Config -> String -> String -> [TypeQ] -> Q [Dec]

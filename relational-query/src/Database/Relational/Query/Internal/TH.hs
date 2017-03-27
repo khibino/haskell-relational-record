@@ -1,23 +1,36 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Database.Relational.Query.Internal.TH (
-  defineTuplePi
+  defineProductConstructorInstance,
+  defineTuplePi,
   ) where
 
 import Control.Applicative ((<$>))
 import Data.List (foldl')
 import Language.Haskell.TH
   (Q, mkName, normalB, classP, varP,
-   forallT, varT, tupleT, appT,
+   Exp,
+   Type, forallT, varT, tupleT, appT, arrowT,
    Dec, sigD, valD,
    TyVarBndr (PlainTV), )
 import Database.Record.Persistable
   (PersistableWidth, persistableWidth,
    PersistableRecordWidth, runPersistableRecordWidth)
 
+import Database.Relational.Query.Internal.ProjectableClass (ProductConstructor (..))
+
 import Database.Relational.Query.Pi.Unsafe (Pi, definePi)
 
 
+-- | Make template for 'ProductConstructor' instance.
+defineProductConstructorInstance :: Q Type -> Q Exp -> [Q Type] -> Q [Dec]
+defineProductConstructorInstance recTypeQ recData colTypes =
+  [d| instance ProductConstructor $(foldr (appT . (arrowT `appT`)) recTypeQ colTypes) where
+        productConstructor = $(recData)
+    |]
+
+-- | xxx
 tuplePi :: Int -> Int -> Q [Dec]
 tuplePi n i = do
   let selN = mkName $ "tuplePi" ++ show n ++ "_" ++ show i ++ "'"
