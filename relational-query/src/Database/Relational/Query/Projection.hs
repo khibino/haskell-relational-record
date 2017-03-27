@@ -54,12 +54,11 @@ import Database.Relational.Query.Internal.Sub
    Projection, untypeProjection, typedProjection, projectionWidth)
 import qualified Database.Relational.Query.Internal.Sub as Internal
 import Database.Relational.Query.Internal.ProjectableClass
-  (ProjectableFunctor (..), ProjectableApplicative (..), )
+  (ProductConstructor (..), ProjectableFunctor (..), ProjectableApplicative (..), )
 
 import Database.Relational.Query.Context (Aggregated, Flat)
 import Database.Relational.Query.Table (Table)
 import qualified Database.Relational.Query.Table as Table
-import Database.Relational.Query.Pure (ProductConstructor (..))
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
 import Database.Relational.Query.Sub
