@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -78,10 +80,12 @@ import Database.Record
    HasColumnConstraint, NotNull)
 
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL)
+import Database.Relational.Query.Internal.ProjectableClass
+  (ProjectableFunctor (..), ProjectableApplicative (..), ipfmap, )
 
 import Database.Relational.Query.Context (Flat, Aggregated, Exists, OverWindow)
 import Database.Relational.Query.Pure
-  (ShowConstantTermsSQL, showConstantTermsSQL', ProductConstructor (..))
+  (ShowConstantTermsSQL, showConstantTermsSQL', )
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi as Pi
 import Database.Relational.Query.Projection
@@ -535,21 +539,6 @@ instance ProjectableIdZip PlaceHolders where
   leftId  = unsafeCastPlaceHolders
   rightId = unsafeCastPlaceHolders
 
--- | Weaken functor on projections.
-class ProjectableFunctor p where
-  -- | Method like 'fmap'.
-  (|$|) :: ProductConstructor (a -> b) => (a -> b) -> p a -> p b
-
--- | Same as '|$|' other than using inferred record constructor.
-ipfmap :: (ProjectableFunctor p, ProductConstructor (a -> b))
-       => p a -> p b
-ipfmap =  (|$|) productConstructor
-
--- | Weaken applicative functor on projections.
-class ProjectableFunctor p => ProjectableApplicative p where
-  -- | Method like '<*>'.
-  (|*|) :: p (a -> b) -> p a -> p b
-
 -- | Compose seed of record type 'PlaceHolders'.
 instance ProjectableFunctor PlaceHolders where
   _ |$| PlaceHolders = PlaceHolders
@@ -577,7 +566,6 @@ instance ProjectableApplicative (Pi a) where
 infixl 7 .*., ./., ?*?, ?/?
 infixl 6 .+., .-., ?+?, ?-?
 infixl 5 .||., ?||?
-infixl 4 |$|, |*|
 infix  4 .=., .<>., .>., .>=., .<., .<=., `in'`, `like`, `likeMaybe`, `like'`, `likeMaybe'`
 infixr 3 `and'`
 infixr 2 `or'`

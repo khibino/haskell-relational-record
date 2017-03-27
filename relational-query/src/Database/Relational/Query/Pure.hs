@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE FlexibleInstances #-}
 
 -- |
@@ -39,12 +40,8 @@ import Database.Record.Persistable
   (runPersistableRecordWidth)
 
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL)
+import Database.Relational.Query.Internal.ProjectableClass (ProductConstructor (..))
 
-
--- | Specify tuple like record constructors which are allowed to define 'ProjectableFunctor'.
-class ProductConstructor r where
-  -- | The constructor which has type 'r'.
-  productConstructor :: r
 
 -- | ProductConstructor instance of pair.
 instance ProductConstructor (a -> b -> (a, b)) where
