@@ -14,9 +14,6 @@
 -- and query internal projection values.
 module Database.Relational.Query.Pure (
 
-  -- * Interface to specify record constructors.
-  ProductConstructor (..),
-
   -- * Constant SQL Terms
   ShowConstantTermsSQL (..), showConstantTermsSQL
   ) where

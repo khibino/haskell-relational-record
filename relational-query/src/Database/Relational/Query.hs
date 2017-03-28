@@ -19,6 +19,7 @@ module Database.Relational.Query (
   module Database.Relational.Query.Component,
   module Database.Relational.Query.Sub,
   module Database.Relational.Query.Projection,
+  module Database.Relational.Query.ProjectableClass,
   module Database.Relational.Query.Projectable,
   module Database.Relational.Query.ProjectableExtended,
   module Database.Relational.Query.Monad.Class,
@@ -58,6 +59,7 @@ import Database.Relational.Query.Component
    AggregateKey, Order (..))
 import Database.Relational.Query.Sub (SubQuery, unitSQL, queryWidth)
 import Database.Relational.Query.Projection (Projection, list)
+import Database.Relational.Query.ProjectableClass
 import Database.Relational.Query.Projectable
 import Database.Relational.Query.ProjectableExtended
 import Database.Relational.Query.Monad.Class

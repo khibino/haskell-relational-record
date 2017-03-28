@@ -59,9 +59,6 @@ module Database.Relational.Query.Projectable (
 
   -- * 'Maybe' type projecitoins
   ProjectableMaybe (just, flattenMaybe),
-
-  -- * ProjectableFunctor and ProjectableApplicative
-  ProjectableFunctor (..), ProjectableApplicative (..), ipfmap
   ) where
 
 import Prelude hiding (pi)
@@ -80,7 +77,7 @@ import Database.Record
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL)
 
 import Database.Relational.Query.ProjectableClass
-  (ProjectableFunctor (..), ProjectableApplicative (..), ipfmap, )
+  (ProjectableFunctor (..), ProjectableApplicative (..), )
 import Database.Relational.Query.Context (Flat, Aggregated, Exists, OverWindow)
 import Database.Relational.Query.Pure
   (ShowConstantTermsSQL, showConstantTermsSQL', )
