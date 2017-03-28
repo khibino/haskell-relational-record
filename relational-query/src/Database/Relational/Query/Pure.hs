@@ -13,9 +13,8 @@
 -- This module defines interfaces between haskell pure values
 -- and query internal projection values.
 module Database.Relational.Query.Pure (
-
   -- * Constant SQL Terms
-  ShowConstantTermsSQL (..),
+  ShowConstantTermsSQL (..), StringSQL,
   ) where
 
 import Data.Monoid (mconcat)
