@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module Database.Relational.Query.Internal.TH (
+module Database.Relational.Query.BaseTH (
   defineProductConstructorInstance,
   defineTupleProductConstructor,
   defineTuplePi,

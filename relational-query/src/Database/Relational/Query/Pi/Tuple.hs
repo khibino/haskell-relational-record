@@ -15,7 +15,7 @@ module Database.Relational.Query.Pi.Tuple where
 
 import Control.Applicative ((<$>))
 
-import Database.Relational.Query.Internal.TH (defineTuplePi)
+import Database.Relational.Query.BaseTH (defineTuplePi)
 
 
 $(concat <$> mapM defineTuplePi [2..7])

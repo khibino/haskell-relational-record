@@ -67,6 +67,7 @@ library
                        Database.Relational.Query.Scalar
                        Database.Relational.Query.Type
                        Database.Relational.Query.Derives
+                       Database.Relational.Query.BaseTH
                        Database.Relational.Query.TH
 
   other-modules:
@@ -79,7 +80,6 @@ library
                        Database.Relational.Query.Internal.Product
                        Database.Relational.Query.Internal.Sub
                        Database.Relational.Query.Internal.ProjectableClass
-                       Database.Relational.Query.Internal.TH
                        Database.Relational.Query.Monad.Trans.JoinState
                        Database.Relational.Query.Monad.Trans.Qualify
 
