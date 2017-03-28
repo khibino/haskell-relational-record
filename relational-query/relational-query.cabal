@@ -38,7 +38,6 @@ library
                        Database.Relational.Query.SQL
                        Database.Relational.Query.Pure
                        Database.Relational.Query.Pi
-                       Database.Relational.Query.Pi.Tuple
                        Database.Relational.Query.Pi.Unsafe
                        Database.Relational.Query.Constraint
                        Database.Relational.Query.Context
@@ -48,6 +47,7 @@ library
                        Database.Relational.Query.ProjectableClass
                        Database.Relational.Query.Projectable
                        Database.Relational.Query.ProjectableExtended
+                       Database.Relational.Query.TupleInstances
                        Database.Relational.Query.Monad.BaseType
                        Database.Relational.Query.Monad.Class
                        Database.Relational.Query.Monad.Trans.Ordering

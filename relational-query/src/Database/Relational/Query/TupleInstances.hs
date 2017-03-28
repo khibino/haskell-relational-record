@@ -2,7 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 -- |
--- Module      : Database.Relational.Query.Pi.Tuple
+-- Module      : Database.Relational.Query.TupleInstances
 -- Copyright   : 2017 Kei Hibino
 -- License     : BSD3
 --
@@ -11,7 +11,7 @@
 -- Portability : unknown
 --
 -- This module defines projection path objects for tuple types.
-module Database.Relational.Query.Pi.Tuple where
+module Database.Relational.Query.TupleInstances where
 
 import Control.Applicative ((<$>))
 
