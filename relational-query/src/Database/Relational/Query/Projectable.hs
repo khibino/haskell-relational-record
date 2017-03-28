@@ -79,6 +79,7 @@ import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringS
 import Database.Relational.Query.ProjectableClass
   (ProjectableFunctor (..), ProjectableApplicative (..), )
 import Database.Relational.Query.Context (Flat, Aggregated, Exists, OverWindow)
+import Database.Relational.Query.TupleInstances ()
 import Database.Relational.Query.Pure
   (ShowConstantTermsSQL, showConstantTermsSQL', )
 import Database.Relational.Query.Projection

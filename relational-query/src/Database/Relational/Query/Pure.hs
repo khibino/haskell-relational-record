@@ -37,12 +37,6 @@ import Database.Record.Persistable
   (runPersistableRecordWidth)
 
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL)
-import Database.Relational.Query.ProjectableClass (ProductConstructor (..))
-
-
--- | ProductConstructor instance of pair.
-instance ProductConstructor (a -> b -> (a, b)) where
-  productConstructor = (,)
 
 
 -- | Constant integral SQL expression.
