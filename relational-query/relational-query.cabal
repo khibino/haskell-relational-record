@@ -42,6 +42,7 @@ library
                        Database.Relational.Query.Pi.Unsafe
                        Database.Relational.Query.Constraint
                        Database.Relational.Query.Context
+                       Database.Relational.Query.ProjectableClass
                        Database.Relational.Query.Projectable
                        Database.Relational.Query.ProjectableExtended
                        Database.Relational.Query.Component
@@ -79,7 +80,6 @@ library
                        Database.Relational.Query.Internal.UntypedTable
                        Database.Relational.Query.Internal.Product
                        Database.Relational.Query.Internal.Sub
-                       Database.Relational.Query.Internal.ProjectableClass
                        Database.Relational.Query.Monad.Trans.JoinState
                        Database.Relational.Query.Monad.Trans.Qualify
 

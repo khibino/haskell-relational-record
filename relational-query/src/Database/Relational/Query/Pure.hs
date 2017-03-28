@@ -40,7 +40,7 @@ import Database.Record.Persistable
   (runPersistableRecordWidth)
 
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL)
-import Database.Relational.Query.Internal.ProjectableClass (ProductConstructor (..))
+import Database.Relational.Query.ProjectableClass (ProductConstructor (..))
 
 
 -- | ProductConstructor instance of pair.

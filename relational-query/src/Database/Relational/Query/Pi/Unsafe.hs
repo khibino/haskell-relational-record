@@ -36,7 +36,7 @@ import Database.Record.Persistable
   (PersistableRecordWidth, runPersistableRecordWidth, unsafePersistableRecordWidth, (<&>),
    PersistableWidth (persistableWidth), maybeWidth)
 
-import Database.Relational.Query.Internal.ProjectableClass
+import Database.Relational.Query.ProjectableClass
   (ProductConstructor (..), ProjectableFunctor (..), ProjectableApplicative (..), )
 
 

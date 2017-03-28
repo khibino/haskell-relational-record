@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 -- |
--- Module      : Database.Relational.Query.Internal.ProjectableClass
+-- Module      : Database.Relational.Query.ProjectableClass
 -- Copyright   : 2017 Kei Hibino
 -- License     : BSD3
 --
@@ -11,7 +11,7 @@
 --
 -- This module provides interfaces to preserve constraints of
 -- direct product projections.
-module Database.Relational.Query.Internal.ProjectableClass (
+module Database.Relational.Query.ProjectableClass (
   ProductConstructor (..),
   ProjectableFunctor (..), ProjectableApplicative (..), ipfmap,
   ) where

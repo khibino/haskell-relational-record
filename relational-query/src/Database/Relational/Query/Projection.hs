@@ -53,9 +53,9 @@ import Database.Relational.Query.Internal.Sub
   (SubQuery, Qualified, UntypedProjection,
    Projection, untypeProjection, typedProjection, projectionWidth)
 import qualified Database.Relational.Query.Internal.Sub as Internal
-import Database.Relational.Query.Internal.ProjectableClass
-  (ProductConstructor (..), ProjectableFunctor (..), ProjectableApplicative (..), )
 
+import Database.Relational.Query.ProjectableClass
+  (ProductConstructor (..), ProjectableFunctor (..), ProjectableApplicative (..), )
 import Database.Relational.Query.Context (Aggregated, Flat)
 import Database.Relational.Query.Table (Table)
 import qualified Database.Relational.Query.Table as Table

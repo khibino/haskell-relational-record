@@ -28,8 +28,7 @@ import Database.Record.Persistable
   (PersistableWidth, persistableWidth,
    PersistableRecordWidth, runPersistableRecordWidth)
 
-import Database.Relational.Query.Internal.ProjectableClass (ProductConstructor (..))
-
+import Database.Relational.Query.ProjectableClass (ProductConstructor (..))
 import Database.Relational.Query.Pi.Unsafe (Pi, definePi)
 
 

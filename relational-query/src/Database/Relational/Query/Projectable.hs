@@ -78,9 +78,9 @@ import Database.Record
    HasColumnConstraint, NotNull)
 
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL)
-import Database.Relational.Query.Internal.ProjectableClass
-  (ProjectableFunctor (..), ProjectableApplicative (..), ipfmap, )
 
+import Database.Relational.Query.ProjectableClass
+  (ProjectableFunctor (..), ProjectableApplicative (..), ipfmap, )
 import Database.Relational.Query.Context (Flat, Aggregated, Exists, OverWindow)
 import Database.Relational.Query.Pure
   (ShowConstantTermsSQL, showConstantTermsSQL', )
