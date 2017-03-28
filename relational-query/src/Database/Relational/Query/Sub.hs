@@ -69,7 +69,7 @@ import qualified Database.Relational.Query.Internal.UntypedTable as UntypedTable
 
 import Database.Relational.Query.Table (Table)
 import qualified Database.Relational.Query.Table as Table
-import Database.Relational.Query.Pure (showConstantTermsSQL')
+import Database.Relational.Query.Pure (showConstantTermsSQL)
 
 
 showsSetOp' :: SetOp -> StringSQL
@@ -285,7 +285,7 @@ showsQueryProduct =  rec  where
     [urec left',
      joinType (Internal.nodeAttr left') (Internal.nodeAttr right'), JOIN,
      urec right',
-     ON, foldr1 SQL.and $ ps ++ concat [ showConstantTermsSQL' True | null ps ] ]
+     ON, foldr1 SQL.and $ ps ++ concat [ showConstantTermsSQL True | null ps ] ]
     where ps = [ unsafeProjectionStringSql p | p <- rs ]
 
 -- | Shows join product of query.
