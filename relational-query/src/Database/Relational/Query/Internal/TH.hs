@@ -3,16 +3,16 @@
 
 module Database.Relational.Query.Internal.TH (
   defineProductConstructorInstance,
+  defineTupleProductConstructor,
   defineTuplePi,
   ) where
 
 import Control.Applicative ((<$>))
 import Data.List (foldl')
 import Language.Haskell.TH
-  (Q, mkName, normalB, classP, varP,
-   Exp,
-   Type, forallT, varT, tupleT, appT, arrowT,
-   Dec, sigD, valD,
+  (Q, Name, mkName, tupleDataName, normalB, classP, varP,
+   TypeQ, forallT, arrowT, varT, tupleT, appT,
+   Dec, sigD, valD, ExpQ, conE,
    TyVarBndr (PlainTV), )
 import Database.Record.Persistable
   (PersistableWidth, persistableWidth,
@@ -24,22 +24,32 @@ import Database.Relational.Query.Pi.Unsafe (Pi, definePi)
 
 
 -- | Make template for 'ProductConstructor' instance.
-defineProductConstructorInstance :: Q Type -> Q Exp -> [Q Type] -> Q [Dec]
+defineProductConstructorInstance :: TypeQ -> ExpQ -> [TypeQ] -> Q [Dec]
 defineProductConstructorInstance recTypeQ recData colTypes =
   [d| instance ProductConstructor $(foldr (appT . (arrowT `appT`)) recTypeQ colTypes) where
         productConstructor = $(recData)
     |]
 
--- | xxx
+tupleN :: Int -> (([Name], [TypeQ]), TypeQ)
+tupleN n = ((ns, vs), foldl' appT (tupleT n) vs)
+  where
+    ns = [ mkName $ "a" ++ show j | j <- [1 .. n] ]
+    vs = map varT ns
+
+-- | Make template of ProductConstructor instance of tuple type.
+defineTupleProductConstructor :: Int -> Q [Dec]
+defineTupleProductConstructor n = do
+  let ((_, vs), tty)  =  tupleN n
+  defineProductConstructorInstance tty (conE $ tupleDataName n) vs
+
 tuplePi :: Int -> Int -> Q [Dec]
 tuplePi n i = do
   let selN = mkName $ "tuplePi" ++ show n ++ "_" ++ show i ++ "'"
-      ns = [ mkName $ "a" ++ show j | j <- [1 .. n] ]
-      vs = map varT ns
+      ((ns, vs), tty) = tupleN n
   sig <- sigD selN $
          forallT (map PlainTV ns)
          (mapM (classP ''PersistableWidth . (:[])) vs)
-         [t| Pi $(foldl' appT (tupleT n) vs) $(vs !! i) |]
+         [t| Pi $tty $(vs !! i) |]
   val <- valD (varP selN)
          (normalB [| definePi $(foldl'
                                 (\e t -> [| $e + runPersistableRecordWidth (persistableWidth :: PersistableRecordWidth $t) |])
