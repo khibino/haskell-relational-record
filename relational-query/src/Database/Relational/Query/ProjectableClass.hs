@@ -12,7 +12,10 @@
 -- This module provides interfaces to preserve constraints of
 -- direct product projections.
 module Database.Relational.Query.ProjectableClass (
+  -- * Interface to specify record constructors.
   ProductConstructor (..),
+
+  -- * ProjectableFunctor and ProjectableApplicative
   ProjectableFunctor (..), ProjectableApplicative (..), ipfmap,
   ) where
 
