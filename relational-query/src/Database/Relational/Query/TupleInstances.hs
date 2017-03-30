@@ -18,11 +18,11 @@ module Database.Relational.Query.TupleInstances where
 
 import Control.Applicative ((<$>))
 
-import Database.Relational.Query.BaseTH (defineTuplePi, defineTupleProductConstructor)
+import Database.Relational.Query.BaseTH
+  (defineTuplePi, defineTupleProductConstructor, defineTupleShowConstantInstance,)
 
 
 $(concat <$> mapM defineTupleProductConstructor [2..7])
--- Generic instances of tuple types are generated from 2 to 7 in GHC.Generics.
-
 $(concat <$> mapM defineTuplePi [2..7])
+$(concat <$> mapM defineTupleShowConstantInstance [2..7])
 -- Generic instances of tuple types are generated from 2 to 7 in GHC.Generics.

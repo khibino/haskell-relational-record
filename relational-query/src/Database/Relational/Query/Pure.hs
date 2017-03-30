@@ -158,8 +158,3 @@ showMaybeTerms wa = d  where
 instance (PersistableWidth a, ShowConstantTermsSQL a)
          => ShowConstantTermsSQL (Maybe a) where
   showConstantTermsSQL = showMaybeTerms persistableWidth
-
--- | Constant SQL terms of '(a, b)' type.
-instance (ShowConstantTermsSQL a, ShowConstantTermsSQL b)
-         => ShowConstantTermsSQL (a, b) where
-  showConstantTermsSQL (a, b) = showConstantTermsSQL a ++ showConstantTermsSQL b
