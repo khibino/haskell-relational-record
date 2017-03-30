@@ -1,4 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DefaultSignatures #-}
 
 -- |
 -- Module      : Database.Relational.Query.ProjectableClass
@@ -23,6 +25,10 @@ module Database.Relational.Query.ProjectableClass (
   StringSQL,
 
   ) where
+
+import GHC.Generics (Generic, Rep, U1 (..), K1 (..), M1 (..), (:*:)(..), from)
+import Data.Monoid (mempty, (<>))
+import Data.DList (DList, fromList, toList)
 
 import Database.Relational.Query.Internal.SQL (StringSQL)
 
@@ -53,3 +59,22 @@ infixl 4 |$|, |*|
 -- | Interface for constant SQL term list.
 class ShowConstantTermsSQL a where
   showConstantTermsSQL :: a -> [StringSQL]
+
+  default showConstantTermsSQL :: (Generic a, GShowConstantTermsSQL (Rep a)) => a -> [StringSQL]
+  showConstantTermsSQL = toList . gShowConstantTermsSQL . from
+
+class GShowConstantTermsSQL f where
+  gShowConstantTermsSQL :: f a -> DList StringSQL
+
+instance GShowConstantTermsSQL U1 where
+  gShowConstantTermsSQL U1 = mempty
+
+instance (GShowConstantTermsSQL a, GShowConstantTermsSQL b) =>
+         GShowConstantTermsSQL (a :*: b) where
+  gShowConstantTermsSQL (a :*: b) = gShowConstantTermsSQL a <> gShowConstantTermsSQL b
+
+instance GShowConstantTermsSQL a => GShowConstantTermsSQL (M1 i c a) where
+  gShowConstantTermsSQL (M1 a) = gShowConstantTermsSQL a
+
+instance ShowConstantTermsSQL a => GShowConstantTermsSQL (K1 i a) where
+  gShowConstantTermsSQL (K1 a) = fromList $ showConstantTermsSQL a
