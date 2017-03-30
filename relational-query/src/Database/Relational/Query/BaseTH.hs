@@ -14,6 +14,7 @@
 module Database.Relational.Query.BaseTH (
   defineProductConstructorInstance,
   defineTupleProductConstructor,
+  defineTupleShowConstantInstance,
   defineTuplePi,
   ) where
 
@@ -22,13 +23,14 @@ import Data.List (foldl')
 import Language.Haskell.TH
   (Q, Name, mkName, tupleDataName, normalB, classP, varP,
    TypeQ, forallT, arrowT, varT, tupleT, appT,
-   Dec, sigD, valD, ExpQ, conE,
+   Dec, sigD, valD, instanceD, ExpQ, conE,
    TyVarBndr (PlainTV), )
 import Database.Record.Persistable
   (PersistableWidth, persistableWidth,
    PersistableRecordWidth, runPersistableRecordWidth)
 
-import Database.Relational.Query.ProjectableClass (ProductConstructor (..))
+import Database.Relational.Query.ProjectableClass
+  (ProductConstructor (..), ShowConstantTermsSQL (..), )
 import Database.Relational.Query.Pi.Unsafe (Pi, definePi)
 
 
@@ -50,6 +52,16 @@ defineTupleProductConstructor :: Int -> Q [Dec]
 defineTupleProductConstructor n = do
   let ((_, vs), tty)  =  tupleN n
   defineProductConstructorInstance tty (conE $ tupleDataName n) vs
+
+-- | Make template of 'ShowConstantTermsSQL' instance of tuple type.
+defineTupleShowConstantInstance :: Int -> Q [Dec]
+defineTupleShowConstantInstance n = do
+  let ((_, vs), tty)  =  tupleN n
+  (:[]) <$> instanceD
+    -- in template-haskell 2.8 or older, Pred is not Type
+    (mapM (classP ''ShowConstantTermsSQL . (:[])) vs)
+    [t| ShowConstantTermsSQL $tty |]
+    []
 
 tuplePi :: Int -> Int -> Q [Dec]
 tuplePi n i = do
