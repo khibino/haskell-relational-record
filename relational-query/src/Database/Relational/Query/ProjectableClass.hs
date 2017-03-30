@@ -17,7 +17,15 @@ module Database.Relational.Query.ProjectableClass (
 
   -- * ProjectableFunctor and ProjectableApplicative
   ProjectableFunctor (..), ProjectableApplicative (..), ipfmap,
+
+  -- * Literal SQL terms
+  ShowConstantTermsSQL (..),
+  StringSQL,
+
   ) where
+
+import Database.Relational.Query.Internal.SQL (StringSQL)
+
 
 -- | Specify tuple like record constructors which are allowed to define 'ProjectableFunctor'.
 class ProductConstructor r where
@@ -40,3 +48,8 @@ class ProjectableFunctor p => ProjectableApplicative p where
   (|*|) :: p (a -> b) -> p a -> p b
 
 infixl 4 |$|, |*|
+
+
+-- | Interface for constant SQL term list.
+class ShowConstantTermsSQL a where
+  showConstantTermsSQL :: a -> [StringSQL]

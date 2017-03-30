@@ -12,10 +12,7 @@
 --
 -- This module defines interfaces between haskell pure values
 -- and query internal projection values.
-module Database.Relational.Query.Pure (
-  -- * Constant SQL Terms
-  ShowConstantTermsSQL (..), StringSQL,
-  ) where
+module Database.Relational.Query.Pure () where
 
 import Data.Monoid (mconcat)
 import Data.Int (Int8, Int16, Int32, Int64)
@@ -36,6 +33,8 @@ import Database.Record.Persistable
   (runPersistableRecordWidth)
 
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL)
+
+import Database.Relational.Query.ProjectableClass (ShowConstantTermsSQL (..))
 
 
 -- | Constant integral SQL expression.
@@ -58,10 +57,6 @@ stringExprSQL =  stringSQL . ('\'':) . (++ "'") . escapeStringToSqlExpr
 
 stringTermsSQL :: String -> [StringSQL]
 stringTermsSQL =  (:[]) . stringExprSQL
-
--- | Interface for constant SQL term list.
-class ShowConstantTermsSQL a where
-  showConstantTermsSQL :: a -> [StringSQL]
 
 -- | Constant SQL terms of 'Int8'.
 instance ShowConstantTermsSQL Int8 where

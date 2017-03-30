@@ -80,7 +80,7 @@ import Database.Relational.Query.ProjectableClass
   (ProjectableFunctor (..), ProjectableApplicative (..), )
 import Database.Relational.Query.Context (Flat, Aggregated, Exists, OverWindow)
 import Database.Relational.Query.TupleInstances ()
-import Database.Relational.Query.Pure
+import Database.Relational.Query.ProjectableClass
   (ShowConstantTermsSQL, showConstantTermsSQL, )
 import Database.Relational.Query.Projection
   (Projection, ListProjection)

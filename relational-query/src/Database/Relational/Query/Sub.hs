@@ -69,7 +69,8 @@ import qualified Database.Relational.Query.Internal.UntypedTable as UntypedTable
 
 import Database.Relational.Query.Table (Table)
 import qualified Database.Relational.Query.Table as Table
-import Database.Relational.Query.Pure (showConstantTermsSQL)
+import Database.Relational.Query.ProjectableClass (showConstantTermsSQL)
+import Database.Relational.Query.Pure ()
 
 
 showsSetOp' :: SetOp -> StringSQL
