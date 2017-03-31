@@ -54,10 +54,11 @@ unsafePersistableSqlTypeFromNull :: q                    -- ^ SQL null value of 
 unsafePersistableSqlTypeFromNull =  PersistableSqlType
 
 
--- Restricted in product isomorphism record type b
+-- | Restricted in product isomorphism record type b
 newtype ProductConst a b =
   ProductConst { unPC :: Const a b }
 
+-- | extract constant value of 'ProductConst'.
 getProductConst :: ProductConst a b -> a
 getProductConst = getConst . unPC
 {-# INLINE getProductConst #-}
@@ -125,6 +126,7 @@ class PersistableWidth a where
 pmapConst :: (a -> b) -> ProductConst a c -> ProductConst b c
 pmapConst f = ProductConst . Const . f . getConst . unPC
 
+-- | Generic width value list of record fields.
 class GFieldWidthList f where
   gFieldWidthList :: ProductConst (DList Int) (f a)
 
@@ -143,6 +145,7 @@ instance PersistableWidth a => GFieldWidthList (K1 i a) where
 offsets :: [Int] -> Array Int Int
 offsets ws = listArray (0, length ws) $ scanl (+) 0 ws
 
+-- | Generic offset array of record fields.
 genericFieldOffsets :: (Generic a, GFieldWidthList (Rep a)) => ProductConst (Array Int Int) a
 genericFieldOffsets = pmapConst (offsets . DList.toList) $ to `pmap` gFieldWidthList
 
