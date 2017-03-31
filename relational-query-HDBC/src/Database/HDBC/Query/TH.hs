@@ -71,7 +71,7 @@ defineTableDefault' :: Config            -- ^ Configuration to generate query wi
                     -> Q [Dec]           -- ^ Result declaration
 defineTableDefault' config schema table columns derives = do
   modelD <- Relational.defineTableTypesAndRecord config schema table columns derives
-  sqlvD  <- makeRecordPersistableWithSqlTypeDefault [t| SqlValue |] schema table $ length columns
+  sqlvD  <- makeRecordPersistableWithSqlTypeDefault [t| SqlValue |] schema table
   return $ modelD ++ sqlvD
 
 -- | Generate all HDBC templates about table using default naming rule.
@@ -85,7 +85,7 @@ defineTableDefault :: Config            -- ^ Configuration to generate query wit
                    -> Q [Dec]           -- ^ Result declaration
 defineTableDefault config schema table columns derives primary notNull = do
   modelD <- Relational.defineTable config schema table columns derives primary notNull
-  sqlvD  <- makeRecordPersistableWithSqlTypeDefault [t| SqlValue |] schema table $ length columns
+  sqlvD  <- makeRecordPersistableWithSqlTypeDefault [t| SqlValue |] schema table
   return $ modelD ++ sqlvD
 
 -- | Generate all HDBC templates using system catalog informations with specified config.

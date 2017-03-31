@@ -243,9 +243,8 @@ makeRecordPersistableWithSqlTypeWithConfig :: TypeQ      -- ^ SQL value type
                                          -> NameConfig -- ^ name rule config
                                          -> String     -- ^ Schema name of database
                                          -> String     -- ^ Table name of database
-                                         -> Int        -- ^ Count of record columns
                                          -> Q [Dec]    -- ^ Result declarations
-makeRecordPersistableWithSqlTypeWithConfig sqlValueType config schema table _width =
+makeRecordPersistableWithSqlTypeWithConfig sqlValueType config schema table =
   makeRecordPersistableWithSqlType
     sqlValueType
     $ recordType config schema table
@@ -254,7 +253,6 @@ makeRecordPersistableWithSqlTypeWithConfig sqlValueType config schema table _wid
 makeRecordPersistableWithSqlTypeDefault :: TypeQ   -- ^ SQL value type
                                         -> String  -- ^ Schema name
                                         -> String  -- ^ Table name
-                                        -> Int     -- ^ Count of record columns
                                         -> Q [Dec] -- ^ Result declarations
 makeRecordPersistableWithSqlTypeDefault sqlValueType =
   makeRecordPersistableWithSqlTypeWithConfig sqlValueType defaultNameConfig
@@ -319,7 +317,7 @@ defineRecordWithConfig :: TypeQ             -- ^ SQL value type
                      -> Q [Dec]           -- ^ Result declarations
 defineRecordWithConfig sqlValueType config schema table columns derives = do
   typ     <- defineRecordTypeWithConfig config schema table columns derives
-  withSql <- makeRecordPersistableWithSqlTypeWithConfig sqlValueType config schema table $ length columns
+  withSql <- makeRecordPersistableWithSqlTypeWithConfig sqlValueType config schema table
   return $ typ ++ withSql
 
 
