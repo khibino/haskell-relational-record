@@ -53,8 +53,6 @@ module Database.Record.TH (
 
   columnOffsetsVarNameDefault,
 
-  persistableFunctionNamesDefault,
-
   -- * Not nullable single column type
   deriveNotNullType,
 
@@ -67,7 +65,7 @@ import Data.Array (Array)
 import Language.Haskell.TH.Name.CamelCase
   (ConName(conName), VarName(varName),
    conCamelcaseName, varCamelcaseName, varNameWithPrefix,
-   toTypeCon, toDataCon)
+   toTypeCon, )
 import Language.Haskell.TH.Lib.Extra (integralE, simpleValD, reportWarning)
 import Language.Haskell.TH.Compat.Data (dataD', unDataD)
 import Language.Haskell.TH
@@ -215,27 +213,21 @@ defineRecordTypeWithConfig config schema table columns =
 -- | Record parser and printer instance templates for converting
 --   between list of SQL type and Haskell record type.
 definePersistableInstance :: TypeQ   -- ^ SQL value type.
-                           -> TypeQ   -- ^ Record type constructor.
-                           -> VarName -- ^ Record parser name.
-                           -> VarName -- ^ Record printer name.
-                           -> Int     -- ^ Count of record columns.
-                           -> Q [Dec] -- ^ Instance declarations for 'Persistable'.
-definePersistableInstance sqlType typeCon parserName printerName _width = do
+                          -> TypeQ   -- ^ Record type constructor.
+                          -> Q [Dec] -- ^ Instance declarations for 'Persistable'.
+definePersistableInstance sqlType typeCon = do
   [d| instance FromSql $sqlType $typeCon
       instance ToSql $sqlType $typeCon
     |]
 
 -- | All templates depending on SQL value type.
-makeRecordPersistableWithSqlType :: TypeQ              -- ^ SQL value type.
-                                 -> (VarName, VarName) -- ^ Constructor function name and decompose function name.
-                                 -> (TypeQ, ExpQ)      -- ^ Record type constructor and data constructor.
-                                 -> Int                -- ^ Count of record columns.
-                                 -> Q [Dec]            -- ^ Result declarations.
+makeRecordPersistableWithSqlType :: TypeQ   -- ^ SQL value type.
+                                 -> TypeQ   -- ^ Record type constructor and data constructor.
+                                 -> Q [Dec] -- ^ Result declarations.
 makeRecordPersistableWithSqlType
   sqlValueType
-  (cF, dF) (tyCon, _)
-  width = do
-  instSQL  <- definePersistableInstance sqlValueType tyCon cF dF width
+  tyCon = do
+  instSQL  <- definePersistableInstance sqlValueType tyCon
   return instSQL
 
 -- | Default name of record construction function from SQL table name.
@@ -253,12 +245,10 @@ makeRecordPersistableWithSqlTypeWithConfig :: TypeQ      -- ^ SQL value type
                                          -> String     -- ^ Table name of database
                                          -> Int        -- ^ Count of record columns
                                          -> Q [Dec]    -- ^ Result declarations
-makeRecordPersistableWithSqlTypeWithConfig sqlValueType config schema table width =
+makeRecordPersistableWithSqlTypeWithConfig sqlValueType config schema table _width =
   makeRecordPersistableWithSqlType
     sqlValueType
-    (persistableFunctionNamesDefault . conName . conCamelcaseName $ table)
-    (recordType config schema table, toDataCon . recordTypeName config schema $ table)
-    width
+    $ recordType config schema table
 
 -- | All templates depending on SQL value type with default names.
 makeRecordPersistableWithSqlTypeDefault :: TypeQ   -- ^ SQL value type
@@ -289,41 +279,34 @@ reifyRecordType recTypeName = do
     return
     (recordInfo' tyConInfo)
 
--- | Generate persistable function symbol names using default rule.
-persistableFunctionNamesDefault :: Name -> (VarName, VarName)
-persistableFunctionNamesDefault recTypeName = (fromSqlNameDefault bn, toSqlNameDefault bn)  where
-  bn = nameBase recTypeName
-
 -- | All templates depending on SQL value type. Defined record type information is used.
 makeRecordPersistableWithSqlTypeFromDefined :: TypeQ              -- ^ SQL value type
-                                            -> (VarName, VarName) -- ^ Constructor function name and decompose function name
                                             -> Name               -- ^ Record type constructor name
                                             -> Q [Dec]            -- ^ Result declarations
-makeRecordPersistableWithSqlTypeFromDefined sqlValueType fnames recTypeName = do
-  (conPair, (_, cts)) <- reifyRecordType recTypeName
-  makeRecordPersistableWithSqlType sqlValueType fnames conPair $ length cts
+makeRecordPersistableWithSqlTypeFromDefined sqlValueType recTypeName = do
+  ((tyCon, _), _) <- reifyRecordType recTypeName
+  makeRecordPersistableWithSqlType sqlValueType tyCon
 
 -- | All templates depending on SQL value type with default names. Defined record type information is used.
 makeRecordPersistableWithSqlTypeDefaultFromDefined :: TypeQ   -- ^ SQL value type
                                                    -> Name    -- ^ Record type constructor name
                                                    -> Q [Dec] -- ^ Result declarations
 makeRecordPersistableWithSqlTypeDefaultFromDefined sqlValueType recTypeName =
-  makeRecordPersistableWithSqlTypeFromDefined sqlValueType (persistableFunctionNamesDefault recTypeName) recTypeName
+  makeRecordPersistableWithSqlTypeFromDefined sqlValueType recTypeName
 
 -- | All templates for record type.
 defineRecord :: TypeQ              -- ^ SQL value type
-             -> (VarName, VarName) -- ^ Constructor function name and decompose function name
              -> ConName            -- ^ Record type name
              -> [(VarName, TypeQ)] -- ^ Column schema
              -> [Name]             -- ^ Record derivings
              -> Q [Dec]            -- ^ Result declarations
 defineRecord
   sqlValueType
-  fnames tyC
+  tyC
   columns drvs = do
 
   typ     <- defineRecordType tyC columns drvs
-  withSql <- makeRecordPersistableWithSqlType sqlValueType fnames (toTypeCon tyC, toDataCon tyC) $ length columns
+  withSql <- makeRecordPersistableWithSqlType sqlValueType $ toTypeCon tyC
   return $ typ ++ withSql
 
 -- | All templates for record type with configured names.
