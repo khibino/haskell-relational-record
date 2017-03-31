@@ -37,6 +37,7 @@ import Language.Haskell.TH (Q, runIO, Name, TypeQ, Dec)
 import Language.Haskell.TH.Name.CamelCase (varCamelcaseName)
 import Language.Haskell.TH.Lib.Extra (reportWarning, reportError)
 
+import Database.Record (ToSql, FromSql)
 import Database.Record.TH (makeRecordPersistableWithSqlTypeDefault)
 import qualified Database.Record.TH as Record
 import Database.Relational.Query (Relation, Config, verboseAsCompilerWarning, defaultConfig, relationalQuerySQL)
@@ -55,10 +56,10 @@ makeRecordPersistableDefault :: Name    -- ^ Type constructor name
                              -> Q [Dec] -- ^ Result declaration
 makeRecordPersistableDefault recTypeName = do
   rr <- Relational.makeRelationalRecordDefault recTypeName
-  (pair, (_mayNs, cts)) <- Record.reifyRecordType recTypeName
-  let width = length cts
-  ps <- Record.makeRecordPersistableWithSqlType [t| SqlValue |]
-        (Record.persistableFunctionNamesDefault recTypeName) pair width
+  (pair@(typeCon, _), _) <- Record.reifyRecordType recTypeName
+  ps <- [d| instance FromSql SqlValue $typeCon
+            instance ToSql SqlValue $typeCon
+          |]
   return $ rr ++ ps
 
 -- | Generate all HDBC templates about table except for constraint keys using default naming rule.
