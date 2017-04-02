@@ -29,13 +29,9 @@ module Database.Record.TH (
   defineRecordTypeWithConfig,
 
   -- * Function declarations depending on SQL type
-  makeRecordPersistableWithSqlType,
-  makeRecordPersistableWithSqlTypeWithConfig,
   makeRecordPersistableWithSqlTypeDefault,
 
   -- * Function declarations against defined record types
-  makeRecordPersistableWithSqlTypeFromDefined,
-  makeRecordPersistableWithSqlTypeDefaultFromDefined,
   defineColumnOffsets,
 
   recordWidthTemplate,
@@ -220,17 +216,6 @@ definePersistableInstance sqlType typeCon = do
       instance ToSql $sqlType $typeCon
     |]
 
-{-# DEPRECATED makeRecordPersistableWithSqlType "Use definePersistableInstance instead of this." #-}
--- | All templates depending on SQL value type.
-makeRecordPersistableWithSqlType :: TypeQ   -- ^ SQL value type.
-                                 -> TypeQ   -- ^ Record type constructor and data constructor.
-                                 -> Q [Dec] -- ^ Result declarations.
-makeRecordPersistableWithSqlType
-  sqlValueType
-  tyCon = do
-  instSQL  <- definePersistableInstance sqlValueType tyCon
-  return instSQL
-
 -- | Default name of record construction function from SQL table name.
 fromSqlNameDefault :: String -> VarName
 fromSqlNameDefault =  (`varNameWithPrefix` "fromSqlOf")
@@ -238,18 +223,6 @@ fromSqlNameDefault =  (`varNameWithPrefix` "fromSqlOf")
 -- | Default name of record decomposition function from SQL table name.
 toSqlNameDefault :: String -> VarName
 toSqlNameDefault =  (`varNameWithPrefix` "toSqlOf")
-
-{-# DEPRECATED makeRecordPersistableWithSqlTypeWithConfig "Use \\sqlType config schema -> definePersistableInstance sqlType . recordType config schema" #-}
--- | All templates depending on SQL value type with configured names.
-makeRecordPersistableWithSqlTypeWithConfig :: TypeQ      -- ^ SQL value type
-                                         -> NameConfig -- ^ name rule config
-                                         -> String     -- ^ Schema name of database
-                                         -> String     -- ^ Table name of database
-                                         -> Q [Dec]    -- ^ Result declarations
-makeRecordPersistableWithSqlTypeWithConfig sqlValueType config schema table =
-  definePersistableInstance
-    sqlValueType
-    $ recordType config schema table
 
 -- | All templates depending on SQL value type with default names.
 makeRecordPersistableWithSqlTypeDefault :: TypeQ   -- ^ SQL value type
@@ -278,23 +251,6 @@ reifyRecordType recTypeName = do
     (fail $ "Defined record type constructor not found: " ++ show recTypeName)
     return
     (recordInfo' tyConInfo)
-
-{-# DEPRECATED makeRecordPersistableWithSqlTypeFromDefined "Use definePersistableInstance with type-quasi-quote instead of this." #-}
--- | All templates depending on SQL value type. Defined record type information is used.
-makeRecordPersistableWithSqlTypeFromDefined :: TypeQ              -- ^ SQL value type
-                                            -> Name               -- ^ Record type constructor name
-                                            -> Q [Dec]            -- ^ Result declarations
-makeRecordPersistableWithSqlTypeFromDefined sqlValueType recTypeName = do
-  ((tyCon, _), _) <- reifyRecordType recTypeName
-  definePersistableInstance sqlValueType tyCon
-
-{-# DEPRECATED makeRecordPersistableWithSqlTypeDefaultFromDefined "Use definePersistableInstance with type-quasi-quote instead of this." #-}
--- | All templates depending on SQL value type with default names. Defined record type information is used.
-makeRecordPersistableWithSqlTypeDefaultFromDefined :: TypeQ   -- ^ SQL value type
-                                                   -> Name    -- ^ Record type constructor name
-                                                   -> Q [Dec] -- ^ Result declarations
-makeRecordPersistableWithSqlTypeDefaultFromDefined sqlValueType recTypeName =
-  makeRecordPersistableWithSqlTypeFromDefined sqlValueType recTypeName
 
 -- | All templates for record type.
 defineRecord :: TypeQ              -- ^ SQL value type
