@@ -220,6 +220,7 @@ definePersistableInstance sqlType typeCon = do
       instance ToSql $sqlType $typeCon
     |]
 
+{-# DEPRECATED makeRecordPersistableWithSqlType "Use definePersistableInstance instead of this." #-}
 -- | All templates depending on SQL value type.
 makeRecordPersistableWithSqlType :: TypeQ   -- ^ SQL value type.
                                  -> TypeQ   -- ^ Record type constructor and data constructor.
@@ -238,6 +239,7 @@ fromSqlNameDefault =  (`varNameWithPrefix` "fromSqlOf")
 toSqlNameDefault :: String -> VarName
 toSqlNameDefault =  (`varNameWithPrefix` "toSqlOf")
 
+{-# DEPRECATED makeRecordPersistableWithSqlTypeWithConfig "Use \\sqlType config schema -> definePersistableInstance sqlType . recordType config schema" #-}
 -- | All templates depending on SQL value type with configured names.
 makeRecordPersistableWithSqlTypeWithConfig :: TypeQ      -- ^ SQL value type
                                          -> NameConfig -- ^ name rule config
@@ -245,7 +247,7 @@ makeRecordPersistableWithSqlTypeWithConfig :: TypeQ      -- ^ SQL value type
                                          -> String     -- ^ Table name of database
                                          -> Q [Dec]    -- ^ Result declarations
 makeRecordPersistableWithSqlTypeWithConfig sqlValueType config schema table =
-  makeRecordPersistableWithSqlType
+  definePersistableInstance
     sqlValueType
     $ recordType config schema table
 
@@ -254,8 +256,8 @@ makeRecordPersistableWithSqlTypeDefault :: TypeQ   -- ^ SQL value type
                                         -> String  -- ^ Schema name
                                         -> String  -- ^ Table name
                                         -> Q [Dec] -- ^ Result declarations
-makeRecordPersistableWithSqlTypeDefault sqlValueType =
-  makeRecordPersistableWithSqlTypeWithConfig sqlValueType defaultNameConfig
+makeRecordPersistableWithSqlTypeDefault sqlValueType schema =
+  definePersistableInstance sqlValueType . recordType defaultNameConfig schema
 
 recordInfo' :: Info -> Maybe ((TypeQ, ExpQ), (Maybe [Name], [TypeQ]))
 recordInfo' =  d  where
@@ -277,14 +279,16 @@ reifyRecordType recTypeName = do
     return
     (recordInfo' tyConInfo)
 
+{-# DEPRECATED makeRecordPersistableWithSqlTypeFromDefined "Use definePersistableInstance with type-quasi-quote instead of this." #-}
 -- | All templates depending on SQL value type. Defined record type information is used.
 makeRecordPersistableWithSqlTypeFromDefined :: TypeQ              -- ^ SQL value type
                                             -> Name               -- ^ Record type constructor name
                                             -> Q [Dec]            -- ^ Result declarations
 makeRecordPersistableWithSqlTypeFromDefined sqlValueType recTypeName = do
   ((tyCon, _), _) <- reifyRecordType recTypeName
-  makeRecordPersistableWithSqlType sqlValueType tyCon
+  definePersistableInstance sqlValueType tyCon
 
+{-# DEPRECATED makeRecordPersistableWithSqlTypeDefaultFromDefined "Use definePersistableInstance with type-quasi-quote instead of this." #-}
 -- | All templates depending on SQL value type with default names. Defined record type information is used.
 makeRecordPersistableWithSqlTypeDefaultFromDefined :: TypeQ   -- ^ SQL value type
                                                    -> Name    -- ^ Record type constructor name
@@ -304,7 +308,7 @@ defineRecord
   columns drvs = do
 
   typ     <- defineRecordType tyC columns drvs
-  withSql <- makeRecordPersistableWithSqlType sqlValueType $ toTypeCon tyC
+  withSql <- definePersistableInstance sqlValueType $ toTypeCon tyC
   return $ typ ++ withSql
 
 -- | All templates for record type with configured names.
@@ -317,7 +321,8 @@ defineRecordWithConfig :: TypeQ             -- ^ SQL value type
                      -> Q [Dec]           -- ^ Result declarations
 defineRecordWithConfig sqlValueType config schema table columns derives = do
   typ     <- defineRecordTypeWithConfig config schema table columns derives
-  withSql <- makeRecordPersistableWithSqlTypeWithConfig sqlValueType config schema table
+  withSql <- definePersistableInstance sqlValueType $ recordType config schema table
+
   return $ typ ++ withSql
 
 
