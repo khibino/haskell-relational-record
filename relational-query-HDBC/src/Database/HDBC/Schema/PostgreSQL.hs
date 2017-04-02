@@ -31,7 +31,7 @@ import Database.HDBC (IConnection, SqlValue)
 import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
 
-import Database.Record.TH (makeRecordPersistableWithSqlTypeDefaultFromDefined)
+import Database.Record (FromSql, ToSql)
 
 import Database.Relational.Schema.PostgreSQL
   (normalizeColumn, notNull, getType, columnQuerySQL,
@@ -45,11 +45,11 @@ import Database.HDBC.Schema.Driver
    Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
 
 
-$(makeRecordPersistableWithSqlTypeDefaultFromDefined
-  [t| SqlValue |] ''PgAttribute)
+instance FromSql SqlValue PgAttribute
+instance ToSql SqlValue PgAttribute
 
-$(makeRecordPersistableWithSqlTypeDefaultFromDefined
-  [t| SqlValue |] ''PgType)
+instance FromSql SqlValue PgType
+instance ToSql SqlValue PgType
 
 logPrefix :: String -> String
 logPrefix =  ("PostgreSQL: " ++)

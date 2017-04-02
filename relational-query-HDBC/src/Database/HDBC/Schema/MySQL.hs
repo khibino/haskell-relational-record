@@ -26,6 +26,7 @@ import qualified Data.List                          as List
 import           Data.Map                           (fromList)
 
 import           Database.HDBC                      (IConnection, SqlValue)
+import           Database.Record                    (FromSql, ToSql)
 import           Database.HDBC.Record.Query         (runQuery')
 import           Database.HDBC.Record.Persistable   ()
 import           Database.HDBC.Schema.Driver        ( TypeMap
@@ -39,7 +40,6 @@ import           Database.HDBC.Schema.Driver        ( TypeMap
                                                     , getPrimaryKey
                                                     , emptyDriver
                                                     )
-import           Database.Record.TH                 (makeRecordPersistableWithSqlTypeDefaultFromDefined)
 import           Database.Relational.Schema.MySQL   ( normalizeColumn
                                                     , notNull
                                                     , getType
@@ -50,7 +50,9 @@ import           Database.Relational.Schema.MySQL   ( normalizeColumn
 import           Database.Relational.Schema.MySQLInfo.Columns (Columns)
 import qualified Database.Relational.Schema.MySQLInfo.Columns as Columns
 
-$(makeRecordPersistableWithSqlTypeDefaultFromDefined [t| SqlValue |] ''Columns)
+
+instance FromSql SqlValue Columns
+instance ToSql SqlValue Columns
 
 logPrefix :: String -> String
 logPrefix = ("MySQL: " ++)

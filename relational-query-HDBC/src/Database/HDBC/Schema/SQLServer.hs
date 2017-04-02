@@ -29,7 +29,7 @@ import Database.HDBC.Record.Persistable ()
 import Database.HDBC.Schema.Driver
   (TypeMap, LogChan, putVerbose, failWith, maybeIO,
    Driver, hoistMaybe, getFieldsWithMap, getPrimaryKey, emptyDriver)
-import Database.Record.TH (makeRecordPersistableWithSqlTypeDefaultFromDefined)
+import Database.Record (FromSql, ToSql)
 import Database.Relational.Schema.SQLServer (columnTypeQuerySQL, getType, normalizeColumn,
                                             notNull, primaryKeyQuerySQL)
 import Database.Relational.Schema.SQLServerSyscat.Columns (Columns)
@@ -37,11 +37,11 @@ import Database.Relational.Schema.SQLServerSyscat.Types (Types)
 import Language.Haskell.TH (TypeQ)
 
 
-$(makeRecordPersistableWithSqlTypeDefaultFromDefined
-  [t| SqlValue |] ''Columns)
+instance FromSql SqlValue Columns
+instance ToSql SqlValue Columns
 
-$(makeRecordPersistableWithSqlTypeDefaultFromDefined
-  [t| SqlValue |] ''Types)
+instance FromSql SqlValue Types
+instance ToSql SqlValue Types
 
 logPrefix :: String -> String
 logPrefix = ("SQLServer: " ++)

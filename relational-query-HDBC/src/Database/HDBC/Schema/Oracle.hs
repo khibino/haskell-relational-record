@@ -23,9 +23,10 @@ import Data.Maybe (catMaybes)
 import Language.Haskell.TH (TypeQ)
 
 import Database.HDBC (IConnection, SqlValue)
+import Database.Record (FromSql, ToSql)
+
 import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
-import Database.Record.TH (makeRecordPersistableWithSqlTypeDefaultFromDefined)
 import Database.HDBC.Schema.Driver
     ( TypeMap, LogChan, putVerbose, failWith, maybeIO, hoistMaybe,
       Driver, getFieldsWithMap, getPrimaryKey, emptyDriver
@@ -38,9 +39,9 @@ import Database.Relational.Schema.Oracle
 import Database.Relational.Schema.OracleDataDictionary.TabColumns (DbaTabColumns)
 import qualified Database.Relational.Schema.OracleDataDictionary.TabColumns as Cols
 
-$(makeRecordPersistableWithSqlTypeDefaultFromDefined
-    [t|SqlValue|]
-    ''DbaTabColumns)
+
+instance FromSql SqlValue DbaTabColumns
+instance ToSql SqlValue DbaTabColumns
 
 logPrefix :: String -> String
 logPrefix = ("Oracle: " ++)

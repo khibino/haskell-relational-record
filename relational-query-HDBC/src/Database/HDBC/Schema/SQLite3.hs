@@ -30,7 +30,7 @@ import Database.HDBC.Record.Persistable ()
 import Database.HDBC.Schema.Driver
   (TypeMap, LogChan, putVerbose, failWith, maybeIO,
    Driver, hoistMaybe, getFieldsWithMap, getPrimaryKey, emptyDriver)
-import Database.Record.TH (makeRecordPersistableWithSqlTypeDefaultFromDefined)
+import Database.Record (FromSql, ToSql)
 import Database.Relational.Schema.SQLite3 (getType, indexInfoQuerySQL, indexListQuerySQL, normalizeColumn,
                                            normalizeType, notNull, tableInfoQuerySQL)
 import Database.Relational.Schema.SQLite3Syscat.IndexInfo (IndexInfo)
@@ -38,14 +38,15 @@ import Database.Relational.Schema.SQLite3Syscat.IndexList (IndexList)
 import Database.Relational.Schema.SQLite3Syscat.TableInfo (TableInfo)
 import Language.Haskell.TH (TypeQ)
 
-$(makeRecordPersistableWithSqlTypeDefaultFromDefined
-  [t| SqlValue |] ''TableInfo)
 
-$(makeRecordPersistableWithSqlTypeDefaultFromDefined
-  [t| SqlValue |] ''IndexList)
+instance FromSql SqlValue TableInfo
+instance ToSql SqlValue TableInfo
 
-$(makeRecordPersistableWithSqlTypeDefaultFromDefined
-  [t| SqlValue |] ''IndexInfo)
+instance FromSql SqlValue IndexList
+instance ToSql SqlValue IndexList
+
+instance FromSql SqlValue IndexInfo
+instance ToSql SqlValue IndexInfo
 
 logPrefix :: String -> String
 logPrefix = ("SQLite3: " ++)
