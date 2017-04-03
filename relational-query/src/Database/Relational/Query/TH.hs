@@ -73,11 +73,11 @@ import Language.Haskell.TH
    tupleT, appT, Dec, stringE, listE)
 import Language.Haskell.TH.Compat.Reify (unVarI)
 import Language.Haskell.TH.Name.CamelCase
-  (VarName, varName, ConName (ConName), conName, varNameWithPrefix, varCamelcaseName, toVarExp, toTypeCon, toDataCon)
+  (VarName, varName, ConName (ConName), conName, varNameWithPrefix, varCamelcaseName, toVarExp, toTypeCon)
 import Language.Haskell.TH.Lib.Extra (simpleValD, maybeD, integralE)
 
 import Database.Record.TH
-  (columnOffsetsVarNameDefault, recordTypeName, recordType,
+  (columnOffsetsVarNameDefault, recordTypeName, recordTemplate,
    defineRecordTypeWithConfig, defineHasColumnConstraintInstance)
 import qualified Database.Record.TH as Record
 
@@ -131,7 +131,7 @@ defineHasPrimaryKeyInstanceWithConfig :: Config  -- ^ configuration parameters
                                       -> [Int]   -- ^ Primary key index
                                       -> Q [Dec] -- ^ Declarations of primary constraint key
 defineHasPrimaryKeyInstanceWithConfig config scm =
-  defineHasPrimaryKeyInstance . recordType (recordConfig $ nameConfig config) scm
+  defineHasPrimaryKeyInstance . fst . recordTemplate (recordConfig $ nameConfig config) scm
 
 -- | Rule template to infer not-null key.
 defineHasNotNullKeyInstance :: TypeQ   -- ^ Record type
@@ -147,7 +147,7 @@ defineHasNotNullKeyInstanceWithConfig :: Config  -- ^ configuration parameters
                                       -> Int     -- ^ NotNull key index
                                       -> Q [Dec] -- ^ Declaration of not-null constraint key
 defineHasNotNullKeyInstanceWithConfig config scm =
-  defineHasNotNullKeyInstance . recordType (recordConfig $ nameConfig config) scm
+  defineHasNotNullKeyInstance . fst . recordTemplate (recordConfig $ nameConfig config) scm
 
 
 -- | Column projection path 'Pi' template.
@@ -283,11 +283,8 @@ relationVarExp config scm = toVarExp . relationVarName (nameConfig config) scm
 -- | Make template for record 'ProductConstructor' instance using specified naming rule.
 defineProductConstructorInstanceWithConfig :: Config -> String -> String -> [TypeQ] -> Q [Dec]
 defineProductConstructorInstanceWithConfig config schema table colTypes = do
-  let typeName = recordTypeName (recordConfig $ nameConfig config) schema table
-  defineProductConstructorInstance
-    (toTypeCon typeName)
-    (toDataCon typeName)
-    colTypes
+  let tp = recordTemplate (recordConfig $ nameConfig config) schema table
+  uncurry defineProductConstructorInstance tp colTypes
 
 -- | Make templates about table and column metadatas using specified naming rule.
 defineTableTypesWithConfig :: Config                           -- ^ Configuration to generate query with
@@ -303,7 +300,7 @@ defineTableTypesWithConfig config schema table columns = do
              (relationVarName nmconfig schema table)
              (table `varNameWithPrefix` "insert")
              (table `varNameWithPrefix` "insertQuery")
-             (recordType recConfig schema table)
+             (fst $ recordTemplate recConfig schema table)
              (tableSQL (normalizedTableName config) (schemaNameMode config) (identifierQuotation config) schema table)
              (map ((quote (identifierQuotation config)) . fst . fst) columns)
   colsDs <- defineColumnsDefault (recordTypeName recConfig schema table) columns
@@ -382,7 +379,7 @@ defineWithPrimaryKey :: Config
                      -> Q [Dec] -- ^ Result declarations
 defineWithPrimaryKey config schema table keyType ixs = do
   instD <- defineHasPrimaryKeyInstanceWithConfig config schema table keyType ixs
-  let recType  = recordType (recordConfig $ nameConfig config) schema table
+  let recType  = fst $ recordTemplate (recordConfig $ nameConfig config) schema table
       tableE   = tableVarExpDefault table
       relE     = relationVarExp config schema table
   sqlsD <- defineSqlsWithPrimaryKeyDefault table keyType recType relE tableE
