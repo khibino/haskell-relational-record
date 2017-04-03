@@ -36,10 +36,11 @@ module Database.Record.TH (
   -- * Reify
   reifyRecordType,
 
-  -- * Templates about record type name
+  -- * Templates about record name
   NameConfig,  defaultNameConfig,
   recordTypeName, columnName,
 
+  recordTemplate,
   recordType,
 
   columnOffsetsVarNameDefault,
@@ -56,7 +57,7 @@ import Data.Array (Array)
 import Language.Haskell.TH.Name.CamelCase
   (ConName(conName), VarName(varName),
    conCamelcaseName, varCamelcaseName, varNameWithPrefix,
-   toTypeCon, )
+   toTypeCon, toDataCon, )
 import Language.Haskell.TH.Lib.Extra (integralE, simpleValD, reportWarning)
 import Language.Haskell.TH.Compat.Data (dataD', unDataD)
 import Language.Haskell.TH
@@ -66,6 +67,8 @@ import Language.Haskell.TH
    ExpQ, conE, listE, sigE,
    recC,
    cxt, varStrictType, strictType, isStrict)
+
+import Control.Arrow ((&&&))
 
 import Database.Record
   (HasColumnConstraint(columnConstraint), Primary, NotNull,
@@ -104,12 +107,20 @@ defaultNameConfig =
   , columnName      =  const varCamelcaseName
   }
 
+-- | Record constructor templates from SQL table name 'String'.
+recordTemplate :: NameConfig    -- ^ name rule config
+               -> String        -- ^ Schema name string in SQL
+               -> String        -- ^ Table name string in SQL
+               -> (TypeQ, ExpQ) -- ^ Record type and data constructor
+recordTemplate config scm = (toTypeCon &&& toDataCon) . recordTypeName config scm
+
+{-# DEPRECATED recordType "Use fst . recordTemplate instead of this." #-}
 -- | Record type constructor template from SQL table name 'String'.
 recordType :: NameConfig -- ^ name rule config
            -> String     -- ^ Schema name string in SQL
            -> String     -- ^ Table name string in SQL
            -> TypeQ      -- ^ Record type constructor
-recordType config scm = toTypeCon . recordTypeName config scm
+recordType config scm = fst . recordTemplate config scm
 
 -- | Variable expression of record column offset array.
 columnOffsetsVarNameDefault :: Name    -- ^ Table type name
