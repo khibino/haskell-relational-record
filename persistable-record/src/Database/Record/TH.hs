@@ -28,15 +28,10 @@ module Database.Record.TH (
   defineRecordType,
   defineRecordTypeWithConfig,
 
-  -- * Function declarations depending on SQL type
-  makeRecordPersistableWithSqlTypeDefault,
-
   -- * Function declarations against defined record types
   defineColumnOffsets,
 
   recordWidthTemplate,
-
-  definePersistableInstance,
 
   -- * Reify
   reifyRecordType,
@@ -206,16 +201,6 @@ defineRecordTypeWithConfig config schema table columns =
   [ (columnName config schema n, t) | (n, t) <- columns ]
 
 
--- | Record parser and printer instance templates for converting
---   between list of SQL type and Haskell record type.
-definePersistableInstance :: TypeQ   -- ^ SQL value type.
-                          -> TypeQ   -- ^ Record type constructor.
-                          -> Q [Dec] -- ^ Instance declarations for 'Persistable'.
-definePersistableInstance sqlType typeCon = do
-  [d| instance FromSql $sqlType $typeCon
-      instance ToSql $sqlType $typeCon
-    |]
-
 -- | Default name of record construction function from SQL table name.
 fromSqlNameDefault :: String -> VarName
 fromSqlNameDefault =  (`varNameWithPrefix` "fromSqlOf")
@@ -223,14 +208,6 @@ fromSqlNameDefault =  (`varNameWithPrefix` "fromSqlOf")
 -- | Default name of record decomposition function from SQL table name.
 toSqlNameDefault :: String -> VarName
 toSqlNameDefault =  (`varNameWithPrefix` "toSqlOf")
-
--- | All templates depending on SQL value type with default names.
-makeRecordPersistableWithSqlTypeDefault :: TypeQ   -- ^ SQL value type
-                                        -> String  -- ^ Schema name
-                                        -> String  -- ^ Table name
-                                        -> Q [Dec] -- ^ Result declarations
-makeRecordPersistableWithSqlTypeDefault sqlValueType schema =
-  definePersistableInstance sqlValueType . recordType defaultNameConfig schema
 
 recordInfo' :: Info -> Maybe ((TypeQ, ExpQ), (Maybe [Name], [TypeQ]))
 recordInfo' =  d  where
@@ -251,6 +228,16 @@ reifyRecordType recTypeName = do
     (fail $ "Defined record type constructor not found: " ++ show recTypeName)
     return
     (recordInfo' tyConInfo)
+
+-- | Record parser and printer instance templates for converting
+--   between list of SQL type and Haskell record type.
+definePersistableInstance :: TypeQ   -- ^ SQL value type.
+                          -> TypeQ   -- ^ Record type constructor.
+                          -> Q [Dec] -- ^ Instance declarations.
+definePersistableInstance sqlType typeCon = do
+  [d| instance FromSql $sqlType $typeCon
+      instance ToSql $sqlType $typeCon
+    |]
 
 -- | All templates for record type.
 defineRecord :: TypeQ              -- ^ SQL value type
