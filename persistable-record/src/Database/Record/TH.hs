@@ -41,7 +41,6 @@ module Database.Record.TH (
   recordTypeName, columnName,
 
   recordTemplate,
-  recordType,
 
   columnOffsetsVarNameDefault,
 
@@ -113,14 +112,6 @@ recordTemplate :: NameConfig    -- ^ name rule config
                -> String        -- ^ Table name string in SQL
                -> (TypeQ, ExpQ) -- ^ Record type and data constructor
 recordTemplate config scm = (toTypeCon &&& toDataCon) . recordTypeName config scm
-
-{-# DEPRECATED recordType "Use fst . recordTemplate instead of this." #-}
--- | Record type constructor template from SQL table name 'String'.
-recordType :: NameConfig -- ^ name rule config
-           -> String     -- ^ Schema name string in SQL
-           -> String     -- ^ Table name string in SQL
-           -> TypeQ      -- ^ Record type constructor
-recordType config scm = fst . recordTemplate config scm
 
 -- | Variable expression of record column offset array.
 columnOffsetsVarNameDefault :: Name    -- ^ Table type name
@@ -275,7 +266,7 @@ defineRecordWithConfig :: TypeQ             -- ^ SQL value type
                      -> Q [Dec]           -- ^ Result declarations
 defineRecordWithConfig sqlValueType config schema table columns derives = do
   typ     <- defineRecordTypeWithConfig config schema table columns derives
-  withSql <- definePersistableInstance sqlValueType $ recordType config schema table
+  withSql <- definePersistableInstance sqlValueType . fst $ recordTemplate config schema table
 
   return $ typ ++ withSql
 
