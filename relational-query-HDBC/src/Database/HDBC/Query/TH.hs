@@ -38,7 +38,7 @@ import Language.Haskell.TH.Name.CamelCase (varCamelcaseName)
 import Language.Haskell.TH.Lib.Extra (reportWarning, reportError)
 
 import Database.Record (ToSql, FromSql)
-import Database.Record.TH (recordType, reifyRecordType)
+import Database.Record.TH (recordTemplate, reifyRecordType)
 import Database.Relational.Query
   (Config, nameConfig, recordConfig, verboseAsCompilerWarning, defaultConfig,
    Relation, relationalQuerySQL)
@@ -77,7 +77,7 @@ defineTableDefault' :: Config            -- ^ Configuration to generate query wi
                     -> Q [Dec]           -- ^ Result declaration
 defineTableDefault' config schema table columns derives = do
   modelD <- Relational.defineTableTypesAndRecord config schema table columns derives
-  sqlvD <- defineInstancesForSqlValue $ recordType (recordConfig $ nameConfig config) schema table
+  sqlvD <- defineInstancesForSqlValue . fst $ recordTemplate (recordConfig $ nameConfig config) schema table
   return $ modelD ++ sqlvD
 
 -- | Generate all HDBC templates about table.
@@ -91,7 +91,7 @@ defineTableDefault :: Config            -- ^ Configuration to generate query wit
                    -> Q [Dec]           -- ^ Result declaration
 defineTableDefault config schema table columns derives primary notNull = do
   modelD <- Relational.defineTable config schema table columns derives primary notNull
-  sqlvD <- defineInstancesForSqlValue $ recordType (recordConfig $ nameConfig config) schema table
+  sqlvD <- defineInstancesForSqlValue . fst $ recordTemplate (recordConfig $ nameConfig config) schema table
   return $ modelD ++ sqlvD
 
 -- | Generate all HDBC templates using system catalog informations with specified config.
