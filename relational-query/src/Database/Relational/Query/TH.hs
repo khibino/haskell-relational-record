@@ -82,7 +82,7 @@ import Database.Record.TH
 import qualified Database.Record.TH as Record
 
 import Database.Relational.Query
-  (Table, Pi, id', Relation,
+  (Table, Pi, id', Relation, ShowConstantTermsSQL,
    NameConfig (..), SchemaNameMode (..), IdentifierQuotation (..),
    Config (normalizedTableName, schemaNameMode, nameConfig, identifierQuotation),
    relationalQuerySQL, Query, relationalQuery, KeyUpdate,
@@ -314,10 +314,12 @@ defineTableTypesAndRecord :: Config            -- ^ Configuration to generate qu
                           -> [Name]            -- ^ Record derivings
                           -> Q [Dec]           -- ^ Result declarations
 defineTableTypesAndRecord config schema table columns derives = do
-  recD    <- defineRecordTypeWithConfig (recordConfig $ nameConfig config) schema table columns derives
+  let recConfig = recordConfig $ nameConfig config
+  recD    <- defineRecordTypeWithConfig recConfig schema table columns derives
   rconD   <- defineProductConstructorInstanceWithConfig config schema table [t | (_, t) <- columns]
+  ctD     <- [d| instance ShowConstantTermsSQL $(fst $ recordTemplate recConfig schema table) |]
   tableDs <- defineTableTypesWithConfig config schema table [(c, Nothing) | c <- columns ]
-  return $ recD ++ rconD ++ tableDs
+  return $ recD ++ rconD ++ ctD ++ tableDs
 
 -- | Template of derived primary 'Query'.
 definePrimaryQuery :: VarName -- ^ Variable name of result declaration
