@@ -1000,15 +1000,43 @@ data Branch1 = Branch1
 $(makeRecordPersistableDefault ''Branch1)
 
 -- |
--- Placeholder version of Generated SQL:
+-- Tuple placeholder version of Generated SQL:
 --
 -- @
 --   INSERT INTO MAIN.branch (name, address, city, state, zip) VALUES (?,
 --   ?, ?, ?, ?)
 -- @
 --
+-- Above sql is the same to adhoc defined record version.
+--
 insertBranch_s1P :: Insert Branch1
 insertBranch_s1P = derivedInsert piBranch1
+
+piBranchTuple :: Pi Branch (String, Maybe String, Maybe String, Maybe String, Maybe String)
+piBranchTuple = (,,,,)
+                |$| Branch.name'
+                |*| Branch.address'
+                |*| Branch.city'
+                |*| Branch.state'
+                |*| Branch.zip'
+
+branchTuple :: (String, Maybe String, Maybe String, Maybe String, Maybe String)
+branchTuple = ("Headquarters",
+              Just "3882 Main St.",
+              Just "Waltham",
+              Just "MA",
+              Just "02451")
+
+-- |
+-- Generated SQL is the same as not tuple version:
+--
+-- @
+--   INSERT INTO MAIN.branch (name, address, city, state, zip) VALUES (?,
+--   ?, ?, ?, ?)
+-- @
+--
+insertBranch_s1PT :: Insert (String, Maybe String, Maybe String, Maybe String, Maybe String)
+insertBranch_s1PT = derivedInsert piBranchTuple
 
 -- |
 -- (from script) The insert statement
@@ -1297,6 +1325,7 @@ main = handleSqlError' $ withConnectionIO (connectSqlite3 "examples.db") $ \conn
   runU conn () updateAccount_9_4_2
   runI conn () insertBranch_s1
   runI conn branch1 insertBranch_s1P
+  runI conn branchTuple insertBranch_s1PT
   runIQ conn () insertEmployee_s2
   runIQ conn () insertEmployee_s2U
   runIQ conn employee4 insertEmployee_s2P
