@@ -22,6 +22,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy as LT
+import qualified Data.Text.Lazy.Encoding as LT
 import Text.Printf (PrintfArg, printf)
 import Data.Time (FormatTime, Day, TimeOfDay, LocalTime, UTCTime, ZonedTime, formatTime)
 import Data.Time.Locale.Compat (defaultTimeLocale)
@@ -89,7 +90,7 @@ instance ShowConstantTermsSQL ByteString where
 
 -- | Constant SQL terms of 'LB.ByteString'.
 instance ShowConstantTermsSQL LB.ByteString where
-  showConstantTermsSQL = mconcat . map showConstantTermsSQL . LB.toChunks
+  showConstantTermsSQL = stringTermsSQL . LT.unpack . LT.decodeUtf8
 
 -- | Constant SQL terms of 'Text'.
 instance ShowConstantTermsSQL Text where
@@ -97,7 +98,7 @@ instance ShowConstantTermsSQL Text where
 
 -- | Constant SQL terms of 'LT.Text'.
 instance ShowConstantTermsSQL LT.Text where
-  showConstantTermsSQL = mconcat . map showConstantTermsSQL . LT.toChunks
+  showConstantTermsSQL = stringTermsSQL . LT.unpack
 
 -- | Constant SQL terms of 'Char'.
 instance ShowConstantTermsSQL Char where
