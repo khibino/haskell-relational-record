@@ -460,4 +460,5 @@ makeRelationalRecordDefault recTypeName = do
                 [ ((nameBase n, ct), Nothing) | n  <- ns  | ct <- cts ])
         mayNs
   pc <- defineProductConstructorInstance tyCon dataCon cts
-  return $ concat [pw, cs, pc]
+  ct <- [d| instance ShowConstantTermsSQL $tyCon |]
+  return $ concat [pw, cs, pc, ct]
