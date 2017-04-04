@@ -21,14 +21,14 @@ module Database.Relational.Query.ProjectableClass (
   ProjectableFunctor (..), ProjectableApplicative (..), ipfmap,
 
   -- * Literal SQL terms
-  ShowConstantTermsSQL (..),
+  ShowConstantTermsSQL (..), showConstantTermsSQL,
   StringSQL,
 
   ) where
 
 import GHC.Generics (Generic, Rep, U1 (..), K1 (..), M1 (..), (:*:)(..), from)
 import Data.Monoid (mempty, (<>))
-import Data.DList (DList, fromList, toList)
+import Data.DList (DList, toList)
 
 import Database.Relational.Query.Internal.SQL (StringSQL)
 
@@ -56,12 +56,17 @@ class ProjectableFunctor p => ProjectableApplicative p where
 infixl 4 |$|, |*|
 
 
+showConstantTermsSQL :: ShowConstantTermsSQL a
+                     => a
+                     -> [StringSQL]
+showConstantTermsSQL = toList . showConstantTermsSQL'
+
 -- | Interface for constant SQL term list.
 class ShowConstantTermsSQL a where
-  showConstantTermsSQL :: a -> [StringSQL]
+  showConstantTermsSQL' :: a -> DList StringSQL
 
-  default showConstantTermsSQL :: (Generic a, GShowConstantTermsSQL (Rep a)) => a -> [StringSQL]
-  showConstantTermsSQL = toList . gShowConstantTermsSQL . from
+  default showConstantTermsSQL' :: (Generic a, GShowConstantTermsSQL (Rep a)) => a -> DList StringSQL
+  showConstantTermsSQL' = gShowConstantTermsSQL . from
 
 class GShowConstantTermsSQL f where
   gShowConstantTermsSQL :: f a -> DList StringSQL
@@ -77,4 +82,4 @@ instance GShowConstantTermsSQL a => GShowConstantTermsSQL (M1 i c a) where
   gShowConstantTermsSQL (M1 a) = gShowConstantTermsSQL a
 
 instance ShowConstantTermsSQL a => GShowConstantTermsSQL (K1 i a) where
-  gShowConstantTermsSQL (K1 a) = fromList $ showConstantTermsSQL a
+  gShowConstantTermsSQL (K1 a) = showConstantTermsSQL' a
