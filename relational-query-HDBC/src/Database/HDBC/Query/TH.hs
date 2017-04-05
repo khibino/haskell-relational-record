@@ -15,6 +15,7 @@
 -- This module contains templates to generate Haskell record types
 -- and HDBC instances correspond to RDB table schema.
 module Database.HDBC.Query.TH (
+  makeRelationalRecord,
   makeRecordPersistableDefault,
 
   defineTableDefault',
@@ -60,13 +61,19 @@ defineInstancesForSqlValue typeCon = do
     |]
 
 -- | Generate all persistable templates against defined record like type constructor.
-makeRecordPersistableDefault :: Name    -- ^ Type constructor name
-                             -> Q [Dec] -- ^ Result declaration
-makeRecordPersistableDefault recTypeName = do
+makeRelationalRecord :: Name    -- ^ Type constructor name
+                     -> Q [Dec] -- ^ Result declaration
+makeRelationalRecord recTypeName = do
   rr <- Relational.makeRelationalRecordDefault recTypeName
   ((typeCon, _), _) <- reifyRecordType recTypeName
   ps <- defineInstancesForSqlValue typeCon
   return $ rr ++ ps
+
+{-# DEPRECATED makeRecordPersistableDefault "Use makeRelationalRecord instead of this." #-}
+-- | Deprecated. use 'makeRelationalRecord'.
+makeRecordPersistableDefault :: Name    -- ^ Type constructor name
+                             -> Q [Dec] -- ^ Result declaration
+makeRecordPersistableDefault = makeRelationalRecord
 
 -- | Generate all HDBC templates about table except for constraint keys.
 defineTableDefault' :: Config            -- ^ Configuration to generate query with
