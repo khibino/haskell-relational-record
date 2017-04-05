@@ -106,7 +106,7 @@ data Account1 = Account1
   , a1AvailBalance :: Maybe Double
   } deriving (Show, Generic)
 
-$(makeRecordPersistableDefault ''Account1)
+$(makeRelationalRecord ''Account1)
 
 -- | sql/5.1.2a.sh
 --
@@ -456,7 +456,7 @@ data Account2 = Account2
   , a2AvailBalance :: Maybe Double
   } deriving (Show, Generic)
 
-$(makeRecordPersistableDefault ''Account2)
+$(makeRelationalRecord ''Account2)
 
 -- | sql/3.7.3
 --
@@ -499,7 +499,7 @@ data Employee1 = Employee1
   , e1Lname' :: String
   } deriving (Show, Generic)
 
-$(makeRecordPersistableDefault ''Employee1)
+$(makeRelationalRecord ''Employee1)
 
 -- | sql/4.1.2
 --
@@ -620,7 +620,7 @@ data Employee2 = Employee2
   , e2StartDate :: Day
   } deriving (Show, Generic)
 
-$(makeRecordPersistableDefault ''Employee2)
+$(makeRelationalRecord ''Employee2)
 
 -- | sql/5.1.3.sh
 --
@@ -672,7 +672,7 @@ data Account3 = Account3
   , a3ProductCd :: String
   } deriving (Show, Generic)
 
-$(makeRecordPersistableDefault ''Account3)
+$(makeRelationalRecord ''Account3)
 
 -- |
 -- 9.1 What is a subquery?
@@ -749,7 +749,7 @@ customer1 c = Customer1 |$| c ! Customer.custId'
                         |*| c ! Customer.custTypeCd'
                         |*| c ! Customer.city'
 
-$(makeRecordPersistableDefault ''Customer1)
+$(makeRelationalRecord ''Customer1)
 
 -- |
 -- (original) Deleting data
@@ -997,7 +997,7 @@ data Branch1 = Branch1
   , b1Zip :: Maybe String
   } deriving (Generic)
 
-$(makeRecordPersistableDefault ''Branch1)
+$(makeRelationalRecord ''Branch1)
 
 -- |
 -- Tuple placeholder version of Generated SQL:
@@ -1097,7 +1097,7 @@ data Employee3 = Employee3
   , e3AssignedBranchId :: Maybe Int
   } deriving (Generic)
 
-$(makeRecordPersistableDefault ''Employee3)
+$(makeRelationalRecord ''Employee3)
 
 -- |
 -- In the following code we simulate to use queryScalar with using
@@ -1141,7 +1141,7 @@ data Employee4 = Employee4
   , e4Title :: Maybe String
   } deriving (Generic)
 
-$(makeRecordPersistableDefault ''Employee4)
+$(makeRelationalRecord ''Employee4)
 
 -- |
 -- Placeholder version of Generated SQL:
@@ -1211,7 +1211,7 @@ data Account4 = Account4
   , a4Lname :: Maybe String
   } deriving (Show, Generic)
 
-$(makeRecordPersistableDefault ''Account4)
+$(makeRelationalRecord ''Account4)
 
 -- |
 -- Right Outer Join
