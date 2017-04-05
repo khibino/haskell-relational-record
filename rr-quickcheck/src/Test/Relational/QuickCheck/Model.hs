@@ -9,7 +9,7 @@ import GHC.Generics (Generic)
 import Data.Int (Int64)
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query (Relation, table, TableDerivable (derivedTable))
-import Database.HDBC.Query.TH (makeRecordPersistableDefault)
+import Database.HDBC.Query.TH (makeRelationalRecord)
 
 
 data A =
@@ -27,8 +27,8 @@ data B =
   } deriving (Eq, Ord, Show, Generic)
 
 
-$(makeRecordPersistableDefault ''A)
-$(makeRecordPersistableDefault ''B)
+$(makeRelationalRecord ''A)
+$(makeRelationalRecord ''B)
 
 instance TableDerivable A where
   derivedTable = Table.table "ARBITRARY0.A" ["a0", "a1", "a2"]
