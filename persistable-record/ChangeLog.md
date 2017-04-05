@@ -32,11 +32,3 @@
 ## 0.2.0.0
 
 - TH quotation of derive class names.
-
-## 0.1.0.0
-
-- Project release. Adjust versions to 0.1.0.0.
-
-## 0.0.1.0
-
-- Initial upload.
