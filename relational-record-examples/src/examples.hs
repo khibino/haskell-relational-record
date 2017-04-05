@@ -73,11 +73,11 @@ account_4_3_3a = relation $ do
 --   ('CHK', 'SAV', 'CD', 'MM'))
 -- @
 --
-account_4_3_3aT :: Relation () (((Int, String), Int), Maybe Double)
+account_4_3_3aT :: Relation () (Int, String, Int, Maybe Double)
 account_4_3_3aT = relation $ do
   a  <- query account
   wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
-  return $ a ! Account.accountId' >< a ! Account.productCd' >< a ! Account.custId' >< a ! Account.availBalance'
+  return $ (,,,) |$| a ! Account.accountId' |*| a ! Account.productCd' |*| a ! Account.custId' |*| a ! Account.availBalance'
 
 -- |
 -- Adhoc defined record version of Generated SQL:
@@ -144,12 +144,12 @@ join_5_1_2a = relation $ do
 --   = T1.dept_id)
 -- @
 --
-join_5_1_2aT :: Relation () ((String, String), String)
+join_5_1_2aT :: Relation () (String, String, String)
 join_5_1_2aT = relation $ do
   e  <- query employee
   d  <- query department
   on $ e ! Employee.deptId' .=. just (d ! Department.deptId')
-  return $ e ! Employee.fname' >< e ! Employee.lname' >< d ! Department.name'
+  return $ (,,) |$| e ! Employee.fname' |*| e ! Employee.lname' |*| d ! Department.name'
 
 -- | sql/5.3a.sh
 --
@@ -336,12 +336,12 @@ account_4_3_3b = relation' $ do
 --   (T1.product_type_cd = ?)))
 -- @
 --
-account_4_3_3bT :: Relation String (((Int, String), Int), Maybe Double)
+account_4_3_3bT :: Relation String (Int, String, Int, Maybe Double)
 account_4_3_3bT = relation' $ do
   a <- query account
   (phProductCd,p) <- queryList' product_4_3_3b
   wheres $ a ! Account.productCd' `in'` p
-  let at = a ! Account.accountId' >< a ! Account.productCd' >< a ! Account.custId' >< a ! Account.availBalance'
+  let at = (,,,) |$| a ! Account.accountId' |*| a ! Account.productCd' |*| a ! Account.custId' |*| a ! Account.availBalance'
   return (phProductCd, at)
 
 -- |
@@ -888,20 +888,20 @@ updateEmployee_o3 = typedUpdate tableOfEmployee . updateTarget $ \proj -> do
 -- Note: This function is equal to the following:
 --
 -- @
---   updateEmployee_o3P :: Update ((String,Int64),Int64)
---   updateEmployee_o3P = typedUpdate tableOfEmployee . updateTarget' $ \proj -> do
+--   updateEmployee_o3P :: Update (String, Int, Int)
+--   updateEmployee_o3P = derivedUpdate $ \proj -> do
 --     (phLname,()) <- placeholder (\ph -> Employee.lname' <-# ph)
 --     (phDeptId,()) <- placeholder (\ph -> Employee.deptId' <-# just ph)
 --     (phEmpId,()) <- placeholder (\ph -> wheres $ proj ! Employee.empId' .=. ph)
---     return (phLname >< phDeptId >< phEmpId)
+--     return $ (,,) |$| phLname |*| phDeptId |*| phEmpId
 -- @
 --
-updateEmployee_o3P :: Update ((String,Int),Int)
+updateEmployee_o3P :: Update (String, Int, Int)
 updateEmployee_o3P = derivedUpdate $ \proj -> do
   (phLname,()) <- placeholder (\ph -> Employee.lname' <-# ph)
   (phDeptId,()) <- placeholder (\ph -> Employee.deptId' <-# just ph)
   (phEmpId,()) <- placeholder (\ph -> wheres $ proj ! Employee.empId' .=. ph)
-  return (phLname >< phDeptId >< phEmpId)
+  return $ (,,) |$| phLname |*| phDeptId |*| phEmpId
 
 -- |
 -- 9.4.2 Data Manipulation Using Correlated Subqueries
@@ -1321,7 +1321,7 @@ main = handleSqlError' $ withConnectionIO (connectSqlite3 "examples.db") $ \conn
   runD conn (10,20) deleteAccount_o2P
   runD conn () deleteEmployee_9_4_2
   runU conn () updateEmployee_o3
-  runU conn (("Bush",3),10) updateEmployee_o3P
+  runU conn ("Bush", 3, 10) updateEmployee_o3P
   runU conn () updateAccount_9_4_2
   runI conn () insertBranch_s1
   runI conn branch1 insertBranch_s1P
