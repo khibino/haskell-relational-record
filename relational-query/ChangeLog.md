@@ -153,3 +153,16 @@
   https://github.com/khibino/haskell-relational-record/pull/15
 - Fix for "invalid single-column insert syntax".
   https://github.com/khibino/haskell-relational-record/issues/16
+
+## 0.4.0.0
+
+- Extend derivedInsert.
+
+## 0.3.0.0
+
+- Add generalized restrict.
+- Pass configuration to DELETE and UPDATE.
+
+## 0.2.0.0
+
+- Update structure of query with placeholders.
