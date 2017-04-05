@@ -8,7 +8,7 @@ import GHC.Generics (Generic)
 import Database.Record
 
 import Database.Relational.Query.Arrow
-import Database.HDBC.Query.TH (makeRecordPersistableDefault)
+import Database.HDBC.Query.TH (makeRelationalRecord)
 import Data.Int (Int32, Int64)
 import Control.Arrow (returnA)
 
@@ -57,7 +57,7 @@ haskUserGroup =
 data UserOrGroup = UserOrGroup { mayUser :: Maybe User, mayGroup :: Maybe Group }
                    deriving (Show, Generic)
 
-$(makeRecordPersistableDefault ''UserOrGroup)
+$(makeRelationalRecord ''UserOrGroup)
 
 userGroup0' :: Relation () UserOrGroup
 userGroup0' =
