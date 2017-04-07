@@ -96,7 +96,7 @@ library
                        , th-reify-compat
                        , sql-words >=0.1.4
                        , names-th
-                       , persistable-record >= 0.3
+                       , persistable-record >= 0.5
   if flag(ghc74-generic)
     build-depends:        ghc-prim == 0.2.*
 
