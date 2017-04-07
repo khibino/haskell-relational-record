@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.1.3.2
+
+- Apply generic instances to schema queries.
+
 ## 0.1.3.1
 
 - Add tested-with.
