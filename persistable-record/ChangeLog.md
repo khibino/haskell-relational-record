@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.5.0.0
+
+- Add generic instances of FromSql, ToSql and PersistableWidth.
+
 ## 0.4.1.1
 
 - Tested with GHC 8.0.2
