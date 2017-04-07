@@ -44,9 +44,9 @@ library
                      , HDBC
                      , HDBC-session
                      , HDBC-sqlite3
-                     , persistable-record >= 0.2
-                     , relational-query >= 0.7
-                     , relational-query-HDBC >= 0.4
+                     , persistable-record >= 0.5
+                     , relational-query >= 0.9
+                     , relational-query-HDBC >= 0.6.1
                      , template-haskell
                      -- not link directly but query type map
                      , relational-schemas >= 0.1.3
