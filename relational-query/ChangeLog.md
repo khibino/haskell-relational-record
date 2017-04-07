@@ -1,5 +1,10 @@
 <!-- -*- Markdown -*- -->
 
+## 0.9.0.0
+
+- Add HRR instances of tuple types derived by generic programming.
+- Add generic instances of ShowConstantTermsSQL.
+
 ## 0.8.3.6
 
 - Bugfix of lazy instances of ShowConstantTermsSQL.
