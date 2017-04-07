@@ -1,5 +1,5 @@
 name:                relational-record-examples
-version:             0.3.1.1
+version:             0.3.1.2
 synopsis:            Examples of Haskell Relationa Record
 description:         Provides examples of Haskell Relational Record
 license:             BSD3
