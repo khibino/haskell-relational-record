@@ -24,15 +24,15 @@ matrix:
       addons: {apt: {packages: [cabal-install-1.24,ghc-8.0.1], sources: [hvr-ghc]}}
     - env: GHCVER=7.6.3 CABALVER=1.16
       addons: {apt: {packages: [cabal-install-1.16,ghc-7.6.3], sources: [hvr-ghc]}}
-    - env: DEBIANVER=wheezy GHCVER=7.4.1 CABALVER=1.16 NO_CABAL_CACHE=1 CABAL_FLAGS=--flags=ghc74-generic
+    - env: DEBIANVER=wheezy GHCVER=7.4.1 CABALVER=1.16 NO_CABAL_CACHE=1 CABAL_FLAGS='--flags=ghc74-generic --constraint="persistable-record +ghc74-generic"'
       addons: {apt: {packages: [cabal-install-1.16,ghc-7.4.1], sources: [hvr-ghc]}}
     - env: GHCVER=7.10.3 CABALVER=1.22 CABAL_JOBS=-j2
       addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.3], sources: [hvr-ghc]}}
     - env: GHCVER=7.8.4 CABALVER=1.18 CABAL_JOBS=-j2
       addons: {apt: {packages: [cabal-install-1.18,ghc-7.8.4], sources: [hvr-ghc]}}
-    - env: GHCVER=7.4.1 CABALVER=1.16 CABAL_FLAGS=--flags=ghc74-generic
+    - env: GHCVER=7.4.1 CABALVER=1.16 CABAL_FLAGS='--flags=ghc74-generic --constraint="persistable-record +ghc74-generic"'
       addons: {apt: {packages: [cabal-install-1.16,ghc-7.4.1], sources: [hvr-ghc]}}
-    - env: GHCVER=7.4.2 CABALVER=1.16 CABAL_FLAGS=--flags=ghc74-generic
+    - env: GHCVER=7.4.2 CABALVER=1.16 CABAL_FLAGS='--flags=ghc74-generic --constraint="persistable-record +ghc74-generic"'
       addons: {apt: {packages: [cabal-install-1.16,ghc-7.4.2], sources: [hvr-ghc]}}
     - env: GHCVER=7.6.1 CABALVER=1.16
       addons: {apt: {packages: [cabal-install-1.16,ghc-7.6.1], sources: [hvr-ghc]}}
