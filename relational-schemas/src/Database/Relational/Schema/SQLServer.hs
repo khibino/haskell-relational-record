@@ -17,7 +17,6 @@ import Data.Char (toLower)
 import Data.Int (Int8, Int16, Int32, Int64)
 import Data.Map (Map)
 import Data.Time (LocalTime, Day, TimeOfDay)
-import Database.Record.Instances ()
 import Database.Relational.Query (Query, Relation, PlaceHolders, Projection, Flat,
                                   (!), (.=.), (><), asc, relationalQuery, just, placeholder',
                                   query, relation', unsafeShowSql,

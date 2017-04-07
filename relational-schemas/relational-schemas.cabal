@@ -83,7 +83,6 @@ library
                        , time
                        , bytestring
 
-                       , persistable-record >= 0.2
                        , relational-query >= 0.8
   if flag(ghc74-generic)
     build-depends:        ghc-prim == 0.2.*
