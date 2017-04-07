@@ -1,5 +1,5 @@
 name:                relational-query-HDBC
-version:             0.6.0.2
+version:             0.6.1.0
 synopsis:            HDBC instance of relational-query and typed query interface for HDBC
 description:         This package contains the HDBC instance of relational-query and
                      the typed query interface for HDBC.
@@ -56,8 +56,8 @@ library
                        , th-data-compat
 
                        , names-th
-                       , persistable-record >= 0.4
-                       , relational-query >= 0.8
+                       , persistable-record >= 0.5
+                       , relational-query >= 0.9
                        , relational-schemas
                        , HDBC >=2
                        , HDBC-session
