@@ -945,7 +945,7 @@ HRR using placeholder:
 
 {% highlight haskell %}
 insertBranch_s1P :: Insert Branch1
-insertBranch_s1P = typedInsert tableOfBranch piBranch1
+insertBranch_s1P = derivedInsert piBranch1
 {% endhighlight %}
 
 Generated SQL:
@@ -1129,10 +1129,11 @@ HRR:
 
 {% highlight haskell %}
 updateEmployee_o3 :: Update ()
-updateEmployee_o3 = typedUpdate tableOfEmployee . updateTarget $ \proj -> do
+updateEmployee_o3 = derivedUpdate $ \proj -> do
   Employee.lname' <-# value "Bush"
   Employee.deptId' <-# just (value 3)
   wheres $ proj ! Employee.empId' .=. value 10
+  return unitPlaceHolder
 {% endhighlight %}
 
 Generated SQL:
@@ -1162,7 +1163,7 @@ HRR:
 
 {% highlight haskell %}
 updateAccount_9_4_2 :: Update ()
-updateAccount_9_4_2 = typedUpdate tableOfAccount . updateTarget $ \proj -> do
+updateAccount_9_4_2 = derivedUpdate $ \proj -> do
   ts <- queryScalar $ aggregatedUnique (relation $ do
     t <- query transaction
     wheres $ t ! Transaction.accountId' .=. proj ! Account.accountId'
@@ -1174,6 +1175,7 @@ updateAccount_9_4_2 = typedUpdate tableOfAccount . updateTarget $ \proj -> do
     return (value (1 :: Int64))
   Account.lastActivityDate' <-# (toDay $ flattenMaybe ts)
   wheres $ exists $ tl
+  return unitPlaceHolder
 
 toDay :: (SqlProjectable p, ProjectableShowSql p) => p (Maybe LocalTime) -> p (Maybe Day)
 toDay dt = unsafeProjectSql $ "date(" ++ unsafeShowSql dt ++ ")"
@@ -1259,12 +1261,13 @@ HRR:
 
 {% highlight haskell %}
 deleteEmployee_9_4_2 :: Delete ()
-deleteEmployee_9_4_2 = typedDelete tableOfDepartment . restriction $ \proj -> do
+deleteEmployee_9_4_2 = derivedDelete $ \proj -> do
   el <- queryList $ relation $ do
     e <- query employee
     wheres $ e ! Employee.deptId' .=. just (proj ! Department.deptId')
     return (value (1 :: Int64))
   wheres $ not' . exists $ el
+  return unitPlaceHolder
 {% endhighlight %}
 
 Generated SQL:
