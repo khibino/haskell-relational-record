@@ -8,7 +8,7 @@ set -x
 
 script_build() {
     if [ -f configure.ac ]; then autoreconf -i; fi
-    cabal configure $CABAL_FLAGS $CABAL_CONSTRAINTS --enable-tests --enable-benchmarks -v2  # -v2 provides useful information for debugging
+    cabal configure --enable-tests --enable-benchmarks -v2  # -v2 provides useful information for debugging
     cabal build $CABAL_JOBS  # this builds all libraries and executables (including tests/benchmarks)
     cabal test $CABAL_JOBS
     cabal check
@@ -18,7 +18,7 @@ script_build() {
     # If there are no other `.tar.gz` files in `dist`, this can be even simpler:
     # `cabal install --force-reinstalls dist/*-*.tar.gz`
     SRC_TGZ=$(cabal info . | awk '{print $2;exit}').tar.gz && \
-        (cd dist && cabal install $CABAL_JOBS $CABAL_FLAGS --force-reinstalls "$SRC_TGZ")
+        (cd dist && cabal install $CABAL_JOBS --force-reinstalls "$SRC_TGZ")
 }
 
 if [ x"$dirs" = x ]; then

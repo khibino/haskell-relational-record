@@ -10,3 +10,13 @@ custom_retry() {
         i=$(expr $i + 1)
     done
 }
+
+cabal_common() {
+    cat <<EOF
+remote-repo: hackage.haskell.org:http://hackage.haskell.org/packages/archive
+remote-repo-cache: ${HOME}/.cabal/packages
+world-file: ${HOME}/.cabal/world
+build-summary: ${HOME}/.cabal/logs/build.log
+remote-build-reporting: anonymous
+EOF
+}

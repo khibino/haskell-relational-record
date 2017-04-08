@@ -24,15 +24,15 @@ matrix:
       addons: {apt: {packages: [cabal-install-1.24,ghc-8.0.1], sources: [hvr-ghc]}}
     - env: GHCVER=7.6.3 CABALVER=1.16
       addons: {apt: {packages: [cabal-install-1.16,ghc-7.6.3], sources: [hvr-ghc]}}
-    - env: DEBIANVER=wheezy GHCVER=7.4.1 CABALVER=1.16 NO_CABAL_CACHE=1 CABAL_FLAGS='--flags=ghc74-generic --constraint="persistable-record +ghc74-generic"'
+    - env: DEBIANVER=wheezy GHCVER=7.4.1 CABALVER=1.16 NO_CABAL_CACHE=1
       addons: {apt: {packages: [cabal-install-1.16,ghc-7.4.1], sources: [hvr-ghc]}}
-    - env: GHCVER=7.10.3 CABALVER=1.22 CABAL_JOBS=-j2
+    - env: GHCVER=7.10.3 CABALVER=1.22
       addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.3], sources: [hvr-ghc]}}
     - env: GHCVER=7.8.4 CABALVER=1.18 CABAL_JOBS=-j2
       addons: {apt: {packages: [cabal-install-1.18,ghc-7.8.4], sources: [hvr-ghc]}}
-    - env: GHCVER=7.4.1 CABALVER=1.16 CABAL_FLAGS='--flags=ghc74-generic --constraint="persistable-record +ghc74-generic"'
+    - env: GHCVER=7.4.1 CABALVER=1.16
       addons: {apt: {packages: [cabal-install-1.16,ghc-7.4.1], sources: [hvr-ghc]}}
-    - env: GHCVER=7.4.2 CABALVER=1.16 CABAL_FLAGS='--flags=ghc74-generic --constraint="persistable-record +ghc74-generic"'
+    - env: GHCVER=7.4.2 CABALVER=1.16
       addons: {apt: {packages: [cabal-install-1.16,ghc-7.4.2], sources: [hvr-ghc]}}
     - env: GHCVER=7.6.1 CABALVER=1.16
       addons: {apt: {packages: [cabal-install-1.16,ghc-7.6.1], sources: [hvr-ghc]}}
@@ -44,6 +44,7 @@ matrix:
       addons: {apt: {packages: [cabal-install-1.18,ghc-7.8.2], sources: [hvr-ghc]}}
     - env: GHCVER=7.8.3 CABALVER=1.18 CABAL_JOBS=-j2
       addons: {apt: {packages: [cabal-install-1.18,ghc-7.8.3], sources: [hvr-ghc]}}
+    ## parallel is slower for 7.10.x ??
     - env: GHCVER=7.10.1 CABALVER=1.22
       addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.1], sources: [hvr-ghc]}}
     - env: GHCVER=7.10.2 CABALVER=1.22
@@ -58,24 +59,6 @@ before_install:
      export STACK_YAML=stack-travis.yaml ;
    else
      export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH ;
-     case "$DEBIANVER" in
-       wheezy)
-         export CABAL_CONSTRAINTS='--constraint=transformers==0.3.0.0 --constraint=containers==0.4.2.1 --constraint=bytestring==0.9.2.1 --constraint=text==0.11.2.0 --constraint=time==1.4 --constraint=dlist==0.5 --constraint=convertible==1.0.11.1 --constraint=HDBC==2.3.1.1' ;
-         ;;
-       '')
-         case "$GHCVER" in
-           7.[64].*)
-              export CABAL_CONSTRAINTS='--constraint=time==1.4'
-              ;;
-           *)
-              ;;
-         esac ;
-         ;;
-       *)
-         echo "Unsupported DEBIANVER, $DEBIANVER" ;
-         exit 1 ;
-         ;;
-     esac ;
    fi
 
 install:
