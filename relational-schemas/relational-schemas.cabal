@@ -25,10 +25,6 @@ tested-with:           GHC == 8.0.1, GHC == 8.0.2
                      , GHC == 7.4.1, GHC == 7.4.2
 extra-source-files:  ChangeLog.md
 
-flag ghc74-generic
-  description: Enable for generic programming using old ghc. If true use ghc-prim.
-  default:     False
-
 library
   exposed-modules:
                        Database.Relational.Schema.DB2Syscat.Columns
@@ -84,7 +80,8 @@ library
                        , bytestring
 
                        , relational-query >= 0.9
-  if flag(ghc74-generic)
+
+  if impl(ghc == 7.4.*)
     build-depends:        ghc-prim == 0.2.*
 
   hs-source-dirs:      src

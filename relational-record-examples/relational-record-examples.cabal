@@ -28,13 +28,10 @@ extra-source-files:    sql/3.7.1.sh
                        sql/sql-memo
                        examples.db
 
-flag ghc74-generic
-  description: Enable for generic programming using old ghc. If true use ghc-prim.
-  default:     False
-
 flag binary
   description:         building binary, too
   default:             False
+  manual:              True
 
 library
   hs-source-dirs:      lib
@@ -50,7 +47,7 @@ library
                      , template-haskell
                      -- not link directly but query type map
                      , relational-schemas >= 0.1.3
-  if flag(ghc74-generic)
+  if impl(ghc == 7.4.*)
     build-depends:        ghc-prim == 0.2.*
 
   default-language:    Haskell2010
@@ -79,7 +76,7 @@ executable examples
                      , relational-record-examples
                      , template-haskell
                      , time
-  if flag(ghc74-generic)
+  if impl(ghc == 7.4.*)
     build-depends:        ghc-prim == 0.2.*
 
   default-language:    Haskell2010

@@ -13,9 +13,6 @@ constraint: time==1.4
 constraint: dlist==0.5
 constraint: convertible==1.0.11.1
 constraint: HDBC==2.3.1.1
-constraint: persistable-record +ghc74-generic
-constraint: relational-query +ghc74-generic
-constraint: relational-schemas +ghc74-generic
 EOF
 }
 
@@ -23,9 +20,6 @@ cabal_ghc74() {
     cabal_common
     cat <<EOF
 constraint: time==1.4
-constraint: persistable-record +ghc74-generic
-constraint: relational-query +ghc74-generic
-constraint: relational-schemas +ghc74-generic
 EOF
 }
 

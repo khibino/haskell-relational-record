@@ -19,10 +19,6 @@ tested-with:           GHC == 8.0.1, GHC == 8.0.2
                      , GHC == 7.4.1, GHC == 7.4.2
 extra-source-files:  ChangeLog.md
 
-flag ghc74-generic
-  description: Enable for generic programming using old ghc. If true use ghc-prim.
-  default:     False
-
 library
   exposed-modules:
                         Database.Record.FromSql
@@ -45,7 +41,7 @@ library
                         , transformers
                         , dlist
                         , names-th
-  if flag(ghc74-generic)
+  if impl(ghc == 7.4.*)
     build-depends:        ghc-prim == 0.2.*
 
   hs-source-dirs:       src
@@ -56,7 +52,7 @@ test-suite nested
   build-depends:          base <5
                         , quickcheck-simple
                         , persistable-record
-  if flag(ghc74-generic)
+  if impl(ghc == 7.4.*)
     build-depends:        ghc-prim == 0.2.*
 
   type:                 exitcode-stdio-1.0

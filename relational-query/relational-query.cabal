@@ -25,10 +25,6 @@ tested-with:           GHC == 8.0.1, GHC == 8.0.2
                      , GHC == 7.4.1, GHC == 7.4.2
 extra-source-files:  ChangeLog.md
 
-flag ghc74-generic
-  description: Enable for generic programming using old ghc. If true use ghc-prim.
-  default:     False
-
 library
   exposed-modules:
                        Database.Relational.Query.Arrow
@@ -97,7 +93,7 @@ library
                        , sql-words >=0.1.4
                        , names-th
                        , persistable-record >= 0.5
-  if flag(ghc74-generic)
+  if impl(ghc == 7.4.*)
     build-depends:        ghc-prim == 0.2.*
 
   hs-source-dirs:      src
@@ -111,7 +107,7 @@ test-suite sqls
                        , relational-query
                        , containers
                        , transformers
-  if flag(ghc74-generic)
+  if impl(ghc == 7.4.*)
     build-depends:        ghc-prim == 0.2.*
 
   type:                exitcode-stdio-1.0
@@ -131,7 +127,7 @@ test-suite sqlsArrow
                        , relational-query
                        , containers
                        , transformers
-  if flag(ghc74-generic)
+  if impl(ghc == 7.4.*)
     build-depends:        ghc-prim == 0.2.*
 
   type:                exitcode-stdio-1.0

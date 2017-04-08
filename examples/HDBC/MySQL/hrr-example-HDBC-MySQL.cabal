@@ -12,10 +12,6 @@ build-type:          Simple
 -- extra-source-files:
 cabal-version:       >=1.10
 
-flag ghc74-generic
-  description: Enable for generic programming using old ghc. If true use ghc-prim.
-  default:     False
-
 executable example
   hs-source-dirs:
     src
@@ -38,7 +34,7 @@ executable example
     , relational-schemas
     , relational-query-HDBC >= 0.4
     , time
-  if flag(ghc74-generic)
+  if impl(ghc == 7.4.*)
     build-depends:        ghc-prim == 0.2.*
 
   default-language:
