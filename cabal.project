@@ -1,0 +1,15 @@
+-- Cabal project configuration
+--
+-- See http://cabal.readthedocs.io/en/latest/nix-local-build.html for more
+-- information
+
+packages: ./HDBC-session
+          ./names-th
+          ./persistable-record
+          ./persistable-types-HDBC-pg
+          ./relational-query
+          ./relational-query-HDBC
+          ./relational-record
+          ./relational-schemas
+          ./sql-words
+          ./text-postgresql
