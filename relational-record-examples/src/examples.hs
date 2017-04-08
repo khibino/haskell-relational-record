@@ -13,7 +13,7 @@ import Data.Int (Int64)
 import Data.Time (Day, LocalTime)
 
 import qualified Account
-import Account (Account, account, tableOfAccount)
+import Account (Account, account)
 import qualified Branch
 import Branch (Branch, branch)
 import qualified Business
@@ -21,7 +21,7 @@ import Business (business)
 import qualified Customer
 import Customer (Customer, customer)
 import qualified Department
-import Department (Department, department, tableOfDepartment)
+import Department (Department, department)
 import qualified Individual
 import Individual (individual)
 --import qualified Officer
@@ -33,7 +33,7 @@ import Product (product)
 import qualified Transaction
 import Transaction (transaction)
 import qualified Employee
-import Employee (Employee, employee, tableOfEmployee)
+import Employee (Employee, employee)
 
 allAccount :: Relation () Account
 allAccount = relation $ query account
@@ -768,8 +768,9 @@ $(makeRelationalRecord ''Customer1)
 -- @
 --
 deleteAccount_o1 :: Delete ()
-deleteAccount_o1 = typedDelete tableOfAccount . restriction $ \proj -> do
+deleteAccount_o1 = derivedDelete $ \proj -> do
   wheres $ proj ! Account.accountId' .=. value 2
+  return unitPlaceHolder
 
 -- |
 -- Placeholder version of Generated SQL:
@@ -782,7 +783,7 @@ deleteAccount_o1 = typedDelete tableOfAccount . restriction $ \proj -> do
 --
 -- @
 --   deleteAccount_o1P :: Delete Int64
---   deleteAccount_o1P = typedDelete tableOfAccount . restriction' $ \proj -> do
+--   deleteAccount_o1P = derivedDelete $ \proj -> do
 --     fmap fst $ placeholder (\ph -> wheres $ proj ! Account.accountId' .=. ph)
 -- @
 --
@@ -808,9 +809,10 @@ deleteAccount_o1P = derivedDelete $ \proj -> do
 -- @
 --
 deleteAccount_o2 :: Delete ()
-deleteAccount_o2 = typedDelete tableOfAccount . restriction $ \proj -> do
+deleteAccount_o2 = derivedDelete $ \proj -> do
   wheres $ proj ! Account.accountId' .>=. value 10
   wheres $ proj ! Account.accountId' .<=. value 20
+  return unitPlaceHolder
 
 -- |
 -- Placeholder version of Generated SQL:
@@ -846,12 +848,13 @@ deleteAccount_o2P = derivedDelete $ \proj -> do
 -- @
 --
 deleteEmployee_9_4_2 :: Delete ()
-deleteEmployee_9_4_2 = typedDelete tableOfDepartment . restriction $ \proj -> do
+deleteEmployee_9_4_2 = derivedDelete $ \proj -> do
   el <- queryList $ relation $ do
     e <- query employee
     wheres $ e ! Employee.deptId' .=. just (proj ! Department.deptId')
     return (value (1 :: Int64))
   wheres $ not' . exists $ el
+  return unitPlaceHolder
 
 -- |
 -- (original) Updating data
@@ -873,10 +876,11 @@ deleteEmployee_9_4_2 = typedDelete tableOfDepartment . restriction $ \proj -> do
 -- @
 --
 updateEmployee_o3 :: Update ()
-updateEmployee_o3 = typedUpdate tableOfEmployee . updateTarget $ \proj -> do
+updateEmployee_o3 = derivedUpdate $ \proj -> do
   Employee.lname' <-# value "Bush"
   Employee.deptId' <-# just (value 3)
   wheres $ proj ! Employee.empId' .=. value 10
+  return unitPlaceHolder
 
 -- |
 -- Placeholder version of Generated SQL:
@@ -930,7 +934,7 @@ updateEmployee_o3P = derivedUpdate $ \proj -> do
 -- @
 --
 updateAccount_9_4_2 :: Update ()
-updateAccount_9_4_2 = typedUpdate tableOfAccount . updateTarget $ \proj -> do
+updateAccount_9_4_2 = derivedUpdate $ \proj -> do
   ts <- queryScalar $ aggregatedUnique (relation $ do
     t <- query transaction
     wheres $ t ! Transaction.accountId' .=. proj ! Account.accountId'
@@ -942,6 +946,7 @@ updateAccount_9_4_2 = typedUpdate tableOfAccount . updateTarget $ \proj -> do
     return (value (1 :: Int64))
   Account.lastActivityDate' <-# (toDay $ flattenMaybe ts)
   wheres $ exists $ tl
+  return unitPlaceHolder
 
 toDay :: (SqlProjectable p, ProjectableShowSql p) => p (Maybe LocalTime) -> p (Maybe Day)
 toDay dt = unsafeProjectSql $ "date(" ++ unsafeShowSql dt ++ ")"
