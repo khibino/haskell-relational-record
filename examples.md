@@ -42,11 +42,23 @@ ORDER BY avail_balance DESC;
 HRR:
 
 {% highlight haskell %}
-account_3_7_1 :: Relation () Account
+account_3_7_1 :: Relation () Account2
 account_3_7_1 = relation $ do
   a <- query account
   desc $ a ! Account.availBalance'
-  return a
+  return $ Account2 |$| a ! Account.accountId'
+                    |*| a ! Account.productCd'
+                    |*| a ! Account.openDate'
+                    |*| a ! Account.availBalance'
+
+data Account2 = Account2
+  { a2AccountId :: Int
+  , a2ProductCd :: String
+  , a2OpenDate :: Day
+  , a2AvailBalance :: Maybe Double
+  } deriving (Show, Generic)
+
+$(makeRelationalRecord ''Account2)
 {% endhighlight %}
 
 Generated SQL:
