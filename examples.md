@@ -137,7 +137,7 @@ data Employee1 = Employee1
   , e1Lname' :: String
   } deriving (Show)
 
-$(makeRecordPersistableDefault ''Employee1)
+$(makeRelationalRecord ''Employee1)
 {% endhighlight %}
 
 Generated SQL:
@@ -255,7 +255,7 @@ data Employee2 = Employee2
   , e2StartDate :: Day
   } deriving (Show)
 
-$(makeRecordPersistableDefault ''Employee2)
+$(makeRelationalRecord ''Employee2)
 {% endhighlight %}
 
 Generated SQL:
@@ -345,7 +345,7 @@ data Account1 = Account1
   , a1AvailBalance :: Maybe Double
   } deriving (Show)
 
-$(makeRecordPersistableDefault ''Account1)
+$(makeRelationalRecord ''Account1)
 
 account_4_3_3aR :: Relation () Account1
 account_4_3_3aR = relation $ do
@@ -573,7 +573,7 @@ data Account4 = Account4
   , a4Lname :: Maybe String
   } deriving (Show)
 
-$(makeRecordPersistableDefault ''Account4)
+$(makeRelationalRecord ''Account4)
 {% endhighlight %}
 
 Generated SQL:
@@ -662,7 +662,7 @@ data Account3 = Account3
   , productCd :: String
   } deriving (Show)
 
-$(makeRecordPersistableDefault ''Account3)
+$(makeRelationalRecord ''Account3)
 {% endhighlight %}
 
 Generated SQL:
@@ -865,7 +865,7 @@ customer1 c = Customer1 |$| c ! Customer.custId'
                         |*| c ! Customer.custTypeCd'
                         |*| c ! Customer.city'
 
-$(makeRecordPersistableDefault ''Customer1)
+$(makeRelationalRecord ''Customer1)
 {% endhighlight %}
 
 Generated SQL:
@@ -928,7 +928,7 @@ data Branch1 = Branch1
   , b1Zip :: Maybe String
   }
 
-$(makeRecordPersistableDefault ''Branch1)
+$(makeRelationalRecord ''Branch1)
 {% endhighlight %}
 
 Generated SQL:
@@ -1004,7 +1004,7 @@ data Employee3 = Employee3
   , e3AssignedBranchId :: Maybe Int64
   }
 
-$(makeRecordPersistableDefault ''Employee3)
+$(makeRelationalRecord ''Employee3)
 {% endhighlight %}
 
 Generated SQL:
@@ -1073,7 +1073,7 @@ data Employee4 = Employee4
   , e4Title :: Maybe String
   }
 
-$(makeRecordPersistableDefault ''Employee4)
+$(makeRelationalRecord ''Employee4)
 
 insertEmployee_s2P :: InsertQuery Employee4
 insertEmployee_s2P = typedInsertQuery piEmployee3 . relation' $ do
