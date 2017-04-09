@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.9.0.1
+
+- Use Haskell implementation test instead of flag test in .cabal
+
 ## 0.9.0.0
 
 - Add HRR instances of tuple types derived by generic programming.
