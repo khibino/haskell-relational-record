@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.5.0.1
+
+- Use Haskell implementation test instead of flag test in .cabal
+
 ## 0.5.0.0
 
 - Add generic instances of FromSql, ToSql and PersistableWidth.
