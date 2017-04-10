@@ -80,8 +80,8 @@ unsafeExtractNumber (Number i) = i
 
 {-
 updateNumber :: PersistableWidth p => Sequence r p -> Update (p, p)
-updateNumber seqt = typedUpdate (Sequence.table seqt) . updateTarget' $ \ proj -> do
-  (phv', ()) <- placeholder (\ph -> Sequence.key seqt <-# ph)
+updateNumber seqt = typedUpdate (table seqt) . updateTarget' $ \ proj -> do
+  (phv', ()) <- placeholder (\ph -> key seqt <-# ph)
   (phx', ()) <- placeholder (\ph -> wheres $ proj ! key seqt .<=. ph)
   return $ (,) |$| phv' |*| phx'
  -}
@@ -90,8 +90,8 @@ updateNumber :: (Integral i, ShowConstantTermsSQL i)
              => i            -- ^ sequence number to set. expect not SQL injectable.
              -> Sequence s i -- ^ sequence table
              -> Update ()
-updateNumber i seqt = typedUpdate (Sequence.table seqt) . updateTarget' $ \ proj -> do
+updateNumber i seqt = typedUpdate (table seqt) . updateTarget' $ \ proj -> do
   let iv = value i
-  Sequence.key seqt <-# iv
+  key seqt <-# iv
   wheres $ proj ! key seqt .<=. iv -- fool proof
   return unitPlaceHolder
