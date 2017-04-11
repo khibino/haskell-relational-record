@@ -87,11 +87,11 @@ autoPool :: (FromSql SqlValue s, ToSql SqlValue i,
              PersistableWidth i, ShowConstantTermsSQL i,
              Bounded i, Integral i, Show i, IConnection conn,
              SequenceFromTable r s i)
-         => i
-         -> IO conn
+         => IO conn
+         -> i
          -> Relation () r
          -> IO [Number r i]
-autoPool sz connAct seqt = loop  where
+autoPool connAct sz seqt = loop  where
   loop = unsafeInterleaveIO $ do
     hd <- pool connAct sz seqt
     tl <- loop
