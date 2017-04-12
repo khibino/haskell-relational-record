@@ -81,7 +81,7 @@ pool :: (FromSql SqlValue s, ToSql SqlValue i,
      -> i
      -> Relation () r
      -> IO [Number r i]
-pool connAct sz seqt = withConnectionIO connAct $ \conn -> pool' conn sz seqt
+pool connAct sz rel = withConnectionIO connAct $ \conn -> pool' conn sz rel
 
 autoPool :: (FromSql SqlValue s, ToSql SqlValue i,
              PersistableWidth i, ShowConstantTermsSQL i,
@@ -91,8 +91,8 @@ autoPool :: (FromSql SqlValue s, ToSql SqlValue i,
          -> i
          -> Relation () r
          -> IO [Number r i]
-autoPool connAct sz seqt = loop  where
+autoPool connAct sz rel = loop  where
   loop = unsafeInterleaveIO $ do
-    hd <- pool connAct sz seqt
+    hd <- pool connAct sz rel
     tl <- loop
     return $ hd ++ tl
