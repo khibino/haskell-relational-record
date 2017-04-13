@@ -11,7 +11,9 @@
 --
 -- This module provides sequence operations of relational-record for HDBC.
 module SequenceHDBC (
-  pool', pool, autoPool,
+  pool, autoPool,
+
+  unsafePool, unsafeAutoPool,
   ) where
 
 import Control.Applicative ((<$>))
@@ -38,11 +40,11 @@ import qualified Sequence
 unsafePool :: (FromSql SqlValue s, ToSql SqlValue i,
                PersistableWidth i, ShowConstantTermsSQL i,
                Bounded i, Integral i, Show i, IConnection conn)
-           => conn
+           => IO conn
            -> i
            -> Sequence s i
            -> IO [i]
-unsafePool conn sz seqt = do
+unsafePool connAct sz seqt = withConnectionIO connAct $ \conn -> do
   let t      = Sequence.table seqt
       name   = Table.name t
   pq    <- prepareQuery conn $ relationalQuery' (Relation.table t) [FOR, UPDATE]
@@ -63,15 +65,18 @@ unsafePool conn sz seqt = do
   commit conn
   return [seq0 + 1 .. seq1]
 
-pool' :: (FromSql SqlValue s, ToSql SqlValue i,
-          PersistableWidth i, ShowConstantTermsSQL i,
-          Bounded i, Integral i, Show i, IConnection conn,
-          SequenceFromTable r s i)
-      => conn
-      -> i
-      -> Relation () r
-      -> IO [Number r i]
-pool' conn sz = (map Sequence.unsafeSpecifyNumber <$>) . unsafePool conn sz . Sequence.fromRelation
+unsafeAutoPool :: (FromSql SqlValue s, ToSql SqlValue i,
+                   PersistableWidth i, ShowConstantTermsSQL i,
+                   Bounded i, Integral i, Show i, IConnection conn)
+               => IO conn
+               -> i
+               -> Sequence s i
+               -> IO [i]
+unsafeAutoPool connAct sz seqt = loop  where
+  loop = unsafeInterleaveIO $ do
+    hd <- unsafePool connAct sz seqt
+    (hd ++) <$> loop
+
 
 pool :: (FromSql SqlValue s, ToSql SqlValue i,
          PersistableWidth i, ShowConstantTermsSQL i,
@@ -81,7 +86,10 @@ pool :: (FromSql SqlValue s, ToSql SqlValue i,
      -> i
      -> Relation () r
      -> IO [Number r i]
-pool connAct sz rel = withConnectionIO connAct $ \conn -> pool' conn sz rel
+pool connAct sz =
+  (map Sequence.unsafeSpecifyNumber <$>)
+  . unsafePool connAct sz
+  . Sequence.fromRelation
 
 autoPool :: (FromSql SqlValue s, ToSql SqlValue i,
              PersistableWidth i, ShowConstantTermsSQL i,
@@ -91,8 +99,7 @@ autoPool :: (FromSql SqlValue s, ToSql SqlValue i,
          -> i
          -> Relation () r
          -> IO [Number r i]
-autoPool connAct sz rel = loop  where
-  loop = unsafeInterleaveIO $ do
-    hd <- pool connAct sz rel
-    tl <- loop
-    return $ hd ++ tl
+autoPool connAct sz =
+  (map Sequence.unsafeSpecifyNumber <$>)
+  . unsafeAutoPool connAct sz
+  . Sequence.fromRelation
