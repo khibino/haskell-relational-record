@@ -61,9 +61,10 @@ runInsertQuery1 ins = handleConnectionIO connect $ \conn -> do
   commit conn
 
 riseOfBanana :: Update ()
-riseOfBanana =  typedUpdate tableOfStockGoods . updateTarget $ \proj -> do
+riseOfBanana =  derivedUpdate $ \proj -> do
   unit' <-# proj ! unit' .*. value 2
   wheres $ proj ! name' .=. value "Banana"
+  return unitPlaceHolder
 
 
 newCherry :: StockGoods
