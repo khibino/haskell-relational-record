@@ -8,7 +8,6 @@ import Database.HDBC.Record
 import Database.HDBC.Session
 import qualified One
 import StockGoods
-import qualified StockGoods
 import PgTestDataSource
 
 import Data.Int (Int32)
