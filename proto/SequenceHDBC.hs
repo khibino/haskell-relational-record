@@ -33,7 +33,7 @@ import Database.HDBC.Record.Statement (bind, execute)
 import Database.HDBC.Record.Query (prepareQuery, fetch)
 import Database.HDBC.Record.Update (runUpdate)
 
-import Sequence (Sequence, SequenceFromTable, Number, )
+import Sequence (Sequence, BindTableToSequence, Number, )
 import qualified Sequence
 
 
@@ -81,7 +81,7 @@ unsafeAutoPool connAct sz seqt = loop  where
 pool :: (FromSql SqlValue s, ToSql SqlValue i,
          PersistableWidth i, ShowConstantTermsSQL i,
          Bounded i, Integral i, Show i, IConnection conn,
-         SequenceFromTable r s i)
+         BindTableToSequence r s i)
      => IO conn
      -> i
      -> Relation () r
@@ -94,7 +94,7 @@ pool connAct sz =
 autoPool :: (FromSql SqlValue s, ToSql SqlValue i,
              PersistableWidth i, ShowConstantTermsSQL i,
              Bounded i, Integral i, Show i, IConnection conn,
-             SequenceFromTable r s i)
+             BindTableToSequence r s i)
          => IO conn
          -> i
          -> Relation () r
