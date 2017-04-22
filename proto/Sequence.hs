@@ -1,5 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 -- |
 -- Module      : Sequence
@@ -17,7 +18,7 @@ module Sequence (
 
   SequenceDerivable (..),
 
-  bindTripleFromPi,
+  bindTripleFromPi, primaryBindTriple,
   BindTableToSequence (..), fromRelation,
 
   Number, unsafeSpecifyNumber, unsafeExtractNumber,
@@ -31,7 +32,8 @@ import Prelude hiding (seq)
 import Database.Relational.Query
   (ShowConstantTermsSQL, updateTarget', Update, typedUpdate,
    Pi, TableDerivable, derivedTable, tableOf, Table, Relation,
-   (<-#), (.<=.), (!), wheres, unitPlaceHolder, value, )
+   (<-#), (.<=.), (!), wheres, unitPlaceHolder, value,
+   HasConstraintKey, constraintKey, projectionKey, Primary, Key, )
 import qualified Database.Relational.Query as Relational
 
 
@@ -53,9 +55,16 @@ class TableDerivable s => SequenceDerivable s i | s -> i where
   derivedSequence :: Sequence s i
 
 bindTripleFromPi :: (TableDerivable r, SequenceDerivable s i)
-             => Pi r i
-             -> (Table r, Pi r i, Sequence s i)
+                 => Pi r i
+                 -> (Table r, Pi r i, Sequence s i)
 bindTripleFromPi pi' = (derivedTable, pi', derivedSequence)
+
+primaryBindTriple :: (TableDerivable r, SequenceDerivable s i, HasConstraintKey Primary r i)
+                  => (Table r, Pi r i, Sequence s i)
+primaryBindTriple = bindTripleFromPi $ projectionKey primaryKey
+  where
+    primaryKey :: HasConstraintKey Primary r i => Key Primary r i
+    primaryKey = constraintKey
 
 class (TableDerivable r, SequenceDerivable s i)
       => BindTableToSequence r s i | r -> s  where
