@@ -14,10 +14,10 @@
 -- Portability : unknown
 --
 -- This module defines interfaces
--- from list of SQL type into Haskell type.
+-- from list of database value type into Haskell type.
+
 module Database.Record.FromSql (
-  -- * Conversion from list of SQL type into record type
-  -- $recordFromSql
+  -- * Conversion from list of database value type into record type
   RecordFromSql, runTakeRecord, runToRecord,
   createRecordFromSql,
 
@@ -40,11 +40,13 @@ import qualified Database.Record.Persistable as Persistable
 import Database.Record.KeyConstraint
   (HasColumnConstraint(columnConstraint), ColumnConstraint, NotNull, index)
 
+{- |
+'RecordFromSql' 'q' 'a' is data-type wrapping function
+to convert from list of database SQL value type ['q'] into Haskell type 'a'
 
-{- $recordFromSql
-Structure of 'RecordFromSql' 'q' 'a' is similar to parser.
-While running 'RecordFromSql' behavior is the same as parser
-which parse list of SQL type ['q'] stream.
+This structure is similar to parser.
+While running 'RecordFromSql' behavior is the same as non-fail-able parser
+which parse list of database value type ['q'] stream.
 
 So, 'RecordFromSql' 'q' is 'Monad' and 'Applicative' instance like parser monad.
 When, you have data constructor and objects like below.
@@ -69,12 +71,10 @@ You can get composed 'RecordFromSql' like below.
   myRecord =  MyRecord \<$\> foo \<*\> bar \<*\> baz
 @
 -}
-
--- | Proof object type to convert from sql value type 'q' list into Haskell type 'a'.
 newtype RecordFromSql q a = RecordFromSql ([q] -> (a, [q]))
 
 -- | Run 'RecordFromSql' proof object.
---   Convert from list of SQL type ['q'] into Haskell type 'a' and rest of list ['q'].
+--   Convert from list of database value type ['q'] into Haskell type 'a' and rest of list ['q'].
 runTakeRecord :: RecordFromSql q a -- ^ Proof object which has capability to convert
               -> [q]               -- ^ list of SQL type
               -> (a, [q])          -- ^ Haskell type and rest of list
@@ -126,10 +126,24 @@ maybeRecord rec pkey = createRecordFromSql mayToRec where
     | otherwise                         = (Nothing, vals')  where
       (a, vals') = runTakeRecord rec vals
 
+{- |
+'FromSql' 'q' 'a' is implicit rule to infer 'RecordFromSql' 'q' 'a' record parser function against type 'a'.
 
--- | Inference rule interface for 'RecordFromSql' proof object.
+Generic programming with default signature is available for 'FromSql' class,
+so you can make instance like below:
+
+@
+  {-# LANGUAGE DeriveGeneric #-}
+  import GHC.Generics (Generic)
+  import Database.HDBC (SqlValue)
+
+  data Foo = Foo { ... } deriving Generic
+  instance FromSql SqlValue Foo
+@
+
+-}
 class FromSql q a where
-  -- | 'RecordFromSql' proof object.
+  -- | 'RecordFromSql' 'q' 'a' record parser function.
   recordFromSql :: RecordFromSql q a
 
   default recordFromSql :: (Generic a, GFromSql q (Rep a)) => RecordFromSql q a
