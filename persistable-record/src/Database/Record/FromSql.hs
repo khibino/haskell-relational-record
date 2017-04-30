@@ -24,7 +24,7 @@ module Database.Record.FromSql (
   (<&>),
   maybeRecord,
 
-  -- * Inference rules of 'RecordFromSql' conversion
+  -- * Derivation rules of 'RecordFromSql' conversion
   FromSql (recordFromSql),
   takeRecord, toRecord,
 
@@ -73,20 +73,20 @@ You can get composed 'RecordFromSql' like below.
 -}
 newtype RecordFromSql q a = RecordFromSql ([q] -> (a, [q]))
 
--- | Run 'RecordFromSql' proof object.
+-- | Run 'RecordFromSql' parser function object.
 --   Convert from list of database value type ['q'] into Haskell type 'a' and rest of list ['q'].
-runTakeRecord :: RecordFromSql q a -- ^ Proof object which has capability to convert
+runTakeRecord :: RecordFromSql q a -- ^ parser function object which has capability to convert
               -> [q]               -- ^ list of database value type
               -> (a, [q])          -- ^ Haskell type and rest of list
 runTakeRecord (RecordFromSql f) = f
 
 -- | Axiom of 'RecordFromSql' for database value type 'q' and Haskell type 'a'
 createRecordFromSql :: ([q] -> (a, [q])) -- ^ Convert function body
-                    -> RecordFromSql q a -- ^ Result proof object
+                    -> RecordFromSql q a -- ^ Result parser function object
 createRecordFromSql =  RecordFromSql
 
--- | Run 'RecordFromSql' proof object. Convert from list of database value type ['q'] into  Haskell type 'a'.
-runToRecord :: RecordFromSql q a -- ^ Proof object which has capability to convert
+-- | Run 'RecordFromSql' parser function object. Convert from list of database value type ['q'] into  Haskell type 'a'.
+runToRecord :: RecordFromSql q a -- ^ parser function object which has capability to convert
             -> [q]               -- ^ list of database value type
             -> a                 -- ^ Haskell type
 runToRecord r = fst . runTakeRecord r
@@ -108,14 +108,14 @@ instance Applicative (RecordFromSql q) where
   pure  = return
   (<*>) = ap
 
--- | Derivation rule of 'RecordFromSql' proof object for Haskell tuple (,) type.
+-- | Derivation rule of 'RecordFromSql' parser function object for Haskell tuple (,) type.
 (<&>) :: RecordFromSql q a -> RecordFromSql q b -> RecordFromSql q (a, b)
 a <&> b = (,) <$> a <*> b
 
 infixl 4 <&>
 
 
--- | Derivation rule of 'RecordFromSql' proof object for Haskell 'Maybe' type.
+-- | Derivation rule of 'RecordFromSql' parser function object for Haskell 'Maybe' type.
 maybeRecord :: PersistableType q
             => RecordFromSql q a
             -> ColumnConstraint NotNull a
@@ -127,7 +127,7 @@ maybeRecord rec pkey = createRecordFromSql mayToRec where
       (a, vals') = runTakeRecord rec vals
 
 {- |
-'FromSql' 'q' 'a' is implicit rule to infer 'RecordFromSql' 'q' 'a' record parser function against type 'a'.
+'FromSql' 'q' 'a' is implicit rule to derive 'RecordFromSql' 'q' 'a' record parser function against type 'a'.
 
 Generic programming with default signature is available for 'FromSql' class,
 so you can make instance like below:
@@ -166,26 +166,26 @@ instance FromSql q a => GFromSql q (K1 i a) where
   gFromSql = K1 <$> recordFromSql
 
 
--- | Inference rule of 'RecordFromSql' proof object which can convert
+-- | Implicit derivation rule of 'RecordFromSql' parser function object which can convert
 --   from list of database value type ['q'] into Haskell 'Maybe' type.
 instance (HasColumnConstraint NotNull a, FromSql q a, PersistableType q)
          => FromSql q (Maybe a)  where
   recordFromSql = maybeRecord recordFromSql columnConstraint
 
--- | Inference rule of 'RecordFromSql' proof object which can convert
+-- | Implicit derivation rule of 'RecordFromSql' parser function object which can convert
 --   from /empty/ list of database value type ['q'] into Haskell unit () type.
 instance FromSql q ()  -- default generic instance
 
--- | Run inferred 'RecordFromSql' proof object.
+-- | Run implicit 'RecordFromSql' parser function object.
 --   Convert from list of database value type ['q'] into haskell type 'a' and rest of list ['q'].
 takeRecord :: FromSql q a => [q] -> (a, [q])
 takeRecord =  runTakeRecord recordFromSql
 
--- | Run inferred 'RecordFromSql' proof object.
+-- | Run implicit 'RecordFromSql' parser function object.
 --   Convert from list of database value type ['q'] into haskell type 'a'.
 toRecord :: FromSql q a => [q] -> a
 toRecord =  runToRecord recordFromSql
 
--- | Derivation rule of 'RecordFromSql' proof object for value convert function.
+-- | Derivation rule of 'RecordFromSql' parser function object for value convert function.
 valueRecordFromSql :: (q -> a) -> RecordFromSql q a
 valueRecordFromSql d = createRecordFromSql $ \qs -> (d $ head qs, tail qs)
