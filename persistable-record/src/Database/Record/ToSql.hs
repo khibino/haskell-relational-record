@@ -14,7 +14,7 @@
 -- Portability : unknown
 --
 -- This module defines interfaces
--- from Haskell type into list of SQL type.
+-- from Haskell type into list of database value type.
 module Database.Record.ToSql (
   -- * Conversion from record type into list of SQL type
   ToSqlM, RecordToSql, runFromRecord,
@@ -22,7 +22,7 @@ module Database.Record.ToSql (
 
   (<&>),
 
-  -- * Inference rules of 'RecordToSql' conversion
+  -- * Derivation rules of 'RecordToSql' conversion
   ToSql (recordToSql),
   putRecord, putEmpty, fromRecord, wrapToSql,
 
@@ -57,7 +57,14 @@ type ToSqlM q a = Writer (DList q) a
 runToSqlM :: ToSqlM q a -> [q]
 runToSqlM =  DList.toList . execWriter
 
--- | Proof object type to convert from Haskell type 'a' into list of SQL type ['q'].
+{- |
+'RecordToSql' 'q' 'a' is data-type wrapping function
+to convert from Haskell type 'a' into list of database value type (to send to database) ['q'].
+
+This structure is similar to printer.
+While running 'RecordToSql' behavior is the same as list printer.
+which appends list of database value type ['q'] stream.
+-}
 newtype RecordToSql q a = RecordToSql (a -> ToSqlM q ())
 
 runRecordToSql :: RecordToSql q a -> a -> ToSqlM q ()
@@ -101,8 +108,37 @@ maybeRecord qt w ra =  wrapToSql d  where
 
 infixl 4 <&>
 
+{- |
+'ToSql' 'q' 'a' is implicit rule to derive 'RecordToSql' 'q' 'a' record printer function for type 'a'.
 
--- | Inference rule interface for 'RecordToSql' proof object.
+So, 'ToSql' 'q' 'a' and 'RecordToSql' 'q 'a' are composable with monadic context.
+When, you have data constructor and objects like below.
+
+@
+  data MyRecord = MyRecord Foo Bar Baz
+@
+
+@
+  instance ToSql SqlValue Foo where
+    ...
+  instance ToSql SqlValue Bar where
+    ...
+  instance ToSql SqlValue Baz where
+    ...
+@
+
+You can get composed 'ToSql' implicit rule like below.
+
+@
+  instance ToSql SqlValue MyRecord where
+    recordToSql =
+    recordToSql = wrapToSql $ \\ (MyRecord x y z) -> do
+      putRecord x
+      putRecord y
+      putRecord z
+@
+
+-}
 class ToSql q a where
   -- | Infer 'RecordToSql' proof object.
   recordToSql :: RecordToSql q a
