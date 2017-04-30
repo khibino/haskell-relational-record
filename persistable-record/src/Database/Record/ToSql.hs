@@ -29,9 +29,9 @@ module Database.Record.ToSql (
   valueRecordToSql,
 
   -- * Make parameter list for updating with key
-  updateValuesByUnique',
   updateValuesByUnique,
   updateValuesByPrimary,
+  updateValuesByUnique',
 
   untypedUpdateValuesIndex,
   unsafeUpdateValuesWithIndexes
