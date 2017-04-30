@@ -61,7 +61,23 @@ showConstantTermsSQL :: ShowConstantTermsSQL a
                      -> [StringSQL]
 showConstantTermsSQL = toList . showConstantTermsSQL'
 
--- | Interface for constant SQL term list.
+{- |
+'ShowConstantTermsSQL' 'a' is implicit rule to derive function to convert
+from haskell record type 'a' into constant SQL terms.
+
+Generic programming (<https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/glasgow_exts.html#generic-programming>)
+with default signature is available for 'ShowConstantTermsSQL' class,
+so you can make instance like below:
+
+@
+  \{\-\# LANGUAGE DeriveGeneric \#\-\}
+  import GHC.Generics (Generic)
+  --
+  data Foo = Foo { ... } deriving Generic
+  instance ShowConstantTermsSQL Foo
+@
+
+-}
 class ShowConstantTermsSQL a where
   showConstantTermsSQL' :: a -> DList StringSQL
 
