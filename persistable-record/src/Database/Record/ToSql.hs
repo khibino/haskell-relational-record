@@ -16,7 +16,7 @@
 -- This module defines interfaces
 -- from Haskell type into list of database value type.
 module Database.Record.ToSql (
-  -- * Conversion from record type into list of SQL type
+  -- * Conversion from record type into list of database value type
   ToSqlM, RecordToSql, runFromRecord,
   createRecordToSql,
 
@@ -51,7 +51,7 @@ import Database.Record.KeyConstraint
   (Primary, Unique, KeyConstraint, HasKeyConstraint(keyConstraint), unique, indexes)
 
 
--- | Context type to convert SQL type list.
+-- | Context type to convert into database value list.
 type ToSqlM q a = Writer (DList q) a
 
 runToSqlM :: ToSqlM q a -> [q]
@@ -74,15 +74,15 @@ runRecordToSql (RecordToSql f) = f
 wrapToSql :: (a -> ToSqlM q ()) -> RecordToSql q a
 wrapToSql =  RecordToSql
 
--- | Run 'RecordToSql' proof object. Convert from Haskell type 'a' into list of SQL type ['q'].
-runFromRecord :: RecordToSql q a -- ^ Proof object which has capability to convert
+-- | Run 'RecordToSql' printer function object. Convert from Haskell type 'a' into list of database value type ['q'].
+runFromRecord :: RecordToSql q a -- ^ printer function object which has capability to convert
               -> a               -- ^ Haskell type
-              -> [q]             -- ^ list of SQL type
+              -> [q]             -- ^ list of database value
 runFromRecord r = runToSqlM . runRecordToSql r
 
--- | Axiom of 'RecordToSql' for SQL type 'q' and Haksell type 'a'.
+-- | Axiom of 'RecordToSql' for database value type 'q' and Haksell type 'a'.
 createRecordToSql :: (a -> [q])      -- ^ Convert function body
-                  -> RecordToSql q a -- ^ Result proof object
+                  -> RecordToSql q a -- ^ Result printer function object
 createRecordToSql f =  wrapToSql $ tell . DList.fromList . f
 
 -- unsafely map record
@@ -96,11 +96,11 @@ productToSql run ra rb = wrapToSql $ \c -> run c $ \a b -> do
   runRecordToSql ra a
   runRecordToSql rb b
 
--- | Derivation rule of 'RecordToSql' proof object for Haskell tuple (,) type.
+-- | Derivation rule of 'RecordToSql' printer function object for Haskell tuple (,) type.
 (<&>) :: RecordToSql q a -> RecordToSql q b -> RecordToSql q (a, b)
 (<&>) = productToSql $ flip uncurry
 
--- | Derivation rule of 'RecordToSql' proof object for Haskell 'Maybe' type.
+-- | Derivation rule of 'RecordToSql' printer function object for Haskell 'Maybe' type.
 maybeRecord :: PersistableSqlType q -> PersistableRecordWidth a -> RecordToSql q a -> RecordToSql q (Maybe a)
 maybeRecord qt w ra =  wrapToSql d  where
   d (Just r) = runRecordToSql ra r
@@ -140,7 +140,7 @@ You can get composed 'ToSql' implicit rule like below.
 
 -}
 class ToSql q a where
-  -- | Infer 'RecordToSql' proof object.
+  -- | Derived 'RecordToSql' printer function object.
   recordToSql :: RecordToSql q a
 
   default recordToSql :: (Generic a, GToSql q (Rep a)) => RecordToSql q a
@@ -162,17 +162,17 @@ instance ToSql q a => GToSql q (K1 i a) where
   gToSql = (\(K1 a) -> a) `mapToSql` recordToSql
 
 
--- | Inference rule of 'RecordToSql' proof object which can convert
---   from Haskell 'Maybe' type into list of SQL type ['q'].
+-- | Implicit derivation rule of 'RecordToSql' printer function object which can convert
+--   from Haskell 'Maybe' type into list of database value type ['q'].
 instance (PersistableType q, PersistableWidth a, ToSql q a) => ToSql q (Maybe a)  where
   recordToSql = maybeRecord persistableType persistableWidth recordToSql
 
--- | Inference rule of 'RecordToSql' proof object which can convert
---   from Haskell unit () type into /empty/ list of SQL type ['q'].
+-- | Implicit derivation rule of 'RecordToSql' printer function object which can convert
+--   from Haskell unit () type into /empty/ list of database value type ['q'].
 instance ToSql q ()  -- default generic instance
 
--- | Run inferred 'RecordToSql' proof object.
---   Context to convert haskell record type 'a' into SQL type 'q' list.
+-- | Run implicit 'RecordToSql' printer function object.
+--   Context to convert haskell record type 'a' into lib of database value type ['q'].
 putRecord :: ToSql q a => a -> ToSqlM q ()
 putRecord =  runRecordToSql recordToSql
 
@@ -180,19 +180,21 @@ putRecord =  runRecordToSql recordToSql
 putEmpty :: () -> ToSqlM q ()
 putEmpty =  putRecord
 
--- | Run inferred 'RecordToSql' proof object.
---   Convert from haskell type 'a' into list of SQL type ['q'].
+-- | Run implicit 'RecordToSql' printer function object.
+--   Convert from haskell type 'a' into list of database value type ['q'].
 fromRecord :: ToSql q a => a -> [q]
 fromRecord =  runToSqlM . putRecord
 
--- | Derivation rule of 'RecordToSql' proof object for value convert function.
+-- | Derivation rule of 'RecordToSql' printer function object for value convert function.
 valueRecordToSql :: (a -> q) -> RecordToSql q a
 valueRecordToSql = createRecordToSql . ((:[]) .)
 
 -- | Make untyped indexes to update column from key indexes and record width.
 --   Expected by update form like
 --
--- /UPDATE <table> SET c0 = ?, c1 = ?, ..., cn = ? WHERE key0 = ? AND key1 = ? AND key2 = ? ... /
+--  @
+--   UPDATE /table/ SET /c0/ = ?, /c1/ = ?, /c2/ = ? ... WHERE /key0/ = ? AND /key1/ = ? AND key2 = ? ...
+--  @
 untypedUpdateValuesIndex :: [Int] -- ^ Key indexes
                          -> Int   -- ^ Record width
                          -> [Int] -- ^ Indexes to update other than key
@@ -201,11 +203,13 @@ untypedUpdateValuesIndex key width = otherThanKey  where
     otherThanKey = toList $ fromList [0 .. maxIx] \\ fromList key
 
 -- | Unsafely specify key indexes to convert from Haskell type `ra`
---   into SQL value `q` list expected by update form like
+--   into database value `q` list expected by update form like
 --
--- /UPDATE <table> SET c0 = ?, c1 = ?, ..., cn = ? WHERE key0 = ? AND key1 = ? AND key2 = ? ... /
+-- @
+--   UPDATE /table/ SET /c0/ = ?, /c1/ = ?, /c2/ = ? ... WHERE /key0/ = ? AND /key1/ = ? AND /key2/ = ? ...
+-- @
 --
---   using 'RecordToSql' proof object.
+--   using 'RecordToSql' printer function object.
 unsafeUpdateValuesWithIndexes :: RecordToSql q ra
                               -> [Int]
                               -> ra
@@ -217,25 +221,27 @@ unsafeUpdateValuesWithIndexes pr key a =
     valsA = listArray (0, width - 1) vals
     otherThanKey = untypedUpdateValuesIndex key width
 
--- | Convert from Haskell type `ra` into SQL value `q` list expected by update form like
+-- | Convert from Haskell type `ra` into database value `q` list expected by update form like
 --
--- /UPDATE <table> SET c0 = ?, c1 = ?, ..., cn = ? WHERE key0 = ? AND key1 = ? AND key2 = ? ... /
+-- @
+--   UPDATE /table/ SET /c0/ = ?, /c1/ = ?, /c2/ = ? ... WHERE /key0/ = ? AND /key1/ = ? AND /key2/ = ? ...
+-- @
 --
---   using 'RecordToSql' proof object.
+--   using 'RecordToSql' printer function object.
 updateValuesByUnique' :: RecordToSql q ra
-                      -> KeyConstraint Unique ra -- ^ Unique key table constraint proof object.
+                      -> KeyConstraint Unique ra -- ^ Unique key table constraint printer function object.
                       -> ra
                       -> [q]
 updateValuesByUnique' pr uk = unsafeUpdateValuesWithIndexes pr (indexes uk)
 
--- | Convert like 'updateValuesByUnique'' using inferred 'RecordToSql' proof object.
+-- | Convert like 'updateValuesByUnique'' using implicit 'RecordToSql' printer function object.
 updateValuesByUnique :: ToSql q ra
-                     => KeyConstraint Unique ra -- ^ Unique key table constraint proof object.
+                     => KeyConstraint Unique ra -- ^ Unique key table constraint printer function object.
                      -> ra
                      -> [q]
 updateValuesByUnique = updateValuesByUnique' recordToSql
 
--- | Convert like 'updateValuesByUnique'' using inferred 'RecordToSql' and 'ColumnConstraint' proof objects.
+-- | Convert like 'updateValuesByUnique'' using implicit 'RecordToSql' and 'ColumnConstraint'.
 updateValuesByPrimary :: (HasKeyConstraint Primary ra, ToSql q ra)
                       => ra -> [q]
 updateValuesByPrimary =  updateValuesByUnique (unique keyConstraint)
