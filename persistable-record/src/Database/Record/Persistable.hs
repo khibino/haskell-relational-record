@@ -116,7 +116,8 @@ sqlNullValue =  runPersistableNullValue persistableType
 {- |
 'PersistableWidth' 'a' is implicit rule to derive 'PersistableRecordWidth' 'a' width proposition for type 'a'.
 
-Generic programming with default signature is available for 'PersistableWidth' class,
+Generic programming (<https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/glasgow_exts.html#generic-programming>)
+with default signature is available for 'PersistableWidth' class,
 so you can make instance like below:
 
 @

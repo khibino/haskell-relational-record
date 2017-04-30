@@ -111,7 +111,8 @@ infixl 4 <&>
 {- |
 'ToSql' 'q' 'a' is implicit rule to derive 'RecordToSql' 'q' 'a' record printer function for type 'a'.
 
-Generic programming with default signature is available for 'ToSql' class,
+Generic programming (<https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/glasgow_exts.html#generic-programming>)
+with default signature is available for 'ToSql' class,
 so you can make instance like below:
 
 @

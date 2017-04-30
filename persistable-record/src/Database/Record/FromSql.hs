@@ -129,7 +129,8 @@ maybeRecord rec pkey = createRecordFromSql mayToRec where
 {- |
 'FromSql' 'q' 'a' is implicit rule to derive 'RecordFromSql' 'q' 'a' record parser function against type 'a'.
 
-Generic programming with default signature is available for 'FromSql' class,
+Generic programming (<https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/glasgow_exts.html#generic-programming>)
+with default signature is available for 'FromSql' class,
 so you can make instance like below:
 
 @
