@@ -42,7 +42,7 @@ import Database.Record.KeyConstraint
 
 {- |
 'RecordFromSql' 'q' 'a' is data-type wrapping function
-to convert from list of database SQL value type ['q'] into Haskell type 'a'
+to convert from list of database value type (to receive from database) ['q'] into Haskell type 'a'
 
 This structure is similar to parser.
 While running 'RecordFromSql' behavior is the same as non-fail-able parser
@@ -76,18 +76,18 @@ newtype RecordFromSql q a = RecordFromSql ([q] -> (a, [q]))
 -- | Run 'RecordFromSql' proof object.
 --   Convert from list of database value type ['q'] into Haskell type 'a' and rest of list ['q'].
 runTakeRecord :: RecordFromSql q a -- ^ Proof object which has capability to convert
-              -> [q]               -- ^ list of SQL type
+              -> [q]               -- ^ list of database value type
               -> (a, [q])          -- ^ Haskell type and rest of list
 runTakeRecord (RecordFromSql f) = f
 
--- | Axiom of 'RecordFromSql' for SQL type 'q' and Haskell type 'a'
+-- | Axiom of 'RecordFromSql' for database value type 'q' and Haskell type 'a'
 createRecordFromSql :: ([q] -> (a, [q])) -- ^ Convert function body
                     -> RecordFromSql q a -- ^ Result proof object
 createRecordFromSql =  RecordFromSql
 
--- | Run 'RecordFromSql' proof object. Convert from list of SQL type ['q'] into  Haskell type 'a'.
+-- | Run 'RecordFromSql' proof object. Convert from list of database value type ['q'] into  Haskell type 'a'.
 runToRecord :: RecordFromSql q a -- ^ Proof object which has capability to convert
-            -> [q]               -- ^ list of SQL type
+            -> [q]               -- ^ list of database value type
             -> a                 -- ^ Haskell type
 runToRecord r = fst . runTakeRecord r
 
@@ -167,22 +167,22 @@ instance FromSql q a => GFromSql q (K1 i a) where
 
 
 -- | Inference rule of 'RecordFromSql' proof object which can convert
---   from list of SQL type ['q'] into Haskell 'Maybe' type.
+--   from list of database value type ['q'] into Haskell 'Maybe' type.
 instance (HasColumnConstraint NotNull a, FromSql q a, PersistableType q)
          => FromSql q (Maybe a)  where
   recordFromSql = maybeRecord recordFromSql columnConstraint
 
 -- | Inference rule of 'RecordFromSql' proof object which can convert
---   from /empty/ list of SQL type ['q'] into Haskell unit () type.
+--   from /empty/ list of database value type ['q'] into Haskell unit () type.
 instance FromSql q ()  -- default generic instance
 
 -- | Run inferred 'RecordFromSql' proof object.
---   Convert from list of SQL type ['q'] into haskell type 'a' and rest of list ['q'].
+--   Convert from list of database value type ['q'] into haskell type 'a' and rest of list ['q'].
 takeRecord :: FromSql q a => [q] -> (a, [q])
 takeRecord =  runTakeRecord recordFromSql
 
 -- | Run inferred 'RecordFromSql' proof object.
---   Convert from list of SQL type ['q'] into haskell type 'a'.
+--   Convert from list of database value type ['q'] into haskell type 'a'.
 toRecord :: FromSql q a => [q] -> a
 toRecord =  runToRecord recordFromSql
 
