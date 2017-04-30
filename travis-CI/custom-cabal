@@ -13,6 +13,7 @@ constraint: time==1.4
 constraint: dlist==0.5
 constraint: convertible==1.0.11.1
 constraint: HDBC==2.3.1.1
+constraint: QuickCheck==2.4.2
 EOF
 }
 
