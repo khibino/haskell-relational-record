@@ -13,17 +13,17 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- This module defines interfaces
--- between Haskell type and list of SQL type.
+-- This module defines proposition interfaces
+-- for database value type and record type width.
 module Database.Record.Persistable (
-  -- * Specify SQL type
+  -- * Specify database value type
   PersistableSqlType, runPersistableNullValue, unsafePersistableSqlTypeFromNull,
 
   -- * Specify record width
   PersistableRecordWidth, runPersistableRecordWidth,
   unsafePersistableRecordWidth, unsafeValueWidth, (<&>), maybeWidth,
 
-  -- * Inference rules for proof objects
+  -- * Implicit derivation rules, database value type and record type width
   PersistableType(..), sqlNullValue,
   PersistableWidth (..), derivedWidth,
 
@@ -41,15 +41,15 @@ import Data.DList (DList)
 import qualified Data.DList as DList
 
 
--- | Proof object to specify type 'q' is SQL type
+-- | Proposition to specify type 'q' is database value type, contains null value
 newtype PersistableSqlType q = PersistableSqlType q
 
--- | Null value of SQL type 'q'.
+-- | Null value of database value type 'q'.
 runPersistableNullValue :: PersistableSqlType q -> q
 runPersistableNullValue (PersistableSqlType q) = q
 
--- | Unsafely generate 'PersistableSqlType' proof object from specified SQL null value which type is 'q'.
-unsafePersistableSqlTypeFromNull :: q                    -- ^ SQL null value of SQL type 'q'
+-- | Unsafely specify 'PersistableSqlType' axiom from specified database null value which type is 'q'.
+unsafePersistableSqlTypeFromNull :: q                    -- ^ null value of database value type 'q'
                                  -> PersistableSqlType q -- ^ Result proof object
 unsafePersistableSqlTypeFromNull =  PersistableSqlType
 
@@ -63,8 +63,8 @@ getProductConst :: ProductConst a b -> a
 getProductConst = getConst . unPC
 {-# INLINE getProductConst #-}
 
--- | Proof object to specify width of Haskell type 'a'
---   when converting to SQL type list.
+-- | Proposition to specify width of Haskell type 'a'.
+--   The width is length of database value list which is converted from Haskell type 'a'.
 type PersistableRecordWidth a = ProductConst (Sum Int) a
 
 -- unsafely map PersistableRecordWidth
@@ -84,13 +84,13 @@ runPersistableRecordWidth = getSum . getConst . unPC
 instance Show a => Show (ProductConst a b) where
   show = ("PC " ++) . show . getConst . unPC
 
--- | Unsafely generate 'PersistableRecordWidth' proof object from specified width of Haskell type 'a'.
+-- | Unsafely specify 'PersistableRecordWidth' axiom from specified width of Haskell type 'a'.
 unsafePersistableRecordWidth :: Int                      -- ^ Specify width of Haskell type 'a'
                              -> PersistableRecordWidth a -- ^ Result proof object
 unsafePersistableRecordWidth = ProductConst . Const . Sum
 {-# INLINE unsafePersistableRecordWidth #-}
 
--- | Unsafely generate 'PersistableRecordWidth' proof object for Haskell type 'a' which is single column type.
+-- | Unsafely specify 'PersistableRecordWidth' axiom for Haskell type 'a' which is single column type.
 unsafeValueWidth :: PersistableRecordWidth a
 unsafeValueWidth =  unsafePersistableRecordWidth 1
 {-# INLINE unsafeValueWidth #-}
@@ -104,16 +104,30 @@ maybeWidth :: PersistableRecordWidth a -> PersistableRecordWidth (Maybe a)
 maybeWidth = pmap Just
 
 
--- | Interface of inference rule for 'PersistableSqlType' proof object
+-- | Interface of derivation rule for 'PersistableSqlType'.
 class Eq q => PersistableType q where
   persistableType :: PersistableSqlType q
 
--- | Inferred Null value of SQL type.
+-- | Implicitly derived null value of database value type.
 sqlNullValue :: PersistableType q => q
 sqlNullValue =  runPersistableNullValue persistableType
 
 
--- | Interface of inference rule for 'PersistableRecordWidth' proof object
+{- |
+'PersistableWidth' 'a' is implicit rule to derive 'PersistableRecordWidth' 'a' width proposition for type 'a'.
+
+Generic programming with default signature is available for 'PersistableWidth' class,
+so you can make instance like below:
+
+@
+  \{\-\# LANGUAGE DeriveGeneric \#\-\}
+  import GHC.Generics (Generic)
+  --
+  data Foo = Foo { ... } deriving Generic
+  instance PersistableWidth Foo
+@
+
+-}
 class PersistableWidth a where
   persistableWidth :: PersistableRecordWidth a
 
