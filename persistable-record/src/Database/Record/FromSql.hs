@@ -133,10 +133,10 @@ Generic programming with default signature is available for 'FromSql' class,
 so you can make instance like below:
 
 @
-  {-# LANGUAGE DeriveGeneric #-}
+  \{\-\# LANGUAGE DeriveGeneric \#\-\}
   import GHC.Generics (Generic)
   import Database.HDBC (SqlValue)
-
+  --
   data Foo = Foo { ... } deriving Generic
   instance FromSql SqlValue Foo
 @

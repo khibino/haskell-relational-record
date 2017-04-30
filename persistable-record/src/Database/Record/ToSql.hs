@@ -111,7 +111,20 @@ infixl 4 <&>
 {- |
 'ToSql' 'q' 'a' is implicit rule to derive 'RecordToSql' 'q' 'a' record printer function for type 'a'.
 
-So, 'ToSql' 'q' 'a' and 'RecordToSql' 'q 'a' are composable with monadic context.
+Generic programming with default signature is available for 'ToSql' class,
+so you can make instance like below:
+
+@
+  \{\-\# LANGUAGE DeriveGeneric \#\-\}
+  import GHC.Generics (Generic)
+  import Database.HDBC (SqlValue)
+  --
+  data Foo = Foo { ... } deriving Generic
+  instance ToSql SqlValue Foo
+@
+
+To make instances of 'ToSql' manually,
+'ToSql' 'q' 'a' and 'RecordToSql' 'q 'a' are composable with monadic context.
 When, you have data constructor and objects like below.
 
 @
