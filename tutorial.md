@@ -12,6 +12,11 @@ Also, please download "relational-record-examples" as follows:
     % cabal unpack relational-record-examples
     % cd relational-record-examples-<VERSION>
 
+If you use Haskell LTS release of stackage ( LTS-8.x, LTS-7.20, LTS-6.31 is available ), please download the previous version of "relational-record-examples" as follows:
+
+    % cabal unpack relational-record-examples-0.3.1.5
+    % cd relational-record-examples-0.3.1.5
+
 ### Creating tables in a DB
 
 We use the bank example in [Learning SQL](http://shop.oreilly.com/product/9780596007270.do). Its support page provides a script to create the tables of the bank examples for MySQL. We modified [it for SQLite](https://github.com/khibino/haskell-relational-record/blob/master/relational-record-examples/sql/add.sql) and created a DB file called "examples.db" in the top directory of "relational-record-examples". We deeply thank Alan Beaulieu, the author of "Learning SQL".
