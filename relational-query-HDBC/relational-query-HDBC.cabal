@@ -55,7 +55,7 @@ library
                        , th-data-compat
 
                        , names-th
-                       , persistable-record >= 0.4
+                       , persistable-record >= 0.4 && < 0.5
                        , relational-query >= 0.8
                        , relational-schemas
                        , HDBC >=2
