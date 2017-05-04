@@ -89,7 +89,7 @@ library
                        , th-reify-compat
                        , sql-words >=0.1.4
                        , names-th
-                       , persistable-record >= 0.3
+                       , persistable-record >=0.3 && <0.5
 
   hs-source-dirs:      src
   ghc-options:         -Wall -fsimpl-tick-factor=200
