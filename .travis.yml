@@ -18,7 +18,7 @@ matrix:
   include:
     - env: STACK_RESOLVER=lts-8.13
       addons: {apt: {packages: [libgmp-dev]}}
-    - env: STACK_RESOLVER=lts-7.21
+    - env: STACK_RESOLVER=lts-7.20
       addons: {apt: {packages: [libgmp-dev]}}
     - env: GHCVER=8.0.1 CABALVER=1.24 CABAL_JOBS=-j2
       addons: {apt: {packages: [cabal-install-1.24,ghc-8.0.1], sources: [hvr-ghc]}}
