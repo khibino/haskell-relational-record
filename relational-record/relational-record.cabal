@@ -17,7 +17,8 @@ library
                      Database.Relational.Query.Documentation
 
   build-depends:       base <5
-                     , relational-query >=0.3
+                     , persistable-record >= 0.5
+                     , relational-query >=0.9
                      , relational-query-HDBC
                      , persistable-types-HDBC-pg
 

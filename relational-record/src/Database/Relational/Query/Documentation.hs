@@ -70,6 +70,8 @@ module Database.Relational.Query.Documentation (
 
   -- *** Projection Operators
   -- $projectionOperators
+  ShowConstantTermsSQL,
+
   value, values,
 
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
@@ -148,6 +150,11 @@ module Database.Relational.Query.Documentation (
   -- * Database Operations
   -- $databaseOperations
 
+  -- ** Conversion interfaces to communicate with database
+  -- $conversionInterfaces
+  FromSql, ToSql,
+  RecordFromSql, RecordToSql,
+
   -- ** Generalized Statement
   -- $generalizedStmt
   prepareNoFetch,
@@ -191,6 +198,7 @@ module Database.Relational.Query.Documentation (
   ) where
 
 import Database.Relational.Query
+import Database.Record (RecordFromSql, FromSql, RecordToSql, ToSql)
 import Database.HDBC.Record
 
 {- $concepts
@@ -198,7 +206,7 @@ User interface of Relational Record has main two part of modules.
 
 [@"Database.Relational.Query"@] Relational Query Building DSL
 
-[@"Database.HDBC.Record"@] Database Operation Actions
+[@"Database.Record" and "Database.HDBC.Record"@] Database Operation Actions
  -}
 
 {- $queryBuildingDSL
@@ -274,7 +282,10 @@ Module "Database.Relational.Query.Context" contains documentation of other conte
 Some operators are defined to calculate projected values.
 
 For example,
-'value' operator projects from Haskell value into 'Projection' corresponding SQL value,
+'value' operator projects from Haskell value into 'Projection' corresponding SQL row value,
+which projection is implicitly specified by 'ShowConstantTermsSQL' class.
+Generic programming with default signature is available to define instances of 'ShowConstantTermsSQL'.
+
 'values' operator projects from Haskell list value into 'ListProjection', corresponding SQL set value,
 '.=.' operator is equal compare operation of projected value correspond to SQL =,
 '.+.' operator is plus operation of projected value correspond to SQL +, and so on.
@@ -374,6 +385,16 @@ Some handy table type inferred functions are provided,
 {- $databaseOperations
 Some HDBC actions are defined for database side effects.
  -}
+
+{- $conversionInterfaces
+Some record conversion interfaces are defined to communicate with database.
+
+The conversions are implicitly specified by 'FromSql' class and 'ToSql' class.
+Generic programming with default signature is available to define instances of 'FromSql' and 'ToSql'.
+
+The explicit definitions correnponsing those classes are 'RecordFromSql' and 'RecordToSql'.
+
+-}
 
 {- $generalizedStmt
 Actions to manage generalized SQL statements.
