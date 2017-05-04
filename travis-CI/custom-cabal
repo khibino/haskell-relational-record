@@ -1,0 +1,57 @@
+## -*- sh -*-
+
+. ./travis-CI/sh-lib
+
+cabal_wheezy() {
+    cabal_common
+    cat <<EOF
+constraint: transformers==0.3.0.0
+constraint: containers==0.4.2.1
+constraint: bytestring==0.9.2.1
+constraint: text==0.11.2.0
+constraint: time==1.4
+constraint: dlist==0.5
+constraint: convertible==1.0.11.1
+constraint: HDBC==2.3.1.1
+constraint: QuickCheck==2.4.2
+EOF
+}
+
+cabal_ghc74() {
+    cabal_common
+    cat <<EOF
+constraint: time==1.4
+EOF
+}
+
+cabal_ghc76() {
+    cabal_common
+    cat <<EOF
+constraint: time==1.4
+EOF
+}
+
+gen_custom_cabal_config() {
+     case "$DEBIANVER" in
+         wheezy)
+             cabal_wheezy > ${HOME}/.cabal/config
+             ;;
+         '')
+             case "$GHCVER" in
+                 7.4.*)
+                     cabal_ghc74 > ${HOME}/.cabal/config
+                     ;;
+                 7.6.*)
+                     cabal_ghc76 > ${HOME}/.cabal/config
+                     ;;
+                 *)
+                     ;;
+             esac
+             ;;
+
+         *)
+             echo "Unsupported DEBIANVER, $DEBIANVER"
+             exit 1
+             ;;
+     esac
+}

@@ -3,6 +3,7 @@
 set -e
 
 . ./travis-CI/sh-lib
+. ./travis-CI/custom-cabal
 . ./travis-CI/dirs.list
 
 set -x
@@ -10,23 +11,13 @@ set -x
 cabal --version
 echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
 
-## In package list cache hit case, cabal install may fail
-(
-    if [ -d $HOME/.cabal/packages/hackage.haskell.org/ ]; then
-        cd $HOME/.cabal/packages/hackage.haskell.org/
-        rm -f \
-           00-index.tar.gz.etag \
-           00-index.tar.gz \
-           00-index.tar \
-           00-index.cache
-    fi
-)
-
+gen_custom_cabal_config
 custom_retry cabal update -v
 sed -i 's/^jobs:/-- jobs:/' ${HOME}/.cabal/config
+cat ${HOME}/.cabal/config
 
 install_package() {
-    cabal install -v2 $CABAL_JOBS $CABAL_CONSTRAINTS --only-dependencies --enable-tests --enable-benchmarks
+    cabal install -v2 $CABAL_JOBS --only-dependencies --enable-tests --enable-benchmarks
 }
 
 # install_package() {
@@ -38,7 +29,7 @@ install_package() {
 #         install_plan=installplan-${id}.txt
 #     fi
 
-#     cabal install $CABAL_CONSTRAINTS --only-dependencies --enable-tests --enable-benchmarks --dry -v > ${install_plan}
+#     cabal install --only-dependencies --enable-tests --enable-benchmarks --dry -v > ${install_plan}
 #     sed -i -e '1,/^Resolving /d' ${install_plan}; cat ${install_plan}
 
 #     cabsnap_dir=$HOME/.cabsnap/s-${CABALVER}
@@ -54,7 +45,7 @@ install_package() {
 #         echo "cabal build-cache MISS";
 #         rm -rf ${cabsnap_dir};
 #         mkdir -p $HOME/.ghc $HOME/.cabal/lib $HOME/.cabal/share $HOME/.cabal/bin;
-#         cabal install $CABAL_JOBS $CABAL_CONSTRAINTS --only-dependencies --enable-tests --enable-benchmarks;
+#         cabal install $CABAL_JOBS --only-dependencies --enable-tests --enable-benchmarks;
 #     fi
 
 #     # snapshot package-db on cache miss

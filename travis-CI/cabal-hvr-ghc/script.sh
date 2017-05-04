@@ -8,7 +8,7 @@ set -x
 
 script_build() {
     if [ -f configure.ac ]; then autoreconf -i; fi
-    cabal configure $CABAL_CONSTRAINTS --enable-tests --enable-benchmarks -v2  # -v2 provides useful information for debugging
+    cabal configure --enable-tests --enable-benchmarks -v2  # -v2 provides useful information for debugging
     cabal build $CABAL_JOBS  # this builds all libraries and executables (including tests/benchmarks)
     cabal test $CABAL_JOBS
     cabal check
