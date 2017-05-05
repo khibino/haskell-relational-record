@@ -5,17 +5,19 @@ title: Technical information
 
 ### Slides in English
 
-- [Haskell Relational Record's Query-Building DSL](https://htmlpreview.github.io/?https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/tsukuba-201412/DSL.html), Kei Hibino, 2014.12.25
-- [Relational Record Released!](https://htmlpreview.github.io/?https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/haskell-hackathon-201412/HRR.html), Kei Hibino, 2014.12.20, Haskell Mokumoku kai, Japan
+- Haskell Relational Record Composable, Typesafe SQL building [html](https://htmlpreview.github.io/?https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/Haskell-Day-201609/HRR.html) [markdown](https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/Haskell-Day-201609/HRR.md), Kei Hibino, 2016.09.17, Haskell Day 2016, Japan
+- Haskell Relational Record's Query-Building DSL [html](https://htmlpreview.github.io/?https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/tsukuba-201412/DSL.html) [markdown](https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/tsukuba-201412/DSL.md), Kei Hibino, 2014.12.25
+- Relational Record Released! [html](https://htmlpreview.github.io/?https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/haskell-hackathon-201412/HRR.html) [markdown](https://htmlpreview.github.io/?https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/haskell-hackathon-201412/HRR.md), Kei Hibino, 2014.12.20, Haskell Mokumoku kai, Japan
 
 ### Papers in English
 
-- [Experience Report: Haskell Relational Record](pdf/hrr-haskell-sympo2015-rejected.pdf) -- submitted to Haskell Symposium 2015 and REJECTED
 - [Haskell Relational Record - A Pragmatic Embedded System for Type-Safe and Composable SQL Queries](pdf/hrr-haskell-sympo2016-rejected.pdf) -- submitted to Haskell Symposium 2016 and REJECTED
+- [Experience Report: Haskell Relational Record](pdf/hrr-haskell-sympo2015-rejected.pdf) -- submitted to Haskell Symposium 2015 and REJECTED
 
 ### Slides in Japanese
 
-- [Haskell Relational Record, 機能と構成](https://htmlpreview.github.io/?https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/code-reading-201601/SourceTreeJ.html), Kei Hibino, 2016.1.31, HRR code reading meetup, Japan
+- Haskell Relational Record, 機能と構成 [html](https://htmlpreview.github.io/?https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/code-reading-201601/SourceTreeJ.html) [markdown](https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/code-reading-201601/SourceTreeJ.md), Kei Hibino, 2016.1.31, HRR code reading meetup, Japan
+- Composable, Typesafe Query building [html](https://htmlpreview.github.io/?https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/PostgreSQL-Unconference-201512/Query.html) [markdown](https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/PostgreSQL-Unconference-201512/Query.md)
 
 ### Articles in Japanese
 
