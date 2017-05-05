@@ -7,7 +7,7 @@ title: Technical information
 
 - Haskell Relational Record Composable, Typesafe SQL building [[html]](https://htmlpreview.github.io/?https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/Haskell-Day-201609/HRR.html) [[markdown]](https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/Haskell-Day-201609/HRR.md), Kei Hibino, 2016.09.17, Haskell Day 2016, Japan
 - Haskell Relational Record's Query-Building DSL [[html]](https://htmlpreview.github.io/?https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/tsukuba-201412/DSL.html) [[markdown]](https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/tsukuba-201412/DSL.md), Kei Hibino, 2014.12.25
-- Relational Record Released! [[html]](https://htmlpreview.github.io/?https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/haskell-hackathon-201412/HRR.html) [[markdown]](https://htmlpreview.github.io/?https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/haskell-hackathon-201412/HRR.md), Kei Hibino, 2014.12.20, Haskell Mokumoku kai, Japan
+- Relational Record Released! [[html]](https://htmlpreview.github.io/?https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/haskell-hackathon-201412/HRR.html) [[markdown]](https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/haskell-hackathon-201412/HRR.md), Kei Hibino, 2014.12.20, Haskell Mokumoku kai, Japan
 
 ### Papers in English
 
