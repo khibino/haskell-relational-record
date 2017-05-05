@@ -895,40 +895,14 @@ VALUES (null, 'Headquarters', '3882 Main St.', 'Waltham', 'MA', '02451');
 HRR:
 
 {% highlight haskell %}
-insertBranch_s1 :: InsertQuery ()
-insertBranch_s1 = typedInsertQuery piBranch1 $ relation .
-  return $ Branch1 |$| value "Headquarters"
-                   |*| value (Just "3882 Main St.")
-                   |*| value (Just "Waltham")
-                   |*| value (Just "MA")
-                   |*| value (Just "02451")
-
--- this is equal to `definePi 1'
-piBranch1 :: Pi Branch Branch1
-piBranch1 = Branch1 |$| Branch.name'
-                    |*| Branch.address'
-                    |*| Branch.city'
-                    |*| Branch.state'
-                    |*| Branch.zip'
-
-branch1 :: Branch1
-branch1 = Branch1
-  { b1Name = "Headquarters"
-  , b1Address = Just "3882 Main St."
-  , b1City = Just "Waltham"
-  , b1State = Just "MA"
-  , b1Zip = Just "02451"
-  }
-
-data Branch1 = Branch1
-  { b1Name :: String
-  , b1Address :: Maybe String
-  , b1City :: Maybe String
-  , b1State :: Maybe String
-  , b1Zip :: Maybe String
-  }
-
-$(makeRelationalRecord ''Branch1)
+insertBranch_s1 :: Insert ()
+insertBranch_s1 = derivedInsertValue $ do
+  Branch.name'     <-#  value "Headquarters"
+  Branch.address'  <-#  value (Just "3882 Main St.")
+  Branch.city'     <-#  value (Just "Waltham")
+  Branch.state'    <-#  value (Just "MA")
+  Branch.zip'      <-#  value (Just "02451")
+  return unitPlaceHolder
 {% endhighlight %}
 
 Generated SQL:
@@ -946,6 +920,24 @@ HRR using placeholder:
 {% highlight haskell %}
 insertBranch_s1P :: Insert Branch1
 insertBranch_s1P = derivedInsert piBranch1
+
+-- this is equal to `definePi 1'
+piBranch1 :: Pi Branch Branch1
+piBranch1 = Branch1 |$| Branch.name'
+                    |*| Branch.address'
+                    |*| Branch.city'
+                    |*| Branch.state'
+                    |*| Branch.zip'
+
+data Branch1 = Branch1
+  { b1Name :: String
+  , b1Address :: Maybe String
+  , b1City :: Maybe String
+  , b1State :: Maybe String
+  , b1Zip :: Maybe String
+  }
+
+$(makeRelationalRecord ''Branch1)
 {% endhighlight %}
 
 Generated SQL:
