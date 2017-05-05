@@ -16,10 +16,10 @@ slide_opts = \
 	$(math_opt)
 ##	--incremental
 
-%.html: %.txt
+%.html: %.md
 	pandoc -f $(md_format) -t s5 $(slide_opts) -o $@ $<
 
-%.tex: %.txt
+%.tex: %.md
 	pandoc -f $(md_format) -t beamer -s --slide-level=2 -o $@ $<
 
 
