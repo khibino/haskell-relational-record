@@ -3,6 +3,8 @@ layout: default
 title: Technical information
 ---
 
+## Slides, Papers and Articles
+
 ### Slides in English
 
 - Haskell Relational Record Composable, Typesafe SQL building [[html]](https://htmlpreview.github.io/?https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/Haskell-Day-201609/HRR.html) [[markdown]](https://github.com/khibino/haskell-relational-record/blob/master/doc/slide/Haskell-Day-201609/HRR.md), Kei Hibino, 2016.09.17, Haskell Day 2016, Japan
@@ -31,3 +33,14 @@ title: Technical information
 ### Slides of others
 
 - [Composable, type-safe SQL generation in Haskell](https://github.com/charlydagos/haskell-sql-edsl-demo/blob/master/slides/presentation.md), Carlos D'Agostino, 2016.5.19, HaskellerZ Meetup, Zürich
+
+## Haskell
+
+### Haskell Programming Language
+
+- [www.haskell.org](http://www.haskell.org/)
+- [haskell-lang.org](http://haskell-lang.org/)
+
+### Users Group
+
+- [Haskell-jp](https://haskell.jp)
