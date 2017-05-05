@@ -34,6 +34,11 @@ title: Technical information
 
 - [Composable, type-safe SQL generation in Haskell](https://github.com/charlydagos/haskell-sql-edsl-demo/blob/master/slides/presentation.md), Carlos D'Agostino, 2016.5.19, HaskellerZ Meetup, Zürich
 
+### Part of Haskell ecosystem
+
+- [State of the Haskell Ecosystem](https://github.com/Gabriel439/post-rfc/blob/master/sotu.md#databases-and-data-stores), Gabriel Gonzalez
+- [Intermediate Haskell](https://www.schoolofhaskell.com/user/commercial/outline/intermediate-haskell), Commercial Haskell group, 2015.11.20
+
 ## Haskell
 
 ### Haskell Programming Language
@@ -43,4 +48,4 @@ title: Technical information
 
 ### Users Group
 
-- [Haskell-jp](https://haskell.jp)
+- [Japan Haskell User Group (Haskell-jp)](https://haskell.jp)
