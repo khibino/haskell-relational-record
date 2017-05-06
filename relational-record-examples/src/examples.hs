@@ -38,365 +38,6 @@ import Employee (Employee, employee)
 allAccount :: Relation () Account
 allAccount = relation $ query account
 
--- | sql/4.3.3a.sh
---
--- Handwritten SQL:
---
--- @
---   SELECT account_id, product_cd, cust_id, avail_balance
---   FROM LEARNINGSQL.account
---   WHERE product_cd IN ('CHK', 'SAV', 'CD', 'MM')
--- @
---
--- record version of Generated SQL:
---
--- @
---   SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2,
---   T0.open_date AS f3, T0.close_date AS f4, T0.last_activity_date AS f5,
---   T0.status AS f6, T0.open_branch_id AS f7, T0.open_emp_id AS f8,
---   T0.avail_balance AS f9, T0.pending_balance AS f10 FROM MAIN.account T0
---   WHERE (T0.product_cd IN ('CHK', 'SAV', 'CD', 'MM'))
--- @
---
-account_4_3_3a :: Relation () Account
-account_4_3_3a = relation $ do
-  a  <- query account
-  wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
-  return a
-
--- |
--- tuple version of Generated SQL:
---
--- @
---   SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2,
---   T0.avail_balance AS f3 FROM MAIN.account T0 WHERE (T0.product_cd IN
---   ('CHK', 'SAV', 'CD', 'MM'))
--- @
---
-account_4_3_3aT :: Relation () (Int, String, Int, Maybe Double)
-account_4_3_3aT = relation $ do
-  a  <- query account
-  wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
-  return $ (,,,) |$| a ! Account.accountId' |*| a ! Account.productCd' |*| a ! Account.custId' |*| a ! Account.availBalance'
-
--- |
--- Adhoc defined record version of Generated SQL:
---
--- @
---   SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2,
---   T0.avail_balance AS f3 FROM MAIN.account T0 WHERE (T0.product_cd IN
---   ('CHK', 'SAV', 'CD', 'MM'))
--- @
---
--- Above sql is the same to the tuple version.
---
-account_4_3_3aR :: Relation () Account1
-account_4_3_3aR = relation $ do
-  a  <- query account
-  wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
-  return $ Account1 |$| a ! Account.accountId'
-                    |*| a ! Account.productCd'
-                    |*| a ! Account.custId'
-                    |*| a ! Account.availBalance'
-
-data Account1 = Account1
-  { a1AccountId :: Int
-  , a1ProductCd :: String
-  , a1CustId :: Int
-  , a1AvailBalance :: Maybe Double
-  } deriving (Show, Generic)
-
-$(makeRelationalRecord ''Account1)
-
--- | sql/5.1.2a.sh
---
--- Handwritten SQL:
---
--- @
---   SELECT e.fname, e.lname, d.name
---   FROM LEARNINGSQL.employee e INNER JOIN LEARNINGSQL.department d
---   USING (dept_id)
--- @
---
--- Record version of Generated SQL:
---
--- @
---   SELECT ALL T0.emp_id AS f0, T0.fname AS f1, T0.lname AS f2,
---   T0.start_date AS f3, T0.end_date AS f4, T0.superior_emp_id AS f5,
---   T0.dept_id AS f6, T0.title AS f7, T0.assigned_branch_id AS f8,
---   T1.dept_id AS f9, T1.name AS f10 FROM MAIN.employee T0 INNER JOIN
---   MAIN.department T1 ON (T0.dept_id = T1.dept_id)
--- @
---
-join_5_1_2a :: Relation () (Employee, Department)
-join_5_1_2a = relation $ do
-  e  <- query employee
-  d  <- query department
-  on $ e ! Employee.deptId' .=. just (d ! Department.deptId')
-  return $ e >< d
-
--- |
--- Tuple version of Generated SQL:
---
--- @
---   SELECT ALL T0.fname AS f0, T0.lname AS f1, T1.name AS f2 FROM
---   MAIN.employee T0 INNER JOIN MAIN.department T1 ON (T0.dept_id
---   = T1.dept_id)
--- @
---
-join_5_1_2aT :: Relation () (String, String, String)
-join_5_1_2aT = relation $ do
-  e  <- query employee
-  d  <- query department
-  on $ e ! Employee.deptId' .=. just (d ! Department.deptId')
-  return $ (,,) |$| e ! Employee.fname' |*| e ! Employee.lname' |*| d ! Department.name'
-
--- | sql/5.3a.sh
---
--- Handwritten SQL:
---
--- @
---   SELECT e.fname, e.lname, e_mgr.fname mgr_fname, e_mgr.lname mgr_lname
---   FROM LEARNINGSQL.employee e INNER JOIN LEARNINGSQL.employee e_mgr
---   ON e.superior_emp_id = e_mgr.emp_id
--- @
---
--- Record version of Generated SQL:
---
--- @
---   SELECT ALL T0.emp_id AS f0, T0.fname AS f1, T0.lname AS f2,
---   T0.start_date AS f3, T0.end_date AS f4, T0.superior_emp_id AS f5,
---   T0.dept_id AS f6, T0.title AS f7, T0.assigned_branch_id AS f8,
---   T1.emp_id AS f9, T1.fname AS f10, T1.lname AS f11, T1.start_date AS
---   f12, T1.end_date AS f13, T1.superior_emp_id AS f14, T1.dept_id AS f15,
---   T1.title AS f16, T1.assigned_branch_id AS f17 FROM MAIN.employee T0
---   INNER JOIN MAIN.employee T1 ON (T0.superior_emp_id = T1.emp_id)
--- @
---
-selfJoin_5_3a :: Relation () (Employee, Employee)
-selfJoin_5_3a = relation $ do
-  e  <- query employee
-  m  <- query employee
-  on $ e ! Employee.superiorEmpId' .=. just (m ! Employee.empId')
-  return $ e >< m
-
--- |
--- Tuple version of Generated SQL:
---
--- @
---   SELECT ALL T0.fname AS f0, T0.lname AS f1, T1.fname AS f2, T1.lname AS
---   f3 FROM MAIN.employee T0 INNER JOIN MAIN.employee T1 ON
---   (T0.superior_emp_id = T1.emp_id)
--- @
---
-selfJoin_5_3aT :: Relation () ((String, String), (String, String))
-selfJoin_5_3aT = relation $ do
-  e  <- query employee
-  m  <- query employee
-  on $ e ! Employee.superiorEmpId' .=. just (m ! Employee.empId')
-  let emp = e ! Employee.fname' >< e ! Employee.lname'
-  let mgr = m ! Employee.fname' >< m ! Employee.lname'
-  return $ emp >< mgr
-
--- | sql/6.4.1a.sh
---
--- The standard SQL allows the syntax of UNION that has an order clause
--- at the last of query. Unfortunately, HRR dows not support. In addition,
--- HRR put a select statement having an order clause into parentheses.
--- Generated SQL has different meaning with the handwritten
--- SQL below. Such query cannot be expressed directly with EDSL of HRR.
---
--- Handwritten SQL:
---
--- @
---   SELECT emp_id, assigned_branch_id
---   FROM LEARNINGSQL.employee
---   WHERE title = 'Teller'
---   UNION
---   SELECT open_emp_id, open_branch_id
---   FROM LEARNINGSQL.account
---   WHERE product_cd = 'SAV'
---   ORDER BY open_emp_id
--- @
---
--- Generated SQL:
---
--- @
---   SELECT ALL T0.emp_id AS f0, T0.assigned_branch_id AS f1 FROM
---   MAIN.employee T0 WHERE (T0.title = 'Teller') UNION SELECT ALL
---   T1.open_emp_id AS f0, T1.open_branch_id AS f1 FROM MAIN.account T1
---   WHERE (T1.product_cd = 'SAV')
--- @
---
-union_6_4_1a_Flat :: Relation () (Maybe Int, Maybe Int)
-union_6_4_1a_Flat = relation (do
-    e  <- query employee
-    wheres $ e ! Employee.title' .=. just (value "Teller")
-    return $ just (e ! Employee.empId') >< e ! Employee.assignedBranchId'
-  ) `union` relation (do
-    a  <- query account
-    wheres $ a ! Account.productCd' .=. value "SAV"
-    -- asc $ a ! Account.openEmpId'
-    return $ a ! Account.openEmpId' >< a ! Account.openBranchId'
-  )
-
--- |
--- If you want to sort whole row returned from UNION, place a order
--- clouse outside of the union relation.
---
--- Generated SQL:
---
--- @
---   SELECT ALL T2.f0 AS f0, T2.f1 AS f1 FROM (SELECT ALL T0.emp_id AS f0,
---   T0.assigned_branch_id AS f1 FROM MAIN.employee T0 WHERE (T0.title
---   = 'Teller') UNION SELECT ALL T1.open_emp_id AS f0, T1.open_branch_id
---   AS f1 FROM MAIN.account T1 WHERE (T1.product_cd = 'SAV')) T2 ORDER BY
---   T2.f0 ASC
--- @
---
-union_6_4_1a_Nest :: Relation () (Maybe Int, Maybe Int)
-union_6_4_1a_Nest = relation $ do
-  ea <- query $ employee_6_4_1a `union` account_6_4_1a
-  asc $ ea ! fst'
-  return ea
-
-employee_6_4_1a :: Relation () (Maybe Int, Maybe Int)
-employee_6_4_1a = relation $ do
-  e  <- query employee
-  wheres $ e ! Employee.title' .=. just (value "Teller")
-  return $ just (e ! Employee.empId') >< e ! Employee.assignedBranchId'
-
-account_6_4_1a :: Relation () (Maybe Int, Maybe Int)
-account_6_4_1a = relation $ do
-  a  <- query account
-  wheres $ a ! Account.productCd' .=. value "SAV"
-  return $ a ! Account.openEmpId' >< a ! Account.openBranchId'
-
--- | sql/8.1a.sh
---
--- Handwritten SQL:
---
--- @
---   SELECT open_emp_id, COUNT(*) how_many
---   FROM LEARNINGSQL.account
---   GROUP BY open_emp_id
---   ORDER BY open_emp_id
--- @
---
--- Generated SQL:
---
--- @
---  SELECT ALL T0.open_emp_id AS f0, COUNT (T0.account_id) AS f1 FROM
---  MAIN.account T0 GROUP BY T0.open_emp_id ORDER BY T0.open_emp_id ASC
--- @
---
-group_8_1a :: Relation () (Maybe Int, Int64)
-group_8_1a = aggregateRelation $ do
-  a  <- query account
-  g  <- groupBy $ a ! Account.openEmpId'
-  asc $ g ! id'
-  return $ g >< count (a ! Account.accountId')
-
--- | sql/4.3.3b.sh
---
--- Handwritten SQL:
---
--- @
---   SELECT account_id, product_cd, cust_id, avail_balance
---   FROM account
---   WHERE product_cd IN (SELECT product_cd FROM product
---   WHERE product_type_cd = 'ACCOUNT')
--- @
---
--- Record version of Generated SQL:
---
--- @
---   SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2,
---   T0.open_date AS f3, T0.close_date AS f4, T0.last_activity_date AS f5,
---   T0.status AS f6, T0.open_branch_id AS f7, T0.open_emp_id AS f8,
---   T0.avail_balance AS f9, T0.pending_balance AS f10 FROM MAIN.account T0
---   WHERE (T0.product_cd IN (SELECT ALL T1.product_cd AS f0 FROM
---   MAIN.product T1 WHERE (T1.product_type_cd = ?)))
--- @
---
-account_4_3_3b :: Relation String Account
-account_4_3_3b = relation' $ do
-  a <- query account
-  (phProductCd,p) <- queryList' product_4_3_3b
-  wheres $ a ! Account.productCd' `in'` p
-  return (phProductCd, a)
-
--- |
--- Tuple version of Generated SQL:
---
--- @
---   SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2,
---   T0.avail_balance AS f3 FROM MAIN.account T0 WHERE (T0.product_cd IN
---   (SELECT ALL T1.product_cd AS f0 FROM MAIN.product T1 WHERE
---   (T1.product_type_cd = ?)))
--- @
---
-account_4_3_3bT :: Relation String (Int, String, Int, Maybe Double)
-account_4_3_3bT = relation' $ do
-  a <- query account
-  (phProductCd,p) <- queryList' product_4_3_3b
-  wheres $ a ! Account.productCd' `in'` p
-  let at = (,,,) |$| a ! Account.accountId' |*| a ! Account.productCd' |*| a ! Account.custId' |*| a ! Account.availBalance'
-  return (phProductCd, at)
-
--- |
--- Adhoc record version of Generated SQL:
---
--- @
---   SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2,
---   T0.avail_balance AS f3 FROM MAIN.account T0 WHERE (T0.product_cd IN
---   (SELECT ALL T1.product_cd AS f0 FROM MAIN.product T1 WHERE
---   (T1.product_type_cd = ?)))
--- @
---
-account_4_3_3bR :: Relation String Account1
-account_4_3_3bR = relation' $ do
-  a <- query account
-  (phProductCd,p) <- queryList' product_4_3_3b
-  wheres $ a ! Account.productCd' `in'` p
-  let ar = Account1 |$| a ! Account.accountId'
-                    |*| a ! Account.productCd'
-                    |*| a ! Account.custId'
-                    |*| a ! Account.availBalance'
-  return (phProductCd, ar)
-
-product_4_3_3b :: Relation String String
-product_4_3_3b = relation' . placeholder $ \ph -> do
-  p <- query product
-  wheres $ p ! Product.productTypeCd' .=. ph
-  return $ p ! Product.productCd'
-
--- | sql/4.3.3c.sh
---
--- Handwritten SQL:
---
--- @
---   SELECT account_id, product_cd, cust_id, avail_balance
---   FROM LEARNINGSQL.account
---   WHERE product_cd NOT IN ('CHK', 'SAV', 'CD', 'MM')
--- @
---
--- Generated SQL:
---
--- @
---   SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2,
---   T0.open_date AS f3, T0.close_date AS f4, T0.last_activity_date AS f5,
---   T0.status AS f6, T0.open_branch_id AS f7, T0.open_emp_id AS f8,
---   T0.avail_balance AS f9, T0.pending_balance AS f10 FROM MAIN.account T0
---   WHERE (NOT (T0.product_cd IN ('CHK', 'SAV', 'CD', 'MM')))
--- @
---
-account_4_3_3c :: Relation () Account
-account_4_3_3c = relation $ do
-  a  <- query account
-  wheres $ not' (a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"])
-  return a
-
 -- | sql/3.7
 --
 -- Handwritten SQL:
@@ -622,6 +263,395 @@ data Employee2 = Employee2
 
 $(makeRelationalRecord ''Employee2)
 
+-- | sql/4.3.3a.sh
+--
+-- Handwritten SQL:
+--
+-- @
+--   SELECT account_id, product_cd, cust_id, avail_balance
+--   FROM LEARNINGSQL.account
+--   WHERE product_cd IN ('CHK', 'SAV', 'CD', 'MM')
+-- @
+--
+-- record version of Generated SQL:
+--
+-- @
+--   SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2,
+--   T0.open_date AS f3, T0.close_date AS f4, T0.last_activity_date AS f5,
+--   T0.status AS f6, T0.open_branch_id AS f7, T0.open_emp_id AS f8,
+--   T0.avail_balance AS f9, T0.pending_balance AS f10 FROM MAIN.account T0
+--   WHERE (T0.product_cd IN ('CHK', 'SAV', 'CD', 'MM'))
+-- @
+--
+account_4_3_3a :: Relation () Account
+account_4_3_3a = relation $ do
+  a  <- query account
+  wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
+  return a
+
+-- |
+-- tuple version of Generated SQL:
+--
+-- @
+--   SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2,
+--   T0.avail_balance AS f3 FROM MAIN.account T0 WHERE (T0.product_cd IN
+--   ('CHK', 'SAV', 'CD', 'MM'))
+-- @
+--
+account_4_3_3aT :: Relation () (Int, String, Int, Maybe Double)
+account_4_3_3aT = relation $ do
+  a  <- query account
+  wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
+  return $ (,,,) |$| a ! Account.accountId' |*| a ! Account.productCd' |*| a ! Account.custId' |*| a ! Account.availBalance'
+
+-- |
+-- Adhoc defined record version of Generated SQL:
+--
+-- @
+--   SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2,
+--   T0.avail_balance AS f3 FROM MAIN.account T0 WHERE (T0.product_cd IN
+--   ('CHK', 'SAV', 'CD', 'MM'))
+-- @
+--
+-- Above sql is the same to the tuple version.
+--
+account_4_3_3aR :: Relation () Account1
+account_4_3_3aR = relation $ do
+  a  <- query account
+  wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
+  return $ Account1 |$| a ! Account.accountId'
+                    |*| a ! Account.productCd'
+                    |*| a ! Account.custId'
+                    |*| a ! Account.availBalance'
+
+data Account1 = Account1
+  { a1AccountId :: Int
+  , a1ProductCd :: String
+  , a1CustId :: Int
+  , a1AvailBalance :: Maybe Double
+  } deriving (Show, Generic)
+
+$(makeRelationalRecord ''Account1)
+
+-- |
+-- 9.1 What is a subquery?
+--
+-- Handwritten SQL:
+--
+-- @
+--   SELECT account_id, product_cd, cust_id, avail_balance
+--   FROM account
+--   WHERE account_id = (SELECT MAX(account_id)
+--                       FROM account);
+-- @
+--
+-- Generated SQL:
+--
+-- @
+--   SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2,
+--   T0.avail_balance AS f3 FROM MAIN.account T0 WHERE (T0.account_id
+--   = (SELECT ALL MAX (T1.account_id) AS f0 FROM MAIN.account T1))
+-- @
+--
+account_9_1 :: Relation () Account1
+account_9_1 = relation $ do
+  a  <- query account
+  ma <- queryScalar $ aggregatedUnique account Account.accountId' max'
+  wheres $ just (a ! Account.accountId') .=. flattenMaybe ma
+  return $ Account1 |$| a ! Account.accountId'
+                    |*| a ! Account.productCd'
+                    |*| a ! Account.custId'
+                    |*| a ! Account.availBalance'
+
+-- | sql/4.3.3b.sh
+--
+-- Handwritten SQL:
+--
+-- @
+--   SELECT account_id, product_cd, cust_id, avail_balance
+--   FROM account
+--   WHERE product_cd IN (SELECT product_cd FROM product
+--   WHERE product_type_cd = 'ACCOUNT')
+-- @
+--
+-- Record version of Generated SQL:
+--
+-- @
+--   SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2,
+--   T0.open_date AS f3, T0.close_date AS f4, T0.last_activity_date AS f5,
+--   T0.status AS f6, T0.open_branch_id AS f7, T0.open_emp_id AS f8,
+--   T0.avail_balance AS f9, T0.pending_balance AS f10 FROM MAIN.account T0
+--   WHERE (T0.product_cd IN (SELECT ALL T1.product_cd AS f0 FROM
+--   MAIN.product T1 WHERE (T1.product_type_cd = ?)))
+-- @
+--
+account_4_3_3b :: Relation String Account
+account_4_3_3b = relation' $ do
+  a <- query account
+  (phProductCd,p) <- queryList' product_4_3_3b
+  wheres $ a ! Account.productCd' `in'` p
+  return (phProductCd, a)
+
+-- |
+-- Tuple version of Generated SQL:
+--
+-- @
+--   SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2,
+--   T0.avail_balance AS f3 FROM MAIN.account T0 WHERE (T0.product_cd IN
+--   (SELECT ALL T1.product_cd AS f0 FROM MAIN.product T1 WHERE
+--   (T1.product_type_cd = ?)))
+-- @
+--
+account_4_3_3bT :: Relation String (Int, String, Int, Maybe Double)
+account_4_3_3bT = relation' $ do
+  a <- query account
+  (phProductCd,p) <- queryList' product_4_3_3b
+  wheres $ a ! Account.productCd' `in'` p
+  let at = (,,,) |$| a ! Account.accountId' |*| a ! Account.productCd' |*| a ! Account.custId' |*| a ! Account.availBalance'
+  return (phProductCd, at)
+
+-- |
+-- Adhoc record version of Generated SQL:
+--
+-- @
+--   SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2,
+--   T0.avail_balance AS f3 FROM MAIN.account T0 WHERE (T0.product_cd IN
+--   (SELECT ALL T1.product_cd AS f0 FROM MAIN.product T1 WHERE
+--   (T1.product_type_cd = ?)))
+-- @
+--
+account_4_3_3bR :: Relation String Account1
+account_4_3_3bR = relation' $ do
+  a <- query account
+  (phProductCd,p) <- queryList' product_4_3_3b
+  wheres $ a ! Account.productCd' `in'` p
+  let ar = Account1 |$| a ! Account.accountId'
+                    |*| a ! Account.productCd'
+                    |*| a ! Account.custId'
+                    |*| a ! Account.availBalance'
+  return (phProductCd, ar)
+
+product_4_3_3b :: Relation String String
+product_4_3_3b = relation' . placeholder $ \ph -> do
+  p <- query product
+  wheres $ p ! Product.productTypeCd' .=. ph
+  return $ p ! Product.productCd'
+
+-- | sql/4.3.3c.sh
+--
+-- Handwritten SQL:
+--
+-- @
+--   SELECT account_id, product_cd, cust_id, avail_balance
+--   FROM LEARNINGSQL.account
+--   WHERE product_cd NOT IN ('CHK', 'SAV', 'CD', 'MM')
+-- @
+--
+-- Generated SQL:
+--
+-- @
+--   SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2,
+--   T0.open_date AS f3, T0.close_date AS f4, T0.last_activity_date AS f5,
+--   T0.status AS f6, T0.open_branch_id AS f7, T0.open_emp_id AS f8,
+--   T0.avail_balance AS f9, T0.pending_balance AS f10 FROM MAIN.account T0
+--   WHERE (NOT (T0.product_cd IN ('CHK', 'SAV', 'CD', 'MM')))
+-- @
+--
+account_4_3_3c :: Relation () Account
+account_4_3_3c = relation $ do
+  a  <- query account
+  wheres $ not' (a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"])
+  return a
+
+-- | sql/5.1.2a.sh
+--
+-- Handwritten SQL:
+--
+-- @
+--   SELECT e.fname, e.lname, d.name
+--   FROM LEARNINGSQL.employee e INNER JOIN LEARNINGSQL.department d
+--   USING (dept_id)
+-- @
+--
+-- Record version of Generated SQL:
+--
+-- @
+--   SELECT ALL T0.emp_id AS f0, T0.fname AS f1, T0.lname AS f2,
+--   T0.start_date AS f3, T0.end_date AS f4, T0.superior_emp_id AS f5,
+--   T0.dept_id AS f6, T0.title AS f7, T0.assigned_branch_id AS f8,
+--   T1.dept_id AS f9, T1.name AS f10 FROM MAIN.employee T0 INNER JOIN
+--   MAIN.department T1 ON (T0.dept_id = T1.dept_id)
+-- @
+--
+join_5_1_2a :: Relation () (Employee, Department)
+join_5_1_2a = relation $ do
+  e  <- query employee
+  d  <- query department
+  on $ e ! Employee.deptId' .=. just (d ! Department.deptId')
+  return $ e >< d
+
+-- |
+-- Tuple version of Generated SQL:
+--
+-- @
+--   SELECT ALL T0.fname AS f0, T0.lname AS f1, T1.name AS f2 FROM
+--   MAIN.employee T0 INNER JOIN MAIN.department T1 ON (T0.dept_id
+--   = T1.dept_id)
+-- @
+--
+join_5_1_2aT :: Relation () (String, String, String)
+join_5_1_2aT = relation $ do
+  e  <- query employee
+  d  <- query department
+  on $ e ! Employee.deptId' .=. just (d ! Department.deptId')
+  return $ (,,) |$| e ! Employee.fname' |*| e ! Employee.lname' |*| d ! Department.name'
+
+-- | sql/5.3a.sh
+--
+-- Handwritten SQL:
+--
+-- @
+--   SELECT e.fname, e.lname, e_mgr.fname mgr_fname, e_mgr.lname mgr_lname
+--   FROM LEARNINGSQL.employee e INNER JOIN LEARNINGSQL.employee e_mgr
+--   ON e.superior_emp_id = e_mgr.emp_id
+-- @
+--
+-- Record version of Generated SQL:
+--
+-- @
+--   SELECT ALL T0.emp_id AS f0, T0.fname AS f1, T0.lname AS f2,
+--   T0.start_date AS f3, T0.end_date AS f4, T0.superior_emp_id AS f5,
+--   T0.dept_id AS f6, T0.title AS f7, T0.assigned_branch_id AS f8,
+--   T1.emp_id AS f9, T1.fname AS f10, T1.lname AS f11, T1.start_date AS
+--   f12, T1.end_date AS f13, T1.superior_emp_id AS f14, T1.dept_id AS f15,
+--   T1.title AS f16, T1.assigned_branch_id AS f17 FROM MAIN.employee T0
+--   INNER JOIN MAIN.employee T1 ON (T0.superior_emp_id = T1.emp_id)
+-- @
+--
+selfJoin_5_3a :: Relation () (Employee, Employee)
+selfJoin_5_3a = relation $ do
+  e  <- query employee
+  m  <- query employee
+  on $ e ! Employee.superiorEmpId' .=. just (m ! Employee.empId')
+  return $ e >< m
+
+-- |
+-- Tuple version of Generated SQL:
+--
+-- @
+--   SELECT ALL T0.fname AS f0, T0.lname AS f1, T1.fname AS f2, T1.lname AS
+--   f3 FROM MAIN.employee T0 INNER JOIN MAIN.employee T1 ON
+--   (T0.superior_emp_id = T1.emp_id)
+-- @
+--
+selfJoin_5_3aT :: Relation () ((String, String), (String, String))
+selfJoin_5_3aT = relation $ do
+  e  <- query employee
+  m  <- query employee
+  on $ e ! Employee.superiorEmpId' .=. just (m ! Employee.empId')
+  let emp = e ! Employee.fname' >< e ! Employee.lname'
+  let mgr = m ! Employee.fname' >< m ! Employee.lname'
+  return $ emp >< mgr
+
+-- | sql/6.4.1a.sh
+--
+-- The standard SQL allows the syntax of UNION that has an order clause
+-- at the last of query. Unfortunately, HRR dows not support. In addition,
+-- HRR put a select statement having an order clause into parentheses.
+-- Generated SQL has different meaning with the handwritten
+-- SQL below. Such query cannot be expressed directly with EDSL of HRR.
+--
+-- Handwritten SQL:
+--
+-- @
+--   SELECT emp_id, assigned_branch_id
+--   FROM LEARNINGSQL.employee
+--   WHERE title = 'Teller'
+--   UNION
+--   SELECT open_emp_id, open_branch_id
+--   FROM LEARNINGSQL.account
+--   WHERE product_cd = 'SAV'
+--   ORDER BY open_emp_id
+-- @
+--
+-- Generated SQL:
+--
+-- @
+--   SELECT ALL T0.emp_id AS f0, T0.assigned_branch_id AS f1 FROM
+--   MAIN.employee T0 WHERE (T0.title = 'Teller') UNION SELECT ALL
+--   T1.open_emp_id AS f0, T1.open_branch_id AS f1 FROM MAIN.account T1
+--   WHERE (T1.product_cd = 'SAV')
+-- @
+--
+union_6_4_1a_Flat :: Relation () (Maybe Int, Maybe Int)
+union_6_4_1a_Flat = relation (do
+    e  <- query employee
+    wheres $ e ! Employee.title' .=. just (value "Teller")
+    return $ just (e ! Employee.empId') >< e ! Employee.assignedBranchId'
+  ) `union` relation (do
+    a  <- query account
+    wheres $ a ! Account.productCd' .=. value "SAV"
+    -- asc $ a ! Account.openEmpId'
+    return $ a ! Account.openEmpId' >< a ! Account.openBranchId'
+  )
+
+-- |
+-- If you want to sort whole row returned from UNION, place a order
+-- clouse outside of the union relation.
+--
+-- Generated SQL:
+--
+-- @
+--   SELECT ALL T2.f0 AS f0, T2.f1 AS f1 FROM (SELECT ALL T0.emp_id AS f0,
+--   T0.assigned_branch_id AS f1 FROM MAIN.employee T0 WHERE (T0.title
+--   = 'Teller') UNION SELECT ALL T1.open_emp_id AS f0, T1.open_branch_id
+--   AS f1 FROM MAIN.account T1 WHERE (T1.product_cd = 'SAV')) T2 ORDER BY
+--   T2.f0 ASC
+-- @
+--
+union_6_4_1a_Nest :: Relation () (Maybe Int, Maybe Int)
+union_6_4_1a_Nest = relation $ do
+  ea <- query $ employee_6_4_1a `union` account_6_4_1a
+  asc $ ea ! fst'
+  return ea
+
+employee_6_4_1a :: Relation () (Maybe Int, Maybe Int)
+employee_6_4_1a = relation $ do
+  e  <- query employee
+  wheres $ e ! Employee.title' .=. just (value "Teller")
+  return $ just (e ! Employee.empId') >< e ! Employee.assignedBranchId'
+
+account_6_4_1a :: Relation () (Maybe Int, Maybe Int)
+account_6_4_1a = relation $ do
+  a  <- query account
+  wheres $ a ! Account.productCd' .=. value "SAV"
+  return $ a ! Account.openEmpId' >< a ! Account.openBranchId'
+
+-- | sql/8.1a.sh
+--
+-- Handwritten SQL:
+--
+-- @
+--   SELECT open_emp_id, COUNT(*) how_many
+--   FROM LEARNINGSQL.account
+--   GROUP BY open_emp_id
+--   ORDER BY open_emp_id
+-- @
+--
+-- Generated SQL:
+--
+-- @
+--  SELECT ALL T0.open_emp_id AS f0, COUNT (T0.account_id) AS f1 FROM
+--  MAIN.account T0 GROUP BY T0.open_emp_id ORDER BY T0.open_emp_id ASC
+-- @
+--
+group_8_1a :: Relation () (Maybe Int, Int64)
+group_8_1a = aggregateRelation $ do
+  a  <- query account
+  g  <- groupBy $ a ! Account.openEmpId'
+  asc $ g ! id'
+  return $ g >< count (a ! Account.accountId')
+
 -- | sql/5.1.3.sh
 --
 -- Handwritten SQL:
@@ -673,36 +703,6 @@ data Account3 = Account3
   } deriving (Show, Generic)
 
 $(makeRelationalRecord ''Account3)
-
--- |
--- 9.1 What is a subquery?
---
--- Handwritten SQL:
---
--- @
---   SELECT account_id, product_cd, cust_id, avail_balance
---   FROM account
---   WHERE account_id = (SELECT MAX(account_id)
---                       FROM account);
--- @
---
--- Generated SQL:
---
--- @
---   SELECT ALL T0.account_id AS f0, T0.product_cd AS f1, T0.cust_id AS f2,
---   T0.avail_balance AS f3 FROM MAIN.account T0 WHERE (T0.account_id
---   = (SELECT ALL MAX (T1.account_id) AS f0 FROM MAIN.account T1))
--- @
---
-account_9_1 :: Relation () Account1
-account_9_1 = relation $ do
-  a  <- query account
-  ma <- queryScalar $ aggregatedUnique account Account.accountId' max'
-  wheres $ just (a ! Account.accountId') .=. flattenMaybe ma
-  return $ Account1 |$| a ! Account.accountId'
-                    |*| a ! Account.productCd'
-                    |*| a ! Account.custId'
-                    |*| a ! Account.availBalance'
 
 -- |
 -- 9.4 Correlated Subqueries
@@ -1297,19 +1297,6 @@ runD conn param dlt = do
 main :: IO ()
 main = handleSqlError' $ withConnectionIO (connectSqlite3 "examples.db") $ \conn -> do
   run conn () allAccount
-  run conn () account_4_3_3a
-  run conn () account_4_3_3aT
-  run conn () account_4_3_3aR
-  run conn () join_5_1_2a
-  run conn () join_5_1_2aT
-  run conn () selfJoin_5_3a
-  run conn () selfJoin_5_3aT
-  run conn () union_6_4_1a_Nest
-  run conn () union_6_4_1a_Flat
-  run conn () group_8_1a
-  run conn "ACCOUNT" account_4_3_3b
-  run conn "ACCOUNT" account_4_3_3bT
-  run conn "ACCOUNT" account_4_3_3bR
   run conn () account_3_7
   run conn () account_3_7_1
   run conn () employee_3_7_3
@@ -1317,8 +1304,21 @@ main = handleSqlError' $ withConnectionIO (connectSqlite3 "examples.db") $ \conn
   run conn (read "2003-01-01") employee_4_1_2P
   run conn () employee_4_3_2
   run conn (read "2001-01-01", read "2003-01-01") employee_4_3_2P
-  run conn () join_5_1_3
+  run conn () account_4_3_3a
+  run conn () account_4_3_3aT
+  run conn () account_4_3_3aR
   run conn () account_9_1
+  run conn "ACCOUNT" account_4_3_3b
+  run conn "ACCOUNT" account_4_3_3bT
+  run conn "ACCOUNT" account_4_3_3bR
+  run conn () join_5_1_2a
+  run conn () join_5_1_2aT
+  run conn () selfJoin_5_3a
+  run conn () selfJoin_5_3aT
+  run conn () union_6_4_1a_Nest
+  run conn () union_6_4_1a_Flat
+  run conn () group_8_1a
+  run conn () join_5_1_3
   run conn () customer_9_4
   runD conn () deleteAccount_o1
   runD conn 2 deleteAccount_o1P
