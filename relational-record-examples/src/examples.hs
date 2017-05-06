@@ -818,206 +818,6 @@ customer1 c = Customer1 |$| c ! Customer.custId'
 $(makeRelationalRecord ''Customer1)
 
 -- |
--- (original) Deleting data
---
--- Handwritten SQL:
---
--- @
---   DELETE FROM account
---   WHERE account_id = 2;
--- @
---
--- Generated SQL:
---
--- @
---   DELETE FROM MAIN.account WHERE (account_id = 2)
--- @
---
-deleteAccount_o1 :: Delete ()
-deleteAccount_o1 = derivedDelete $ \proj -> do
-  wheres $ proj ! Account.accountId' .=. value 2
-  return unitPlaceHolder
-
--- |
--- Placeholder version of Generated SQL:
---
--- @
---   DELETE FROM MAIN.account WHERE (account_id = ?)
--- @
---
--- Note: This function is equal to the following:
---
--- @
---   deleteAccount_o1P :: Delete Int64
---   deleteAccount_o1P = derivedDelete $ \proj -> do
---     fmap fst $ placeholder (\ph -> wheres $ proj ! Account.accountId' .=. ph)
--- @
---
-deleteAccount_o1P :: Delete Int
-deleteAccount_o1P = derivedDelete $ \proj -> do
-  fmap fst $ placeholder (\ph -> wheres $ proj ! Account.accountId' .=. ph)
-
--- |
--- (original) Data modification using equality conditions
---
--- Handwritten SQL:
---
--- @
---   DELETE FROM account
---   WHERE account_id >= 10 AND account_id <= 20;
--- @
---
--- Generated SQL:
---
--- @
---   DELETE FROM MAIN.account WHERE ((account_id >= 10) AND (account_id <=
---   20))
--- @
---
-deleteAccount_o2 :: Delete ()
-deleteAccount_o2 = derivedDelete $ \proj -> do
-  wheres $ proj ! Account.accountId' .>=. value 10
-  wheres $ proj ! Account.accountId' .<=. value 20
-  return unitPlaceHolder
-
--- |
--- Placeholder version of Generated SQL:
---
--- @
---   DELETE FROM MAIN.account WHERE ((account_id >= ?) AND (account_id <=
---   ?))
--- @
---
-deleteAccount_o2P :: Delete (Int, Int)
-deleteAccount_o2P = derivedDelete $ \proj -> do
-  (phMin,()) <- placeholder (\ph -> wheres $ proj ! Account.accountId' .>=. ph)
-  (phMax,()) <- placeholder (\ph -> wheres $ proj ! Account.accountId' .<=. ph)
-  return (phMin >< phMax)
-
--- |
--- 9.4.2 Data manipulation using correlated subqueries
---
--- Handwritten SQL:
---
--- @
---   DELETE FROM department d
---   WHERE NOT EXISTS (SELECT 1
---   FROM employee e
---   WHERE e.dept_id = d.dept_id);
--- @
---
--- Generated SQL:
---
--- @
---   DELETE FROM MAIN.department WHERE (NOT (EXISTS (SELECT ALL 1 AS f0
---   FROM MAIN.employee T0 WHERE (T0.dept_id = dept_id))))
--- @
---
-deleteEmployee_9_4_2 :: Delete ()
-deleteEmployee_9_4_2 = derivedDelete $ \proj -> do
-  el <- queryList $ relation $ do
-    e <- query employee
-    wheres $ e ! Employee.deptId' .=. just (proj ! Department.deptId')
-    return (value (1 :: Int64))
-  wheres $ not' . exists $ el
-  return unitPlaceHolder
-
--- |
--- (original) Updating data
---
--- Handwritten SQL:
---
--- @
---   UPDATE employee
---   SET lname = 'Bush',
---        dept_id = 3
---   WHERE emp_id = 10;
--- @
---
--- Generated SQL:
---
--- @
---   UPDATE MAIN.employee SET lname = 'Bush', dept_id = 3 WHERE (emp_id
---   = 10)
--- @
---
-updateEmployee_o3 :: Update ()
-updateEmployee_o3 = derivedUpdate $ \proj -> do
-  Employee.lname' <-# value "Bush"
-  Employee.deptId' <-# just (value 3)
-  wheres $ proj ! Employee.empId' .=. value 10
-  return unitPlaceHolder
-
--- |
--- Placeholder version of Generated SQL:
---
--- @
---   UPDATE MAIN.employee SET lname = ?, dept_id = ? WHERE (emp_id = ?)
--- @
---
--- Note: This function is equal to the following:
---
--- @
---   updateEmployee_o3P :: Update (String, Int, Int)
---   updateEmployee_o3P = derivedUpdate $ \proj -> do
---     (phLname,()) <- placeholder (\ph -> Employee.lname' <-# ph)
---     (phDeptId,()) <- placeholder (\ph -> Employee.deptId' <-# just ph)
---     (phEmpId,()) <- placeholder (\ph -> wheres $ proj ! Employee.empId' .=. ph)
---     return $ (,,) |$| phLname |*| phDeptId |*| phEmpId
--- @
---
-updateEmployee_o3P :: Update (String, Int, Int)
-updateEmployee_o3P = derivedUpdate $ \proj -> do
-  (phLname,()) <- placeholder (\ph -> Employee.lname' <-# ph)
-  (phDeptId,()) <- placeholder (\ph -> Employee.deptId' <-# just ph)
-  (phEmpId,()) <- placeholder (\ph -> wheres $ proj ! Employee.empId' .=. ph)
-  return $ (,,) |$| phLname |*| phDeptId |*| phEmpId
-
--- |
--- 9.4.2 Data Manipulation Using Correlated Subqueries
---
--- Handwritten SQL:
---
--- @
---   UPDATE account
---   SET last_activity_date =
---      (SELECT MAX(t.txn_date)
---       FROM transaction0 t
---       WHERE t.account_id = account.account_id)
---   WHERE EXISTS (SELECT 1
---                 FROM transaction0 t
---                 WHERE t.account_id = account.account_id);
--- @
---
--- Generated SQL:
---
--- @
---   UPDATE MAIN.account SET last_activity_date = date((SELECT ALL MAX
---   (T1.f0) AS f0 FROM (SELECT ALL T0.txn_date AS f0 FROM
---   MAIN.transaction0 T0 WHERE (T0.account_id = account_id)) T1)) WHERE
---   (EXISTS (SELECT ALL 1 AS f0 FROM MAIN.transaction0 T2 WHERE
---   (T2.account_id = account_id)))
--- @
---
-updateAccount_9_4_2 :: Update ()
-updateAccount_9_4_2 = derivedUpdate $ \proj -> do
-  ts <- queryScalar $ aggregatedUnique (relation $ do
-    t <- query transaction
-    wheres $ t ! Transaction.accountId' .=. proj ! Account.accountId'
-    return (t ! Transaction.txnDate')
-    ) id' max'
-  tl <- queryList $ relation $ do
-    t <- query transaction
-    wheres $ t ! Transaction.accountId' .=. proj ! Account.accountId'
-    return (value (1 :: Int64))
-  Account.lastActivityDate' <-# (toDay $ flattenMaybe ts)
-  wheres $ exists $ tl
-  return unitPlaceHolder
-
-toDay :: (SqlProjectable p, ProjectableShowSql p) => p (Maybe LocalTime) -> p (Maybe Day)
-toDay dt = unsafeProjectSql $ "date(" ++ unsafeShowSql dt ++ ")"
-
--- |
 -- (from script) The insert statement
 --
 -- Handwritten SQL:
@@ -1247,6 +1047,206 @@ employee4 = Employee4
   , e4Title = Just "President"
   }
 
+-- |
+-- (original) Updating data
+--
+-- Handwritten SQL:
+--
+-- @
+--   UPDATE employee
+--   SET lname = 'Bush',
+--        dept_id = 3
+--   WHERE emp_id = 10;
+-- @
+--
+-- Generated SQL:
+--
+-- @
+--   UPDATE MAIN.employee SET lname = 'Bush', dept_id = 3 WHERE (emp_id
+--   = 10)
+-- @
+--
+updateEmployee_o3 :: Update ()
+updateEmployee_o3 = derivedUpdate $ \proj -> do
+  Employee.lname' <-# value "Bush"
+  Employee.deptId' <-# just (value 3)
+  wheres $ proj ! Employee.empId' .=. value 10
+  return unitPlaceHolder
+
+-- |
+-- Placeholder version of Generated SQL:
+--
+-- @
+--   UPDATE MAIN.employee SET lname = ?, dept_id = ? WHERE (emp_id = ?)
+-- @
+--
+-- Note: This function is equal to the following:
+--
+-- @
+--   updateEmployee_o3P :: Update (String, Int, Int)
+--   updateEmployee_o3P = derivedUpdate $ \proj -> do
+--     (phLname,()) <- placeholder (\ph -> Employee.lname' <-# ph)
+--     (phDeptId,()) <- placeholder (\ph -> Employee.deptId' <-# just ph)
+--     (phEmpId,()) <- placeholder (\ph -> wheres $ proj ! Employee.empId' .=. ph)
+--     return $ (,,) |$| phLname |*| phDeptId |*| phEmpId
+-- @
+--
+updateEmployee_o3P :: Update (String, Int, Int)
+updateEmployee_o3P = derivedUpdate $ \proj -> do
+  (phLname,()) <- placeholder (\ph -> Employee.lname' <-# ph)
+  (phDeptId,()) <- placeholder (\ph -> Employee.deptId' <-# just ph)
+  (phEmpId,()) <- placeholder (\ph -> wheres $ proj ! Employee.empId' .=. ph)
+  return $ (,,) |$| phLname |*| phDeptId |*| phEmpId
+
+-- |
+-- 9.4.2 Data Manipulation Using Correlated Subqueries
+--
+-- Handwritten SQL:
+--
+-- @
+--   UPDATE account
+--   SET last_activity_date =
+--      (SELECT MAX(t.txn_date)
+--       FROM transaction0 t
+--       WHERE t.account_id = account.account_id)
+--   WHERE EXISTS (SELECT 1
+--                 FROM transaction0 t
+--                 WHERE t.account_id = account.account_id);
+-- @
+--
+-- Generated SQL:
+--
+-- @
+--   UPDATE MAIN.account SET last_activity_date = date((SELECT ALL MAX
+--   (T1.f0) AS f0 FROM (SELECT ALL T0.txn_date AS f0 FROM
+--   MAIN.transaction0 T0 WHERE (T0.account_id = account_id)) T1)) WHERE
+--   (EXISTS (SELECT ALL 1 AS f0 FROM MAIN.transaction0 T2 WHERE
+--   (T2.account_id = account_id)))
+-- @
+--
+updateAccount_9_4_2 :: Update ()
+updateAccount_9_4_2 = derivedUpdate $ \proj -> do
+  ts <- queryScalar $ aggregatedUnique (relation $ do
+    t <- query transaction
+    wheres $ t ! Transaction.accountId' .=. proj ! Account.accountId'
+    return (t ! Transaction.txnDate')
+    ) id' max'
+  tl <- queryList $ relation $ do
+    t <- query transaction
+    wheres $ t ! Transaction.accountId' .=. proj ! Account.accountId'
+    return (value (1 :: Int64))
+  Account.lastActivityDate' <-# (toDay $ flattenMaybe ts)
+  wheres $ exists $ tl
+  return unitPlaceHolder
+
+toDay :: (SqlProjectable p, ProjectableShowSql p) => p (Maybe LocalTime) -> p (Maybe Day)
+toDay dt = unsafeProjectSql $ "date(" ++ unsafeShowSql dt ++ ")"
+
+-- |
+-- (original) Deleting data
+--
+-- Handwritten SQL:
+--
+-- @
+--   DELETE FROM account
+--   WHERE account_id = 2;
+-- @
+--
+-- Generated SQL:
+--
+-- @
+--   DELETE FROM MAIN.account WHERE (account_id = 2)
+-- @
+--
+deleteAccount_o1 :: Delete ()
+deleteAccount_o1 = derivedDelete $ \proj -> do
+  wheres $ proj ! Account.accountId' .=. value 2
+  return unitPlaceHolder
+
+-- |
+-- Placeholder version of Generated SQL:
+--
+-- @
+--   DELETE FROM MAIN.account WHERE (account_id = ?)
+-- @
+--
+-- Note: This function is equal to the following:
+--
+-- @
+--   deleteAccount_o1P :: Delete Int64
+--   deleteAccount_o1P = derivedDelete $ \proj -> do
+--     fmap fst $ placeholder (\ph -> wheres $ proj ! Account.accountId' .=. ph)
+-- @
+--
+deleteAccount_o1P :: Delete Int
+deleteAccount_o1P = derivedDelete $ \proj -> do
+  fmap fst $ placeholder (\ph -> wheres $ proj ! Account.accountId' .=. ph)
+
+-- |
+-- (original) Data modification using equality conditions
+--
+-- Handwritten SQL:
+--
+-- @
+--   DELETE FROM account
+--   WHERE account_id >= 10 AND account_id <= 20;
+-- @
+--
+-- Generated SQL:
+--
+-- @
+--   DELETE FROM MAIN.account WHERE ((account_id >= 10) AND (account_id <=
+--   20))
+-- @
+--
+deleteAccount_o2 :: Delete ()
+deleteAccount_o2 = derivedDelete $ \proj -> do
+  wheres $ proj ! Account.accountId' .>=. value 10
+  wheres $ proj ! Account.accountId' .<=. value 20
+  return unitPlaceHolder
+
+-- |
+-- Placeholder version of Generated SQL:
+--
+-- @
+--   DELETE FROM MAIN.account WHERE ((account_id >= ?) AND (account_id <=
+--   ?))
+-- @
+--
+deleteAccount_o2P :: Delete (Int, Int)
+deleteAccount_o2P = derivedDelete $ \proj -> do
+  (phMin,()) <- placeholder (\ph -> wheres $ proj ! Account.accountId' .>=. ph)
+  (phMax,()) <- placeholder (\ph -> wheres $ proj ! Account.accountId' .<=. ph)
+  return (phMin >< phMax)
+
+-- |
+-- 9.4.2 Data manipulation using correlated subqueries
+--
+-- Handwritten SQL:
+--
+-- @
+--   DELETE FROM department d
+--   WHERE NOT EXISTS (SELECT 1
+--   FROM employee e
+--   WHERE e.dept_id = d.dept_id);
+-- @
+--
+-- Generated SQL:
+--
+-- @
+--   DELETE FROM MAIN.department WHERE (NOT (EXISTS (SELECT ALL 1 AS f0
+--   FROM MAIN.employee T0 WHERE (T0.dept_id = dept_id))))
+-- @
+--
+deleteEmployee_9_4_2 :: Delete ()
+deleteEmployee_9_4_2 = derivedDelete $ \proj -> do
+  el <- queryList $ relation $ do
+    e <- query employee
+    wheres $ e ! Employee.deptId' .=. just (proj ! Department.deptId')
+    return (value (1 :: Int64))
+  wheres $ not' . exists $ el
+  return unitPlaceHolder
+
 --
 -- run and print sql
 --
@@ -1324,17 +1324,17 @@ main = handleSqlError' $ withConnectionIO (connectSqlite3 "examples.db") $ \conn
   run conn () union_6_4_1a_Flat
   run conn () group_8_1a
   run conn () customer_9_4
-  runD conn () deleteAccount_o1
-  runD conn 2 deleteAccount_o1P
-  runD conn () deleteAccount_o2
-  runD conn (10,20) deleteAccount_o2P
-  runD conn () deleteEmployee_9_4_2
-  runU conn () updateEmployee_o3
-  runU conn ("Bush", 3, 10) updateEmployee_o3P
-  runU conn () updateAccount_9_4_2
   runI conn () insertBranch_s1
   runI conn branch1 insertBranch_s1P
   runI conn branchTuple insertBranch_s1PT
   runIQ conn () insertEmployee_s2
   runIQ conn () insertEmployee_s2U
   runIQ conn employee4 insertEmployee_s2P
+  runU conn () updateEmployee_o3
+  runU conn ("Bush", 3, 10) updateEmployee_o3P
+  runU conn () updateAccount_9_4_2
+  runD conn () deleteAccount_o1
+  runD conn 2 deleteAccount_o1P
+  runD conn () deleteAccount_o2
+  runD conn (10,20) deleteAccount_o2P
+  runD conn () deleteEmployee_9_4_2
