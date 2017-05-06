@@ -1348,6 +1348,7 @@ main = handleSqlError' $ withConnectionIO (connectSqlite3 "examples.db") $ \conn
   run conn () customer_9_4
   runI conn () insertBranch_s1
   runI conn branch1 insertBranch_s1P
+  runI conn () insertBranch_s1R
   runI conn branchTuple insertBranch_s1PT
   runIQ conn () insertEmployee_s2
   runIQ conn () insertEmployee_s2U
