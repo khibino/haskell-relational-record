@@ -946,6 +946,46 @@ INSERT INTO MAIN.branch (name, address, city, state, zip)
 VALUES (?, ?, ?, ?, ?)
 {% endhighlight %}
 
+Thanks to generic-programing, it is possible to specify record value directly as SQL row value.
+
+{% highlight haskell %}
+insertBranch_s1R :: Insert ()
+insertBranch_s1R = derivedInsertValue $ do
+  piBranch1   <-#  value Branch1
+                         { b1Name = "Headquarters"
+                         , b1Address = Just "3882 Main St."
+                         , b1City = Just "Waltham"
+                         , b1State = Just "MA"
+                         , b1Zip = Just "02451"
+                         }
+  return unitPlaceHolder
+{% endhighlight %}
+
+{% highlight sql %}
+INSERT INTO MAIN.branch (name, address, city, state, zip)
+VALUES ('Headquarters', '3882 Main St.', 'Waltham', 'MA', '02451')
+{% endhighlight %}
+
+Thanks to generic-programing, it is possible to specify tuple type as Pi destination type.
+
+{% highlight haskell %}
+insertBranch_s1PT :: Insert (String, Maybe String, Maybe String, Maybe String, Maybe String)
+insertBranch_s1PT = derivedInsert piBranchTuple
+
+piBranchTuple :: Pi Branch (String, Maybe String, Maybe String, Maybe String, Maybe String)
+piBranchTuple = (,,,,)
+                |$| Branch.name'
+                |*| Branch.address'
+                |*| Branch.city'
+                |*| Branch.state'
+                |*| Branch.zip'
+{% endhighlight %}
+
+{% highlight sql %}
+INSERT INTO MAIN.branch (name, address, city, state, zip)
+VALUES (?, ?, ?, ?, ?)
+{% endhighlight %}
+
 #### Inserting data from tables
 
 SQL:
