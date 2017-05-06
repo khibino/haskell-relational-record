@@ -921,7 +921,6 @@ HRR using placeholder:
 insertBranch_s1P :: Insert Branch1
 insertBranch_s1P = derivedInsert piBranch1
 
--- this is equal to `definePi 1'
 piBranch1 :: Pi Branch Branch1
 piBranch1 = Branch1 |$| Branch.name'
                     |*| Branch.address'
@@ -935,7 +934,7 @@ data Branch1 = Branch1
   , b1City :: Maybe String
   , b1State :: Maybe String
   , b1Zip :: Maybe String
-  }
+  } deriving (Generic)
 
 $(makeRelationalRecord ''Branch1)
 {% endhighlight %}
