@@ -827,7 +827,7 @@ $(makeRelationalRecord ''Customer1)
 --   VALUES (null, 'Headquarters', '3882 Main St.', 'Waltham', 'MA', '02451');
 -- @
 --
--- Generated SQL:
+-- Literal version of Generated SQL:
 --
 -- @
 --  INSERT INTO MAIN.branch (name, address, city, state, zip)
@@ -844,14 +844,12 @@ insertBranch_s1 = derivedInsertValue $ do
   return unitPlaceHolder
 
 -- |
--- Tuple placeholder version of Generated SQL:
+-- Placeholder version of Generated SQL:
 --
 -- @
 --   INSERT INTO MAIN.branch (name, address, city, state, zip)
 --   VALUES (?, ?, ?, ?, ?)
 -- @
---
--- Above sql is the same to adhoc defined record version.
 --
 insertBranch_s1P :: Insert Branch1
 insertBranch_s1P = derivedInsert piBranch1
@@ -883,7 +881,7 @@ branch1 = Branch1
   }
 
 -- |
---  Generated SQL:
+-- Literal version of Generated SQL:
 --
 -- @
 --  INSERT INTO MAIN.branch (name, address, city, state, zip)
@@ -891,7 +889,7 @@ branch1 = Branch1
 -- @
 --
 -- Thanks to generic-programing, it is possible to specify record value directly as SQL row value.
--- Above SQL is same to the monadic building version.
+-- Above SQL is the same to the monadic building version.
 --
 insertBranch_s1R :: Insert ()
 insertBranch_s1R = derivedInsertValue $ do
@@ -905,12 +903,15 @@ insertBranch_s1R = derivedInsertValue $ do
   return unitPlaceHolder
 
 -- |
--- Generated SQL is the same as not tuple version:
+-- Placeholder version of Generated SQL:
 --
 -- @
 --   INSERT INTO MAIN.branch (name, address, city, state, zip)
 --   VALUES (?, ?, ?, ?, ?)
 -- @
+--
+-- Thanks to generic-programing, it is possible to specify tuple type as Pi destination type.
+-- Above SQL is the same to ad-hoc defined record version.
 --
 insertBranch_s1PT :: Insert (String, Maybe String, Maybe String, Maybe String, Maybe String)
 insertBranch_s1PT = derivedInsert piBranchTuple
