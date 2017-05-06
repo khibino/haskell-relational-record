@@ -1311,6 +1311,7 @@ main = handleSqlError' $ withConnectionIO (connectSqlite3 "examples.db") $ \conn
   run conn "ACCOUNT" account_4_3_3b
   run conn "ACCOUNT" account_4_3_3bT
   run conn "ACCOUNT" account_4_3_3bR
+  run conn () account_4_3_3c
   run conn () join_5_1_2a
   run conn () join_5_1_2aT
   run conn () selfJoin_5_3a
