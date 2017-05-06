@@ -843,7 +843,6 @@ insertBranch_s1 = derivedInsertValue $ do
   Branch.zip'      <-#  value (Just "02451")
   return unitPlaceHolder
 
-
 -- |
 -- Tuple placeholder version of Generated SQL:
 --
@@ -884,6 +883,28 @@ branch1 = Branch1
   }
 
 -- |
+--  Generated SQL:
+--
+-- @
+--  INSERT INTO MAIN.branch (name, address, city, state, zip)
+--  VALUES ('Headquarters', '3882 Main St.', 'Waltham', 'MA', '02451')
+-- @
+--
+-- Thanks to generic-programing, it is possible to specify record value directly as SQL row value.
+-- Above SQL is same to the monadic building version.
+--
+insertBranch_s1R :: Insert ()
+insertBranch_s1R = derivedInsertValue $ do
+  piBranch1   <-#  value Branch1
+                         { b1Name = "Headquarters"
+                         , b1Address = Just "3882 Main St."
+                         , b1City = Just "Waltham"
+                         , b1State = Just "MA"
+                         , b1Zip = Just "02451"
+                         }
+  return unitPlaceHolder
+
+-- |
 -- Generated SQL is the same as not tuple version:
 --
 -- @
@@ -908,6 +929,7 @@ branchTuple = ("Headquarters",
               Just "Waltham",
               Just "MA",
               Just "02451")
+
 
 -- |
 -- (from script) The insert statement
