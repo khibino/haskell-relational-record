@@ -847,8 +847,8 @@ insertBranch_s1 = derivedInsertValue $ do
 -- Tuple placeholder version of Generated SQL:
 --
 -- @
---   INSERT INTO MAIN.branch (name, address, city, state, zip) VALUES (?,
---   ?, ?, ?, ?)
+--   INSERT INTO MAIN.branch (name, address, city, state, zip)
+--   VALUES (?, ?, ?, ?, ?)
 -- @
 --
 -- Above sql is the same to adhoc defined record version.
@@ -908,8 +908,8 @@ insertBranch_s1R = derivedInsertValue $ do
 -- Generated SQL is the same as not tuple version:
 --
 -- @
---   INSERT INTO MAIN.branch (name, address, city, state, zip) VALUES (?,
---   ?, ?, ?, ?)
+--   INSERT INTO MAIN.branch (name, address, city, state, zip)
+--   VALUES (?, ?, ?, ?, ?)
 -- @
 --
 insertBranch_s1PT :: Insert (String, Maybe String, Maybe String, Maybe String, Maybe String)
