@@ -720,8 +720,9 @@ union_6_4_1a_Nest = relation $ do
   return ea
 
 -- |
--- Generated SQL has different meaning with the handwritten
--- SQL below. Such query cannot be expressed flatly with EDSL of HRR.
+-- Generated SQL has different meaning with the handwritten SQL
+-- (order clause with UNION).
+-- Such query cannot be expressed flatly with EDSL of HRR.
 --
 -- Generated SQL:
 --
