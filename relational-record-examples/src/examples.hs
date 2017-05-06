@@ -857,7 +857,6 @@ insertBranch_s1 = derivedInsertValue $ do
 insertBranch_s1P :: Insert Branch1
 insertBranch_s1P = derivedInsert piBranch1
 
--- this is equal to `definePi 1'
 piBranch1 :: Pi Branch Branch1
 piBranch1 = Branch1 |$| Branch.name'
                     |*| Branch.address'
