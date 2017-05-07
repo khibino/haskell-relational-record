@@ -1,5 +1,13 @@
 <!-- -*- Markdown -*- -->
 
+## 0.8.3.8
+
+- Bugfix of case projected record. ( https://github.com/khibino/haskell-relational-record/issues/54 )
+
+## 0.8.3.7
+
+- Add version constraint for LTS-8.
+
 ## 0.8.3.6
 
 - Bugfix of lazy instances of ShowConstantTermsSQL.
