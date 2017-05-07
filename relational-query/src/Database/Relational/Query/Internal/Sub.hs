@@ -21,6 +21,9 @@ module Database.Relational.Query.Internal.Sub
        , JoinProduct, QueryProductTree
        , ProductTreeBuilder, ProductBuilder
 
+       , CaseClause (..), WhenClauses(..)
+       , caseSearch, case'
+
        , UntypedProjection, untypedProjectionWidth, ProjectionUnit (..)
        , Projection, untypeProjection, typedProjection, projectionWidth
        , projectFromColumns, projectFromScalarSubQuery
@@ -116,12 +119,23 @@ type ProductBuilder = Node QueryRestrictionBuilder
 -- | Type for join product of query.
 type JoinProduct = Maybe QueryProductTree
 
+-- | when clauses
+data WhenClauses =
+  WhenClauses [(UntypedProjection, UntypedProjection)] UntypedProjection
+  deriving Show
+
+-- | case clause
+data CaseClause
+  = CaseSearch WhenClauses
+  | CaseSimple UntypedProjection WhenClauses
+  deriving Show
 
 -- | Projection structure unit with single column width
 data ProjectionUnit
   = RawColumn StringSQL            -- ^ used in immediate value or unsafe operations
   | SubQueryRef (Qualified Int)    -- ^ normalized sub-query reference T<n> with Int index
   | Scalar SubQuery                -- ^ scalar sub-query
+  | Case CaseClause Int            -- ^ <n>th column of case clause
   deriving Show
 
 -- | Untyped projection. Forgot record type.
@@ -152,6 +166,38 @@ projectFromColumns =  typedProjection . map RawColumn
 -- | Unsafely generate 'Projection' from scalar sub-query.
 projectFromScalarSubQuery :: SubQuery -> Projection c t
 projectFromScalarSubQuery = typedProjection . (:[]) . Scalar
+
+whenClauses :: String                             -- ^ Error tag
+            -> [(Projection c a, Projection c b)] -- ^ Each when clauses
+            -> Projection c b                     -- ^ Else result projection
+            -> WhenClauses                        -- ^ Result clause
+whenClauses eTag ws0 e = d ws0
+  where
+    d []       = error $ eTag ++ ": Empty when clauses!"
+    d ws@(_:_) =
+      WhenClauses [ (untypeProjection p, untypeProjection r) | (p, r) <- ws ]
+      $ untypeProjection e
+
+-- | Search case operator correnponding SQL search /CASE/.
+--   Like, /CASE WHEN p0 THEN a WHEN p1 THEN b ... ELSE c END/
+caseSearch :: [(Projection c (Maybe Bool), Projection c a)] -- ^ Each when clauses
+           -> Projection c a                                -- ^ Else result projection
+           -> Projection c a                                -- ^ Result projection
+caseSearch ws e =
+    typedProjection [ Case c i | i <- [0 .. projectionWidth e - 1] ]
+  where
+    c = CaseSearch $ whenClauses "caseSearch" ws e
+
+-- | Simple case operator correnponding SQL simple /CASE/.
+--   Like, /CASE x WHEN v THEN a WHEN w THEN b ... ELSE c END/
+case' :: Projection c a                     -- ^ Projection value to match
+      -> [(Projection c a, Projection c b)] -- ^ Each when clauses
+      -> Projection c b                     -- ^ Else result projection
+      -> Projection c b                     -- ^ Result projection
+case' v ws e =
+    typedProjection [ Case c i | i <- [0 .. projectionWidth e - 1] ]
+  where
+    c = CaseSimple (untypeProjection v) $ whenClauses "case'" ws e
 
 
 -- | Type for restriction of query.
