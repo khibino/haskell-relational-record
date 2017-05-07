@@ -67,7 +67,6 @@ module Database.Relational.Query.Projectable (
 import Prelude hiding (pi)
 
 import Data.String (IsString)
-import Data.Monoid ((<>), mconcat)
 import Control.Applicative ((<$>))
 
 import Language.SQL.Keyword (Keyword)
@@ -78,6 +77,7 @@ import Database.Record
    HasColumnConstraint, NotNull)
 
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL)
+import qualified Database.Relational.Query.Internal.Sub as Internal
 
 import Database.Relational.Query.Context (Flat, Aggregated, Exists, OverWindow)
 import Database.Relational.Query.Pure
@@ -360,59 +360,48 @@ showNumMaybe :: (SqlProjectable p, ProjectableShowSql p, Num a, IsString b)
                    => p (Maybe a) -> p (Maybe b)
 showNumMaybe = unsafeCastProjectable
 
-whensClause :: (OperatorProjectable p, ProjectableShowSql p)
-            => String       -- ^ Error tag
-            -> [(p a, p b)] -- ^ Each when clauses
-            -> p b          -- ^ Else result projection
-            -> Keyword      -- ^ Result projection
-whensClause eTag cs0 e = d cs0  where
-  d []       = error $ eTag ++ ": Empty when clauses!"
-  d cs@(_:_) = mconcat [when' p r | (p, r) <- cs] <> else' <> SQL.END
-  when' p r = SQL.WHEN <> unsafeShowSql' p <> SQL.THEN <> unsafeShowSql' r
-  else'     = SQL.ELSE <> unsafeShowSql' e
-
 -- | Search case operator correnponding SQL search /CASE/.
 --   Like, /CASE WHEN p0 THEN a WHEN p1 THEN b ... ELSE c END/
-caseSearch :: (OperatorProjectable p, ProjectableShowSql p)
-           => [(p (Maybe Bool), p a)] -- ^ Each when clauses
-           -> p a                     -- ^ Else result projection
-           -> p a                     -- ^ Result projection
-caseSearch cs e = unsafeProjectSql' $ SQL.CASE <> whensClause "caseSearch" cs e
+caseSearch :: OperatorProjectable (Projection c)
+           => [(Projection c (Maybe Bool), Projection c a)] -- ^ Each when clauses
+           -> Projection c a                                -- ^ Else result projection
+           -> Projection c a                                -- ^ Result projection
+caseSearch = Internal.caseSearch
 
 -- | Same as 'caseSearch', but you can write like <when list> `casesOrElse` <else clause>.
-casesOrElse :: (OperatorProjectable p, ProjectableShowSql p)
-            => [(p (Maybe Bool), p a)] -- ^ Each when clauses
-            -> p a                     -- ^ Else result projection
-            -> p a                     -- ^ Result projection
+casesOrElse :: OperatorProjectable (Projection c)
+            => [(Projection c (Maybe Bool), Projection c a)] -- ^ Each when clauses
+            -> Projection c a                                -- ^ Else result projection
+            -> Projection c a                                -- ^ Result projection
 casesOrElse = caseSearch
 
 -- | Null default version of 'caseSearch'.
-caseSearchMaybe :: (OperatorProjectable p, ProjectableShowSql p)
-                => [(p (Maybe Bool), p (Maybe a))] -- ^ Each when clauses
-                -> p (Maybe a)                     -- ^ Result projection
+caseSearchMaybe :: OperatorProjectable (Projection c) -- (Projection c) is always ProjectableMaybe
+                => [(Projection c (Maybe Bool), Projection c (Maybe a))] -- ^ Each when clauses
+                -> Projection c (Maybe a)                                -- ^ Result projection
 caseSearchMaybe cs = caseSearch cs unsafeValueNull
 
 -- | Simple case operator correnponding SQL simple /CASE/.
 --   Like, /CASE x WHEN v THEN a WHEN w THEN b ... ELSE c END/
-case' :: (OperatorProjectable p, ProjectableShowSql p)
-      => p a          -- ^ Projection value to match
-      -> [(p a, p b)] -- ^ Each when clauses
-      -> p b          -- ^ Else result projection
-      -> p b          -- ^ Result projection
-case' v cs e = unsafeProjectSql' $ SQL.CASE <> unsafeShowSql' v <> whensClause "case'" cs e
+case' :: OperatorProjectable (Projection c)
+      => Projection c a                     -- ^ Projection value to match
+      -> [(Projection c a, Projection c b)] -- ^ Each when clauses
+      -> Projection c b                     -- ^ Else result projection
+      -> Projection c b                     -- ^ Result projection
+case' = Internal.case'
 
 -- | Uncurry version of 'case'', and you can write like ... `casesOrElse'` <else clause>.
-casesOrElse' :: (OperatorProjectable p, ProjectableShowSql p)
-             => (p a, [(p a, p b)]) -- ^ Projection value to match and each when clauses list
-             -> p b                 -- ^ Else result projection
-             -> p b                 -- ^ Result projection
+casesOrElse' :: OperatorProjectable (Projection c)
+             => (Projection c a, [(Projection c a, Projection c b)]) -- ^ Projection value to match and each when clauses list
+             -> Projection c b                                       -- ^ Else result projection
+             -> Projection c b                                       -- ^ Result projection
 casesOrElse' =  uncurry case'
 
 -- | Null default version of 'case''.
-caseMaybe :: (OperatorProjectable p, ProjectableShowSql p, ProjectableMaybe p)
-          => p a                  -- ^ Projection value to match
-          -> [(p a, p (Maybe b))] -- ^ Each when clauses
-          -> p (Maybe b)          -- ^ Result projection
+caseMaybe :: OperatorProjectable (Projection c) -- (Projection c) is always ProjectableMaybe
+          => Projection c a                             -- ^ Projection value to match
+          -> [(Projection c a, Projection c (Maybe b))] -- ^ Each when clauses
+          -> Projection c (Maybe b)                     -- ^ Result projection
 caseMaybe v cs = case' v cs unsafeValueNull
 
 -- | Binary operator corresponding SQL /IN/ .
