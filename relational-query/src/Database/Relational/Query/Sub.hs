@@ -58,6 +58,7 @@ import Database.Relational.Query.Internal.GroupingSQL
   (AggregateElem, composeGroupBy, )
 import Database.Relational.Query.Internal.Sub
   (SubQuery (..), Projection,
+   CaseClause(..), WhenClauses (..),
    UntypedProjection, ProjectionUnit (..),
    JoinProduct, QueryProductTree, ProductBuilder,
    NodeAttr (Just', Maybe), ProductTree (Leaf, Join),
@@ -243,12 +244,28 @@ untypedProjectionFromJoinedSubQuery qs = d $ Internal.unQualify qs  where
   d (Flat {})               =  normalized
   d (Aggregated {})         =  normalized
 
+-- | index result of each when clause and else clause.
+indexWhensClause :: WhenClauses -> Int -> StringSQL
+indexWhensClause (WhenClauses ps e) i =
+    mconcat [ when' p r | (p, r)  <-  ps] <> else' <> SQL.END
+  where
+    when' p r = SQL.WHEN <> rowStringSQL (map columnOfProjectionUnit p) <>
+                SQL.THEN <> columnOfUntypedProjection r i
+    else'     = SQL.ELSE <> columnOfUntypedProjection e i
+
+-- | index result of each when clause and else clause.
+caseClause :: CaseClause -> Int -> StringSQL
+caseClause c i = d c  where
+  d (CaseSearch wcl)    = SQL.CASE <> indexWhensClause wcl i
+  d (CaseSimple m wcl)  = SQL.CASE <> rowStringSQL (map columnOfProjectionUnit m) <> indexWhensClause wcl i
+
 -- | Convert from ProjectionUnit into column.
 columnOfProjectionUnit :: ProjectionUnit -> StringSQL
 columnOfProjectionUnit = d  where
   d (RawColumn e)     = e
   d (SubQueryRef qi)  = Internal.qualifier qi `columnFromId` Internal.unQualify qi
   d (Scalar sub)      = showUnitSQL sub
+  d (Case c i)        = caseClause c i
 
 -- | Get column SQL string of 'UntypedProjection'.
 columnOfUntypedProjection :: UntypedProjection -- ^ Source 'Projection'
