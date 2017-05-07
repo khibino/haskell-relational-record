@@ -308,6 +308,52 @@ bin =
   , eqProp "div"   (bin53 (./.)) "SELECT ALL (5 / 3) AS f0"
   ]
 
+caseSearchX :: Relation () String
+caseSearchX = relation $ do
+  return $
+    caseSearch
+    [ (value 2 .=. value (1  :: Int32)            , value "foo")
+    , (value 5 .=. value 3 .+. value (2 :: Int32) , value "bar")
+    , (value "a" .=. value "b"                    , value "baz") ]
+    (value "other")
+
+caseX :: Relation () String
+caseX = relation $ do
+  return $
+    case'
+    (value (5 :: Int32))
+    [ (value 1             , value "foo")
+    , (value 3 .+. value 2 , value "bar")
+    , (value 10            , value "baz") ]
+    (value "other")
+
+caseRecordX :: Relation () Int32
+caseRecordX = relation $ do
+  return $
+    case'
+    (value (5 :: Int32))
+    [ (value 1             , (,) |$| value 1 |*| value "foo")
+    , (value 3 .+. value 2 , (,) |$| value 2 |*| value "bar")
+    , (value 10            , (,) |$| value 3 |*| value "baz") ]
+    ((,) |$| value (0 :: Int32) |*| value "other")
+    ! fst'
+    .*.
+    value 10
+
+cases :: [Test]
+cases =
+  [ eqProp "caseSearch" caseSearchX
+    "SELECT ALL CASE WHEN (2 = 1) THEN 'foo' WHEN (5 = (3 + 2)) THEN 'bar' WHEN ('a' = 'b') THEN 'baz' ELSE 'other' END AS f0"
+  , eqProp "case"       caseX
+    "SELECT ALL CASE 5 WHEN 1 THEN 'foo' WHEN (3 + 2) THEN 'bar' WHEN 10 THEN 'baz' ELSE 'other' END AS f0"
+  , eqProp "caseRecord" caseRecordX
+    "SELECT ALL (CASE 5 WHEN 1 THEN 1 WHEN (3 + 2) THEN 2 WHEN 10 THEN 3 ELSE 0 END * 10) AS f0"
+  ]
+
+_p_cases :: IO ()
+_p_cases =
+  mapM_ print [show caseSearchX, show caseX]
+
 nothingX :: Relation () (SetA, Maybe SetB)
 nothingX =  relation $ do
   a <- query setA
@@ -630,7 +676,7 @@ correlated =
 
 tests :: [Test]
 tests =
-  concat [ tables, monadic, directJoins, join3s, nested, bin, uni
+  concat [ tables, monadic, directJoins, join3s, nested, bin, cases, uni
          , groups, orders, partitions, exps, effs, correlated]
 
 main :: IO ()
