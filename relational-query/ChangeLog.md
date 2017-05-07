@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.9.0.2
+
+- Bugfix of case projected record. ( https://github.com/khibino/haskell-relational-record/issues/54 )
+
 ## 0.9.0.1
 
 - Use Haskell implementation test instead of flag test in .cabal
