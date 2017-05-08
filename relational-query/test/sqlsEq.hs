@@ -340,6 +340,14 @@ caseRecordX = relation $ do
     .*.
     value 10
 
+caseRecordMaybeX :: Relation () (Maybe (Int32, String))
+caseRecordMaybeX = relation $ do
+  return $
+    caseMaybe
+    (value (5 :: Int32))
+    [ (value (1 :: Int32)  , just $ (,) |$| value (1 :: Int32) |*| value "foo")
+    , (value 3 .+. value 2 , just $ (,) |$| value 2            |*| value "bar") ]
+
 cases :: [Test]
 cases =
   [ eqProp "caseSearch" caseSearchX
@@ -348,6 +356,9 @@ cases =
     "SELECT ALL CASE 5 WHEN 1 THEN 'foo' WHEN (3 + 2) THEN 'bar' WHEN 10 THEN 'baz' ELSE 'other' END AS f0"
   , eqProp "caseRecord" caseRecordX
     "SELECT ALL (CASE 5 WHEN 1 THEN 1 WHEN (3 + 2) THEN 2 WHEN 10 THEN 3 ELSE 0 END * 10) AS f0"
+  , eqProp "caseRecordMaybe" caseRecordMaybeX
+    "SELECT ALL CASE 5 WHEN 1 THEN 1 WHEN (3 + 2) THEN 2 ELSE NULL END AS f0, \
+              \ CASE 5 WHEN 1 THEN 'foo' WHEN (3 + 2) THEN 'bar' ELSE NULL END AS f1"
   ]
 
 _p_cases :: IO ()
