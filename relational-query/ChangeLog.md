@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.8.3.9
+
+- Fix of unsafeValueNull. ( https://github.com/khibino/haskell-relational-record/issues/55 )
+
 ## 0.8.3.8
 
 - Bugfix of case projected record. ( https://github.com/khibino/haskell-relational-record/issues/54 )
