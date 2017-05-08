@@ -21,7 +21,7 @@ module Database.Relational.Query.Projectable (
   value,
   valueTrue, valueFalse,
   values,
-  unsafeValueNull,
+  nothing, unsafeValueNull,
 
   -- * Placeholders
   PlaceHolders, unsafeAddPlaceHolders, unsafePlaceHolders,
@@ -73,8 +73,9 @@ import Language.SQL.Keyword (Keyword)
 import qualified Language.SQL.Keyword as SQL
 
 import Database.Record
-  (PersistableWidth, PersistableRecordWidth, derivedWidth,
+  (PersistableWidth, persistableWidth, PersistableRecordWidth, derivedWidth,
    HasColumnConstraint, NotNull)
+import Database.Record.Persistable (runPersistableRecordWidth)
 
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL)
 import qualified Database.Relational.Query.Internal.Sub as Internal
@@ -125,9 +126,19 @@ unsafeProjectSql' =  unsafeProjectSqlTerms' . (:[])
 unsafeProjectSql :: SqlProjectable p => String -> p t
 unsafeProjectSql =  unsafeProjectSql' . stringSQL
 
--- | Polymorphic projection of SQL null value.
-unsafeValueNull :: OperatorProjectable p => p (Maybe a)
-unsafeValueNull =  unsafeProjectSql "NULL"
+-- | Polymorphic projection of SQL null value. Semantics of comparing is unsafe.
+nothing :: (OperatorProjectable (Projection c), SqlProjectable (Projection c), PersistableWidth a)
+        => Projection c (Maybe a)
+nothing = proxyWidth persistableWidth
+  where
+    proxyWidth :: SqlProjectable (Projection c) => PersistableRecordWidth a -> Projection c (Maybe a)
+    proxyWidth w = unsafeProjectSqlTerms' $ replicate (runPersistableRecordWidth w) SQL.NULL
+
+{-# DEPRECATED unsafeValueNull "Use `nothing' instead of this." #-}
+-- | Deprecated. Polymorphic projection of SQL null value.
+unsafeValueNull :: (OperatorProjectable (Projection c), SqlProjectable (Projection c), PersistableWidth a)
+                => Projection c (Maybe a)
+unsafeValueNull = nothing
 
 -- | Generate polymorphic projection of SQL constant values from Haskell value.
 value :: (ShowConstantTermsSQL t, OperatorProjectable p) => t -> p t
@@ -376,7 +387,7 @@ casesOrElse :: OperatorProjectable (Projection c)
 casesOrElse = caseSearch
 
 -- | Null default version of 'caseSearch'.
-caseSearchMaybe :: OperatorProjectable (Projection c) -- (Projection c) is always ProjectableMaybe
+caseSearchMaybe :: (OperatorProjectable (Projection c) {- (Projection c) is always ProjectableMaybe -}, PersistableWidth a)
                 => [(Projection c (Maybe Bool), Projection c (Maybe a))] -- ^ Each when clauses
                 -> Projection c (Maybe a)                                -- ^ Result projection
 caseSearchMaybe cs = caseSearch cs unsafeValueNull
@@ -398,7 +409,7 @@ casesOrElse' :: OperatorProjectable (Projection c)
 casesOrElse' =  uncurry case'
 
 -- | Null default version of 'case''.
-caseMaybe :: OperatorProjectable (Projection c) -- (Projection c) is always ProjectableMaybe
+caseMaybe :: (OperatorProjectable (Projection c) {- (Projection c) is always ProjectableMaybe -}, PersistableWidth b)
           => Projection c a                             -- ^ Projection value to match
           -> [(Projection c a, Projection c (Maybe b))] -- ^ Each when clauses
           -> Projection c (Maybe b)                     -- ^ Result projection
