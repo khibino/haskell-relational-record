@@ -1,6 +1,6 @@
 <!-- -*- Markdown -*- -->
 
-## 0.8.3.9
+## 0.8.4.0
 
 - Fix of unsafeValueNull. ( https://github.com/khibino/haskell-relational-record/issues/55 )
 
