@@ -124,7 +124,7 @@ nothing :: (OperatorProjectable (Projection c), SqlProjectable (Projection c), P
 nothing = proxyWidth persistableWidth
   where
     proxyWidth :: SqlProjectable (Projection c) => PersistableRecordWidth a -> Projection c (Maybe a)
-    proxyWidth w = unsafeProjectSqlTerms' $ replicate (runPersistableRecordWidth w) SQL.NULL
+    proxyWidth w = unsafeProjectSqlTerms $ replicate (runPersistableRecordWidth w) SQL.NULL
 
 {-# DEPRECATED unsafeValueNull "Use `nothing' instead of this." #-}
 -- | Deprecated. Polymorphic projection of SQL null value.
