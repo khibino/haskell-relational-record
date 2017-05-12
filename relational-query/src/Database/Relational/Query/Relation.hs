@@ -73,7 +73,7 @@ import Database.Relational.Query.ProjectableExtended ((!))
 table :: Table r -> Relation () r
 table =  unsafeTypeRelation . return . SubQuery.fromTable
 
--- | Infered 'Relation'.
+-- | Inferred 'Relation'.
 derivedRelation :: TableDerivable r => Relation () r
 derivedRelation =  table derivedTable
 
