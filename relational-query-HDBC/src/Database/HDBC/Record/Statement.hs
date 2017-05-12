@@ -2,7 +2,7 @@
 
 -- |
 -- Module      : Database.HDBC.Record.Statement
--- Copyright   : 2013 Kei Hibino
+-- Copyright   : 2013-2017 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
