@@ -1,6 +1,6 @@
 <!-- -*- Markdown -*- -->
 
-## 0.6.1.0
+## 0.6.2.0
 
 - Apply generic instances.
 
