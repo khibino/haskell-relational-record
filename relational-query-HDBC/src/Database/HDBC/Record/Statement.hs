@@ -10,7 +10,7 @@
 -- Portability : unknown
 --
 -- This module provides typed statement running sequence
--- which intermediate structres are typed.
+-- which intermediate structures are typed.
 module Database.HDBC.Record.Statement (
   PreparedStatement, untypePrepared, unsafePrepare, finish,
 
@@ -106,7 +106,7 @@ bind' :: RecordToSql SqlValue p -- ^ Proof object to convert from parameter type
       -> BoundStatement a       -- ^ Result parameter bound statement
 bind' toSql q p = BoundStatement { bound = prepared q, params = runFromRecord toSql p }
 
--- | Typed operation to bind parameters. Infered 'RecordToSql' is used.
+-- | Typed operation to bind parameters. Inferred 'RecordToSql' is used.
 bind :: ToSql SqlValue p => PreparedStatement p a -> p -> BoundStatement a
 bind =  bind' recordToSql
 
