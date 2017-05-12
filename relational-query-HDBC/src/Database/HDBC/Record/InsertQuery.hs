@@ -10,7 +10,7 @@
 -- Portability : unknown
 --
 -- This module provides typed 'InsertQuery' running sequence
--- which intermediate structres are typed.
+-- which intermediate structures are typed.
 module Database.HDBC.Record.InsertQuery (
   PreparedInsertQuery, prepare, prepareInsertQuery, withPrepareInsertQuery,
 
