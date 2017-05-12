@@ -13,7 +13,7 @@ Also, please download "relational-record-examples" as follows:
     % cd relational-record-examples-<VERSION>
 
 If you use LTS Haskell release of stackage
-( [LTS-8.x](https://www.stackage.org/lts-8), [LTS-7.20](https://www.stackage.org/lts-7.20), [LTS-6.31](https://www.stackage.org/lts-6.31) is available ),
+( [LTS-8.x](https://www.stackage.org/lts-8), [LTS-7.x](https://www.stackage.org/lts-7) and [LTS-6.x](https://www.stackage.org/lts-6) are available ),
 please download the previous version of "relational-record-examples" as follows:
 
     % cabal unpack relational-record-examples-0.3.1.5
