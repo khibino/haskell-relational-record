@@ -20,7 +20,7 @@ module Database.HDBC.Record.Statement (
 
   ExecutedStatement, executed, result, execute,
 
-  prepareNoFetch, executeNoFetch, runPreparedNoFetch, runNoFetch, mapNoFetch
+  executePrepared, prepareNoFetch, executeNoFetch, runPreparedNoFetch, runNoFetch, mapNoFetch
   ) where
 
 import Control.Exception (bracket)
@@ -120,6 +120,10 @@ execute bs = do
   let stmt = bound bs
   n <- HDBC.execute stmt (params bs)
   return $ ExecutedStatement stmt n
+
+-- | Bind parameters, execute statement and get executed statement.
+executePrepared ::  ToSql SqlValue p => PreparedStatement p a -> p -> IO (ExecutedStatement a)
+executePrepared st = execute . bind st
 
 -- | Typed execute operation. Only get result.
 executeNoFetch :: BoundStatement () -> IO Integer
