@@ -56,12 +56,15 @@ dspace =  dString " "
 -- | Type represent SQL keywords.
 data Keyword = SELECT | ALL | DISTINCT | ON
              | GROUP | COUNT | SUM | AVG | MAX | MIN | EVERY | ANY | SOME
-             | ORDER | BY | ASC | DESC
              | CUBE | ROLLUP | GROUPING | SETS | HAVING
              | FOR
 
+             | ORDER | BY | ASC | DESC | NULLS | LAST
+
+             | OFFSET
              | LIMIT
-             | FETCH | FIRST | NEXT | ROW | ROWS | ONLY
+             | FETCH | FIRST | NEXT | PERCENT
+             | ROW | ROWS | ONLY | TIES
 
              | UNION | EXCEPT | INTERSECT
 
