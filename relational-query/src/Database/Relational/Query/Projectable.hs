@@ -25,7 +25,7 @@ module Database.Relational.Query.Projectable (
 
   -- * Placeholders
   PlaceHolders, unsafeAddPlaceHolders, unsafePlaceHolders,
-  placeholder', placeholder, unitPlaceHolder,
+  placeholder', placeholder, unitPlaceHolder, unitPH,
 
   -- * Projectable into SQL strings
   ProjectableShowSql (unsafeShowSql'), unsafeShowSql,
@@ -474,7 +474,11 @@ unsafePlaceHolders =  PlaceHolders
 
 -- | No placeholder semantics
 unitPlaceHolder :: PlaceHolders ()
-unitPlaceHolder =  unsafePlaceHolders
+unitPlaceHolder = unsafePlaceHolders
+
+-- | No placeholder semantics. Same as `unitPlaceHolder`
+unitPH :: PlaceHolders ()
+unitPH = unitPlaceHolder
 
 -- | Unsafely cast placeholder parameter type.
 unsafeCastPlaceHolders :: PlaceHolders a -> PlaceHolders b
