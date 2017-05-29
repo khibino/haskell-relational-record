@@ -17,9 +17,10 @@ module Database.Relational.Query.Type (
   relationalQuerySQL,
 
   -- * Typed update statement
-  KeyUpdate (..), unsafeTypedKeyUpdate, typedKeyUpdate, typedKeyUpdateTable,
+  KeyUpdate (..), unsafeTypedKeyUpdate, typedKeyUpdate, typedKeyUpdateTable, derivedKeyUpdate,
   Update (..), unsafeTypedUpdate, typedUpdate', typedUpdate, derivedUpdate', derivedUpdate,
-  typedUpdateAllColumn, restrictedUpdateAllColumn, restrictedUpdateTableAllColumn,
+  typedUpdateAllColumn, derivedUpdateAllColumn', derivedUpdateAllColumn,
+  restrictedUpdateAllColumn, restrictedUpdateTableAllColumn,
 
   updateSQL,
 
@@ -107,6 +108,12 @@ typedKeyUpdate tbl key = unsafeTypedKeyUpdate key $ updateOtherThanKeySQL tbl ke
 typedKeyUpdateTable :: TableDerivable r => Relation () r -> Pi r p -> KeyUpdate p r
 typedKeyUpdateTable =  typedKeyUpdate . tableOf
 
+-- derivedKeyUpdate'
+-- Config parameter is not yet required for KeyUpdate.
+
+derivedKeyUpdate :: TableDerivable r => Pi r p -> KeyUpdate p r
+derivedKeyUpdate = typedKeyUpdate derivedTable
+
 -- | Show update SQL string
 instance Show (KeyUpdate p a) where
   show = untypeKeyUpdate
@@ -146,11 +153,29 @@ derivedUpdate = derivedUpdate' defaultConfig
 
 -- | Make typed 'Update' from 'Table' and 'Restriction'.
 --   Update target is all column.
+typedUpdateAllColumn' :: PersistableWidth r
+                      => Config
+                      -> Table r
+                      -> Restriction p r
+                      -> Update (r, p)
+typedUpdateAllColumn' config tbl r = typedUpdate' config tbl $ liftTargetAllColumn' r
+
 typedUpdateAllColumn :: PersistableWidth r
                      => Table r
                      -> Restriction p r
                      -> Update (r, p)
 typedUpdateAllColumn tbl r = typedUpdate tbl $ liftTargetAllColumn' r
+
+derivedUpdateAllColumn' :: (PersistableWidth r, TableDerivable r)
+                        => Config
+                        -> Restriction p r
+                        -> Update (r, p)
+derivedUpdateAllColumn' config = typedUpdateAllColumn' config derivedTable
+
+derivedUpdateAllColumn :: (PersistableWidth r, TableDerivable r)
+                       => Restriction p r
+                       -> Update (r, p)
+derivedUpdateAllColumn = derivedUpdateAllColumn' defaultConfig
 
 -- | Directly make typed 'Update' from 'Table' and 'Restrict' monad context.
 --   Update target is all column.
