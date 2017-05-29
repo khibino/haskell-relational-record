@@ -52,7 +52,7 @@ insertFig = derivedInsertValue $ do
   StockGoods.name'   <-#  value "Fig"
   StockGoods.unit'   <-#  value 200
   StockGoods.amount' <-#  value 13
-  return unitPlaceHolder
+  return unitPH
 
 runInsertQuery1 :: InsertQuery () -> IO ()
 runInsertQuery1 ins = handleConnectionIO connect $ \conn -> do
@@ -63,14 +63,14 @@ riseOfBanana :: Update ()
 riseOfBanana =  derivedUpdate $ \proj -> do
   unit' <-# proj ! unit' .*. value 2
   wheres $ proj ! name' .=. value "Banana"
-  return unitPlaceHolder
+  return unitPH
 
 
 newCherry :: StockGoods
 newCherry =  StockGoods 5 "Black Cherry" 190 50
 
 updateCherry :: Update (StockGoods, (Int32, String))
-updateCherry =  typedUpdate tableOfStockGoods . updateTargetAllColumn' $ \proj -> do
+updateCherry =  derivedUpdateAllColumn $ \proj -> do
   (ph', ()) <- placeholder (\ph -> wheres $ proj ! (seq' >< name') .=. ph)
   return ph'
 
@@ -85,7 +85,7 @@ newOrange :: StockGoods
 newOrange =  StockGoods 2 "Orange" 150 10
 
 keyUpdateUidName :: KeyUpdate (Int32, String) StockGoods
-keyUpdateUidName =  typedKeyUpdate tableOfStockGoods (seq' >< name')
+keyUpdateUidName =  derivedKeyUpdate $ seq' >< name'
 
 runKeyUpdateAndPrint :: ToSql SqlValue a => KeyUpdate p a -> a -> IO ()
 runKeyUpdateAndPrint ku r = handleConnectionIO connect $ \conn -> do
@@ -101,7 +101,7 @@ allStock =  handleConnectionIO connect $ \conn -> do
   runQuery' conn (relationalQuery q) ()
 
 deleteStock :: Delete Int32
-deleteStock =  typedDelete tableOfStockGoods . restriction' $ \proj -> do
+deleteStock =  derivedDelete $ \proj -> do
   (ph', ()) <- placeholder (\ph -> wheres $ proj ! seq' .=. ph)
   return ph'
 
