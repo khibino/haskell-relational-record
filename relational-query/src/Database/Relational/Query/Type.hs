@@ -168,15 +168,16 @@ typedUpdateAllColumn tbl r = typedUpdate tbl $ liftTargetAllColumn' r
 
 derivedUpdateAllColumn' :: (PersistableWidth r, TableDerivable r)
                         => Config
-                        -> Restriction p r
+                        -> RestrictedStatement r (PlaceHolders p)
                         -> Update (r, p)
-derivedUpdateAllColumn' config = typedUpdateAllColumn' config derivedTable
+derivedUpdateAllColumn' config = typedUpdateAllColumn' config derivedTable .restriction'
 
 derivedUpdateAllColumn :: (PersistableWidth r, TableDerivable r)
-                       => Restriction p r
+                       => RestrictedStatement r (PlaceHolders p)
                        -> Update (r, p)
 derivedUpdateAllColumn = derivedUpdateAllColumn' defaultConfig
 
+{-# DEPRECATED restrictedUpdateAllColumn "Use derivedUpdateAllColumn or typedUpdateAllColumn instead of this." #-}
 -- | Directly make typed 'Update' from 'Table' and 'Restrict' monad context.
 --   Update target is all column.
 restrictedUpdateAllColumn :: PersistableWidth r
@@ -185,6 +186,7 @@ restrictedUpdateAllColumn :: PersistableWidth r
                            -> Update (r, p)
 restrictedUpdateAllColumn tbl = typedUpdateAllColumn tbl . restriction'
 
+{-# DEPRECATED restrictedUpdateTableAllColumn "Use derivedUpdateAllColumn or typedUpdateAllColumn instead of this." #-}
 -- | Directly make typed 'Update' from 'Table' and 'Restrict' monad context.
 --   Update target is all column.
 restrictedUpdateTableAllColumn :: (PersistableWidth r, TableDerivable r)
