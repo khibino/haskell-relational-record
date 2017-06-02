@@ -111,6 +111,7 @@ typedKeyUpdateTable =  typedKeyUpdate . tableOf
 -- derivedKeyUpdate'
 -- Config parameter is not yet required for KeyUpdate.
 
+-- | Make typed 'KeyUpdate' from derived table and key columns selector 'Pi'.
 derivedKeyUpdate :: TableDerivable r => Pi r p -> KeyUpdate p r
 derivedKeyUpdate = typedKeyUpdate derivedTable
 
@@ -151,7 +152,7 @@ derivedUpdate :: TableDerivable r => AssignStatement r (PlaceHolders p) -> Updat
 derivedUpdate = derivedUpdate' defaultConfig
 
 
--- | Make typed 'Update' from 'Table' and 'Restriction'.
+-- | Make typed 'Update' from 'Config', 'Table' and 'Restriction'.
 --   Update target is all column.
 typedUpdateAllColumn' :: PersistableWidth r
                       => Config
@@ -160,18 +161,24 @@ typedUpdateAllColumn' :: PersistableWidth r
                       -> Update (r, p)
 typedUpdateAllColumn' config tbl r = typedUpdate' config tbl $ liftTargetAllColumn' r
 
+-- | Make typed 'Update' from 'Table' and 'Restriction'.
+--   Update target is all column.
 typedUpdateAllColumn :: PersistableWidth r
                      => Table r
                      -> Restriction p r
                      -> Update (r, p)
 typedUpdateAllColumn tbl r = typedUpdate tbl $ liftTargetAllColumn' r
 
+-- | Make typed 'Update' from 'Config', derived table and 'AssignStatement'.
+--   Update target is all column.
 derivedUpdateAllColumn' :: (PersistableWidth r, TableDerivable r)
                         => Config
                         -> RestrictedStatement r (PlaceHolders p)
                         -> Update (r, p)
 derivedUpdateAllColumn' config = typedUpdateAllColumn' config derivedTable .restriction'
 
+-- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement'.
+--   Update target is all column.
 derivedUpdateAllColumn :: (PersistableWidth r, TableDerivable r)
                        => RestrictedStatement r (PlaceHolders p)
                        -> Update (r, p)
