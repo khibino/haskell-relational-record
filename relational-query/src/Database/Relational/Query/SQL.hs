@@ -114,8 +114,9 @@ insertSizedChunkSQL :: Pi r r'       -- ^ Columns selector to insert
                     -> Int           -- ^ Chunk size threshold (column count)
                     -> (String, Int) -- ^ Result SQL and records count of chunk
 insertSizedChunkSQL pi' tbl th = (insertChunkSQL n pi' tbl, n)  where
+  n | w <= 0     =  th + 1
+    | otherwise  =  th `quot` w + 1
   w = UnsafePi.width pi'
-  n = th `quot` w + 1
 
 -- | Generate insert SQL.
 insertSQL :: Pi r r' -- ^ Columns selector to insert
