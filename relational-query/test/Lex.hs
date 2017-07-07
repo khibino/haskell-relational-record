@@ -181,9 +181,9 @@ eq a b = fromMaybe False $ do
   y <- run b
   return $ x == y
 
-eqProp' :: String -> (t -> String) -> t -> String -> Test
-eqProp' name t x est = boolTest' name em (t x `eq` est)
-  where em = unlines [show $ run $ t x, " -- compares --", show $ run est]
+eqProp' :: String -> (a -> String) -> a -> String -> Test
+eqProp' name fstr x est = boolTest' name em (fstr x `eq` est)
+  where em = unlines [show $ run $ fstr x, " -- compares --", show $ run est]
 
 eqProp :: Show a => String -> a -> String -> Test
 eqProp name = eqProp' name show
