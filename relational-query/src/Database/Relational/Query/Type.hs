@@ -45,7 +45,7 @@ import Data.Monoid ((<>))
 
 import Database.Record (PersistableWidth)
 
-import Database.Relational.Query.Internal.Config (Config (chunksInsertSize), defaultConfig)
+import Database.Relational.Query.Internal.Config (Config, defaultConfig)
 import Database.Relational.Query.Internal.SQL (showStringSQL)
 
 import Database.Relational.Query.Monad.BaseType (Relation, sqlFromRelationWith)
@@ -55,12 +55,12 @@ import Database.Relational.Query.Monad.Register (Register)
 import Database.Relational.Query.Relation (tableOf)
 import Database.Relational.Query.Effect
   (Restriction, restriction', UpdateTarget, updateTarget', liftTargetAllColumn', InsertTarget, insertTarget',
-   sqlWhereFromRestriction, sqlFromUpdateTarget, sqlFromInsertTarget)
+   sqlWhereFromRestriction, sqlFromUpdateTarget, piRegister, sqlChunkFromInsertTarget, sqlFromInsertTarget)
 import Database.Relational.Query.Pi (Pi)
 import Database.Relational.Query.Table (Table, TableDerivable, derivedTable)
 import Database.Relational.Query.Projectable (PlaceHolders)
 import Database.Relational.Query.SQL
-  (QuerySuffix, showsQuerySuffix, insertPrefixSQL, insertSQL, insertSizedChunkSQL,
+  (QuerySuffix, showsQuerySuffix, insertPrefixSQL,
    updateOtherThanKeySQL, updatePrefixSQL, deletePrefixSQL)
 
 
@@ -231,22 +231,26 @@ unsafeTypedInsert :: String -> Insert a
 unsafeTypedInsert s = Insert s Nothing
 
 -- | Make typed 'Insert' from 'Table' and columns selector 'Pi' with configuration parameter.
-typedInsert' :: Config -> Table r -> Pi r r' -> Insert r'
-typedInsert' config tbl pi' = unsafeTypedInsert' (insertSQL pi' tbl) ci n  where
-  (ci, n) = insertSizedChunkSQL pi' tbl $ chunksInsertSize config
+typedInsert' :: PersistableWidth r => Config -> Table r -> Pi r r' -> Insert r'
+typedInsert' config tbl =
+  typedInsertValue' config tbl . insertTarget' . piRegister
 
 -- | Make typed 'Insert' from 'Table' and columns selector 'Pi'.
-typedInsert :: Table r -> Pi r r' -> Insert r'
+typedInsert :: PersistableWidth r => Table r -> Pi r r' -> Insert r'
 typedInsert =  typedInsert' defaultConfig
 
 -- | Table type inferred 'Insert'.
-derivedInsert :: TableDerivable r => Pi r r' -> Insert r'
-derivedInsert =  typedInsert derivedTable
+derivedInsert :: (PersistableWidth r, TableDerivable r) => Pi r r' -> Insert r'
+derivedInsert = typedInsert derivedTable
 
 -- | Make typed 'Insert' from 'Config', 'Table' and monadic builded 'InsertTarget' object.
 typedInsertValue' :: Config -> Table r -> InsertTarget p r -> Insert p
-typedInsertValue' config tbl  =
-  unsafeTypedInsert . showStringSQL . sqlFromInsertTarget config tbl
+typedInsertValue' config tbl it =
+    unsafeTypedInsert'
+    (showStringSQL $ sqlFromInsertTarget config tbl it)
+    (showStringSQL ci) n
+  where
+    (ci, n) = sqlChunkFromInsertTarget config tbl it
 
 -- | Make typed 'Insert' from 'Table' and monadic builded 'InsertTarget' object.
 typedInsertValue :: Table r -> InsertTarget p r -> Insert p
