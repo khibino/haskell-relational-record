@@ -97,6 +97,7 @@ insertPrefixSQL pi' table =
   INSERT <> INTO <> stringSQL (name table) <> rowConsStringSQL cols  where
     cols = Projection.columns . Projection.pi (Projection.unsafeFromTable table) $ pi'
 
+{-# DEPRECATED insertChunkSQL "Deprecated." #-}
 -- | Generate records chunk insert SQL.
 insertChunkSQL :: Int     -- ^ Records count to insert
                -> Pi r r' -- ^ Columns selector to insert
@@ -108,6 +109,7 @@ insertChunkSQL n0 pi' tbl = showStringSQL $ insertPrefixSQL pi' tbl <> VALUES <>
   w = UnsafePi.width pi'
   vs = SQL.fold (|*|) . replicate n $ rowConsStringSQL (replicate w "?")
 
+{-# DEPRECATED insertSizedChunkSQL "Deprecated." #-}
 -- | Generate size measured records chunk insert SQL.
 insertSizedChunkSQL :: Pi r r'       -- ^ Columns selector to insert
                     -> Table r       -- ^ Table metadata
@@ -118,6 +120,7 @@ insertSizedChunkSQL pi' tbl th = (insertChunkSQL n pi' tbl, n)  where
     | otherwise  =  th `quot` w + 1
   w = UnsafePi.width pi'
 
+{-# DEPRECATED insertSQL "Deprecated." #-}
 -- | Generate insert SQL.
 insertSQL :: Pi r r' -- ^ Columns selector to insert
           -> Table r -- ^ Table metadata
