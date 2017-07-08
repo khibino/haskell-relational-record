@@ -19,30 +19,33 @@ module Database.Relational.Query.Effect (
   updateTargetAllColumn, updateTargetAllColumn',
 
   -- * Object to express insert terget.
-  InsertTarget, insertTarget, insertTarget',
+  InsertTarget, insertTarget, insertTarget', piRegister,
 
   -- * Generate SQL from restriction.
   sqlWhereFromRestriction,
   sqlFromUpdateTarget,
-  sqlFromInsertTarget
+  sqlChunkFromInsertTarget,
+  sqlFromInsertTarget,
   ) where
 
 import Data.Monoid ((<>))
 
 import Language.SQL.Keyword (Keyword(..))
-import Database.Record (PersistableWidth)
+import Database.Record.Persistable (PersistableWidth)
 
-import Database.Relational.Query.Internal.Config (Config, defaultConfig)
+import Database.Relational.Query.Internal.Config (Config (chunksInsertSize), defaultConfig)
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, showStringSQL)
-import Database.Relational.Query.Internal.BaseSQL (composeSets, composeValues)
+import Database.Relational.Query.Internal.BaseSQL (composeSets, composeChunkValuesWithColumns)
 
-import Database.Relational.Query.Pi (id')
+import Database.Relational.Query.Pi (Pi, id')
+import qualified Database.Relational.Query.Pi.Unsafe as Pi
 import Database.Relational.Query.Table (Table, TableDerivable, derivedTable)
 import qualified Database.Relational.Query.Table as Table
 import Database.Relational.Query.Sub (composeWhere)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable
-  (PlaceHolders, placeholder, unitPlaceHolder, unsafeAddPlaceHolders, (><), rightId)
+  (PlaceHolders, unitPlaceHolder, unsafeAddPlaceHolders,
+   pwPlaceholder, placeholder, (><), rightId)
 import Database.Relational.Query.Monad.Trans.Assigning (assignings, (<-#))
 import Database.Relational.Query.Monad.Restrict (RestrictedStatement)
 import qualified Database.Relational.Query.Monad.Restrict as Restrict
@@ -151,7 +154,37 @@ insertTarget' :: Register r (PlaceHolders p)
               -> InsertTarget p r
 insertTarget' = InsertTarget
 
--- | SQL INSERT statement 'StringSQL' string from 'InsertTarget'
+-- | parametalized 'Register' monad from 'Pi'
+piRegister :: PersistableWidth r
+           => Pi r r'
+           -> Register r (PlaceHolders r')
+piRegister pi' = do
+  let (ph', ma) = pwPlaceholder (Pi.width' pi') (\ph -> pi' <-# ph)
+  () <- ma
+  return ph'
+
+sqlChunkFromInsertTarget' :: Config
+                          -> Int
+                          -> Table r
+                          -> InsertTarget p r
+                          -> StringSQL
+sqlChunkFromInsertTarget' config sz tbl (InsertTarget q) =
+    INSERT <> INTO <> stringSQL (Table.name tbl) <> composeChunkValuesWithColumns sz (asR tbl)
+  where
+    (_ph, asR) = Register.extract q config
+
+-- | Make 'StringSQL' string of SQL INSERT record chunk statement from 'InsertTarget'
+sqlChunkFromInsertTarget :: Config
+                         -> Table r
+                         -> InsertTarget p r
+                         -> (StringSQL, Int)
+sqlChunkFromInsertTarget config tbl it =
+    (sqlChunkFromInsertTarget' config n tbl it, n)
+  where
+    th = chunksInsertSize config
+    n  = (th + w - 1) `quot` w
+    w  = Table.width tbl
+
+-- | Make 'StringSQL' string of SQL INSERT statement from 'InsertTarget'
 sqlFromInsertTarget :: Config -> Table r -> InsertTarget p r -> StringSQL
-sqlFromInsertTarget config tbl (InsertTarget q) = INSERT <> INTO <> stringSQL (Table.name tbl) <> composeValues (asR tbl)
-  where (_ph, asR) = Register.extract q config
+sqlFromInsertTarget config = sqlChunkFromInsertTarget' config 1

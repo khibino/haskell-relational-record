@@ -11,7 +11,8 @@
 module Database.Relational.Query.Internal.BaseSQL (
   Duplication (..), showsDuplication,
   Order (..), OrderColumn, OrderingTerm, composeOrderBy,
-  AssignColumn, AssignTerm, Assignment, composeSets, composeValues,
+  AssignColumn, AssignTerm, Assignment, composeSets,
+  composeChunkValues, composeChunkValuesWithColumns,
   ) where
 
 import Data.Monoid (Monoid (..), (<>))
@@ -70,7 +71,22 @@ composeSets as = assigns  where
   assigns | null assignList = error "Update assignment list is null!"
           | otherwise       = SET <> SQL.fold (|*|) assignList
 
--- | Compose VALUES clause from ['Assignment'].
-composeValues :: [Assignment] -> StringSQL
-composeValues as = rowConsStringSQL cs <> VALUES <> rowConsStringSQL vs  where
-  (cs, vs) = unzip as
+-- | Compose VALUES clause from value expression list.
+composeChunkValues :: Int         -- ^ record count per chunk
+                   -> [StringSQL] -- ^ value expression list
+                   -> Keyword
+composeChunkValues n0 vs =
+    VALUES <> cvs
+  where
+    n | n0 >= 1    =  n0
+      | otherwise  =  error $ "Invalid record count value: " ++ show n0
+    cvs = SQL.fold (|*|) . replicate n $ rowConsStringSQL vs
+
+-- | Compose VALUES clause from value expression list.
+composeChunkValuesWithColumns :: Int          -- ^ record count per chunk
+                              -> [Assignment] -- ^
+                              -> StringSQL
+composeChunkValuesWithColumns sz as =
+    rowConsStringSQL cs <> composeChunkValues sz vs
+  where
+    (cs, vs) = unzip as
