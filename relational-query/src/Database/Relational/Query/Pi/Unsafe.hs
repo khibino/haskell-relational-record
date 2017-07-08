@@ -18,7 +18,7 @@ module Database.Relational.Query.Pi.Unsafe (
 
   pfmap, pap,
 
-  width,
+  width', width,
 
   (<.>), (<?.>), (<?.?>),
 
