@@ -78,12 +78,31 @@ assignX = derivedUpdate $ \_proj -> do
   intA0' <-# value (0 :: Int32)
   return unitPlaceHolder
 
-registerX :: Insert ()
+registerX :: Insert (String, Maybe String)
 registerX = derivedInsertValue $ do
-  intA0' <-# value 1
-  strA1' <-# value "Hello"
-  strA2' <-# value "World"
-  return unitPlaceHolder
+  intC0' <-# value 1
+  (ph1, ()) <- placeholder (\ph' -> strC1' <-# ph')
+  intC2' <-# value 2
+  (ph2, ()) <- placeholder (\ph' -> mayStrC3' <-# ph')
+  return $ ph1 >< ph2
+
+eqChunkedInsert :: String
+                -> Insert a
+                -> String
+                -> String
+                -> Test
+eqChunkedInsert name ins prefix row =
+    maybe
+    (name, success)
+    (\(sql, n) ->
+      let estimate =
+            unwords
+            $ prefix
+            : replicate (n - 1) (row ++ ",") ++ [row]
+      in eqProp' name id sql estimate)
+    $ chunkedInsert ins
+  where
+    success = QSimple.Bool Nothing True
 
 monadic :: [Test]
 monadic =
@@ -112,7 +131,9 @@ monadic =
   , eqProp "update"      assignX
     "UPDATE TEST.set_a SET int_a0 = 0"
   , eqProp "insert"      registerX
-    "INSERT INTO TEST.set_a (int_a0, str_a1, str_a2) VALUES (1, 'Hello', 'World')"
+    "INSERT INTO TEST.set_c (int_c0, str_c1, int_c2, may_str_c3) VALUES (1, ?, 2, ?)"
+  , eqChunkedInsert "insert chunked" registerX
+    "INSERT INTO TEST.set_c (int_c0, str_c1, int_c2, may_str_c3) VALUES" "(1, ?, 2, ?)"
   ]
 
 _p_monadic :: IO ()
@@ -604,24 +625,6 @@ deleteX :: Delete ()
 deleteX =  derivedDelete $ \proj -> do
   wheres $ proj ! strA1' .=. value "A"
   return unitPlaceHolder
-
-eqChunkedInsert :: String
-                -> Insert a
-                -> String
-                -> String
-                -> Test
-eqChunkedInsert name ins prefix row =
-    maybe
-    (name, success)
-    (\(sql, n) ->
-      let estimate =
-            unwords
-            $ prefix
-            : replicate (n - 1) (row ++ ",") ++ [row]
-      in eqProp' name id sql estimate)
-    $ chunkedInsert ins
-  where
-    success = QSimple.Bool Nothing True
 
 effs :: [Test]
 effs =
