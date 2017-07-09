@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.9.2.0
+- Add derivedInsertValue definitions to arrow interface.
+- Apply chunked-insert to derivedInsertValue.
+
 ## 0.9.1.0
 
 - Fix of unsafeValueNull. ( https://github.com/khibino/haskell-relational-record/issues/55 )
