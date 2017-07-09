@@ -129,6 +129,7 @@ type Assignings r m = QueryA (Monadic.Assignings r m)
 -- | Arrow type corresponding to 'Monadic.AssignStatement'
 type AssignStatement r a = Assignings r Restrict (Projection Flat r) a
 
+-- | Arrow type corresponding to 'Monadic.Register'
 type Register r a = QueryA (Monadic.Register r) () a
 
 -- | Arrow type corresponding to 'Monadic.RestrictedStatement'
