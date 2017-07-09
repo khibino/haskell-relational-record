@@ -1,4 +1,4 @@
-module Lex (eqProp) where
+module Lex (eqProp, eqProp') where
 
 import Control.Applicative
   ((<$>), (<*>), pure, (*>), (<*), (<|>), empty, many, some)

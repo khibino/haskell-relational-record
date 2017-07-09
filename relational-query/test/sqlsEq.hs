@@ -1,9 +1,10 @@
 
 import Test.QuickCheck.Simple (Test, defaultMain)
+import qualified Test.QuickCheck.Simple as QSimple
 
 import Control.Applicative ((<$>), (<*>))
 
-import Lex (eqProp)
+import Lex (eqProp, eqProp')
 import Model
 
 import Data.Int (Int32, Int64)
@@ -604,12 +605,34 @@ deleteX =  derivedDelete $ \proj -> do
   wheres $ proj ! strA1' .=. value "A"
   return unitPlaceHolder
 
+eqChunkedInsert :: String
+                -> Insert a
+                -> String
+                -> String
+                -> Test
+eqChunkedInsert name ins prefix row =
+    maybe
+    (name, success)
+    (\(sql, n) ->
+      let estimate =
+            unwords
+            $ prefix
+            : replicate (n - 1) (row ++ ",") ++ [row]
+      in eqProp' name id sql estimate)
+    $ chunkedInsert ins
+  where
+    success = QSimple.Bool Nothing True
+
 effs :: [Test]
 effs =
   [ eqProp "insert" insertX
     "INSERT INTO TEST.set_a (int_a0, str_a1, str_a2) VALUES (?, ?, ?)"
+  , eqChunkedInsert "insert chunked" insertX
+    "INSERT INTO TEST.set_a (int_a0, str_a1, str_a2) VALUES" "(?, ?, ?)"
   , eqProp "insert1" insertI
     "INSERT INTO TEST.set_i (int_i0) VALUES (?)"
+  , eqChunkedInsert "insert1 chunked" insertI
+    "INSERT INTO TEST.set_i (int_i0) VALUES" "(?)"
   , eqProp "insertQuery" insertQueryX
     "INSERT INTO TEST.set_b (int_b0, str_b2, str_b2) SELECT int_a0, str_a1, str_a2 FROM TEST.set_a"
   , eqProp "updateKey" updateKeyX
