@@ -9,31 +9,6 @@ import Data.Int (Int32, Int64)
 import Control.Arrow (returnA, arr, (<<<), (***))
 import Database.Relational.Query.Arrow
 
-numBin :: (Projection Flat Int32 -> Projection Flat Int32 -> Projection Flat r) -> Relation () r
-numBin op = relation $ proc () -> do
-  returnA -< value 5 `op` value 3
-
-strConcat :: Relation () String
-strConcat = relation $ proc () -> do
-  returnA -< value "Hello, " .||. value "World!"
-
-strLike :: Relation () (Maybe Bool)
-strLike = relation $ proc () -> do
-  returnA -< value "Hoge" `like` "H%"
-
-_p_numBin :: (Projection Flat Int32 -> Projection Flat Int32 -> Projection Flat r) -> IO ()
-_p_numBin = print . numBin
-
-bin :: [Test]
-bin =
-  [ eqProp "plus"  (numBin (.+.)) "SELECT ALL (5 + 3) AS f0"
-  , eqProp "minus" (numBin (.-.)) "SELECT ALL (5 - 3) AS f0"
-  , eqProp "mult"  (numBin (.*.)) "SELECT ALL (5 * 3) AS f0"
-  , eqProp "div"   (numBin (./.)) "SELECT ALL (5 / 3) AS f0"
-  , eqProp "string concat" strConcat "SELECT ALL ('Hello, ' || 'World!') AS f0"
-  , eqProp "like" strLike "SELECT ALL ('Hoge' LIKE 'H%') AS f0"
-  ]
-
 tables :: [Test]
 tables =
   [ eqProp "setA" setA "SELECT int_a0, str_a1, str_a2 FROM TEST.set_a"
@@ -174,6 +149,55 @@ nested =
 
 _p_nested :: IO ()
 _p_nested =  mapM_ print [show nestedPiRec, show nestedPiCol, show nestedPi]
+
+
+-- Projection Operators
+
+bin53 :: (Projection Flat Int32 -> Projection Flat Int32 -> Projection Flat r) -> Relation () r
+bin53 op = relation $ proc () -> do
+  returnA -< value 5 `op` value 3
+
+strIn :: Relation () (Maybe Bool)
+strIn = relation $ proc () -> do
+  returnA -< value "foo" `in'` values ["foo", "bar"]
+
+boolTF :: (Projection Flat (Maybe Bool) -> Projection Flat (Maybe Bool) -> Projection Flat r) -> Relation () r
+boolTF op = relation $ proc () -> do
+  returnA -< valueTrue `op` valueFalse
+
+strConcat :: Relation () String
+strConcat = relation $ proc () -> do
+  returnA -< value "Hello, " .||. value "World!"
+
+strLike :: Relation () (Maybe Bool)
+strLike = relation $ proc () -> do
+  returnA -< value "Hoge" `like` "H%"
+
+_p_bin53 :: (Projection Flat Int32 -> Projection Flat Int32 -> Projection Flat r) -> IO ()
+_p_bin53 = print . bin53
+
+bin :: [Test]
+bin =
+  [ eqProp "equal" (bin53 (.=.))  "SELECT ALL (5 =  3) AS f0"
+  , eqProp "lt"    (bin53 (.<.))  "SELECT ALL (5 <  3) AS f0"
+  , eqProp "le"    (bin53 (.<=.)) "SELECT ALL (5 <= 3) AS f0"
+  , eqProp "gt"    (bin53 (.>.))  "SELECT ALL (5 >  3) AS f0"
+  , eqProp "ge"    (bin53 (.>=.)) "SELECT ALL (5 >= 3) AS f0"
+  , eqProp "ne"    (bin53 (.<>.)) "SELECT ALL (5 <> 3) AS f0"
+
+  , eqProp "and"   (boolTF and')  "SELECT ALL ((0=0) AND (0=1)) AS f0"
+  , eqProp "or"    (boolTF or')   "SELECT ALL ((0=0) OR  (0=1)) AS f0"
+
+  , eqProp "in"    strIn          "SELECT ALL ('foo' IN ('foo', 'bar')) AS f0"
+
+  , eqProp "string concat" strConcat "SELECT ALL ('Hello, ' || 'World!') AS f0"
+  , eqProp "like" strLike "SELECT ALL ('Hoge' LIKE 'H%') AS f0"
+
+  , eqProp "plus"  (bin53 (.+.)) "SELECT ALL (5 + 3) AS f0"
+  , eqProp "minus" (bin53 (.-.)) "SELECT ALL (5 - 3) AS f0"
+  , eqProp "mult"  (bin53 (.*.)) "SELECT ALL (5 * 3) AS f0"
+  , eqProp "div"   (bin53 (./.)) "SELECT ALL (5 / 3) AS f0"
+  ]
 
 justX :: Relation () (SetA, Maybe SetB)
 justX =  relation $ proc () -> do
@@ -403,7 +427,7 @@ effs =
 
 tests :: [Test]
 tests =
-  concat [ bin, tables, directJoins, join3s, nested, maybes
+  concat [ tables, directJoins, join3s, nested, bin, maybes
          , groups, orders, partitions, exps, effs]
 
 main :: IO ()
