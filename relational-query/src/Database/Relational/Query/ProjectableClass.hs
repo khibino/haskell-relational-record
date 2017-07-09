@@ -56,6 +56,7 @@ class ProjectableFunctor p => ProjectableApplicative p where
 infixl 4 |$|, |*|
 
 
+-- | Convert from haskell record to SQL terms list.
 showConstantTermsSQL :: ShowConstantTermsSQL a
                      => a
                      -> [StringSQL]
