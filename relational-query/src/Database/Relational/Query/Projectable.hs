@@ -25,7 +25,7 @@ module Database.Relational.Query.Projectable (
 
   -- * Placeholders
   PlaceHolders, unsafeAddPlaceHolders, unsafePlaceHolders,
-  placeholder', placeholder, unitPlaceHolder, unitPH,
+  pwPlaceholder, placeholder', placeholder, unitPlaceHolder, unitPH,
 
   -- * Projectable into SQL strings
   ProjectableShowSql (unsafeShowSql'), unsafeShowSql,
@@ -64,13 +64,12 @@ module Database.Relational.Query.Projectable (
 import Prelude hiding (pi)
 
 import Data.String (IsString)
-import Control.Applicative ((<$>))
 
 import Language.SQL.Keyword (Keyword)
 import qualified Language.SQL.Keyword as SQL
 
 import Database.Record
-  (PersistableWidth, persistableWidth, PersistableRecordWidth, derivedWidth,
+  (PersistableWidth, persistableWidth, PersistableRecordWidth,
    HasColumnConstraint, NotNull)
 import Database.Record.Persistable (runPersistableRecordWidth)
 
@@ -476,17 +475,21 @@ unitPH = unitPlaceHolder
 unsafeCastPlaceHolders :: PlaceHolders a -> PlaceHolders b
 unsafeCastPlaceHolders PlaceHolders = PlaceHolders
 
-unsafeProjectPlaceHolder' :: (PersistableWidth r, SqlProjectable p)
-                               => (PersistableRecordWidth r, p r)
-unsafeProjectPlaceHolder' =  unsafeProjectSqlTerms . (`replicate` "?") <$> derivedWidth
-
-unsafeProjectPlaceHolder :: (PersistableWidth r, SqlProjectable p)
-                               => p r
-unsafeProjectPlaceHolder =  snd unsafeProjectPlaceHolder'
+-- | Provide scoped placeholder from width and return its parameter object.
+pwPlaceholder :: SqlProjectable p
+              => PersistableRecordWidth a
+              -> (p a -> b)
+              -> (PlaceHolders a, b)
+pwPlaceholder pw f = (PlaceHolders, f $ projectPlaceHolder pw)
+  where
+    projectPlaceHolder :: SqlProjectable p
+                       => PersistableRecordWidth a
+                       -> p a
+    projectPlaceHolder = unsafeProjectSqlTerms . (`replicate` "?") . runPersistableRecordWidth
 
 -- | Provide scoped placeholder and return its parameter object.
 placeholder' :: (PersistableWidth t, SqlProjectable p) => (p t -> a) ->  (PlaceHolders t, a)
-placeholder' f = (PlaceHolders, f unsafeProjectPlaceHolder)
+placeholder' = pwPlaceholder persistableWidth
 
 -- | Provide scoped placeholder and return its parameter object. Monadic version.
 placeholder :: (PersistableWidth t, SqlProjectable p, Monad m) => (p t -> m a) -> m (PlaceHolders t, a)
