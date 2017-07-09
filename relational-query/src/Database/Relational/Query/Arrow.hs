@@ -48,6 +48,7 @@ module Database.Relational.Query.Arrow (
   assign,
 
   derivedUpdate', derivedUpdate,
+  derivedInsertValue', derivedInsertValue,
   derivedDelete', derivedDelete,
 
   QueryA,
@@ -58,7 +59,7 @@ module Database.Relational.Query.Arrow (
 
   Orderings, Window, Assignings,
 
-  AssignStatement, RestrictedStatement,
+  AssignStatement, Register, RestrictedStatement,
   ) where
 
 import Control.Category (Category)
@@ -75,8 +76,10 @@ import Database.Relational.Query hiding
    relation, relation', aggregateRelation, aggregateRelation', uniqueRelation',
    groupBy', key, key', set, bkey, rollup, cube, groupingSets,
    orderBy, asc, desc, partitionBy, over,
-   derivedUpdate', derivedUpdate, derivedDelete', derivedDelete,
-   QuerySimple, QueryAggregate, QueryUnique, Window)
+   derivedUpdate', derivedUpdate,
+   derivedInsertValue', derivedInsertValue,
+   derivedDelete', derivedDelete,
+   QuerySimple, QueryAggregate, QueryUnique, Window, Register)
 import qualified Database.Relational.Query as Monadic
 import Database.Relational.Query.Projection (ListProjection)
 import qualified Database.Relational.Query.Monad.Trans.Aggregating as Monadic
@@ -125,6 +128,8 @@ type Assignings r m = QueryA (Monadic.Assignings r m)
 
 -- | Arrow type corresponding to 'Monadic.AssignStatement'
 type AssignStatement r a = Assignings r Restrict (Projection Flat r) a
+
+type Register r a = QueryA (Monadic.Register r) () a
 
 -- | Arrow type corresponding to 'Monadic.RestrictedStatement'
 type RestrictedStatement r a = QueryA Monadic.Restrict (Projection Flat r) a
@@ -412,6 +417,16 @@ derivedUpdate' config = Monadic.derivedUpdate' config . runQueryA
 --   Make 'Update' from assigning statement arrow.
 derivedUpdate :: TableDerivable r => AssignStatement r (PlaceHolders p) -> Update p
 derivedUpdate = Monadic.derivedUpdate . runQueryA
+
+-- | Same as 'Monadic.derivedInsertValue''.
+--   Make 'Insert' from register arrow using configuration.
+derivedInsertValue' :: TableDerivable r => Config -> Register r (PlaceHolders p) -> Insert p
+derivedInsertValue' config = Monadic.derivedInsertValue' config . ($ ()) . runQueryA
+
+-- | Same as 'Monadic.derivedInsertValue'.
+--   Make 'Insert' from register arrow.
+derivedInsertValue :: TableDerivable r => Register r (PlaceHolders p) -> Insert p
+derivedInsertValue = Monadic.derivedInsertValue . ($ ()) . runQueryA
 
 -- | Same as 'Monadic.derivedDelete''.
 --   Make 'Update' from restrict statement arrow using configuration.
