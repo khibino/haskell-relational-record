@@ -20,3 +20,44 @@ build-summary: ${HOME}/.cabal/logs/build.log
 remote-build-reporting: anonymous
 EOF
 }
+
+skip_no_match_branch () {
+    set +x
+    cat <<EOF
+STACK_RESOLVER: $STACK_RESOLVER
+TRAVIS_BRANCH: $TRAVIS_BRANCH
+EOF
+    case x"$STACK_RESOLVER" in
+        xlts-[678]*)
+            case x"$TRAVIS_BRANCH" in
+                xlts-*)
+                    cat <<EOF
+STACK_RESOLVER is LTS-[876] and TRAVIS_BRANCH is LTS-8.
+EOF
+                    ;;
+                *)
+                    cat <<EOF
+Skipping. STACK_RESOLVER is LTS-[876] and TRAVIS_BRANCH is NOT LTS-8.
+EOF
+                    set -x
+                    exit 0
+                    ;;
+            esac
+            ;;
+        *)
+            case x"$TRAVIS_BRANCH" in
+                xlts-*)
+                    cat <<EOF
+Skipping. STACK_RESOLVER is not LTS-[876] and TRAVIS_BRANCH is LTS-8.
+EOF
+                    ;;
+                *)
+                    cat <<EOF
+STACK_RESOLVER is not LTS-[876] and TRAVIS_BRANCH is NOT LTS-8.
+EOF
+                    ;;
+            esac
+            ;;
+    esac
+    set -x
+}
