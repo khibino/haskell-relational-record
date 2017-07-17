@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.6.2.1
+
+- add tested-with 8.2.1.
+
 ## 0.6.2.0
 
 - Apply generic instances.
