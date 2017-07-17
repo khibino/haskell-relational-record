@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.5.0.2
+
+- add tested-with 8.2.1.
+
 ## 0.5.0.1
 
 - Use Haskell implementation test instead of flag test in .cabal
