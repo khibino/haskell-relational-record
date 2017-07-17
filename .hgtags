@@ -205,3 +205,4 @@ b603ad6776d90742ddc733d28d85ec7c766a6cb1 release-relational-query-0_9_2_0
 5cbc4463850302be45cb54b27aea53b7bd78ebdb release-names-th-0_2_0_3
 046e91e04e247f9d63794a03c4a31365d0a52a32 release-sql-words-0_1_5_1
 a04db693644bcb8e7f511f1d94240c43e5ec969f release-text-postgresql-0_0_2_3
+52edebbb4b790197c15376c9633ca965f82088cb release-persistable-record-0_5_0_2
