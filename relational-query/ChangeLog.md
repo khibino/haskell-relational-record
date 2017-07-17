@@ -1,6 +1,11 @@
 <!-- -*- Markdown -*- -->
 
+## 0.9.2.1
+
+- add tested-with 8.2.1.
+
 ## 0.9.2.0
+
 - Add derivedInsertValue definitions to arrow interface.
 - Apply chunked-insert to derivedInsertValue.
 
