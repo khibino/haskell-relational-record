@@ -79,7 +79,6 @@ library
                        , time
                        , bytestring
 
-                       , persistable-record >=0.2 && <0.5
                        , relational-query >=0.8 && <0.9
 
   hs-source-dirs:      src
