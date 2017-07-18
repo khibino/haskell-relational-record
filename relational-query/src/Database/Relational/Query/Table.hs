@@ -10,7 +10,7 @@
 -- This module defines table type which has table metadatas.
 module Database.Relational.Query.Table (
   -- * Phantom typed table type
-  Table, unType, name, shortName, width, columns, index, table, toMaybe,
+  Table, unType, name, shortName, width, columns, index, table, toMaybe, recordWidth,
 
   -- * Table existence inference
   TableDerivable (..)
@@ -18,7 +18,7 @@ module Database.Relational.Query.Table (
 
 import Data.Array (listArray)
 
-import Database.Record (PersistableWidth)
+import Database.Record.Persistable (PersistableWidth, PersistableRecordWidth, unsafePersistableRecordWidth)
 
 import Database.Relational.Query.Internal.UntypedTable (Untyped (Untyped), name', width', columns', (!))
 import Database.Relational.Query.Internal.SQL (StringSQL, stringSQL, )
@@ -66,3 +66,7 @@ table n f = Table $ Untyped n w fa  where
 -- | Inference rule of 'Table' existence.
 class PersistableWidth r => TableDerivable r where
   derivedTable :: Table r
+
+-- | PersistableRecordWidth of table
+recordWidth :: Table r -> PersistableRecordWidth r
+recordWidth = unsafePersistableRecordWidth . width
