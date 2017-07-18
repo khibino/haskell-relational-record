@@ -14,7 +14,7 @@ module Database.Relational.Query.Monad.BaseType
          qualifyQuery, askConfig,
 
          -- * Relation type
-         Relation, unsafeTypeRelation, untypeRelation,
+         Relation, unsafeTypeRelation, untypeRelation, relationWidth,
 
          dump,
          sqlFromRelationWith, sqlFromRelation,
@@ -25,10 +25,12 @@ module Database.Relational.Query.Monad.BaseType
 import Data.Functor.Identity (Identity, runIdentity)
 import Control.Applicative ((<$>))
 
+import Database.Record.Persistable (PersistableRecordWidth, unsafePersistableRecordWidth)
+
 import Database.Relational.Query.Internal.Config (Config, defaultConfig)
 import Database.Relational.Query.Internal.SQL (StringSQL, showStringSQL)
 
-import Database.Relational.Query.Sub (Qualified, SubQuery, showSQL)
+import Database.Relational.Query.Sub (Qualified, SubQuery, showSQL, width)
 import qualified Database.Relational.Query.Monad.Trans.Qualify as Qualify
 import Database.Relational.Query.Monad.Trans.Qualify (Qualify, qualify, evalQualifyPrime)
 import Database.Relational.Query.Monad.Trans.Config (QueryConfig, runQueryConfig, askQueryConfig)
@@ -59,6 +61,12 @@ unsafeTypeRelation = SubQuery
 -- | Sub-query Qualify monad from relation.
 untypeRelation :: Relation p r -> ConfigureQuery SubQuery
 untypeRelation (SubQuery qsub) = qsub
+
+-- | 'PersistableRecordWidth' of 'Relation' type.
+relationWidth :: Relation p r ->  PersistableRecordWidth r
+relationWidth rel =
+  unsafePersistableRecordWidth . width $ configureQuery (untypeRelation rel) defaultConfig
+  ---                               Assume that width is independent from Config structure
 
 unsafeCastPlaceHolder :: Relation a r -> Relation b r
 unsafeCastPlaceHolder (SubQuery qsub) = SubQuery qsub
