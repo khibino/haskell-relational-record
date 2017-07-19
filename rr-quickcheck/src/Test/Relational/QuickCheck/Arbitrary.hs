@@ -14,6 +14,7 @@ module Test.Relational.QuickCheck.Arbitrary (
 import Test.QuickCheck (Arbitrary (..), Gen, elements, listOf, frequency)
 import Control.Applicative ((<$>), pure, (<*>))
 import Data.Int (Int64)
+import Database.Record
 import Database.Relational.Query
 import Database.Relational.Query.Pi.Unsafe (unsafeExpandIndexes)
 
@@ -29,7 +30,7 @@ data Selector r =
   , sql  :: Pi r Int64
   }
 
-instance Show (Selector r) where
+instance PersistableWidth r => Show (Selector r) where
   show s = unwords ["Selector", show . unsafeExpandIndexes $ sql s]
 
 genSelector :: [(r -> Int64, Pi r Int64)] -> Gen (Selector r)
@@ -150,7 +151,8 @@ opSQL = d  where
   d Plus   = (.+.)
   d Minus  = (.-.)
 
-varExprSQL :: Projection Flat a
+varExprSQL :: PersistableWidth a
+           => Projection Flat a
            -> VarExpr a
            -> Projection Flat Int64
 varExprSQL r  =  d  where
@@ -158,7 +160,8 @@ varExprSQL r  =  d  where
   d (VLeft  ve op i)  =  opSQL op (d ve) (value i)
   d (VRight i op ve)  =  opSQL op (value i) (d ve)
 
-exprSQL :: Projection Flat a
+exprSQL :: PersistableWidth a
+        => Projection Flat a
         -> Expr a
         -> Projection Flat Int64
 exprSQL r  =  d  where
@@ -175,12 +178,14 @@ cmpSQL = d  where
   d Eq = (.=.)
   d Gt = (.>.)
 
-termSQL :: Projection Flat a
+termSQL :: PersistableWidth a
+        => Projection Flat a
         -> Term a
         -> Projection Flat (Maybe Bool)
 termSQL r (Term (e0, op, e1))  =  cmpSQL op (exprSQL r e0) (exprSQL r e1)
 
-predSQL :: Projection Flat a
+predSQL :: PersistableWidth a
+        => Projection Flat a
         -> Pred a
         -> Projection Flat (Maybe Bool)
 predSQL r = d  where
