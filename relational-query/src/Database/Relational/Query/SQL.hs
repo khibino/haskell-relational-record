@@ -20,7 +20,7 @@ module Database.Relational.Query.SQL (
   updateOtherThanKeySQL', updateOtherThanKeySQL,
 
   -- * Insert SQL
-  insertPrefixSQL, insertSQL, insertSizedChunkSQL,
+  insertPrefixSQL, insertSQL,
 
   -- * Delete SQL
   deletePrefixSQL', deletePrefixSQL
@@ -97,35 +97,14 @@ insertPrefixSQL pi' table =
   INSERT <> INTO <> stringSQL (name table) <> rowConsStringSQL cols  where
     cols = Projection.columns . Projection.pi (Projection.unsafeFromTable table) $ pi'
 
-{-# DEPRECATED insertChunkSQL "Deprecated." #-}
--- | Generate records chunk insert SQL.
-insertChunkSQL :: Int     -- ^ Records count to insert
-               -> Pi r r' -- ^ Columns selector to insert
-               -> Table r -- ^ Table metadata
-               -> String  -- ^ Result SQL
-insertChunkSQL n0 pi' tbl = showStringSQL $ insertPrefixSQL pi' tbl <> VALUES <> vs  where
-  n | n0 >= 1    =  n0
-    | otherwise  =  error $ "Invalid chunk count value: " ++ show n0
-  w = UnsafePi.width pi'
-  vs = SQL.fold (|*|) . replicate n $ rowConsStringSQL (replicate w "?")
-
-{-# DEPRECATED insertSizedChunkSQL "Deprecated." #-}
--- | Generate size measured records chunk insert SQL.
-insertSizedChunkSQL :: Pi r r'       -- ^ Columns selector to insert
-                    -> Table r       -- ^ Table metadata
-                    -> Int           -- ^ Chunk size threshold (column count)
-                    -> (String, Int) -- ^ Result SQL and records count of chunk
-insertSizedChunkSQL pi' tbl th = (insertChunkSQL n pi' tbl, n)  where
-  n | w <= 0     =  th + 1
-    | otherwise  =  th `quot` w + 1
-  w = UnsafePi.width pi'
-
 {-# DEPRECATED insertSQL "Deprecated." #-}
 -- | Generate insert SQL.
 insertSQL :: Pi r r' -- ^ Columns selector to insert
-          -> Table r -- ^ Table metadata
-          -> String  -- ^ Result SQL
-insertSQL =  insertChunkSQL 1
+               -> Table r -- ^ Table metadata
+               -> String  -- ^ Result SQL
+insertSQL pi' tbl = showStringSQL $ insertPrefixSQL pi' tbl <> VALUES <> vs  where
+  w = UnsafePi.width pi'
+  vs = rowConsStringSQL (replicate w "?")
 
 -- | Generate all column delete SQL by specified table. Untyped table version.
 deletePrefixSQL' :: String -> StringSQL
