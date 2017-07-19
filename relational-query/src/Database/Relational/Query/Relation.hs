@@ -47,7 +47,7 @@ import Database.Relational.Query.Internal.BaseSQL (Duplication (Distinct, All))
 import Database.Relational.Query.Context (Flat, Aggregated)
 import Database.Relational.Query.Monad.BaseType
   (ConfigureQuery, qualifyQuery,
-   Relation, unsafeTypeRelation, untypeRelation)
+   Relation, unsafeTypeRelation, untypeRelation, relationWidth)
 import Database.Relational.Query.Monad.Class
   (MonadQualify (liftQualify), MonadQuery (query', queryMaybe'), on)
 import Database.Relational.Query.Monad.Simple (QuerySimple, SimpleQuery)
@@ -66,7 +66,6 @@ import Database.Relational.Query.Projection
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable
   (PlaceHolders, unitPlaceHolder, unsafeAddPlaceHolders, unsafePlaceHolders, projectZip)
-import Database.Relational.Query.ProjectableExtended ((!))
 
 
 -- | Simple 'Relation' from 'Table'.
@@ -371,7 +370,7 @@ aggregatedUnique :: Relation ph r
                  -> UniqueRelation ph Flat b
 aggregatedUnique rel k ag = unsafeUnique . aggregateRelation' $ do
   (ph, a) <- query' rel
-  return (ph, ag $ a ! k)
+  return (ph, ag $ Projection.wpi (relationWidth rel) a k)
 
 -- | Scalar sub-query with place-holder parameter 'p'.
 queryScalar' :: (MonadQualify ConfigureQuery m, ScalarDegree r)

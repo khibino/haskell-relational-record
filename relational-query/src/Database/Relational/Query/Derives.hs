@@ -38,7 +38,7 @@ import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Projectable (placeholder, (.=.))
 import Database.Relational.Query.ProjectableExtended ((!))
 import Database.Relational.Query.Monad.Class (wheres)
-import Database.Relational.Query.Monad.BaseType (Relation)
+import Database.Relational.Query.Monad.BaseType (Relation, relationWidth)
 import Database.Relational.Query.Relation
   (derivedRelation, relation, relation', query, UniqueRelation, unsafeUnique)
 import Database.Relational.Query.Constraint
@@ -55,7 +55,7 @@ specifiedKey :: PersistableWidth p
       -> Relation p a  -- ^ Result restricted 'Relation'
 specifiedKey key rel = relation' $ do
   q <- query rel
-  (param, ()) <- placeholder (\ph -> wheres $ q ! key .=. ph)
+  (param, ()) <- placeholder (\ph -> wheres $ Projection.wpi (relationWidth rel) q key .=. ph)
   return (param, q)
 
 -- | Query restricted with specified unique key.
@@ -84,7 +84,7 @@ primary =  primary' constraintKey
 -- /UPDATE <table> SET c0 = ?, c1 = ?, ..., cn = ? WHERE key0 = ? AND key1 = ? AND key2 = ? ... /
 --
 --   using derived 'RecordToSql' proof object.
-updateValuesWithKey :: ToSql q r
+updateValuesWithKey :: (PersistableWidth r, ToSql q r)
                     => Pi r p
                     -> r
                     -> [q]

@@ -16,6 +16,7 @@ module Database.Relational.Query.Pi (
   id', fst', snd'
   ) where
 
+import qualified Control.Category as Category
 import Database.Record
   (PersistableWidth, persistableWidth, PersistableRecordWidth)
 import Database.Record.Persistable
@@ -26,8 +27,8 @@ import Database.Relational.Query.Pi.Unsafe
 
 
 -- | Identity projection path.
-id' :: PersistableWidth a => Pi a a
-id' =  definePi 0
+id' :: Pi a a
+id' = Category.id
 
 -- | Projection path for fst of tuple.
 fst' :: PersistableWidth a => Pi (a, b) a -- ^ Projection path of fst.

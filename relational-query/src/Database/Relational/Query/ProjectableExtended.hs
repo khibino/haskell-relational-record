@@ -38,6 +38,7 @@ module Database.Relational.Query.ProjectableExtended (
 import Prelude hiding (pi)
 
 import qualified Language.SQL.Keyword as SQL
+import Database.Record (PersistableWidth)
 
 import Database.Relational.Query.Context (Flat, Aggregated, OverWindow)
 import Database.Relational.Query.Projection (Projection)
@@ -119,14 +120,16 @@ some' :: (AggregatedContext ac, SqlProjectable (p ac))
 some' =  unsafeAggregateOp SQL.SOME
 
 -- | Get narrower projection along with projection path.
-(!) :: Projection c a -- ^ Source projection
+(!) :: PersistableWidth a
+    => Projection c a -- ^ Source projection
     -> Pi a b         -- ^ Projection path
     -> Projection c b -- ^ Narrower projected object
 (!) = Projection.pi
 
 -- | Get narrower projection along with projection path
 --   'Maybe' phantom functor is 'map'-ed.
-(?!) :: Projection c (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
+(?!) :: PersistableWidth a
+     => Projection c (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
      -> Pi a b                 -- ^ Projection path
      -> Projection c (Maybe b) -- ^ Narrower projected object. 'Maybe' type result
 (?!) = Projection.piMaybe
@@ -134,7 +137,8 @@ some' =  unsafeAggregateOp SQL.SOME
 -- | Get narrower projection along with projection path
 --   and project into result projection type.
 --   Source record 'Maybe' phantom functor and projection path leaf 'Maybe' functor are 'join'-ed.
-(?!?) :: Projection c (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
+(?!?) :: PersistableWidth a
+      => Projection c (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
       -> Pi a (Maybe b)         -- ^ Projection path. 'Maybe' type leaf
       -> Projection c (Maybe b) -- ^ Narrower projected object. 'Maybe' phantom type result
 (?!?) = Projection.piMaybe'
@@ -154,14 +158,14 @@ instance ProjectableFlattenMaybe (Maybe a) (Maybe a) where
   flatten = id
 
 -- | Get narrower projection with flatten leaf phantom Maybe types along with projection path.
-flattenPiMaybe :: (ProjectableMaybe (Projection cont), ProjectableFlattenMaybe (Maybe b) c)
+flattenPiMaybe :: (PersistableWidth a, ProjectableMaybe (Projection cont), ProjectableFlattenMaybe (Maybe b) c)
                => Projection cont (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
                -> Pi a b                    -- ^ Projection path
                -> Projection cont c         -- ^ Narrower 'Projection'. Flatten 'Maybe' phantom type
 flattenPiMaybe p = flatten . Projection.piMaybe p
 
 -- | Get narrower projection with flatten leaf phantom Maybe types along with projection path.
-(!??) :: (ProjectableMaybe (Projection cont), ProjectableFlattenMaybe (Maybe b) c)
+(!??) :: (PersistableWidth a, ProjectableMaybe (Projection cont), ProjectableFlattenMaybe (Maybe b) c)
       => Projection cont (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
       -> Pi a b                    -- ^ Projection path
       -> Projection cont c         -- ^ Narrower flatten and projected object.
