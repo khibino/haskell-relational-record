@@ -26,10 +26,12 @@ module Database.Relational.Query.Pi.Unsafe (
 
   definePi, defineDirectPi', defineDirectPi,
 
+  unsafeExpandIndexes',
   unsafeExpandIndexes
   ) where
 
-import Prelude hiding (pi)
+import Prelude hiding (pi, (.), id)
+import Control.Category (Category (..), (>>>))
 import Data.Array (listArray, (!))
 
 import Database.Record.Persistable
@@ -52,19 +54,26 @@ unsafePiAppend' = d  where
 
 -- | Projection path from type 'r0' into type 'r1'.
 --   This type also indicate key object which type is 'r1' for record type 'r0'.
-data Pi r0 r1 = Pi (Pi' r0 r1) (PersistableRecordWidth r1)
+newtype Pi r0 r1 = Pi { runPi :: PersistableRecordWidth r0 -> (Pi' r0 r1, PersistableRecordWidth r1) }
 
-unsafePiAppend :: (PersistableRecordWidth c' -> PersistableRecordWidth c)
-                  -> Pi a b' -> Pi b c' -> Pi a c
-unsafePiAppend f (Pi p0 _) (Pi p1 w) =
-  Pi (p0 `unsafePiAppend'` p1) (f w)
+unsafePiAppend :: (PersistableRecordWidth b' -> PersistableRecordWidth b)
+               -> (PersistableRecordWidth c' -> PersistableRecordWidth c)
+               -> Pi a b' -> Pi b c' -> Pi a c
+unsafePiAppend wbf wcf (Pi f) (Pi g) = Pi $ \wa ->
+  let (pab, wb) = f wa
+      (pbc, wc) = g $ wbf wb
+  in (pab `unsafePiAppend'` pbc, wcf wc)
 
 -- | Unsafely untype key to expand indexes.
-unsafeExpandIndexes :: Pi a b -> [Int]
-unsafeExpandIndexes = d  where
-  d (Pi (Map is) _)    = is
-  d (Pi (Leftest i) w) = [ i .. i + w' - 1 ]  where
+unsafeExpandIndexes' :: PersistableRecordWidth a -> Pi a b -> [Int]
+unsafeExpandIndexes' wa (Pi f) = d $ f wa where
+  d (Map is, _)    = is
+  d (Leftest i, w) = [ i .. i + w' - 1 ]  where
     w' = runPersistableRecordWidth w
+
+-- | Unsafely untype key to expand indexes.
+unsafeExpandIndexes :: PersistableWidth a => Pi a b -> [Int]
+unsafeExpandIndexes = unsafeExpandIndexes' persistableWidth
 
 -- | Unsafely cast width proof object of record. Result record must be same width.
 unsafeCastRecordWidth :: PersistableRecordWidth a -> PersistableRecordWidth a'
@@ -74,7 +83,9 @@ unsafeCast :: Pi a b' -> Pi a b
 unsafeCast =  c  where
   d (Leftest i) = Leftest i
   d (Map m)     = Map m
-  c (Pi p w)    = Pi (d p) (unsafeCastRecordWidth w)
+  c (Pi f)    = Pi $ \wa ->
+    let (pb, wb) = f wa in
+    (d pb, unsafeCastRecordWidth wb)
 
 -- | Projectable fmap of 'Pi' type.
 pfmap :: ProductConstructor (a -> b)
@@ -83,37 +94,51 @@ _ `pfmap` p = unsafeCast p
 
 -- | Projectable ap of 'Pi' type.
 pap :: Pi r (a -> b) -> Pi r a -> Pi r b
-pap b@(Pi _ wb) c@(Pi _ wc) =
-   Pi
-   (Map $ unsafeExpandIndexes b ++ unsafeExpandIndexes c)
-   (unsafeCastRecordWidth $ wb <&> wc)
+pap pab pb =
+   Pi $ \wr ->
+   let (_, wab) = runPi pab wr
+       (_, wb)  = runPi pb  wr in
+   (Map $ unsafeExpandIndexes' wr pab ++ unsafeExpandIndexes' wr pb,
+    unsafeCastRecordWidth $ wab <&> wb) {- should switch to safe projectable-applicative -}
 
 -- | Get record width proof object.
-width' :: Pi r ct -> PersistableRecordWidth ct
-width' (Pi _ w) = w
+width' :: PersistableWidth r => Pi r ct -> PersistableRecordWidth ct
+width' (Pi f) = snd $ f persistableWidth
 
 -- | Get record width.
-width :: Pi r a -> Int
+width :: PersistableWidth r => Pi r a -> Int
 width =  runPersistableRecordWidth . width'
+
+justWidth :: PersistableRecordWidth (Maybe a) -> PersistableRecordWidth a
+justWidth = unsafeCastRecordWidth
+
+
+instance Category Pi where
+  id = Pi $ \pw -> (Leftest 0, pw)
+  Pi fb . Pi fa = Pi $ \wa ->
+    let (pb, wb) = fa wa
+        (pc, wc) = fb wb
+    in (unsafePiAppend' pb pc, wc)
 
 -- | Compose projection path.
 (<.>) :: Pi a b -> Pi b c -> Pi a c
-(<.>) = unsafePiAppend id
+(<.>) = (>>>)
 
 -- | Compose projection path. 'Maybe' phantom functor is 'map'-ed.
 (<?.>) :: Pi a (Maybe b) -> Pi b c -> Pi a (Maybe c)
-(<?.>) = unsafePiAppend maybeWidth
+(<?.>) = unsafePiAppend justWidth maybeWidth
 
 -- | Compose projection path. 'Maybe' phantom functors are 'join'-ed like '>=>'.
 (<?.?>) :: Pi a (Maybe b) -> Pi b (Maybe c) -> Pi a (Maybe c)
-(<?.?>) = unsafePiAppend id
+(<?.?>) = unsafePiAppend justWidth id
 
 infixl 8 <.>, <?.>, <?.?>
 
 -- | Unsafely project untyped value list.
-pi :: [a] -> Pi r0 r1 -> [a]
-pi cs (Pi p' w) = d p'  where
-  d (Leftest i) = take (runPersistableRecordWidth w) . drop i $ cs
+pi :: PersistableRecordWidth r0 -> Pi r0 r1 -> [a] -> [a]
+pi w0 (Pi f) cs = d p'  where
+  (p', w1) = f w0
+  d (Leftest i) = take (runPersistableRecordWidth w1) . drop i $ cs
   d (Map is)    = [cs' ! i | i <- is]
   cs' = listArray (0, length cs) cs
 
@@ -121,7 +146,7 @@ pi cs (Pi p' w) = d p'  where
 definePi' :: PersistableRecordWidth r1
           -> Int      -- ^ Index of flat SQL value list
           -> Pi r0 r1 -- ^ Result projection path
-definePi' pw i = Pi (Leftest i) pw
+definePi' pw i = Pi $ \_ -> (Leftest i, pw)
 
 -- | Unsafely define projection path from type 'r0' into type 'r1'.
 --   Use inferred 'PersistableRecordWidth'.
@@ -134,7 +159,7 @@ definePi = definePi' persistableWidth
 defineDirectPi' :: PersistableRecordWidth r1
                 -> [Int]    -- ^ Indexes of flat SQL value list
                 -> Pi r0 r1 -- ^ Result projection path
-defineDirectPi' pw is = Pi (Map is) pw
+defineDirectPi' pw is = Pi $ \_ -> (Map is, pw)
 
 -- | Unsafely define projection path from type 'r0' into type 'r1'.
 --   Use inferred 'PersistableRecordWidth'.

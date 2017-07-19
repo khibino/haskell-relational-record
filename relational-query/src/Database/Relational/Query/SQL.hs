@@ -31,6 +31,7 @@ import Data.Monoid (mconcat, (<>))
 
 import Language.SQL.Keyword (Keyword(..), (.=.), (|*|))
 import qualified Language.SQL.Keyword as SQL
+import Database.Record (PersistableWidth)
 import Database.Record.ToSql (untypedUpdateValuesIndex)
 
 import Database.Relational.Query.Internal.SQL
@@ -38,7 +39,7 @@ import Database.Relational.Query.Internal.SQL
 
 import Database.Relational.Query.Pi (Pi)
 import qualified Database.Relational.Query.Pi.Unsafe as UnsafePi
-import Database.Relational.Query.Table (Table, name, columns)
+import Database.Relational.Query.Table (Table, name, columns, recordWidth)
 import qualified Database.Relational.Query.Projection as Projection
 
 
@@ -89,19 +90,20 @@ updateOtherThanKeySQL :: Table r -- ^ Table metadata
           -> Pi r p  -- ^ Key columns
           -> String  -- ^ Result SQL
 updateOtherThanKeySQL tbl key =
-  updateOtherThanKeySQL' (name tbl) (columns tbl) (UnsafePi.unsafeExpandIndexes key)
+  updateOtherThanKeySQL' (name tbl) (columns tbl) (UnsafePi.unsafeExpandIndexes' (recordWidth tbl) key)
 
 -- | Generate prefix string of insert SQL.
 insertPrefixSQL :: Pi r r' -> Table r -> StringSQL
 insertPrefixSQL pi' table =
   INSERT <> INTO <> stringSQL (name table) <> rowConsStringSQL cols  where
-    cols = Projection.columns . Projection.pi (Projection.unsafeFromTable table) $ pi'
+    cols = Projection.columns . Projection.wpi (recordWidth table) (Projection.unsafeFromTable table) $ pi'
 
 {-# DEPRECATED insertSQL "Deprecated." #-}
 -- | Generate insert SQL.
-insertSQL :: Pi r r' -- ^ Columns selector to insert
-               -> Table r -- ^ Table metadata
-               -> String  -- ^ Result SQL
+insertSQL :: PersistableWidth r
+          => Pi r r' -- ^ Columns selector to insert
+          -> Table r -- ^ Table metadata
+          -> String  -- ^ Result SQL
 insertSQL pi' tbl = showStringSQL $ insertPrefixSQL pi' tbl <> VALUES <> vs  where
   w = UnsafePi.width pi'
   vs = rowConsStringSQL (replicate w "?")

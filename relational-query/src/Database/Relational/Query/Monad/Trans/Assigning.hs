@@ -35,7 +35,7 @@ import Database.Relational.Query.Internal.BaseSQL (Assignment)
 
 import Database.Relational.Query.Context (Flat)
 import Database.Relational.Query.Pi (Pi)
-import Database.Relational.Query.Table (Table)
+import Database.Relational.Query.Table (Table, recordWidth)
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
 import Database.Relational.Query.Monad.Class (MonadQualify (..), MonadRestrict(..))
@@ -63,7 +63,7 @@ instance MonadQualify q m => MonadQualify q (Assignings r m) where
 type AssignTarget r v = Pi r v
 
 targetProjection :: AssignTarget r v ->  Table r -> Projection Flat v
-targetProjection pi' tbl = Projection.pi (Projection.unsafeFromTable tbl) pi'
+targetProjection pi' tbl = Projection.wpi (recordWidth tbl) (Projection.unsafeFromTable tbl) pi'
 
 -- | Add an assignment.
 assignTo :: Monad m => Projection Flat v ->  AssignTarget r v -> Assignings r m ()

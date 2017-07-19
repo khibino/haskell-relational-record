@@ -27,6 +27,7 @@ module Database.Relational.Query.Projection (
 
   -- * Projections
   pi, piMaybe, piMaybe',
+  wpi,
 
   flattenMaybe, just,
 
@@ -44,7 +45,8 @@ import Prelude hiding (pi)
 
 import qualified Language.SQL.Keyword as SQL
 
-import Database.Record (HasColumnConstraint, NotNull, NotNullColumnConstraint)
+import Database.Record (HasColumnConstraint, NotNull, NotNullColumnConstraint, PersistableWidth, persistableWidth)
+import Database.Record.Persistable (PersistableRecordWidth)
 import qualified Database.Record.KeyConstraint as KeyConstraint
 
 import Database.Relational.Query.Internal.SQL (StringSQL, listStringSQL, )
@@ -103,30 +105,40 @@ unsafeFromSqlTerms = Internal.projectFromColumns
 
 
 -- | Unsafely trace projection path.
-unsafeProject :: Projection c a' -> Pi a b -> Projection c b'
-unsafeProject p pi' =
+unsafeProject :: PersistableRecordWidth a -> Projection c a' -> Pi a b -> Projection c b'
+unsafeProject w p pi' =
   Internal.projectFromColumns
-  . (`UnsafePi.pi` pi')
+  . (UnsafePi.pi w pi')
   . columns $ p
 
 -- | Trace projection path to get narrower 'Projection'.
-pi :: Projection c a -- ^ Source 'Projection'
+wpi :: PersistableRecordWidth a
+    -> Projection c a -- ^ Source 'Projection'
+    -> Pi a b         -- ^ Projection path
+    -> Projection c b -- ^ Narrower 'Projection'
+wpi =  unsafeProject
+
+-- | Trace projection path to get narrower 'Projection'.
+pi :: PersistableWidth a
+   => Projection c a -- ^ Source 'Projection'
    -> Pi a b         -- ^ Projection path
    -> Projection c b -- ^ Narrower 'Projection'
-pi =  unsafeProject
+pi =  unsafeProject persistableWidth
 
 -- | Trace projection path to get narrower 'Projection'. From 'Maybe' type to 'Maybe' type.
-piMaybe :: Projection c (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
+piMaybe :: PersistableWidth a
+        => Projection c (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
         -> Pi a b                 -- ^ Projection path
         -> Projection c (Maybe b) -- ^ Narrower 'Projection'. 'Maybe' type result
-piMaybe =  unsafeProject
+piMaybe = unsafeProject persistableWidth
 
 -- | Trace projection path to get narrower 'Projection'. From 'Maybe' type to 'Maybe' type.
 --   Leaf type of projection path is 'Maybe'.
-piMaybe' :: Projection c (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
+piMaybe' :: PersistableWidth a
+         => Projection c (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
          -> Pi a (Maybe b)         -- ^ Projection path. 'Maybe' type leaf
          -> Projection c (Maybe b) -- ^ Narrower 'Projection'. 'Maybe' type result
-piMaybe' =  unsafeProject
+piMaybe' = unsafeProject persistableWidth
 
 unsafeCast :: Projection c r -> Projection c r'
 unsafeCast =  typedProjection . untypeProjection
