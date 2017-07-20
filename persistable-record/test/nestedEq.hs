@@ -5,10 +5,11 @@ import Control.Applicative ((<$>), (<*>))
 import Test.QuickCheck.Simple (defaultMain, eqTest)
 
 import Database.Record
-  (PersistableType (..),
+  (PersistableType (..), PersistableWidth (..),
    FromSql (..), valueRecordFromSql, toRecord,
    ToSql (..), valueRecordToSql)
-import Database.Record.Persistable (unsafePersistableSqlTypeFromNull)
+import Database.Record.Persistable
+  (unsafePersistableSqlTypeFromNull, unsafeValueWidth)
 
 
 instance PersistableType String where
@@ -21,8 +22,14 @@ instance FromSql String String where
 instance FromSql String Int where
   recordFromSql = valueRecordFromSql read
 
+instance PersistableWidth String where
+  persistableWidth = unsafeValueWidth
+
 instance ToSql String String where
   recordToSql = valueRecordToSql id
+
+instance PersistableWidth Int where
+  persistableWidth = unsafeValueWidth
 
 instance ToSql String Int where
   recordToSql = valueRecordToSql show

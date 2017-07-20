@@ -91,7 +91,7 @@ infixl 4 <&>
 
 
 -- | Inference rule interface for 'RecordToSql' proof object.
-class ToSql q a where
+class PersistableWidth a => ToSql q a where
   -- | Infer 'RecordToSql' proof object.
   recordToSql :: RecordToSql q a
 
@@ -102,7 +102,7 @@ instance (ToSql q a, ToSql q b) => ToSql q (a, b) where
 
 -- | Inference rule of 'RecordToSql' proof object which can convert
 --   from Haskell 'Maybe' type into list of SQL type ['q'].
-instance (PersistableType q, PersistableWidth a, ToSql q a) => ToSql q (Maybe a)  where
+instance (PersistableType q, ToSql q a) => ToSql q (Maybe a)  where
   recordToSql = maybeRecord persistableType persistableWidth recordToSql
 
 -- | Inference rule of 'RecordToSql' proof object which can convert
