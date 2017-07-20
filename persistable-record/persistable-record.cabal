@@ -1,5 +1,5 @@
 name:                persistable-record
-version:             0.4.1.2
+version:             0.4.2.0
 synopsis:            Binding between SQL database values and haskell records.
 description:         This package contiains types to represent table constraints and
                      interfaces to bind between SQL database values and Haskell records.
