@@ -210,3 +210,4 @@ c1db27d8c30548730140c46a75d8344d4d3c29ca release-relational-query-0_9_2_1
 0caf893cf4b691218faa1af05afd2a5918b4a386 release-relational-schemas-0_1_4_0
 9119333de6025800b82b5f40fc284e0128e84300 release-relational-query-HDBC-0_6_2_1
 6322111808f262a3ec1c4194ee03fdef2be33a6b release-persistable-types-HDBC-pg-0_0_1_5
+c146d4e042a405227cadd8ee51e1719c5521a308 release-persistable-record-0_5_1_0
