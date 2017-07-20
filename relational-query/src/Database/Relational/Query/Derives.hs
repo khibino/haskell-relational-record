@@ -84,7 +84,7 @@ primary =  primary' constraintKey
 -- /UPDATE <table> SET c0 = ?, c1 = ?, ..., cn = ? WHERE key0 = ? AND key1 = ? AND key2 = ? ... /
 --
 --   using derived 'RecordToSql' proof object.
-updateValuesWithKey :: (PersistableWidth r, ToSql q r)
+updateValuesWithKey :: ToSql q r
                     => Pi r p
                     -> r
                     -> [q]
