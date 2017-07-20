@@ -87,8 +87,7 @@ newOrange =  StockGoods 2 "Orange" 150 10
 keyUpdateUidName :: KeyUpdate (Int32, String) StockGoods
 keyUpdateUidName =  derivedKeyUpdate $ seq' >< name'
 
-runKeyUpdateAndPrint :: (PersistableWidth a, ToSql SqlValue a)
-                     => KeyUpdate p a -> a -> IO ()
+runKeyUpdateAndPrint :: ToSql SqlValue a => KeyUpdate p a -> a -> IO ()
 runKeyUpdateAndPrint ku r = handleConnectionIO connect $ \conn -> do
   putStrLn $ "SQL: " ++ show ku
   rv <- runKeyUpdate conn ku r
