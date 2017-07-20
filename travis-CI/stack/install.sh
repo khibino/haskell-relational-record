@@ -11,20 +11,13 @@ skip_no_match_branch
 
 checkout_root=$(pwd)
 
-install_package() {
+(
+    show_stack_pkgs
     sed "s/^resolver: .*/resolver: ${STACK_RESOLVER}/" \
         < $checkout_root/travis-CI/stack/template.yaml \
-        > stack-travis.yaml
-    ##    stack.yaml must be located the same directory which has *.cabal -- constraint of stack?
+) > stack-travis.yaml
 
-    STACK_YAML=stack-travis.yaml stack setup
-    STACK_YAML=stack-travis.yaml stack install --only-dependencies
-}
+cat stack-travis.yaml
 
-if [ x"$dirs" = x ]; then
-    install_package
-else
-    for d in $dirs; do
-        ( cd $d && install_package )
-    done
-fi
+STACK_YAML=stack-travis.yaml stack setup
+STACK_YAML=stack-travis.yaml stack install --only-dependencies
