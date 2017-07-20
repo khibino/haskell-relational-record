@@ -1,5 +1,13 @@
 <!-- -*- Markdown -*- -->
 
+## 0.5.1.1
+
+- Update this changelog.
+
+## 0.5.1.0
+
+- add class dependency from ToSql to PersistableWidth.
+
 ## 0.5.0.2
 
 - add tested-with 8.2.1.
