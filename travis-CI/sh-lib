@@ -61,3 +61,11 @@ EOF
     esac
     set -x
 }
+
+show_stack_pkgs() {
+    echo packages:
+    for d in $dirs ; do
+        echo "  - ${d}/"
+    done
+    echo ''
+}

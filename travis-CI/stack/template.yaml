@@ -1,8 +1,5 @@
 resolver: #foo
 
-packages:
-- '.'
-
 extra-deps: []
 flags: {}
 extra-package-dbs: []
