@@ -25,7 +25,6 @@ import Control.Exception (bracket)
 import Database.HDBC (IConnection, SqlValue, Statement)
 import qualified Database.HDBC as HDBC
 
-import Database.Record (PersistableWidth)
 import Database.Relational.Query
   (KeyUpdate, untypeKeyUpdate, updateValuesWithKey, Pi)
 import qualified Database.Relational.Query as Query
@@ -75,7 +74,7 @@ withPrepareKeyUpdate conn ku body =
     key = Query.updateKey ku
 
 -- | Typed operation to bind parameters for 'PreparedKeyUpdate' type.
-bindKeyUpdate :: (PersistableWidth a, ToSql SqlValue a)
+bindKeyUpdate :: ToSql SqlValue a
               => PreparedKeyUpdate p a
               -> a
               -> BoundStatement ()
@@ -84,7 +83,7 @@ bindKeyUpdate pre a =
   where key = updateKey pre
 
 -- | Bind parameters, execute statement and get execution result.
-runPreparedKeyUpdate :: (PersistableWidth a, ToSql SqlValue a)
+runPreparedKeyUpdate :: ToSql SqlValue a
                      => PreparedKeyUpdate p a
                      -> a
                      -> IO Integer
@@ -92,7 +91,7 @@ runPreparedKeyUpdate pre = executeNoFetch . bindKeyUpdate pre
 
 -- | Prepare insert statement, bind parameters,
 --   execute statement and get execution result.
-runKeyUpdate :: (IConnection conn, PersistableWidth a, ToSql SqlValue a)
+runKeyUpdate :: (IConnection conn, ToSql SqlValue a)
              => conn
              -> KeyUpdate p a
              -> a
