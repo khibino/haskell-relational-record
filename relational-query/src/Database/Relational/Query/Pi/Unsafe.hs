@@ -56,6 +56,9 @@ unsafePiAppend' = d  where
 --   This type also indicate key object which type is 'r1' for record type 'r0'.
 newtype Pi r0 r1 = Pi { runPi :: PersistableRecordWidth r0 -> (Pi' r0 r1, PersistableRecordWidth r1) }
 
+instance PersistableWidth r0 => Show (Pi r0 r1) where
+  show p = unwords ["Pi", show $ unsafeExpandIndexes p]
+
 unsafePiAppend :: (PersistableRecordWidth b' -> PersistableRecordWidth b)
                -> (PersistableRecordWidth c' -> PersistableRecordWidth c)
                -> Pi a b' -> Pi b c' -> Pi a c
