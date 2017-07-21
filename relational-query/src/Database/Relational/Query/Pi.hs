@@ -11,7 +11,7 @@
 -- Contains normal interfaces.
 module Database.Relational.Query.Pi (
   -- * Projection path
-  Pi, pfmap, pap, (<.>), (<?.>), (<?.?>),
+  Pi, pfmap, pap, pzero, (<.>), (<?.>), (<?.?>),
 
   id', fst', snd'
   ) where
@@ -23,7 +23,7 @@ import Database.Record.Persistable
   (runPersistableRecordWidth)
 
 import Database.Relational.Query.Pi.Unsafe
-  (Pi, pfmap, pap, (<.>), (<?.>), (<?.?>), definePi)
+  (Pi, pfmap, pap, pzero, (<.>), (<?.>), (<?.?>), definePi)
 
 
 -- | Identity projection path.
