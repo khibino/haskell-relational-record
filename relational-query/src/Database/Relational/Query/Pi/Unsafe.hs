@@ -18,6 +18,8 @@ module Database.Relational.Query.Pi.Unsafe (
 
   pfmap, pap,
 
+  pzero,
+
   width', width,
 
   (<.>), (<?.>), (<?.?>),
@@ -103,6 +105,10 @@ pap pab pb =
        (_, wb)  = runPi pb  wr in
    (Map $ unsafeExpandIndexes' wr pab ++ unsafeExpandIndexes' wr pb,
     unsafeCastRecordWidth $ wab <&> wb) {- should switch to safe projectable-applicative -}
+
+-- | 'Pi' with zero width which projects to unit
+pzero :: Pi a ()
+pzero = Pi $ \_ -> (Map [], persistableWidth)
 
 -- | Get record width proof object.
 width' :: PersistableWidth r => Pi r ct -> PersistableRecordWidth ct
