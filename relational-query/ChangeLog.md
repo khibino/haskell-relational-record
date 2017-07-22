@@ -1,5 +1,11 @@
 <!-- -*- Markdown -*- -->
 
+## 0.9.3.0
+
+- add Show instance of Pi.
+- add pzero and ConstantTermsSQL instance of ().
+- add Category instance of Pi.
+
 ## 0.9.2.1
 
 - add tested-with 8.2.1.
