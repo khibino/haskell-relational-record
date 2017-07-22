@@ -18,6 +18,8 @@ module Database.Relational.Query.Pi.Unsafe (
 
   pfmap, pap,
 
+  pzero,
+
   width', width,
 
   (<.>), (<?.>), (<?.?>),
@@ -113,6 +115,10 @@ instance ProjectableFunctor (Pi a) where
 -- | Compose projection path 'Pi' which has record result type using applicative style.
 instance ProjectableApplicative (Pi a) where
   (|*|) = pap
+
+-- | 'Pi' with zero width which projects to unit
+pzero :: Pi a ()
+pzero = Pi $ \_ -> (Map [], persistableWidth)
 
 -- | Get record width proof object.
 width' :: PersistableWidth r => Pi r ct -> PersistableRecordWidth ct
