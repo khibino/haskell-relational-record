@@ -1,5 +1,5 @@
 name:                relational-query
-version:             0.8.5.1
+version:             0.8.6.0
 synopsis:            Typeful, Modular, Relational, algebraic query engine
 description:         This package contiains typeful relation structure and
                      relational-algebraic query building DSL which can

@@ -1,10 +1,17 @@
 <!-- -*- Markdown -*- -->
 
+## 0.8.6.0
+
+- add Show instance of Pi.
+- add pzero and ConstantTermsSQL instance of ().
+- add Category instance of Pi.
+
 ## 0.8.5.1
 
 - add tested-with 8.2.1.
 
 ## 0.8.5.0
+
 - Add derivedInsertValue definitions to arrow interface.
 - Apply chunked-insert to derivedInsertValue.
 
