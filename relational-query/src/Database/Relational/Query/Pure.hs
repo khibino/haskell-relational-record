@@ -81,6 +81,10 @@ class ShowConstantTermsSQL a where
 showConstantTermsSQL :: ShowConstantTermsSQL a => a -> [String]
 showConstantTermsSQL =  map showStringSQL . showConstantTermsSQL'
 
+-- | Constant SQL terms of '()'.
+instance ShowConstantTermsSQL () where
+  showConstantTermsSQL' () = []
+
 -- | Constant SQL terms of 'Int8'.
 instance ShowConstantTermsSQL Int8 where
   showConstantTermsSQL' = intTermsSQL
