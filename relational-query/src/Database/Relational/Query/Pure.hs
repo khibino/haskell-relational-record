@@ -58,6 +58,9 @@ stringExprSQL =  stringSQL . ('\'':) . (++ "'") . escapeStringToSqlExpr
 stringTermsSQL :: String -> DList StringSQL
 stringTermsSQL = pure . stringExprSQL
 
+-- | Constant SQL terms of '()'.
+instance ShowConstantTermsSQL ()
+
 -- | Constant SQL terms of 'Int8'.
 instance ShowConstantTermsSQL Int8 where
   showConstantTermsSQL' = intTermsSQL
