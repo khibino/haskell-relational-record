@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.9.4.0
+
+- add NULLS FIRST and NULLS LAST to ORDER BY clause.
+
 ## 0.9.3.0
 
 - add Show instance of Pi.
