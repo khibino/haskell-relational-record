@@ -416,7 +416,18 @@ ordFlatX =  relation $ proc () -> do
   on -< just (a ! strA2') .=. b ?! strB2'
 
   orderBy Asc  -< a ! strA1'
-  orderBy Desc -< b ?! mayStrB1'
+  orderBy' Desc NullsLast -< b ?! mayStrB1'
+
+  returnA -< (,) |$| a |*| b
+
+ordFlatY :: Relation () (SetA, Maybe SetB)
+ordFlatY =  relation $ proc () -> do
+  a <- query setA -< ()
+  b <- queryMaybe setB -< ()
+  on -< just (a ! strA2') .=. b ?! strB2'
+
+  orderBy Asc  -< a ! strA1'
+  orderBy' Desc NullsLast -< b
 
   returnA -< (,) |$| a |*| b
 
@@ -426,7 +437,7 @@ ordAggX =  aggregateRelation $ proc () -> do
 
   gc1 <- groupBy -< c ! strC1'
 
-  orderBy Asc -< sum' $ c ! intC0'
+  orderBy' Asc NullsFirst -< sum' $ c ! intC0'
 
   returnA -< gc1 >< count (c ! intC0')
 
@@ -439,10 +450,16 @@ orders =
     "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, \
     \           T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 \
     \  FROM TEST.set_a T0 LEFT JOIN TEST.set_b T1 ON (T0.str_a2 = T1.str_b2) \
-    \  ORDER BY T0.str_a1 ASC, T1.may_str_b1 DESC"
+    \  ORDER BY T0.str_a1 ASC, T1.may_str_b1 DESC NULLS LAST"
+  , eqProp "order-by - flat 2" ordFlatY
+    "SELECT ALL T0.int_a0 AS f0, T0.str_a1 AS f1, T0.str_a2 AS f2, \
+    \           T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 \
+    \  FROM TEST.set_a T0 LEFT JOIN TEST.set_b T1 ON (T0.str_a2 = T1.str_b2) \
+    \  ORDER BY T0.str_a1 ASC, T1.int_b0 DESC NULLS LAST, \
+    \           T1.may_str_b1 DESC NULLS LAST, T1.str_b2 DESC NULLS LAST"
   , eqProp "order-by - aggregated" ordAggX
     "SELECT ALL T0.str_c1 AS f0, COUNT(T0.int_c0) AS f1 \
-    \  FROM TEST.set_c T0 GROUP BY T0.str_c1 ORDER BY SUM(T0.int_c0) ASC"
+    \  FROM TEST.set_c T0 GROUP BY T0.str_c1 ORDER BY SUM(T0.int_c0) ASC NULLS FIRST"
   ]
 
 partitionX :: Relation () (String, Int64)
