@@ -18,9 +18,13 @@ module Database.HDBC.Record.Statement (
 
   BoundStatement (..), bind', bind, bindTo,
 
-  ExecutedStatement, executed, result, execute,
+  ExecutedStatement, executed, result,
 
-  executePrepared, prepareNoFetch, executeNoFetch, runPreparedNoFetch, runNoFetch, mapNoFetch
+  executeBound, execute, executePrepared,
+
+  prepareNoFetch,
+  executeBoundNoFetch, executeNoFetch, runPreparedNoFetch,
+  runNoFetch, mapNoFetch,
   ) where
 
 import Control.Exception (bracket)
@@ -115,26 +119,38 @@ bindTo :: ToSql SqlValue p => p -> PreparedStatement p a -> BoundStatement a
 bindTo =  flip bind
 
 -- | Typed execute operation.
-execute :: BoundStatement a -> IO (ExecutedStatement a)
-execute bs = do
+executeBound :: BoundStatement a -> IO (ExecutedStatement a)
+executeBound bs = do
   let stmt = bound bs
   n <- HDBC.execute stmt (params bs)
   return $ ExecutedStatement stmt n
 
--- | Bind parameters, execute statement and get executed statement.
+{-# WARNING execute "Use 'executeBound' instead of this. This name will be used for executePrepared function in future release." #-}
+-- | Use 'executeBound' instead of this.
+--   WARNING! This name will be used for executePrepared function in future release.
+execute :: BoundStatement a -> IO (ExecutedStatement a)
+execute = executeBound
+
+-- | Bind parameters, execute prepared statement and get executed statement.
 executePrepared ::  ToSql SqlValue p => PreparedStatement p a -> p -> IO (ExecutedStatement a)
-executePrepared st = execute . bind st
+executePrepared st = executeBound . bind st
 
 -- | Typed execute operation. Only get result.
-executeNoFetch :: BoundStatement () -> IO Integer
-executeNoFetch =  fmap result . execute
+executeBoundNoFetch :: BoundStatement () -> IO Integer
+executeBoundNoFetch = fmap result . executeBound
 
--- | Bind parameters, execute statement and get execution result.
+{- WARNING executeNoFetch "Use 'executeBoundNoFetch' instead of this. This name will be used for runPreparedNoFetch function in future release." -}
+-- | Use 'executeBoundNoFetch' instead of this.
+--   WARNING! This name will be used for runPreparedNoFetch function in future release.
+executeNoFetch :: BoundStatement () -> IO Integer
+executeNoFetch = executeBoundNoFetch
+
+-- | Bind parameters, execute prepared statement and get execution result.
 runPreparedNoFetch :: ToSql SqlValue a
-                  => PreparedStatement a ()
-                  -> a
-                  -> IO Integer
-runPreparedNoFetch p = executeNoFetch . (p `bind`)
+                   => PreparedStatement a ()
+                   -> a
+                   -> IO Integer
+runPreparedNoFetch p = executeBoundNoFetch . (p `bind`)
 
 -- | Prepare and run sequence for polymorphic no-fetch statement.
 runNoFetch :: (UntypeableNoFetch s, IConnection conn, ToSql SqlValue a)
