@@ -53,7 +53,7 @@ haskUserGroup =
 
   , ()  <- wheres $ g ?!? Group.name' `likeMaybe` "Hask%"
 
-  , ()  <- asc $ u ?! User.id'
+  , ()  <- orderBy' mg Asc NullsLast
   ]
 
 data UserOrGroup = UserOrGroup { mayUser :: Maybe User, mayGroup :: Maybe Group }
