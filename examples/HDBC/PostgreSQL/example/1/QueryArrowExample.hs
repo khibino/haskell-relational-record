@@ -49,7 +49,7 @@ haskUserGroup =
 
     wheres -< g ?!? Group.name' `likeMaybe` "Hask%"
 
-    asc -< u ?! User.id'
+    orderBy' Asc NullsLast -< mg
 
     returnA -< u   >< mg ?! snd'
 
