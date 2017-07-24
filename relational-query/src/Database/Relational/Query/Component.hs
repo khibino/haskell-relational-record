@@ -16,12 +16,12 @@ module Database.Relational.Query.Component
          AggregateKey,
 
          -- * Types for ordering
-         Order (..),
+         Order (..), Nulls (..),
        ) where
 
 import Database.Relational.Query.Internal.Config
   (NameConfig (..),
    ProductUnitSupport (..), SchemaNameMode (..), IdentifierQuotation (..),
    Config (..), defaultConfig,)
-import Database.Relational.Query.Internal.BaseSQL (Order (..),)
+import Database.Relational.Query.Internal.BaseSQL (Order (..), Nulls (..),)
 import Database.Relational.Query.Internal.GroupingSQL (AggregateKey)

@@ -41,7 +41,7 @@ module Database.Relational.Query.Arrow (
 
   groupBy', key, key', set, bkey, rollup, cube, groupingSets,
 
-  orderBy, asc, desc,
+  orderBy', orderBy, asc, desc,
 
   partitionBy, over,
 
@@ -75,7 +75,7 @@ import Database.Relational.Query hiding
    on, wheres, having, groupBy, placeholder,
    relation, relation', aggregateRelation, aggregateRelation', uniqueRelation',
    groupBy', key, key', set, bkey, rollup, cube, groupingSets,
-   orderBy, asc, desc, partitionBy, over,
+   orderBy', orderBy, asc, desc, partitionBy, over,
    derivedUpdate', derivedUpdate,
    derivedInsertValue', derivedInsertValue,
    derivedDelete', derivedDelete,
@@ -369,6 +369,14 @@ cube = runAofM Monadic.cube
 --   Finalize locally built 'AggregatingSetList'.
 groupingSets :: AggregatingSetList () a -> AggregateKey a
 groupingSets = runAofM Monadic.groupingSets
+
+-- | Same as 'Monadic.orderBy''.
+--   The result arrow is designed to be injected by local projections.
+orderBy' :: Monad m
+         => Order
+         -> Nulls
+         -> Orderings c m (Projection c t) ()
+orderBy' o n = queryA $ \p -> Monadic.orderBy' p o n
 
 -- | Same as 'Monadic.orderBy'.
 --   The result arrow is designed to be injected by local projections.
