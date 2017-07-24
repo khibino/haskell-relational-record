@@ -33,7 +33,7 @@ import Database.Record
 import Database.HDBC.Record.Statement
   (unsafePrepare, withUnsafePrepare, PreparedStatement,
    bind, BoundStatement,
-   execute, ExecutedStatement, executed)
+   executeBound, ExecutedStatement, executed)
 
 
 -- | Typed prepared query type.
@@ -112,11 +112,11 @@ fetchUnique' es = do
 
 -- | Execute statement and lazily fetch all records.
 runStatement :: FromSql SqlValue a => BoundStatement a -> IO [a]
-runStatement =  (>>= fetchAll) . execute
+runStatement =  (>>= fetchAll) . executeBound
 
 -- | Strict version of 'runStatement'.
 runStatement' :: FromSql SqlValue a => BoundStatement a -> IO [a]
-runStatement' =  (>>= fetchAll') . execute
+runStatement' =  (>>= fetchAll') . executeBound
 
 -- | Bind parameters, execute statement and lazily fetch all records.
 runPreparedQuery :: (ToSql SqlValue p, FromSql SqlValue a)
