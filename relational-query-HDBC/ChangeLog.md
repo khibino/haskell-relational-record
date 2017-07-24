@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.6.4.0
+
+- add new function name definitions to execute bounded statement.
+
 ## 0.6.2.1
 
 - add tested-with 8.2.1.
