@@ -19,7 +19,7 @@ module Database.Relational.Query.Monad.Trans.Ordering (
   Orderings, orderings,
 
   -- * API of query with ordering
-  orderBy, asc, desc,
+  orderBy', orderBy, asc, desc,
 
   -- * Result
   extractOrderingTerms
@@ -32,7 +32,7 @@ import Control.Arrow (second)
 import Data.DList (DList, toList)
 
 import Database.Relational.Query.Internal.BaseSQL
-  (Order(Asc, Desc), OrderColumn, OrderingTerm)
+  (Order (..), Nulls (..), OrderColumn, OrderingTerm)
 
 import Database.Relational.Query.Projection (Projection)
 import qualified Database.Relational.Query.Projection as Projection
@@ -84,30 +84,38 @@ instance ProjectableOrdering (Projection c) where
 
 -- | Add ordering terms.
 updateOrderBys :: (Monad m, ProjectableOrdering (Projection c))
-               => Order            -- ^ Order direction
-               -> Projection c t   -- ^ Ordering terms to add
-               -> Orderings c m () -- ^ Result context with ordering
-updateOrderBys order p = Orderings . mapM_ tell $ terms  where
-  terms = curry pure order `map` orderTerms p
+               => (Order, Maybe Nulls) -- ^ Order direction
+               -> Projection c t       -- ^ Ordering terms to add
+               -> Orderings c m ()     -- ^ Result context with ordering
+updateOrderBys opair p = Orderings . mapM_ tell $ terms  where
+  terms = curry pure opair `map` orderTerms p
+
+-- | Add ordering terms with null ordering.
+orderBy' :: (Monad m, ProjectableOrdering (Projection c))
+         => Projection c t   -- ^ Ordering terms to add
+         -> Order            -- ^ Order direction
+         -> Nulls            -- ^ Order of null
+         -> Orderings c m () -- ^ Result context with ordering
+orderBy' p o n = updateOrderBys (o, Just n) p
 
 -- | Add ordering terms.
 orderBy :: (Monad m, ProjectableOrdering (Projection c))
         => Projection c t   -- ^ Ordering terms to add
-        -> Order            -- ^ Order direction
+        -> Order        -- ^ Order direction
         -> Orderings c m () -- ^ Result context with ordering
-orderBy = flip updateOrderBys
+orderBy p o = updateOrderBys (o, Nothing) p
 
 -- | Add ascendant ordering term.
 asc :: (Monad m, ProjectableOrdering (Projection c))
     => Projection c t   -- ^ Ordering terms to add
     -> Orderings c m () -- ^ Result context with ordering
-asc  =  updateOrderBys Asc
+asc  =  updateOrderBys (Asc, Nothing)
 
 -- | Add descendant ordering term.
 desc :: (Monad m, ProjectableOrdering (Projection c))
      => Projection c t   -- ^ Ordering terms to add
      -> Orderings c m () -- ^ Result context with ordering
-desc =  updateOrderBys Desc
+desc =  updateOrderBys (Desc, Nothing)
 
 -- | Run 'Orderings' to get 'OrderingTerms'
 extractOrderingTerms :: (Monad m, Functor m) => Orderings c m a -> m (a, [OrderingTerm])

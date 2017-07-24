@@ -10,7 +10,7 @@
 -- This module provides base structure of SQL syntax tree.
 module Database.Relational.Query.Internal.BaseSQL (
   Duplication (..), showsDuplication,
-  Order (..), OrderColumn, OrderingTerm, composeOrderBy,
+  Order (..), Nulls (..), OrderColumn, OrderingTerm, composeOrderBy,
   AssignColumn, AssignTerm, Assignment, composeSets,
   composeChunkValues, composeChunkValuesWithColumns,
   ) where
@@ -37,21 +37,25 @@ showsDuplication =  dup  where
 -- | Order direction. Ascendant or Descendant.
 data Order = Asc | Desc  deriving Show
 
+-- | Order of null.
+data Nulls =  NullsFirst | NullsLast deriving Show
+
 -- | Type for order-by column
 type OrderColumn = StringSQL
 
 -- | Type for order-by term
-type OrderingTerm = (Order, OrderColumn)
+type OrderingTerm = ((Order, Maybe Nulls), OrderColumn)
 
 -- | Compose ORDER BY clause from OrderingTerms
 composeOrderBy :: [OrderingTerm] -> StringSQL
 composeOrderBy =  d where
   d []       = mempty
   d ts@(_:_) = ORDER <> BY <> SQL.fold (|*|) (map showsOt ts)
-  showsOt (o, e) = e <> order o
+  showsOt ((o, mn), e) = e <> order o <> maybe mempty ((NULLS <>) . nulls) mn
   order Asc  = ASC
   order Desc = DESC
-
+  nulls NullsFirst = FIRST
+  nulls NullsLast  = LAST
 
 -- | Column SQL String of assignment
 type AssignColumn = StringSQL
