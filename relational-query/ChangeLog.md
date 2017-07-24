@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.8.7.1
+
+- fix version constraint.
+
 ## 0.8.7.0
 
 - add NULLS FIRST and NULLS LAST to ORDER BY clause.
