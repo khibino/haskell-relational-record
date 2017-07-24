@@ -88,7 +88,7 @@ library
                        , dlist
                        , template-haskell
                        , th-reify-compat
-                       , sql-words >=0.1.4
+                       , sql-words >=0.1.5
                        , names-th
                        , persistable-record >=0.4.2 && <0.5
 
