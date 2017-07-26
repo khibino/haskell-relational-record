@@ -8,7 +8,7 @@ import Model
 
 import Data.Int (Int32, Int64)
 import Control.Arrow (returnA, arr, (<<<), (***))
-import Database.Relational.Query.Arrow
+import Database.Relational.Arrow
 
 tables :: [Test]
 tables =

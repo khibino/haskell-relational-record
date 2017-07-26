@@ -8,7 +8,7 @@ import Lex (eqProp, eqProp')
 import Model
 
 import Data.Int (Int32, Int64)
-import Database.Relational.Query
+import Database.Relational
 
 
 tables :: [Test]
