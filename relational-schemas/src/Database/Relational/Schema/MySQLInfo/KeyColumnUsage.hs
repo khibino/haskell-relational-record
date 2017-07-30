@@ -6,7 +6,7 @@ module Database.Relational.Schema.MySQLInfo.KeyColumnUsage where
 
 import GHC.Generics (Generic)
 import Data.Int                     (Int16)
-import Database.Relational.Query.TH (defineTableTypesAndRecord)
+import Database.Relational.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.MySQLInfo.Config (config)
 

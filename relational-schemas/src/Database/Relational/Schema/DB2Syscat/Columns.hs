@@ -16,7 +16,7 @@ module Database.Relational.Schema.DB2Syscat.Columns where
 
 import GHC.Generics (Generic)
 import Data.Int (Int16, Int32, Int64)
-import Database.Relational.Query.TH (defineTableTypesAndRecord)
+import Database.Relational.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.DB2Syscat.Config (config)
 

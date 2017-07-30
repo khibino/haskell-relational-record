@@ -5,7 +5,7 @@
 module Database.Relational.Schema.OracleDataDictionary.Constraints where
 
 import GHC.Generics (Generic)
-import Database.Relational.Query.TH (defineTableTypesAndRecord)
+import Database.Relational.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.OracleDataDictionary.Config (config)
 

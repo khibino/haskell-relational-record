@@ -18,7 +18,7 @@ import           Data.ByteString        (ByteString)
 import           Control.Applicative    ((<|>))
 import           Language.Haskell.TH    (TypeQ)
 
-import Database.Relational.Query        ( Query
+import Database.Relational              ( Query
                                         , query
                                         , relation'
                                         , wheres
@@ -29,7 +29,7 @@ import Database.Relational.Query        ( Query
                                         , asc
                                         , value
                                         )
-import Database.Relational.Query.Type   (relationalQuery)
+import Database.Relational.Type   (relationalQuery)
 
 import           Database.Relational.Schema.MySQLInfo.Columns           (Columns, columns)
 import qualified Database.Relational.Schema.MySQLInfo.Columns           as Columns

@@ -14,7 +14,7 @@ import Data.Time (LocalTime)
 
 import Language.Haskell.TH (TypeQ)
 
-import Database.Relational.Query
+import Database.Relational
 
 import Database.Relational.Schema.OracleDataDictionary.ConsColumns (dbaConsColumns)
 import qualified Database.Relational.Schema.OracleDataDictionary.ConsColumns as ConsCols

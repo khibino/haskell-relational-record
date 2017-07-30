@@ -14,7 +14,7 @@ module Database.Relational.Schema.PgCatalog.PgType where
 
 import GHC.Generics (Generic)
 import Data.Int (Int16, Int32)
-import Database.Relational.Query.TH (defineTableTypesAndRecord)
+import Database.Relational.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.PgCatalog.Config (config)
 

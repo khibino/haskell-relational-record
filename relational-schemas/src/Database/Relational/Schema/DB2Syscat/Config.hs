@@ -8,7 +8,7 @@
 -- Portability : unknown
 module Database.Relational.Schema.DB2Syscat.Config (config) where
 
-import Database.Relational.Query (Config (..), ProductUnitSupport (..), defaultConfig)
+import Database.Relational (Config (..), ProductUnitSupport (..), defaultConfig)
 
 
 -- | Configuration parameter against IBM DB2.

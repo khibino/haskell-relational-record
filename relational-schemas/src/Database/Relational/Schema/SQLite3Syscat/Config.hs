@@ -8,7 +8,7 @@
 -- Portability : unknown
 module Database.Relational.Schema.SQLite3Syscat.Config (config) where
 
-import Database.Relational.Query (Config, defaultConfig)
+import Database.Relational (Config, defaultConfig)
 
 
 -- | Configuration parameter against SQLite3.

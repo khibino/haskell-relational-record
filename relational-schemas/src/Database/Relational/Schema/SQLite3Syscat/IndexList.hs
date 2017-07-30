@@ -6,7 +6,7 @@ module Database.Relational.Schema.SQLite3Syscat.IndexList where
 
 import GHC.Generics (Generic)
 import Data.Int (Int64)
-import Database.Relational.Query.TH (defineTableTypesAndRecord)
+import Database.Relational.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.SQLite3Syscat.Config (config)
 

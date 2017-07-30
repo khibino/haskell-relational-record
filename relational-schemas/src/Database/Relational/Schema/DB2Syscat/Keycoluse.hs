@@ -18,7 +18,7 @@ module Database.Relational.Schema.DB2Syscat.Keycoluse where
 
 import GHC.Generics (Generic)
 import Data.Int (Int16)
-import Database.Relational.Query.TH (defineTableTypesAndRecord)
+import Database.Relational.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.DB2Syscat.Config (config)
 

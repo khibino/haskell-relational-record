@@ -17,7 +17,7 @@
 module Database.Relational.Schema.DB2Syscat.Tabconst where
 
 import GHC.Generics (Generic)
-import Database.Relational.Query.TH (defineTableTypesAndRecord)
+import Database.Relational.TH (defineTableTypesAndRecord)
 
 import Database.Relational.Schema.DB2Syscat.Config (config)
 
