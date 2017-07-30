@@ -381,7 +381,7 @@ casesOrElse = caseSearch
 caseSearchMaybe :: (OperatorProjectable (Projection c) {- (Projection c) is always ProjectableMaybe -}, PersistableWidth a)
                 => [(Projection c (Maybe Bool), Projection c (Maybe a))] -- ^ Each when clauses
                 -> Projection c (Maybe a)                                -- ^ Result projection
-caseSearchMaybe cs = caseSearch cs unsafeValueNull
+caseSearchMaybe cs = caseSearch cs nothing
 
 -- | Simple case operator correnponding SQL simple /CASE/.
 --   Like, /CASE x WHEN v THEN a WHEN w THEN b ... ELSE c END/
@@ -404,7 +404,7 @@ caseMaybe :: (OperatorProjectable (Projection c) {- (Projection c) is always Pro
           => Projection c a                             -- ^ Projection value to match
           -> [(Projection c a, Projection c (Maybe b))] -- ^ Each when clauses
           -> Projection c (Maybe b)                     -- ^ Result projection
-caseMaybe v cs = case' v cs unsafeValueNull
+caseMaybe v cs = case' v cs nothing
 
 -- | Binary operator corresponding SQL /IN/ .
 in' :: (OperatorProjectable p, ProjectableShowSql p)
