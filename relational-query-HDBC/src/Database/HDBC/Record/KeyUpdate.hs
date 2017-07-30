@@ -25,9 +25,9 @@ import Control.Exception (bracket)
 import Database.HDBC (IConnection, SqlValue, Statement)
 import qualified Database.HDBC as HDBC
 
-import Database.Relational.Query
+import Database.Relational
   (KeyUpdate, untypeKeyUpdate, updateValuesWithKey, Pi)
-import qualified Database.Relational.Query as Query
+import qualified Database.Relational as DSL
 import Database.Record (ToSql)
 
 import Database.HDBC.Record.Statement
@@ -51,7 +51,7 @@ prepare :: IConnection conn
         -> IO (PreparedKeyUpdate p a)
 prepare conn ku = fmap (PreparedKeyUpdate key) . HDBC.prepare conn $ sql  where
   sql = untypeKeyUpdate ku
-  key = Query.updateKey ku
+  key = DSL.updateKey ku
 
 -- | Same as 'prepare'.
 prepareKeyUpdate :: IConnection conn
@@ -71,7 +71,7 @@ withPrepareKeyUpdate conn ku body =
     $ body . PreparedKeyUpdate key
   where
     sql = untypeKeyUpdate ku
-    key = Query.updateKey ku
+    key = DSL.updateKey ku
 
 -- | Typed operation to bind parameters for 'PreparedKeyUpdate' type.
 bindKeyUpdate :: ToSql SqlValue a

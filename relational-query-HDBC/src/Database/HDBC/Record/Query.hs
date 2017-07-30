@@ -26,7 +26,7 @@ import Data.Maybe (listToMaybe)
 import Database.HDBC (IConnection, Statement, SqlValue)
 import qualified Database.HDBC as HDBC
 
-import Database.Relational.Query (Query, untypeQuery)
+import Database.Relational (Query, untypeQuery)
 import Database.Record
   (ToSql, RecordFromSql, FromSql(recordFromSql), runToRecord)
 

@@ -19,7 +19,7 @@ module Database.HDBC.Record.Delete (
 
 import Database.HDBC (IConnection, SqlValue)
 
-import Database.Relational.Query (Delete)
+import Database.Relational (Delete)
 import Database.Record (ToSql)
 
 import Database.HDBC.Record.Statement

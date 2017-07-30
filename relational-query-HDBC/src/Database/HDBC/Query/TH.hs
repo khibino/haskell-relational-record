@@ -40,11 +40,11 @@ import Language.Haskell.TH.Lib.Extra (reportWarning, reportError)
 
 import Database.Record (ToSql, FromSql)
 import Database.Record.TH (recordTemplate, reifyRecordType)
-import Database.Relational.Query
+import Database.Relational
   (Config, nameConfig, recordConfig, verboseAsCompilerWarning, defaultConfig,
    Relation, relationalQuerySQL)
-import Database.Relational.Query.SQL (QuerySuffix)
-import qualified Database.Relational.Query.TH as Relational
+import Database.Relational.SQL (QuerySuffix)
+import qualified Database.Relational.TH as Relational
 
 import Database.HDBC.Session (withConnectionIO)
 import Database.HDBC.Record.Persistable ()

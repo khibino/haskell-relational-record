@@ -19,7 +19,7 @@ module Database.HDBC.Record.Update (
 
 import Database.HDBC (IConnection, SqlValue)
 
-import Database.Relational.Query (Update)
+import Database.Relational (Update)
 import Database.Record (ToSql)
 
 import Database.HDBC.Record.Statement

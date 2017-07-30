@@ -21,7 +21,7 @@ module Database.HDBC.Record.Insert (
 
 import Database.HDBC (IConnection, SqlValue)
 
-import Database.Relational.Query (Insert (..), untypeChunkInsert, chunkSizeOfInsert)
+import Database.Relational (Insert (..), untypeChunkInsert, chunkSizeOfInsert)
 import Database.Record (ToSql, fromRecord)
 
 import Database.HDBC.Record.Statement

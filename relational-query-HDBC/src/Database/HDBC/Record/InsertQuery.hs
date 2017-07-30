@@ -19,7 +19,7 @@ module Database.HDBC.Record.InsertQuery (
 
 import Database.HDBC (IConnection, SqlValue)
 
-import Database.Relational.Query (InsertQuery)
+import Database.Relational (InsertQuery)
 import Database.Record (ToSql)
 
 import Database.HDBC.Record.Statement

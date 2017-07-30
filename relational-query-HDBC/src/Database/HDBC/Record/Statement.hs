@@ -28,7 +28,7 @@ module Database.HDBC.Record.Statement (
   ) where
 
 import Control.Exception (bracket)
-import Database.Relational.Query (UntypeableNoFetch (untypeNoFetch))
+import Database.Relational (UntypeableNoFetch (untypeNoFetch))
 import Database.HDBC (IConnection, Statement, SqlValue)
 import qualified Database.HDBC as HDBC
 

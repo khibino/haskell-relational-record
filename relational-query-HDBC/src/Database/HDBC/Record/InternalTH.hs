@@ -30,7 +30,7 @@ import Database.HDBC.SqlValueExtra ()
 import Database.Record (PersistableWidth)
 import Database.Record.TH (deriveNotNullType)
 import Database.Record.Instances ()
-import Database.Relational.Query.TH (defineScalarDegree)
+import Database.Relational.TH (defineScalarDegree)
 
 import Database.HDBC.Record.TH (derivePersistableInstanceFromConvertible)
 
