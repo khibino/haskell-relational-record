@@ -1,5 +1,5 @@
 -- |
--- Module      : Database.Relational.Query.Documentation
+-- Module      : Database.Relational.Documentation
 -- Copyright   : 2014-2017 Kei Hibino
 -- License     : BSD3
 --
@@ -10,7 +10,7 @@
 -- This module is documentation module for relational-record.
 -- The project page of relational-record is
 -- http://khibino.github.io/haskell-relational-record/ .
-module Database.Relational.Query.Documentation (
+module Database.Relational.Documentation (
   -- * Concepts
   -- $concepts
 
@@ -197,14 +197,14 @@ module Database.Relational.Query.Documentation (
 
   ) where
 
-import Database.Relational.Query
+import Database.Relational
 import Database.Record (RecordFromSql, FromSql, RecordToSql, ToSql)
 import Database.HDBC.Record
 
 {- $concepts
 User interface of Relational Record has main two part of modules.
 
-[@"Database.Relational.Query"@] Relational Query Building DSL
+[@"Database.Relational"@] Relational Query Building DSL
 
 [@"Database.Record" and "Database.HDBC.Record"@] Database Operation Actions
  -}
@@ -269,7 +269,7 @@ SQL expression can be projected to Haskell phantom type in this DSL.
 'Aggregated' is aggregated query context type,
 'OverWindow' is window function context type, and so on.
 
-Module "Database.Relational.Query.Context" contains documentation of other context types.
+Module "Database.Relational.Context" contains documentation of other context types.
  -}
 
 {- $projectionPath
@@ -290,7 +290,7 @@ Generic programming with default signature is available to define instances of '
 '.=.' operator is equal compare operation of projected value correspond to SQL =,
 '.+.' operator is plus operation of projected value correspond to SQL +, and so on.
 
-Module "Database.Relational.Query.Projectable" contains documentation of other projection operators.
+Module "Database.Relational.Projectable" contains documentation of other projection operators.
  -}
 
 {- $aggregateFunctions
@@ -304,7 +304,7 @@ correspond to SQL SUM(...),
 
 To convert window function result into normal projection, use the 'over' operator with built 'Window' monad.
 
-Module "Database.Relational.Query.Projectable" contains documentation of
+Module "Database.Relational.Projectable" contains documentation of
 other aggregate function operators and window function operators.
  -}
 
@@ -333,7 +333,7 @@ For example,
 'negateMaybe' operator is maybe flavor of 'negate'',
 'sumMaybe' operator is maybe flavor of 'sum''.
 
-Module "Database.Relational.Query.Projectable" and "Database.Relational.Query.ProjectableExtended"
+Module "Database.Relational.Projectable" and "Database.Relational.Query.ProjectableExtended"
 contain documentation of other 'Maybe' flavor projection operators.
  -}
 
@@ -347,7 +347,7 @@ Placeholders' flavor of operators against query operation and set operation are 
 'query'', 'left'', 'relation'', 'updateTarget'', 'restriction'', and 'union''
 operator are placeholders' flavor 'query', 'left', 'relation', 'updateTarget', 'restriction' and 'union'.
 
-Module "Database.Relational.Query.Relation" and "Database.Relational.Query.Effect"
+Module "Database.Relational.Relation" and "Database.Relational.Query.Effect"
 contains documentation of other placeholders' flavor operators.
 -}
 

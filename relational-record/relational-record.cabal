@@ -14,7 +14,7 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:
-                     Database.Relational.Query.Documentation
+                     Database.Relational.Documentation
 
   build-depends:       base <5
                      , persistable-record >= 0.5
