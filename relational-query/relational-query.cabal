@@ -68,6 +68,9 @@ library
                        Database.Relational.BaseTH
                        Database.Relational.TH
 
+                       Database.Relational.Query
+                       Database.Relational.Query.Arrow
+
   other-modules:
                        Database.Relational.Internal.Config
                        Database.Relational.Internal.ContextType
