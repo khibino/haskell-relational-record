@@ -7,8 +7,8 @@ module Test.Relational.QuickCheck.Model (
 
 import GHC.Generics (Generic)
 import Data.Int (Int64)
-import qualified Database.Relational.Query.Table as Table
-import Database.Relational.Query (Relation, table, TableDerivable (derivedTable))
+import qualified Database.Relational.Table as Table
+import Database.Relational (Relation, table, TableDerivable (derivedTable))
 import Database.HDBC.Query.TH (makeRelationalRecord)
 
 

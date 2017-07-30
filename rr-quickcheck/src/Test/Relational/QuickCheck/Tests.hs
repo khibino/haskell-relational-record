@@ -15,7 +15,7 @@ import Data.List (sort)
 import Database.HDBC (IConnection, rollback, SqlValue)
 import Database.HDBC.Session (withConnectionIO')
 import Database.Record (FromSql, ToSql)
-import Database.Relational.Query
+import Database.Relational
 import Database.HDBC.Record (runQuery', runInsert)
 
 import Test.Relational.QuickCheck.Model

@@ -15,8 +15,8 @@ import Test.QuickCheck (Arbitrary (..), Gen, elements, listOf, frequency)
 import Control.Applicative ((<$>), pure, (<*>))
 import Data.Int (Int64)
 import Database.Record
-import Database.Relational.Query
-import Database.Relational.Query.Pi.Unsafe (unsafeExpandIndexes)
+import Database.Relational
+import Database.Relational.Pi.Unsafe (unsafeExpandIndexes)
 
 import Test.Relational.QuickCheck.Model
 
