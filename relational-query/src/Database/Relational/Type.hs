@@ -20,7 +20,6 @@ module Database.Relational.Type (
   KeyUpdate (..), unsafeTypedKeyUpdate, typedKeyUpdate, typedKeyUpdateTable, derivedKeyUpdate,
   Update (..), unsafeTypedUpdate, typedUpdate', typedUpdate, derivedUpdate', derivedUpdate,
   typedUpdateAllColumn, derivedUpdateAllColumn', derivedUpdateAllColumn,
-  restrictedUpdateAllColumn, restrictedUpdateTableAllColumn,
 
   updateSQL,
 
@@ -183,24 +182,6 @@ derivedUpdateAllColumn :: (PersistableWidth r, TableDerivable r)
                        => RestrictedStatement r (PlaceHolders p)
                        -> Update (r, p)
 derivedUpdateAllColumn = derivedUpdateAllColumn' defaultConfig
-
-{-# DEPRECATED restrictedUpdateAllColumn "Use derivedUpdateAllColumn or typedUpdateAllColumn instead of this." #-}
--- | Directly make typed 'Update' from 'Table' and 'Restrict' monad context.
---   Update target is all column.
-restrictedUpdateAllColumn :: PersistableWidth r
-                           => Table r
-                           -> RestrictedStatement r (PlaceHolders p) -- ^ 'Restrict' monad context
-                           -> Update (r, p)
-restrictedUpdateAllColumn tbl = typedUpdateAllColumn tbl . restriction'
-
-{-# DEPRECATED restrictedUpdateTableAllColumn "Use derivedUpdateAllColumn or typedUpdateAllColumn instead of this." #-}
--- | Directly make typed 'Update' from 'Table' and 'Restrict' monad context.
---   Update target is all column.
-restrictedUpdateTableAllColumn :: (PersistableWidth r, TableDerivable r)
-                               => Relation () r
-                               -> RestrictedStatement r (PlaceHolders p)
-                               -> Update (r, p)
-restrictedUpdateTableAllColumn =  restrictedUpdateAllColumn . tableOf
 
 -- | Show update SQL string
 instance Show (Update p) where

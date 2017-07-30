@@ -21,7 +21,7 @@ module Database.Relational.Projectable (
   value,
   valueTrue, valueFalse,
   values,
-  nothing, unsafeValueNull,
+  nothing,
 
   -- * Placeholders
   PlaceHolders, unsafeAddPlaceHolders, unsafePlaceHolders,
@@ -124,12 +124,6 @@ nothing = proxyWidth persistableWidth
   where
     proxyWidth :: SqlProjectable (Projection c) => PersistableRecordWidth a -> Projection c (Maybe a)
     proxyWidth w = unsafeProjectSqlTerms $ replicate (runPersistableRecordWidth w) SQL.NULL
-
-{-# DEPRECATED unsafeValueNull "Use `nothing' instead of this." #-}
--- | Deprecated. Polymorphic projection of SQL null value.
-unsafeValueNull :: (OperatorProjectable (Projection c), SqlProjectable (Projection c), PersistableWidth a)
-                => Projection c (Maybe a)
-unsafeValueNull = nothing
 
 -- | Generate polymorphic projection of SQL constant values from Haskell value.
 value :: (ShowConstantTermsSQL t, OperatorProjectable p) => t -> p t

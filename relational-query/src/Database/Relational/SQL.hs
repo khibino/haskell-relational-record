@@ -20,7 +20,7 @@ module Database.Relational.SQL (
   updateOtherThanKeySQL', updateOtherThanKeySQL,
 
   -- * Insert SQL
-  insertPrefixSQL, insertSQL,
+  insertPrefixSQL,
 
   -- * Delete SQL
   deletePrefixSQL', deletePrefixSQL
@@ -31,7 +31,6 @@ import Data.Monoid (mconcat, (<>))
 
 import Language.SQL.Keyword (Keyword(..), (.=.), (|*|))
 import qualified Language.SQL.Keyword as SQL
-import Database.Record (PersistableWidth)
 import Database.Record.ToSql (untypedUpdateValuesIndex)
 
 import Database.Relational.Internal.SQL
@@ -97,16 +96,6 @@ insertPrefixSQL :: Pi r r' -> Table r -> StringSQL
 insertPrefixSQL pi' table =
   INSERT <> INTO <> stringSQL (name table) <> rowConsStringSQL cols  where
     cols = Projection.columns . Projection.wpi (recordWidth table) (Projection.unsafeFromTable table) $ pi'
-
-{-# DEPRECATED insertSQL "Deprecated." #-}
--- | Generate insert SQL.
-insertSQL :: PersistableWidth r
-          => Pi r r' -- ^ Columns selector to insert
-          -> Table r -- ^ Table metadata
-          -> String  -- ^ Result SQL
-insertSQL pi' tbl = showStringSQL $ insertPrefixSQL pi' tbl <> VALUES <> vs  where
-  w = UnsafePi.width pi'
-  vs = rowConsStringSQL (replicate w "?")
 
 -- | Generate all column delete SQL by specified table. Untyped table version.
 deletePrefixSQL' :: String -> StringSQL

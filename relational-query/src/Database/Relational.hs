@@ -41,7 +41,7 @@ module Database.Relational (
   ) where
 
 import Database.Relational.Table (Table, TableDerivable (..))
-import Database.Relational.SQL (updateOtherThanKeySQL, insertSQL)
+import Database.Relational.SQL (updateOtherThanKeySQL)
 import Database.Relational.Pure ()
 import Database.Relational.Pi
 import Database.Relational.Constraint
