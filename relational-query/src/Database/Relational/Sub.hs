@@ -25,7 +25,9 @@ module Database.Relational.Sub (
   column,
 
   -- * Projection
-  Projection, ProjectionUnit, UntypedProjection,
+  Projection,
+  Column, ProjectionUnit,
+  Tuple, UntypedProjection,
 
   untypedProjectionFromJoinedSubQuery,
 
@@ -59,7 +61,7 @@ import Database.Relational.Internal.GroupingSQL
 import Database.Relational.Internal.Sub
   (SubQuery (..), Projection,
    CaseClause(..), WhenClauses (..),
-   UntypedProjection, ProjectionUnit, Column (..),
+   UntypedProjection, Tuple, ProjectionUnit, Column (..),
    JoinProduct, QueryProductTree, ProductBuilder,
    NodeAttr (Just', Maybe), ProductTree (Leaf, Join),
    SetOp (..), BinOp (..), Qualifier (..), Qualified (..),
@@ -92,7 +94,7 @@ fromTable =  Table . Table.unType
 
 -- | Unsafely generate flat 'SubQuery' from untyped components.
 flatSubQuery :: Config
-             -> UntypedProjection
+             -> Tuple
              -> Duplication
              -> JoinProduct
              -> QueryRestriction Context.Flat
@@ -102,7 +104,7 @@ flatSubQuery = Flat
 
 -- | Unsafely generate aggregated 'SubQuery' from untyped components.
 aggregatedSubQuery :: Config
-                   -> UntypedProjection
+                   -> Tuple
                    -> Duplication
                    -> JoinProduct
                    -> QueryRestriction Context.Flat
@@ -132,8 +134,8 @@ width :: SubQuery -> Int
 width =  d  where
   d (Table u)                     = UntypedTable.width' u
   d (Bin _ l _)                   = width l
-  d (Flat _ up _ _ _ _)           = Internal.untypedProjectionWidth up
-  d (Aggregated _ up _ _ _ _ _ _) = Internal.untypedProjectionWidth up
+  d (Flat _ up _ _ _ _)           = Internal.tupleWidth up
+  d (Aggregated _ up _ _ _ _ _ _) = Internal.tupleWidth up
 
 -- | SQL to query table.
 fromTableToSQL :: UntypedTable.Untyped -> StringSQL
@@ -161,7 +163,7 @@ normalizedSQL =  d  where
     | null ots                =  showSQL sub
     | otherwise               =  showUnitSQL sub
 
-selectPrefixSQL :: UntypedProjection -> Duplication -> StringSQL
+selectPrefixSQL :: Tuple -> Duplication -> StringSQL
 selectPrefixSQL up da = SELECT <> showsDuplication da <>
                         SQL.fold (|*|) columns'  where
   columns' = zipWith asColumnN
@@ -235,7 +237,7 @@ column qs =  d (Internal.unQualify qs)  where
 
 
 -- | Make untyped projection from joined sub-query.
-untypedProjectionFromJoinedSubQuery :: Qualified SubQuery -> UntypedProjection
+untypedProjectionFromJoinedSubQuery :: Qualified SubQuery -> Tuple
 untypedProjectionFromJoinedSubQuery qs = d $ Internal.unQualify qs  where
   normalized = SubQueryRef <$> traverse (\q -> [0 .. width q - 1]) qs
   d (Table _)               =  map RawColumn . map (column qs)
@@ -260,7 +262,7 @@ caseClause c i = d c  where
   d (CaseSimple m wcl)  = SQL.CASE <> rowStringSQL (map columnOfProjectionUnit m) <> indexWhensClause wcl i
 
 -- | Convert from ProjectionUnit into column.
-columnOfProjectionUnit :: ProjectionUnit -> StringSQL
+columnOfProjectionUnit :: Column -> StringSQL
 columnOfProjectionUnit = d  where
   d (RawColumn e)     = e
   d (SubQueryRef qi)  = Internal.qualifier qi `columnFromId` Internal.unQualify qi
@@ -268,11 +270,11 @@ columnOfProjectionUnit = d  where
   d (Case c i)        = caseClause c i
 
 -- | Get column SQL string of 'UntypedProjection'.
-columnOfUntypedProjection :: UntypedProjection -- ^ Source 'Projection'
+columnOfUntypedProjection :: Tuple             -- ^ Source 'Projection'
                           -> Int               -- ^ Column index
                           -> StringSQL         -- ^ Result SQL string
 columnOfUntypedProjection up i
-  | 0 <= i && i < Internal.untypedProjectionWidth up  =
+  | 0 <= i && i < Internal.tupleWidth up  =
     columnOfProjectionUnit $ up !! i
   | otherwise                                         =
     error $ "columnOfUntypedProjection: index out of bounds: " ++ show i
