@@ -3,9 +3,12 @@ all: clean build
 
 haddock_opt = --hyperlink-source --haddock-options=--css=../devel/black.css
 
+ncpu = $(shell cat /proc/cpuinfo | egrep '^processor' | wc -l)
+jobs = --jobs=$(shell expr $(ncpu) '*' 3 '/' 4)
+
 build:
 	cabal configure
-	cabal build --ghc-option=-Wall
+	cabal build $(jobs) --ghc-option=-Wall
 	cabal haddock $(haddock_opt)
 
 haddock:
