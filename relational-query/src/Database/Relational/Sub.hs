@@ -27,9 +27,9 @@ module Database.Relational.Sub (
   -- * Projection
   Projection,
 
-  untypedProjectionFromJoinedSubQuery,
+  tupleFromJoinedSubQuery,
 
-  projectionColumns, unsafeProjectionStringSql,
+  recordRawColumns,
 
   -- * Product of sub-queries
   JoinProduct, NodeAttr (..),
@@ -233,10 +233,9 @@ column qs =  d (Internal.unQualify qs)  where
   d (Flat _ up _ _ _ _) i           = columnOfUntypedProjection up i
   d (Aggregated _ up _ _ _ _ _ _) i = columnOfUntypedProjection up i
 
-
 -- | Make untyped projection from joined sub-query.
-untypedProjectionFromJoinedSubQuery :: Qualified SubQuery -> Tuple
-untypedProjectionFromJoinedSubQuery qs = d $ Internal.unQualify qs  where
+tupleFromJoinedSubQuery :: Qualified SubQuery -> Tuple
+tupleFromJoinedSubQuery qs = d $ Internal.unQualify qs  where
   normalized = SubQueryRef <$> traverse (\q -> [0 .. width q - 1]) qs
   d (Table _)               =  map RawColumn . map (column qs)
                                $ take (queryWidth qs) [0..]
@@ -278,13 +277,9 @@ columnOfUntypedProjection up i
     error $ "columnOfUntypedProjection: index out of bounds: " ++ show i
 
 -- | Get column SQL string list of projection.
-projectionColumns :: Projection c r -- ^ Source 'Projection'
-                  -> [StringSQL]    -- ^ Result SQL string list
-projectionColumns = map columnOfProjectionUnit . Internal.untypeProjection
-
--- | Unsafely get SQL term from 'Proejction'.
-unsafeProjectionStringSql :: Projection c r -> StringSQL
-unsafeProjectionStringSql =  rowStringSQL . projectionColumns
+recordRawColumns :: Projection c r -- ^ Source 'Projection'
+                 -> [StringSQL]    -- ^ Result SQL string list
+recordRawColumns = map columnOfProjectionUnit . Internal.untypeProjection
 
 
 -- | Show product tree of query into SQL. StringSQL result.
@@ -304,7 +299,7 @@ showsQueryProduct =  rec  where
      joinType (Internal.nodeAttr left') (Internal.nodeAttr right'), JOIN,
      urec right',
      ON, foldr1 SQL.and $ ps ++ concat [ showConstantTermsSQL True | null ps ] ]
-    where ps = [ unsafeProjectionStringSql p | p <- rs ]
+    where ps = [ rowStringSQL $ recordRawColumns p | p <- rs ]
 
 -- | Shows join product of query.
 showsJoinProduct :: ProductUnitSupport -> JoinProduct -> StringSQL
@@ -318,7 +313,7 @@ showsJoinProduct ups =  maybe (up ups) from  where
 composeRestrict :: Keyword -> QueryRestriction c -> StringSQL
 composeRestrict k = d  where
   d     []    =  mempty
-  d ps@(_:_)  =  k <> foldr1 SQL.and [ unsafeProjectionStringSql p | p <- ps ]
+  d ps@(_:_)  =  k <> foldr1 SQL.and [ rowStringSQL $ recordRawColumns p | p <- ps ]
 
 -- | Compose WHERE clause from 'QueryRestriction'.
 composeWhere :: QueryRestriction Context.Flat -> StringSQL

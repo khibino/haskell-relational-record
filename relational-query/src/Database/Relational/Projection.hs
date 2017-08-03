@@ -50,7 +50,7 @@ import Database.Record (HasColumnConstraint, NotNull, NotNullColumnConstraint, P
 import Database.Record.Persistable (PersistableRecordWidth)
 import qualified Database.Record.KeyConstraint as KeyConstraint
 
-import Database.Relational.Internal.SQL (StringSQL, listStringSQL, )
+import Database.Relational.Internal.SQL (StringSQL, listStringSQL, rowStringSQL)
 import Database.Relational.Internal.Sub
   (SubQuery, Qualified, Tuple,
    Projection, untypeProjection, typedProjection, projectionWidth)
@@ -64,20 +64,18 @@ import qualified Database.Relational.Table as Table
 import Database.Relational.Pi (Pi)
 import qualified Database.Relational.Pi.Unsafe as UnsafePi
 import Database.Relational.Sub
-  (projectionColumns,
-   untypedProjectionFromJoinedSubQuery,
-   unsafeProjectionStringSql)
+  (recordRawColumns, tupleFromJoinedSubQuery, )
 import qualified Database.Relational.Sub as SubQuery
 
 
 -- | Unsafely get SQL term from 'Proejction'.
 unsafeStringSql :: Projection c r -> StringSQL
-unsafeStringSql = unsafeProjectionStringSql
+unsafeStringSql = rowStringSQL . recordRawColumns
 
 -- | Get column SQL string list of projection.
 columns :: Projection c r -- ^ Source 'Projection'
         -> [StringSQL]    -- ^ Result SQL string list
-columns = projectionColumns
+columns = recordRawColumns
 
 -- | Width of 'Projection'.
 width :: Projection c r -> Int
@@ -90,7 +88,7 @@ untype =  untypeProjection
 
 -- | Unsafely generate  'Projection' from qualified (joined) sub-query.
 unsafeFromQualifiedSubQuery :: Qualified SubQuery -> Projection c t
-unsafeFromQualifiedSubQuery =  typedProjection . untypedProjectionFromJoinedSubQuery
+unsafeFromQualifiedSubQuery =  typedProjection . tupleFromJoinedSubQuery
 
 -- | Unsafely generate 'Projection' from scalar sub-query.
 unsafeFromScalarSubQuery :: SubQuery -> Projection c t
