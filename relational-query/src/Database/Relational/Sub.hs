@@ -26,8 +26,6 @@ module Database.Relational.Sub (
 
   -- * Projection
   Projection,
-  Column, ProjectionUnit,
-  Tuple, UntypedProjection,
 
   untypedProjectionFromJoinedSubQuery,
 
@@ -61,7 +59,7 @@ import Database.Relational.Internal.GroupingSQL
 import Database.Relational.Internal.Sub
   (SubQuery (..), Projection,
    CaseClause(..), WhenClauses (..),
-   UntypedProjection, Tuple, ProjectionUnit, Column (..),
+   Tuple, Column (..),
    JoinProduct, QueryProductTree, ProductBuilder,
    NodeAttr (Just', Maybe), ProductTree (Leaf, Join),
    SetOp (..), BinOp (..), Qualifier (..), Qualified (..),

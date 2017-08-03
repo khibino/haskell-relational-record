@@ -24,12 +24,11 @@ module Database.Relational.Internal.Sub
        , CaseClause (..), WhenClauses(..)
        , caseSearch, case'
 
-       , Tuple, UntypedProjection
-       , tupleWidth, untypedProjectionWidth
-       , Column (..), ProjectionUnit
+       , Tuple, tupleWidth
+       , Column (..)
        , Projection, untypeProjection, typedProjection, projectionWidth
-       , typeFromRawColumns, projectFromColumns
-       , typeFromScalarSubQuery, projectFromScalarSubQuery
+       , typeFromRawColumns
+       , typeFromScalarSubQuery
 
          -- * Query restriction
        , QueryRestriction
@@ -141,18 +140,8 @@ data Column
   | Case CaseClause Int            -- ^ <n>th column of case clause
   deriving Show
 
-{-# DEPRECATED ProjectionUnit "Replaced by Column." #-}
-type ProjectionUnit = Column
-
-{-# DEPRECATED UntypedProjection "Replaced by Tuple." #-}
-type UntypedProjection = [Column]
-
 -- | Untyped projected tuple. Forgot record type.
 type Tuple = [Column]
-
-{-# DEPRECATED untypedProjectionWidth "Replaced by tupleWidth." #-}
-untypedProjectionWidth :: Tuple -> Int
-untypedProjectionWidth = tupleWidth
 
 -- | Width of 'Tuple'.
 tupleWidth :: Tuple -> Int
@@ -171,18 +160,10 @@ typedProjection =  Projection
 projectionWidth :: Projection c r -> Int
 projectionWidth = length . untypeProjection
 
-{-# DEPRECATED projectFromColumns "Replaced by typeFromRawColumns." #-}
-projectFromColumns :: [StringSQL] -> Projection c r
-projectFromColumns = typeFromRawColumns
-
 -- | Unsafely generate 'Projection' from SQL string list.
 typeFromRawColumns :: [StringSQL]    -- ^ SQL string list specifies columns
                    -> Projection c r -- ^ Result 'Projection'
 typeFromRawColumns =  typedProjection . map RawColumn
-
-{-# DEPRECATED projectFromScalarSubQuery "Replace by typeFromScalarSubQuery." #-}
-projectFromScalarSubQuery :: SubQuery -> Projection c t
-projectFromScalarSubQuery = typeFromScalarSubQuery
 
 -- | Unsafely generate 'Projection' from scalar sub-query.
 typeFromScalarSubQuery :: SubQuery -> Projection c t
