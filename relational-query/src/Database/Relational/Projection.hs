@@ -52,8 +52,7 @@ import qualified Database.Record.KeyConstraint as KeyConstraint
 
 import Database.Relational.Internal.SQL (StringSQL, listStringSQL, rowStringSQL)
 import Database.Relational.Internal.Sub
-  (SubQuery, Qualified, Tuple,
-   Projection, untypeProjection, typedProjection, projectionWidth)
+  (SubQuery, Qualified, Tuple, Projection)
 import qualified Database.Relational.Internal.Sub as Internal
 
 import Database.Relational.ProjectableClass
@@ -79,16 +78,16 @@ columns = recordRawColumns
 
 -- | Width of 'Projection'.
 width :: Projection c r -> Int
-width = projectionWidth
+width = Internal.recordWidth
 
 -- | Unsafely get untyped projection.
 untype :: Projection c r -> Tuple
-untype =  untypeProjection
+untype = Internal.untypeRecord
 
 
 -- | Unsafely generate  'Projection' from qualified (joined) sub-query.
 unsafeFromQualifiedSubQuery :: Qualified SubQuery -> Projection c t
-unsafeFromQualifiedSubQuery =  typedProjection . tupleFromJoinedSubQuery
+unsafeFromQualifiedSubQuery = Internal.record . tupleFromJoinedSubQuery
 
 -- | Unsafely generate 'Projection' from scalar sub-query.
 unsafeFromScalarSubQuery :: SubQuery -> Projection c t
@@ -141,7 +140,7 @@ piMaybe' :: PersistableWidth a
 piMaybe' = unsafeProject persistableWidth
 
 unsafeCast :: Projection c r -> Projection c r'
-unsafeCast =  typedProjection . untypeProjection
+unsafeCast = Internal.record . Internal.untypeRecord
 
 -- | Composite nested 'Maybe' on projection phantom type.
 flattenMaybe :: Projection c (Maybe (Maybe a)) -> Projection c (Maybe a)
@@ -153,7 +152,7 @@ just =  unsafeCast
 
 -- | Unsafely cast context type tag.
 unsafeChangeContext :: Projection c r -> Projection c' r
-unsafeChangeContext =  typedProjection . untypeProjection
+unsafeChangeContext = Internal.record . Internal.untypeRecord
 
 -- | Unsafely lift to aggregated context.
 unsafeToAggregated :: Projection Flat r -> Projection Aggregated r
@@ -177,7 +176,7 @@ _ `pfmap` p = unsafeCast p
 
 -- | Projectable ap of 'Projection' type.
 pap :: Projection c (a -> b) -> Projection c a -> Projection c b
-pf `pap` pa = typedProjection $ untypeProjection pf ++ untypeProjection pa
+pf `pap` pa = Internal.record $ Internal.untypeRecord pf ++ Internal.untypeRecord pa
 
 -- | Compose seed of record type 'Projection'.
 instance ProjectableFunctor (Projection c) where

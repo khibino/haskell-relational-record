@@ -279,7 +279,7 @@ columnOfUntypedProjection up i
 -- | Get column SQL string list of projection.
 recordRawColumns :: Projection c r -- ^ Source 'Projection'
                  -> [StringSQL]    -- ^ Result SQL string list
-recordRawColumns = map columnOfProjectionUnit . Internal.untypeProjection
+recordRawColumns = map columnOfProjectionUnit . Internal.untypeRecord
 
 
 -- | Show product tree of query into SQL. StringSQL result.

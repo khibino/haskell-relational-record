@@ -26,7 +26,8 @@ module Database.Relational.Internal.Sub
 
        , Tuple, tupleWidth
        , Column (..)
-       , Projection, untypeProjection, typedProjection, projectionWidth
+       , Projection, untypeRecord, record
+       , recordWidth
        , typeFromRawColumns
        , typeFromScalarSubQuery
 
@@ -147,27 +148,27 @@ type Tuple = [Column]
 tupleWidth :: Tuple -> Int
 tupleWidth = length
 
--- | Phantom typed projection. Projected into Haskell record type 't'.
+-- | Phantom typed record. Projected into Haskell record type 't'.
 newtype Projection c t =
   Projection
-  { untypeProjection :: Tuple {- ^ Discard projection value type -} }  deriving Show
+  { untypeRecord :: Tuple {- ^ Discard record type -} }  deriving Show
 
 -- | Unsafely type projection value.
-typedProjection :: Tuple -> Projection c t
-typedProjection =  Projection
+record :: Tuple -> Projection c t
+record = Projection
 
 -- | Width of 'Projection'.
-projectionWidth :: Projection c r -> Int
-projectionWidth = length . untypeProjection
+recordWidth :: Projection c r -> Int
+recordWidth = length . untypeRecord
 
 -- | Unsafely generate 'Projection' from SQL string list.
 typeFromRawColumns :: [StringSQL]    -- ^ SQL string list specifies columns
                    -> Projection c r -- ^ Result 'Projection'
-typeFromRawColumns =  typedProjection . map RawColumn
+typeFromRawColumns =  record . map RawColumn
 
 -- | Unsafely generate 'Projection' from scalar sub-query.
 typeFromScalarSubQuery :: SubQuery -> Projection c t
-typeFromScalarSubQuery = typedProjection . (:[]) . Scalar
+typeFromScalarSubQuery = record . (:[]) . Scalar
 
 whenClauses :: String                             -- ^ Error tag
             -> [(Projection c a, Projection c b)] -- ^ Each when clauses
@@ -177,8 +178,8 @@ whenClauses eTag ws0 e = d ws0
   where
     d []       = error $ eTag ++ ": Empty when clauses!"
     d ws@(_:_) =
-      WhenClauses [ (untypeProjection p, untypeProjection r) | (p, r) <- ws ]
-      $ untypeProjection e
+      WhenClauses [ (untypeRecord p, untypeRecord r) | (p, r) <- ws ]
+      $ untypeRecord e
 
 -- | Search case operator correnponding SQL search /CASE/.
 --   Like, /CASE WHEN p0 THEN a WHEN p1 THEN b ... ELSE c END/
@@ -186,7 +187,7 @@ caseSearch :: [(Projection c (Maybe Bool), Projection c a)] -- ^ Each when claus
            -> Projection c a                                -- ^ Else result projection
            -> Projection c a                                -- ^ Result projection
 caseSearch ws e =
-    typedProjection [ Case c i | i <- [0 .. projectionWidth e - 1] ]
+    record [ Case c i | i <- [0 .. recordWidth e - 1] ]
   where
     c = CaseSearch $ whenClauses "caseSearch" ws e
 
@@ -197,9 +198,9 @@ case' :: Projection c a                     -- ^ Projection value to match
       -> Projection c b                     -- ^ Else result projection
       -> Projection c b                     -- ^ Result projection
 case' v ws e =
-    typedProjection [ Case c i | i <- [0 .. projectionWidth e - 1] ]
+    record [ Case c i | i <- [0 .. recordWidth e - 1] ]
   where
-    c = CaseSimple (untypeProjection v) $ whenClauses "case'" ws e
+    c = CaseSimple (untypeRecord v) $ whenClauses "case'" ws e
 
 
 -- | Type for restriction of query.
