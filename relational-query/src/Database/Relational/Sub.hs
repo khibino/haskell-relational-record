@@ -165,7 +165,7 @@ selectPrefixSQL :: Tuple -> Duplication -> StringSQL
 selectPrefixSQL up da = SELECT <> showsDuplication da <>
                         SQL.fold (|*|) columns'  where
   columns' = zipWith asColumnN
-             (map columnOfProjectionUnit up)
+             (map showColumn up)
              [(0 :: Int)..]
 
 -- | SQL string for nested-query and toplevel-SQL.
@@ -230,8 +230,8 @@ column qs =  d (Internal.unQualify qs)  where
   q = Internal.qualifier qs
   d (Table u)           i           = q <.> (u ! i)
   d (Bin {})            i           = q `columnFromId` i
-  d (Flat _ up _ _ _ _) i           = columnOfUntypedProjection up i
-  d (Aggregated _ up _ _ _ _ _ _) i = columnOfUntypedProjection up i
+  d (Flat _ up _ _ _ _) i           = showTupleIndex up i
+  d (Aggregated _ up _ _ _ _ _ _) i = showTupleIndex up i
 
 -- | Make untyped projection from joined sub-query.
 tupleFromJoinedSubQuery :: Qualified SubQuery -> Tuple
@@ -248,38 +248,38 @@ indexWhensClause :: WhenClauses -> Int -> StringSQL
 indexWhensClause (WhenClauses ps e) i =
     mconcat [ when' p r | (p, r)  <-  ps] <> else' <> SQL.END
   where
-    when' p r = SQL.WHEN <> rowStringSQL (map columnOfProjectionUnit p) <>
-                SQL.THEN <> columnOfUntypedProjection r i
-    else'     = SQL.ELSE <> columnOfUntypedProjection e i
+    when' p r = SQL.WHEN <> rowStringSQL (map showColumn p) <>
+                SQL.THEN <> showTupleIndex r i
+    else'     = SQL.ELSE <> showTupleIndex e i
 
 -- | index result of each when clause and else clause.
 caseClause :: CaseClause -> Int -> StringSQL
 caseClause c i = d c  where
   d (CaseSearch wcl)    = SQL.CASE <> indexWhensClause wcl i
-  d (CaseSimple m wcl)  = SQL.CASE <> rowStringSQL (map columnOfProjectionUnit m) <> indexWhensClause wcl i
+  d (CaseSimple m wcl)  = SQL.CASE <> rowStringSQL (map showColumn m) <> indexWhensClause wcl i
 
 -- | Convert from ProjectionUnit into column.
-columnOfProjectionUnit :: Column -> StringSQL
-columnOfProjectionUnit = d  where
+showColumn :: Column -> StringSQL
+showColumn = d  where
   d (RawColumn e)     = e
   d (SubQueryRef qi)  = Internal.qualifier qi `columnFromId` Internal.unQualify qi
   d (Scalar sub)      = showUnitSQL sub
   d (Case c i)        = caseClause c i
 
 -- | Get column SQL string of 'UntypedProjection'.
-columnOfUntypedProjection :: Tuple             -- ^ Source 'Projection'
-                          -> Int               -- ^ Column index
-                          -> StringSQL         -- ^ Result SQL string
-columnOfUntypedProjection up i
+showTupleIndex :: Tuple     -- ^ Source 'Projection'
+               -> Int       -- ^ Column index
+               -> StringSQL -- ^ Result SQL string
+showTupleIndex up i
   | 0 <= i && i < Internal.tupleWidth up  =
-    columnOfProjectionUnit $ up !! i
+    showColumn $ up !! i
   | otherwise                                         =
-    error $ "columnOfUntypedProjection: index out of bounds: " ++ show i
+    error $ "showTupleIndex: index out of bounds: " ++ show i
 
 -- | Get column SQL string list of projection.
 recordRawColumns :: Projection c r -- ^ Source 'Projection'
                  -> [StringSQL]    -- ^ Result SQL string list
-recordRawColumns = map columnOfProjectionUnit . Internal.untypeRecord
+recordRawColumns = map showColumn . Internal.untypeRecord
 
 
 -- | Show product tree of query into SQL. StringSQL result.
