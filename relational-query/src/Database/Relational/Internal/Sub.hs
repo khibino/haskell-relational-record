@@ -25,10 +25,11 @@ module Database.Relational.Internal.Sub
        , caseSearch, case'
 
        , Tuple, UntypedProjection
-       , untypedProjectionWidth
+       , tupleWidth, untypedProjectionWidth
        , Column (..), ProjectionUnit
        , Projection, untypeProjection, typedProjection, projectionWidth
-       , projectFromColumns, projectFromScalarSubQuery
+       , typeFromRawColumns, projectFromColumns
+       , typeFromScalarSubQuery, projectFromScalarSubQuery
 
          -- * Query restriction
        , QueryRestriction
@@ -149,9 +150,13 @@ type UntypedProjection = [Column]
 -- | Untyped projected tuple. Forgot record type.
 type Tuple = [Column]
 
--- | Width of 'Tuple'.
+{-# DEPRECATED untypedProjectionWidth "Replaced by tupleWidth." #-}
 untypedProjectionWidth :: Tuple -> Int
-untypedProjectionWidth = length
+untypedProjectionWidth = tupleWidth
+
+-- | Width of 'Tuple'.
+tupleWidth :: Tuple -> Int
+tupleWidth = length
 
 -- | Phantom typed projection. Projected into Haskell record type 't'.
 newtype Projection c t =
@@ -166,14 +171,22 @@ typedProjection =  Projection
 projectionWidth :: Projection c r -> Int
 projectionWidth = length . untypeProjection
 
+{-# DEPRECATED projectFromColumns "Replaced by typeFromRawColumns." #-}
+projectFromColumns :: [StringSQL] -> Projection c r
+projectFromColumns = typeFromRawColumns
+
 -- | Unsafely generate 'Projection' from SQL string list.
-projectFromColumns :: [StringSQL]    -- ^ SQL string list specifies columns
+typeFromRawColumns :: [StringSQL]    -- ^ SQL string list specifies columns
                    -> Projection c r -- ^ Result 'Projection'
-projectFromColumns =  typedProjection . map RawColumn
+typeFromRawColumns =  typedProjection . map RawColumn
+
+{-# DEPRECATED projectFromScalarSubQuery "Replace by typeFromScalarSubQuery." #-}
+projectFromScalarSubQuery :: SubQuery -> Projection c t
+projectFromScalarSubQuery = typeFromScalarSubQuery
 
 -- | Unsafely generate 'Projection' from scalar sub-query.
-projectFromScalarSubQuery :: SubQuery -> Projection c t
-projectFromScalarSubQuery = typedProjection . (:[]) . Scalar
+typeFromScalarSubQuery :: SubQuery -> Projection c t
+typeFromScalarSubQuery = typedProjection . (:[]) . Scalar
 
 whenClauses :: String                             -- ^ Error tag
             -> [(Projection c a, Projection c b)] -- ^ Each when clauses
