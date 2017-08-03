@@ -59,7 +59,7 @@ import Database.Relational.Internal.GroupingSQL
 import Database.Relational.Internal.Sub
   (SubQuery (..), Projection,
    CaseClause(..), WhenClauses (..),
-   UntypedProjection, ProjectionUnit (..),
+   UntypedProjection, ProjectionUnit, Column (..),
    JoinProduct, QueryProductTree, ProductBuilder,
    NodeAttr (Just', Maybe), ProductTree (Leaf, Join),
    SetOp (..), BinOp (..), Qualifier (..), Qualified (..),

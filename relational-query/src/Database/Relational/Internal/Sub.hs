@@ -24,7 +24,9 @@ module Database.Relational.Internal.Sub
        , CaseClause (..), WhenClauses(..)
        , caseSearch, case'
 
-       , UntypedProjection, untypedProjectionWidth, ProjectionUnit (..)
+       , Tuple, UntypedProjection
+       , untypedProjectionWidth
+       , Column (..), ProjectionUnit
        , Projection, untypeProjection, typedProjection, projectionWidth
        , projectFromColumns, projectFromScalarSubQuery
 
@@ -54,10 +56,10 @@ newtype BinOp = BinOp (SetOp, Duplication) deriving Show
 -- | Sub-query type
 data SubQuery = Table Untyped
               | Flat Config
-                UntypedProjection Duplication JoinProduct (QueryRestriction Flat)
+                Tuple Duplication JoinProduct (QueryRestriction Flat)
                 [OrderingTerm]
               | Aggregated Config
-                UntypedProjection Duplication JoinProduct (QueryRestriction Flat)
+                Tuple Duplication JoinProduct (QueryRestriction Flat)
                 [AggregateElem] (QueryRestriction Aggregated) [OrderingTerm]
               | Bin BinOp SubQuery SubQuery
               deriving Show
@@ -121,37 +123,43 @@ type JoinProduct = Maybe QueryProductTree
 
 -- | when clauses
 data WhenClauses =
-  WhenClauses [(UntypedProjection, UntypedProjection)] UntypedProjection
+  WhenClauses [(Tuple, Tuple)] Tuple
   deriving Show
 
 -- | case clause
 data CaseClause
   = CaseSearch WhenClauses
-  | CaseSimple UntypedProjection WhenClauses
+  | CaseSimple Tuple WhenClauses
   deriving Show
 
 -- | Projection structure unit with single column width
-data ProjectionUnit
+data Column
   = RawColumn StringSQL            -- ^ used in immediate value or unsafe operations
   | SubQueryRef (Qualified Int)    -- ^ normalized sub-query reference T<n> with Int index
   | Scalar SubQuery                -- ^ scalar sub-query
   | Case CaseClause Int            -- ^ <n>th column of case clause
   deriving Show
 
--- | Untyped projection. Forgot record type.
-type UntypedProjection = [ProjectionUnit]
+{-# DEPRECATED ProjectionUnit "Replaced by Column." #-}
+type ProjectionUnit = Column
 
--- | Width of 'UntypedProjection'.
-untypedProjectionWidth :: UntypedProjection -> Int
+{-# DEPRECATED UntypedProjection "Replaced by Tuple." #-}
+type UntypedProjection = [Column]
+
+-- | Untyped projected tuple. Forgot record type.
+type Tuple = [Column]
+
+-- | Width of 'Tuple'.
+untypedProjectionWidth :: Tuple -> Int
 untypedProjectionWidth = length
 
 -- | Phantom typed projection. Projected into Haskell record type 't'.
 newtype Projection c t =
   Projection
-  { untypeProjection :: UntypedProjection {- ^ Discard projection value type -} }  deriving Show
+  { untypeProjection :: Tuple {- ^ Discard projection value type -} }  deriving Show
 
 -- | Unsafely type projection value.
-typedProjection :: UntypedProjection -> Projection c t
+typedProjection :: Tuple -> Projection c t
 typedProjection =  Projection
 
 -- | Width of 'Projection'.
