@@ -26,7 +26,8 @@ module Database.Relational.Internal.Sub
 
        , Tuple, tupleWidth
        , Column (..)
-       , Projection, untypeRecord, record
+       , Record, untypeRecord, record
+       , Projection
        , recordWidth
        , typeFromRawColumns
        , typeFromScalarSubQuery
@@ -148,32 +149,35 @@ type Tuple = [Column]
 tupleWidth :: Tuple -> Int
 tupleWidth = length
 
+{-# DEPRECATED Projection "Replaced by Record type" #-}
+type Projection = Record
+
 -- | Phantom typed record. Projected into Haskell record type 't'.
-newtype Projection c t =
-  Projection
+newtype Record c t =
+  Record
   { untypeRecord :: Tuple {- ^ Discard record type -} }  deriving Show
 
 -- | Unsafely type projection value.
-record :: Tuple -> Projection c t
-record = Projection
+record :: Tuple -> Record c t
+record = Record
 
 -- | Width of 'Projection'.
-recordWidth :: Projection c r -> Int
+recordWidth :: Record c r -> Int
 recordWidth = length . untypeRecord
 
 -- | Unsafely generate 'Projection' from SQL string list.
 typeFromRawColumns :: [StringSQL]    -- ^ SQL string list specifies columns
-                   -> Projection c r -- ^ Result 'Projection'
+                   -> Record c r -- ^ Result 'Projection'
 typeFromRawColumns =  record . map RawColumn
 
 -- | Unsafely generate 'Projection' from scalar sub-query.
-typeFromScalarSubQuery :: SubQuery -> Projection c t
+typeFromScalarSubQuery :: SubQuery -> Record c t
 typeFromScalarSubQuery = record . (:[]) . Scalar
 
-whenClauses :: String                             -- ^ Error tag
-            -> [(Projection c a, Projection c b)] -- ^ Each when clauses
-            -> Projection c b                     -- ^ Else result projection
-            -> WhenClauses                        -- ^ Result clause
+whenClauses :: String                     -- ^ Error tag
+            -> [(Record c a, Record c b)] -- ^ Each when clauses
+            -> Record c b                 -- ^ Else result projection
+            -> WhenClauses                -- ^ Result clause
 whenClauses eTag ws0 e = d ws0
   where
     d []       = error $ eTag ++ ": Empty when clauses!"
@@ -183,9 +187,9 @@ whenClauses eTag ws0 e = d ws0
 
 -- | Search case operator correnponding SQL search /CASE/.
 --   Like, /CASE WHEN p0 THEN a WHEN p1 THEN b ... ELSE c END/
-caseSearch :: [(Projection c (Maybe Bool), Projection c a)] -- ^ Each when clauses
-           -> Projection c a                                -- ^ Else result projection
-           -> Projection c a                                -- ^ Result projection
+caseSearch :: [(Record c (Maybe Bool), Record c a)] -- ^ Each when clauses
+           -> Record c a                            -- ^ Else result projection
+           -> Record c a                            -- ^ Result projection
 caseSearch ws e =
     record [ Case c i | i <- [0 .. recordWidth e - 1] ]
   where
@@ -193,10 +197,10 @@ caseSearch ws e =
 
 -- | Simple case operator correnponding SQL simple /CASE/.
 --   Like, /CASE x WHEN v THEN a WHEN w THEN b ... ELSE c END/
-case' :: Projection c a                     -- ^ Projection value to match
-      -> [(Projection c a, Projection c b)] -- ^ Each when clauses
-      -> Projection c b                     -- ^ Else result projection
-      -> Projection c b                     -- ^ Result projection
+case' :: Record c a                 -- ^ Record value to match
+      -> [(Record c a, Record c b)] -- ^ Each when clauses
+      -> Record c b                 -- ^ Else result projection
+      -> Record c b                 -- ^ Result projection
 case' v ws e =
     record [ Case c i | i <- [0 .. recordWidth e - 1] ]
   where
@@ -204,4 +208,4 @@ case' v ws e =
 
 
 -- | Type for restriction of query.
-type QueryRestriction c = [Projection c (Maybe Bool)]
+type QueryRestriction c = [Record c (Maybe Bool)]

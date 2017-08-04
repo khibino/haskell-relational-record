@@ -52,7 +52,7 @@ import qualified Database.Record.KeyConstraint as KeyConstraint
 
 import Database.Relational.Internal.SQL (StringSQL, listStringSQL, rowStringSQL)
 import Database.Relational.Internal.Sub
-  (SubQuery, Qualified, Tuple, Projection)
+  (SubQuery, Qualified, Tuple, Record, Projection)
 import qualified Database.Relational.Internal.Sub as Internal
 
 import Database.Relational.ProjectableClass
@@ -179,11 +179,11 @@ pap :: Projection c (a -> b) -> Projection c a -> Projection c b
 pf `pap` pa = Internal.record $ Internal.untypeRecord pf ++ Internal.untypeRecord pa
 
 -- | Compose seed of record type 'Projection'.
-instance ProjectableFunctor (Projection c) where
+instance ProjectableFunctor (Record c) where
   (|$|) = pfmap
 
 -- | Compose record type 'Projection' using applicative style.
-instance ProjectableApplicative (Projection c) where
+instance ProjectableApplicative (Record c) where
   (|*|) = pap
 
 -- | Projection type for row list.
