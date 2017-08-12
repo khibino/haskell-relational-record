@@ -62,7 +62,7 @@ import Database.Relational.Sub (SubQuery, NodeAttr(Just', Maybe))
 import qualified Database.Relational.Sub as SubQuery
 import Database.Relational.Scalar (ScalarDegree)
 import Database.Relational.Pi (Pi)
-import Database.Relational.Projection (ListProjection)
+import Database.Relational.Projection (RecordList)
 import qualified Database.Relational.Projection as Projection
 import Database.Relational.Projectable
   (PlaceHolders, unitPlaceHolder, unsafeAddPlaceHolders, unsafePlaceHolders, projectZip)
@@ -106,7 +106,7 @@ queryMaybe :: (MonadQualify ConfigureQuery m, MonadQuery m)
            -> m (Record Flat (Maybe r))
 queryMaybe =  fmap snd . queryMaybe'
 
-queryList0 :: MonadQualify ConfigureQuery m => Relation p r -> m (ListProjection (Record c) r)
+queryList0 :: MonadQualify ConfigureQuery m => Relation p r -> m (RecordList (Record c) r)
 queryList0 =  liftQualify
               . fmap Projection.unsafeListFromSubQuery
               . untypeRelation
@@ -114,7 +114,7 @@ queryList0 =  liftQualify
 -- | List sub-query, for /IN/ and /EXIST/ with place-holder parameter 'p'.
 queryList' :: MonadQualify ConfigureQuery m
            => Relation p r
-           -> m (PlaceHolders p, ListProjection (Record c) r)
+           -> m (PlaceHolders p, RecordList (Record c) r)
 queryList' rel = do
   ql <- queryList0 rel
   return (placeHoldersFromRelation rel, ql)
@@ -122,7 +122,7 @@ queryList' rel = do
 -- | List sub-query, for /IN/ and /EXIST/.
 queryList :: MonadQualify ConfigureQuery m
           => Relation () r
-          -> m (ListProjection (Record c) r)
+          -> m (RecordList (Record c) r)
 queryList =  queryList0
 
 addUnitPH :: Functor f => f t -> f (PlaceHolders (), t)

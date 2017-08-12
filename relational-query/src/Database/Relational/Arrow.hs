@@ -81,7 +81,7 @@ import Database.Relational hiding
    derivedDelete', derivedDelete,
    QuerySimple, QueryAggregate, QueryUnique, Window, Register)
 import qualified Database.Relational as Monadic
-import Database.Relational.Projection (ListProjection)
+import Database.Relational.Projection (RecordList)
 import qualified Database.Relational.Monad.Trans.Aggregating as Monadic
 import qualified Database.Relational.Monad.Trans.Ordering as Monadic
 import qualified Database.Relational.Monad.Trans.Assigning as Monadic
@@ -170,54 +170,54 @@ queryMaybe' r = queryA $ \() -> Monadic.queryMaybe' r
 
 unsafeQueryList :: MonadQualify ConfigureQuery m
             => (a -> Relation () r)
-            -> QueryA m a (ListProjection (Record c) r)
+            -> QueryA m a (RecordList (Record c) r)
 unsafeQueryList rf = queryA $ Monadic.queryList . rf
 
 unsafeQueryList' :: MonadQualify ConfigureQuery m
              => (a -> Relation p r)
-             -> QueryA m a (PlaceHolders p, ListProjection (Record c) r)
+             -> QueryA m a (PlaceHolders p, RecordList (Record c) r)
 unsafeQueryList' rf = queryA $ Monadic.queryList' . rf
 
 -- | Same as 'Monadic.queryList'. Arrow version.
 --   The result arrow is designed to be injected by local projections.
 queryList :: MonadQualify ConfigureQuery m
           => (Record c a -> Relation () r)
-          -> QueryA m (Record c a) (ListProjection (Record c) r)
+          -> QueryA m (Record c a) (RecordList (Record c) r)
 queryList = unsafeQueryList
 
 -- | Same as 'Monadic.queryList''. Arrow version.
 --   The result arrow is designed to be injected by local projections.
 queryList' :: MonadQualify ConfigureQuery m
            => (Record c a -> Relation p r)
-           -> QueryA m (Record c a) (PlaceHolders p, ListProjection (Record c) r)
+           -> QueryA m (Record c a) (PlaceHolders p, RecordList (Record c) r)
 queryList' = unsafeQueryList'
 
 -- | Same as 'Monadic.queryList' to pass this result to 'exists' operator. Arrow version.
 --   The result arrow is designed to be injected by local projections.
 queryExists :: MonadQualify ConfigureQuery m
           => (Record c a -> Relation () r)
-          -> QueryA m (Record c a) (ListProjection (Record Exists) r)
+          -> QueryA m (Record c a) (RecordList (Record Exists) r)
 queryExists = unsafeQueryList
 
 -- | Same as 'Monadic.queryList'' to pass this result to 'exists' operator. Arrow version.
 --   The result arrow is designed to be injected by local projections.
 queryExists' :: MonadQualify ConfigureQuery m
            => (Record c a -> Relation p r)
-           -> QueryA m (Record c a) (PlaceHolders p, ListProjection (Record Exists) r)
+           -> QueryA m (Record c a) (PlaceHolders p, RecordList (Record Exists) r)
 queryExists' = unsafeQueryList'
 
 -- | Same as 'Monadic.queryList'. Arrow version.
 --   Useful for no reference cases to local projections.
 queryListU :: MonadQualify ConfigureQuery m
            => Relation () r
-           -> QueryA m () (ListProjection (Record c) r)
+           -> QueryA m () (RecordList (Record c) r)
 queryListU r = unsafeQueryList $ \() -> r
 
 -- | Same as 'Monadic.queryList''. Arrow version.
 --   Useful for no reference cases to local projections.
 queryListU' :: MonadQualify ConfigureQuery m
            => Relation p r
-           -> QueryA m () (PlaceHolders p, ListProjection (Record c) r)
+           -> QueryA m () (PlaceHolders p, RecordList (Record c) r)
 queryListU' r = unsafeQueryList' $ \() -> r
 
 unsafeQueryScalar :: (MonadQualify ConfigureQuery m, ScalarDegree r)

@@ -56,7 +56,7 @@ import Database.Relational.Component
    Config (..), defaultConfig,
    AggregateKey, Order (..), Nulls (..))
 import Database.Relational.Sub (SubQuery, unitSQL, queryWidth)
-import Database.Relational.Projection (Record, list)
+import Database.Relational.Projection (Record, RecordList, list)
 import Database.Relational.ProjectableClass
 import Database.Relational.Projectable
 import Database.Relational.ProjectableExtended

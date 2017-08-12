@@ -38,7 +38,7 @@ module Database.Relational.Projection (
   pfmap, pap,
 
   -- * List Projection
-  ListProjection, list, unsafeListFromSubQuery,
+  RecordList, ListProjection, list, unsafeListFromSubQuery,
   unsafeStringSqlList
   ) where
 
@@ -186,20 +186,23 @@ instance ProjectableFunctor (Record c) where
 instance ProjectableApplicative (Record c) where
   (|*|) = pap
 
--- | Projection type for row list.
-data ListProjection p t = List [p t]
-                        | Sub SubQuery
+{-# DEPRECATED ListProjection "Replaced by RecordList" #-}
+type ListProjection = RecordList
+
+-- | Projected Record type for row list.
+data RecordList p t = List [p t]
+                    | Sub SubQuery
 
 -- | Make row list projection from 'Projection' list.
-list :: [p t] -> ListProjection p t
+list :: [p t] -> RecordList p t
 list =  List
 
 -- | Make row list projection from 'SubQuery'.
-unsafeListFromSubQuery :: SubQuery -> ListProjection p t
+unsafeListFromSubQuery :: SubQuery -> RecordList p t
 unsafeListFromSubQuery =  Sub
 
 -- | Map projection show operatoions and concatinate to single SQL expression.
-unsafeStringSqlList :: (p t -> StringSQL) -> ListProjection p t -> StringSQL
+unsafeStringSqlList :: (p t -> StringSQL) -> RecordList p t -> StringSQL
 unsafeStringSqlList sf = d  where
   d (List ps) = listStringSQL $ map sf ps
   d (Sub sub) = SQL.paren $ SubQuery.showSQL sub

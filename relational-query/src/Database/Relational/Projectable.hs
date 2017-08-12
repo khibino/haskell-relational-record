@@ -83,7 +83,7 @@ import Database.Relational.Context (Flat, Aggregated, Exists, OverWindow)
 import Database.Relational.TupleInstances ()
 import Database.Relational.ProjectableClass
   (ShowConstantTermsSQL, showConstantTermsSQL, )
-import Database.Relational.Projection (ListProjection)
+import Database.Relational.Projection (RecordList)
 import qualified Database.Relational.Projection as Projection
 
 
@@ -138,7 +138,7 @@ valueFalse :: (OperatorProjectable p, ProjectableMaybe p) => p (Maybe Bool)
 valueFalse =  just $ value False
 
 -- | Polymorphic proejction of SQL set value from Haskell list.
-values :: (ShowConstantTermsSQL t, OperatorProjectable p) => [t] -> ListProjection p t
+values :: (ShowConstantTermsSQL t, OperatorProjectable p) => [t] -> RecordList p t
 values =  Projection.list . map value
 
 
@@ -239,7 +239,7 @@ not' =  unsafeFlatUniOp SQL.NOT
 
 -- | Logical operator corresponding SQL /EXISTS/ .
 exists :: (OperatorProjectable p, ProjectableShowSql p)
-       => ListProjection (Record Exists) r -> p (Maybe Bool)
+       => RecordList (Record Exists) r -> p (Maybe Bool)
 exists =  unsafeProjectSql' . SQL.paren . SQL.defineUniOp SQL.EXISTS
           . Projection.unsafeStringSqlList unsafeShowSql'
 
@@ -402,7 +402,7 @@ caseMaybe v cs = case' v cs nothing
 
 -- | Binary operator corresponding SQL /IN/ .
 in' :: (OperatorProjectable p, ProjectableShowSql p)
-    => p t -> ListProjection p t -> p (Maybe Bool)
+    => p t -> RecordList p t -> p (Maybe Bool)
 in' a lp = unsafeProjectSql' . SQL.paren
            $ SQL.in' (unsafeShowSql' a) (Projection.unsafeStringSqlList unsafeShowSql' lp)
 
