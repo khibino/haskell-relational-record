@@ -17,7 +17,7 @@ import Data.Char (toLower)
 import Data.Int (Int8, Int16, Int32, Int64)
 import Data.Map (Map)
 import Data.Time (LocalTime, Day, TimeOfDay)
-import Database.Relational (Query, Relation, PlaceHolders, Projection, Flat,
+import Database.Relational (Query, Relation, PlaceHolders, Record, Flat,
                             (!), (.=.), (><), asc, relationalQuery, just, placeholder',
                             query, relation', unsafeShowSql,
                             unsafeProjectSql, wheres)
@@ -75,14 +75,14 @@ getType mapFromSql rec@((cols,typs),typScms) = do
                     then typ
                     else [t|Maybe $(typ)|]
 
-sqlsrvTrue :: Projection Flat Bool
+sqlsrvTrue :: Record Flat Bool
 sqlsrvTrue =  unsafeProjectSql "1"
 
-sqlsrvObjectId :: Projection Flat String -> Projection Flat String -> Projection Flat Int32
+sqlsrvObjectId :: Record Flat String -> Record Flat String -> Record Flat Int32
 sqlsrvObjectId s t = unsafeProjectSql $
     "OBJECT_ID(" ++ unsafeShowSql s ++ " + '.' + " ++ unsafeShowSql t ++ ")"
 
-sqlsrvOidPlaceHolder :: (PlaceHolders (String, String), Projection Flat Int32)
+sqlsrvOidPlaceHolder :: (PlaceHolders (String, String), Record Flat Int32)
 sqlsrvOidPlaceHolder =  (nsParam >< relParam, oid)
   where
     (nsParam, (relParam, oid)) =
@@ -98,7 +98,7 @@ columnTypeRelation = relation' $ do
     wheres $ cols ! Columns.userTypeId' .=. typs ! Types.userTypeId'
     wheres $ cols ! Columns.objectId'   .=. oid
     asc $ cols ! Columns.columnId'
-    return   (params, cols >< typs >< sqlsrvSchemaName (typs ! Types.schemaId' :: Projection Flat Int32))
+    return   (params, cols >< typs >< sqlsrvSchemaName (typs ! Types.schemaId' :: Record Flat Int32))
   where
     (params, oid) = sqlsrvOidPlaceHolder
     sqlsrvSchemaName i = unsafeProjectSql $
