@@ -22,10 +22,10 @@ module Database.Relational.Monad.Class
        ) where
 
 import Database.Relational.Internal.BaseSQL (Duplication (..))
+import Database.Relational.Internal.Sub (Record)
 import Database.Relational.Internal.GroupingSQL (AggregateKey)
 
 import Database.Relational.Context (Flat, Aggregated)
-import Database.Relational.Projection (Projection)
 import Database.Relational.Projectable (PlaceHolders)
 import Database.Relational.Monad.BaseType (ConfigureQuery, Relation)
 
@@ -33,7 +33,7 @@ import Database.Relational.Monad.BaseType (ConfigureQuery, Relation)
 -- | Restrict context interface
 class (Functor m, Monad m) => MonadRestrict c m where
   -- | Add restriction to this context.
-  restrict :: Projection c (Maybe Bool) -- ^ 'Projection' which represent restriction
+  restrict :: Record c (Maybe Bool) -- ^ 'Projection' which represent restriction
            -> m ()                      -- ^ Restricted query context
 
 -- | Query building interface.
@@ -41,15 +41,15 @@ class (Functor m, Monad m, MonadQualify ConfigureQuery m) => MonadQuery m where
   -- | Specify duplication.
   setDuplication :: Duplication -> m ()
   -- | Add restriction to last join.
-  restrictJoin :: Projection Flat (Maybe Bool) -- ^ 'Projection' which represent restriction
+  restrictJoin :: Record Flat (Maybe Bool) -- ^ 'Projection' which represent restriction
                -> m ()                         -- ^ Restricted query context
   {- Haddock BUG? -}
   -- | Join sub-query with place-holder parameter 'p'. query result is not 'Maybe'.
   query' :: Relation p r
-         -> m (PlaceHolders p, Projection Flat r)
+         -> m (PlaceHolders p, Record Flat r)
   -- | Join sub-query with place-holder parameter 'p'. Query result is 'Maybe'.
   queryMaybe' :: Relation p r
-              -> m (PlaceHolders p, Projection Flat (Maybe r))
+              -> m (PlaceHolders p, Record Flat (Maybe r))
 
 -- | Lift interface from base qualify monad.
 class (Functor q, Monad q, Functor m, Monad m) => MonadQualify q m where
@@ -63,16 +63,16 @@ instance (Functor q, Monad q) => MonadQualify q q where
 -- | Aggregated query building interface extends 'MonadQuery'.
 class MonadQuery m => MonadAggregate m where
   -- | Add /GROUP BY/ term into context and get aggregated projection.
-  groupBy :: Projection Flat r           -- ^ Projection to add into group by
-          -> m (Projection Aggregated r) -- ^ Result context and aggregated projection
+  groupBy :: Record Flat r           -- ^ Record to add into group by
+          -> m (Record Aggregated r) -- ^ Result context and aggregated projection
   -- | Add /GROUP BY/ term into context and get aggregated projection. Non-traditional group-by version.
-  groupBy' :: AggregateKey (Projection Aggregated r)  -- ^ Key to aggretate for non-traditional group-by interface
-           -> m (Projection Aggregated r)             -- ^ Result context and aggregated projection
+  groupBy' :: AggregateKey (Record Aggregated r)  -- ^ Key to aggretate for non-traditional group-by interface
+           -> m (Record Aggregated r)             -- ^ Result context and aggregated projection
 
 -- | Window specification building interface.
 class Monad m => MonadPartition c m where
   -- | Add /PARTITION BY/ term into context.
-  partitionBy :: Projection c r -> m ()
+  partitionBy :: Record c r -> m ()
 
 -- | Specify ALL attribute to query context.
 all' :: MonadQuery m => m ()
@@ -82,14 +82,14 @@ all' =  setDuplication All
 distinct :: MonadQuery m => m ()
 distinct =  setDuplication Distinct
 
--- | Add restriction to last join. Projection type version.
-on :: MonadQuery m => Projection Flat (Maybe Bool) -> m ()
+-- | Add restriction to last join. Record type version.
+on :: MonadQuery m => Record Flat (Maybe Bool) -> m ()
 on =  restrictJoin
 
 -- | Add restriction to this not aggregated query.
-wheres :: MonadRestrict Flat m => Projection Flat (Maybe Bool) -> m ()
+wheres :: MonadRestrict Flat m => Record Flat (Maybe Bool) -> m ()
 wheres =  restrict
 
--- | Add restriction to this aggregated query. Aggregated Projection type version.
-having :: MonadRestrict Aggregated m => Projection Aggregated (Maybe Bool) -> m ()
+-- | Add restriction to this aggregated query. Aggregated Record type version.
+having :: MonadRestrict Aggregated m => Record Aggregated (Maybe Bool) -> m ()
 having =  restrict

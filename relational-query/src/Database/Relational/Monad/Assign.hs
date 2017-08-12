@@ -21,11 +21,10 @@ module Database.Relational.Monad.Assign (
 
 import Database.Relational.Internal.BaseSQL (Assignment)
 import Database.Relational.Internal.Config (Config)
+import Database.Relational.Internal.Sub (QueryRestriction, Record)
 
-import Database.Relational.Sub (QueryRestriction)
 import Database.Relational.Context (Flat)
 import Database.Relational.Table (Table)
-import Database.Relational.Projection (Projection)
 import Database.Relational.Monad.Restrict (Restrict)
 import qualified Database.Relational.Monad.Restrict as Restrict
 import Database.Relational.Monad.Trans.Assigning (Assignings, extractAssignments)
@@ -36,9 +35,9 @@ type Assign r = Assignings r Restrict
 
 -- | AssignStatement type synonym.
 --   Specifying assignments and restrictions like update statement.
---   Projection record type must be
+--   Record type must be
 --   the same as 'Target' type parameter 'r'.
-type AssignStatement r a = Projection Flat r -> Assign r a
+type AssignStatement r a = Record Flat r -> Assign r a
 
 -- -- | 'return' of 'Update'
 -- updateStatement :: a -> Assignings r (Restrictings Identity) a

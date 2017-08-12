@@ -19,7 +19,7 @@ import Data.Monoid ((<>), mempty)
 
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.Internal.Sub
-  (NodeAttr (..), ProductTree (..), Node (..), Projection, Qualified, SubQuery,
+  (NodeAttr (..), ProductTree (..), Node (..), Record, Qualified, SubQuery,
    ProductTreeBuilder, ProductBuilder)
 
 
@@ -40,7 +40,7 @@ growProduct =  match  where
 
 -- | Add restriction into top product of product tree.
 restrictProduct' :: ProductTreeBuilder           -- ^ Product to restrict
-                 -> Projection Flat (Maybe Bool) -- ^ Restriction to add
+                 -> Record Flat (Maybe Bool) -- ^ Restriction to add
                  -> ProductTreeBuilder           -- ^ Result product
 restrictProduct' =  d  where
   d (Join lp rp rs) rs' = Join lp rp (rs <> pure rs')
@@ -48,6 +48,6 @@ restrictProduct' =  d  where
 
 -- | Add restriction into top product of product tree node.
 restrictProduct :: ProductBuilder               -- ^ Target node which has product to restrict
-                -> Projection Flat (Maybe Bool) -- ^ Restriction to add
+                -> Record Flat (Maybe Bool) -- ^ Restriction to add
                 -> ProductBuilder               -- ^ Result node
 restrictProduct (Node a t) e = Node a (restrictProduct' t e)

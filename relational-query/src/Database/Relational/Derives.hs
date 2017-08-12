@@ -31,9 +31,10 @@ module Database.Relational.Derives (
 import Database.Record (PersistableWidth, ToSql (recordToSql))
 import Database.Record.ToSql (unsafeUpdateValuesWithIndexes)
 
+import Database.Relational.Internal.Sub (Record)
+
 import Database.Relational.Table (Table, TableDerivable)
 import Database.Relational.Pi.Unsafe (Pi, unsafeExpandIndexes)
-import Database.Relational.Projection (Projection)
 import qualified Database.Relational.Projection as Projection
 import Database.Relational.Projectable (placeholder, (.=.))
 import Database.Relational.ProjectableExtended ((!))
@@ -105,7 +106,7 @@ primaryUpdate table' = updateByConstraintKey table' (uniqueKey constraintKey)
 -- | 'UniqueRelation' inferred from table.
 derivedUniqueRelation :: TableDerivable r
                       => Key Unique r k        -- ^ Unique key proof object which record type is 'a' and key type is 'p'.
-                      -> Projection c k        -- ^ Unique key value to specify.
+                      -> Record c k            -- ^ Unique key value to specify.
                       -> UniqueRelation () c r -- ^ Result restricted 'Relation'
 derivedUniqueRelation uk kp = unsafeUnique . relation $ do
   r <- query derivedRelation

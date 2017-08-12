@@ -33,8 +33,8 @@ import Data.DList (DList, toList)
 
 import Database.Relational.Internal.BaseSQL
   (Order (..), Nulls (..), OrderColumn, OrderingTerm)
+import Database.Relational.Internal.Sub (Record)
 
-import Database.Relational.Projection (Projection)
 import qualified Database.Relational.Projection as Projection
 import Database.Relational.Monad.Class
   (MonadQualify (..), MonadRestrict(..), MonadQuery(..), MonadAggregate(..), MonadPartition(..))
@@ -78,42 +78,42 @@ instance MonadPartition c m => MonadPartition c (Orderings c m) where
 class ProjectableOrdering p where
   orderTerms :: p t -> [OrderColumn]
 
--- | 'Projection' is ordering term.
-instance ProjectableOrdering (Projection c) where
+-- | 'Record' is ordering term.
+instance ProjectableOrdering (Record c) where
   orderTerms = Projection.columns
 
 -- | Add ordering terms.
-updateOrderBys :: (Monad m, ProjectableOrdering (Projection c))
+updateOrderBys :: (Monad m, ProjectableOrdering (Record c))
                => (Order, Maybe Nulls) -- ^ Order direction
-               -> Projection c t       -- ^ Ordering terms to add
+               -> Record c t       -- ^ Ordering terms to add
                -> Orderings c m ()     -- ^ Result context with ordering
 updateOrderBys opair p = Orderings . mapM_ tell $ terms  where
   terms = curry pure opair `map` orderTerms p
 
 -- | Add ordering terms with null ordering.
-orderBy' :: (Monad m, ProjectableOrdering (Projection c))
-         => Projection c t   -- ^ Ordering terms to add
+orderBy' :: (Monad m, ProjectableOrdering (Record c))
+         => Record c t   -- ^ Ordering terms to add
          -> Order            -- ^ Order direction
          -> Nulls            -- ^ Order of null
          -> Orderings c m () -- ^ Result context with ordering
 orderBy' p o n = updateOrderBys (o, Just n) p
 
 -- | Add ordering terms.
-orderBy :: (Monad m, ProjectableOrdering (Projection c))
-        => Projection c t   -- ^ Ordering terms to add
+orderBy :: (Monad m, ProjectableOrdering (Record c))
+        => Record c t   -- ^ Ordering terms to add
         -> Order        -- ^ Order direction
         -> Orderings c m () -- ^ Result context with ordering
 orderBy p o = updateOrderBys (o, Nothing) p
 
 -- | Add ascendant ordering term.
-asc :: (Monad m, ProjectableOrdering (Projection c))
-    => Projection c t   -- ^ Ordering terms to add
+asc :: (Monad m, ProjectableOrdering (Record c))
+    => Record c t   -- ^ Ordering terms to add
     -> Orderings c m () -- ^ Result context with ordering
 asc  =  updateOrderBys (Asc, Nothing)
 
 -- | Add descendant ordering term.
-desc :: (Monad m, ProjectableOrdering (Projection c))
-     => Projection c t   -- ^ Ordering terms to add
+desc :: (Monad m, ProjectableOrdering (Record c))
+     => Record c t   -- ^ Ordering terms to add
      -> Orderings c m () -- ^ Result context with ordering
 desc =  updateOrderBys (Desc, Nothing)
 

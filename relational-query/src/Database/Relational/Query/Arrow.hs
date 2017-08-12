@@ -12,6 +12,8 @@
 module Database.Relational.Query.Arrow
        {-# DEPRECATED "Should switch namespace to Database.Relational.Arrow" #-}
        ( module Database.Relational.Arrow,
+         module Database.Relational.Compat,
        )  where
 
 import Database.Relational.Arrow
+import Database.Relational.Compat

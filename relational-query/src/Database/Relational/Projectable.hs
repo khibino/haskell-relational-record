@@ -74,6 +74,7 @@ import Database.Record
 import Database.Record.Persistable (runPersistableRecordWidth)
 
 import Database.Relational.Internal.SQL (StringSQL, stringSQL, showStringSQL)
+import Database.Relational.Internal.Sub (Record)
 import qualified Database.Relational.Internal.Sub as Internal
 
 import Database.Relational.ProjectableClass
@@ -82,8 +83,7 @@ import Database.Relational.Context (Flat, Aggregated, Exists, OverWindow)
 import Database.Relational.TupleInstances ()
 import Database.Relational.ProjectableClass
   (ShowConstantTermsSQL, showConstantTermsSQL, )
-import Database.Relational.Projection
-  (Projection, ListProjection)
+import Database.Relational.Projection (ListProjection)
 import qualified Database.Relational.Projection as Projection
 
 
@@ -94,20 +94,20 @@ class SqlProjectable p where
                         -> p t         -- ^ Result projection object
 
 -- | Unsafely make 'Projection' from SQL terms.
-instance SqlProjectable (Projection Flat) where
+instance SqlProjectable (Record Flat) where
   unsafeProjectSqlTerms = Projection.unsafeFromSqlTerms
 
 -- | Unsafely make 'Projection' from SQL terms.
-instance SqlProjectable (Projection Aggregated) where
+instance SqlProjectable (Record Aggregated) where
   unsafeProjectSqlTerms = Projection.unsafeFromSqlTerms
 
 -- | Unsafely make 'Projection' from SQL terms.
-instance SqlProjectable (Projection OverWindow) where
+instance SqlProjectable (Record OverWindow) where
   unsafeProjectSqlTerms = Projection.unsafeFromSqlTerms
 
 class SqlProjectable p => OperatorProjectable p
-instance OperatorProjectable (Projection Flat)
-instance OperatorProjectable (Projection Aggregated)
+instance OperatorProjectable (Record Flat)
+instance OperatorProjectable (Record Aggregated)
 
 -- | Unsafely Project single SQL term.
 unsafeProjectSql' :: SqlProjectable p => StringSQL -> p t
@@ -118,11 +118,11 @@ unsafeProjectSql :: SqlProjectable p => String -> p t
 unsafeProjectSql =  unsafeProjectSql' . stringSQL
 
 -- | Polymorphic projection of SQL null value. Semantics of comparing is unsafe.
-nothing :: (OperatorProjectable (Projection c), SqlProjectable (Projection c), PersistableWidth a)
-        => Projection c (Maybe a)
+nothing :: (OperatorProjectable (Record c), SqlProjectable (Record c), PersistableWidth a)
+        => Record c (Maybe a)
 nothing = proxyWidth persistableWidth
   where
-    proxyWidth :: SqlProjectable (Projection c) => PersistableRecordWidth a -> Projection c (Maybe a)
+    proxyWidth :: SqlProjectable (Record c) => PersistableRecordWidth a -> Record c (Maybe a)
     proxyWidth w = unsafeProjectSqlTerms $ replicate (runPersistableRecordWidth w) SQL.NULL
 
 -- | Generate polymorphic projection of SQL constant values from Haskell value.
@@ -156,7 +156,7 @@ unsafeShowSql :: ProjectableShowSql p
 unsafeShowSql =  showStringSQL . unsafeShowSql'
 
 -- | Unsafely get SQL term from 'Proejction'.
-instance ProjectableShowSql (Projection c) where
+instance ProjectableShowSql (Record c) where
   unsafeShowSql' = Projection.unsafeStringSql
 
 
@@ -239,7 +239,7 @@ not' =  unsafeFlatUniOp SQL.NOT
 
 -- | Logical operator corresponding SQL /EXISTS/ .
 exists :: (OperatorProjectable p, ProjectableShowSql p)
-       => ListProjection (Projection Exists) r -> p (Maybe Bool)
+       => ListProjection (Record Exists) r -> p (Maybe Bool)
 exists =  unsafeProjectSql' . SQL.paren . SQL.defineUniOp SQL.EXISTS
           . Projection.unsafeStringSqlList unsafeShowSql'
 
@@ -358,46 +358,46 @@ showNumMaybe = unsafeCastProjectable
 
 -- | Search case operator correnponding SQL search /CASE/.
 --   Like, /CASE WHEN p0 THEN a WHEN p1 THEN b ... ELSE c END/
-caseSearch :: OperatorProjectable (Projection c)
-           => [(Projection c (Maybe Bool), Projection c a)] -- ^ Each when clauses
-           -> Projection c a                                -- ^ Else result projection
-           -> Projection c a                                -- ^ Result projection
+caseSearch :: OperatorProjectable (Record c)
+           => [(Record c (Maybe Bool), Record c a)] -- ^ Each when clauses
+           -> Record c a                            -- ^ Else result projection
+           -> Record c a                            -- ^ Result projection
 caseSearch = Internal.caseSearch
 
 -- | Same as 'caseSearch', but you can write like <when list> `casesOrElse` <else clause>.
-casesOrElse :: OperatorProjectable (Projection c)
-            => [(Projection c (Maybe Bool), Projection c a)] -- ^ Each when clauses
-            -> Projection c a                                -- ^ Else result projection
-            -> Projection c a                                -- ^ Result projection
+casesOrElse :: OperatorProjectable (Record c)
+            => [(Record c (Maybe Bool), Record c a)] -- ^ Each when clauses
+            -> Record c a                            -- ^ Else result projection
+            -> Record c a                            -- ^ Result projection
 casesOrElse = caseSearch
 
 -- | Null default version of 'caseSearch'.
-caseSearchMaybe :: (OperatorProjectable (Projection c) {- (Projection c) is always ProjectableMaybe -}, PersistableWidth a)
-                => [(Projection c (Maybe Bool), Projection c (Maybe a))] -- ^ Each when clauses
-                -> Projection c (Maybe a)                                -- ^ Result projection
+caseSearchMaybe :: (OperatorProjectable (Record c) {- (Record c) is always ProjectableMaybe -}, PersistableWidth a)
+                => [(Record c (Maybe Bool), Record c (Maybe a))] -- ^ Each when clauses
+                -> Record c (Maybe a)                            -- ^ Result projection
 caseSearchMaybe cs = caseSearch cs nothing
 
 -- | Simple case operator correnponding SQL simple /CASE/.
 --   Like, /CASE x WHEN v THEN a WHEN w THEN b ... ELSE c END/
-case' :: OperatorProjectable (Projection c)
-      => Projection c a                     -- ^ Projection value to match
-      -> [(Projection c a, Projection c b)] -- ^ Each when clauses
-      -> Projection c b                     -- ^ Else result projection
-      -> Projection c b                     -- ^ Result projection
+case' :: OperatorProjectable (Record c)
+      => Record c a                 -- ^ Record value to match
+      -> [(Record c a, Record c b)] -- ^ Each when clauses
+      -> Record c b                 -- ^ Else result projection
+      -> Record c b                 -- ^ Result projection
 case' = Internal.case'
 
 -- | Uncurry version of 'case'', and you can write like ... `casesOrElse'` <else clause>.
-casesOrElse' :: OperatorProjectable (Projection c)
-             => (Projection c a, [(Projection c a, Projection c b)]) -- ^ Projection value to match and each when clauses list
-             -> Projection c b                                       -- ^ Else result projection
-             -> Projection c b                                       -- ^ Result projection
+casesOrElse' :: OperatorProjectable (Record c)
+             => (Record c a, [(Record c a, Record c b)]) -- ^ Record value to match and each when clauses list
+             -> Record c b                               -- ^ Else result projection
+             -> Record c b                               -- ^ Result projection
 casesOrElse' =  uncurry case'
 
 -- | Null default version of 'case''.
-caseMaybe :: (OperatorProjectable (Projection c) {- (Projection c) is always ProjectableMaybe -}, PersistableWidth b)
-          => Projection c a                             -- ^ Projection value to match
-          -> [(Projection c a, Projection c (Maybe b))] -- ^ Each when clauses
-          -> Projection c (Maybe b)                     -- ^ Result projection
+caseMaybe :: (OperatorProjectable (Record c) {- (Record c) is always ProjectableMaybe -}, PersistableWidth b)
+          => Record c a                         -- ^ Record value to match
+          -> [(Record c a, Record c (Maybe b))] -- ^ Each when clauses
+          -> Record c (Maybe b)                 -- ^ Result projection
 caseMaybe v cs = case' v cs nothing
 
 -- | Binary operator corresponding SQL /IN/ .
@@ -407,43 +407,43 @@ in' a lp = unsafeProjectSql' . SQL.paren
            $ SQL.in' (unsafeShowSql' a) (Projection.unsafeStringSqlList unsafeShowSql' lp)
 
 -- | Operator corresponding SQL /IS NULL/ , and extended against record types.
-isNothing :: (OperatorProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
-          => Projection c (Maybe r) -> Projection c (Maybe Bool)
+isNothing :: (OperatorProjectable (Record c), ProjectableShowSql (Record c), HasColumnConstraint NotNull r)
+          => Record c (Maybe r) -> Record c (Maybe Bool)
 isNothing mr = unsafeProjectSql' $
                SQL.paren $ (SQL.defineBinOp SQL.IS)
                (Projection.unsafeStringSqlNotNullMaybe mr) SQL.NULL
 
 -- | Operator corresponding SQL /NOT (... IS NULL)/ , and extended against record type.
-isJust :: (OperatorProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
-          => Projection c (Maybe r) -> Projection c (Maybe Bool)
+isJust :: (OperatorProjectable (Record c), ProjectableShowSql (Record c), HasColumnConstraint NotNull r)
+          => Record c (Maybe r) -> Record c (Maybe Bool)
 isJust =  not' . isNothing
 
 -- | Operator from maybe type using record extended 'isNull'.
-fromMaybe :: (OperatorProjectable (Projection c), ProjectableShowSql (Projection c), HasColumnConstraint NotNull r)
-          => Projection c r -> Projection c (Maybe r) -> Projection c r
+fromMaybe :: (OperatorProjectable (Record c), ProjectableShowSql (Record c), HasColumnConstraint NotNull r)
+          => Record c r -> Record c (Maybe r) -> Record c r
 fromMaybe d p = [ (isNothing p, d) ] `casesOrElse` unsafeCastProjectable p
 
 unsafeUniTermFunction :: SqlProjectable p => Keyword -> p t
 unsafeUniTermFunction =  unsafeProjectSql' . (SQL.<++> stringSQL "()")
 
 -- | /RANK()/ term.
-rank :: Integral a => Projection OverWindow a
+rank :: Integral a => Record OverWindow a
 rank =  unsafeUniTermFunction SQL.RANK
 
 -- | /DENSE_RANK()/ term.
-denseRank :: Integral a => Projection OverWindow a
+denseRank :: Integral a => Record OverWindow a
 denseRank =  unsafeUniTermFunction SQL.DENSE_RANK
 
 -- | /ROW_NUMBER()/ term.
-rowNumber :: Integral a => Projection OverWindow a
+rowNumber :: Integral a => Record OverWindow a
 rowNumber =  unsafeUniTermFunction SQL.ROW_NUMBER
 
 -- | /PERCENT_RANK()/ term.
-percentRank :: Projection OverWindow Double
+percentRank :: Record OverWindow Double
 percentRank =  unsafeUniTermFunction SQL.PERCENT_RANK
 
 -- | /CUME_DIST()/ term.
-cumeDist :: Projection OverWindow Double
+cumeDist :: Record OverWindow Double
 cumeDist =  unsafeUniTermFunction SQL.CUME_DIST
 
 -- | Placeholder parameter type which has real parameter type arguemnt 'p'.
@@ -514,7 +514,7 @@ instance ProjectableMaybe PlaceHolders where
   flattenMaybe = unsafeCastPlaceHolders
 
 -- | Control phantom 'Maybe' type in projection type 'Projection'.
-instance ProjectableMaybe (Projection c) where
+instance ProjectableMaybe (Record c) where
   just         = Projection.just
   flattenMaybe = Projection.flattenMaybe
 

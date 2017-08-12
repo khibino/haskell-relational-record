@@ -33,10 +33,10 @@ import Language.SQL.Keyword (Keyword(..))
 import qualified Language.SQL.Keyword as SQL
 
 import Database.Relational.Internal.BaseSQL (Duplication, OrderingTerm, composeOrderBy)
+import Database.Relational.Internal.Sub (Record)
 import Database.Relational.Internal.GroupingSQL (AggregateColumnRef, AggregateElem, composePartitionBy)
 
 import Database.Relational.Context (Flat, Aggregated, OverWindow)
-import Database.Relational.Projection (Projection)
 import qualified Database.Relational.Projection as Projection
 import Database.Relational.Sub (SubQuery, QueryRestriction, JoinProduct, aggregatedSubQuery)
 import qualified Database.Relational.Sub as SubQuery
@@ -66,7 +66,7 @@ instance MonadRestrict Flat q => MonadRestrict Flat (Restrictings Aggregated q) 
   restrict = restrictings . restrict
 
 extract :: AggregatedQuery p r
-        -> ConfigureQuery (((((((PlaceHolders p, Projection Aggregated r), [OrderingTerm]),
+        -> ConfigureQuery (((((((PlaceHolders p, Record Aggregated r), [OrderingTerm]),
                                QueryRestriction Aggregated),
                               [AggregateElem]),
                              QueryRestriction Flat),
@@ -74,7 +74,7 @@ extract :: AggregatedQuery p r
 extract =  extractCore . extractAggregateTerms . extractRestrict . extractOrderingTerms
 
 -- | Run 'AggregatedQuery' to get SQL with 'ConfigureQuery' computation.
-toSQL :: AggregatedQuery p r     -- ^ 'AggregatedQuery' to run
+toSQL :: AggregatedQuery p r   -- ^ 'AggregatedQuery' to run
       -> ConfigureQuery String -- ^ Result SQL string with 'ConfigureQuery' computation
 toSQL =  fmap SubQuery.toSQL . toSubQuery
 
@@ -90,10 +90,10 @@ extractWindow :: Window c a -> ((a, [OrderingTerm]), [AggregateColumnRef])
 extractWindow =  runIdentity . extractAggregateTerms . extractOrderingTerms
 
 -- | Operator to make window function result projection using built 'Window' monad.
-over :: SqlProjectable (Projection c)
-     => Projection OverWindow a
+over :: SqlProjectable (Record c)
+     => Record OverWindow a
      -> Window c ()
-     -> Projection c a
+     -> Record c a
 wp `over` win =
   Projection.unsafeFromSqlTerms
   [ c <> OVER <> SQL.paren (composePartitionBy pt <> composeOrderBy ot)

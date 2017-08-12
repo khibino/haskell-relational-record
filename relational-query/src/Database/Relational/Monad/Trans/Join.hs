@@ -35,8 +35,8 @@ import Data.Monoid (Last (Last, getLast))
 
 import Database.Relational.Internal.BaseSQL (Duplication (All))
 import Database.Relational.Internal.Product (restrictProduct, growProduct)
+import Database.Relational.Internal.Sub (NodeAttr (Just', Maybe), SubQuery, Qualified, JoinProduct, Record)
 
-import Database.Relational.Sub (NodeAttr (Just', Maybe), SubQuery, Qualified, JoinProduct, Projection)
 import Database.Relational.Context (Flat)
 import Database.Relational.Monad.Trans.JoinState
   (JoinContext, primeJoinContext, updateProduct, joinProduct)
@@ -63,7 +63,7 @@ updateContext :: Monad m => (JoinContext -> JoinContext) -> QueryJoin m ()
 updateContext =  QueryJoin . modify
 
 -- | Add last join product restriction.
-updateJoinRestriction :: Monad m => Projection Flat (Maybe Bool) -> QueryJoin m ()
+updateJoinRestriction :: Monad m => Record Flat (Maybe Bool) -> QueryJoin m ()
 updateJoinRestriction e = updateContext (updateProduct d)  where
   d  Nothing  = error "on: Product is empty! Restrict target product is not found!"
   d (Just pt) = restrictProduct pt e
@@ -82,9 +82,9 @@ instance MonadQuery (QueryJoin ConfigureQuery) where
 
 -- | Unsafely join sub-query with this query.
 unsafeSubQueryWithAttr :: Monad q
-                       => NodeAttr                     -- ^ Attribute maybe or just
-                       -> Qualified SubQuery           -- ^ 'SubQuery' to join
-                       -> QueryJoin q (Projection c r) -- ^ Result joined context and 'SubQuery' result projection.
+                       => NodeAttr                 -- ^ Attribute maybe or just
+                       -> Qualified SubQuery       -- ^ 'SubQuery' to join
+                       -> QueryJoin q (Record c r) -- ^ Result joined context and 'SubQuery' result projection.
 unsafeSubQueryWithAttr attr qsub = do
   updateContext (updateProduct (`growProduct` (attr, qsub)))
   return $ Projection.unsafeFromQualifiedSubQuery qsub
@@ -92,7 +92,7 @@ unsafeSubQueryWithAttr attr qsub = do
 -- | Basic monadic join operation using 'MonadQuery'.
 queryWithAttr :: NodeAttr
               -> Relation p r
-              -> QueryJoin ConfigureQuery (PlaceHolders p, Projection c r)
+              -> QueryJoin ConfigureQuery (PlaceHolders p, Record c r)
 queryWithAttr attr = unsafeAddPlaceHolders . run where
   run rel = do
     q <- liftQualify $ do

@@ -21,10 +21,10 @@ module Database.Relational.Monad.Unique
 
 import Control.Applicative (Applicative)
 
+import Database.Relational.Internal.Sub (Record)
 import Database.Relational.Internal.BaseSQL (Duplication)
 
 import Database.Relational.Context (Flat)
-import Database.Relational.Projection (Projection)
 import qualified Database.Relational.Projection as Projection
 import Database.Relational.Projectable (PlaceHolders)
 import Database.Relational.Monad.Class (MonadQualify, MonadQuery)
@@ -41,9 +41,9 @@ newtype QueryUnique a = QueryUnique (QueryCore a)
                       deriving (MonadQualify ConfigureQuery, MonadQuery, Monad, Applicative, Functor)
 
 -- | Unsafely join sub-query with this unique query.
-unsafeUniqueSubQuery :: NodeAttr                     -- ^ Attribute maybe or just
-                     -> Qualified SubQuery           -- ^ 'SubQuery' to join
-                     -> QueryUnique (Projection c r) -- ^ Result joined context and 'SubQuery' result projection.
+unsafeUniqueSubQuery :: NodeAttr                 -- ^ Attribute maybe or just
+                     -> Qualified SubQuery       -- ^ 'SubQuery' to join
+                     -> QueryUnique (Record c r) -- ^ Result joined context and 'SubQuery' result projection.
 unsafeUniqueSubQuery a  = QueryUnique . restrictings . unsafeSubQueryWithAttr a
 
 extract :: QueryUnique a
@@ -51,8 +51,8 @@ extract :: QueryUnique a
 extract (QueryUnique c) = extractCore c
 
 -- | Run 'SimpleQuery' to get 'SubQuery' with 'Qualify' computation.
-toSubQuery :: QueryUnique (PlaceHolders p, Projection c r) -- ^ 'QueryUnique' to run
-           -> ConfigureQuery SubQuery      -- ^ Result 'SubQuery' with 'Qualify' computation
+toSubQuery :: QueryUnique (PlaceHolders p, Record c r) -- ^ 'QueryUnique' to run
+           -> ConfigureQuery SubQuery                  -- ^ Result 'SubQuery' with 'Qualify' computation
 toSubQuery q = do
   ((((_ph, pj), rs), pd), da) <- extract q
   c <- askConfig

@@ -21,10 +21,9 @@ module Database.Relational.Monad.Restrict (
   ) where
 
 import Database.Relational.Internal.Config (Config)
+import Database.Relational.Internal.Sub (QueryRestriction, Record)
 
-import Database.Relational.Sub (QueryRestriction)
 import Database.Relational.Context (Flat)
-import Database.Relational.Projection (Projection)
 import Database.Relational.Monad.Trans.Restricting
   (Restrictings, extractRestrict)
 import Database.Relational.Monad.BaseType (ConfigureQuery, configureQuery)
@@ -34,9 +33,9 @@ import Database.Relational.Monad.BaseType (ConfigureQuery, configureQuery)
 type Restrict = Restrictings Flat ConfigureQuery
 
 -- | RestrictedStatement type synonym.
---   Projection record type 'r' must be
+--   Record type 'r' must be
 --   the same as 'Restrictings' type parameter 'r'.
-type RestrictedStatement r a = Projection Flat r -> Restrict a
+type RestrictedStatement r a = Record Flat r -> Restrict a
 
 -- -- | 'return' of 'Restrict'
 -- restricted :: a -> Restrict a

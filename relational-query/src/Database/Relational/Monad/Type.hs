@@ -15,10 +15,10 @@ module Database.Relational.Monad.Type
        ) where
 
 import Database.Relational.Internal.BaseSQL (Duplication)
+import Database.Relational.Internal.Sub (Record)
 
 import Database.Relational.Sub (JoinProduct, QueryRestriction)
 import Database.Relational.Context (Flat)
-import Database.Relational.Projection (Projection)
 import Database.Relational.Projectable (PlaceHolders)
 import Database.Relational.Monad.BaseType (ConfigureQuery)
 import Database.Relational.Monad.Trans.Join (QueryJoin, extractProduct)
@@ -34,5 +34,5 @@ extractCore :: QueryCore a
             -> ConfigureQuery (((a, QueryRestriction Flat), JoinProduct), Duplication)
 extractCore =  extractProduct . extractRestrict
 
--- | OrderedQuery monad type with placeholder type 'p'. Projection must be the same as 'Orderings' context type parameter 'c'.
-type OrderedQuery c m p r = Orderings c m (PlaceHolders p, Projection c r)
+-- | OrderedQuery monad type with placeholder type 'p'. Record must be the same as 'Orderings' context type parameter 'c'.
+type OrderedQuery c m p r = Orderings c m (PlaceHolders p, Record c r)

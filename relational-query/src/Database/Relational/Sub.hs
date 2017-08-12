@@ -25,8 +25,6 @@ module Database.Relational.Sub (
   column,
 
   -- * Projection
-  Projection,
-
   tupleFromJoinedSubQuery,
 
   recordRawColumns,
@@ -57,7 +55,7 @@ import Database.Relational.Internal.BaseSQL
 import Database.Relational.Internal.GroupingSQL
   (AggregateElem, composeGroupBy, )
 import Database.Relational.Internal.Sub
-  (SubQuery (..), Projection,
+  (SubQuery (..), Record,
    CaseClause(..), WhenClauses (..),
    Tuple, Column (..),
    JoinProduct, QueryProductTree, ProductBuilder,
@@ -277,7 +275,7 @@ showTupleIndex up i
     error $ "showTupleIndex: index out of bounds: " ++ show i
 
 -- | Get column SQL string list of projection.
-recordRawColumns :: Projection c r -- ^ Source 'Projection'
+recordRawColumns :: Record c r -- ^ Source 'Projection'
                  -> [StringSQL]    -- ^ Result SQL string list
 recordRawColumns = map showColumn . Internal.untypeRecord
 

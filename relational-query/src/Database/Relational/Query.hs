@@ -12,6 +12,8 @@
 module Database.Relational.Query
        {-# DEPRECATED "Should switch namespace to Database.Relational" #-}
        ( module Database.Relational,
+         module Database.Relational.Compat,
        )  where
 
 import Database.Relational
+import Database.Relational.Compat

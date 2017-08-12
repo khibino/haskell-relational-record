@@ -22,8 +22,9 @@ module Database.Relational.Monad.Simple (
   toSubQuery,
   ) where
 
+import Database.Relational.Internal.Sub (Record)
+
 import Database.Relational.Context (Flat)
-import Database.Relational.Projection (Projection)
 import qualified Database.Relational.Projection as Projection
 
 import Database.Relational.Internal.BaseSQL (Duplication, OrderingTerm)
@@ -51,7 +52,7 @@ simple :: ConfigureQuery a -> QuerySimple a
 simple =  orderings . restrictings . join'
 
 extract :: SimpleQuery p r
-        -> ConfigureQuery (((((PlaceHolders p, Projection Flat r), [OrderingTerm]), QueryRestriction Flat),
+        -> ConfigureQuery (((((PlaceHolders p, Record Flat r), [OrderingTerm]), QueryRestriction Flat),
                            JoinProduct), Duplication)
 extract =  extractCore . extractOrderingTerms
 

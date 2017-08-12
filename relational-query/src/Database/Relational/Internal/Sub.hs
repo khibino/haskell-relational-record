@@ -27,7 +27,6 @@ module Database.Relational.Internal.Sub
        , Tuple, tupleWidth
        , Column (..)
        , Record, untypeRecord, record
-       , Projection
        , recordWidth
        , typeFromRawColumns
        , typeFromScalarSubQuery
@@ -92,7 +91,7 @@ data NodeAttr = Just' | Maybe deriving Show
 
 type QS = Qualified SubQuery
 
-type QueryRestrictionBuilder = DList (Projection Flat (Maybe Bool))
+type QueryRestrictionBuilder = DList (Record Flat (Maybe Bool))
 
 -- | Product tree type. Product tree is constructed by left node and right node.
 data ProductTree rs
@@ -134,7 +133,7 @@ data CaseClause
   | CaseSimple Tuple WhenClauses
   deriving Show
 
--- | Projection structure unit with single column width
+-- | Projected column structure unit with single column width
 data Column
   = RawColumn StringSQL            -- ^ used in immediate value or unsafe operations
   | SubQueryRef (Qualified Int)    -- ^ normalized sub-query reference T<n> with Int index
@@ -149,9 +148,6 @@ type Tuple = [Column]
 tupleWidth :: Tuple -> Int
 tupleWidth = length
 
-{-# DEPRECATED Projection "Replaced by Record type" #-}
-type Projection = Record
-
 -- | Phantom typed record. Projected into Haskell record type 't'.
 newtype Record c t =
   Record
@@ -161,16 +157,16 @@ newtype Record c t =
 record :: Tuple -> Record c t
 record = Record
 
--- | Width of 'Projection'.
+-- | Width of 'Record'.
 recordWidth :: Record c r -> Int
 recordWidth = length . untypeRecord
 
--- | Unsafely generate 'Projection' from SQL string list.
-typeFromRawColumns :: [StringSQL]    -- ^ SQL string list specifies columns
-                   -> Record c r -- ^ Result 'Projection'
+-- | Unsafely generate 'Record' from SQL string list.
+typeFromRawColumns :: [StringSQL] -- ^ SQL string list specifies columns
+                   -> Record c r  -- ^ Result 'Record'
 typeFromRawColumns =  record . map RawColumn
 
--- | Unsafely generate 'Projection' from scalar sub-query.
+-- | Unsafely generate 'Record' from scalar sub-query.
 typeFromScalarSubQuery :: SubQuery -> Record c t
 typeFromScalarSubQuery = record . (:[]) . Scalar
 

@@ -42,6 +42,7 @@ module Database.Relational.Relation (
 
 import Control.Applicative ((<$>))
 
+import Database.Relational.Internal.Sub (Record)
 import Database.Relational.Internal.BaseSQL (Duplication (Distinct, All))
 
 import Database.Relational.Context (Flat, Aggregated)
@@ -61,8 +62,7 @@ import Database.Relational.Sub (SubQuery, NodeAttr(Just', Maybe))
 import qualified Database.Relational.Sub as SubQuery
 import Database.Relational.Scalar (ScalarDegree)
 import Database.Relational.Pi (Pi)
-import Database.Relational.Projection
-  (Projection, ListProjection)
+import Database.Relational.Projection (ListProjection)
 import qualified Database.Relational.Projection as Projection
 import Database.Relational.Projectable
   (PlaceHolders, unitPlaceHolder, unsafeAddPlaceHolders, unsafePlaceHolders, projectZip)
@@ -86,7 +86,7 @@ placeHoldersFromRelation =  const unsafePlaceHolders
 -- | Join sub-query. Query result is not 'Maybe'.
 query :: (MonadQualify ConfigureQuery m, MonadQuery m)
       => Relation () r
-      -> m (Projection Flat r)
+      -> m (Record Flat r)
 query =  fmap snd . query'
 
 -- | Join sub-query. Query result is 'Maybe'.
@@ -103,10 +103,10 @@ query =  fmap snd . query'
 -- @
 queryMaybe :: (MonadQualify ConfigureQuery m, MonadQuery m)
            => Relation () r
-           -> m (Projection Flat (Maybe r))
+           -> m (Record Flat (Maybe r))
 queryMaybe =  fmap snd . queryMaybe'
 
-queryList0 :: MonadQualify ConfigureQuery m => Relation p r -> m (ListProjection (Projection c) r)
+queryList0 :: MonadQualify ConfigureQuery m => Relation p r -> m (ListProjection (Record c) r)
 queryList0 =  liftQualify
               . fmap Projection.unsafeListFromSubQuery
               . untypeRelation
@@ -114,7 +114,7 @@ queryList0 =  liftQualify
 -- | List sub-query, for /IN/ and /EXIST/ with place-holder parameter 'p'.
 queryList' :: MonadQualify ConfigureQuery m
            => Relation p r
-           -> m (PlaceHolders p, ListProjection (Projection c) r)
+           -> m (PlaceHolders p, ListProjection (Record c) r)
 queryList' rel = do
   ql <- queryList0 rel
   return (placeHoldersFromRelation rel, ql)
@@ -122,7 +122,7 @@ queryList' rel = do
 -- | List sub-query, for /IN/ and /EXIST/.
 queryList :: MonadQualify ConfigureQuery m
           => Relation () r
-          -> m (ListProjection (Projection c) r)
+          -> m (ListProjection (Record c) r)
 queryList =  queryList0
 
 addUnitPH :: Functor f => f t -> f (PlaceHolders (), t)
@@ -133,7 +133,7 @@ relation' :: SimpleQuery p r -> Relation p r
 relation' =  unsafeTypeRelation . Simple.toSubQuery
 
 -- | Finalize 'QuerySimple' monad and generate 'Relation'.
-relation :: QuerySimple (Projection Flat r) -> Relation () r
+relation :: QuerySimple (Record Flat r) -> Relation () r
 relation =  relation' . addUnitPH
 
 -- | Finalize 'QueryAggregate' monad and geneate 'Relation' with place-holder parameter 'p'.
@@ -141,7 +141,7 @@ aggregateRelation' :: AggregatedQuery p r -> Relation p r
 aggregateRelation' =  unsafeTypeRelation . Aggregate.toSubQuery
 
 -- | Finalize 'QueryAggregate' monad and geneate 'Relation'.
-aggregateRelation :: QueryAggregate (Projection Aggregated r) -> Relation () r
+aggregateRelation :: QueryAggregate (Record Aggregated r) -> Relation () r
 aggregateRelation =  aggregateRelation' . addUnitPH
 
 
@@ -153,11 +153,11 @@ aggregateRelation =  aggregateRelation' . addUnitPH
 --            relX `inner` relY `on'` [ \x y -> ... ] -- this lambda form has JoinRestriction type
 --      ...
 -- @
-type JoinRestriction a b = Projection Flat a -> Projection Flat b -> Projection Flat (Maybe Bool)
+type JoinRestriction a b = Record Flat a -> Record Flat b -> Record Flat (Maybe Bool)
 
 -- | Basic direct join operation with place-holder parameters.
-join' :: (qa -> QuerySimple (PlaceHolders pa, Projection Flat a))
-      -> (qb -> QuerySimple (PlaceHolders pb, Projection Flat b))
+join' :: (qa -> QuerySimple (PlaceHolders pa, Record Flat a))
+      -> (qb -> QuerySimple (PlaceHolders pb, Record Flat b))
       -> qa
       -> qb
       -> [JoinRestriction a b]
@@ -197,8 +197,8 @@ full' :: Relation pa a                         -- ^ Left query to join
 full'  =  join' queryMaybe' queryMaybe'
 
 -- | Basic direct join operation.
-join_ :: (qa -> QuerySimple (Projection Flat a))
-      -> (qb -> QuerySimple (Projection Flat b))
+join_ :: (qa -> QuerySimple (Record Flat a))
+      -> (qb -> QuerySimple (Record Flat b))
       -> qa
       -> qb
       -> [JoinRestriction a b]
@@ -339,7 +339,7 @@ unUnique (Unique r) = r
 -- | Basic monadic join operation using 'MonadQuery'.
 uniqueQueryWithAttr :: NodeAttr
                     -> UniqueRelation p c r
-                    -> QueryUnique (PlaceHolders p, Projection c r)
+                    -> QueryUnique (PlaceHolders p, Record c r)
 uniqueQueryWithAttr attr = unsafeAddPlaceHolders . run where
   run rel = do
     q <- liftQualify $ do
@@ -349,24 +349,24 @@ uniqueQueryWithAttr attr = unsafeAddPlaceHolders . run where
 
 -- | Join unique sub-query with place-holder parameter 'p'.
 uniqueQuery' :: UniqueRelation p c r
-             -> QueryUnique (PlaceHolders p, Projection c r)
+             -> QueryUnique (PlaceHolders p, Record c r)
 uniqueQuery' = uniqueQueryWithAttr Just'
 
 -- | Join unique sub-query with place-holder parameter 'p'. Query result is 'Maybe'.
 uniqueQueryMaybe' :: UniqueRelation p c r
-                  -> QueryUnique (PlaceHolders p, Projection c (Maybe r))
+                  -> QueryUnique (PlaceHolders p, Record c (Maybe r))
 uniqueQueryMaybe' pr =  do
   (ph, pj) <- uniqueQueryWithAttr Maybe pr
   return (ph, Projection.just pj)
 
 -- | Finalize 'QueryUnique' monad and generate 'UniqueRelation'.
-uniqueRelation' :: QueryUnique (PlaceHolders p, Projection c r) -> UniqueRelation p c r
+uniqueRelation' :: QueryUnique (PlaceHolders p, Record c r) -> UniqueRelation p c r
 uniqueRelation' =  unsafeUnique . unsafeTypeRelation . Unique.toSubQuery
 
 -- | Aggregated 'UniqueRelation'.
 aggregatedUnique :: Relation ph r
                  -> Pi r a
-                 -> (Projection Flat a -> Projection Aggregated b)
+                 -> (Record Flat a -> Record Aggregated b)
                  -> UniqueRelation ph Flat b
 aggregatedUnique rel k ag = unsafeUnique . aggregateRelation' $ do
   (ph, a) <- query' rel
@@ -375,7 +375,7 @@ aggregatedUnique rel k ag = unsafeUnique . aggregateRelation' $ do
 -- | Scalar sub-query with place-holder parameter 'p'.
 queryScalar' :: (MonadQualify ConfigureQuery m, ScalarDegree r)
              => UniqueRelation p c r
-             -> m (PlaceHolders p, Projection c (Maybe r))
+             -> m (PlaceHolders p, Record c (Maybe r))
 queryScalar' ur =
   unsafeAddPlaceHolders . liftQualify $
   Projection.unsafeFromScalarSubQuery <$> untypeRelation (unUnique ur)
@@ -383,5 +383,5 @@ queryScalar' ur =
 -- | Scalar sub-query.
 queryScalar :: (MonadQualify ConfigureQuery m, ScalarDegree r)
             => UniqueRelation () c r
-            -> m (Projection c (Maybe r))
+            -> m (Record c (Maybe r))
 queryScalar =  fmap snd . queryScalar'

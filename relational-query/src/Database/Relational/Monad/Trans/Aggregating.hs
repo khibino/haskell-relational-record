@@ -36,13 +36,13 @@ import Data.DList (DList, toList)
 
 import Data.Functor.Identity (Identity (runIdentity))
 
+import Database.Relational.Internal.Sub (Record)
 import Database.Relational.Internal.GroupingSQL
   (AggregateColumnRef, AggregateElem, aggregateColumnRef, AggregateSet, aggregateGroupingSet,
    AggregateBitKey, aggregatePowerKey, aggregateRollup, aggregateCube, aggregateSets,
    AggregateKey, aggregateKeyProjection, aggregateKeyElement, unsafeAggregateKey)
 
 import Database.Relational.Context (Flat, Aggregated, Set, Power, SetList)
-import Database.Relational.Projection (Projection)
 import qualified Database.Relational.Projection as Projection
 import Database.Relational.Monad.Class
   (MonadQualify (..), MonadRestrict(..), MonadQuery(..), MonadAggregate(..), MonadPartition(..))
@@ -126,8 +126,8 @@ type AggregatingSetList  = AggregatingSetListT  Identity
 type PartitioningSet c   = PartitioningSetT c   Identity
 
 -- | Specify key of single grouping set from Projection.
-key :: Projection Flat r
-    -> AggregatingSet (Projection Aggregated (Maybe r))
+key :: Record Flat r
+    -> AggregatingSet (Record Aggregated (Maybe r))
 key p = do
   mapM_ unsafeAggregateWithTerm [ aggregateColumnRef col | col <- Projection.columns p]
   return . Projection.just $ Projection.unsafeToAggregated p
@@ -146,8 +146,8 @@ set s = do
   return p
 
 -- | Specify key of rollup and cube power set.
-bkey :: Projection Flat r
-     -> AggregatingPowerSet (Projection Aggregated (Maybe r))
+bkey :: Record Flat r
+     -> AggregatingPowerSet (Record Aggregated (Maybe r))
 bkey p = do
   unsafeAggregateWithTerm . aggregatePowerKey $ Projection.columns p
   return . Projection.just $ Projection.unsafeToAggregated p

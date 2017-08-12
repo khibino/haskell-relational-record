@@ -40,8 +40,9 @@ import Prelude hiding (pi)
 import qualified Language.SQL.Keyword as SQL
 import Database.Record (PersistableWidth)
 
+import Database.Relational.Internal.Sub (Record)
+
 import Database.Relational.Context (Flat, Aggregated, OverWindow)
-import Database.Relational.Projection (Projection)
 import qualified Database.Relational.Projection as Projection
 import Database.Relational.Projectable
   (PlaceHolders, unsafeUniOp,
@@ -56,91 +57,91 @@ instance AggregatedContext OverWindow
 
 -- | Unsafely make aggregation uni-operator from SQL keyword.
 unsafeAggregateOp :: (AggregatedContext ac, SqlProjectable (p ac))
-                  => SQL.Keyword -> Projection Flat a -> p ac b
+                  => SQL.Keyword -> Record Flat a -> p ac b
 unsafeAggregateOp op = unsafeUniOp ((op SQL.<++>) . SQL.paren)
 
 -- | Aggregation function COUNT.
 count :: (Integral b, AggregatedContext ac, SqlProjectable (p ac))
-      => Projection Flat a -> p ac b
+      => Record Flat a -> p ac b
 count =  unsafeAggregateOp SQL.COUNT
 
 -- | Aggregation function SUM.
 sumMaybe :: (Num a, AggregatedContext ac, SqlProjectable (p ac))
-         => Projection Flat (Maybe a) -> p ac (Maybe a)
+         => Record Flat (Maybe a) -> p ac (Maybe a)
 sumMaybe  =  unsafeAggregateOp SQL.SUM
 
 -- | Aggregation function SUM.
 sum' :: (Num a, AggregatedContext ac, SqlProjectable (p ac))
-     => Projection Flat a -> p ac (Maybe a)
+     => Record Flat a -> p ac (Maybe a)
 sum'  =  sumMaybe . Projection.just
 
 -- | Aggregation function AVG.
 avgMaybe :: (Num a, Fractional b, AggregatedContext ac, SqlProjectable (p ac))
-         => Projection Flat (Maybe a) -> p ac (Maybe b)
+         => Record Flat (Maybe a) -> p ac (Maybe b)
 avgMaybe   =  unsafeAggregateOp SQL.AVG
 
 -- | Aggregation function AVG.
 avg :: (Num a, Fractional b, AggregatedContext ac, SqlProjectable (p ac))
-    => Projection Flat a -> p ac (Maybe b)
+    => Record Flat a -> p ac (Maybe b)
 avg =  avgMaybe . Projection.just
 
 -- | Aggregation function MAX.
 maxMaybe :: (Ord a, AggregatedContext ac, SqlProjectable (p ac))
-         => Projection Flat (Maybe a) -> p ac (Maybe a)
+         => Record Flat (Maybe a) -> p ac (Maybe a)
 maxMaybe  =  unsafeAggregateOp SQL.MAX
 
 -- | Aggregation function MAX.
 max' :: (Ord a, AggregatedContext ac, SqlProjectable (p ac))
-     => Projection Flat a -> p ac (Maybe a)
+     => Record Flat a -> p ac (Maybe a)
 max' =  maxMaybe . Projection.just
 
 -- | Aggregation function MIN.
 minMaybe :: (Ord a, AggregatedContext ac, SqlProjectable (p ac))
-         => Projection Flat (Maybe a) -> p ac (Maybe a)
+         => Record Flat (Maybe a) -> p ac (Maybe a)
 minMaybe  =  unsafeAggregateOp SQL.MIN
 
 -- | Aggregation function MIN.
 min' :: (Ord a, AggregatedContext ac, SqlProjectable (p ac))
-     => Projection Flat a -> p ac (Maybe a)
+     => Record Flat a -> p ac (Maybe a)
 min' =  minMaybe . Projection.just
 
 -- | Aggregation function EVERY.
 every :: (AggregatedContext ac, SqlProjectable (p ac))
-      => Projection Flat (Maybe Bool) -> p ac (Maybe Bool)
+      => Record Flat (Maybe Bool) -> p ac (Maybe Bool)
 every =  unsafeAggregateOp SQL.EVERY
 
 -- | Aggregation function ANY.
 any' :: (AggregatedContext ac, SqlProjectable (p ac))
-     => Projection Flat (Maybe Bool) -> p ac (Maybe Bool)
+     => Record Flat (Maybe Bool) -> p ac (Maybe Bool)
 any'  =  unsafeAggregateOp SQL.ANY
 
 -- | Aggregation function SOME.
 some' :: (AggregatedContext ac, SqlProjectable (p ac))
-      => Projection Flat (Maybe Bool) -> p ac (Maybe Bool)
+      => Record Flat (Maybe Bool) -> p ac (Maybe Bool)
 some' =  unsafeAggregateOp SQL.SOME
 
 -- | Get narrower projection along with projection path.
 (!) :: PersistableWidth a
-    => Projection c a -- ^ Source projection
-    -> Pi a b         -- ^ Projection path
-    -> Projection c b -- ^ Narrower projected object
+    => Record c a -- ^ Source projection
+    -> Pi a b     -- ^ Record path
+    -> Record c b -- ^ Narrower projected object
 (!) = Projection.pi
 
 -- | Get narrower projection along with projection path
 --   'Maybe' phantom functor is 'map'-ed.
 (?!) :: PersistableWidth a
-     => Projection c (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
-     -> Pi a b                 -- ^ Projection path
-     -> Projection c (Maybe b) -- ^ Narrower projected object. 'Maybe' type result
+     => Record c (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
+     -> Pi a b             -- ^ Record path
+     -> Record c (Maybe b) -- ^ Narrower projected object. 'Maybe' type result
 (?!) = Projection.piMaybe
 
 -- | Get narrower projection along with projection path
 --   and project into result projection type.
 --   Source record 'Maybe' phantom functor and projection path leaf 'Maybe' functor are 'join'-ed.
 (?!?) :: PersistableWidth a
-      => Projection c (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
-      -> Pi a (Maybe b)         -- ^ Projection path. 'Maybe' type leaf
-      -> Projection c (Maybe b) -- ^ Narrower projected object. 'Maybe' phantom type result
+      => Record c (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
+      -> Pi a (Maybe b)     -- ^ Record path. 'Maybe' type leaf
+      -> Record c (Maybe b) -- ^ Narrower projected object. 'Maybe' phantom type result
 (?!?) = Projection.piMaybe'
 
 
@@ -158,17 +159,17 @@ instance ProjectableFlattenMaybe (Maybe a) (Maybe a) where
   flatten = id
 
 -- | Get narrower projection with flatten leaf phantom Maybe types along with projection path.
-flattenPiMaybe :: (PersistableWidth a, ProjectableMaybe (Projection cont), ProjectableFlattenMaybe (Maybe b) c)
-               => Projection cont (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
-               -> Pi a b                    -- ^ Projection path
-               -> Projection cont c         -- ^ Narrower 'Projection'. Flatten 'Maybe' phantom type
+flattenPiMaybe :: (PersistableWidth a, ProjectableMaybe (Record cont), ProjectableFlattenMaybe (Maybe b) c)
+               => Record cont (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
+               -> Pi a b                -- ^ Projection path
+               -> Record cont c         -- ^ Narrower 'Projection'. Flatten 'Maybe' phantom type
 flattenPiMaybe p = flatten . Projection.piMaybe p
 
 -- | Get narrower projection with flatten leaf phantom Maybe types along with projection path.
-(!??) :: (PersistableWidth a, ProjectableMaybe (Projection cont), ProjectableFlattenMaybe (Maybe b) c)
-      => Projection cont (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
-      -> Pi a b                    -- ^ Projection path
-      -> Projection cont c         -- ^ Narrower flatten and projected object.
+(!??) :: (PersistableWidth a, ProjectableMaybe (Record cont), ProjectableFlattenMaybe (Maybe b) c)
+      => Record cont (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
+      -> Pi a b                -- ^ Projection path
+      -> Record cont c         -- ^ Narrower flatten and projected object.
 (!??) = flattenPiMaybe
 
 

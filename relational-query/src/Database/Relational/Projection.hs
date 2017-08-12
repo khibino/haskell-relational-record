@@ -12,8 +12,8 @@
 --
 -- This module defines query projection type structure and interfaces.
 module Database.Relational.Projection (
-  -- * Projection data structure and interface
-  Projection,
+  -- * Record data structure and interface
+  Record,
 
   width,
   columns,
@@ -52,7 +52,7 @@ import qualified Database.Record.KeyConstraint as KeyConstraint
 
 import Database.Relational.Internal.SQL (StringSQL, listStringSQL, rowStringSQL)
 import Database.Relational.Internal.Sub
-  (SubQuery, Qualified, Tuple, Record, Projection)
+  (SubQuery, Qualified, Tuple, Record)
 import qualified Database.Relational.Internal.Sub as Internal
 
 import Database.Relational.ProjectableClass
@@ -67,122 +67,122 @@ import Database.Relational.Sub
 import qualified Database.Relational.Sub as SubQuery
 
 
--- | Unsafely get SQL term from 'Proejction'.
-unsafeStringSql :: Projection c r -> StringSQL
+-- | Unsafely get SQL term from 'Record'.
+unsafeStringSql :: Record c r -> StringSQL
 unsafeStringSql = rowStringSQL . recordRawColumns
 
 -- | Get column SQL string list of projection.
-columns :: Projection c r -- ^ Source 'Projection'
-        -> [StringSQL]    -- ^ Result SQL string list
+columns :: Record c r  -- ^ Source 'Record'
+        -> [StringSQL] -- ^ Result SQL string list
 columns = recordRawColumns
 
--- | Width of 'Projection'.
-width :: Projection c r -> Int
+-- | Width of 'Record'.
+width :: Record c r -> Int
 width = Internal.recordWidth
 
 -- | Unsafely get untyped projection.
-untype :: Projection c r -> Tuple
+untype :: Record c r -> Tuple
 untype = Internal.untypeRecord
 
 
--- | Unsafely generate  'Projection' from qualified (joined) sub-query.
-unsafeFromQualifiedSubQuery :: Qualified SubQuery -> Projection c t
+-- | Unsafely generate  'Record' from qualified (joined) sub-query.
+unsafeFromQualifiedSubQuery :: Qualified SubQuery -> Record c t
 unsafeFromQualifiedSubQuery = Internal.record . tupleFromJoinedSubQuery
 
--- | Unsafely generate 'Projection' from scalar sub-query.
-unsafeFromScalarSubQuery :: SubQuery -> Projection c t
+-- | Unsafely generate 'Record' from scalar sub-query.
+unsafeFromScalarSubQuery :: SubQuery -> Record c t
 unsafeFromScalarSubQuery = Internal.typeFromScalarSubQuery
 
--- | Unsafely generate unqualified 'Projection' from 'Table'.
+-- | Unsafely generate unqualified 'Record' from 'Table'.
 unsafeFromTable :: Table r
-                -> Projection c r
+                -> Record c r
 unsafeFromTable = Internal.typeFromRawColumns . Table.columns
 
--- | Unsafely generate 'Projection' from SQL expression strings.
-unsafeFromSqlTerms :: [StringSQL] -> Projection c t
+-- | Unsafely generate 'Record' from SQL expression strings.
+unsafeFromSqlTerms :: [StringSQL] -> Record c t
 unsafeFromSqlTerms = Internal.typeFromRawColumns
 
 
 -- | Unsafely trace projection path.
-unsafeProject :: PersistableRecordWidth a -> Projection c a' -> Pi a b -> Projection c b'
+unsafeProject :: PersistableRecordWidth a -> Record c a' -> Pi a b -> Record c b'
 unsafeProject w p pi' =
   Internal.typeFromRawColumns
   . (UnsafePi.pi w pi')
   . columns $ p
 
--- | Trace projection path to get narrower 'Projection'.
+-- | Trace projection path to get narrower 'Record'.
 wpi :: PersistableRecordWidth a
-    -> Projection c a -- ^ Source 'Projection'
-    -> Pi a b         -- ^ Projection path
-    -> Projection c b -- ^ Narrower 'Projection'
+    -> Record c a -- ^ Source 'Record'
+    -> Pi a b     -- ^ Projection path
+    -> Record c b -- ^ Narrower 'Record'
 wpi =  unsafeProject
 
--- | Trace projection path to get narrower 'Projection'.
+-- | Trace projection path to get narrower 'Record'.
 pi :: PersistableWidth a
-   => Projection c a -- ^ Source 'Projection'
-   -> Pi a b         -- ^ Projection path
-   -> Projection c b -- ^ Narrower 'Projection'
+   => Record c a -- ^ Source 'Record'
+   -> Pi a b     -- ^ Record path
+   -> Record c b -- ^ Narrower 'Record'
 pi =  unsafeProject persistableWidth
 
--- | Trace projection path to get narrower 'Projection'. From 'Maybe' type to 'Maybe' type.
+-- | Trace projection path to get narrower 'Record'. From 'Maybe' type to 'Maybe' type.
 piMaybe :: PersistableWidth a
-        => Projection c (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
-        -> Pi a b                 -- ^ Projection path
-        -> Projection c (Maybe b) -- ^ Narrower 'Projection'. 'Maybe' type result
+        => Record c (Maybe a) -- ^ Source 'Record'. 'Maybe' type
+        -> Pi a b             -- ^ Projection path
+        -> Record c (Maybe b) -- ^ Narrower 'Record'. 'Maybe' type result
 piMaybe = unsafeProject persistableWidth
 
--- | Trace projection path to get narrower 'Projection'. From 'Maybe' type to 'Maybe' type.
+-- | Trace projection path to get narrower 'Record'. From 'Maybe' type to 'Maybe' type.
 --   Leaf type of projection path is 'Maybe'.
 piMaybe' :: PersistableWidth a
-         => Projection c (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
-         -> Pi a (Maybe b)         -- ^ Projection path. 'Maybe' type leaf
-         -> Projection c (Maybe b) -- ^ Narrower 'Projection'. 'Maybe' type result
+         => Record c (Maybe a) -- ^ Source 'Record'. 'Maybe' type
+         -> Pi a (Maybe b)     -- ^ Projection path. 'Maybe' type leaf
+         -> Record c (Maybe b) -- ^ Narrower 'Record'. 'Maybe' type result
 piMaybe' = unsafeProject persistableWidth
 
-unsafeCast :: Projection c r -> Projection c r'
+unsafeCast :: Record c r -> Record c r'
 unsafeCast = Internal.record . Internal.untypeRecord
 
 -- | Composite nested 'Maybe' on projection phantom type.
-flattenMaybe :: Projection c (Maybe (Maybe a)) -> Projection c (Maybe a)
+flattenMaybe :: Record c (Maybe (Maybe a)) -> Record c (Maybe a)
 flattenMaybe =  unsafeCast
 
 -- | Cast into 'Maybe' on projection phantom type.
-just :: Projection c r -> Projection c (Maybe r)
+just :: Record c r -> Record c (Maybe r)
 just =  unsafeCast
 
 -- | Unsafely cast context type tag.
-unsafeChangeContext :: Projection c r -> Projection c' r
+unsafeChangeContext :: Record c r -> Record c' r
 unsafeChangeContext = Internal.record . Internal.untypeRecord
 
 -- | Unsafely lift to aggregated context.
-unsafeToAggregated :: Projection Flat r -> Projection Aggregated r
+unsafeToAggregated :: Record Flat r -> Record Aggregated r
 unsafeToAggregated =  unsafeChangeContext
 
 -- | Unsafely down to flat context.
-unsafeToFlat :: Projection Aggregated r -> Projection Flat r
+unsafeToFlat :: Record Aggregated r -> Record Flat r
 unsafeToFlat =  unsafeChangeContext
 
-notNullMaybeConstraint :: HasColumnConstraint NotNull r => Projection c (Maybe r) -> NotNullColumnConstraint r
+notNullMaybeConstraint :: HasColumnConstraint NotNull r => Record c (Maybe r) -> NotNullColumnConstraint r
 notNullMaybeConstraint =  const KeyConstraint.columnConstraint
 
 -- | Unsafely get SQL string expression of not null key projection.
-unsafeStringSqlNotNullMaybe :: HasColumnConstraint NotNull r => Projection c (Maybe r) -> StringSQL
+unsafeStringSqlNotNullMaybe :: HasColumnConstraint NotNull r => Record c (Maybe r) -> StringSQL
 unsafeStringSqlNotNullMaybe p = (!!  KeyConstraint.index (notNullMaybeConstraint p)) . columns $ p
 
--- | Projectable fmap of 'Projection' type.
+-- | Projectable fmap of 'Record' type.
 pfmap :: ProductConstructor (a -> b)
-      => (a -> b) -> Projection c a -> Projection c b
+      => (a -> b) -> Record c a -> Record c b
 _ `pfmap` p = unsafeCast p
 
--- | Projectable ap of 'Projection' type.
-pap :: Projection c (a -> b) -> Projection c a -> Projection c b
+-- | Projectable ap of 'Record' type.
+pap :: Record c (a -> b) -> Record c a -> Record c b
 pf `pap` pa = Internal.record $ Internal.untypeRecord pf ++ Internal.untypeRecord pa
 
--- | Compose seed of record type 'Projection'.
+-- | Compose seed of record type 'Record'.
 instance ProjectableFunctor (Record c) where
   (|$|) = pfmap
 
--- | Compose record type 'Projection' using applicative style.
+-- | Compose record type 'Record' using applicative style.
 instance ProjectableApplicative (Record c) where
   (|*|) = pap
 
