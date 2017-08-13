@@ -43,7 +43,7 @@ import Database.Relational.Internal.GroupingSQL
    AggregateKey, aggregateKeyProjection, aggregateKeyElement, unsafeAggregateKey)
 
 import Database.Relational.Context (Flat, Aggregated, Set, Power, SetList)
-import qualified Database.Relational.Projection as Projection
+import qualified Database.Relational.Record as Record
 import Database.Relational.Monad.Class
   (MonadQualify (..), MonadRestrict(..), MonadQuery(..), MonadAggregate(..), MonadPartition(..))
 
@@ -98,13 +98,13 @@ aggregateKey k = do
 -- | Aggregated query instance.
 instance MonadQuery m => MonadAggregate (AggregatingSetT m) where
   groupBy p = do
-    mapM_ unsafeAggregateWithTerm [ aggregateColumnRef col | col <- Projection.columns p]
-    return $ Projection.unsafeToAggregated p
+    mapM_ unsafeAggregateWithTerm [ aggregateColumnRef col | col <- Record.columns p]
+    return $ Record.unsafeToAggregated p
   groupBy'  = aggregateKey
 
 -- | Partition clause instance
 instance Monad m => MonadPartition c (PartitioningSetT c m) where
-  partitionBy =  mapM_ unsafeAggregateWithTerm . Projection.columns
+  partitionBy =  mapM_ unsafeAggregateWithTerm . Record.columns
 
 -- | Run 'Aggregatings' to get terms list.
 extractAggregateTerms :: (Monad m, Functor m) => Aggregatings ac at m a -> m (a, [at])
@@ -125,12 +125,12 @@ type AggregatingSetList  = AggregatingSetListT  Identity
 -- | Context monad type to build partition keys set.
 type PartitioningSet c   = PartitioningSetT c   Identity
 
--- | Specify key of single grouping set from Projection.
+-- | Specify key of single grouping set from Record.
 key :: Record Flat r
     -> AggregatingSet (Record Aggregated (Maybe r))
 key p = do
-  mapM_ unsafeAggregateWithTerm [ aggregateColumnRef col | col <- Projection.columns p]
-  return . Projection.just $ Projection.unsafeToAggregated p
+  mapM_ unsafeAggregateWithTerm [ aggregateColumnRef col | col <- Record.columns p]
+  return . Record.just $ Record.unsafeToAggregated p
 
 -- | Specify key of single grouping set.
 key' :: AggregateKey a
@@ -149,8 +149,8 @@ set s = do
 bkey :: Record Flat r
      -> AggregatingPowerSet (Record Aggregated (Maybe r))
 bkey p = do
-  unsafeAggregateWithTerm . aggregatePowerKey $ Projection.columns p
-  return . Projection.just $ Projection.unsafeToAggregated p
+  unsafeAggregateWithTerm . aggregatePowerKey $ Record.columns p
+  return . Record.just $ Record.unsafeToAggregated p
 
 finalizePower :: ([AggregateBitKey] -> AggregateElem)
               -> AggregatingPowerSet a -> AggregateKey a

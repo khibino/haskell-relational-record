@@ -37,7 +37,7 @@ import Database.Relational.Internal.Sub (Record)
 import Database.Relational.Internal.GroupingSQL (AggregateColumnRef, AggregateElem, composePartitionBy)
 
 import Database.Relational.Context (Flat, Aggregated, OverWindow)
-import qualified Database.Relational.Projection as Projection
+import qualified Database.Relational.Record as Record
 import Database.Relational.Sub (SubQuery, QueryRestriction, JoinProduct, aggregatedSubQuery)
 import qualified Database.Relational.Sub as SubQuery
 import Database.Relational.Projectable (PlaceHolders, SqlProjectable)
@@ -84,7 +84,7 @@ toSubQuery :: AggregatedQuery p r       -- ^ 'AggregatedQuery' to run
 toSubQuery q = do
   (((((((_ph, pj), ot), grs), ag), rs), pd), da) <- extract q
   c <- askConfig
-  return $ aggregatedSubQuery c (Projection.untype pj) da pd rs ag grs ot
+  return $ aggregatedSubQuery c (Record.untype pj) da pd rs ag grs ot
 
 extractWindow :: Window c a -> ((a, [OrderingTerm]), [AggregateColumnRef])
 extractWindow =  runIdentity . extractAggregateTerms . extractOrderingTerms
@@ -95,9 +95,9 @@ over :: SqlProjectable (Record c)
      -> Window c ()
      -> Record c a
 wp `over` win =
-  Projection.unsafeFromSqlTerms
+  Record.unsafeFromSqlTerms
   [ c <> OVER <> SQL.paren (composePartitionBy pt <> composeOrderBy ot)
-  | c <- Projection.columns wp
+  | c <- Record.columns wp
   ]  where (((), ot), pt) = extractWindow win
 
 infix 8 `over`

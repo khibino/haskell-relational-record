@@ -40,7 +40,7 @@ import Database.Relational.Internal.Sub (NodeAttr (Just', Maybe), SubQuery, Qual
 import Database.Relational.Context (Flat)
 import Database.Relational.Monad.Trans.JoinState
   (JoinContext, primeJoinContext, updateProduct, joinProduct)
-import qualified Database.Relational.Projection as Projection
+import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable (PlaceHolders, unsafeAddPlaceHolders)
 import Database.Relational.Monad.BaseType (ConfigureQuery, qualifyQuery, Relation, untypeRelation)
 import Database.Relational.Monad.Class (MonadQualify (..), MonadQuery (..))
@@ -78,7 +78,7 @@ instance MonadQuery (QueryJoin ConfigureQuery) where
   query'             = queryWithAttr Just'
   queryMaybe' pr     = do
     (ph, pj) <- queryWithAttr Maybe pr
-    return (ph, Projection.just pj)
+    return (ph, Record.just pj)
 
 -- | Unsafely join sub-query with this query.
 unsafeSubQueryWithAttr :: Monad q
@@ -87,7 +87,7 @@ unsafeSubQueryWithAttr :: Monad q
                        -> QueryJoin q (Record c r) -- ^ Result joined context and 'SubQuery' result projection.
 unsafeSubQueryWithAttr attr qsub = do
   updateContext (updateProduct (`growProduct` (attr, qsub)))
-  return $ Projection.unsafeFromQualifiedSubQuery qsub
+  return $ Record.unsafeFromQualifiedSubQuery qsub
 
 -- | Basic monadic join operation using 'MonadQuery'.
 queryWithAttr :: NodeAttr

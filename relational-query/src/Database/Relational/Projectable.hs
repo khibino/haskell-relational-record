@@ -83,8 +83,8 @@ import Database.Relational.Context (Flat, Aggregated, Exists, OverWindow)
 import Database.Relational.TupleInstances ()
 import Database.Relational.ProjectableClass
   (ShowConstantTermsSQL, showConstantTermsSQL, )
-import Database.Relational.Projection (RecordList)
-import qualified Database.Relational.Projection as Projection
+import Database.Relational.Record (RecordList)
+import qualified Database.Relational.Record as Record
 
 
 -- | Interface to project SQL terms unsafely.
@@ -95,15 +95,15 @@ class SqlProjectable p where
 
 -- | Unsafely make 'Projection' from SQL terms.
 instance SqlProjectable (Record Flat) where
-  unsafeProjectSqlTerms = Projection.unsafeFromSqlTerms
+  unsafeProjectSqlTerms = Record.unsafeFromSqlTerms
 
 -- | Unsafely make 'Projection' from SQL terms.
 instance SqlProjectable (Record Aggregated) where
-  unsafeProjectSqlTerms = Projection.unsafeFromSqlTerms
+  unsafeProjectSqlTerms = Record.unsafeFromSqlTerms
 
 -- | Unsafely make 'Projection' from SQL terms.
 instance SqlProjectable (Record OverWindow) where
-  unsafeProjectSqlTerms = Projection.unsafeFromSqlTerms
+  unsafeProjectSqlTerms = Record.unsafeFromSqlTerms
 
 class SqlProjectable p => OperatorProjectable p
 instance OperatorProjectable (Record Flat)
@@ -139,7 +139,7 @@ valueFalse =  just $ value False
 
 -- | Polymorphic proejction of SQL set value from Haskell list.
 values :: (ShowConstantTermsSQL t, OperatorProjectable p) => [t] -> RecordList p t
-values =  Projection.list . map value
+values =  Record.list . map value
 
 
 -- | Interface to get SQL term from projections.
@@ -157,7 +157,7 @@ unsafeShowSql =  showStringSQL . unsafeShowSql'
 
 -- | Unsafely get SQL term from 'Proejction'.
 instance ProjectableShowSql (Record c) where
-  unsafeShowSql' = Projection.unsafeStringSql
+  unsafeShowSql' = Record.unsafeStringSql
 
 
 -- | Binary operator type for SQL String.
@@ -241,7 +241,7 @@ not' =  unsafeFlatUniOp SQL.NOT
 exists :: (OperatorProjectable p, ProjectableShowSql p)
        => RecordList (Record Exists) r -> p (Maybe Bool)
 exists =  unsafeProjectSql' . SQL.paren . SQL.defineUniOp SQL.EXISTS
-          . Projection.unsafeStringSqlList unsafeShowSql'
+          . Record.unsafeStringSqlList unsafeShowSql'
 
 -- | Concatinate operator corresponding SQL /||/ .
 (.||.) :: (OperatorProjectable p, ProjectableShowSql p, IsString a)
@@ -404,14 +404,14 @@ caseMaybe v cs = case' v cs nothing
 in' :: (OperatorProjectable p, ProjectableShowSql p)
     => p t -> RecordList p t -> p (Maybe Bool)
 in' a lp = unsafeProjectSql' . SQL.paren
-           $ SQL.in' (unsafeShowSql' a) (Projection.unsafeStringSqlList unsafeShowSql' lp)
+           $ SQL.in' (unsafeShowSql' a) (Record.unsafeStringSqlList unsafeShowSql' lp)
 
 -- | Operator corresponding SQL /IS NULL/ , and extended against record types.
 isNothing :: (OperatorProjectable (Record c), ProjectableShowSql (Record c), HasColumnConstraint NotNull r)
           => Record c (Maybe r) -> Record c (Maybe Bool)
 isNothing mr = unsafeProjectSql' $
                SQL.paren $ (SQL.defineBinOp SQL.IS)
-               (Projection.unsafeStringSqlNotNullMaybe mr) SQL.NULL
+               (Record.unsafeStringSqlNotNullMaybe mr) SQL.NULL
 
 -- | Operator corresponding SQL /NOT (... IS NULL)/ , and extended against record type.
 isJust :: (OperatorProjectable (Record c), ProjectableShowSql (Record c), HasColumnConstraint NotNull r)
@@ -515,8 +515,8 @@ instance ProjectableMaybe PlaceHolders where
 
 -- | Control phantom 'Maybe' type in projection type 'Projection'.
 instance ProjectableMaybe (Record c) where
-  just         = Projection.just
-  flattenMaybe = Projection.flattenMaybe
+  just         = Record.just
+  flattenMaybe = Record.flattenMaybe
 
 -- | Zipping except for identity element laws.
 class ProjectableApplicative p => ProjectableIdZip p where

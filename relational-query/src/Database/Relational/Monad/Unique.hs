@@ -25,7 +25,7 @@ import Database.Relational.Internal.Sub (Record)
 import Database.Relational.Internal.BaseSQL (Duplication)
 
 import Database.Relational.Context (Flat)
-import qualified Database.Relational.Projection as Projection
+import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable (PlaceHolders)
 import Database.Relational.Monad.Class (MonadQualify, MonadQuery)
 import Database.Relational.Monad.Trans.Join (unsafeSubQueryWithAttr)
@@ -56,4 +56,4 @@ toSubQuery :: QueryUnique (PlaceHolders p, Record c r) -- ^ 'QueryUnique' to run
 toSubQuery q = do
   ((((_ph, pj), rs), pd), da) <- extract q
   c <- askConfig
-  return $ flatSubQuery c (Projection.untype pj) da pd rs []
+  return $ flatSubQuery c (Record.untype pj) da pd rs []

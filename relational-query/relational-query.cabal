@@ -40,7 +40,7 @@ library
                        Database.Relational.Context
                        Database.Relational.Component
                        Database.Relational.Sub
-                       Database.Relational.Projection
+                       Database.Relational.Record
                        Database.Relational.ProjectableClass
                        Database.Relational.Projectable
                        Database.Relational.ProjectableExtended

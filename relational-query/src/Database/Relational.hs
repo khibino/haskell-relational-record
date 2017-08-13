@@ -16,7 +16,7 @@ module Database.Relational (
   module Database.Relational.Context,
   module Database.Relational.Component,
   module Database.Relational.Sub,
-  module Database.Relational.Projection,
+  module Database.Relational.Record,
   module Database.Relational.ProjectableClass,
   module Database.Relational.Projectable,
   module Database.Relational.ProjectableExtended,
@@ -56,7 +56,7 @@ import Database.Relational.Component
    Config (..), defaultConfig,
    AggregateKey, Order (..), Nulls (..))
 import Database.Relational.Sub (SubQuery, unitSQL, queryWidth)
-import Database.Relational.Projection (Record, RecordList, list)
+import Database.Relational.Record (Record, RecordList, list)
 import Database.Relational.ProjectableClass
 import Database.Relational.Projectable
 import Database.Relational.ProjectableExtended

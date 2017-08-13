@@ -39,7 +39,7 @@ import Database.Relational.Internal.SQL
 import Database.Relational.Pi (Pi)
 import qualified Database.Relational.Pi.Unsafe as UnsafePi
 import Database.Relational.Table (Table, name, columns, recordWidth)
-import qualified Database.Relational.Projection as Projection
+import qualified Database.Relational.Record as Record
 
 
 -- | Type for query suffix words
@@ -95,7 +95,7 @@ updateOtherThanKeySQL tbl key =
 insertPrefixSQL :: Pi r r' -> Table r -> StringSQL
 insertPrefixSQL pi' table =
   INSERT <> INTO <> stringSQL (name table) <> rowConsStringSQL cols  where
-    cols = Projection.columns . Projection.wpi (recordWidth table) (Projection.unsafeFromTable table) $ pi'
+    cols = Record.columns . Record.wpi (recordWidth table) (Record.unsafeFromTable table) $ pi'
 
 -- | Generate all column delete SQL by specified table. Untyped table version.
 deletePrefixSQL' :: String -> StringSQL

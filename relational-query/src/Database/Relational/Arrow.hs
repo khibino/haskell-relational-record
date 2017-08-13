@@ -81,7 +81,7 @@ import Database.Relational hiding
    derivedDelete', derivedDelete,
    QuerySimple, QueryAggregate, QueryUnique, Window, Register)
 import qualified Database.Relational as Monadic
-import Database.Relational.Projection (RecordList)
+import Database.Relational.Record (RecordList)
 import qualified Database.Relational.Monad.Trans.Aggregating as Monadic
 import qualified Database.Relational.Monad.Trans.Ordering as Monadic
 import qualified Database.Relational.Monad.Trans.Assigning as Monadic

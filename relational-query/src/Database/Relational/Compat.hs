@@ -7,9 +7,11 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- This module contains backword compatibility definitions of
+-- This module contains backward compatibility definitions of
 -- relational-query <= 0.9.*
-module Database.Relational.Compat (
+module Database.Relational.Compat
+  {-# DEPRECATED "backward compatibility definitions relational-query <= 0.9.*" #-}
+  (
   Projection,
   ) where
 

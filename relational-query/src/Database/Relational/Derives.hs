@@ -35,7 +35,7 @@ import Database.Relational.Internal.Sub (Record)
 
 import Database.Relational.Table (Table, TableDerivable)
 import Database.Relational.Pi.Unsafe (Pi, unsafeExpandIndexes)
-import qualified Database.Relational.Projection as Projection
+import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable (placeholder, (.=.))
 import Database.Relational.ProjectableExtended ((!))
 import Database.Relational.Monad.Class (wheres)
@@ -56,7 +56,7 @@ specifiedKey :: PersistableWidth p
       -> Relation p a  -- ^ Result restricted 'Relation'
 specifiedKey key rel = relation' $ do
   q <- query rel
-  (param, ()) <- placeholder (\ph -> wheres $ Projection.wpi (relationWidth rel) q key .=. ph)
+  (param, ()) <- placeholder (\ph -> wheres $ Record.wpi (relationWidth rel) q key .=. ph)
   return (param, q)
 
 -- | Query restricted with specified unique key.
@@ -110,5 +110,5 @@ derivedUniqueRelation :: TableDerivable r
                       -> UniqueRelation () c r -- ^ Result restricted 'Relation'
 derivedUniqueRelation uk kp = unsafeUnique . relation $ do
   r <- query derivedRelation
-  wheres $ r ! projectionKey uk .=. Projection.unsafeChangeContext kp
+  wheres $ r ! projectionKey uk .=. Record.unsafeChangeContext kp
   return r

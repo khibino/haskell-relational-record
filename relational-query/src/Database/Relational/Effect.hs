@@ -42,7 +42,7 @@ import qualified Database.Relational.Pi.Unsafe as Pi
 import Database.Relational.Table (Table, TableDerivable, derivedTable)
 import qualified Database.Relational.Table as Table
 import Database.Relational.Sub (composeWhere)
-import qualified Database.Relational.Projection as Projection
+import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable
   (PlaceHolders, unitPlaceHolder, unsafeAddPlaceHolders,
    pwPlaceholder, placeholder, (><), rightId)
@@ -74,7 +74,7 @@ runRestriction (Restriction qf) =
 -- | SQL WHERE clause 'StringSQL' string from 'Restriction'.
 sqlWhereFromRestriction :: Config -> Table r -> Restriction p r -> StringSQL
 sqlWhereFromRestriction config tbl (Restriction q) = composeWhere rs
-  where (_ph, rs) = Restrict.extract (q $ Projection.unsafeFromTable tbl) config
+  where (_ph, rs) = Restrict.extract (q $ Record.unsafeFromTable tbl) config
 
 -- | Show where clause.
 instance TableDerivable r => Show (Restriction p r) where
@@ -135,7 +135,7 @@ updateTargetAllColumn' = liftTargetAllColumn' . restriction'
 -- | SQL SET clause and WHERE clause 'StringSQL' string from 'UpdateTarget'
 sqlFromUpdateTarget :: Config -> Table r -> UpdateTarget p r -> StringSQL
 sqlFromUpdateTarget config tbl (UpdateTarget q) = composeSets (asR tbl) <> composeWhere rs
-  where ((_ph, asR), rs) = Assign.extract (q (Projection.unsafeFromTable tbl)) config
+  where ((_ph, asR), rs) = Assign.extract (q (Record.unsafeFromTable tbl)) config
 
 instance TableDerivable r => Show (UpdateTarget p r) where
   show = showStringSQL . sqlFromUpdateTarget defaultConfig derivedTable

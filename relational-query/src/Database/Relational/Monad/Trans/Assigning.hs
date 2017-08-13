@@ -37,7 +37,7 @@ import Database.Relational.Internal.Sub (Record)
 import Database.Relational.Context (Flat)
 import Database.Relational.Pi (Pi)
 import Database.Relational.Table (Table, recordWidth)
-import qualified Database.Relational.Projection as Projection
+import qualified Database.Relational.Record as Record
 import Database.Relational.Monad.Class (MonadQualify (..), MonadRestrict(..))
 
 
@@ -63,14 +63,14 @@ instance MonadQualify q m => MonadQualify q (Assignings r m) where
 type AssignTarget r v = Pi r v
 
 targetProjection :: AssignTarget r v ->  Table r -> Record Flat v
-targetProjection pi' tbl = Projection.wpi (recordWidth tbl) (Projection.unsafeFromTable tbl) pi'
+targetProjection pi' tbl = Record.wpi (recordWidth tbl) (Record.unsafeFromTable tbl) pi'
 
 -- | Add an assignment.
 assignTo :: Monad m => Record Flat v ->  AssignTarget r v -> Assignings r m ()
 assignTo vp target = Assignings . tell
                      $ \t -> mconcat $ zipWith (curry pure) (leftsR t) rights  where
-  leftsR = Projection.columns . targetProjection target
-  rights = Projection.columns vp
+  leftsR = Record.columns . targetProjection target
+  rights = Record.columns vp
 
 -- | Add and assginment.
 (<-#) :: Monad m => AssignTarget r v -> Record Flat v -> Assignings r m ()

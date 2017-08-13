@@ -62,8 +62,8 @@ import Database.Relational.Sub (SubQuery, NodeAttr(Just', Maybe))
 import qualified Database.Relational.Sub as SubQuery
 import Database.Relational.Scalar (ScalarDegree)
 import Database.Relational.Pi (Pi)
-import Database.Relational.Projection (RecordList)
-import qualified Database.Relational.Projection as Projection
+import Database.Relational.Record (RecordList)
+import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable
   (PlaceHolders, unitPlaceHolder, unsafeAddPlaceHolders, unsafePlaceHolders, projectZip)
 
@@ -108,7 +108,7 @@ queryMaybe =  fmap snd . queryMaybe'
 
 queryList0 :: MonadQualify ConfigureQuery m => Relation p r -> m (RecordList (Record c) r)
 queryList0 =  liftQualify
-              . fmap Projection.unsafeListFromSubQuery
+              . fmap Record.unsafeListFromSubQuery
               . untypeRelation
 
 -- | List sub-query, for /IN/ and /EXIST/ with place-holder parameter 'p'.
@@ -345,7 +345,7 @@ uniqueQueryWithAttr attr = unsafeAddPlaceHolders . run where
     q <- liftQualify $ do
       sq <- untypeRelation (unUnique rel)
       qualifyQuery sq
-    Projection.unsafeChangeContext <$> unsafeUniqueSubQuery attr q
+    Record.unsafeChangeContext <$> unsafeUniqueSubQuery attr q
 
 -- | Join unique sub-query with place-holder parameter 'p'.
 uniqueQuery' :: UniqueRelation p c r
@@ -357,7 +357,7 @@ uniqueQueryMaybe' :: UniqueRelation p c r
                   -> QueryUnique (PlaceHolders p, Record c (Maybe r))
 uniqueQueryMaybe' pr =  do
   (ph, pj) <- uniqueQueryWithAttr Maybe pr
-  return (ph, Projection.just pj)
+  return (ph, Record.just pj)
 
 -- | Finalize 'QueryUnique' monad and generate 'UniqueRelation'.
 uniqueRelation' :: QueryUnique (PlaceHolders p, Record c r) -> UniqueRelation p c r
@@ -370,7 +370,7 @@ aggregatedUnique :: Relation ph r
                  -> UniqueRelation ph Flat b
 aggregatedUnique rel k ag = unsafeUnique . aggregateRelation' $ do
   (ph, a) <- query' rel
-  return (ph, ag $ Projection.wpi (relationWidth rel) a k)
+  return (ph, ag $ Record.wpi (relationWidth rel) a k)
 
 -- | Scalar sub-query with place-holder parameter 'p'.
 queryScalar' :: (MonadQualify ConfigureQuery m, ScalarDegree r)
@@ -378,7 +378,7 @@ queryScalar' :: (MonadQualify ConfigureQuery m, ScalarDegree r)
              -> m (PlaceHolders p, Record c (Maybe r))
 queryScalar' ur =
   unsafeAddPlaceHolders . liftQualify $
-  Projection.unsafeFromScalarSubQuery <$> untypeRelation (unUnique ur)
+  Record.unsafeFromScalarSubQuery <$> untypeRelation (unUnique ur)
 
 -- | Scalar sub-query.
 queryScalar :: (MonadQualify ConfigureQuery m, ScalarDegree r)

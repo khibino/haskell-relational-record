@@ -35,7 +35,7 @@ import Database.Relational.Internal.BaseSQL
   (Order (..), Nulls (..), OrderColumn, OrderingTerm)
 import Database.Relational.Internal.Sub (Record)
 
-import qualified Database.Relational.Projection as Projection
+import qualified Database.Relational.Record as Record
 import Database.Relational.Monad.Class
   (MonadQualify (..), MonadRestrict(..), MonadQuery(..), MonadAggregate(..), MonadPartition(..))
 
@@ -80,7 +80,7 @@ class ProjectableOrdering p where
 
 -- | 'Record' is ordering term.
 instance ProjectableOrdering (Record c) where
-  orderTerms = Projection.columns
+  orderTerms = Record.columns
 
 -- | Add ordering terms.
 updateOrderBys :: (Monad m, ProjectableOrdering (Record c))

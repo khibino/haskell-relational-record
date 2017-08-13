@@ -25,7 +25,7 @@ module Database.Relational.Monad.Simple (
 import Database.Relational.Internal.Sub (Record)
 
 import Database.Relational.Context (Flat)
-import qualified Database.Relational.Projection as Projection
+import qualified Database.Relational.Record as Record
 
 import Database.Relational.Internal.BaseSQL (Duplication, OrderingTerm)
 
@@ -67,4 +67,4 @@ toSubQuery :: SimpleQuery p r        -- ^ 'SimpleQuery'' to run
 toSubQuery q = do
    (((((_ph, pj), ot), rs), pd), da) <- extract q
    c <- askConfig
-   return $ flatSubQuery c (Projection.untype pj) da pd rs ot
+   return $ flatSubQuery c (Record.untype pj) da pd rs ot

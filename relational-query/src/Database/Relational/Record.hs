@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 -- |
--- Module      : Database.Relational.Projection
+-- Module      : Database.Relational.Record
 -- Copyright   : 2013-2017 Kei Hibino
 -- License     : BSD3
 --
@@ -11,7 +11,7 @@
 -- Portability : unknown
 --
 -- This module defines query projection type structure and interfaces.
-module Database.Relational.Projection (
+module Database.Relational.Record (
   -- * Record data structure and interface
   Record,
 

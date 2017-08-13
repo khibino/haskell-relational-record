@@ -43,7 +43,7 @@ import Database.Record (PersistableWidth)
 import Database.Relational.Internal.Sub (Record)
 
 import Database.Relational.Context (Flat, Aggregated, OverWindow)
-import qualified Database.Relational.Projection as Projection
+import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable
   (PlaceHolders, unsafeUniOp,
    ProjectableMaybe (flattenMaybe), ProjectableIdZip (leftId, rightId),
@@ -73,7 +73,7 @@ sumMaybe  =  unsafeAggregateOp SQL.SUM
 -- | Aggregation function SUM.
 sum' :: (Num a, AggregatedContext ac, SqlProjectable (p ac))
      => Record Flat a -> p ac (Maybe a)
-sum'  =  sumMaybe . Projection.just
+sum'  =  sumMaybe . Record.just
 
 -- | Aggregation function AVG.
 avgMaybe :: (Num a, Fractional b, AggregatedContext ac, SqlProjectable (p ac))
@@ -83,7 +83,7 @@ avgMaybe   =  unsafeAggregateOp SQL.AVG
 -- | Aggregation function AVG.
 avg :: (Num a, Fractional b, AggregatedContext ac, SqlProjectable (p ac))
     => Record Flat a -> p ac (Maybe b)
-avg =  avgMaybe . Projection.just
+avg =  avgMaybe . Record.just
 
 -- | Aggregation function MAX.
 maxMaybe :: (Ord a, AggregatedContext ac, SqlProjectable (p ac))
@@ -93,7 +93,7 @@ maxMaybe  =  unsafeAggregateOp SQL.MAX
 -- | Aggregation function MAX.
 max' :: (Ord a, AggregatedContext ac, SqlProjectable (p ac))
      => Record Flat a -> p ac (Maybe a)
-max' =  maxMaybe . Projection.just
+max' =  maxMaybe . Record.just
 
 -- | Aggregation function MIN.
 minMaybe :: (Ord a, AggregatedContext ac, SqlProjectable (p ac))
@@ -103,7 +103,7 @@ minMaybe  =  unsafeAggregateOp SQL.MIN
 -- | Aggregation function MIN.
 min' :: (Ord a, AggregatedContext ac, SqlProjectable (p ac))
      => Record Flat a -> p ac (Maybe a)
-min' =  minMaybe . Projection.just
+min' =  minMaybe . Record.just
 
 -- | Aggregation function EVERY.
 every :: (AggregatedContext ac, SqlProjectable (p ac))
@@ -125,7 +125,7 @@ some' =  unsafeAggregateOp SQL.SOME
     => Record c a -- ^ Source projection
     -> Pi a b     -- ^ Record path
     -> Record c b -- ^ Narrower projected object
-(!) = Projection.pi
+(!) = Record.pi
 
 -- | Get narrower projection along with projection path
 --   'Maybe' phantom functor is 'map'-ed.
@@ -133,7 +133,7 @@ some' =  unsafeAggregateOp SQL.SOME
      => Record c (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
      -> Pi a b             -- ^ Record path
      -> Record c (Maybe b) -- ^ Narrower projected object. 'Maybe' type result
-(?!) = Projection.piMaybe
+(?!) = Record.piMaybe
 
 -- | Get narrower projection along with projection path
 --   and project into result projection type.
@@ -142,7 +142,7 @@ some' =  unsafeAggregateOp SQL.SOME
       => Record c (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
       -> Pi a (Maybe b)     -- ^ Record path. 'Maybe' type leaf
       -> Record c (Maybe b) -- ^ Narrower projected object. 'Maybe' phantom type result
-(?!?) = Projection.piMaybe'
+(?!?) = Record.piMaybe'
 
 
 -- | Interface to compose phantom 'Maybe' nested type.
@@ -163,7 +163,7 @@ flattenPiMaybe :: (PersistableWidth a, ProjectableMaybe (Record cont), Projectab
                => Record cont (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
                -> Pi a b                -- ^ Projection path
                -> Record cont c         -- ^ Narrower 'Projection'. Flatten 'Maybe' phantom type
-flattenPiMaybe p = flatten . Projection.piMaybe p
+flattenPiMaybe p = flatten . Record.piMaybe p
 
 -- | Get narrower projection with flatten leaf phantom Maybe types along with projection path.
 (!??) :: (PersistableWidth a, ProjectableMaybe (Record cont), ProjectableFlattenMaybe (Maybe b) c)
