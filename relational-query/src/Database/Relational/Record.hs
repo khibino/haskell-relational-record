@@ -37,7 +37,7 @@ module Database.Relational.Record (
 
   pfmap, pap,
 
-  -- * List Projection
+  -- * List of Record
   RecordList, ListProjection, list, unsafeListFromSubQuery,
   unsafeStringSqlList
   ) where
@@ -193,7 +193,7 @@ type ListProjection = RecordList
 data RecordList p t = List [p t]
                     | Sub SubQuery
 
--- | Make row list projection from 'Projection' list.
+-- | Make row list projection from 'Record' list.
 list :: [p t] -> RecordList p t
 list =  List
 

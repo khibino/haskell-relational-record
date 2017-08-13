@@ -33,16 +33,16 @@ import Database.Relational.Monad.BaseType (ConfigureQuery, Relation)
 -- | Restrict context interface
 class (Functor m, Monad m) => MonadRestrict c m where
   -- | Add restriction to this context.
-  restrict :: Record c (Maybe Bool) -- ^ 'Projection' which represent restriction
-           -> m ()                      -- ^ Restricted query context
+  restrict :: Record c (Maybe Bool) -- ^ 'Record' which represent restriction
+           -> m ()                  -- ^ Restricted query context
 
 -- | Query building interface.
 class (Functor m, Monad m, MonadQualify ConfigureQuery m) => MonadQuery m where
   -- | Specify duplication.
   setDuplication :: Duplication -> m ()
   -- | Add restriction to last join.
-  restrictJoin :: Record Flat (Maybe Bool) -- ^ 'Projection' which represent restriction
-               -> m ()                         -- ^ Restricted query context
+  restrictJoin :: Record Flat (Maybe Bool) -- ^ 'Record' which represent restriction
+               -> m ()                     -- ^ Restricted query context
   {- Haddock BUG? -}
   -- | Join sub-query with place-holder parameter 'p'. query result is not 'Maybe'.
   query' :: Relation p r

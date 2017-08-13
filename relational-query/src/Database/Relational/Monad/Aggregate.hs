@@ -55,7 +55,7 @@ import Database.Relational.Monad.Type (QueryCore, extractCore, OrderedQuery)
 -- | Aggregated query monad type.
 type QueryAggregate     = Orderings Aggregated (Restrictings Aggregated (AggregatingSetT QueryCore))
 
--- | Aggregated query type. 'AggregatedQuery' p r == 'QueryAggregate' ('PlaceHolders' p, 'Projection' 'Aggregated' r).
+-- | Aggregated query type. 'AggregatedQuery' p r == 'QueryAggregate' ('PlaceHolders' p, 'Record' 'Aggregated' r).
 type AggregatedQuery p r = OrderedQuery Aggregated (Restrictings Aggregated (AggregatingSetT QueryCore)) p r
 
 -- | Partition monad type for partition-by clause.

@@ -44,7 +44,7 @@ import qualified Database.Relational.Sub as SubQuery
 -- | Simple (not-aggregated) query monad type.
 type QuerySimple = Orderings Flat QueryCore
 
--- | Simple (not-aggregated) query type. 'SimpleQuery'' p r == 'QuerySimple' ('PlaceHolders' p, 'Projection' r).
+-- | Simple (not-aggregated) query type. 'SimpleQuery'' p r == 'QuerySimple' ('PlaceHolders' p, 'Record' r).
 type SimpleQuery p r = OrderedQuery Flat QueryCore p r
 
 -- | Lift from qualified table forms into 'QuerySimple'.

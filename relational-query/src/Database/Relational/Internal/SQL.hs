@@ -35,7 +35,7 @@ showStringSQL =  wordShow
 -- | Row String of SQL values.
 rowStringSQL :: [StringSQL] -> StringSQL
 rowStringSQL =  d  where
-  d []  = error "Projection: no columns."
+  d []  = error "Record: no columns. empty row is not allowed in SQL."
   d [c] = c
   d cs  = paren $ fold (|*|) cs
 

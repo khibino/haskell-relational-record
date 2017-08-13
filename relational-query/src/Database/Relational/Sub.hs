@@ -24,7 +24,7 @@ module Database.Relational.Sub (
   -- * Sub-query columns
   column,
 
-  -- * Projection
+  -- * Tuple and Record
   tupleFromJoinedSubQuery,
 
   recordRawColumns,
@@ -256,7 +256,7 @@ caseClause c i = d c  where
   d (CaseSearch wcl)    = SQL.CASE <> indexWhensClause wcl i
   d (CaseSimple m wcl)  = SQL.CASE <> rowStringSQL (map showColumn m) <> indexWhensClause wcl i
 
--- | Convert from ProjectionUnit into column.
+-- | Convert from typed' Column' into column string expression.
 showColumn :: Column -> StringSQL
 showColumn = d  where
   d (RawColumn e)     = e
@@ -264,8 +264,8 @@ showColumn = d  where
   d (Scalar sub)      = showUnitSQL sub
   d (Case c i)        = caseClause c i
 
--- | Get column SQL string of 'UntypedProjection'.
-showTupleIndex :: Tuple     -- ^ Source 'Projection'
+-- | Get column SQL string of 'Tuple'.
+showTupleIndex :: Tuple     -- ^ Source 'Tuple'
                -> Int       -- ^ Column index
                -> StringSQL -- ^ Result SQL string
 showTupleIndex up i
@@ -275,8 +275,8 @@ showTupleIndex up i
     error $ "showTupleIndex: index out of bounds: " ++ show i
 
 -- | Get column SQL string list of projection.
-recordRawColumns :: Record c r -- ^ Source 'Projection'
-                 -> [StringSQL]    -- ^ Result SQL string list
+recordRawColumns :: Record c r  -- ^ Source 'Record'
+                 -> [StringSQL] -- ^ Result SQL string list
 recordRawColumns = map showColumn . Internal.untypeRecord
 
 

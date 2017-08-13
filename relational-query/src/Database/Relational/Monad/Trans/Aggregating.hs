@@ -40,7 +40,7 @@ import Database.Relational.Internal.Sub (Record)
 import Database.Relational.Internal.GroupingSQL
   (AggregateColumnRef, AggregateElem, aggregateColumnRef, AggregateSet, aggregateGroupingSet,
    AggregateBitKey, aggregatePowerKey, aggregateRollup, aggregateCube, aggregateSets,
-   AggregateKey, aggregateKeyProjection, aggregateKeyElement, unsafeAggregateKey)
+   AggregateKey, aggregateKeyRecord, aggregateKeyElement, unsafeAggregateKey)
 
 import Database.Relational.Context (Flat, Aggregated, Set, Power, SetList)
 import qualified Database.Relational.Record as Record
@@ -93,7 +93,7 @@ unsafeAggregateWithTerm =  Aggregatings . tell . pure
 aggregateKey :: Monad m => AggregateKey a -> Aggregatings ac AggregateElem m a
 aggregateKey k = do
   unsafeAggregateWithTerm $ aggregateKeyElement k
-  return $ aggregateKeyProjection k
+  return $ aggregateKeyRecord k
 
 -- | Aggregated query instance.
 instance MonadQuery m => MonadAggregate (AggregatingSetT m) where

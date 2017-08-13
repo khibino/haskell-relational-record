@@ -17,7 +17,7 @@ module Database.Relational.Projectable (
   SqlProjectable (unsafeProjectSqlTerms), unsafeProjectSql',
   unsafeProjectSql,
 
-  -- * Projections of values
+  -- * Records of values
   value,
   valueTrue, valueFalse,
   values,
@@ -93,15 +93,15 @@ class SqlProjectable p where
   unsafeProjectSqlTerms :: [StringSQL] -- ^ SQL expression strings
                         -> p t         -- ^ Result projection object
 
--- | Unsafely make 'Projection' from SQL terms.
+-- | Unsafely make 'Record' from SQL terms.
 instance SqlProjectable (Record Flat) where
   unsafeProjectSqlTerms = Record.unsafeFromSqlTerms
 
--- | Unsafely make 'Projection' from SQL terms.
+-- | Unsafely make 'Record' from SQL terms.
 instance SqlProjectable (Record Aggregated) where
   unsafeProjectSqlTerms = Record.unsafeFromSqlTerms
 
--- | Unsafely make 'Projection' from SQL terms.
+-- | Unsafely make 'Record' from SQL terms.
 instance SqlProjectable (Record OverWindow) where
   unsafeProjectSqlTerms = Record.unsafeFromSqlTerms
 
@@ -513,7 +513,7 @@ instance ProjectableMaybe PlaceHolders where
   just         = unsafeCastPlaceHolders
   flattenMaybe = unsafeCastPlaceHolders
 
--- | Control phantom 'Maybe' type in projection type 'Projection'.
+-- | Control phantom 'Maybe' type in record type 'Record'.
 instance ProjectableMaybe (Record c) where
   just         = Record.just
   flattenMaybe = Record.flattenMaybe

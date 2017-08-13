@@ -130,7 +130,7 @@ some' =  unsafeAggregateOp SQL.SOME
 -- | Get narrower projection along with projection path
 --   'Maybe' phantom functor is 'map'-ed.
 (?!) :: PersistableWidth a
-     => Record c (Maybe a) -- ^ Source 'Projection'. 'Maybe' type
+     => Record c (Maybe a) -- ^ Source 'Record'. 'Maybe' type
      -> Pi a b             -- ^ Record path
      -> Record c (Maybe b) -- ^ Narrower projected object. 'Maybe' type result
 (?!) = Record.piMaybe
@@ -139,7 +139,7 @@ some' =  unsafeAggregateOp SQL.SOME
 --   and project into result projection type.
 --   Source record 'Maybe' phantom functor and projection path leaf 'Maybe' functor are 'join'-ed.
 (?!?) :: PersistableWidth a
-      => Record c (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
+      => Record c (Maybe a) -- ^ Source 'Record'. 'Maybe' phantom type
       -> Pi a (Maybe b)     -- ^ Record path. 'Maybe' type leaf
       -> Record c (Maybe b) -- ^ Narrower projected object. 'Maybe' phantom type result
 (?!?) = Record.piMaybe'
@@ -160,14 +160,14 @@ instance ProjectableFlattenMaybe (Maybe a) (Maybe a) where
 
 -- | Get narrower projection with flatten leaf phantom Maybe types along with projection path.
 flattenPiMaybe :: (PersistableWidth a, ProjectableMaybe (Record cont), ProjectableFlattenMaybe (Maybe b) c)
-               => Record cont (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
+               => Record cont (Maybe a) -- ^ Source 'Record'. 'Maybe' phantom type
                -> Pi a b                -- ^ Projection path
-               -> Record cont c         -- ^ Narrower 'Projection'. Flatten 'Maybe' phantom type
+               -> Record cont c         -- ^ Narrower 'Record'. Flatten 'Maybe' phantom type
 flattenPiMaybe p = flatten . Record.piMaybe p
 
 -- | Get narrower projection with flatten leaf phantom Maybe types along with projection path.
 (!??) :: (PersistableWidth a, ProjectableMaybe (Record cont), ProjectableFlattenMaybe (Maybe b) c)
-      => Record cont (Maybe a) -- ^ Source 'Projection'. 'Maybe' phantom type
+      => Record cont (Maybe a) -- ^ Source 'Record'. 'Maybe' phantom type
       -> Pi a b                -- ^ Projection path
       -> Record cont c         -- ^ Narrower flatten and projected object.
 (!??) = flattenPiMaybe
