@@ -11,15 +11,14 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- This module defines operators on various polymorphic projections
--- which needs extended GHC features.
+-- This module defines operators on various projected records.
 module Database.Relational.ProjectableExtended (
   -- * Projection for nested 'Maybe's
   ProjectableFlattenMaybe (flatten),
 
   flattenPiMaybe,
 
-  -- * Get narrower projections
+  -- * Get narrower records
   (!), (?!), (?!?), (!??),
 
   -- * Aggregate functions
@@ -120,14 +119,14 @@ some' :: (AggregatedContext ac, SqlProjectable (p ac))
       => Record Flat (Maybe Bool) -> p ac (Maybe Bool)
 some' =  unsafeAggregateOp SQL.SOME
 
--- | Get narrower projection along with projection path.
+-- | Get narrower record along with projection path.
 (!) :: PersistableWidth a
-    => Record c a -- ^ Source projection
+    => Record c a -- ^ Source 'Record'
     -> Pi a b     -- ^ Record path
     -> Record c b -- ^ Narrower projected object
 (!) = Record.pi
 
--- | Get narrower projection along with projection path
+-- | Get narrower record along with projection path
 --   'Maybe' phantom functor is 'map'-ed.
 (?!) :: PersistableWidth a
      => Record c (Maybe a) -- ^ Source 'Record'. 'Maybe' type
@@ -135,8 +134,8 @@ some' =  unsafeAggregateOp SQL.SOME
      -> Record c (Maybe b) -- ^ Narrower projected object. 'Maybe' type result
 (?!) = Record.piMaybe
 
--- | Get narrower projection along with projection path
---   and project into result projection type.
+-- | Get narrower record along with projection path
+--   and project into result record type.
 --   Source record 'Maybe' phantom functor and projection path leaf 'Maybe' functor are 'join'-ed.
 (?!?) :: PersistableWidth a
       => Record c (Maybe a) -- ^ Source 'Record'. 'Maybe' phantom type
@@ -149,7 +148,7 @@ some' =  unsafeAggregateOp SQL.SOME
 class ProjectableFlattenMaybe a b where
   flatten :: ProjectableMaybe p => p a -> p b
 
--- | Compose 'Maybe' type in projection phantom type.
+-- | Compose 'Maybe' type in record phantom type.
 instance ProjectableFlattenMaybe (Maybe a) b
          => ProjectableFlattenMaybe (Maybe (Maybe a)) b where
   flatten = flatten . flattenMaybe
@@ -158,14 +157,14 @@ instance ProjectableFlattenMaybe (Maybe a) b
 instance ProjectableFlattenMaybe (Maybe a) (Maybe a) where
   flatten = id
 
--- | Get narrower projection with flatten leaf phantom Maybe types along with projection path.
+-- | Get narrower record with flatten leaf phantom Maybe types along with projection path.
 flattenPiMaybe :: (PersistableWidth a, ProjectableMaybe (Record cont), ProjectableFlattenMaybe (Maybe b) c)
                => Record cont (Maybe a) -- ^ Source 'Record'. 'Maybe' phantom type
                -> Pi a b                -- ^ Projection path
                -> Record cont c         -- ^ Narrower 'Record'. Flatten 'Maybe' phantom type
 flattenPiMaybe p = flatten . Record.piMaybe p
 
--- | Get narrower projection with flatten leaf phantom Maybe types along with projection path.
+-- | Get narrower record with flatten leaf phantom Maybe types along with projection path.
 (!??) :: (PersistableWidth a, ProjectableMaybe (Record cont), ProjectableFlattenMaybe (Maybe b) c)
       => Record cont (Maybe a) -- ^ Source 'Record'. 'Maybe' phantom type
       -> Pi a b                -- ^ Projection path

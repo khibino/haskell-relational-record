@@ -55,7 +55,7 @@ import Database.Relational.Monad.Register (Register)
 import qualified Database.Relational.Monad.Register as Register
 
 
--- | Restriction type with place-holder parameter 'p' and projection record type 'r'.
+-- | Restriction type with place-holder parameter 'p' and projected record type 'r'.
 newtype Restriction p r = Restriction (RestrictedStatement r (PlaceHolders p))
 
 -- | Finalize 'Restrict' monad and generate 'Restriction'.
@@ -81,7 +81,7 @@ instance TableDerivable r => Show (Restriction p r) where
   show = showStringSQL . sqlWhereFromRestriction defaultConfig derivedTable
 
 
--- | UpdateTarget type with place-holder parameter 'p' and projection record type 'r'.
+-- | UpdateTarget type with place-holder parameter 'p' and projected record type 'r'.
 newtype UpdateTarget p r = UpdateTarget (AssignStatement r (PlaceHolders p))
 
 -- | Finalize 'Target' monad and generate 'UpdateTarget'.
@@ -141,7 +141,7 @@ instance TableDerivable r => Show (UpdateTarget p r) where
   show = showStringSQL . sqlFromUpdateTarget defaultConfig derivedTable
 
 
--- | InsertTarget type with place-holder parameter 'p' and projection record type 'r'.
+-- | InsertTarget type with place-holder parameter 'p' and projected record type 'r'.
 newtype InsertTarget p r = InsertTarget (Register r (PlaceHolders p))
 
 -- | Finalize 'Register' monad and generate 'InsertTarget'.

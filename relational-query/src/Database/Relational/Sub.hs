@@ -231,7 +231,7 @@ column qs =  d (Internal.unQualify qs)  where
   d (Flat _ up _ _ _ _) i           = showTupleIndex up i
   d (Aggregated _ up _ _ _ _ _ _) i = showTupleIndex up i
 
--- | Make untyped projection from joined sub-query.
+-- | Make untyped tuple from joined sub-query.
 tupleFromJoinedSubQuery :: Qualified SubQuery -> Tuple
 tupleFromJoinedSubQuery qs = d $ Internal.unQualify qs  where
   normalized = SubQueryRef <$> traverse (\q -> [0 .. width q - 1]) qs
@@ -274,7 +274,7 @@ showTupleIndex up i
   | otherwise                                         =
     error $ "showTupleIndex: index out of bounds: " ++ show i
 
--- | Get column SQL string list of projection.
+-- | Get column SQL string list of record.
 recordRawColumns :: Record c r  -- ^ Source 'Record'
                  -> [StringSQL] -- ^ Result SQL string list
 recordRawColumns = map showColumn . Internal.untypeRecord

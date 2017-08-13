@@ -84,7 +84,7 @@ instance MonadQuery (QueryJoin ConfigureQuery) where
 unsafeSubQueryWithAttr :: Monad q
                        => NodeAttr                 -- ^ Attribute maybe or just
                        -> Qualified SubQuery       -- ^ 'SubQuery' to join
-                       -> QueryJoin q (Record c r) -- ^ Result joined context and 'SubQuery' result projection.
+                       -> QueryJoin q (Record c r) -- ^ Result joined context and record of 'SubQuery' result.
 unsafeSubQueryWithAttr attr qsub = do
   updateContext (updateProduct (`growProduct` (attr, qsub)))
   return $ Record.unsafeFromQualifiedSubQuery qsub

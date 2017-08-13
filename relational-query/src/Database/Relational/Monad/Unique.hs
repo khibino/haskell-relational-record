@@ -43,7 +43,7 @@ newtype QueryUnique a = QueryUnique (QueryCore a)
 -- | Unsafely join sub-query with this unique query.
 unsafeUniqueSubQuery :: NodeAttr                 -- ^ Attribute maybe or just
                      -> Qualified SubQuery       -- ^ 'SubQuery' to join
-                     -> QueryUnique (Record c r) -- ^ Result joined context and 'SubQuery' result projection.
+                     -> QueryUnique (Record c r) -- ^ Result joined context and record of 'SubQuery' result.
 unsafeUniqueSubQuery a  = QueryUnique . restrictings . unsafeSubQueryWithAttr a
 
 extract :: QueryUnique a

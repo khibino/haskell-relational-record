@@ -11,7 +11,7 @@
 -- Portability : unknown
 --
 -- This module defines interfaces between haskell pure values
--- and query internal projection values.
+-- and query internal record values.
 module Database.Relational.Pure () where
 
 import Control.Applicative (pure)

@@ -11,7 +11,7 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- This module defines operators on various polymorphic projections.
+-- This module defines operators on various projected records.
 module Database.Relational.Projectable (
   -- * Projectable from SQL strings
   SqlProjectable (unsafeProjectSqlTerms), unsafeProjectSql',
@@ -91,7 +91,7 @@ import qualified Database.Relational.Record as Record
 class SqlProjectable p where
   -- | Unsafely project from SQL expression terms.
   unsafeProjectSqlTerms :: [StringSQL] -- ^ SQL expression strings
-                        -> p t         -- ^ Result projection object
+                        -> p t         -- ^ Result record
 
 -- | Unsafely make 'Record' from SQL terms.
 instance SqlProjectable (Record Flat) where
@@ -117,7 +117,7 @@ unsafeProjectSql' =  unsafeProjectSqlTerms . (:[])
 unsafeProjectSql :: SqlProjectable p => String -> p t
 unsafeProjectSql =  unsafeProjectSql' . stringSQL
 
--- | Polymorphic projection of SQL null value. Semantics of comparing is unsafe.
+-- | Record with polymorphic phantom type of SQL null value. Semantics of comparing is unsafe.
 nothing :: (OperatorProjectable (Record c), SqlProjectable (Record c), PersistableWidth a)
         => Record c (Maybe a)
 nothing = proxyWidth persistableWidth
@@ -125,37 +125,37 @@ nothing = proxyWidth persistableWidth
     proxyWidth :: SqlProjectable (Record c) => PersistableRecordWidth a -> Record c (Maybe a)
     proxyWidth w = unsafeProjectSqlTerms $ replicate (runPersistableRecordWidth w) SQL.NULL
 
--- | Generate polymorphic projection of SQL constant values from Haskell value.
+-- | Generate record with polymorphic type of SQL constant values from Haskell value.
 value :: (ShowConstantTermsSQL t, OperatorProjectable p) => t -> p t
 value = unsafeProjectSqlTerms . showConstantTermsSQL
 
--- | Polymorphic proejction of SQL true value.
+-- | Record with polymorphic type of SQL true value.
 valueTrue  :: (OperatorProjectable p, ProjectableMaybe p) => p (Maybe Bool)
 valueTrue  =  just $ value True
 
--- | Polymorphic proejction of SQL false value.
+-- | Record with polymorphic type of SQL false value.
 valueFalse :: (OperatorProjectable p, ProjectableMaybe p) => p (Maybe Bool)
 valueFalse =  just $ value False
 
--- | Polymorphic proejction of SQL set value from Haskell list.
+-- | RecordList with polymorphic type of SQL set value from Haskell list.
 values :: (ShowConstantTermsSQL t, OperatorProjectable p) => [t] -> RecordList p t
 values =  Record.list . map value
 
 
--- | Interface to get SQL term from projections.
+-- | Interface to get SQL expression from a record.
 class ProjectableShowSql p where
-  -- | Unsafely generate SQL expression term from projection object.
-  unsafeShowSql' :: p a       -- ^ Source projection object
+  -- | Unsafely generate SQL expression term from record object.
+  unsafeShowSql' :: p a       -- ^ Source record object
                  -> StringSQL -- ^ Result SQL expression string.
 
--- | Unsafely generate SQL expression string from projection object.
+-- | Unsafely generate SQL expression string from record object.
 --   String interface of 'unsafeShowSql''.
 unsafeShowSql :: ProjectableShowSql p
-              => p a    -- ^ Source projection object
+              => p a    -- ^ Source record object
               -> String -- ^ Result SQL expression string.
 unsafeShowSql =  showStringSQL . unsafeShowSql'
 
--- | Unsafely get SQL term from 'Proejction'.
+-- | Unsafely get SQL term from 'Record'.
 instance ProjectableShowSql (Record c) where
   unsafeShowSql' = Record.unsafeStringSql
 
@@ -163,7 +163,7 @@ instance ProjectableShowSql (Record c) where
 -- | Binary operator type for SQL String.
 type SqlBinOp = Keyword -> Keyword -> Keyword
 
--- | Unsafely make projection unary operator from SQL keyword.
+-- | Unsafely make unary operator for records from SQL keyword.
 unsafeUniOp :: (ProjectableShowSql p0, SqlProjectable p1)
              => (Keyword -> Keyword) -> p0 a -> p1 b
 unsafeUniOp u = unsafeProjectSql' . u . unsafeShowSql'
@@ -172,20 +172,20 @@ unsafeFlatUniOp :: (SqlProjectable p, ProjectableShowSql p)
                => Keyword -> p a -> p b
 unsafeFlatUniOp kw = unsafeUniOp (SQL.paren . SQL.defineUniOp kw)
 
--- | Unsafely make projection binary operator from string binary operator.
+-- | Unsafely make binary operator for records from string binary operator.
 unsafeBinOp :: (SqlProjectable p, ProjectableShowSql p)
             => SqlBinOp
             -> p a -> p b -> p c
 unsafeBinOp op a b = unsafeProjectSql' . SQL.paren $
                      op (unsafeShowSql' a) (unsafeShowSql' b)
 
--- | Unsafely make compare projection binary operator from string binary operator.
+-- | Unsafely make binary operator to compare records from string binary operator.
 compareBinOp :: (SqlProjectable p, ProjectableShowSql p)
              => SqlBinOp
              -> p a -> p a -> p (Maybe Bool)
 compareBinOp =  unsafeBinOp
 
--- | Unsafely make numrical projection binary operator from string binary operator.
+-- | Unsafely make numrical binary operator for records from string binary operator.
 monoBinOp :: (SqlProjectable p, ProjectableShowSql p)
          => SqlBinOp
          -> p a -> p a -> p a
@@ -277,7 +277,7 @@ likeMaybe :: (OperatorProjectable p, ProjectableShowSql p, IsString a, ShowConst
        => p (Maybe a) -> a -> p (Maybe Bool)
 x `likeMaybe` a = x `unsafeLike` value a
 
--- | Unsafely make number projection binary operator from SQL operator string.
+-- | Unsafely make number binary operator for records from SQL operator string.
 monoBinOp' :: (SqlProjectable p, ProjectableShowSql p)
           => Keyword -> p a -> p a -> p a
 monoBinOp' = monoBinOp . SQL.defineBinOp
@@ -316,7 +316,7 @@ fromIntegral' :: (SqlProjectable p, ProjectableShowSql p, Integral a, Num b)
               => p a -> p b
 fromIntegral' =  unsafeCastProjectable
 
--- | Unsafely show number into string-like type in projections.
+-- | Unsafely show number into string-like type in records.
 showNum :: (SqlProjectable p, ProjectableShowSql p, Num a, IsString b)
               => p a -> p b
 showNum =  unsafeCastProjectable
@@ -351,7 +351,7 @@ fromIntegralMaybe :: (SqlProjectable p, ProjectableShowSql p, Integral a, Num b)
                   => p (Maybe a) -> p (Maybe b)
 fromIntegralMaybe =  unsafeCastProjectable
 
--- | Unsafely show number into string-like type in projections.
+-- | Unsafely show number into string-like type in records.
 showNumMaybe :: (SqlProjectable p, ProjectableShowSql p, Num a, IsString b)
                    => p (Maybe a) -> p (Maybe b)
 showNumMaybe = unsafeCastProjectable
@@ -360,21 +360,21 @@ showNumMaybe = unsafeCastProjectable
 --   Like, /CASE WHEN p0 THEN a WHEN p1 THEN b ... ELSE c END/
 caseSearch :: OperatorProjectable (Record c)
            => [(Record c (Maybe Bool), Record c a)] -- ^ Each when clauses
-           -> Record c a                            -- ^ Else result projection
-           -> Record c a                            -- ^ Result projection
+           -> Record c a                            -- ^ Else result record
+           -> Record c a                            -- ^ Result record
 caseSearch = Internal.caseSearch
 
 -- | Same as 'caseSearch', but you can write like <when list> `casesOrElse` <else clause>.
 casesOrElse :: OperatorProjectable (Record c)
             => [(Record c (Maybe Bool), Record c a)] -- ^ Each when clauses
-            -> Record c a                            -- ^ Else result projection
-            -> Record c a                            -- ^ Result projection
+            -> Record c a                            -- ^ Else result record
+            -> Record c a                            -- ^ Result record
 casesOrElse = caseSearch
 
 -- | Null default version of 'caseSearch'.
 caseSearchMaybe :: (OperatorProjectable (Record c) {- (Record c) is always ProjectableMaybe -}, PersistableWidth a)
                 => [(Record c (Maybe Bool), Record c (Maybe a))] -- ^ Each when clauses
-                -> Record c (Maybe a)                            -- ^ Result projection
+                -> Record c (Maybe a)                            -- ^ Result record
 caseSearchMaybe cs = caseSearch cs nothing
 
 -- | Simple case operator correnponding SQL simple /CASE/.
@@ -382,22 +382,22 @@ caseSearchMaybe cs = caseSearch cs nothing
 case' :: OperatorProjectable (Record c)
       => Record c a                 -- ^ Record value to match
       -> [(Record c a, Record c b)] -- ^ Each when clauses
-      -> Record c b                 -- ^ Else result projection
-      -> Record c b                 -- ^ Result projection
+      -> Record c b                 -- ^ Else result record
+      -> Record c b                 -- ^ Result record
 case' = Internal.case'
 
 -- | Uncurry version of 'case'', and you can write like ... `casesOrElse'` <else clause>.
 casesOrElse' :: OperatorProjectable (Record c)
              => (Record c a, [(Record c a, Record c b)]) -- ^ Record value to match and each when clauses list
-             -> Record c b                               -- ^ Else result projection
-             -> Record c b                               -- ^ Result projection
+             -> Record c b                               -- ^ Else result record
+             -> Record c b                               -- ^ Result record
 casesOrElse' =  uncurry case'
 
 -- | Null default version of 'case''.
 caseMaybe :: (OperatorProjectable (Record c) {- (Record c) is always ProjectableMaybe -}, PersistableWidth b)
           => Record c a                         -- ^ Record value to match
           -> [(Record c a, Record c (Maybe b))] -- ^ Each when clauses
-          -> Record c (Maybe b)                 -- ^ Result projection
+          -> Record c (Maybe b)                 -- ^ Result record
 caseMaybe v cs = case' v cs nothing
 
 -- | Binary operator corresponding SQL /IN/ .
@@ -501,11 +501,11 @@ projectZip pa pb = (,) |$| pa |*| pb
 (><) :: ProjectableApplicative p => p a -> p b -> p (a, b)
 (><) =  projectZip
 
--- | Interface to control 'Maybe' of phantom type in projections.
+-- | Interface to control 'Maybe' of phantom type in records.
 class ProjectableMaybe p where
-  -- | Cast projection phantom type into 'Maybe'.
+  -- | Cast record phantom type into 'Maybe'.
   just :: p a -> p (Maybe a)
-  -- | Compose nested 'Maybe' phantom type on projection.
+  -- | Compose nested 'Maybe' phantom type on record.
   flattenMaybe :: p (Maybe (Maybe a)) -> p (Maybe a)
 
 -- | Control phantom 'Maybe' type in placeholder parameters.

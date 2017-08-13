@@ -10,7 +10,7 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- This module defines query projection type structure and interfaces.
+-- This module defines interfaces of projected record type.
 module Database.Relational.Record (
   -- * Record data structure and interface
   Record,
@@ -71,7 +71,7 @@ import qualified Database.Relational.Sub as SubQuery
 unsafeStringSql :: Record c r -> StringSQL
 unsafeStringSql = rowStringSQL . recordRawColumns
 
--- | Get column SQL string list of projection.
+-- | Get column SQL string list of record.
 columns :: Record c r  -- ^ Source 'Record'
         -> [StringSQL] -- ^ Result SQL string list
 columns = recordRawColumns
@@ -80,7 +80,7 @@ columns = recordRawColumns
 width :: Record c r -> Int
 width = Internal.recordWidth
 
--- | Unsafely get untyped projection.
+-- | Get untyped tuple.
 untype :: Record c r -> Tuple
 untype = Internal.untypeRecord
 
@@ -142,11 +142,11 @@ piMaybe' = unsafeProject persistableWidth
 unsafeCast :: Record c r -> Record c r'
 unsafeCast = Internal.record . Internal.untypeRecord
 
--- | Composite nested 'Maybe' on projection phantom type.
+-- | Composite nested 'Maybe' on record phantom type.
 flattenMaybe :: Record c (Maybe (Maybe a)) -> Record c (Maybe a)
 flattenMaybe =  unsafeCast
 
--- | Cast into 'Maybe' on projection phantom type.
+-- | Cast into 'Maybe' on record phantom type.
 just :: Record c r -> Record c (Maybe r)
 just =  unsafeCast
 
@@ -165,7 +165,7 @@ unsafeToFlat =  unsafeChangeContext
 notNullMaybeConstraint :: HasColumnConstraint NotNull r => Record c (Maybe r) -> NotNullColumnConstraint r
 notNullMaybeConstraint =  const KeyConstraint.columnConstraint
 
--- | Unsafely get SQL string expression of not null key projection.
+-- | Unsafely get SQL string expression of not null key record.
 unsafeStringSqlNotNullMaybe :: HasColumnConstraint NotNull r => Record c (Maybe r) -> StringSQL
 unsafeStringSqlNotNullMaybe p = (!!  KeyConstraint.index (notNullMaybeConstraint p)) . columns $ p
 
@@ -186,19 +186,19 @@ instance ProjectableFunctor (Record c) where
 instance ProjectableApplicative (Record c) where
   (|*|) = pap
 
--- | Projected Record type for row list.
+-- | Projected record list type for row list.
 data RecordList p t = List [p t]
                     | Sub SubQuery
 
--- | Make row list projection from 'Record' list.
+-- | Make projected record list from 'Record' list.
 list :: [p t] -> RecordList p t
 list =  List
 
--- | Make row list projection from 'SubQuery'.
+-- | Make projected record list from 'SubQuery'.
 unsafeListFromSubQuery :: SubQuery -> RecordList p t
 unsafeListFromSubQuery =  Sub
 
--- | Map projection show operatoions and concatinate to single SQL expression.
+-- | Map record show operatoions and concatinate to single SQL expression.
 unsafeStringSqlList :: (p t -> StringSQL) -> RecordList p t -> StringSQL
 unsafeStringSqlList sf = d  where
   d (List ps) = listStringSQL $ map sf ps

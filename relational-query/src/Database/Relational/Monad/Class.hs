@@ -62,12 +62,12 @@ instance (Functor q, Monad q) => MonadQualify q q where
 
 -- | Aggregated query building interface extends 'MonadQuery'.
 class MonadQuery m => MonadAggregate m where
-  -- | Add /GROUP BY/ term into context and get aggregated projection.
+  -- | Add /GROUP BY/ term into context and get aggregated record.
   groupBy :: Record Flat r           -- ^ Record to add into group by
-          -> m (Record Aggregated r) -- ^ Result context and aggregated projection
-  -- | Add /GROUP BY/ term into context and get aggregated projection. Non-traditional group-by version.
+          -> m (Record Aggregated r) -- ^ Result context and aggregated record
+  -- | Add /GROUP BY/ term into context and get aggregated record. Non-traditional group-by version.
   groupBy' :: AggregateKey (Record Aggregated r)  -- ^ Key to aggretate for non-traditional group-by interface
-           -> m (Record Aggregated r)             -- ^ Result context and aggregated projection
+           -> m (Record Aggregated r)             -- ^ Result context and aggregated record
 
 -- | Window specification building interface.
 class Monad m => MonadPartition c m where

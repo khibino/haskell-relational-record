@@ -114,6 +114,6 @@ aggregateKeyRecord (AggregateKey (p, _c)) = p
 aggregateKeyElement :: AggregateKey a -> AggregateElem
 aggregateKeyElement (AggregateKey (_p, c)) = c
 
--- | Unsafely bind typed-projection and untyped-term into 'AggregateKey'.
+-- | Unsafely bind typed-record and untyped-term into 'AggregateKey'.
 unsafeAggregateKey :: (a, AggregateElem) -> AggregateKey a
 unsafeAggregateKey = AggregateKey

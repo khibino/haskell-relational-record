@@ -41,7 +41,7 @@ import Database.Relational.Monad.Class
 
 
 -- | Type to accumulate ordering context.
---   Type 'c' is ordering term projection context type.
+--   Type 'c' is ordering term record context type.
 newtype Orderings c m a =
   Orderings (WriterT (DList OrderingTerm) m a)
   deriving (MonadTrans, Monad, Functor, Applicative)
@@ -74,7 +74,7 @@ instance MonadAggregate m => MonadAggregate (Orderings c m) where
 instance MonadPartition c m => MonadPartition c (Orderings c m) where
   partitionBy = orderings . partitionBy
 
--- | Ordering term projection type interface.
+-- | Ordering term record type interface.
 class ProjectableOrdering p where
   orderTerms :: p t -> [OrderColumn]
 

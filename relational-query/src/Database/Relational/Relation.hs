@@ -319,12 +319,6 @@ infixl 8 `intersect`, `intersectAll`
 infixl 7 `union'`, `except'`, `unionAll'`, `exceptAll'`
 infixl 8 `intersect'`, `intersectAll'`
 
-{-
--- | Get projection width from 'Relation'.
-width :: Relation p r -> Int
-width =  SubQuery.width . subQueryFromRelation
--}
-
 -- | Unique relation type to compose scalar queries.
 newtype UniqueRelation p c r =  Unique (Relation p r)
 

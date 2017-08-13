@@ -12,9 +12,9 @@
 --
 -- This module defines arrow version combinators which
 -- improves type-safty on building queries.
--- Referencing the local projections may cause to break
+-- Referencing the local projected records may cause to break
 -- the result query.
--- It is possible to controls injection of previous local projections
+-- It is possible to controls injection of previous local projected records
 -- by restricting domain type of arrow. This idea is imported from Opaleye:
 --
 --   * <https://github.com/tomjaguarpaw/haskell-opaleye>
@@ -145,25 +145,25 @@ distinct :: MonadQuery m => QueryA m () ()
 distinct = queryA $ \() -> Monadic.distinct
 
 -- | Same as 'Monadic.query'. Arrow version.
---   The result arrow is not injected by local projections.
+--   The result arrow is not injected by local projected records.
 query :: (MonadQualify ConfigureQuery m, MonadQuery m)
       => Relation () r -> QueryA m () (Record Flat r)
 query r = queryA $ \() -> Monadic.query r
 
 -- | Same as 'Monadic.queryMaybe'. Arrow version.
---   The result arrow is not injected by any local projections.
+--   The result arrow is not injected by any local projected records.
 queryMaybe :: (MonadQualify ConfigureQuery m, MonadQuery m)
            => Relation () r -> QueryA m () (Record Flat (Maybe r))
 queryMaybe r = queryA $ \() -> Monadic.queryMaybe r
 
 -- | Same as 'Monadic.query''. Arrow version.
---   The result arrow is not injected by any local projections.
+--   The result arrow is not injected by any local projected records.
 query' :: (MonadQualify ConfigureQuery m, MonadQuery m)
        => Relation p r -> QueryA m () (PlaceHolders p, Record Flat r)
 query' r = queryA $ \() -> Monadic.query' r
 
 -- | Same as 'Monadic.queryMaybe''. Arrow version.
---   The result arrow is not injected by any local projections.
+--   The result arrow is not injected by any local projected records.
 queryMaybe' :: (MonadQualify ConfigureQuery m, MonadQuery m)
             => Relation p r -> QueryA m () (PlaceHolders p, Record Flat (Maybe r))
 queryMaybe' r = queryA $ \() -> Monadic.queryMaybe' r
@@ -179,42 +179,42 @@ unsafeQueryList' :: MonadQualify ConfigureQuery m
 unsafeQueryList' rf = queryA $ Monadic.queryList' . rf
 
 -- | Same as 'Monadic.queryList'. Arrow version.
---   The result arrow is designed to be injected by local projections.
+--   The result arrow is designed to be injected by local projected records.
 queryList :: MonadQualify ConfigureQuery m
           => (Record c a -> Relation () r)
           -> QueryA m (Record c a) (RecordList (Record c) r)
 queryList = unsafeQueryList
 
 -- | Same as 'Monadic.queryList''. Arrow version.
---   The result arrow is designed to be injected by local projections.
+--   The result arrow is designed to be injected by local projected records.
 queryList' :: MonadQualify ConfigureQuery m
            => (Record c a -> Relation p r)
            -> QueryA m (Record c a) (PlaceHolders p, RecordList (Record c) r)
 queryList' = unsafeQueryList'
 
 -- | Same as 'Monadic.queryList' to pass this result to 'exists' operator. Arrow version.
---   The result arrow is designed to be injected by local projections.
+--   The result arrow is designed to be injected by local projected records.
 queryExists :: MonadQualify ConfigureQuery m
           => (Record c a -> Relation () r)
           -> QueryA m (Record c a) (RecordList (Record Exists) r)
 queryExists = unsafeQueryList
 
 -- | Same as 'Monadic.queryList'' to pass this result to 'exists' operator. Arrow version.
---   The result arrow is designed to be injected by local projections.
+--   The result arrow is designed to be injected by local projected records.
 queryExists' :: MonadQualify ConfigureQuery m
            => (Record c a -> Relation p r)
            -> QueryA m (Record c a) (PlaceHolders p, RecordList (Record Exists) r)
 queryExists' = unsafeQueryList'
 
 -- | Same as 'Monadic.queryList'. Arrow version.
---   Useful for no reference cases to local projections.
+--   Useful for no reference cases to local projected records.
 queryListU :: MonadQualify ConfigureQuery m
            => Relation () r
            -> QueryA m () (RecordList (Record c) r)
 queryListU r = unsafeQueryList $ \() -> r
 
 -- | Same as 'Monadic.queryList''. Arrow version.
---   Useful for no reference cases to local projections.
+--   Useful for no reference cases to local projected records.
 queryListU' :: MonadQualify ConfigureQuery m
            => Relation p r
            -> QueryA m () (PlaceHolders p, RecordList (Record c) r)
@@ -231,65 +231,65 @@ unsafeQueryScalar' :: (MonadQualify ConfigureQuery m, ScalarDegree r)
 unsafeQueryScalar' rf = queryA $ Monadic.queryScalar' . rf
 
 -- | Same as 'Monadic.queryScalar'. Arrow version.
---   The result arrow is designed to be injected by any local projection.
+--   The result arrow is designed to be injected by any local projected record.
 queryScalar :: (MonadQualify ConfigureQuery m, ScalarDegree r)
             => (Record c a -> UniqueRelation () c r)
             -> QueryA m (Record c a) (Record c (Maybe r))
 queryScalar = unsafeQueryScalar
 
 -- | Same as 'Monadic.queryScalar''. Arrow version.
---   The result arrow is designed to be injected by any local projection.
+--   The result arrow is designed to be injected by any local projected record.
 queryScalar' :: (MonadQualify ConfigureQuery m, ScalarDegree r)
              => (Record c a -> UniqueRelation p c r)
              -> QueryA m (Record c a) (PlaceHolders p, Record c (Maybe r))
 queryScalar' = unsafeQueryScalar'
 
 -- | Same as 'Monadic.queryScalar'. Arrow version.
---   Useful for no reference cases to local projections.
+--   Useful for no reference cases to local projected records.
 queryScalarU :: (MonadQualify ConfigureQuery m, ScalarDegree r)
             => UniqueRelation () c r
             -> QueryA m () (Record c (Maybe r))
 queryScalarU r = unsafeQueryScalar $ \() -> r
 
 -- | Same as 'Monadic.queryScalar''. Arrow version.
---   Useful for no reference cases to local projections.
+--   Useful for no reference cases to local projected records.
 queryScalarU' :: (MonadQualify ConfigureQuery m, ScalarDegree r)
              => UniqueRelation p c r
              -> QueryA m () (PlaceHolders p, Record c (Maybe r))
 queryScalarU' r = unsafeQueryScalar' $ \() -> r
 
 -- | Same as 'Monadic.uniqueQuery''. Arrow version.
---   The result arrow is not injected by local projections.
+--   The result arrow is not injected by local projected records.
 uniqueQuery' :: UniqueRelation p c r
              -> QueryA Monadic.QueryUnique () (PlaceHolders p, Record c r)
 uniqueQuery' r = queryA $ \() -> Monadic.uniqueQuery' r
 
 -- | Same as 'Monadic.uniqueQueryMaybe''. Arrow version.
---   The result arrow is not injected by local projections.
+--   The result arrow is not injected by local projected records.
 uniqueQueryMaybe' :: UniqueRelation p c r
                   -> QueryA Monadic.QueryUnique () (PlaceHolders p, Record c (Maybe r))
 uniqueQueryMaybe' r = queryA $ \() -> Monadic.uniqueQueryMaybe' r
 
 -- | Same as 'Monadic.on'. Arrow version.
---   The result arrow is designed to be injected by local conditional flat-projections.
+--   The result arrow is designed to be injected by local conditional flat-records.
 on :: MonadQuery m
    => QueryA m (Record Flat (Maybe Bool)) ()
 on = queryA Monadic.on
 
 -- | Same as 'Monadic.wheres'. Arrow version.
---   The result arrow is designed to be injected by local conditional flat-projections.
+--   The result arrow is designed to be injected by local conditional flat-records.
 wheres :: MonadRestrict Flat m
        => QueryA m (Record Flat (Maybe Bool)) ()
 wheres = queryA Monadic.wheres
 
 -- | Same as 'Monadic.having'. Arrow version.
---   The result arrow is designed to be injected by local conditional aggregated-projections.
+--   The result arrow is designed to be injected by local conditional aggregated-records.
 having :: MonadRestrict Aggregated m
        => QueryA m (Record Aggregated (Maybe Bool)) ()
 having = queryA Monadic.having
 
 -- | Same as 'Monadic.groupBy'. Arrow version.
---   The result arrow is designed to be injected by local flat-projections.
+--   The result arrow is designed to be injected by local flat-records.
 groupBy :: MonadAggregate m
         => QueryA m (Record Flat r) (Record Aggregated r)
 groupBy = queryA Monadic.groupBy
@@ -336,7 +336,7 @@ groupBy' :: MonadAggregate m => QueryA m (AggregateKey (Record Aggregated r)) (R
 groupBy' = queryA Monadic.groupBy'
 
 -- | Same as 'Monadic.key'.
---   This arrow is designed to be injected by local flat-projections.
+--   This arrow is designed to be injected by local flat-records.
 key :: AggregatingSet (Record Flat r) (Record Aggregated (Maybe r))
 key = queryA Monadic.key
 
@@ -351,7 +351,7 @@ set :: AggregatingSetList (AggregatingSet () a) a
 set = queryA $ runAofM Monadic.set
 
 -- | Same as 'Monadic.bkey'.
---   This arrow is designed to be injected by local flat-projections.
+--   This arrow is designed to be injected by local flat-records.
 bkey :: AggregatingPowerSet (Record Flat r) (Record Aggregated (Maybe r))
 bkey = queryA Monadic.bkey
 
@@ -371,7 +371,7 @@ groupingSets :: AggregatingSetList () a -> AggregateKey a
 groupingSets = runAofM Monadic.groupingSets
 
 -- | Same as 'Monadic.orderBy''.
---   The result arrow is designed to be injected by local projections.
+--   The result arrow is designed to be injected by local projected records.
 orderBy' :: Monad m
          => Order
          -> Nulls
@@ -379,31 +379,31 @@ orderBy' :: Monad m
 orderBy' o n = queryA $ \p -> Monadic.orderBy' p o n
 
 -- | Same as 'Monadic.orderBy'.
---   The result arrow is designed to be injected by local projections.
+--   The result arrow is designed to be injected by local projected records.
 orderBy :: Monad m
         => Order
         -> Orderings c m (Record c t) ()
 orderBy o = queryA (`Monadic.orderBy` o)
 
 -- | Same as 'Monadic.asc'.
---   The result arrow is designed to be injected by local projections.
+--   The result arrow is designed to be injected by local projected records.
 asc :: Monad m
     => Orderings c m (Record c t) ()
 asc = queryA Monadic.asc
 
 -- | Same as 'Monadic.desc'.
---   The result arrow is designed to be injected by local projections.
+--   The result arrow is designed to be injected by local projected records.
 desc :: Monad m
      => Orderings c m (Record c t) ()
 desc = queryA Monadic.desc
 
 -- | Same as 'Monadic.partitionBy'.
---   The result arrow is designed to be injected by local projections.
+--   The result arrow is designed to be injected by local projected records.
 partitionBy :: Window c (Record c r) ()
 partitionBy = queryA Monadic.partitionBy
 
 -- | Same as 'Monadic.over'.
---   Make window function result projection using built 'Window' arrow.
+--   Make record of window function result using built 'Window' arrow.
 over :: SqlProjectable (Record c)
      => Record OverWindow a -> Window c () () -> Record c a
 over po = runAofM $ Monadic.over po
@@ -411,7 +411,7 @@ over po = runAofM $ Monadic.over po
 infix 8 `over`
 
 -- | Make 'Monadic.AssignTarget' into arrow which is designed to be
---   injected by local projection assignees.
+--   injected by assignees of local projected record.
 assign :: Monad m
        => Monadic.AssignTarget r v
        -> Assignings r m (Record Flat v) ()

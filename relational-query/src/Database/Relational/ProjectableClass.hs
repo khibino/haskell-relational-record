@@ -38,7 +38,7 @@ class ProductConstructor r where
   -- | The constructor which has type 'r'.
   productConstructor :: r
 
--- | Weaken functor on projections.
+-- | Restricted functor on products.
 class ProjectableFunctor p where
   -- | Method like 'fmap'.
   (|$|) :: ProductConstructor (a -> b) => (a -> b) -> p a -> p b
@@ -48,7 +48,7 @@ ipfmap :: (ProjectableFunctor p, ProductConstructor (a -> b))
        => p a -> p b
 ipfmap =  (|$|) productConstructor
 
--- | Weaken applicative functor on projections.
+-- | Restricted applicative functor on products.
 class ProjectableFunctor p => ProjectableApplicative p where
   -- | Method like '<*>'.
   (|*|) :: p (a -> b) -> p a -> p b

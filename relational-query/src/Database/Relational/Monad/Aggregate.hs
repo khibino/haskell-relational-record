@@ -89,7 +89,7 @@ toSubQuery q = do
 extractWindow :: Window c a -> ((a, [OrderingTerm]), [AggregateColumnRef])
 extractWindow =  runIdentity . extractAggregateTerms . extractOrderingTerms
 
--- | Operator to make window function result projection using built 'Window' monad.
+-- | Operator to make record of window function result using built 'Window' monad.
 over :: SqlProjectable (Record c)
      => Record OverWindow a
      -> Window c ()
