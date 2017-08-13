@@ -20,7 +20,7 @@ module Database.Relational.Internal.GroupingSQL (
 
   AggregateKey (..),
 
-  aggregateKeyRecord, aggregateKeyProjection, aggregateKeyElement, unsafeAggregateKey,
+  aggregateKeyRecord, aggregateKeyElement, unsafeAggregateKey,
   ) where
 
 import Data.Monoid (Monoid (..), (<>))
@@ -105,10 +105,6 @@ composePartitionBy :: [AggregateColumnRef] -> StringSQL
 composePartitionBy =  d where
   d []       = mempty
   d ts@(_:_) = PARTITION <> BY <> commaed ts
-
-{-# DEPRECATED aggregateKeyProjection "Replaced by aggregateKeyRecord" #-}
-aggregateKeyProjection :: AggregateKey a -> a
-aggregateKeyProjection = aggregateKeyRecord
 
 -- | Extract typed record from 'AggregateKey'.
 aggregateKeyRecord :: AggregateKey a -> a

@@ -38,7 +38,7 @@ module Database.Relational.Record (
   pfmap, pap,
 
   -- * List of Record
-  RecordList, ListProjection, list, unsafeListFromSubQuery,
+  RecordList, list, unsafeListFromSubQuery,
   unsafeStringSqlList
   ) where
 
@@ -185,9 +185,6 @@ instance ProjectableFunctor (Record c) where
 -- | Compose record type 'Record' using applicative style.
 instance ProjectableApplicative (Record c) where
   (|*|) = pap
-
-{-# DEPRECATED ListProjection "Replaced by RecordList" #-}
-type ListProjection = RecordList
 
 -- | Projected Record type for row list.
 data RecordList p t = List [p t]
