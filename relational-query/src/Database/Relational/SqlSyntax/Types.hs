@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveTraversable #-}
 
 -- |
--- Module      : Database.Relational.Internal.Sub
+-- Module      : Database.Relational.SqlSyntax.Types
 -- Copyright   : 2015-2017 Kei Hibino
 -- License     : BSD3
 --
@@ -10,7 +10,7 @@
 -- Portability : unknown
 --
 -- This module defines sub-query structure used in query products.
-module Database.Relational.Internal.Sub
+module Database.Relational.SqlSyntax.Types
        ( SubQuery (..)
        , SetOp (..), BinOp (..), Qualifier (..)
        , Qualified (..), qualifier, unQualify, qualify

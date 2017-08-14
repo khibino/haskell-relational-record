@@ -80,7 +80,7 @@ library
                        Database.Relational.Internal.GroupingSQL
                        Database.Relational.Internal.UntypedTable
                        Database.Relational.Internal.Product
-                       Database.Relational.Internal.Sub
+                       Database.Relational.SqlSyntax.Types
                        Database.Relational.Monad.Trans.JoinState
                        Database.Relational.Monad.Trans.Qualify
 

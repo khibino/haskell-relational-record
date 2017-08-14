@@ -22,7 +22,7 @@ module Database.Relational.Monad.Class
        ) where
 
 import Database.Relational.Internal.BaseSQL (Duplication (..))
-import Database.Relational.Internal.Sub (Record)
+import Database.Relational.SqlSyntax.Types (Record)
 import Database.Relational.Internal.GroupingSQL (AggregateKey)
 
 import Database.Relational.Context (Flat, Aggregated)

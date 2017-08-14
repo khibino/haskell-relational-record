@@ -33,7 +33,7 @@ import Language.SQL.Keyword (Keyword(..))
 import qualified Language.SQL.Keyword as SQL
 
 import Database.Relational.Internal.BaseSQL (Duplication, OrderingTerm, composeOrderBy)
-import Database.Relational.Internal.Sub (Record)
+import Database.Relational.SqlSyntax.Types (Record)
 import Database.Relational.Internal.GroupingSQL (AggregateColumnRef, AggregateElem, composePartitionBy)
 
 import Database.Relational.Context (Flat, Aggregated, OverWindow)

@@ -35,7 +35,7 @@ import Data.Monoid (Last (Last, getLast))
 
 import Database.Relational.Internal.BaseSQL (Duplication (All))
 import Database.Relational.Internal.Product (restrictProduct, growProduct)
-import Database.Relational.Internal.Sub (NodeAttr (Just', Maybe), SubQuery, Qualified, JoinProduct, Record)
+import Database.Relational.SqlSyntax.Types (NodeAttr (Just', Maybe), SubQuery, Qualified, JoinProduct, Record)
 
 import Database.Relational.Context (Flat)
 import Database.Relational.Monad.Trans.JoinState

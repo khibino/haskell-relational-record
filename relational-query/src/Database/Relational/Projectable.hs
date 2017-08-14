@@ -74,8 +74,8 @@ import Database.Record
 import Database.Record.Persistable (runPersistableRecordWidth)
 
 import Database.Relational.Internal.SQL (StringSQL, stringSQL, showStringSQL)
-import Database.Relational.Internal.Sub (Record)
-import qualified Database.Relational.Internal.Sub as Internal
+import Database.Relational.SqlSyntax.Types (Record)
+import qualified Database.Relational.SqlSyntax.Types as Syntax
 
 import Database.Relational.ProjectableClass
   (ProjectableFunctor (..), ProjectableApplicative (..), )
@@ -362,7 +362,7 @@ caseSearch :: OperatorProjectable (Record c)
            => [(Record c (Maybe Bool), Record c a)] -- ^ Each when clauses
            -> Record c a                            -- ^ Else result record
            -> Record c a                            -- ^ Result record
-caseSearch = Internal.caseSearch
+caseSearch = Syntax.caseSearch
 
 -- | Same as 'caseSearch', but you can write like <when list> `casesOrElse` <else clause>.
 casesOrElse :: OperatorProjectable (Record c)
@@ -384,7 +384,7 @@ case' :: OperatorProjectable (Record c)
       -> [(Record c a, Record c b)] -- ^ Each when clauses
       -> Record c b                 -- ^ Else result record
       -> Record c b                 -- ^ Result record
-case' = Internal.case'
+case' = Syntax.case'
 
 -- | Uncurry version of 'case'', and you can write like ... `casesOrElse'` <else clause>.
 casesOrElse' :: OperatorProjectable (Record c)

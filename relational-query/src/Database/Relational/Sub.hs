@@ -54,7 +54,7 @@ import Database.Relational.Internal.BaseSQL
   (Duplication (..), showsDuplication, OrderingTerm, composeOrderBy, )
 import Database.Relational.Internal.GroupingSQL
   (AggregateElem, composeGroupBy, )
-import Database.Relational.Internal.Sub
+import Database.Relational.SqlSyntax.Types
   (SubQuery (..), Record,
    CaseClause(..), WhenClauses (..),
    Tuple, Column (..),
@@ -62,7 +62,7 @@ import Database.Relational.Internal.Sub
    NodeAttr (Just', Maybe), ProductTree (Leaf, Join),
    SetOp (..), BinOp (..), Qualifier (..), Qualified (..),
    QueryRestriction)
-import qualified Database.Relational.Internal.Sub as Internal
+import qualified Database.Relational.SqlSyntax.Types as Syntax
 import Database.Relational.Internal.UntypedTable ((!))
 import qualified Database.Relational.Internal.UntypedTable as UntypedTable
 
@@ -130,8 +130,8 @@ width :: SubQuery -> Int
 width =  d  where
   d (Table u)                     = UntypedTable.width' u
   d (Bin _ l _)                   = width l
-  d (Flat _ up _ _ _ _)           = Internal.tupleWidth up
-  d (Aggregated _ up _ _ _ _ _ _) = Internal.tupleWidth up
+  d (Flat _ up _ _ _ _)           = Syntax.tupleWidth up
+  d (Aggregated _ up _ _ _ _ _ _) = Syntax.tupleWidth up
 
 -- | SQL to query table.
 fromTableToSQL :: UntypedTable.Untyped -> StringSQL
@@ -216,16 +216,16 @@ columnFromId qi i = qi <.> columnN i
 -- | From 'Qualified' SQL string into qualified formed 'String'
 --  like (SELECT ...) AS T<n>
 qualifiedSQLas :: Qualified StringSQL -> StringSQL
-qualifiedSQLas q = Internal.unQualify q <> showQualifier (Internal.qualifier q)
+qualifiedSQLas q = Syntax.unQualify q <> showQualifier (Syntax.qualifier q)
 
 -- | Width of 'Qualified' 'SubQUery'.
 queryWidth :: Qualified SubQuery -> Int
-queryWidth =  width . Internal.unQualify
+queryWidth =  width . Syntax.unQualify
 
 -- | Get column SQL string of 'SubQuery'.
 column :: Qualified SubQuery -> Int -> StringSQL
-column qs =  d (Internal.unQualify qs)  where
-  q = Internal.qualifier qs
+column qs =  d (Syntax.unQualify qs)  where
+  q = Syntax.qualifier qs
   d (Table u)           i           = q <.> (u ! i)
   d (Bin {})            i           = q `columnFromId` i
   d (Flat _ up _ _ _ _) i           = showTupleIndex up i
@@ -233,7 +233,7 @@ column qs =  d (Internal.unQualify qs)  where
 
 -- | Make untyped tuple from joined sub-query.
 tupleFromJoinedSubQuery :: Qualified SubQuery -> Tuple
-tupleFromJoinedSubQuery qs = d $ Internal.unQualify qs  where
+tupleFromJoinedSubQuery qs = d $ Syntax.unQualify qs  where
   normalized = SubQueryRef <$> traverse (\q -> [0 .. width q - 1]) qs
   d (Table _)               =  map RawColumn . map (column qs)
                                $ take (queryWidth qs) [0..]
@@ -260,7 +260,7 @@ caseClause c i = d c  where
 showColumn :: Column -> StringSQL
 showColumn = d  where
   d (RawColumn e)     = e
-  d (SubQueryRef qi)  = Internal.qualifier qi `columnFromId` Internal.unQualify qi
+  d (SubQueryRef qi)  = Syntax.qualifier qi `columnFromId` Syntax.unQualify qi
   d (Scalar sub)      = showUnitSQL sub
   d (Case c i)        = caseClause c i
 
@@ -269,7 +269,7 @@ showTupleIndex :: Tuple     -- ^ Source 'Tuple'
                -> Int       -- ^ Column index
                -> StringSQL -- ^ Result SQL string
 showTupleIndex up i
-  | 0 <= i && i < Internal.tupleWidth up  =
+  | 0 <= i && i < Syntax.tupleWidth up  =
     showColumn $ up !! i
   | otherwise                                         =
     error $ "showTupleIndex: index out of bounds: " ++ show i
@@ -277,7 +277,7 @@ showTupleIndex up i
 -- | Get column SQL string list of record.
 recordRawColumns :: Record c r  -- ^ Source 'Record'
                  -> [StringSQL] -- ^ Result SQL string list
-recordRawColumns = map showColumn . Internal.untypeRecord
+recordRawColumns = map showColumn . Syntax.untypeRecord
 
 
 -- | Show product tree of query into SQL. StringSQL result.
@@ -287,14 +287,14 @@ showsQueryProduct =  rec  where
   joinType Just' Maybe = LEFT
   joinType Maybe Just' = RIGHT
   joinType Maybe Maybe = FULL
-  urec n = case Internal.nodeTree n of
+  urec n = case Syntax.nodeTree n of
     p@(Leaf _)     -> rec p
     p@(Join {})    -> SQL.paren (rec p)
   rec (Leaf q)               = qualifiedSQLas $ fmap showUnitSQL q
   rec (Join left' right' rs) =
     mconcat
     [urec left',
-     joinType (Internal.nodeAttr left') (Internal.nodeAttr right'), JOIN,
+     joinType (Syntax.nodeAttr left') (Syntax.nodeAttr right'), JOIN,
      urec right',
      ON, foldr1 SQL.and $ ps ++ concat [ showConstantTermsSQL True | null ps ] ]
     where ps = [ rowStringSQL $ recordRawColumns p | p <- rs ]

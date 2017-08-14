@@ -39,7 +39,7 @@ import Prelude hiding (pi)
 import qualified Language.SQL.Keyword as SQL
 import Database.Record (PersistableWidth)
 
-import Database.Relational.Internal.Sub (Record)
+import Database.Relational.SqlSyntax.Types (Record)
 
 import Database.Relational.Context (Flat, Aggregated, OverWindow)
 import qualified Database.Relational.Record as Record

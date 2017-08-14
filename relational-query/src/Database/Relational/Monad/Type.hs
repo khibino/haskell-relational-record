@@ -15,7 +15,7 @@ module Database.Relational.Monad.Type
        ) where
 
 import Database.Relational.Internal.BaseSQL (Duplication)
-import Database.Relational.Internal.Sub (Record)
+import Database.Relational.SqlSyntax.Types (Record)
 
 import Database.Relational.Sub (JoinProduct, QueryRestriction)
 import Database.Relational.Context (Flat)

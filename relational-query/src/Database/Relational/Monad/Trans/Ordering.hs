@@ -33,7 +33,7 @@ import Data.DList (DList, toList)
 
 import Database.Relational.Internal.BaseSQL
   (Order (..), Nulls (..), OrderColumn, OrderingTerm)
-import Database.Relational.Internal.Sub (Record)
+import Database.Relational.SqlSyntax.Types (Record)
 
 import qualified Database.Relational.Record as Record
 import Database.Relational.Monad.Class

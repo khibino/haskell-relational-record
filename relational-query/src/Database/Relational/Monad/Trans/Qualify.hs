@@ -23,7 +23,7 @@ import Control.Monad.Trans.State (StateT, runStateT, get, modify)
 import Control.Applicative (Applicative)
 import Control.Monad (liftM, ap)
 
-import qualified Database.Relational.Internal.Sub as Internal
+import qualified Database.Relational.SqlSyntax.Types as Syntax
 
 
 -- | Monad type to qualify SQL table forms.
@@ -36,9 +36,9 @@ evalQualifyPrime :: Monad m => Qualify m a -> m a
 evalQualifyPrime (Qualify s) = fst `liftM` runStateT s 0 {- primary alias id -}
 
 -- | Generated new qualifier on internal state.
-newAlias :: Monad m => Qualify m Internal.Qualifier
+newAlias :: Monad m => Qualify m Syntax.Qualifier
 newAlias =  Qualify $ do
-  ai <- Internal.Qualifier `liftM` get
+  ai <- Syntax.Qualifier `liftM` get
   modify (+ 1)
   return ai
 
@@ -49,6 +49,6 @@ qualify =  Qualify . lift
 -- | Get qualifyed table form query.
 qualifyQuery :: Monad m
              => query                                -- ^ Query to qualify
-             -> Qualify m (Internal.Qualified query) -- ^ Result with updated state
+             -> Qualify m (Syntax.Qualified query) -- ^ Result with updated state
 qualifyQuery query =
-  Internal.qualify `liftM` newAlias `ap` return query
+  Syntax.qualify `liftM` newAlias `ap` return query

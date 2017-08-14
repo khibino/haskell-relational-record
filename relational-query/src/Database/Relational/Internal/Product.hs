@@ -18,7 +18,7 @@ import Control.Applicative (pure)
 import Data.Monoid ((<>), mempty)
 
 import Database.Relational.Internal.ContextType (Flat)
-import Database.Relational.Internal.Sub
+import Database.Relational.SqlSyntax.Types
   (NodeAttr (..), ProductTree (..), Node (..), Record, Qualified, SubQuery,
    ProductTreeBuilder, ProductBuilder)
 

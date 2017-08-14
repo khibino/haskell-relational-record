@@ -51,9 +51,9 @@ import Database.Record.Persistable (PersistableRecordWidth)
 import qualified Database.Record.KeyConstraint as KeyConstraint
 
 import Database.Relational.Internal.SQL (StringSQL, listStringSQL, rowStringSQL)
-import Database.Relational.Internal.Sub
+import Database.Relational.SqlSyntax.Types
   (SubQuery, Qualified, Tuple, Record)
-import qualified Database.Relational.Internal.Sub as Internal
+import qualified Database.Relational.SqlSyntax.Types as Syntax
 
 import Database.Relational.ProjectableClass
   (ProductConstructor (..), ProjectableFunctor (..), ProjectableApplicative (..), )
@@ -78,35 +78,35 @@ columns = recordRawColumns
 
 -- | Width of 'Record'.
 width :: Record c r -> Int
-width = Internal.recordWidth
+width = Syntax.recordWidth
 
 -- | Get untyped tuple.
 untype :: Record c r -> Tuple
-untype = Internal.untypeRecord
+untype = Syntax.untypeRecord
 
 
 -- | Unsafely generate  'Record' from qualified (joined) sub-query.
 unsafeFromQualifiedSubQuery :: Qualified SubQuery -> Record c t
-unsafeFromQualifiedSubQuery = Internal.record . tupleFromJoinedSubQuery
+unsafeFromQualifiedSubQuery = Syntax.record . tupleFromJoinedSubQuery
 
 -- | Unsafely generate 'Record' from scalar sub-query.
 unsafeFromScalarSubQuery :: SubQuery -> Record c t
-unsafeFromScalarSubQuery = Internal.typeFromScalarSubQuery
+unsafeFromScalarSubQuery = Syntax.typeFromScalarSubQuery
 
 -- | Unsafely generate unqualified 'Record' from 'Table'.
 unsafeFromTable :: Table r
                 -> Record c r
-unsafeFromTable = Internal.typeFromRawColumns . Table.columns
+unsafeFromTable = Syntax.typeFromRawColumns . Table.columns
 
 -- | Unsafely generate 'Record' from SQL expression strings.
 unsafeFromSqlTerms :: [StringSQL] -> Record c t
-unsafeFromSqlTerms = Internal.typeFromRawColumns
+unsafeFromSqlTerms = Syntax.typeFromRawColumns
 
 
 -- | Unsafely trace projection path.
 unsafeProject :: PersistableRecordWidth a -> Record c a' -> Pi a b -> Record c b'
 unsafeProject w p pi' =
-  Internal.typeFromRawColumns
+  Syntax.typeFromRawColumns
   . (UnsafePi.pi w pi')
   . columns $ p
 
@@ -140,7 +140,7 @@ piMaybe' :: PersistableWidth a
 piMaybe' = unsafeProject persistableWidth
 
 unsafeCast :: Record c r -> Record c r'
-unsafeCast = Internal.record . Internal.untypeRecord
+unsafeCast = Syntax.record . Syntax.untypeRecord
 
 -- | Composite nested 'Maybe' on record phantom type.
 flattenMaybe :: Record c (Maybe (Maybe a)) -> Record c (Maybe a)
@@ -152,7 +152,7 @@ just =  unsafeCast
 
 -- | Unsafely cast context type tag.
 unsafeChangeContext :: Record c r -> Record c' r
-unsafeChangeContext = Internal.record . Internal.untypeRecord
+unsafeChangeContext = Syntax.record . Syntax.untypeRecord
 
 -- | Unsafely lift to aggregated context.
 unsafeToAggregated :: Record Flat r -> Record Aggregated r
@@ -176,7 +176,7 @@ _ `pfmap` p = unsafeCast p
 
 -- | Projectable ap of 'Record' type.
 pap :: Record c (a -> b) -> Record c a -> Record c b
-pf `pap` pa = Internal.record $ Internal.untypeRecord pf ++ Internal.untypeRecord pa
+pf `pap` pa = Syntax.record $ Syntax.untypeRecord pf ++ Syntax.untypeRecord pa
 
 -- | Compose seed of record type 'Record'.
 instance ProjectableFunctor (Record c) where
