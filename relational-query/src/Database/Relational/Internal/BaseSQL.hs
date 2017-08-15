@@ -9,9 +9,12 @@
 --
 -- This module provides base structure of SQL syntax tree.
 module Database.Relational.Internal.BaseSQL (
-  Duplication (..), showsDuplication,
-  Order (..), Nulls (..), OrderColumn, OrderingTerm, composeOrderBy,
-  AssignColumn, AssignTerm, Assignment, composeSets,
+  Duplication (..),
+  showsDuplication,
+  Order (..), Nulls (..), OrderColumn, OrderingTerm,
+  composeOrderBy,
+  AssignColumn, AssignTerm, Assignment,
+  composeSets,
   composeChunkValues, composeChunkValuesWithColumns,
   ) where
 
@@ -20,12 +23,12 @@ import Data.Monoid (Monoid (..), (<>))
 import Language.SQL.Keyword (Keyword(..), (|*|), (.=.))
 import qualified Language.SQL.Keyword as SQL
 
+import Database.Relational.SqlSyntax.Types
+  (Duplication (..), Order (..), Nulls (..), OrderColumn, OrderingTerm,
+    AssignColumn, AssignTerm, Assignment)
 import Database.Relational.Internal.SQL
   (StringSQL, rowConsStringSQL)
 
-
--- | Result record duplication attribute
-data Duplication = All | Distinct  deriving Show
 
 -- | Compose duplication attribute string.
 showsDuplication :: Duplication -> StringSQL
@@ -33,18 +36,6 @@ showsDuplication =  dup  where
   dup All      = ALL
   dup Distinct = DISTINCT
 
-
--- | Order direction. Ascendant or Descendant.
-data Order = Asc | Desc  deriving Show
-
--- | Order of null.
-data Nulls =  NullsFirst | NullsLast deriving Show
-
--- | Type for order-by column
-type OrderColumn = StringSQL
-
--- | Type for order-by term
-type OrderingTerm = ((Order, Maybe Nulls), OrderColumn)
 
 -- | Compose ORDER BY clause from OrderingTerms
 composeOrderBy :: [OrderingTerm] -> StringSQL
@@ -57,14 +48,6 @@ composeOrderBy =  d where
   nulls NullsFirst = FIRST
   nulls NullsLast  = LAST
 
--- | Column SQL String of assignment
-type AssignColumn = StringSQL
-
--- | Value SQL String of assignment
-type AssignTerm   = StringSQL
-
--- | Assignment pair
-type Assignment = (AssignColumn, AssignTerm)
 
 -- | Compose SET clause from ['Assignment'].
 composeSets :: [Assignment] -> StringSQL
@@ -76,8 +59,8 @@ composeSets as = assigns  where
           | otherwise       = SET <> SQL.fold (|*|) assignList
 
 -- | Compose VALUES clause from value expression list.
-composeChunkValues :: Int         -- ^ record count per chunk
-                   -> [StringSQL] -- ^ value expression list
+composeChunkValues :: Int          -- ^ record count per chunk
+                   -> [AssignTerm] -- ^ value expression list
                    -> Keyword
 composeChunkValues n0 vs =
     VALUES <> cvs

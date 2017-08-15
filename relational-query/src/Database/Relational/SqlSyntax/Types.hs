@@ -12,8 +12,11 @@
 -- This module defines sub-query structure used in query products.
 module Database.Relational.SqlSyntax.Types
        ( SubQuery (..)
-       , SetOp (..), BinOp (..), Qualifier (..)
-       , Qualified (..), qualifier, unQualify, qualify
+
+       , Duplication (..), SetOp (..), BinOp (..)
+       , Qualifier (..), Qualified (..), qualifier, unQualify, qualify
+
+       , Order (..), Nulls (..), OrderColumn, OrderingTerm
 
          -- * Product tree type
        , NodeAttr (..), ProductTree (..)
@@ -33,6 +36,9 @@ module Database.Relational.SqlSyntax.Types
 
          -- * Query restriction
        , QueryRestriction
+
+         -- * Update assignments
+       , AssignColumn, AssignTerm, Assignment
        )  where
 
 import Prelude hiding (and, product)
@@ -43,16 +49,30 @@ import Data.Traversable (Traversable)
 import Database.Relational.Internal.Config (Config)
 import Database.Relational.Internal.ContextType (Flat, Aggregated)
 import Database.Relational.Internal.SQL (StringSQL)
-import Database.Relational.Internal.BaseSQL (Duplication (..), OrderingTerm)
 import Database.Relational.Internal.GroupingSQL (AggregateElem)
 import Database.Relational.Internal.UntypedTable (Untyped)
 
+
+-- | Result record duplication attribute
+data Duplication = All | Distinct  deriving Show
 
 -- | Set operators
 data SetOp = Union | Except | Intersect  deriving Show
 
 -- | Set binary operators
 newtype BinOp = BinOp (SetOp, Duplication) deriving Show
+
+-- | Order direction. Ascendant or Descendant.
+data Order = Asc | Desc  deriving Show
+
+-- | Order of null.
+data Nulls =  NullsFirst | NullsLast deriving Show
+
+-- | Type for order-by column
+type OrderColumn = StringSQL
+
+-- | Type for order-by term
+type OrderingTerm = ((Order, Maybe Nulls), OrderColumn)
 
 -- | Sub-query type
 data SubQuery = Table Untyped
@@ -153,6 +173,9 @@ newtype Record c t =
   Record
   { untypeRecord :: Tuple {- ^ Discard record type -} }  deriving Show
 
+-- | Type for restriction of query.
+type QueryRestriction c = [Record c (Maybe Bool)]
+
 -- | Unsafely type 'Tuple' value to 'Record' type.
 record :: Tuple -> Record c t
 record = Record
@@ -169,6 +192,17 @@ typeFromRawColumns =  record . map RawColumn
 -- | Unsafely generate 'Record' from scalar sub-query.
 typeFromScalarSubQuery :: SubQuery -> Record c t
 typeFromScalarSubQuery = record . (:[]) . Scalar
+
+
+-- | Column SQL String of assignment
+type AssignColumn = StringSQL
+
+-- | Value SQL String of assignment
+type AssignTerm   = StringSQL
+
+-- | Assignment pair
+type Assignment = (AssignColumn, AssignTerm)
+
 
 whenClauses :: String                     -- ^ Error tag
             -> [(Record c a, Record c b)] -- ^ Each when clauses
@@ -201,7 +235,3 @@ case' v ws e =
     record [ Case c i | i <- [0 .. recordWidth e - 1] ]
   where
     c = CaseSimple (untypeRecord v) $ whenClauses "case'" ws e
-
-
--- | Type for restriction of query.
-type QueryRestriction c = [Record c (Maybe Bool)]
