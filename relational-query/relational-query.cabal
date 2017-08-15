@@ -39,6 +39,7 @@ library
                        Database.Relational.Constraint
                        Database.Relational.Context
                        Database.Relational.Component
+                       Database.Relational.SqlSyntax
                        Database.Relational.Sub
                        Database.Relational.Record
                        Database.Relational.ProjectableClass
