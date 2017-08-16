@@ -12,7 +12,7 @@
 -- This module defines sub-query structure used in query products.
 module Database.Relational.Sub (
   -- * Sub-query
-  SubQuery, fromTable, flatSubQuery, aggregatedSubQuery,
+  SubQuery, flatSubQuery, aggregatedSubQuery,
   union, except, intersect,
   showSQL, toSQL, unitSQL, width,
 
@@ -66,8 +66,6 @@ import qualified Database.Relational.SqlSyntax.Types as Syntax
 import Database.Relational.Internal.UntypedTable ((!))
 import qualified Database.Relational.Internal.UntypedTable as UntypedTable
 
-import Database.Relational.Table (Table)
-import qualified Database.Relational.Table as Table
 import Database.Relational.ProjectableClass (showConstantTermsSQL)
 import Database.Relational.Pure ()
 
@@ -82,11 +80,6 @@ showsSetOp :: SetOp -> Duplication -> StringSQL
 showsSetOp op dup0 = showsSetOp' op <> mayDup dup0  where
   mayDup dup@All  = showsDuplication dup
   mayDup Distinct = mempty
-
--- | 'SubQuery' from 'Table'.
-fromTable :: Table r  -- ^ Typed 'Table' metadata
-          -> SubQuery -- ^ Result 'SubQuery'
-fromTable =  Table . Table.unType
 
 -- | Unsafely generate flat 'SubQuery' from untyped components.
 flatSubQuery :: Config

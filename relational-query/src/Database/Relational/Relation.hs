@@ -42,7 +42,8 @@ module Database.Relational.Relation (
 
 import Control.Applicative ((<$>))
 
-import Database.Relational.SqlSyntax (Duplication (Distinct, All), Record)
+import Database.Relational.SqlSyntax
+  (Duplication (Distinct, All), NodeAttr(Just', Maybe), SubQuery, Record)
 
 import Database.Relational.Context (Flat, Aggregated)
 import Database.Relational.Monad.BaseType
@@ -57,7 +58,7 @@ import qualified Database.Relational.Monad.Aggregate as Aggregate
 import Database.Relational.Monad.Unique (QueryUnique, unsafeUniqueSubQuery)
 import qualified Database.Relational.Monad.Unique as Unique
 import Database.Relational.Table (Table, TableDerivable, derivedTable)
-import Database.Relational.Sub (SubQuery, NodeAttr(Just', Maybe))
+import qualified Database.Relational.Table as Table
 import qualified Database.Relational.Sub as SubQuery
 import Database.Relational.Scalar (ScalarDegree)
 import Database.Relational.Pi (Pi)
@@ -69,7 +70,7 @@ import Database.Relational.Projectable
 
 -- | Simple 'Relation' from 'Table'.
 table :: Table r -> Relation () r
-table =  unsafeTypeRelation . return . SubQuery.fromTable
+table = unsafeTypeRelation . return . Table.toSubQuery
 
 -- | Inferred 'Relation'.
 derivedRelation :: TableDerivable r => Relation () r

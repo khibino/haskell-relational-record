@@ -11,6 +11,7 @@
 module Database.Relational.Table (
   -- * Phantom typed table type
   Table, unType, name, shortName, width, columns, index, table, toMaybe, recordWidth,
+  toSubQuery,
 
   -- * Table existence inference
   TableDerivable (..)
@@ -22,6 +23,8 @@ import Database.Record.Persistable (PersistableWidth, PersistableRecordWidth, un
 
 import Database.Relational.Internal.UntypedTable (Untyped (Untyped), name', width', columns', (!))
 import Database.Relational.Internal.SQL (StringSQL, stringSQL, )
+import Database.Relational.SqlSyntax (SubQuery)
+import qualified Database.Relational.SqlSyntax as Syntax
 
 
 -- | Phantom typed table type
@@ -62,6 +65,11 @@ table :: String -> [String] -> Table r
 table n f = Table $ Untyped n w fa  where
   w  = length f
   fa = listArray (0, w - 1) $ map stringSQL f
+
+-- | 'SubQuery' from 'Table'.
+toSubQuery :: Table r  -- ^ Typed 'Table' metadata
+           -> SubQuery -- ^ Result 'SubQuery'
+toSubQuery = Syntax.Table . unType
 
 -- | Inference rule of 'Table' existence.
 class PersistableWidth r => TableDerivable r where
