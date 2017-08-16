@@ -46,7 +46,7 @@ import Data.DList (DList)
 import Data.Foldable (Foldable)
 import Data.Traversable (Traversable)
 
-import Database.Relational.SqlSyntax.Config (Config)
+import Database.Relational.Internal.Config (Config)
 import Database.Relational.Internal.ContextType (Flat, Aggregated)
 import Database.Relational.Internal.SQL (StringSQL)
 import Database.Relational.Internal.GroupingSQL (AggregateElem)

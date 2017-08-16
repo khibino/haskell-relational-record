@@ -19,8 +19,9 @@ module Database.Relational.Monad.Assign (
   extract,
   ) where
 
+import Database.Relational.Internal.Config (Config)
 import Database.Relational.SqlSyntax
-  (Config, QueryRestriction, Record, Assignment)
+  (QueryRestriction, Record, Assignment)
 
 import Database.Relational.Context (Flat)
 import Database.Relational.Table (Table)

@@ -20,7 +20,7 @@ import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Reader (ReaderT, runReaderT, ask)
 import Control.Applicative (Applicative)
 
-import Database.Relational.SqlSyntax (Config)
+import Database.Relational.Internal.Config (Config)
 
 
 -- | 'ReaderT' type to require query generate configuration.

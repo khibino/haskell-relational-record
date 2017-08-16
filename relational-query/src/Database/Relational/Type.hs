@@ -44,7 +44,7 @@ import Data.Monoid ((<>))
 
 import Database.Record (PersistableWidth)
 
-import Database.Relational.SqlSyntax (Config, defaultConfig)
+import Database.Relational.Internal.Config (Config, defaultConfig)
 import Database.Relational.Internal.SQL (showStringSQL)
 
 import Database.Relational.Monad.BaseType (Relation, sqlFromRelationWith)
