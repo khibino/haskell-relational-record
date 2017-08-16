@@ -16,6 +16,8 @@ module Database.Relational.Internal.SQL (
   rowStringSQL, rowPlaceHolderStringSQL,
 
   rowConsStringSQL, listStringSQL,
+
+  boolSQL,
   ) where
 
 import Language.SQL.Keyword (Keyword, word, wordShow, fold, (|*|), paren)
@@ -50,3 +52,10 @@ rowConsStringSQL =  paren . fold (|*|)
 -- | List String of SQL.
 listStringSQL :: [StringSQL] -> StringSQL
 listStringSQL =  paren . fold (|*|)
+
+boolSQL :: Bool -> StringSQL
+boolSQL =
+    stringSQL . d
+  where
+    d True  = "(0=0)"
+    d False = "(0=1)"

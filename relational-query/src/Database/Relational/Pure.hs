@@ -35,7 +35,7 @@ import Database.Record
 import Database.Record.Persistable
   (runPersistableRecordWidth)
 
-import Database.Relational.Internal.SQL (StringSQL, stringSQL)
+import Database.Relational.Internal.SQL (StringSQL, stringSQL, boolSQL)
 
 import Database.Relational.ProjectableClass (ShowConstantTermsSQL (..))
 
@@ -108,9 +108,7 @@ instance ShowConstantTermsSQL Char where
 
 -- | Constant SQL terms of 'Bool'.
 instance ShowConstantTermsSQL Bool where
-  showConstantTermsSQL' = pure . stringSQL . d  where
-    d True  = "(0=0)"
-    d False = "(0=1)"
+  showConstantTermsSQL' = pure . boolSQL
 
 floatTerms :: (PrintfArg a, Ord a, Num a)=> a -> DList StringSQL
 floatTerms f = pure . stringSQL $ printf fmt f  where

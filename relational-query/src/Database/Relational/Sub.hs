@@ -45,17 +45,17 @@ import Data.Traversable (traverse)
 import Language.SQL.Keyword (Keyword(..), (|*|))
 import qualified Language.SQL.Keyword as SQL
 
-import qualified Database.Relational.Context as Context
+import qualified Database.Relational.Internal.ContextType as Context
 import Database.Relational.Internal.SQL
-  (StringSQL, stringSQL, rowStringSQL, showStringSQL, )
+  (StringSQL, stringSQL, rowStringSQL, showStringSQL, boolSQL, )
 import Database.Relational.Internal.Config
   (Config (productUnitSupport), ProductUnitSupport (PUSupported, PUNotSupported), )
-import Database.Relational.SqlSyntax
-  (Duplication (..), showsDuplication, OrderingTerm, composeOrderBy, )
+import Database.Relational.SqlSyntax.Query (showsDuplication, composeOrderBy, )
 import Database.Relational.Internal.GroupingSQL
   (AggregateElem, composeGroupBy, )
 import Database.Relational.SqlSyntax.Types
-  (SubQuery (..), Record,
+  (Duplication (..), OrderingTerm,
+   SubQuery (..), Record,
    CaseClause(..), WhenClauses (..),
    Tuple, Column (..),
    JoinProduct, QueryProductTree, ProductBuilder,
@@ -65,9 +65,6 @@ import Database.Relational.SqlSyntax.Types
 import qualified Database.Relational.SqlSyntax.Types as Syntax
 import Database.Relational.Internal.UntypedTable ((!))
 import qualified Database.Relational.Internal.UntypedTable as UntypedTable
-
-import Database.Relational.ProjectableClass (showConstantTermsSQL)
-import Database.Relational.Pure ()
 
 
 showsSetOp' :: SetOp -> StringSQL
@@ -289,7 +286,7 @@ showsQueryProduct =  rec  where
     [urec left',
      joinType (Syntax.nodeAttr left') (Syntax.nodeAttr right'), JOIN,
      urec right',
-     ON, foldr1 SQL.and $ ps ++ concat [ showConstantTermsSQL True | null ps ] ]
+     ON, foldr1 SQL.and $ ps ++ concat [ pure $ boolSQL True | null ps ] ]
     where ps = [ rowStringSQL $ recordRawColumns p | p <- rs ]
 
 -- | Shows join product of query.
