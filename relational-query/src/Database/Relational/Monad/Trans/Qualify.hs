@@ -23,7 +23,7 @@ import Control.Monad.Trans.State (StateT, runStateT, get, modify)
 import Control.Applicative (Applicative)
 import Control.Monad (liftM, ap)
 
-import qualified Database.Relational.SqlSyntax.Types as Syntax
+import qualified Database.Relational.SqlSyntax as Syntax
 
 
 -- | Monad type to qualify SQL table forms.

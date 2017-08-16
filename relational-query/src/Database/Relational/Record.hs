@@ -51,9 +51,9 @@ import Database.Record.Persistable (PersistableRecordWidth)
 import qualified Database.Record.KeyConstraint as KeyConstraint
 
 import Database.Relational.Internal.SQL (StringSQL, listStringSQL, rowStringSQL)
-import Database.Relational.SqlSyntax.Types
+import Database.Relational.SqlSyntax
   (SubQuery, Qualified, Tuple, Record)
-import qualified Database.Relational.SqlSyntax.Types as Syntax
+import qualified Database.Relational.SqlSyntax as Syntax
 
 import Database.Relational.ProjectableClass
   (ProductConstructor (..), ProjectableFunctor (..), ProjectableApplicative (..), )

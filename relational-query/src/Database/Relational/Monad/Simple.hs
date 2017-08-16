@@ -22,7 +22,7 @@ module Database.Relational.Monad.Simple (
   toSubQuery,
   ) where
 
-import Database.Relational.SqlSyntax.Types (Record)
+import Database.Relational.SqlSyntax (Record)
 
 import Database.Relational.Context (Flat)
 import qualified Database.Relational.Record as Record

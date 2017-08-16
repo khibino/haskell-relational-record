@@ -74,8 +74,8 @@ import Database.Record
 import Database.Record.Persistable (runPersistableRecordWidth)
 
 import Database.Relational.Internal.SQL (StringSQL, stringSQL, showStringSQL)
-import Database.Relational.SqlSyntax.Types (Record)
-import qualified Database.Relational.SqlSyntax.Types as Syntax
+import Database.Relational.SqlSyntax (Record)
+import qualified Database.Relational.SqlSyntax as Syntax
 
 import Database.Relational.ProjectableClass
   (ProjectableFunctor (..), ProjectableApplicative (..), )
