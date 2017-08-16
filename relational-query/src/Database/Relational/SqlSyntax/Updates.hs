@@ -7,8 +7,11 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- This module provides expand operations of SQL update and insert structure.
+-- This module provides types and expanding operations of SQL update and insert structure.
 module Database.Relational.SqlSyntax.Updates (
+  -- * Update and Insert assignments
+  AssignColumn, AssignTerm, Assignment,
+
   composeSets,
   composeChunkValues, composeChunkValuesWithColumns,
   ) where
@@ -18,10 +21,17 @@ import Data.Monoid ((<>))
 import Language.SQL.Keyword (Keyword(..), (|*|), (.=.))
 import qualified Language.SQL.Keyword as SQL
 
-import Database.Relational.SqlSyntax.Types (AssignTerm, Assignment)
-import Database.Relational.Internal.SQL
-  (StringSQL, rowConsStringSQL)
+import Database.Relational.Internal.SQL (StringSQL, rowConsStringSQL)
 
+
+-- | Column SQL String of assignment
+type AssignColumn = StringSQL
+
+-- | Value SQL String of assignment
+type AssignTerm   = StringSQL
+
+-- | Assignment pair
+type Assignment = (AssignColumn, AssignTerm)
 
 -- | Compose SET clause from ['Assignment'].
 composeSets :: [Assignment] -> StringSQL

@@ -37,8 +37,6 @@ module Database.Relational.SqlSyntax.Types
          -- * Query restriction
        , QueryRestriction
 
-         -- * Update assignments
-       , AssignColumn, AssignTerm, Assignment
        )  where
 
 import Prelude hiding (and, product)
@@ -192,16 +190,6 @@ typeFromRawColumns =  record . map RawColumn
 -- | Unsafely generate 'Record' from scalar sub-query.
 typeFromScalarSubQuery :: SubQuery -> Record c t
 typeFromScalarSubQuery = record . (:[]) . Scalar
-
-
--- | Column SQL String of assignment
-type AssignColumn = StringSQL
-
--- | Value SQL String of assignment
-type AssignTerm   = StringSQL
-
--- | Assignment pair
-type Assignment = (AssignColumn, AssignTerm)
 
 
 whenClauses :: String                     -- ^ Error tag
