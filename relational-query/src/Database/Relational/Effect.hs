@@ -35,7 +35,7 @@ import Database.Record.Persistable (PersistableWidth)
 
 import Database.Relational.Internal.Config (Config (chunksInsertSize), defaultConfig)
 import Database.Relational.Internal.SQL (StringSQL, stringSQL, showStringSQL)
-import Database.Relational.Internal.BaseSQL (composeSets, composeChunkValuesWithColumns)
+import Database.Relational.SqlSyntax (composeSets, composeChunkValuesWithColumns)
 
 import Database.Relational.Pi (Pi, id')
 import qualified Database.Relational.Pi.Unsafe as Pi

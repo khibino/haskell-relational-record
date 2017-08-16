@@ -32,8 +32,7 @@ import Data.Monoid ((<>))
 import Language.SQL.Keyword (Keyword(..))
 import qualified Language.SQL.Keyword as SQL
 
-import Database.Relational.Internal.BaseSQL (composeOrderBy)
-import Database.Relational.SqlSyntax (Duplication, OrderingTerm, Record)
+import Database.Relational.SqlSyntax (Duplication, OrderingTerm, Record, composeOrderBy, )
 import Database.Relational.Internal.GroupingSQL (AggregateColumnRef, AggregateElem, composePartitionBy)
 
 import Database.Relational.Context (Flat, Aggregated, OverWindow)

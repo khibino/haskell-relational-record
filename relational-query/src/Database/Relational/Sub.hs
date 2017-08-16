@@ -50,9 +50,8 @@ import Database.Relational.Internal.SQL
   (StringSQL, stringSQL, rowStringSQL, showStringSQL, )
 import Database.Relational.Internal.Config
   (Config (productUnitSupport), ProductUnitSupport (PUSupported, PUNotSupported), )
-import Database.Relational.SqlSyntax (Duplication (..), OrderingTerm)
-import Database.Relational.Internal.BaseSQL
-  (showsDuplication, composeOrderBy, )
+import Database.Relational.SqlSyntax
+  (Duplication (..), showsDuplication, OrderingTerm, composeOrderBy, )
 import Database.Relational.Internal.GroupingSQL
   (AggregateElem, composeGroupBy, )
 import Database.Relational.SqlSyntax.Types
