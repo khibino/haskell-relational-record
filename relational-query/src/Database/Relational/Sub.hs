@@ -50,8 +50,9 @@ import Database.Relational.Internal.Config
 import qualified Database.Relational.Context as Context
 import Database.Relational.Internal.SQL
   (StringSQL, stringSQL, rowStringSQL, showStringSQL, )
+import Database.Relational.SqlSyntax (Duplication (..), OrderingTerm)
 import Database.Relational.Internal.BaseSQL
-  (Duplication (..), showsDuplication, OrderingTerm, composeOrderBy, )
+  (showsDuplication, composeOrderBy, )
 import Database.Relational.Internal.GroupingSQL
   (AggregateElem, composeGroupBy, )
 import Database.Relational.SqlSyntax.Types

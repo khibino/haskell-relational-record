@@ -9,11 +9,8 @@
 --
 -- This module provides base structure of SQL syntax tree.
 module Database.Relational.Internal.BaseSQL (
-  Duplication (..),
   showsDuplication,
-  Order (..), Nulls (..), OrderColumn, OrderingTerm,
   composeOrderBy,
-  AssignColumn, AssignTerm, Assignment,
   composeSets,
   composeChunkValues, composeChunkValuesWithColumns,
   ) where
@@ -24,8 +21,8 @@ import Language.SQL.Keyword (Keyword(..), (|*|), (.=.))
 import qualified Language.SQL.Keyword as SQL
 
 import Database.Relational.SqlSyntax.Types
-  (Duplication (..), Order (..), Nulls (..), OrderColumn, OrderingTerm,
-    AssignColumn, AssignTerm, Assignment)
+  (Duplication (..), Order (..), Nulls (..), OrderingTerm,
+    AssignTerm, Assignment)
 import Database.Relational.Internal.SQL
   (StringSQL, rowConsStringSQL)
 

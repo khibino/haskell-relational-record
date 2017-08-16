@@ -31,9 +31,8 @@ import Control.Applicative (Applicative, pure, (<$>))
 import Control.Arrow (second)
 import Data.DList (DList, toList)
 
-import Database.Relational.Internal.BaseSQL
-  (Order (..), Nulls (..), OrderColumn, OrderingTerm)
-import Database.Relational.SqlSyntax.Types (Record)
+import Database.Relational.SqlSyntax
+  (Order (..), Nulls (..), OrderColumn, OrderingTerm, Record)
 
 import qualified Database.Relational.Record as Record
 import Database.Relational.Monad.Class

@@ -42,8 +42,7 @@ module Database.Relational.Relation (
 
 import Control.Applicative ((<$>))
 
-import Database.Relational.SqlSyntax.Types (Record)
-import Database.Relational.Internal.BaseSQL (Duplication (Distinct, All))
+import Database.Relational.SqlSyntax (Duplication (Distinct, All), Record)
 
 import Database.Relational.Context (Flat, Aggregated)
 import Database.Relational.Monad.BaseType

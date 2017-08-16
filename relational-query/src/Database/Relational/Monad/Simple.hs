@@ -27,7 +27,7 @@ import Database.Relational.SqlSyntax.Types (Record)
 import Database.Relational.Context (Flat)
 import qualified Database.Relational.Record as Record
 
-import Database.Relational.Internal.BaseSQL (Duplication, OrderingTerm)
+import Database.Relational.SqlSyntax (Duplication, OrderingTerm)
 
 import Database.Relational.Monad.Trans.Join (join')
 import Database.Relational.Monad.Trans.Restricting (restrictings)

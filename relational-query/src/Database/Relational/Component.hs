@@ -14,14 +14,10 @@ module Database.Relational.Component
 
          -- * Types for aggregation
          AggregateKey,
-
-         -- * Types for ordering
-         Order (..), Nulls (..),
        ) where
 
 import Database.Relational.Internal.Config
   (NameConfig (..),
    ProductUnitSupport (..), SchemaNameMode (..), IdentifierQuotation (..),
    Config (..), defaultConfig,)
-import Database.Relational.Internal.BaseSQL (Order (..), Nulls (..),)
 import Database.Relational.Internal.GroupingSQL (AggregateKey)

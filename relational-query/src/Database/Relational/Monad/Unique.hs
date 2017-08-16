@@ -21,8 +21,7 @@ module Database.Relational.Monad.Unique
 
 import Control.Applicative (Applicative)
 
-import Database.Relational.SqlSyntax.Types (Record)
-import Database.Relational.Internal.BaseSQL (Duplication)
+import Database.Relational.SqlSyntax (Duplication, Record)
 
 import Database.Relational.Context (Flat)
 import qualified Database.Relational.Record as Record

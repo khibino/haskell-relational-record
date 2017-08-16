@@ -33,9 +33,10 @@ import Control.Arrow (second, (***))
 import Data.Maybe (fromMaybe)
 import Data.Monoid (Last (Last, getLast))
 
-import Database.Relational.Internal.BaseSQL (Duplication (All))
 import Database.Relational.Internal.Product (restrictProduct, growProduct)
-import Database.Relational.SqlSyntax.Types (NodeAttr (Just', Maybe), SubQuery, Qualified, JoinProduct, Record)
+import Database.Relational.SqlSyntax
+  (Duplication (All), NodeAttr (Just', Maybe), SubQuery,
+   Qualified, JoinProduct, Record)
 
 import Database.Relational.Context (Flat)
 import Database.Relational.Monad.Trans.JoinState

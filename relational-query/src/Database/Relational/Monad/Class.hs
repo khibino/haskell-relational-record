@@ -21,8 +21,7 @@ module Database.Relational.Monad.Class
          on, wheres, having,
        ) where
 
-import Database.Relational.Internal.BaseSQL (Duplication (..))
-import Database.Relational.SqlSyntax.Types (Record)
+import Database.Relational.SqlSyntax (Duplication (..), Record)
 import Database.Relational.Internal.GroupingSQL (AggregateKey)
 
 import Database.Relational.Context (Flat, Aggregated)
