@@ -1,5 +1,5 @@
 -- |
--- Module      : Database.Relational.Internal.Config
+-- Module      : Database.Relational.SqlSyntax.Config
 -- Copyright   : 2017 Kei Hibino
 -- License     : BSD3
 --
@@ -8,7 +8,7 @@
 -- Portability : unknown
 --
 -- This module defines configuration datatype used in query products.
-module Database.Relational.Internal.Config (
+module Database.Relational.SqlSyntax.Config (
   NameConfig (..),
   ProductUnitSupport (..), SchemaNameMode (..), IdentifierQuotation (..),
   Config ( productUnitSupport

@@ -45,12 +45,12 @@ import Data.Traversable (traverse)
 import Language.SQL.Keyword (Keyword(..), (|*|))
 import qualified Language.SQL.Keyword as SQL
 
-import Database.Relational.Internal.Config
-  (Config (productUnitSupport), ProductUnitSupport (PUSupported, PUNotSupported))
 import qualified Database.Relational.Context as Context
 import Database.Relational.Internal.SQL
   (StringSQL, stringSQL, rowStringSQL, showStringSQL, )
-import Database.Relational.SqlSyntax (Duplication (..), OrderingTerm)
+import Database.Relational.SqlSyntax
+  (Config (productUnitSupport), ProductUnitSupport (PUSupported, PUNotSupported),
+   Duplication (..), OrderingTerm)
 import Database.Relational.Internal.BaseSQL
   (showsDuplication, composeOrderBy, )
 import Database.Relational.Internal.GroupingSQL

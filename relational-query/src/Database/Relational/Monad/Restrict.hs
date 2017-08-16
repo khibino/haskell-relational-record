@@ -20,8 +20,7 @@ module Database.Relational.Monad.Restrict (
   extract
   ) where
 
-import Database.Relational.Internal.Config (Config)
-import Database.Relational.SqlSyntax.Types (QueryRestriction, Record)
+import Database.Relational.SqlSyntax (Config, QueryRestriction, Record)
 
 import Database.Relational.Context (Flat)
 import Database.Relational.Monad.Trans.Restricting

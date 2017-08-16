@@ -10,13 +10,13 @@
 -- This module provides untyped components for query.
 module Database.Relational.Component
        ( -- * Configuration type for query
-         module Database.Relational.Internal.Config,
+         module Database.Relational.SqlSyntax,
 
          -- * Types for aggregation
          AggregateKey,
        ) where
 
-import Database.Relational.Internal.Config
+import Database.Relational.SqlSyntax
   (NameConfig (..),
    ProductUnitSupport (..), SchemaNameMode (..), IdentifierQuotation (..),
    Config (..), defaultConfig,)

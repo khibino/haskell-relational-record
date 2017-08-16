@@ -9,7 +9,9 @@
 --
 -- This module is integrated module of sql-syntax.
 module Database.Relational.SqlSyntax (
+  module Database.Relational.SqlSyntax.Config,
   module Database.Relational.SqlSyntax.Types,
   ) where
 
+import Database.Relational.SqlSyntax.Config
 import Database.Relational.SqlSyntax.Types

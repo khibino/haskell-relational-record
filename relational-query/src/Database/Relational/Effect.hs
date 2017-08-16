@@ -33,7 +33,7 @@ import Data.Monoid ((<>))
 import Language.SQL.Keyword (Keyword(..))
 import Database.Record.Persistable (PersistableWidth)
 
-import Database.Relational.Internal.Config (Config (chunksInsertSize), defaultConfig)
+import Database.Relational.SqlSyntax (Config (chunksInsertSize), defaultConfig)
 import Database.Relational.Internal.SQL (StringSQL, stringSQL, showStringSQL)
 import Database.Relational.Internal.BaseSQL (composeSets, composeChunkValuesWithColumns)
 
