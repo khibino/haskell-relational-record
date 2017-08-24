@@ -12,13 +12,11 @@
 -- This module defines sub-query structure used in query products.
 module Database.Relational.Sub (
   -- * Sub-query
-  SubQuery, flatSubQuery, aggregatedSubQuery,
+  flatSubQuery, aggregatedSubQuery,
   union, except, intersect,
   showSQL, toSQL, unitSQL, width,
 
   -- * Qualified Sub-query
-  Qualifier (Qualifier),
-  Qualified,
   queryWidth,
 
   -- * Sub-query columns
@@ -29,16 +27,11 @@ module Database.Relational.Sub (
 
   recordRawColumns,
 
-  -- * Product of sub-queries
-  JoinProduct, NodeAttr (..),
-  ProductBuilder,
-
   -- * Query restriction
-  QueryRestriction,
   composeWhere, composeHaving
   ) where
 
-import Control.Applicative ((<$>))
+import Control.Applicative ((<$>), pure)
 import Data.Monoid (mempty, (<>), mconcat)
 import Data.Traversable (traverse)
 
@@ -58,7 +51,7 @@ import Database.Relational.SqlSyntax.Types
    SubQuery (..), Record,
    CaseClause(..), WhenClauses (..),
    Tuple, Column (..),
-   JoinProduct, QueryProductTree, ProductBuilder,
+   JoinProduct, QueryProductTree,
    NodeAttr (Just', Maybe), ProductTree (Leaf, Join),
    SetOp (..), BinOp (..), Qualifier (..), Qualified (..),
    QueryRestriction)

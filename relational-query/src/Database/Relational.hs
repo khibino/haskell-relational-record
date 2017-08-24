@@ -56,8 +56,8 @@ import Database.Relational.Component
   (NameConfig (..), SchemaNameMode (..), ProductUnitSupport (..), IdentifierQuotation (..),
    Config (..), defaultConfig,
    AggregateKey, )
-import Database.Relational.SqlSyntax (Order (..), Nulls (..),)
-import Database.Relational.Sub (SubQuery, unitSQL, queryWidth)
+import Database.Relational.SqlSyntax (Order (..), Nulls (..), SubQuery, )
+import Database.Relational.Sub (unitSQL, queryWidth)
 import Database.Relational.Record (Record, RecordList, list)
 import Database.Relational.ProjectableClass
 import Database.Relational.Projectable

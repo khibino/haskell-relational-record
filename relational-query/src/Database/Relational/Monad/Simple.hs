@@ -27,7 +27,8 @@ import Database.Relational.SqlSyntax (Record)
 import Database.Relational.Context (Flat)
 import qualified Database.Relational.Record as Record
 
-import Database.Relational.SqlSyntax (Duplication, OrderingTerm)
+import Database.Relational.SqlSyntax
+  (Duplication, OrderingTerm, SubQuery, QueryRestriction, JoinProduct, )
 
 import Database.Relational.Monad.Trans.Join (join')
 import Database.Relational.Monad.Trans.Restricting (restrictings)
@@ -37,7 +38,7 @@ import Database.Relational.Monad.BaseType (ConfigureQuery, askConfig)
 import Database.Relational.Monad.Type (QueryCore, extractCore, OrderedQuery)
 import Database.Relational.Projectable (PlaceHolders)
 
-import Database.Relational.Sub (SubQuery, QueryRestriction, JoinProduct, flatSubQuery)
+import Database.Relational.Sub (flatSubQuery)
 import qualified Database.Relational.Sub as SubQuery
 
 

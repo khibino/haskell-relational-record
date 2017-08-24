@@ -29,8 +29,9 @@ import Database.Record.Persistable (PersistableRecordWidth, unsafePersistableRec
 
 import Database.Relational.Internal.SQL (StringSQL, showStringSQL)
 import Database.Relational.Internal.Config (Config, defaultConfig)
+import Database.Relational.SqlSyntax (Qualified, SubQuery)
 
-import Database.Relational.Sub (Qualified, SubQuery, showSQL, width)
+import Database.Relational.Sub (showSQL, width)
 import qualified Database.Relational.Monad.Trans.Qualify as Qualify
 import Database.Relational.Monad.Trans.Qualify (Qualify, qualify, evalQualifyPrime)
 import Database.Relational.Monad.Trans.Config (QueryConfig, runQueryConfig, askQueryConfig)

@@ -14,9 +14,9 @@ module Database.Relational.Monad.Type
          OrderedQuery,
        ) where
 
-import Database.Relational.SqlSyntax (Duplication, Record)
+import Database.Relational.SqlSyntax
+  (Duplication, Record, JoinProduct, QueryRestriction, )
 
-import Database.Relational.Sub (JoinProduct, QueryRestriction)
 import Database.Relational.Context (Flat)
 import Database.Relational.Projectable (PlaceHolders)
 import Database.Relational.Monad.BaseType (ConfigureQuery)

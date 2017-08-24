@@ -21,7 +21,9 @@ module Database.Relational.Monad.Unique
 
 import Control.Applicative (Applicative)
 
-import Database.Relational.SqlSyntax (Duplication, Record)
+import Database.Relational.SqlSyntax
+  (Duplication, Record, JoinProduct, NodeAttr,
+   SubQuery, QueryRestriction, Qualified, )
 
 import Database.Relational.Context (Flat)
 import qualified Database.Relational.Record as Record
@@ -32,7 +34,7 @@ import Database.Relational.Monad.Trans.Restricting (restrictings)
 import Database.Relational.Monad.BaseType (ConfigureQuery, askConfig)
 import Database.Relational.Monad.Type (QueryCore, extractCore)
 import Database.Relational.Sub
-  (SubQuery, QueryRestriction, Qualified, JoinProduct, NodeAttr, flatSubQuery)
+  (flatSubQuery)
 
 
 -- | Unique query monad type.
