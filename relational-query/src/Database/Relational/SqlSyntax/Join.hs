@@ -1,5 +1,5 @@
 -- |
--- Module      : Database.Relational.Internal.Product
+-- Module      : Database.Relational.SqlSyntax.Join
 -- Copyright   : 2013-2017 Kei Hibino
 -- License     : BSD3
 --
@@ -8,7 +8,7 @@
 -- Portability : unknown
 --
 -- This module defines product structure to compose SQL join.
-module Database.Relational.Internal.Product (
+module Database.Relational.SqlSyntax.Join (
   -- * Interfaces to manipulate ProductTree type
   growProduct, restrictProduct,
   ) where

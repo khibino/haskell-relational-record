@@ -79,8 +79,8 @@ library
                        Database.Relational.Internal.SQL
                        Database.Relational.Internal.GroupingSQL
                        Database.Relational.Internal.UntypedTable
-                       Database.Relational.Internal.Product
                        Database.Relational.SqlSyntax.Types
+                       Database.Relational.SqlSyntax.Join
                        Database.Relational.SqlSyntax.Query
                        Database.Relational.SqlSyntax.Updates
                        Database.Relational.Monad.Trans.JoinState
