@@ -28,8 +28,8 @@ For example, command-line to build with LTS-9:
 
     % stack --resolver lts-9 build relational-record
 
-you can use older LTS Haskell releases,
-[LTS-9.x](https://www.stackage.org/lts-9), [LTS-8.x](https://www.stackage.org/lts-8),
+you can use [LTS-9.x](https://www.stackage.org/lts-9) and
+older LTS Haskell releases, [LTS-8.x](https://www.stackage.org/lts-8),
 [LTS-7.x](https://www.stackage.org/lts-7) or [LTS-6.x](https://www.stackage.org/lts-6).
 
 #### <a name="build-with-cabal"></a> Build with cabal
