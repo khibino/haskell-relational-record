@@ -7,7 +7,7 @@ title: Quick start
 
 Following installation methods are selectable
 
-#### <a name="install-on-debian"></a> Debian sid / Debian testing (stretch) / Ubuntu - universe
+#### <a name="install-on-debian"></a> Debian sid / Debian stable (stretch) / Ubuntu - universe
 
     % sudo apt-get install haskell-relational-record
 
@@ -22,6 +22,15 @@ Following installation methods are selectable
 #### <a name="build-with-stack"></a> Build with stack
 
     % stack build relational-record
+
+You may want to use LTS Haskell release of stackage.
+For example, command-line to build with LTS-9:
+
+    % stack --resolver lts-9 build relational-record
+
+you can use older LTS Haskell releases,
+[LTS-9.x](https://www.stackage.org/lts-9), [LTS-8.x](https://www.stackage.org/lts-8),
+[LTS-7.x](https://www.stackage.org/lts-7) or [LTS-6.x](https://www.stackage.org/lts-6).
 
 #### <a name="build-with-cabal"></a> Build with cabal
 
