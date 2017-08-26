@@ -53,10 +53,7 @@ import Database.Relational.Constraint
    Primary, Unique, NotNull)
 import Database.Relational.Context
 import Database.Relational.Component
-  (NameConfig (..), SchemaNameMode (..), ProductUnitSupport (..), IdentifierQuotation (..),
-   Config (..), defaultConfig,
-   AggregateKey, )
-import Database.Relational.SqlSyntax (Order (..), Nulls (..), SubQuery, )
+import Database.Relational.SqlSyntax (Order (..), Nulls (..), SubQuery, AggregateKey, )
 import Database.Relational.Sub (unitSQL, queryWidth)
 import Database.Relational.Record (Record, RecordList, list)
 import Database.Relational.ProjectableClass
