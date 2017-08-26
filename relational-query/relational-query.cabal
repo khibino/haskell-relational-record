@@ -77,10 +77,10 @@ library
                        Database.Relational.Internal.ContextType
                        Database.Relational.Internal.Config
                        Database.Relational.Internal.SQL
-                       Database.Relational.Internal.GroupingSQL
                        Database.Relational.Internal.UntypedTable
                        Database.Relational.SqlSyntax.Types
                        Database.Relational.SqlSyntax.Join
+                       Database.Relational.SqlSyntax.Aggregate
                        Database.Relational.SqlSyntax.Query
                        Database.Relational.SqlSyntax.Updates
                        Database.Relational.Monad.Trans.JoinState

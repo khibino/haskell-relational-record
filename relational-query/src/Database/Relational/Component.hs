@@ -20,4 +20,4 @@ import Database.Relational.Internal.Config
   (NameConfig (..),
    ProductUnitSupport (..), SchemaNameMode (..), IdentifierQuotation (..),
    Config (..), defaultConfig,)
-import Database.Relational.Internal.GroupingSQL (AggregateKey)
+import Database.Relational.SqlSyntax (AggregateKey)

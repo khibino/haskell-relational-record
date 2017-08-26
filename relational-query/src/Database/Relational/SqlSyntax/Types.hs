@@ -47,8 +47,8 @@ import Data.Traversable (Traversable)
 import Database.Relational.Internal.Config (Config)
 import Database.Relational.Internal.ContextType (Flat, Aggregated)
 import Database.Relational.Internal.SQL (StringSQL)
-import Database.Relational.Internal.GroupingSQL (AggregateElem)
 import Database.Relational.Internal.UntypedTable (Untyped)
+import Database.Relational.SqlSyntax.Aggregate (AggregateElem)
 
 
 -- | Result record duplication attribute

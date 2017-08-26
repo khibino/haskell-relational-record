@@ -33,9 +33,9 @@ import Language.SQL.Keyword (Keyword(..))
 import qualified Language.SQL.Keyword as SQL
 
 import Database.Relational.SqlSyntax
-  (Duplication, OrderingTerm, Record, SubQuery, QueryRestriction, JoinProduct,
-   composeOrderBy, )
-import Database.Relational.Internal.GroupingSQL (AggregateColumnRef, AggregateElem, composePartitionBy)
+  (Duplication, Record, SubQuery, QueryRestriction, JoinProduct,
+   OrderingTerm, composeOrderBy,
+   AggregateColumnRef, AggregateElem, composePartitionBy, )
 
 import Database.Relational.Context (Flat, Aggregated, OverWindow)
 import qualified Database.Relational.Record as Record

@@ -44,7 +44,7 @@ import Database.Relational.Internal.SQL
 import Database.Relational.Internal.Config
   (Config (productUnitSupport), ProductUnitSupport (PUSupported, PUNotSupported), )
 import Database.Relational.SqlSyntax.Query (showsDuplication, composeOrderBy, )
-import Database.Relational.Internal.GroupingSQL
+import Database.Relational.SqlSyntax.Aggregate
   (AggregateElem, composeGroupBy, )
 import Database.Relational.SqlSyntax.Types
   (Duplication (..), OrderingTerm,

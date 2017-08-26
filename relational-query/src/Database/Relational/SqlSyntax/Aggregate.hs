@@ -1,5 +1,5 @@
 -- |
--- Module      : Database.Relational.Internal.GroupingSQL
+-- Module      : Database.Relational.SqlSyntax.Aggregate
 -- Copyright   : 2013-2017 Kei Hibino
 -- License     : BSD3
 --
@@ -8,7 +8,7 @@
 -- Portability : unknown
 --
 -- This module provides grouping-sets structure of SQL syntax tree.
-module Database.Relational.Internal.GroupingSQL (
+module Database.Relational.SqlSyntax.Aggregate (
   AggregateColumnRef,
   AggregateBitKey (..), AggregateSet (..), AggregateElem (..),
 

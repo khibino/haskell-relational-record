@@ -36,9 +36,9 @@ import Data.DList (DList, toList)
 
 import Data.Functor.Identity (Identity (runIdentity))
 
-import Database.Relational.SqlSyntax (Record)
-import Database.Relational.Internal.GroupingSQL
-  (AggregateColumnRef, AggregateElem, aggregateColumnRef, AggregateSet, aggregateGroupingSet,
+import Database.Relational.SqlSyntax
+  (Record,
+   AggregateColumnRef, AggregateElem, aggregateColumnRef, AggregateSet, aggregateGroupingSet,
    AggregateBitKey, aggregatePowerKey, aggregateRollup, aggregateCube, aggregateSets,
    AggregateKey, aggregateKeyRecord, aggregateKeyElement, unsafeAggregateKey)
 
