@@ -53,6 +53,7 @@ rowConsStringSQL =  paren . fold (|*|)
 listStringSQL :: [StringSQL] -> StringSQL
 listStringSQL =  paren . fold (|*|)
 
+-- | SQL expressions for Bool type.
 boolSQL :: Bool -> StringSQL
 boolSQL =
     stringSQL . d
