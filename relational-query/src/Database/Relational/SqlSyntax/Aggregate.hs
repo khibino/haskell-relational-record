@@ -12,7 +12,7 @@ module Database.Relational.SqlSyntax.Aggregate (
   AggregateColumnRef,
   AggregateBitKey (..), AggregateSet (..), AggregateElem (..),
 
-  aggregateColumnRef, aggregateEmpty,
+  aggregateColumnRef,
   aggregatePowerKey, aggregateGroupingSet,
   aggregateRollup, aggregateCube, aggregateSets,
 
@@ -73,10 +73,6 @@ aggregateCube =  Cube
 -- | Grouping sets aggregation.
 aggregateSets :: [AggregateSet] -> AggregateElem
 aggregateSets =  GroupingSets
-
--- | Empty aggregation.
-aggregateEmpty :: [AggregateElem]
-aggregateEmpty =  []
 
 commaed :: [StringSQL] -> StringSQL
 commaed =  SQL.fold (|*|)
