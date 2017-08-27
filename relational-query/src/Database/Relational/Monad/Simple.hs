@@ -28,7 +28,8 @@ import Database.Relational.Context (Flat)
 import qualified Database.Relational.Record as Record
 
 import Database.Relational.SqlSyntax
-  (Duplication, OrderingTerm, SubQuery, Predicate, JoinProduct, )
+  (Duplication, OrderingTerm, SubQuery, Predicate, JoinProduct, flatSubQuery, )
+import qualified Database.Relational.SqlSyntax as Syntax
 
 import Database.Relational.Monad.Trans.Join (join')
 import Database.Relational.Monad.Trans.Restricting (restrictings)
@@ -37,9 +38,6 @@ import Database.Relational.Monad.Trans.Ordering
 import Database.Relational.Monad.BaseType (ConfigureQuery, askConfig)
 import Database.Relational.Monad.Type (QueryCore, extractCore, OrderedQuery)
 import Database.Relational.Projectable (PlaceHolders)
-
-import Database.Relational.SqlSyntax (flatSubQuery)
-import qualified Database.Relational.Sub as SubQuery
 
 
 -- | Simple (not-aggregated) query monad type.
@@ -60,7 +58,7 @@ extract =  extractCore . extractOrderingTerms
 -- | Run 'SimpleQuery' to get SQL string with 'Qualify' computation.
 toSQL :: SimpleQuery p r         -- ^ 'SimpleQuery' to run
       -> ConfigureQuery String -- ^ Result SQL string with 'Qualify' computation
-toSQL =  fmap SubQuery.toSQL . toSubQuery
+toSQL =  fmap Syntax.toSQL . toSubQuery
 
 -- | Run 'SimpleQuery' to get 'SubQuery' with 'Qualify' computation.
 toSubQuery :: SimpleQuery p r        -- ^ 'SimpleQuery'' to run

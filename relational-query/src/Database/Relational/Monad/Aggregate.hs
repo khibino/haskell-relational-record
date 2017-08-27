@@ -36,10 +36,10 @@ import Database.Relational.SqlSyntax
   (Duplication, Record, SubQuery, Predicate, JoinProduct,
    OrderingTerm, composeOrderBy, aggregatedSubQuery,
    AggregateColumnRef, AggregateElem, composePartitionBy, )
+import qualified Database.Relational.SqlSyntax as Syntax
 
 import Database.Relational.Context (Flat, Aggregated, OverWindow)
 import qualified Database.Relational.Record as Record
-import qualified Database.Relational.Sub as SubQuery
 import Database.Relational.Projectable (PlaceHolders, SqlProjectable)
 import Database.Relational.Monad.Class (MonadRestrict(..))
 import Database.Relational.Monad.Trans.Restricting
@@ -76,7 +76,7 @@ extract =  extractCore . extractAggregateTerms . extractRestrict . extractOrderi
 -- | Run 'AggregatedQuery' to get SQL with 'ConfigureQuery' computation.
 toSQL :: AggregatedQuery p r   -- ^ 'AggregatedQuery' to run
       -> ConfigureQuery String -- ^ Result SQL string with 'ConfigureQuery' computation
-toSQL =  fmap SubQuery.toSQL . toSubQuery
+toSQL =  fmap Syntax.toSQL . toSubQuery
 
 -- | Run 'AggregatedQuery' to get 'SubQuery' with 'ConfigureQuery' computation.
 toSubQuery :: AggregatedQuery p r       -- ^ 'AggregatedQuery' to run

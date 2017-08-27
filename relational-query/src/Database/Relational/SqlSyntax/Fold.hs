@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 -- |
--- Module      : Database.Relational.Sub
+-- Module      : Database.Relational.SqlSyntax.Fold
 -- Copyright   : 2013-2017 Kei Hibino
 -- License     : BSD3
 --
@@ -10,7 +10,7 @@
 -- Portability : unknown
 --
 -- This module defines sub-query structure used in query products.
-module Database.Relational.Sub (
+module Database.Relational.SqlSyntax.Fold (
   -- * Sub-query
   showSQL, toSQL, unitSQL, width,
 

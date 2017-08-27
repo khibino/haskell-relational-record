@@ -35,13 +35,13 @@ import Database.Record.Persistable (PersistableWidth)
 
 import Database.Relational.Internal.Config (Config (chunksInsertSize), defaultConfig)
 import Database.Relational.Internal.SQL (StringSQL, stringSQL, showStringSQL)
-import Database.Relational.SqlSyntax (composeSets, composeChunkValuesWithColumns)
+import Database.Relational.SqlSyntax
+  (composeWhere, composeSets, composeChunkValuesWithColumns)
 
 import Database.Relational.Pi (Pi, id')
 import qualified Database.Relational.Pi.Unsafe as Pi
 import Database.Relational.Table (Table, TableDerivable, derivedTable)
 import qualified Database.Relational.Table as Table
-import Database.Relational.Sub (composeWhere)
 import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable
   (PlaceHolders, unitPlaceHolder, unsafeAddPlaceHolders,

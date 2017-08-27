@@ -45,6 +45,7 @@ import Control.Applicative ((<$>))
 import Database.Relational.SqlSyntax
   (Duplication (Distinct, All), NodeAttr(Just', Maybe), SubQuery, Record, )
 import qualified Database.Relational.SqlSyntax as Syntax
+
 import Database.Relational.Context (Flat, Aggregated)
 import Database.Relational.Monad.BaseType
   (ConfigureQuery, qualifyQuery,

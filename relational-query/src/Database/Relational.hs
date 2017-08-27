@@ -16,7 +16,6 @@ module Database.Relational (
   module Database.Relational.Context,
   module Database.Relational.Component,
   module Database.Relational.SqlSyntax,
-  module Database.Relational.Sub,
   module Database.Relational.Record,
   module Database.Relational.ProjectableClass,
   module Database.Relational.Projectable,
@@ -53,8 +52,7 @@ import Database.Relational.Constraint
    Primary, Unique, NotNull)
 import Database.Relational.Context
 import Database.Relational.Component
-import Database.Relational.SqlSyntax (Order (..), Nulls (..), SubQuery, AggregateKey, )
-import Database.Relational.Sub (unitSQL, queryWidth)
+import Database.Relational.SqlSyntax (Order (..), Nulls (..), SubQuery, AggregateKey, unitSQL, queryWidth, )
 import Database.Relational.Record (Record, RecordList, list)
 import Database.Relational.ProjectableClass
 import Database.Relational.Projectable

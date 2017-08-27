@@ -52,7 +52,8 @@ import qualified Database.Record.KeyConstraint as KeyConstraint
 
 import Database.Relational.Internal.SQL (StringSQL, listStringSQL, rowStringSQL)
 import Database.Relational.SqlSyntax
-  (SubQuery, Qualified, Tuple, Record)
+  (SubQuery, Qualified, Tuple, Record,
+   recordRawColumns, tupleFromJoinedSubQuery,)
 import qualified Database.Relational.SqlSyntax as Syntax
 
 import Database.Relational.ProjectableClass
@@ -62,9 +63,6 @@ import Database.Relational.Table (Table)
 import qualified Database.Relational.Table as Table
 import Database.Relational.Pi (Pi)
 import qualified Database.Relational.Pi.Unsafe as UnsafePi
-import Database.Relational.Sub
-  (recordRawColumns, tupleFromJoinedSubQuery, )
-import qualified Database.Relational.Sub as SubQuery
 
 
 -- | Unsafely get SQL term from 'Record'.
@@ -202,4 +200,4 @@ unsafeListFromSubQuery =  Sub
 unsafeStringSqlList :: (p t -> StringSQL) -> RecordList p t -> StringSQL
 unsafeStringSqlList sf = d  where
   d (List ps) = listStringSQL $ map sf ps
-  d (Sub sub) = SQL.paren $ SubQuery.showSQL sub
+  d (Sub sub) = SQL.paren $ Syntax.showSQL sub

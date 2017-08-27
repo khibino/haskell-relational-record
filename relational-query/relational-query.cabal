@@ -40,7 +40,6 @@ library
                        Database.Relational.Context
                        Database.Relational.Component
                        Database.Relational.SqlSyntax
-                       Database.Relational.Sub
                        Database.Relational.Record
                        Database.Relational.ProjectableClass
                        Database.Relational.Projectable
@@ -82,6 +81,7 @@ library
                        Database.Relational.SqlSyntax.Join
                        Database.Relational.SqlSyntax.Aggregate
                        Database.Relational.SqlSyntax.Query
+                       Database.Relational.SqlSyntax.Fold
                        Database.Relational.SqlSyntax.Updates
                        Database.Relational.Monad.Trans.JoinState
                        Database.Relational.Monad.Trans.Qualify
