@@ -21,7 +21,7 @@ module Database.Relational.Monad.Assign (
 
 import Database.Relational.Internal.Config (Config)
 import Database.Relational.SqlSyntax
-  (QueryRestriction, Record, Assignment)
+  (Predicate, Record, Assignment)
 
 import Database.Relational.Context (Flat)
 import Database.Relational.Table (Table)
@@ -44,5 +44,5 @@ type AssignStatement r a = Record Flat r -> Assign r a
 -- updateStatement =  assignings . restrictings . Identity
 
 -- | Run 'Assign'.
-extract :: Assign r a -> Config -> ((a, Table r -> [Assignment]), QueryRestriction Flat)
+extract :: Assign r a -> Config -> ((a, Table r -> [Assignment]), [Predicate Flat])
 extract =  Restrict.extract . extractAssignments

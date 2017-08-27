@@ -26,7 +26,7 @@ import Control.Applicative (Applicative, pure, (<$>))
 import Control.Arrow (second)
 import Data.DList (DList, toList)
 
-import Database.Relational.SqlSyntax (QueryRestriction, Record)
+import Database.Relational.SqlSyntax (Predicate, Record)
 
 import Database.Relational.Monad.Class
   (MonadQualify (..), MonadRestrict(..), MonadQuery (..), MonadAggregate(..))
@@ -68,5 +68,5 @@ instance MonadAggregate m => MonadAggregate (Restrictings c m) where
   groupBy' = restrictings . groupBy'
 
 -- | Run 'Restrictings' to get 'QueryRestriction'
-extractRestrict :: (Monad m, Functor m) => Restrictings c m a -> m (a, QueryRestriction c)
+extractRestrict :: (Monad m, Functor m) => Restrictings c m a -> m (a, [Predicate c])
 extractRestrict (Restrictings rc) = second toList <$> runWriterT rc

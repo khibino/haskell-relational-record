@@ -32,13 +32,12 @@ module Database.Relational.SqlSyntax.Types
        , typeFromRawColumns
        , typeFromScalarSubQuery
 
-         -- * Query restriction
-       , QueryRestriction, QueryRestrictionBuilder
+         -- * Predicate to restrict Query result
+       , Predicate
 
        )  where
 
 import Prelude hiding (and, product)
-import Data.DList (DList)
 import Data.Foldable (Foldable)
 import Data.Traversable (Traversable)
 
@@ -73,11 +72,11 @@ type OrderingTerm = ((Order, Maybe Nulls), OrderColumn)
 -- | Sub-query type
 data SubQuery = Table Untyped
               | Flat Config
-                Tuple Duplication JoinProduct (QueryRestriction Flat)
+                Tuple Duplication JoinProduct [Predicate Flat]
                 [OrderingTerm]
               | Aggregated Config
-                Tuple Duplication JoinProduct (QueryRestriction Flat)
-                [AggregateElem] (QueryRestriction Aggregated) [OrderingTerm]
+                Tuple Duplication JoinProduct [Predicate Flat]
+                [AggregateElem] [Predicate Aggregated] [OrderingTerm]
               | Bin BinOp SubQuery SubQuery
               deriving Show
 
@@ -125,7 +124,7 @@ nodeTree :: Node rs -> ProductTree rs
 nodeTree (Node _ t) = t
 
 -- | Type for join product of query.
-type JoinProduct = Maybe (ProductTree (QueryRestriction Flat))
+type JoinProduct = Maybe (ProductTree [Predicate Flat])
 
 -- | when clauses
 data WhenClauses =
@@ -158,11 +157,8 @@ newtype Record c t =
   Record
   { untypeRecord :: Tuple {- ^ Discard record type -} }  deriving Show
 
--- | Type for restriction of query.
-type QueryRestriction c = [Record c (Maybe Bool)]
-
--- | Builder type to build 'QueryRestriction'.
-type QueryRestrictionBuilder = DList (Record Flat (Maybe Bool))
+-- | Type for predicate to restrict of query result.
+type Predicate c = Record c (Maybe Bool)
 
 -- | Unsafely type 'Tuple' value to 'Record' type.
 record :: Tuple -> Record c t

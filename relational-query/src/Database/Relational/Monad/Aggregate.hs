@@ -33,7 +33,7 @@ import Language.SQL.Keyword (Keyword(..))
 import qualified Language.SQL.Keyword as SQL
 
 import Database.Relational.SqlSyntax
-  (Duplication, Record, SubQuery, QueryRestriction, JoinProduct,
+  (Duplication, Record, SubQuery, Predicate, JoinProduct,
    OrderingTerm, composeOrderBy,
    AggregateColumnRef, AggregateElem, composePartitionBy, )
 
@@ -68,9 +68,9 @@ instance MonadRestrict Flat q => MonadRestrict Flat (Restrictings Aggregated q) 
 
 extract :: AggregatedQuery p r
         -> ConfigureQuery (((((((PlaceHolders p, Record Aggregated r), [OrderingTerm]),
-                               QueryRestriction Aggregated),
+                               [Predicate Aggregated]),
                               [AggregateElem]),
-                             QueryRestriction Flat),
+                             [Predicate Flat]),
                             JoinProduct), Duplication)
 extract =  extractCore . extractAggregateTerms . extractRestrict . extractOrderingTerms
 

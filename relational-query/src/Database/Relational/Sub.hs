@@ -50,7 +50,7 @@ import Database.Relational.SqlSyntax.Types
   (Duplication (..), OrderingTerm,
    SubQuery (..), Record,
    CaseClause(..), WhenClauses (..),
-   Tuple, Column (..), QueryRestriction,
+   Tuple, Column (..), Predicate,
    NodeAttr (Just', Maybe), ProductTree (Leaf, Join), JoinProduct,
    SetOp (..), BinOp (..), Qualifier (..), Qualified (..), )
 import qualified Database.Relational.SqlSyntax.Types as Syntax
@@ -74,7 +74,7 @@ flatSubQuery :: Config
              -> Tuple
              -> Duplication
              -> JoinProduct
-             -> QueryRestriction Flat
+             -> [Predicate Flat]
              -> [OrderingTerm]
              -> SubQuery
 flatSubQuery = Flat
@@ -84,9 +84,9 @@ aggregatedSubQuery :: Config
                    -> Tuple
                    -> Duplication
                    -> JoinProduct
-                   -> QueryRestriction Flat
+                   -> [Predicate Flat]
                    -> [AggregateElem]
-                   -> QueryRestriction Aggregated
+                   -> [Predicate Aggregated]
                    -> [OrderingTerm]
                    -> SubQuery
 aggregatedSubQuery = Aggregated
@@ -262,7 +262,7 @@ recordRawColumns = map showColumn . Syntax.untypeRecord
 
 
 -- | Show product tree of query into SQL. StringSQL result.
-showsQueryProduct :: ProductTree (QueryRestriction Flat) -> StringSQL
+showsQueryProduct :: ProductTree [Predicate Flat] -> StringSQL
 showsQueryProduct =  rec  where
   joinType Just' Just' = INNER
   joinType Just' Maybe = LEFT
@@ -289,15 +289,15 @@ showsJoinProduct ups =  maybe (up ups) from  where
 
 
 -- | Compose SQL String from 'QueryRestriction'.
-composeRestrict :: Keyword -> QueryRestriction c -> StringSQL
+composeRestrict :: Keyword -> [Predicate c] -> StringSQL
 composeRestrict k = d  where
   d     []    =  mempty
   d ps@(_:_)  =  k <> foldr1 SQL.and [ rowStringSQL $ recordRawColumns p | p <- ps ]
 
 -- | Compose WHERE clause from 'QueryRestriction'.
-composeWhere :: QueryRestriction Flat -> StringSQL
+composeWhere :: [Predicate Flat] -> StringSQL
 composeWhere =  composeRestrict WHERE
 
 -- | Compose HAVING clause from 'QueryRestriction'.
-composeHaving :: QueryRestriction Aggregated -> StringSQL
+composeHaving :: [Predicate Aggregated] -> StringSQL
 composeHaving =  composeRestrict HAVING

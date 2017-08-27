@@ -28,7 +28,7 @@ import Database.Relational.Context (Flat)
 import qualified Database.Relational.Record as Record
 
 import Database.Relational.SqlSyntax
-  (Duplication, OrderingTerm, SubQuery, QueryRestriction, JoinProduct, )
+  (Duplication, OrderingTerm, SubQuery, Predicate, JoinProduct, )
 
 import Database.Relational.Monad.Trans.Join (join')
 import Database.Relational.Monad.Trans.Restricting (restrictings)
@@ -53,7 +53,7 @@ simple :: ConfigureQuery a -> QuerySimple a
 simple =  orderings . restrictings . join'
 
 extract :: SimpleQuery p r
-        -> ConfigureQuery (((((PlaceHolders p, Record Flat r), [OrderingTerm]), QueryRestriction Flat),
+        -> ConfigureQuery (((((PlaceHolders p, Record Flat r), [OrderingTerm]), [Predicate Flat]),
                            JoinProduct), Duplication)
 extract =  extractCore . extractOrderingTerms
 

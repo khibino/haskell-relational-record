@@ -23,7 +23,7 @@ import Control.Applicative (Applicative)
 
 import Database.Relational.SqlSyntax
   (Duplication, Record, JoinProduct, NodeAttr,
-   SubQuery, QueryRestriction, Qualified, )
+   SubQuery, Predicate, Qualified, )
 
 import Database.Relational.Context (Flat)
 import qualified Database.Relational.Record as Record
@@ -48,7 +48,7 @@ unsafeUniqueSubQuery :: NodeAttr                 -- ^ Attribute maybe or just
 unsafeUniqueSubQuery a  = QueryUnique . restrictings . unsafeSubQueryWithAttr a
 
 extract :: QueryUnique a
-        -> ConfigureQuery (((a, QueryRestriction Flat), JoinProduct), Duplication)
+        -> ConfigureQuery (((a, [Predicate Flat]), JoinProduct), Duplication)
 extract (QueryUnique c) = extractCore c
 
 -- | Run 'SimpleQuery' to get 'SubQuery' with 'Qualify' computation.
