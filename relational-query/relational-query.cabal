@@ -61,6 +61,7 @@ library
                        Database.Relational.Monad.Assign
                        Database.Relational.Monad.Register
                        Database.Relational.Relation
+                       Database.Relational.Set
                        Database.Relational.Effect
                        Database.Relational.Scalar
                        Database.Relational.Type
