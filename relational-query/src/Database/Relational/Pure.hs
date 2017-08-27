@@ -35,7 +35,7 @@ import Database.Record
 import Database.Record.Persistable
   (runPersistableRecordWidth)
 
-import Database.Relational.Internal.SQL (StringSQL, stringSQL, boolSQL)
+import Database.Relational.Internal.String (StringSQL, stringSQL, boolSQL)
 
 import Database.Relational.ProjectableClass (ShowConstantTermsSQL (..))
 

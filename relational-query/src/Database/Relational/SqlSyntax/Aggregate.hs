@@ -23,7 +23,7 @@ import Data.Monoid (Monoid (..), (<>))
 import Language.SQL.Keyword (Keyword(..), (|*|))
 import qualified Language.SQL.Keyword as SQL
 
-import Database.Relational.Internal.SQL (StringSQL)
+import Database.Relational.Internal.String (StringSQL)
 import Database.Relational.SqlSyntax.Types
   (AggregateBitKey (..), AggregateSet (..), AggregateElem (..),
    AggregateColumnRef, AggregateKey (..), )

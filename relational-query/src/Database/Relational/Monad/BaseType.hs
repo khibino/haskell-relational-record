@@ -27,7 +27,7 @@ import Control.Applicative ((<$>))
 
 import Database.Record.Persistable (PersistableRecordWidth, unsafePersistableRecordWidth)
 
-import Database.Relational.Internal.SQL (StringSQL, showStringSQL)
+import Database.Relational.Internal.String (StringSQL, showStringSQL)
 import Database.Relational.Internal.Config (Config, defaultConfig)
 import Database.Relational.SqlSyntax (Qualified, SubQuery, showSQL, width)
 

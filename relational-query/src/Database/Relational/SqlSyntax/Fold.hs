@@ -41,7 +41,7 @@ import Database.Relational.Internal.Config
   (Config (productUnitSupport), ProductUnitSupport (PUSupported, PUNotSupported), )
 import Database.Relational.Internal.UntypedTable ((!))
 import qualified Database.Relational.Internal.UntypedTable as UntypedTable
-import Database.Relational.Internal.SQL
+import Database.Relational.Internal.String
   (StringSQL, stringSQL, rowStringSQL, showStringSQL, boolSQL, )
 import Database.Relational.SqlSyntax.Query (composeOrderBy, )
 import Database.Relational.SqlSyntax.Aggregate (composeGroupBy, )

@@ -21,7 +21,7 @@ import Data.Monoid ((<>))
 import Language.SQL.Keyword (Keyword(..), (|*|), (.=.))
 import qualified Language.SQL.Keyword as SQL
 
-import Database.Relational.Internal.SQL (StringSQL, rowConsStringSQL)
+import Database.Relational.Internal.String (StringSQL, rowConsStringSQL)
 
 
 -- | Column SQL String of assignment

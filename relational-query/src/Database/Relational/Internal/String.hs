@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 
 -- |
--- Module      : Database.Relational.Internal.SQL
+-- Module      : Database.Relational.Internal.String
 -- Copyright   : 2014-2017 Kei Hibino
 -- License     : BSD3
 --
@@ -10,7 +10,7 @@
 -- Portability : unknown
 --
 -- This module provides SQL string wrap interfaces.
-module Database.Relational.Internal.SQL (
+module Database.Relational.Internal.String (
   StringSQL, stringSQL, showStringSQL,
 
   rowStringSQL, rowPlaceHolderStringSQL,

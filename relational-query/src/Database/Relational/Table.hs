@@ -23,7 +23,7 @@ import Database.Record.Persistable
   (PersistableWidth, PersistableRecordWidth, unsafePersistableRecordWidth)
 
 import Database.Relational.Internal.UntypedTable (Untyped (Untyped), name', width', columns', (!))
-import Database.Relational.Internal.SQL (StringSQL, stringSQL, )
+import Database.Relational.Internal.String (StringSQL, stringSQL, )
 import Database.Relational.SqlSyntax (SubQuery)
 import qualified Database.Relational.SqlSyntax as Syntax
 

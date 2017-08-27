@@ -30,7 +30,7 @@ import GHC.Generics (Generic, Rep, U1 (..), K1 (..), M1 (..), (:*:)(..), from)
 import Data.Monoid (mempty, (<>))
 import Data.DList (DList, toList)
 
-import Database.Relational.Internal.SQL (StringSQL)
+import Database.Relational.Internal.String (StringSQL)
 
 
 -- | Specify tuple like record constructors which are allowed to define 'ProjectableFunctor'.

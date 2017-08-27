@@ -34,7 +34,7 @@ import Language.SQL.Keyword (Keyword(..))
 import Database.Record.Persistable (PersistableWidth)
 
 import Database.Relational.Internal.Config (Config (chunksInsertSize), defaultConfig)
-import Database.Relational.Internal.SQL (StringSQL, stringSQL, showStringSQL)
+import Database.Relational.Internal.String (StringSQL, stringSQL, showStringSQL)
 import Database.Relational.SqlSyntax
   (composeWhere, composeSets, composeChunkValuesWithColumns)
 

@@ -75,7 +75,7 @@ import Database.Record.Persistable (runPersistableRecordWidth)
 
 import Database.Relational.Internal.ContextType
   (Flat, Aggregated, Exists, OverWindow)
-import Database.Relational.Internal.SQL (StringSQL, stringSQL, showStringSQL)
+import Database.Relational.Internal.String (StringSQL, stringSQL, showStringSQL)
 import Database.Relational.SqlSyntax (Record, Predicate)
 import qualified Database.Relational.SqlSyntax as Syntax
 

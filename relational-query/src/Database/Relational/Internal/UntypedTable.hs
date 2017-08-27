@@ -15,7 +15,7 @@ module Database.Relational.Internal.UntypedTable (
 import Data.Array (Array, elems)
 import qualified Data.Array as Array
 
-import Database.Relational.Internal.SQL (StringSQL)
+import Database.Relational.Internal.String (StringSQL)
 
 
 -- | Untyped typed table type

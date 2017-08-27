@@ -33,7 +33,7 @@ import Language.SQL.Keyword (Keyword(..), (.=.), (|*|))
 import qualified Language.SQL.Keyword as SQL
 import Database.Record.ToSql (untypedUpdateValuesIndex)
 
-import Database.Relational.Internal.SQL
+import Database.Relational.Internal.String
   (StringSQL, stringSQL, showStringSQL, rowConsStringSQL, )
 
 import Database.Relational.Pi (Pi)

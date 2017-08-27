@@ -51,7 +51,7 @@ import Database.Record.Persistable (PersistableRecordWidth)
 import qualified Database.Record.KeyConstraint as KeyConstraint
 
 import Database.Relational.Internal.ContextType (Aggregated, Flat)
-import Database.Relational.Internal.SQL (StringSQL, listStringSQL, rowStringSQL)
+import Database.Relational.Internal.String (StringSQL, listStringSQL, rowStringSQL)
 import Database.Relational.SqlSyntax
   (SubQuery, Qualified, Tuple, Record,
    recordRawColumns, tupleFromJoinedSubQuery,)
