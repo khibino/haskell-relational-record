@@ -10,32 +10,43 @@
 -- Portability : unknown
 --
 -- This module defines sub-query structure used in query products.
-module Database.Relational.SqlSyntax.Types
-       ( SubQuery (..)
+module Database.Relational.SqlSyntax.Types (
+  -- * The SubQuery
+  SubQuery (..),
 
-       , Duplication (..), SetOp (..), BinOp (..)
-       , Qualifier (..), Qualified (..), qualifier, unQualify, qualify
+  -- * Set operations
+  Duplication (..), SetOp (..), BinOp (..),
 
-       , Order (..), Nulls (..), OrderColumn, OrderingTerm
+  -- * Qualifiers for nested query
+  Qualifier (..), Qualified (..), qualifier, unQualify, qualify,
 
-         -- * Product tree type
-       , NodeAttr (..), ProductTree (..)
-       , Node (..), nodeAttr, nodeTree
-       , JoinProduct
+  -- * Ordering types
+  Order (..), Nulls (..), OrderColumn, OrderingTerm,
 
-       , CaseClause (..), WhenClauses(..)
+  -- * Aggregating types
+  AggregateColumnRef,
+  AggregateBitKey (..), AggregateSet (..), AggregateElem (..),
 
-       , Tuple, tupleWidth
-       , Column (..)
-       , Record, untypeRecord, record
-       , recordWidth
-       , typeFromRawColumns
-       , typeFromScalarSubQuery
+  AggregateKey (..),
 
-         -- * Predicate to restrict Query result
-       , Predicate
+  -- * Product tree type
+  NodeAttr (..), ProductTree (..),
+  Node (..), nodeAttr, nodeTree,
+  JoinProduct,
 
-       )  where
+  -- * Case
+  CaseClause (..), WhenClauses(..),
+
+  -- * Column, Tuple and Record
+  Column (..), Tuple, tupleWidth,
+  Record, untypeRecord, record,
+  recordWidth,
+  typeFromRawColumns,
+  typeFromScalarSubQuery,
+
+  -- * Predicate to restrict Query result
+  Predicate,
+  )  where
 
 import Prelude hiding (and, product)
 import Data.Foldable (Foldable)
@@ -45,7 +56,6 @@ import Database.Relational.Internal.Config (Config)
 import Database.Relational.Internal.ContextType (Flat, Aggregated)
 import Database.Relational.Internal.SQL (StringSQL)
 import Database.Relational.Internal.UntypedTable (Untyped)
-import Database.Relational.SqlSyntax.Aggregate (AggregateElem)
 
 
 -- | Result record duplication attribute
@@ -68,6 +78,25 @@ type OrderColumn = StringSQL
 
 -- | Type for order-by term
 type OrderingTerm = ((Order, Maybe Nulls), OrderColumn)
+
+-- | Type for group-by term
+type AggregateColumnRef = StringSQL
+
+-- | Type for group key.
+newtype AggregateBitKey = AggregateBitKey [AggregateColumnRef] deriving Show
+
+-- | Type for grouping set
+newtype AggregateSet = AggregateSet [AggregateElem] deriving Show
+
+-- | Type for group-by tree
+data AggregateElem = ColumnRef AggregateColumnRef
+                   | Rollup [AggregateBitKey]
+                   | Cube   [AggregateBitKey]
+                   | GroupingSets [AggregateSet]
+                   deriving Show
+
+-- | Typeful aggregate element.
+newtype AggregateKey a = AggregateKey (a, AggregateElem)
 
 -- | Sub-query type
 data SubQuery = Table Untyped

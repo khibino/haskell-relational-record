@@ -9,16 +9,11 @@
 --
 -- This module provides grouping-sets structure of SQL syntax tree.
 module Database.Relational.SqlSyntax.Aggregate (
-  AggregateColumnRef,
-  AggregateBitKey (..), AggregateSet (..), AggregateElem (..),
-
   aggregateColumnRef,
   aggregatePowerKey, aggregateGroupingSet,
   aggregateRollup, aggregateCube, aggregateSets,
 
   composeGroupBy, composePartitionBy,
-
-  AggregateKey (..),
 
   aggregateKeyRecord, aggregateKeyElement, unsafeAggregateKey,
   ) where
@@ -29,26 +24,10 @@ import Language.SQL.Keyword (Keyword(..), (|*|))
 import qualified Language.SQL.Keyword as SQL
 
 import Database.Relational.Internal.SQL (StringSQL)
+import Database.Relational.SqlSyntax.Types
+  (AggregateBitKey (..), AggregateSet (..), AggregateElem (..),
+   AggregateColumnRef, AggregateKey (..), )
 
-
--- | Type for group-by term
-type AggregateColumnRef = StringSQL
-
--- | Type for group key.
-newtype AggregateBitKey = AggregateBitKey [AggregateColumnRef] deriving Show
-
--- | Type for grouping set
-newtype AggregateSet = AggregateSet [AggregateElem] deriving Show
-
--- | Type for group-by tree
-data AggregateElem = ColumnRef AggregateColumnRef
-                   | Rollup [AggregateBitKey]
-                   | Cube   [AggregateBitKey]
-                   | GroupingSets [AggregateSet]
-                   deriving Show
-
--- | Typeful aggregate element.
-newtype AggregateKey a = AggregateKey (a, AggregateElem)
 
 -- | Single term aggregation element.
 aggregateColumnRef :: AggregateColumnRef -> AggregateElem

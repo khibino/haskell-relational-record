@@ -24,9 +24,9 @@ import qualified Language.SQL.Keyword as SQL
 import Database.Relational.Internal.Config (Config)
 import Database.Relational.Internal.ContextType (Flat, Aggregated)
 import Database.Relational.Internal.SQL (StringSQL)
-import Database.Relational.SqlSyntax.Aggregate (AggregateElem)
 import Database.Relational.SqlSyntax.Types
-  (Duplication (..), SetOp (..), BinOp (..), Order (..), Nulls (..), OrderingTerm,
+  (Duplication (..), SetOp (..), BinOp (..),
+   Order (..), Nulls (..), OrderingTerm, AggregateElem,
    JoinProduct, Predicate, WhenClauses (..), CaseClause (..), SubQuery (..),
    Column (..), Tuple, Record, record, untypeRecord, recordWidth, )
 
