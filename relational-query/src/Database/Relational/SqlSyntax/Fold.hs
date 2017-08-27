@@ -37,10 +37,12 @@ import Language.SQL.Keyword (Keyword(..), (|*|))
 import qualified Language.SQL.Keyword as SQL
 
 import Database.Relational.Internal.ContextType (Flat, Aggregated)
-import Database.Relational.Internal.SQL
-  (StringSQL, stringSQL, rowStringSQL, showStringSQL, boolSQL, )
 import Database.Relational.Internal.Config
   (Config (productUnitSupport), ProductUnitSupport (PUSupported, PUNotSupported), )
+import Database.Relational.Internal.UntypedTable ((!))
+import qualified Database.Relational.Internal.UntypedTable as UntypedTable
+import Database.Relational.Internal.SQL
+  (StringSQL, stringSQL, rowStringSQL, showStringSQL, boolSQL, )
 import Database.Relational.SqlSyntax.Query (composeOrderBy, )
 import Database.Relational.SqlSyntax.Aggregate (composeGroupBy, )
 import Database.Relational.SqlSyntax.Types
@@ -49,8 +51,6 @@ import Database.Relational.SqlSyntax.Types
    NodeAttr (Just', Maybe), ProductTree (Leaf, Join), JoinProduct,
    Duplication (..), SetOp (..), BinOp (..), Qualifier (..), Qualified (..), )
 import qualified Database.Relational.SqlSyntax.Types as Syntax
-import Database.Relational.Internal.UntypedTable ((!))
-import qualified Database.Relational.Internal.UntypedTable as UntypedTable
 
 
 -- | Compose duplication attribute string.

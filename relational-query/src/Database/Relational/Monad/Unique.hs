@@ -21,11 +21,11 @@ module Database.Relational.Monad.Unique
 
 import Control.Applicative (Applicative)
 
+import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax
   (Duplication, Record, JoinProduct, NodeAttr,
    SubQuery, Predicate, Qualified, )
 
-import Database.Relational.Context (Flat)
 import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable (PlaceHolders)
 import Database.Relational.Monad.Class (MonadQualify, MonadQuery)

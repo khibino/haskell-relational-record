@@ -73,6 +73,8 @@ import Database.Record
    HasColumnConstraint, NotNull)
 import Database.Record.Persistable (runPersistableRecordWidth)
 
+import Database.Relational.Internal.ContextType
+  (Flat, Aggregated, Exists, OverWindow)
 import Database.Relational.Internal.SQL (StringSQL, stringSQL, showStringSQL)
 import Database.Relational.SqlSyntax (Record, Predicate)
 import qualified Database.Relational.SqlSyntax as Syntax
@@ -80,7 +82,6 @@ import qualified Database.Relational.SqlSyntax as Syntax
 import Database.Relational.Pure ()
 import Database.Relational.ProjectableClass
   (ProjectableFunctor (..), ProjectableApplicative (..), )
-import Database.Relational.Context (Flat, Aggregated, Exists, OverWindow)
 import Database.Relational.TupleInstances ()
 import Database.Relational.ProjectableClass
   (ShowConstantTermsSQL, showConstantTermsSQL, )

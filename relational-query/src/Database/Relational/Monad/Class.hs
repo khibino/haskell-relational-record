@@ -21,10 +21,10 @@ module Database.Relational.Monad.Class
          on, wheres, having,
        ) where
 
+import Database.Relational.Internal.ContextType (Flat, Aggregated)
 import Database.Relational.SqlSyntax
   (Duplication (..), Predicate, Record, AggregateKey)
 
-import Database.Relational.Context (Flat, Aggregated)
 import Database.Relational.Projectable (PlaceHolders)
 import Database.Relational.Monad.BaseType (ConfigureQuery, Relation)
 

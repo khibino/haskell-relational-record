@@ -22,15 +22,13 @@ module Database.Relational.Monad.Simple (
   toSubQuery,
   ) where
 
-import Database.Relational.SqlSyntax (Record)
-
-import Database.Relational.Context (Flat)
-import qualified Database.Relational.Record as Record
-
+import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax
-  (Duplication, OrderingTerm, SubQuery, Predicate, JoinProduct, flatSubQuery, )
+  (Duplication, OrderingTerm, JoinProduct, Predicate,  Record,
+   SubQuery, flatSubQuery, )
 import qualified Database.Relational.SqlSyntax as Syntax
 
+import qualified Database.Relational.Record as Record
 import Database.Relational.Monad.Trans.Join (join')
 import Database.Relational.Monad.Trans.Restricting (restrictings)
 import Database.Relational.Monad.Trans.Ordering

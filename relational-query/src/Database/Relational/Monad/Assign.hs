@@ -20,10 +20,10 @@ module Database.Relational.Monad.Assign (
   ) where
 
 import Database.Relational.Internal.Config (Config)
+import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax
   (Predicate, Record, Assignment)
 
-import Database.Relational.Context (Flat)
 import Database.Relational.Table (Table)
 import Database.Relational.Monad.Restrict (Restrict)
 import qualified Database.Relational.Monad.Restrict as Restrict

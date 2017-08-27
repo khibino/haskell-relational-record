@@ -14,10 +14,10 @@ module Database.Relational.Monad.Type
          OrderedQuery,
        ) where
 
+import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax
   (Duplication, Record, JoinProduct, Predicate, )
 
-import Database.Relational.Context (Flat)
 import Database.Relational.Projectable (PlaceHolders)
 import Database.Relational.Monad.BaseType (ConfigureQuery)
 import Database.Relational.Monad.Trans.Join (QueryJoin, extractProduct)

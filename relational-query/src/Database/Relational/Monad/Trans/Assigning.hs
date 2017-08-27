@@ -31,9 +31,9 @@ import Control.Arrow (second)
 import Data.Monoid (mconcat)
 import Data.DList (DList, toList)
 
+import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax (Record, Assignment)
 
-import Database.Relational.Context (Flat)
 import Database.Relational.Pi (Pi)
 import Database.Relational.Table (Table, recordWidth)
 import qualified Database.Relational.Record as Record

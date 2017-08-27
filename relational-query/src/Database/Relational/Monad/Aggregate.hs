@@ -32,13 +32,13 @@ import Data.Monoid ((<>))
 import Language.SQL.Keyword (Keyword(..))
 import qualified Language.SQL.Keyword as SQL
 
+import Database.Relational.Internal.ContextType (Flat, Aggregated, OverWindow)
 import Database.Relational.SqlSyntax
   (Duplication, Record, SubQuery, Predicate, JoinProduct,
    OrderingTerm, composeOrderBy, aggregatedSubQuery,
    AggregateColumnRef, AggregateElem, composePartitionBy, )
 import qualified Database.Relational.SqlSyntax as Syntax
 
-import Database.Relational.Context (Flat, Aggregated, OverWindow)
 import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable (PlaceHolders, SqlProjectable)
 import Database.Relational.Monad.Class (MonadRestrict(..))

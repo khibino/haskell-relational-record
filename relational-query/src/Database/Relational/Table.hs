@@ -19,7 +19,8 @@ module Database.Relational.Table (
 
 import Data.Array (listArray)
 
-import Database.Record.Persistable (PersistableWidth, PersistableRecordWidth, unsafePersistableRecordWidth)
+import Database.Record.Persistable
+  (PersistableWidth, PersistableRecordWidth, unsafePersistableRecordWidth)
 
 import Database.Relational.Internal.UntypedTable (Untyped (Untyped), name', width', columns', (!))
 import Database.Relational.Internal.SQL (StringSQL, stringSQL, )

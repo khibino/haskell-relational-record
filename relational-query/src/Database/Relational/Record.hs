@@ -50,6 +50,7 @@ import Database.Record (HasColumnConstraint, NotNull, NotNullColumnConstraint, P
 import Database.Record.Persistable (PersistableRecordWidth)
 import qualified Database.Record.KeyConstraint as KeyConstraint
 
+import Database.Relational.Internal.ContextType (Aggregated, Flat)
 import Database.Relational.Internal.SQL (StringSQL, listStringSQL, rowStringSQL)
 import Database.Relational.SqlSyntax
   (SubQuery, Qualified, Tuple, Record,
@@ -58,7 +59,6 @@ import qualified Database.Relational.SqlSyntax as Syntax
 
 import Database.Relational.ProjectableClass
   (ProductConstructor (..), ProjectableFunctor (..), ProjectableApplicative (..), )
-import Database.Relational.Context (Aggregated, Flat)
 import Database.Relational.Table (Table)
 import qualified Database.Relational.Table as Table
 import Database.Relational.Pi (Pi)
