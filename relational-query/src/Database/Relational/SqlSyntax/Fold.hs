@@ -70,6 +70,29 @@ showsSetOp op dup0 = showsSetOp' op <> mayDup dup0  where
   mayDup dup@All  = showsDuplication dup
   mayDup Distinct = mempty
 
+-- | Alias string from qualifier
+showQualifier :: Qualifier -> StringSQL
+showQualifier (Qualifier i) = stringSQL $ 'T' : show i
+
+-- | Binary operator to qualify.
+(<.>) :: Qualifier -> StringSQL -> StringSQL
+i <.> n = showQualifier i SQL.<.> n
+
+columnN :: Int -> StringSQL
+columnN i = stringSQL $ 'f' : show i
+
+asColumnN :: StringSQL -> Int -> StringSQL
+c `asColumnN` n =c `SQL.as` columnN n
+
+-- | Qualified expression from qualifier and projection index.
+columnFromId :: Qualifier -> Int -> StringSQL
+columnFromId qi i = qi <.> columnN i
+
+-- | From 'Qualified' SQL string into qualified formed 'String'
+--  like (SELECT ...) AS T<n>
+qualifiedSQLas :: Qualified StringSQL -> StringSQL
+qualifiedSQLas q = Syntax.unQualify q <> showQualifier (Syntax.qualifier q)
+
 -- | Width of 'SubQuery'.
 width :: SubQuery -> Int
 width =  d  where
@@ -78,7 +101,11 @@ width =  d  where
   d (Flat _ up _ _ _ _)           = Syntax.tupleWidth up
   d (Aggregated _ up _ _ _ _ _ _) = Syntax.tupleWidth up
 
--- | SQL to query table.
+-- | Width of 'Qualified' 'SubQUery'.
+queryWidth :: Qualified SubQuery -> Int
+queryWidth =  width . Syntax.unQualify
+
+-- | Generate SQL from table for top-level.
 fromTableToSQL :: UntypedTable.Untyped -> StringSQL
 fromTableToSQL t =
   SELECT <> SQL.fold (|*|) (UntypedTable.columns' t) <>
@@ -92,7 +119,17 @@ fromTableToNormalizedSQL t = SELECT <> SQL.fold (|*|) columns' <>
              (UntypedTable.columns' t)
              [(0 :: Int)..]
 
--- | Normalized column SQL
+-- | Generate normalized column SQL from joined tuple.
+selectPrefixSQL :: Tuple -> Duplication -> StringSQL
+selectPrefixSQL up da = SELECT <> showsDuplication da <>
+                        SQL.fold (|*|) columns'  where
+  columns' = zipWith asColumnN
+             (map showColumn up)
+             [(0 :: Int)..]
+
+-- | Normalized column SQL for union like operations
+--   to keep compatibility with engines like Sqlite and MySQL.
+--   SQL with no ordering term is not paren-ed.
 normalizedSQL :: SubQuery -> StringSQL
 normalizedSQL =  d  where
   d (Table t)                 =  fromTableToNormalizedSQL t
@@ -103,13 +140,6 @@ normalizedSQL =  d  where
   d sub@(Aggregated _ _ _ _ _ _ _ ots)
     | null ots                =  showSQL sub
     | otherwise               =  showUnitSQL sub
-
-selectPrefixSQL :: Tuple -> Duplication -> StringSQL
-selectPrefixSQL up da = SELECT <> showsDuplication da <>
-                        SQL.fold (|*|) columns'  where
-  columns' = zipWith asColumnN
-             (map showColumn up)
-             [(0 :: Int)..]
 
 -- | SQL string for nested-query and toplevel-SQL.
 toSQLs :: SubQuery
@@ -140,34 +170,7 @@ showSQL = snd . toSQLs
 toSQL :: SubQuery -> String
 toSQL =  showStringSQL . showSQL
 
-columnN :: Int -> StringSQL
-columnN i = stringSQL $ 'f' : show i
-
-asColumnN :: StringSQL -> Int -> StringSQL
-c `asColumnN` n =c `SQL.as` columnN n
-
--- | Alias string from qualifier
-showQualifier :: Qualifier -> StringSQL
-showQualifier (Qualifier i) = stringSQL $ 'T' : show i
-
--- | Binary operator to qualify.
-(<.>) :: Qualifier -> StringSQL -> StringSQL
-i <.> n = showQualifier i SQL.<.> n
-
--- | Qualified expression from qualifier and projection index.
-columnFromId :: Qualifier -> Int -> StringSQL
-columnFromId qi i = qi <.> columnN i
-
--- | From 'Qualified' SQL string into qualified formed 'String'
---  like (SELECT ...) AS T<n>
-qualifiedSQLas :: Qualified StringSQL -> StringSQL
-qualifiedSQLas q = Syntax.unQualify q <> showQualifier (Syntax.qualifier q)
-
--- | Width of 'Qualified' 'SubQUery'.
-queryWidth :: Qualified SubQuery -> Int
-queryWidth =  width . Syntax.unQualify
-
--- | Get column SQL string of 'SubQuery'.
+-- | Get column SQL string of 'Qualified' 'SubQuery'.
 column :: Qualified SubQuery -> Int -> StringSQL
 column qs =  d (Syntax.unQualify qs)  where
   q = Syntax.qualifier qs
@@ -176,7 +179,7 @@ column qs =  d (Syntax.unQualify qs)  where
   d (Flat _ up _ _ _ _) i           = showTupleIndex up i
   d (Aggregated _ up _ _ _ _ _ _) i = showTupleIndex up i
 
--- | Make untyped tuple from joined sub-query.
+-- | Make untyped tuple (qualified column list) from joined sub-query ('Qualified' 'SubQuery').
 tupleFromJoinedSubQuery :: Qualified SubQuery -> Tuple
 tupleFromJoinedSubQuery qs = d $ Syntax.unQualify qs  where
   normalized = SubQueryRef <$> traverse (\q -> [0 .. width q - 1]) qs
