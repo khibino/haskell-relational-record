@@ -95,7 +95,7 @@ import Database.Relational.Constraint (Key, unsafeDefineConstraintKey)
 import Database.Relational.Table (TableDerivable (..))
 import qualified Database.Relational.Table as Table
 import Database.Relational.Relation (derivedRelation)
-import Database.Relational.SQL (QuerySuffix)
+import Database.Relational.SimpleSql (QuerySuffix)
 import Database.Relational.Type (unsafeTypedQuery)
 import qualified Database.Relational.Pi.Unsafe as UnsafePi
 

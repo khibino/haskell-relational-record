@@ -10,7 +10,7 @@
 -- This module is integrated module of Query.
 module Database.Relational (
   module Database.Relational.Table,
-  module Database.Relational.SQL,
+  module Database.Relational.SimpleSql,
   module Database.Relational.Pi,
   module Database.Relational.Constraint,
   module Database.Relational.Context,
@@ -42,7 +42,7 @@ module Database.Relational (
   ) where
 
 import Database.Relational.Table (Table, TableDerivable (..))
-import Database.Relational.SQL (updateOtherThanKeySQL)
+import Database.Relational.SimpleSql (updateOtherThanKeySQL)
 import Database.Relational.Pure ()
 import Database.Relational.Pi
 import Database.Relational.Constraint

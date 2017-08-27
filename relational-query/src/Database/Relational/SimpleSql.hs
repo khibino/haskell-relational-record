@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 -- |
--- Module      : Database.Relational.SQL
+-- Module      : Database.Relational.SimpleSql
 -- Copyright   : 2013-2017 Kei Hibino
 -- License     : BSD3
 --
@@ -10,7 +10,7 @@
 -- Portability : unknown
 --
 -- This module defines functions to generate simple SQL strings.
-module Database.Relational.SQL (
+module Database.Relational.SimpleSql (
   -- * Query suffix
   QuerySuffix, showsQuerySuffix,
 

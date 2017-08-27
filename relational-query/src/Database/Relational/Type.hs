@@ -58,7 +58,7 @@ import Database.Relational.Effect
 import Database.Relational.Pi (Pi)
 import Database.Relational.Table (Table, TableDerivable, derivedTable)
 import Database.Relational.Projectable (PlaceHolders)
-import Database.Relational.SQL
+import Database.Relational.SimpleSql
   (QuerySuffix, showsQuerySuffix, insertPrefixSQL,
    updateOtherThanKeySQL, updatePrefixSQL, deletePrefixSQL)
 
