@@ -16,14 +16,13 @@ module Database.Relational.SQL (
 
   -- * Update SQL
   updatePrefixSQL,
-  updateSQL',
-  updateOtherThanKeySQL', updateOtherThanKeySQL,
+  updateOtherThanKeySQL,
 
   -- * Insert SQL
   insertPrefixSQL,
 
   -- * Delete SQL
-  deletePrefixSQL', deletePrefixSQL
+  deletePrefixSQL
   ) where
 
 import Data.Array (listArray, (!))
