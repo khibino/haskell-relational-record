@@ -38,7 +38,7 @@ import Data.Traversable (traverse)
 import Language.SQL.Keyword (Keyword(..), (|*|))
 import qualified Language.SQL.Keyword as SQL
 
-import qualified Database.Relational.Internal.ContextType as Context
+import Database.Relational.Internal.ContextType (Flat, Aggregated)
 import Database.Relational.Internal.SQL
   (StringSQL, stringSQL, rowStringSQL, showStringSQL, boolSQL, )
 import Database.Relational.Internal.Config
@@ -74,7 +74,7 @@ flatSubQuery :: Config
              -> Tuple
              -> Duplication
              -> JoinProduct
-             -> QueryRestriction Context.Flat
+             -> QueryRestriction Flat
              -> [OrderingTerm]
              -> SubQuery
 flatSubQuery = Flat
@@ -84,9 +84,9 @@ aggregatedSubQuery :: Config
                    -> Tuple
                    -> Duplication
                    -> JoinProduct
-                   -> QueryRestriction Context.Flat
+                   -> QueryRestriction Flat
                    -> [AggregateElem]
-                   -> QueryRestriction Context.Aggregated
+                   -> QueryRestriction Aggregated
                    -> [OrderingTerm]
                    -> SubQuery
 aggregatedSubQuery = Aggregated
@@ -262,7 +262,7 @@ recordRawColumns = map showColumn . Syntax.untypeRecord
 
 
 -- | Show product tree of query into SQL. StringSQL result.
-showsQueryProduct :: ProductTree (QueryRestriction Context.Flat) -> StringSQL
+showsQueryProduct :: ProductTree (QueryRestriction Flat) -> StringSQL
 showsQueryProduct =  rec  where
   joinType Just' Just' = INNER
   joinType Just' Maybe = LEFT
@@ -295,9 +295,9 @@ composeRestrict k = d  where
   d ps@(_:_)  =  k <> foldr1 SQL.and [ rowStringSQL $ recordRawColumns p | p <- ps ]
 
 -- | Compose WHERE clause from 'QueryRestriction'.
-composeWhere :: QueryRestriction Context.Flat -> StringSQL
+composeWhere :: QueryRestriction Flat -> StringSQL
 composeWhere =  composeRestrict WHERE
 
 -- | Compose HAVING clause from 'QueryRestriction'.
-composeHaving :: QueryRestriction Context.Aggregated -> StringSQL
+composeHaving :: QueryRestriction Aggregated -> StringSQL
 composeHaving =  composeRestrict HAVING
