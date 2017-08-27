@@ -21,8 +21,7 @@ module Database.Relational.SqlSyntax.Types
          -- * Product tree type
        , NodeAttr (..), ProductTree (..)
        , Node (..), nodeAttr, nodeTree
-       , JoinProduct, QueryProductTree
-       , ProductTreeBuilder, ProductBuilder
+       , JoinProduct
 
        , CaseClause (..), WhenClauses(..)
 
@@ -34,7 +33,7 @@ module Database.Relational.SqlSyntax.Types
        , typeFromScalarSubQuery
 
          -- * Query restriction
-       , QueryRestriction
+       , QueryRestriction, QueryRestrictionBuilder
 
        )  where
 
@@ -108,8 +107,6 @@ data NodeAttr = Just' | Maybe deriving Show
 
 type QS = Qualified SubQuery
 
-type QueryRestrictionBuilder = DList (Record Flat (Maybe Bool))
-
 -- | Product tree type. Product tree is constructed by left node and right node.
 data ProductTree rs
   = Leaf QS
@@ -127,17 +124,8 @@ nodeAttr (Node a _) = a  where
 nodeTree :: Node rs -> ProductTree rs
 nodeTree (Node _ t) = t
 
--- | Product tree with join restriction.
-type QueryProductTree = ProductTree (QueryRestriction Flat)
-
--- | Product tree with join restriction builder.
-type ProductTreeBuilder = ProductTree QueryRestrictionBuilder
-
--- | Product noe with join restriction builder.
-type ProductBuilder = Node QueryRestrictionBuilder
-
 -- | Type for join product of query.
-type JoinProduct = Maybe QueryProductTree
+type JoinProduct = Maybe (ProductTree (QueryRestriction Flat))
 
 -- | when clauses
 data WhenClauses =
@@ -172,6 +160,9 @@ newtype Record c t =
 
 -- | Type for restriction of query.
 type QueryRestriction c = [Record c (Maybe Bool)]
+
+-- | Builder type to build 'QueryRestriction'.
+type QueryRestrictionBuilder = DList (Record Flat (Maybe Bool))
 
 -- | Unsafely type 'Tuple' value to 'Record' type.
 record :: Tuple -> Record c t

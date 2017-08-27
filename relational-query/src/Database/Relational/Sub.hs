@@ -50,11 +50,9 @@ import Database.Relational.SqlSyntax.Types
   (Duplication (..), OrderingTerm,
    SubQuery (..), Record,
    CaseClause(..), WhenClauses (..),
-   Tuple, Column (..),
-   JoinProduct, QueryProductTree,
-   NodeAttr (Just', Maybe), ProductTree (Leaf, Join),
-   SetOp (..), BinOp (..), Qualifier (..), Qualified (..),
-   QueryRestriction)
+   Tuple, Column (..), QueryRestriction,
+   NodeAttr (Just', Maybe), ProductTree (Leaf, Join), JoinProduct,
+   SetOp (..), BinOp (..), Qualifier (..), Qualified (..), )
 import qualified Database.Relational.SqlSyntax.Types as Syntax
 import Database.Relational.Internal.UntypedTable ((!))
 import qualified Database.Relational.Internal.UntypedTable as UntypedTable
@@ -264,7 +262,7 @@ recordRawColumns = map showColumn . Syntax.untypeRecord
 
 
 -- | Show product tree of query into SQL. StringSQL result.
-showsQueryProduct :: QueryProductTree -> StringSQL
+showsQueryProduct :: ProductTree (QueryRestriction Context.Flat) -> StringSQL
 showsQueryProduct =  rec  where
   joinType Just' Just' = INNER
   joinType Just' Maybe = LEFT
