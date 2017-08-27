@@ -1,5 +1,5 @@
 -- |
--- Module      : Database.Relational.Component
+-- Module      : Database.Relational.Config
 -- Copyright   : 2013-2017 Kei Hibino
 -- License     : BSD3
 --
@@ -8,7 +8,7 @@
 -- Portability : unknown
 --
 -- This module provides untyped components for query.
-module Database.Relational.Component
+module Database.Relational.Config
        ( -- * Configuration type for query
          module Database.Relational.Internal.Config,
        ) where

@@ -14,7 +14,7 @@ module Database.Relational (
   module Database.Relational.Pi,
   module Database.Relational.Constraint,
   module Database.Relational.Context,
-  module Database.Relational.Component,
+  module Database.Relational.Config,
   module Database.Relational.SqlSyntax,
   module Database.Relational.Record,
   module Database.Relational.ProjectableClass,
@@ -51,7 +51,7 @@ import Database.Relational.Constraint
    derivedUniqueKey, -- derivedNotNullKey,
    Primary, Unique, NotNull)
 import Database.Relational.Context
-import Database.Relational.Component
+import Database.Relational.Config
 import Database.Relational.SqlSyntax
   (Order (..), Nulls (..), Predicate, AggregateKey,
    SubQuery, unitSQL, queryWidth, )

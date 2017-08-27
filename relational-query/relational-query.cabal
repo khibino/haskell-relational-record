@@ -38,7 +38,7 @@ library
                        Database.Relational.Pi.Unsafe
                        Database.Relational.Constraint
                        Database.Relational.Context
-                       Database.Relational.Component
+                       Database.Relational.Config
                        Database.Relational.SqlSyntax
                        Database.Relational.Record
                        Database.Relational.ProjectableClass
