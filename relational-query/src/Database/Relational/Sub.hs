@@ -12,8 +12,6 @@
 -- This module defines sub-query structure used in query products.
 module Database.Relational.Sub (
   -- * Sub-query
-  flatSubQuery, aggregatedSubQuery,
-  union, except, intersect,
   showSQL, toSQL, unitSQL, width,
 
   -- * Qualified Sub-query
@@ -43,20 +41,23 @@ import Database.Relational.Internal.SQL
   (StringSQL, stringSQL, rowStringSQL, showStringSQL, boolSQL, )
 import Database.Relational.Internal.Config
   (Config (productUnitSupport), ProductUnitSupport (PUSupported, PUNotSupported), )
-import Database.Relational.SqlSyntax.Query (showsDuplication, composeOrderBy, )
-import Database.Relational.SqlSyntax.Aggregate
-  (AggregateElem, composeGroupBy, )
+import Database.Relational.SqlSyntax.Query (composeOrderBy, )
+import Database.Relational.SqlSyntax.Aggregate (composeGroupBy, )
 import Database.Relational.SqlSyntax.Types
-  (Duplication (..), OrderingTerm,
-   SubQuery (..), Record,
-   CaseClause(..), WhenClauses (..),
-   Tuple, Column (..), Predicate,
+  (SubQuery (..), Record, Tuple, Predicate,
+   Column (..), CaseClause(..), WhenClauses (..),
    NodeAttr (Just', Maybe), ProductTree (Leaf, Join), JoinProduct,
-   SetOp (..), BinOp (..), Qualifier (..), Qualified (..), )
+   Duplication (..), SetOp (..), BinOp (..), Qualifier (..), Qualified (..), )
 import qualified Database.Relational.SqlSyntax.Types as Syntax
 import Database.Relational.Internal.UntypedTable ((!))
 import qualified Database.Relational.Internal.UntypedTable as UntypedTable
 
+
+-- | Compose duplication attribute string.
+showsDuplication :: Duplication -> StringSQL
+showsDuplication =  dup  where
+  dup All      = ALL
+  dup Distinct = DISTINCT
 
 showsSetOp' :: SetOp -> StringSQL
 showsSetOp' =  d  where
@@ -68,43 +69,6 @@ showsSetOp :: SetOp -> Duplication -> StringSQL
 showsSetOp op dup0 = showsSetOp' op <> mayDup dup0  where
   mayDup dup@All  = showsDuplication dup
   mayDup Distinct = mempty
-
--- | Unsafely generate flat 'SubQuery' from untyped components.
-flatSubQuery :: Config
-             -> Tuple
-             -> Duplication
-             -> JoinProduct
-             -> [Predicate Flat]
-             -> [OrderingTerm]
-             -> SubQuery
-flatSubQuery = Flat
-
--- | Unsafely generate aggregated 'SubQuery' from untyped components.
-aggregatedSubQuery :: Config
-                   -> Tuple
-                   -> Duplication
-                   -> JoinProduct
-                   -> [Predicate Flat]
-                   -> [AggregateElem]
-                   -> [Predicate Aggregated]
-                   -> [OrderingTerm]
-                   -> SubQuery
-aggregatedSubQuery = Aggregated
-
-setBin :: SetOp -> Duplication -> SubQuery -> SubQuery -> SubQuery
-setBin op = Bin . BinOp . (,) op
-
--- | Union binary operator on 'SubQuery'
-union     :: Duplication -> SubQuery -> SubQuery -> SubQuery
-union     =  setBin Union
-
--- | Except binary operator on 'SubQuery'
-except    :: Duplication -> SubQuery -> SubQuery -> SubQuery
-except    =  setBin Except
-
--- | Intersect binary operator on 'SubQuery'
-intersect :: Duplication -> SubQuery -> SubQuery -> SubQuery
-intersect =  setBin Intersect
 
 -- | Width of 'SubQuery'.
 width :: SubQuery -> Int

@@ -38,7 +38,7 @@ import Database.Relational.Monad.BaseType (ConfigureQuery, askConfig)
 import Database.Relational.Monad.Type (QueryCore, extractCore, OrderedQuery)
 import Database.Relational.Projectable (PlaceHolders)
 
-import Database.Relational.Sub (flatSubQuery)
+import Database.Relational.SqlSyntax (flatSubQuery)
 import qualified Database.Relational.Sub as SubQuery
 
 

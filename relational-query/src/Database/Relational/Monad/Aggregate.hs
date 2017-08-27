@@ -34,12 +34,11 @@ import qualified Language.SQL.Keyword as SQL
 
 import Database.Relational.SqlSyntax
   (Duplication, Record, SubQuery, Predicate, JoinProduct,
-   OrderingTerm, composeOrderBy,
+   OrderingTerm, composeOrderBy, aggregatedSubQuery,
    AggregateColumnRef, AggregateElem, composePartitionBy, )
 
 import Database.Relational.Context (Flat, Aggregated, OverWindow)
 import qualified Database.Relational.Record as Record
-import Database.Relational.Sub (aggregatedSubQuery)
 import qualified Database.Relational.Sub as SubQuery
 import Database.Relational.Projectable (PlaceHolders, SqlProjectable)
 import Database.Relational.Monad.Class (MonadRestrict(..))

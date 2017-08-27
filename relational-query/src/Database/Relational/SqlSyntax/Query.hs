@@ -9,41 +9,64 @@
 --
 -- This module provides building and expanding operations of SQL query tree.
 module Database.Relational.SqlSyntax.Query (
-  showsDuplication,
-  composeOrderBy,
-
+  flatSubQuery, aggregatedSubQuery,
+  union, except, intersect,
   caseSearch, case',
+
+  composeOrderBy,
   ) where
 
-import Data.Monoid (Monoid (..), (<>))
+import Data.Monoid (mempty, (<>))
 
-import Language.SQL.Keyword (Keyword(..), (|*|), )
+import Language.SQL.Keyword (Keyword(..), (|*|))
 import qualified Language.SQL.Keyword as SQL
 
-import Database.Relational.SqlSyntax.Types
-  (Duplication (..), Order (..), Nulls (..), OrderingTerm,
-   Column (..), WhenClauses (..), CaseClause (..),
-   Record, record, untypeRecord, recordWidth, )
+import Database.Relational.Internal.Config (Config)
+import Database.Relational.Internal.ContextType (Flat, Aggregated)
 import Database.Relational.Internal.SQL (StringSQL)
+import Database.Relational.SqlSyntax.Aggregate (AggregateElem)
+import Database.Relational.SqlSyntax.Types
+  (Duplication (..), SetOp (..), BinOp (..), Order (..), Nulls (..), OrderingTerm,
+   JoinProduct, Predicate, WhenClauses (..), CaseClause (..), SubQuery (..),
+   Column (..), Tuple, Record, record, untypeRecord, recordWidth, )
 
 
--- | Compose duplication attribute string.
-showsDuplication :: Duplication -> StringSQL
-showsDuplication =  dup  where
-  dup All      = ALL
-  dup Distinct = DISTINCT
+-- | Unsafely generate flat 'SubQuery' from untyped components.
+flatSubQuery :: Config
+             -> Tuple
+             -> Duplication
+             -> JoinProduct
+             -> [Predicate Flat]
+             -> [OrderingTerm]
+             -> SubQuery
+flatSubQuery = Flat
 
+-- | Unsafely generate aggregated 'SubQuery' from untyped components.
+aggregatedSubQuery :: Config
+                   -> Tuple
+                   -> Duplication
+                   -> JoinProduct
+                   -> [Predicate Flat]
+                   -> [AggregateElem]
+                   -> [Predicate Aggregated]
+                   -> [OrderingTerm]
+                   -> SubQuery
+aggregatedSubQuery = Aggregated
 
--- | Compose ORDER BY clause from OrderingTerms
-composeOrderBy :: [OrderingTerm] -> StringSQL
-composeOrderBy =  d where
-  d []       = mempty
-  d ts@(_:_) = ORDER <> BY <> SQL.fold (|*|) (map showsOt ts)
-  showsOt ((o, mn), e) = e <> order o <> maybe mempty ((NULLS <>) . nulls) mn
-  order Asc  = ASC
-  order Desc = DESC
-  nulls NullsFirst = FIRST
-  nulls NullsLast  = LAST
+setBin :: SetOp -> Duplication -> SubQuery -> SubQuery -> SubQuery
+setBin op = Bin . BinOp . (,) op
+
+-- | Union binary operator on 'SubQuery'
+union     :: Duplication -> SubQuery -> SubQuery -> SubQuery
+union     =  setBin Union
+
+-- | Except binary operator on 'SubQuery'
+except    :: Duplication -> SubQuery -> SubQuery -> SubQuery
+except    =  setBin Except
+
+-- | Intersect binary operator on 'SubQuery'
+intersect :: Duplication -> SubQuery -> SubQuery -> SubQuery
+intersect =  setBin Intersect
 
 
 whenClauses :: String                     -- ^ Error tag
@@ -77,3 +100,15 @@ case' v ws e =
     record [ Case c i | i <- [0 .. recordWidth e - 1] ]
   where
     c = CaseSimple (untypeRecord v) $ whenClauses "case'" ws e
+
+
+-- | Compose ORDER BY clause from OrderingTerms
+composeOrderBy :: [OrderingTerm] -> StringSQL
+composeOrderBy =  d where
+  d []       = mempty
+  d ts@(_:_) = ORDER <> BY <> SQL.fold (|*|) (map showsOt ts)
+  showsOt ((o, mn), e) = e <> order o <> maybe mempty ((NULLS <>) . nulls) mn
+  order Asc  = ASC
+  order Desc = DESC
+  nulls NullsFirst = FIRST
+  nulls NullsLast  = LAST

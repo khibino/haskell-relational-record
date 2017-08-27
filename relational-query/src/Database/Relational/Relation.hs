@@ -43,8 +43,8 @@ module Database.Relational.Relation (
 import Control.Applicative ((<$>))
 
 import Database.Relational.SqlSyntax
-  (Duplication (Distinct, All), NodeAttr(Just', Maybe), SubQuery, Record)
-
+  (Duplication (Distinct, All), NodeAttr(Just', Maybe), SubQuery, Record, )
+import qualified Database.Relational.SqlSyntax as Syntax
 import Database.Relational.Context (Flat, Aggregated)
 import Database.Relational.Monad.BaseType
   (ConfigureQuery, qualifyQuery,
@@ -59,7 +59,6 @@ import Database.Relational.Monad.Unique (QueryUnique, unsafeUniqueSubQuery)
 import qualified Database.Relational.Monad.Unique as Unique
 import Database.Relational.Table (Table, TableDerivable, derivedTable)
 import qualified Database.Relational.Table as Table
-import qualified Database.Relational.Sub as SubQuery
 import Database.Relational.Scalar (ScalarDegree)
 import Database.Relational.Pi (Pi)
 import Database.Relational.Record (RecordList)
@@ -262,27 +261,27 @@ liftAppend = unsafeLiftAppend
 
 -- | Union of two relations.
 union     :: Relation () a -> Relation () a -> Relation () a
-union     =  liftAppend $ SubQuery.union Distinct
+union     =  liftAppend $ Syntax.union Distinct
 
 -- | Union of two relations. Not distinct.
 unionAll  :: Relation () a -> Relation () a -> Relation () a
-unionAll  =  liftAppend $ SubQuery.union All
+unionAll  =  liftAppend $ Syntax.union All
 
 -- | Subtraction of two relations.
 except    :: Relation () a -> Relation () a -> Relation () a
-except    =  liftAppend $ SubQuery.except Distinct
+except    =  liftAppend $ Syntax.except Distinct
 
 -- | Subtraction of two relations. Not distinct.
 exceptAll :: Relation () a -> Relation () a -> Relation () a
-exceptAll =  liftAppend $ SubQuery.except All
+exceptAll =  liftAppend $ Syntax.except All
 
 -- | Intersection of two relations.
 intersect :: Relation () a -> Relation () a -> Relation () a
-intersect =  liftAppend $ SubQuery.intersect Distinct
+intersect =  liftAppend $ Syntax.intersect Distinct
 
 -- | Intersection of two relations. Not distinct.
 intersectAll :: Relation () a -> Relation () a -> Relation () a
-intersectAll =  liftAppend $ SubQuery.intersect All
+intersectAll =  liftAppend $ Syntax.intersect All
 
 liftAppend' :: (SubQuery -> SubQuery -> SubQuery)
             -> Relation p a
@@ -292,27 +291,27 @@ liftAppend' = unsafeLiftAppend
 
 -- | Union of two relations with place-holder parameters.
 union'     :: Relation p a -> Relation q a -> Relation (p, q) a
-union'     =  liftAppend' $ SubQuery.union Distinct
+union'     =  liftAppend' $ Syntax.union Distinct
 
 -- | Union of two relations with place-holder parameters. Not distinct.
 unionAll' :: Relation p a -> Relation q a -> Relation (p, q) a
-unionAll'  =  liftAppend' $ SubQuery.union All
+unionAll'  =  liftAppend' $ Syntax.union All
 
 -- | Subtraction of two relations with place-holder parameters.
 except'    :: Relation p a -> Relation q a -> Relation (p, q) a
-except'    =  liftAppend' $ SubQuery.except Distinct
+except'    =  liftAppend' $ Syntax.except Distinct
 
 -- | Subtraction of two relations with place-holder parameters. Not distinct.
 exceptAll' :: Relation p a -> Relation q a -> Relation (p, q) a
-exceptAll' =  liftAppend' $ SubQuery.except All
+exceptAll' =  liftAppend' $ Syntax.except All
 
 -- | Intersection of two relations with place-holder parameters.
 intersect' :: Relation p a -> Relation q a -> Relation (p, q) a
-intersect' =  liftAppend' $ SubQuery.intersect Distinct
+intersect' =  liftAppend' $ Syntax.intersect Distinct
 
 -- | Intersection of two relations with place-holder parameters. Not distinct.
 intersectAll' :: Relation p a -> Relation q a -> Relation (p, q) a
-intersectAll' =  liftAppend' $ SubQuery.intersect All
+intersectAll' =  liftAppend' $ Syntax.intersect All
 
 infixl 7 `union`, `except`, `unionAll`, `exceptAll`
 infixl 8 `intersect`, `intersectAll`

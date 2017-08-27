@@ -33,8 +33,7 @@ import Database.Relational.Monad.Trans.Join (unsafeSubQueryWithAttr)
 import Database.Relational.Monad.Trans.Restricting (restrictings)
 import Database.Relational.Monad.BaseType (ConfigureQuery, askConfig)
 import Database.Relational.Monad.Type (QueryCore, extractCore)
-import Database.Relational.Sub
-  (flatSubQuery)
+import Database.Relational.SqlSyntax (flatSubQuery)
 
 
 -- | Unique query monad type.
