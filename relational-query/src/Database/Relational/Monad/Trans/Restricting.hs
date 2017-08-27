@@ -26,7 +26,7 @@ import Control.Applicative (Applicative, pure, (<$>))
 import Control.Arrow (second)
 import Data.DList (DList, toList)
 
-import Database.Relational.SqlSyntax (Predicate, Record)
+import Database.Relational.SqlSyntax (Predicate)
 
 import Database.Relational.Monad.Class
   (MonadQualify (..), MonadRestrict(..), MonadQuery (..), MonadAggregate(..))
@@ -36,7 +36,7 @@ import Database.Relational.Monad.Class
 --   Type 'c' is context tag of restriction building like
 --   Flat (where) or Aggregated (having).
 newtype Restrictings c m a =
-  Restrictings (WriterT (DList (Record c (Maybe Bool))) m a)
+  Restrictings (WriterT (DList (Predicate c)) m a)
   deriving (MonadTrans, Monad, Functor, Applicative)
 
 -- | Lift to 'Restrictings'
@@ -44,7 +44,7 @@ restrictings :: Monad m => m a -> Restrictings c m a
 restrictings =  lift
 
 -- | Add whole query restriction.
-updateRestriction :: Monad m => Record c (Maybe Bool) -> Restrictings c m ()
+updateRestriction :: Monad m => Predicate c -> Restrictings c m ()
 updateRestriction =  Restrictings . tell . pure
 
 -- | 'MonadRestrict' instance.

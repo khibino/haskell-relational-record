@@ -21,7 +21,8 @@ module Database.Relational.Monad.Class
          on, wheres, having,
        ) where
 
-import Database.Relational.SqlSyntax (Duplication (..), Record, AggregateKey)
+import Database.Relational.SqlSyntax
+  (Duplication (..), Predicate, Record, AggregateKey)
 
 import Database.Relational.Context (Flat, Aggregated)
 import Database.Relational.Projectable (PlaceHolders)
@@ -31,16 +32,16 @@ import Database.Relational.Monad.BaseType (ConfigureQuery, Relation)
 -- | Restrict context interface
 class (Functor m, Monad m) => MonadRestrict c m where
   -- | Add restriction to this context.
-  restrict :: Record c (Maybe Bool) -- ^ 'Record' which represent restriction
-           -> m ()                  -- ^ Restricted query context
+  restrict :: Predicate c -- ^ 'Record' which represent restriction
+           -> m ()        -- ^ Restricted query context
 
 -- | Query building interface.
 class (Functor m, Monad m, MonadQualify ConfigureQuery m) => MonadQuery m where
   -- | Specify duplication.
   setDuplication :: Duplication -> m ()
   -- | Add restriction to last join.
-  restrictJoin :: Record Flat (Maybe Bool) -- ^ 'Record' which represent restriction
-               -> m ()                     -- ^ Restricted query context
+  restrictJoin :: Predicate Flat -- ^ 'Record' which represent restriction
+               -> m ()           -- ^ Restricted query context
   {- Haddock BUG? -}
   -- | Join sub-query with place-holder parameter 'p'. query result is not 'Maybe'.
   query' :: Relation p r
@@ -81,13 +82,13 @@ distinct :: MonadQuery m => m ()
 distinct =  setDuplication Distinct
 
 -- | Add restriction to last join. Record type version.
-on :: MonadQuery m => Record Flat (Maybe Bool) -> m ()
+on :: MonadQuery m => Predicate Flat -> m ()
 on =  restrictJoin
 
 -- | Add restriction to this not aggregated query.
-wheres :: MonadRestrict Flat m => Record Flat (Maybe Bool) -> m ()
+wheres :: MonadRestrict Flat m => Predicate Flat -> m ()
 wheres =  restrict
 
 -- | Add restriction to this aggregated query. Aggregated Record type version.
-having :: MonadRestrict Aggregated m => Record Aggregated (Maybe Bool) -> m ()
+having :: MonadRestrict Aggregated m => Predicate Aggregated -> m ()
 having =  restrict

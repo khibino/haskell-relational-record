@@ -52,7 +52,9 @@ import Database.Relational.Constraint
    Primary, Unique, NotNull)
 import Database.Relational.Context
 import Database.Relational.Component
-import Database.Relational.SqlSyntax (Order (..), Nulls (..), SubQuery, AggregateKey, unitSQL, queryWidth, )
+import Database.Relational.SqlSyntax
+  (Order (..), Nulls (..), Predicate, AggregateKey,
+   SubQuery, unitSQL, queryWidth, )
 import Database.Relational.Record (Record, RecordList, list)
 import Database.Relational.ProjectableClass
 import Database.Relational.Projectable

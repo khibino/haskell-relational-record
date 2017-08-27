@@ -272,19 +272,19 @@ uniqueQueryMaybe' r = queryA $ \() -> Monadic.uniqueQueryMaybe' r
 -- | Same as 'Monadic.on'. Arrow version.
 --   The result arrow is designed to be injected by local conditional flat-records.
 on :: MonadQuery m
-   => QueryA m (Record Flat (Maybe Bool)) ()
+   => QueryA m (Predicate Flat) ()
 on = queryA Monadic.on
 
 -- | Same as 'Monadic.wheres'. Arrow version.
 --   The result arrow is designed to be injected by local conditional flat-records.
 wheres :: MonadRestrict Flat m
-       => QueryA m (Record Flat (Maybe Bool)) ()
+       => QueryA m (Predicate Flat) ()
 wheres = queryA Monadic.wheres
 
 -- | Same as 'Monadic.having'. Arrow version.
 --   The result arrow is designed to be injected by local conditional aggregated-records.
 having :: MonadRestrict Aggregated m
-       => QueryA m (Record Aggregated (Maybe Bool)) ()
+       => QueryA m (Predicate Aggregated) ()
 having = queryA Monadic.having
 
 -- | Same as 'Monadic.groupBy'. Arrow version.

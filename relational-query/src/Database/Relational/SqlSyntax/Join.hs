@@ -20,7 +20,7 @@ import Data.DList (DList)
 
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax.Types
-  (NodeAttr (..), ProductTree (..), Node (..), Record, Qualified, SubQuery,
+  (NodeAttr (..), ProductTree (..), Node (..), Qualified, SubQuery,
    Predicate)
 
 
@@ -41,7 +41,7 @@ growProduct =  match  where
 
 -- | Add restriction into top product of product tree.
 restrictProduct' :: ProductTree (DList (Predicate Flat)) -- ^ Product to restrict
-                 -> Record Flat (Maybe Bool)            -- ^ Restriction to add
+                 -> Predicate Flat                       -- ^ Restriction to add
                  -> ProductTree (DList (Predicate Flat)) -- ^ Result product
 restrictProduct' =  d  where
   d (Join lp rp rs) rs' = Join lp rp (rs <> pure rs')
@@ -49,6 +49,6 @@ restrictProduct' =  d  where
 
 -- | Add restriction into top product of product tree node.
 restrictProduct :: Node (DList (Predicate Flat)) -- ^ Target node which has product to restrict
-                -> Record Flat (Maybe Bool)     -- ^ Restriction to add
+                -> Predicate Flat                -- ^ Restriction to add
                 -> Node (DList (Predicate Flat)) -- ^ Result node
 restrictProduct (Node a t) e = Node a (restrictProduct' t e)

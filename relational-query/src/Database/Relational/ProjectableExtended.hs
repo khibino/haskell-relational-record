@@ -39,7 +39,7 @@ import Prelude hiding (pi)
 import qualified Language.SQL.Keyword as SQL
 import Database.Record (PersistableWidth)
 
-import Database.Relational.SqlSyntax (Record)
+import Database.Relational.SqlSyntax (Predicate, Record, )
 
 import Database.Relational.Context (Flat, Aggregated, OverWindow)
 import qualified Database.Relational.Record as Record
@@ -106,17 +106,17 @@ min' =  minMaybe . Record.just
 
 -- | Aggregation function EVERY.
 every :: (AggregatedContext ac, SqlProjectable (p ac))
-      => Record Flat (Maybe Bool) -> p ac (Maybe Bool)
+      => Predicate Flat -> p ac (Maybe Bool)
 every =  unsafeAggregateOp SQL.EVERY
 
 -- | Aggregation function ANY.
 any' :: (AggregatedContext ac, SqlProjectable (p ac))
-     => Record Flat (Maybe Bool) -> p ac (Maybe Bool)
+     => Predicate Flat -> p ac (Maybe Bool)
 any'  =  unsafeAggregateOp SQL.ANY
 
 -- | Aggregation function SOME.
 some' :: (AggregatedContext ac, SqlProjectable (p ac))
-      => Record Flat (Maybe Bool) -> p ac (Maybe Bool)
+      => Predicate Flat -> p ac (Maybe Bool)
 some' =  unsafeAggregateOp SQL.SOME
 
 -- | Get narrower record along with projection path.

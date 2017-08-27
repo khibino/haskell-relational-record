@@ -82,9 +82,9 @@ whenClauses eTag ws0 e = d ws0
 
 -- | Search case operator correnponding SQL search /CASE/.
 --   Like, /CASE WHEN p0 THEN a WHEN p1 THEN b ... ELSE c END/
-caseSearch :: [(Record c (Maybe Bool), Record c a)] -- ^ Each when clauses
-           -> Record c a                            -- ^ Else result record
-           -> Record c a                            -- ^ Result record
+caseSearch :: [(Predicate c, Record c a)] -- ^ Each when clauses
+           -> Record c a                  -- ^ Else result record
+           -> Record c a                  -- ^ Result record
 caseSearch ws e =
     record [ Case c i | i <- [0 .. recordWidth e - 1] ]
   where

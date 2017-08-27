@@ -34,8 +34,8 @@ import Data.Maybe (fromMaybe)
 import Data.Monoid (Last (Last, getLast))
 
 import Database.Relational.SqlSyntax
-  (Duplication (All), NodeAttr (Just', Maybe), SubQuery, Qualified, Record,
-   JoinProduct, restrictProduct, growProduct, )
+  (Duplication (All), NodeAttr (Just', Maybe), Predicate, Record,
+   SubQuery, Qualified, JoinProduct, restrictProduct, growProduct, )
 
 import Database.Relational.Context (Flat)
 import Database.Relational.Monad.Trans.JoinState
@@ -63,7 +63,7 @@ updateContext :: Monad m => (JoinContext -> JoinContext) -> QueryJoin m ()
 updateContext =  QueryJoin . modify
 
 -- | Add last join product restriction.
-updateJoinRestriction :: Monad m => Record Flat (Maybe Bool) -> QueryJoin m ()
+updateJoinRestriction :: Monad m => Predicate Flat -> QueryJoin m ()
 updateJoinRestriction e = updateContext (updateProduct d)  where
   d  Nothing  = error "on: Product is empty! Restrict target product is not found!"
   d (Just pt) = restrictProduct pt e

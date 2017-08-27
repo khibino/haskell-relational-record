@@ -43,7 +43,8 @@ module Database.Relational.Relation (
 import Control.Applicative ((<$>))
 
 import Database.Relational.SqlSyntax
-  (Duplication (Distinct, All), NodeAttr(Just', Maybe), SubQuery, Record, )
+  (Duplication (Distinct, All), NodeAttr(Just', Maybe),
+   SubQuery, Predicate, Record, )
 import qualified Database.Relational.SqlSyntax as Syntax
 
 import Database.Relational.Context (Flat, Aggregated)
@@ -153,7 +154,7 @@ aggregateRelation =  aggregateRelation' . addUnitPH
 --            relX `inner` relY `on'` [ \x y -> ... ] -- this lambda form has JoinRestriction type
 --      ...
 -- @
-type JoinRestriction a b = Record Flat a -> Record Flat b -> Record Flat (Maybe Bool)
+type JoinRestriction a b = Record Flat a -> Record Flat b -> Predicate Flat
 
 -- | Basic direct join operation with place-holder parameters.
 join' :: (qa -> QuerySimple (PlaceHolders pa, Record Flat a))

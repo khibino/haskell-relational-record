@@ -74,7 +74,7 @@ import Database.Record
 import Database.Record.Persistable (runPersistableRecordWidth)
 
 import Database.Relational.Internal.SQL (StringSQL, stringSQL, showStringSQL)
-import Database.Relational.SqlSyntax (Record)
+import Database.Relational.SqlSyntax (Record, Predicate)
 import qualified Database.Relational.SqlSyntax as Syntax
 
 import Database.Relational.Pure ()
@@ -360,21 +360,21 @@ showNumMaybe = unsafeCastProjectable
 -- | Search case operator correnponding SQL search /CASE/.
 --   Like, /CASE WHEN p0 THEN a WHEN p1 THEN b ... ELSE c END/
 caseSearch :: OperatorProjectable (Record c)
-           => [(Record c (Maybe Bool), Record c a)] -- ^ Each when clauses
+           => [(Predicate c, Record c a)] -- ^ Each when clauses
            -> Record c a                            -- ^ Else result record
            -> Record c a                            -- ^ Result record
 caseSearch = Syntax.caseSearch
 
 -- | Same as 'caseSearch', but you can write like <when list> `casesOrElse` <else clause>.
 casesOrElse :: OperatorProjectable (Record c)
-            => [(Record c (Maybe Bool), Record c a)] -- ^ Each when clauses
+            => [(Predicate c, Record c a)] -- ^ Each when clauses
             -> Record c a                            -- ^ Else result record
             -> Record c a                            -- ^ Result record
 casesOrElse = caseSearch
 
 -- | Null default version of 'caseSearch'.
 caseSearchMaybe :: (OperatorProjectable (Record c) {- (Record c) is always ProjectableMaybe -}, PersistableWidth a)
-                => [(Record c (Maybe Bool), Record c (Maybe a))] -- ^ Each when clauses
+                => [(Predicate c, Record c (Maybe a))] -- ^ Each when clauses
                 -> Record c (Maybe a)                            -- ^ Result record
 caseSearchMaybe cs = caseSearch cs nothing
 
@@ -409,14 +409,14 @@ in' a lp = unsafeProjectSql' . SQL.paren
 
 -- | Operator corresponding SQL /IS NULL/ , and extended against record types.
 isNothing :: (OperatorProjectable (Record c), ProjectableShowSql (Record c), HasColumnConstraint NotNull r)
-          => Record c (Maybe r) -> Record c (Maybe Bool)
+          => Record c (Maybe r) -> Predicate c
 isNothing mr = unsafeProjectSql' $
                SQL.paren $ (SQL.defineBinOp SQL.IS)
                (Record.unsafeStringSqlNotNullMaybe mr) SQL.NULL
 
 -- | Operator corresponding SQL /NOT (... IS NULL)/ , and extended against record type.
 isJust :: (OperatorProjectable (Record c), ProjectableShowSql (Record c), HasColumnConstraint NotNull r)
-          => Record c (Maybe r) -> Record c (Maybe Bool)
+          => Record c (Maybe r) -> Predicate c
 isJust =  not' . isNothing
 
 -- | Operator from maybe type using record extended 'isNull'.
