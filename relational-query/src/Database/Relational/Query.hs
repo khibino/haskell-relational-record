@@ -81,8 +81,8 @@ import Database.Relational.Query.Monad.Register (Register)
 import Database.Relational.Query.Relation
 import Database.Relational.Query.Scalar (ScalarDegree)
 import Database.Relational.Query.Type hiding
-  (unsafeTypedQuery, unsafeTypedKeyUpdate, unsafeTypedUpdate,
-   unsafeTypedInsert, unsafeTypedInsertQuery, unsafeTypedDelete)
+  (unsafeTypedKeyUpdate, unsafeTypedDelete,
+   unsafeTypedInsert, unsafeTypedInsertQuery, )
 import Database.Relational.Query.Effect
 import Database.Relational.Query.Derives
 
