@@ -1,5 +1,10 @@
 <!-- -*- Markdown -*- -->
 
+## 0.8.8.0
+
+- export QuerySuffix and unsafe-query functions from
+  Database.Relational.Query namespace for libraries.
+
 ## 0.8.7.1
 
 - fix version constraint.
