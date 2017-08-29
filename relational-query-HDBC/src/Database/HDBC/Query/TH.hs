@@ -42,8 +42,7 @@ import Database.Record (ToSql, FromSql)
 import Database.Record.TH (recordTemplate, reifyRecordType)
 import Database.Relational.Query
   (Config, nameConfig, recordConfig, verboseAsCompilerWarning, defaultConfig,
-   Relation, relationalQuerySQL)
-import Database.Relational.Query.SQL (QuerySuffix)
+   Relation, relationalQuerySQL, QuerySuffix)
 import qualified Database.Relational.Query.TH as Relational
 
 import Database.HDBC.Session (withConnectionIO)
