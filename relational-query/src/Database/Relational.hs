@@ -42,7 +42,7 @@ module Database.Relational (
   ) where
 
 import Database.Relational.Table (Table, TableDerivable (..))
-import Database.Relational.SimpleSql (updateOtherThanKeySQL)
+import Database.Relational.SimpleSql (QuerySuffix, updateOtherThanKeySQL)
 import Database.Relational.Pure ()
 import Database.Relational.Pi
 import Database.Relational.Constraint
