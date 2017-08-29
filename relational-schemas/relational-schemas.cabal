@@ -79,7 +79,7 @@ library
                        , time
                        , bytestring
 
-                       , relational-query >=0.8 && <0.9
+                       , relational-query >=0.8.8 && <0.9
 
   hs-source-dirs:      src
   ghc-options:         -Wall

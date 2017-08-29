@@ -34,9 +34,8 @@ import Data.Time
   (DiffTime, NominalDiffTime,
    LocalTime, ZonedTime, Day, TimeOfDay)
 
-import Database.Relational.Query.Type (relationalQuery)
 import Database.Relational.Query
-  (Query, Relation, query, query', relation', relation, union,
+  (Query, relationalQuery, Relation, query, query', relation', relation, union,
    wheres, (.=.), (.>.), in', values, (!), fst', snd',
    placeholder, asc, value, unsafeProjectSql, (><))
 
