@@ -85,8 +85,8 @@ import Database.Relational.Relation
 import Database.Relational.Set
 import Database.Relational.Scalar (ScalarDegree)
 import Database.Relational.Type hiding
-  (unsafeTypedQuery, unsafeTypedKeyUpdate, unsafeTypedUpdate,
-   unsafeTypedInsert, unsafeTypedInsertQuery, unsafeTypedDelete)
+  (unsafeTypedKeyUpdate, unsafeTypedDelete,
+   unsafeTypedInsert, unsafeTypedInsertQuery, )
 import Database.Relational.Effect
 import Database.Relational.Derives
 
