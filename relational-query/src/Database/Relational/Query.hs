@@ -41,7 +41,7 @@ module Database.Relational.Query (
   ) where
 
 import Database.Relational.Query.Table (Table, TableDerivable (..))
-import Database.Relational.Query.SQL (updateOtherThanKeySQL, insertSQL)
+import Database.Relational.Query.SQL (QuerySuffix, updateOtherThanKeySQL, insertSQL)
 import Database.Relational.Query.Pure ()
 import Database.Relational.Query.Pi
 import Database.Relational.Query.Constraint
