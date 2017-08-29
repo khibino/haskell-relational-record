@@ -57,7 +57,7 @@ library
 
                        , names-th
                        , persistable-record >= 0.4 && < 0.5
-                       , relational-query >= 0.8
+                       , relational-query >= 0.8.8 && < 0.9
                        , relational-schemas
                        , HDBC >=2
                        , HDBC-session

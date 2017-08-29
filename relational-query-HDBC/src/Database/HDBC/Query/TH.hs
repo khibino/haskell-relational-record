@@ -39,8 +39,9 @@ import Language.Haskell.TH.Lib.Extra (reportWarning, reportError)
 
 import Database.Record.TH (makeRecordPersistableWithSqlTypeDefault)
 import qualified Database.Record.TH as Record
-import Database.Relational.Query (Relation, Config, verboseAsCompilerWarning, defaultConfig, relationalQuerySQL)
-import Database.Relational.Query.SQL (QuerySuffix)
+import Database.Relational.Query
+  (Relation, Config, verboseAsCompilerWarning, defaultConfig,
+   relationalQuerySQL, QuerySuffix)
 import qualified Database.Relational.Query.TH as Relational
 
 import Database.HDBC.Session (withConnectionIO)
