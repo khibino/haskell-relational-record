@@ -26,9 +26,8 @@ import qualified Data.Map as Map
 import Data.Time (LocalTime, Day)
 import Language.Haskell.TH (TypeQ)
 
-import Database.Relational.Query.Type (relationalQuery)
 import Database.Relational.Query
-  (Query, Relation, query, relation',
+  (Query, relationalQuery, Relation, query, relation',
    wheres, (.=.), (!), (><), placeholder, asc, value)
 
 import Control.Applicative ((<|>))

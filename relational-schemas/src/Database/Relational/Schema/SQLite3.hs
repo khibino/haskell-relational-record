@@ -15,8 +15,7 @@ import Data.Char (toLower, toUpper)
 import Data.Int (Int8, Int16, Int32, Int64)
 import Data.Map (Map)
 import Data.Time (Day, LocalTime)
-import Database.Relational.Query (Query)
-import Database.Relational.Query.Type (unsafeTypedQuery)
+import Database.Relational.Query (Query, unsafeTypedQuery)
 import Database.Relational.Schema.SQLite3Syscat.IndexInfo
 import Database.Relational.Schema.SQLite3Syscat.IndexList
 import Database.Relational.Schema.SQLite3Syscat.TableInfo
