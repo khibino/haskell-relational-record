@@ -17,24 +17,26 @@
 -- from Haskell type into list of database value type.
 module Database.Record.ToSql (
   -- * Conversion from record type into list of database value type
-  ToSqlM, RecordToSql, runFromRecord,
+  ToSqlM, runToSqlM, RecordToSql,
   createRecordToSql,
 
   (<&>),
 
   -- * Derivation rules of 'RecordToSql' conversion
   ToSql (recordToSql),
-  putRecord, putEmpty, fromRecord, wrapToSql,
+  putRecord, putEmpty, wrapToSql,
 
   valueRecordToSql,
 
   -- * Make parameter list for updating with key
   updateValuesByUnique,
   updateValuesByPrimary,
-  updateValuesByUnique',
 
   untypedUpdateValuesIndex,
-  unsafeUpdateValuesWithIndexes
+  unsafeUpdateValuesWithIndexes,
+
+  -- * deprecated
+  runFromRecord,  fromRecord,
   ) where
 
 import GHC.Generics (Generic, Rep, U1 (..), K1 (..), M1 (..), (:*:)(..), from)
@@ -74,6 +76,7 @@ runRecordToSql (RecordToSql f) = f
 wrapToSql :: (a -> ToSqlM q ()) -> RecordToSql q a
 wrapToSql =  RecordToSql
 
+{-# DEPRECATED runFromRecord "use implicit combination runToSqlM . putRecord instead of this." #-}
 -- | Run 'RecordToSql' printer function object. Convert from Haskell type 'a' into list of database value type ['q'].
 runFromRecord :: RecordToSql q a -- ^ printer function object which has capability to convert
               -> a               -- ^ Haskell type
@@ -194,6 +197,7 @@ putRecord =  runRecordToSql recordToSql
 putEmpty :: () -> ToSqlM q ()
 putEmpty =  putRecord
 
+{-# DEPRECATED fromRecord "use runToSqlM . putRecord instead of this." #-}
 -- | Run implicit 'RecordToSql' printer function object.
 --   Convert from haskell type 'a' into list of database value type ['q'].
 fromRecord :: ToSql q a => a -> [q]
@@ -224,13 +228,13 @@ untypedUpdateValuesIndex key width = otherThanKey  where
 -- @
 --
 --   using 'RecordToSql' printer function object.
-unsafeUpdateValuesWithIndexes :: RecordToSql q ra
-                              -> [Int]
+unsafeUpdateValuesWithIndexes :: ToSql q ra
+                              => [Int]
                               -> ra
                               -> [q]
-unsafeUpdateValuesWithIndexes pr key a =
+unsafeUpdateValuesWithIndexes key a =
   [ valsA ! i | i <- otherThanKey ++ key ]  where
-    vals = runFromRecord pr a
+    vals = runToSqlM $ putRecord a
     width = length vals
     valsA = listArray (0, width - 1) vals
     otherThanKey = untypedUpdateValuesIndex key width
@@ -241,19 +245,12 @@ unsafeUpdateValuesWithIndexes pr key a =
 --   UPDATE /table/ SET /c0/ = ?, /c1/ = ?, /c2/ = ? ... WHERE /key0/ = ? AND /key1/ = ? AND /key2/ = ? ...
 -- @
 --
---   using 'RecordToSql' printer function object.
-updateValuesByUnique' :: RecordToSql q ra
-                      -> KeyConstraint Unique ra -- ^ Unique key table constraint printer function object.
-                      -> ra
-                      -> [q]
-updateValuesByUnique' pr uk = unsafeUpdateValuesWithIndexes pr (indexes uk)
-
--- | Convert like 'updateValuesByUnique'' using implicit 'RecordToSql' printer function object.
+--   using printer function object infered by ToSql ra q.
 updateValuesByUnique :: ToSql q ra
                      => KeyConstraint Unique ra -- ^ Unique key table constraint printer function object.
                      -> ra
                      -> [q]
-updateValuesByUnique = updateValuesByUnique' recordToSql
+updateValuesByUnique uk = unsafeUpdateValuesWithIndexes (indexes uk)
 
 -- | Convert like 'updateValuesByUnique'' using implicit 'RecordToSql' and 'ColumnConstraint'.
 updateValuesByPrimary :: (HasKeyConstraint Primary ra, ToSql q ra)

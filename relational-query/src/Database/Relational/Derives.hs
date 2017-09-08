@@ -28,7 +28,7 @@ module Database.Relational.Derives (
   derivedUniqueRelation
   ) where
 
-import Database.Record (PersistableWidth, ToSql (recordToSql))
+import Database.Record (PersistableWidth, ToSql)
 import Database.Record.ToSql (unsafeUpdateValuesWithIndexes)
 
 import Database.Relational.SqlSyntax (Record)
@@ -89,7 +89,7 @@ updateValuesWithKey :: ToSql q r
                     => Pi r p
                     -> r
                     -> [q]
-updateValuesWithKey =  unsafeUpdateValuesWithIndexes recordToSql . unsafeExpandIndexes
+updateValuesWithKey =  unsafeUpdateValuesWithIndexes . unsafeExpandIndexes
 
 -- | Typed 'KeyUpdate' using specified constraint key.
 updateByConstraintKey :: Table r       -- ^ 'Table' to update
