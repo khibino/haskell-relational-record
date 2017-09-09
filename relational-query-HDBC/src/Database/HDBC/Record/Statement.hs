@@ -16,7 +16,7 @@ module Database.HDBC.Record.Statement (
 
   withUnsafePrepare, withPrepareNoFetch,
 
-  BoundStatement (..), bind', bind, bindTo,
+  BoundStatement (..), bind, bindTo,
 
   ExecutedStatement, executed, result,
 
@@ -32,8 +32,7 @@ import Database.Relational (UntypeableNoFetch (untypeNoFetch))
 import Database.HDBC (IConnection, Statement, SqlValue)
 import qualified Database.HDBC as HDBC
 
-import Database.Record
-  (RecordToSql, ToSql(recordToSql), runFromRecord)
+import Database.Record (ToSql, fromRecord)
 
 -- | Typed prepared statement type.
 newtype PreparedStatement p a =
@@ -103,16 +102,12 @@ withPrepareNoFetch :: (UntypeableNoFetch s, IConnection conn)
 withPrepareNoFetch conn s =
   bracket (prepareNoFetch conn s) finish
 
--- | Typed operation to bind parameters.
-bind' :: RecordToSql SqlValue p -- ^ Proof object to convert from parameter type 'p' into 'SqlValue' list.
-      -> PreparedStatement p a  -- ^ Prepared query to bind to
-      -> p                      -- ^ Parameter to bind
-      -> BoundStatement a       -- ^ Result parameter bound statement
-bind' toSql q p = BoundStatement { bound = prepared q, params = runFromRecord toSql p }
-
--- | Typed operation to bind parameters. Inferred 'RecordToSql' is used.
-bind :: ToSql SqlValue p => PreparedStatement p a -> p -> BoundStatement a
-bind =  bind' recordToSql
+-- | Typed operation to bind parameters. Inferred 'ToSql' is used.
+bind :: ToSql SqlValue p
+     => PreparedStatement p a -- ^ Prepared query to bind to
+     -> p                     -- ^ Parameter to bind
+     -> BoundStatement a      -- ^ Result parameter bound statement
+bind q p = BoundStatement { bound = prepared q, params = fromRecord p }
 
 -- | Same as 'bind' except for argument is flipped.
 bindTo :: ToSql SqlValue p => p -> PreparedStatement p a -> BoundStatement a

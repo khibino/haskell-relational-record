@@ -27,8 +27,7 @@ import Database.HDBC (IConnection, Statement, SqlValue)
 import qualified Database.HDBC as HDBC
 
 import Database.Relational (Query, untypeQuery)
-import Database.Record
-  (ToSql, RecordFromSql, FromSql(recordFromSql), runToRecord)
+import Database.Record (ToSql, FromSql, toRecord)
 
 import Database.HDBC.Record.Statement
   (unsafePrepare, withUnsafePrepare, PreparedStatement,
@@ -62,26 +61,25 @@ withPrepareQuery :: IConnection conn
 withPrepareQuery conn = withUnsafePrepare conn . untypeQuery
 
 -- | Polymorphic fetch operation.
-fetchRecordsExplicit :: Functor f
-                     => (Statement -> IO (f [SqlValue]) )
-                     -> RecordFromSql SqlValue a
-                     -> ExecutedStatement a
-                     -> IO (f a)
-fetchRecordsExplicit fetchs fromSql es = do
+fetchRecords :: (Functor f, FromSql SqlValue a)
+             => (Statement -> IO (f [SqlValue]) )
+             -> ExecutedStatement a
+             -> IO (f a)
+fetchRecords fetchs es = do
   rows <- fetchs (executed es)
-  return $ fmap (runToRecord fromSql) rows
+  return $ fmap toRecord rows
 
 -- | Fetch a record.
 fetch :: FromSql SqlValue a => ExecutedStatement a -> IO (Maybe a)
-fetch =  fetchRecordsExplicit HDBC.fetchRow recordFromSql
+fetch =  fetchRecords HDBC.fetchRow
 
 -- | Lazily Fetch all records.
 fetchAll :: FromSql SqlValue a => ExecutedStatement a -> IO [a]
-fetchAll =  fetchRecordsExplicit HDBC.fetchAllRows recordFromSql
+fetchAll =  fetchRecords HDBC.fetchAllRows
 
 -- | Strict version of 'fetchAll'.
 fetchAll' :: FromSql SqlValue a => ExecutedStatement a -> IO [a]
-fetchAll' =  fetchRecordsExplicit HDBC.fetchAllRows' recordFromSql
+fetchAll' =  fetchRecords HDBC.fetchAllRows'
 
 -- | Fetch all records but get only first record.
 --   Expecting result records is unique.
