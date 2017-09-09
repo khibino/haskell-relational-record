@@ -17,7 +17,7 @@
 -- from Haskell type into list of database value type.
 module Database.Record.ToSql (
   -- * Conversion from record type into list of database value type
-  ToSqlM, runToSqlM, RecordToSql, runFromRecord, wrapToSql,
+  ToSqlM, execToSqlM, RecordToSql, runFromRecord, wrapToSql,
   createRecordToSql,
 
   (<&>),
@@ -53,8 +53,9 @@ import Database.Record.KeyConstraint
 -- | Context type to convert into database value list.
 type ToSqlM q a = Writer (DList q) a
 
-runToSqlM :: ToSqlM q a -> [q]
-runToSqlM =  DList.toList . execWriter
+-- | extract appended print result of record.
+execToSqlM :: ToSqlM q a -> [q]
+execToSqlM =  DList.toList . execWriter
 
 {- |
 'RecordToSql' 'q' 'a' is data-type wrapping function
@@ -77,7 +78,7 @@ wrapToSql =  RecordToSql
 runFromRecord :: RecordToSql q a -- ^ printer function object which has capability to convert
               -> a               -- ^ Haskell type
               -> [q]             -- ^ list of database value
-runFromRecord r = runToSqlM . runRecordToSql r
+runFromRecord r = execToSqlM . runRecordToSql r
 
 -- | Axiom of 'RecordToSql' for database value type 'q' and Haksell type 'a'.
 createRecordToSql :: (a -> [q])      -- ^ Convert function body
@@ -196,7 +197,7 @@ putEmpty =  putRecord
 -- | Run implicit 'RecordToSql' printer function object.
 --   Convert from haskell type 'a' into list of database value type ['q'].
 fromRecord :: ToSql q a => a -> [q]
-fromRecord =  runToSqlM . putRecord
+fromRecord =  execToSqlM . putRecord
 
 -- | Derivation rule of 'RecordToSql' printer function object for value convert function.
 valueRecordToSql :: (a -> q) -> RecordToSql q a
@@ -229,7 +230,7 @@ unsafeUpdateValuesWithIndexes :: ToSql q ra
                               -> [q]
 unsafeUpdateValuesWithIndexes key a =
   [ valsA ! i | i <- otherThanKey ++ key ]  where
-    vals = runToSqlM $ putRecord a
+    vals = execToSqlM $ putRecord a
     width = length vals
     valsA = listArray (0, width - 1) vals
     otherThanKey = untypedUpdateValuesIndex key width
