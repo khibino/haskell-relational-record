@@ -1,5 +1,6 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 -- |
 -- Module      : Database.Relational.Pi.Unsafe
@@ -16,10 +17,6 @@ module Database.Relational.Pi.Unsafe (
   -- * Projection path
   Pi,
 
-  pfmap, pap,
-
-  pzero,
-
   width', width,
 
   (<.>), (<?.>), (<?.?>),
@@ -35,13 +32,13 @@ module Database.Relational.Pi.Unsafe (
 import Prelude hiding (pi, (.), id)
 import Control.Category (Category (..), (>>>))
 import Data.Array (listArray, (!))
+import Data.Functor.ProductIsomorphic
+  (ProductIsoFunctor, (|$|), ProductIsoApplicative, pureP, (|*|),
+   ProductIsoEmpty, pureE, peRight, peLeft, )
 
 import Database.Record.Persistable
-  (PersistableRecordWidth, runPersistableRecordWidth, unsafePersistableRecordWidth, (<&>),
+  (PersistableRecordWidth, runPersistableRecordWidth, unsafePersistableRecordWidth,
    PersistableWidth (persistableWidth), maybeWidth)
-
-import Database.Relational.ProjectableClass
-  (ProductConstructor (..), ProjectableFunctor (..), ProjectableApplicative (..), )
 
 
 -- | Projection path primary structure type.
@@ -94,31 +91,28 @@ unsafeCast =  c  where
     let (pb, wb) = f wa in
     (d pb, unsafeCastRecordWidth wb)
 
--- | Projectable fmap of 'Pi' type.
-pfmap :: ProductConstructor (a -> b)
-      => (a -> b) -> Pi r a -> Pi r b
-_ `pfmap` p = unsafeCast p
-
--- | Projectable ap of 'Pi' type.
-pap :: Pi r (a -> b) -> Pi r a -> Pi r b
-pap pab pb =
-   Pi $ \wr ->
-   let (_, wab) = runPi pab wr
-       (_, wb)  = runPi pb  wr in
-   (Map $ unsafeExpandIndexes' wr pab ++ unsafeExpandIndexes' wr pb,
-    unsafeCastRecordWidth $ wab <&> wb) {- should switch to safe projectable-applicative -}
-
--- | Compose seed of projection path 'Pi' which has record result type.
-instance ProjectableFunctor (Pi a) where
-  (|$|) = pfmap
-
--- | Compose projection path 'Pi' which has record result type using applicative style.
-instance ProjectableApplicative (Pi a) where
-  (|*|) = pap
-
 -- | 'Pi' with zero width which projects to unit
 pzero :: Pi a ()
 pzero = Pi $ \_ -> (Map [], persistableWidth)
+
+-- | Map projection path 'Pi' which has record result type.
+instance ProductIsoFunctor (Pi a) where
+  _ |$| p = unsafeCast p
+
+-- | Compose projection path 'Pi' which has record result type using applicative style.
+instance ProductIsoApplicative (Pi a) where
+  pureP _ = unsafeCast pzero
+  pab |*| pb =
+    Pi $ \wr ->
+           let (_, wab) = runPi pab wr
+               (_, wb)  = runPi pb  wr in
+             (Map $ unsafeExpandIndexes' wr pab ++ unsafeExpandIndexes' wr pb,
+              wab |*| wb)
+
+instance ProductIsoEmpty (Pi a) () where
+  pureE   = pzero
+  peRight = unsafeCast
+  peLeft  = unsafeCast
 
 -- | Get record width proof object.
 width' :: PersistableWidth r => Pi r ct -> PersistableRecordWidth ct
