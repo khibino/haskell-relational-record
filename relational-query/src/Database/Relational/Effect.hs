@@ -29,6 +29,7 @@ module Database.Relational.Effect (
   ) where
 
 import Data.Monoid ((<>))
+import Data.Functor.ProductIsomorphic (peRight)
 
 import Language.SQL.Keyword (Keyword(..))
 import Database.Record.Persistable (PersistableWidth)
@@ -45,7 +46,7 @@ import qualified Database.Relational.Table as Table
 import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable
   (PlaceHolders, unitPlaceHolder,
-   pwPlaceholder, placeholder, (><), rightId)
+   pwPlaceholder, placeholder, (><), )
 import Database.Relational.Monad.Trans.Assigning (assignings, (<-#))
 import Database.Relational.Monad.Restrict (RestrictedStatement)
 import qualified Database.Relational.Monad.Restrict as Restrict
@@ -105,7 +106,7 @@ updateAllColumn rs proj = do
 liftTargetAllColumn :: PersistableWidth r
                      => Restriction () r
                      -> UpdateTarget r r
-liftTargetAllColumn rs = updateTarget' $ \proj -> fmap rightId $ updateAllColumn rs proj
+liftTargetAllColumn rs = updateTarget' $ \proj -> fmap peRight $ updateAllColumn rs proj
 
 -- | Lift 'Restriction' to 'UpdateTarget'. Update target columns are all. With placefolder type 'p'.
 liftTargetAllColumn' :: PersistableWidth r

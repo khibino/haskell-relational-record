@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 -- |
@@ -55,7 +56,6 @@ module Database.Relational.Projectable (
 
   -- * Zipping projections
   projectZip, (><),
-  ProjectableIdZip (..),
 
   -- * 'Maybe' type projecitoins
   ProjectableMaybe (just, flattenMaybe),
@@ -64,6 +64,9 @@ module Database.Relational.Projectable (
 import Prelude hiding (pi)
 
 import Data.String (IsString)
+import Data.Functor.ProductIsomorphic
+  (ProductIsoFunctor, (|$|), ProductIsoApplicative, pureP, (|*|),
+   ProductIsoEmpty, pureE, peRight, peLeft, )
 
 import Language.SQL.Keyword (Keyword)
 import qualified Language.SQL.Keyword as SQL
@@ -80,8 +83,6 @@ import Database.Relational.SqlSyntax (Record, Predicate)
 import qualified Database.Relational.SqlSyntax as Syntax
 
 import Database.Relational.Pure ()
-import Database.Relational.ProjectableClass
-  (ProjectableFunctor (..), ProjectableApplicative (..), )
 import Database.Relational.TupleInstances ()
 import Database.Relational.ProjectableClass
   (ShowConstantTermsSQL, showConstantTermsSQL, )
@@ -461,11 +462,11 @@ unsafePlaceHolders =  PlaceHolders
 
 -- | No placeholder semantics
 unitPlaceHolder :: PlaceHolders ()
-unitPlaceHolder = unsafePlaceHolders
+unitPlaceHolder = pureP ()
 
 -- | No placeholder semantics. Same as `unitPlaceHolder`
 unitPH :: PlaceHolders ()
-unitPH = unitPlaceHolder
+unitPH = pureP ()
 
 -- | Unsafely cast placeholder parameter type.
 unsafeCastPlaceHolders :: PlaceHolders a -> PlaceHolders b
@@ -496,12 +497,12 @@ placeholder f = do
 
 
 -- | Zipping projections.
-projectZip :: ProjectableApplicative p => p a -> p b -> p (a, b)
+projectZip :: ProductIsoApplicative p => p a -> p b -> p (a, b)
 projectZip pa pb = (,) |$| pa |*| pb
 
 -- | Binary operator the same as 'projectZip'.
-(><) :: ProjectableApplicative p => p a -> p b -> p (a, b)
-(><) =  projectZip
+(><) :: ProductIsoApplicative p => p a -> p b -> p (a, b)
+(><) = projectZip
 
 -- | Interface to control 'Maybe' of phantom type in records.
 class ProjectableMaybe p where
@@ -520,22 +521,19 @@ instance ProjectableMaybe (Record c) where
   just         = Record.just
   flattenMaybe = Record.flattenMaybe
 
--- | Zipping except for identity element laws.
-class ProjectableApplicative p => ProjectableIdZip p where
-  leftId  :: p ((), a) -> p a
-  rightId :: p (a, ()) -> p a
-
 -- | Zipping except for identity element laws against placeholder parameter type.
-instance ProjectableIdZip PlaceHolders where
-  leftId  = unsafeCastPlaceHolders
-  rightId = unsafeCastPlaceHolders
+instance ProductIsoEmpty PlaceHolders () where
+  pureE   = unsafePlaceHolders
+  peRight = unsafeCastPlaceHolders
+  peLeft  = unsafeCastPlaceHolders
 
 -- | Compose seed of record type 'PlaceHolders'.
-instance ProjectableFunctor PlaceHolders where
+instance ProductIsoFunctor PlaceHolders where
   _ |$| PlaceHolders = PlaceHolders
 
 -- | Compose record type 'PlaceHolders' using applicative style.
-instance ProjectableApplicative PlaceHolders where
+instance ProductIsoApplicative PlaceHolders where
+  pureP _   = unsafeCastPlaceHolders unitPH
   pf |*| pa = unsafeCastPlaceHolders (pf >< pa)
 
 infixl 7 .*., ./., ?*?, ?/?
