@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 -- |
 -- Module      : Database.Relational.Record
@@ -35,14 +36,15 @@ module Database.Relational.Record (
   unsafeToAggregated, unsafeToFlat, unsafeChangeContext,
   unsafeStringSqlNotNullMaybe,
 
-  pfmap, pap,
-
   -- * List of Record
   RecordList, list, unsafeListFromSubQuery,
   unsafeStringSqlList
   ) where
 
 import Prelude hiding (pi)
+import Data.Functor.ProductIsomorphic
+  (ProductIsoFunctor, (|$|), ProductIsoApplicative, pureP, (|*|),
+   ProductIsoEmpty, pureE, peRight, peLeft, )
 
 import qualified Language.SQL.Keyword as SQL
 
@@ -57,8 +59,6 @@ import Database.Relational.SqlSyntax
    recordRawColumns, tupleFromJoinedSubQuery,)
 import qualified Database.Relational.SqlSyntax as Syntax
 
-import Database.Relational.ProjectableClass
-  (ProductConstructor (..), ProjectableFunctor (..), ProjectableApplicative (..), )
 import Database.Relational.Table (Table)
 import qualified Database.Relational.Table as Table
 import Database.Relational.Pi (Pi)
@@ -167,22 +167,22 @@ notNullMaybeConstraint =  const KeyConstraint.columnConstraint
 unsafeStringSqlNotNullMaybe :: HasColumnConstraint NotNull r => Record c (Maybe r) -> StringSQL
 unsafeStringSqlNotNullMaybe p = (!!  KeyConstraint.index (notNullMaybeConstraint p)) . columns $ p
 
--- | Projectable fmap of 'Record' type.
-pfmap :: ProductConstructor (a -> b)
-      => (a -> b) -> Record c a -> Record c b
-_ `pfmap` p = unsafeCast p
+pempty :: Record c ()
+pempty = Syntax.record []
 
--- | Projectable ap of 'Record' type.
-pap :: Record c (a -> b) -> Record c a -> Record c b
-pf `pap` pa = Syntax.record $ Syntax.untypeRecord pf ++ Syntax.untypeRecord pa
+-- | Map 'Record' which result type is record.
+instance ProductIsoFunctor (Record c) where
+  _ |$| p = unsafeCast p
 
--- | Compose seed of record type 'Record'.
-instance ProjectableFunctor (Record c) where
-  (|$|) = pfmap
+-- | Compose 'Record' using applicative style.
+instance ProductIsoApplicative (Record c) where
+  pureP _ = unsafeCast pempty
+  pf |*| pa = Syntax.record $ Syntax.untypeRecord pf ++ Syntax.untypeRecord pa
 
--- | Compose record type 'Record' using applicative style.
-instance ProjectableApplicative (Record c) where
-  (|*|) = pap
+instance ProductIsoEmpty (Record c) () where
+  pureE   = pureP ()
+  peRight = unsafeCast
+  peLeft  = unsafeCast
 
 -- | Projected record list type for row list.
 data RecordList p t = List [p t]

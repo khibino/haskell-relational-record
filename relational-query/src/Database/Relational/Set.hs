@@ -23,6 +23,8 @@ module Database.Relational.Set (
   unionAll', exceptAll', intersectAll',
   ) where
 
+import Data.Functor.ProductIsomorphic ((|$|), (|*|))
+
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax
   (Duplication (Distinct, All), SubQuery, Predicate, Record, )
@@ -57,7 +59,7 @@ join' qL qR r0 r1 rs = relation' $ do
   (ph0, pj0) <- qL r0
   (ph1, pj1) <- qR r1
   sequence_ [ on $ f pj0 pj1 | f <- rs ]
-  return (ph0 `projectZip` ph1, pj0 `projectZip` pj1)
+  return (ph0 `projectZip` ph1, (,) |$| pj0 |*| pj1)
 
 -- | Direct inner join with place-holder parameters.
 inner' :: Relation pa a            -- ^ Left query to join
@@ -98,7 +100,7 @@ join_ qL qR r0 r1 rs = relation $ do
   pj0 <- qL r0
   pj1 <- qR r1
   sequence_ [ on $ f pj0 pj1 | f <- rs ]
-  return $ pj0 `projectZip` pj1
+  return $ (,) |$| pj0 |*| pj1
 
 -- | Direct inner join.
 inner :: Relation () a         -- ^ Left query to join
