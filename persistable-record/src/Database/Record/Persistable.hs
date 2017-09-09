@@ -3,6 +3,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 -- |
 -- Module      : Database.Record.Persistable
@@ -34,11 +35,13 @@ module Database.Record.Persistable (
   ) where
 
 import GHC.Generics (Generic, Rep, U1 (..), K1 (..), M1 (..), (:*:)(..), to)
-import Control.Applicative ((<$>), pure, (<*>), Const (..))
+import Control.Applicative ((<$>), pure, Const (..))
 import Data.Monoid (Monoid, Sum (..))
 import Data.Array (Array, listArray, bounds, (!))
 import Data.DList (DList)
 import qualified Data.DList as DList
+import Data.Functor.ProductIsomorphic
+  (ProductIsoFunctor, (|$|), ProductIsoApplicative, pureP, (|*|), )
 
 
 -- | Proposition to specify type 'q' is database value type, contains null value
@@ -57,6 +60,7 @@ unsafePersistableSqlTypeFromNull =  PersistableSqlType
 -- | Restricted in product isomorphism record type b
 newtype ProductConst a b =
   ProductConst { unPC :: Const a b }
+  deriving (ProductIsoFunctor, ProductIsoApplicative)
 
 -- | extract constant value of 'ProductConst'.
 getProductConst :: ProductConst a b -> a
@@ -68,12 +72,8 @@ getProductConst = getConst . unPC
 type PersistableRecordWidth a = ProductConst (Sum Int) a
 
 -- unsafely map PersistableRecordWidth
-pmap :: Monoid e => (a -> b) -> ProductConst e a -> ProductConst e b
-f `pmap` prw = ProductConst $ f <$> unPC prw
-
--- unsafely ap PersistableRecordWidth
-pap :: Monoid e => ProductConst e (a -> b) -> ProductConst e a -> ProductConst e b
-wf `pap` prw = ProductConst $ unPC wf <*> unPC prw
+pmap' :: Monoid e => (a -> b) -> ProductConst e a -> ProductConst e b
+f `pmap'` prw = ProductConst $ f <$> unPC prw
 
 
 -- | Get width 'Int' value of record type 'a'.
@@ -97,11 +97,11 @@ unsafeValueWidth =  unsafePersistableRecordWidth 1
 
 -- | Derivation rule of 'PersistableRecordWidth' for tuple (,) type.
 (<&>) :: PersistableRecordWidth a -> PersistableRecordWidth b -> PersistableRecordWidth (a, b)
-a <&> b = (,) `pmap` a `pap` b
+a <&> b = (,) |$| a |*| b
 
 -- | Derivation rule of 'PersistableRecordWidth' from from Haskell type 'a' into for Haskell type 'Maybe' 'a'.
 maybeWidth :: PersistableRecordWidth a -> PersistableRecordWidth (Maybe a)
-maybeWidth = pmap Just
+maybeWidth = pmap' Just
 
 
 -- | Interface of derivation rule for 'PersistableSqlType'.
@@ -146,23 +146,23 @@ class GFieldWidthList f where
   gFieldWidthList :: ProductConst (DList Int) (f a)
 
 instance GFieldWidthList U1 where
-  gFieldWidthList = ProductConst $ pure U1
+  gFieldWidthList = pureP U1
 
 instance (GFieldWidthList a, GFieldWidthList b) => GFieldWidthList (a :*: b) where
-  gFieldWidthList = (:*:) `pmap` gFieldWidthList `pap` gFieldWidthList
+  gFieldWidthList = (:*:) |$| gFieldWidthList |*| gFieldWidthList
 
 instance GFieldWidthList a => GFieldWidthList (M1 i c a) where
-  gFieldWidthList = M1 `pmap` gFieldWidthList
+  gFieldWidthList = M1 |$| gFieldWidthList
 
 instance PersistableWidth a => GFieldWidthList (K1 i a) where
-  gFieldWidthList = K1 `pmap` pmapConst (pure . getSum) persistableWidth
+  gFieldWidthList = K1 |$| pmapConst (pure . getSum) persistableWidth
 
 offsets :: [Int] -> Array Int Int
 offsets ws = listArray (0, length ws) $ scanl (+) 0 ws
 
 -- | Generic offset array of record fields.
 genericFieldOffsets :: (Generic a, GFieldWidthList (Rep a)) => ProductConst (Array Int Int) a
-genericFieldOffsets = pmapConst (offsets . DList.toList) $ to `pmap` gFieldWidthList
+genericFieldOffsets = pmapConst (offsets . DList.toList) $ to `pmap'` gFieldWidthList
 
 
 -- | Inference rule of 'PersistableRecordWidth' proof object for 'Maybe' type.

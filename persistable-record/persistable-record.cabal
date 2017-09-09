@@ -42,6 +42,7 @@ library
                         , transformers
                         , dlist
                         , names-th
+                        , product-isomorphic
   if impl(ghc == 7.4.*)
     build-depends:        ghc-prim == 0.2.*
 
