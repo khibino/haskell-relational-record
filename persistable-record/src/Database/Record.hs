@@ -28,7 +28,7 @@ module Database.Record (
   -- ** Convert from list of SQL type
   module Database.Record.FromSql,
   -- ** Convert into list of SQL type
-  module Database.Record.ToSql
+  module Database.Record.ToSql,
   ) where
 
 import Database.Record.KeyConstraint
@@ -43,10 +43,10 @@ import Database.Record.Persistable
    PersistableRecordWidth, PersistableWidth(..), derivedWidth)
 import Database.Record.FromSql
   (RecordFromSql, FromSql(..), valueRecordFromSql,
-   runTakeRecord, takeRecord, runToRecord, toRecord)
+   takeRecord, toRecord)
 import Database.Record.ToSql
   (ToSqlM, RecordToSql, ToSql(..), valueRecordToSql,
-   runFromRecord, wrapToSql, putRecord, putEmpty, fromRecord,
+   putRecord, putEmpty, fromRecord,
    updateValuesByUnique, updateValuesByPrimary)
 import Database.Record.TupleInstances ()
 
