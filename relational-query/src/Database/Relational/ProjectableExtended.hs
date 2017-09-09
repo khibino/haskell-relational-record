@@ -27,11 +27,6 @@ module Database.Relational.ProjectableExtended (
   sum', sumMaybe, avg, avgMaybe,
   max', maxMaybe, min', minMaybe,
   every, any', some',
-
-  -- * Zipping projection type trick
-  ProjectableIdZip (leftId, rightId),
-  ProjectableRunIdsZip (runIds), flattenPh
-  -- generalizedZip', (>?<)
   )  where
 
 import Prelude hiding (pi)
@@ -44,9 +39,7 @@ import Database.Relational.SqlSyntax (Predicate, Record, )
 
 import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable
-  (PlaceHolders, unsafeUniOp,
-   ProjectableMaybe (flattenMaybe), ProjectableIdZip (leftId, rightId),
-   SqlProjectable)
+  (unsafeUniOp, ProjectableMaybe (flattenMaybe), SqlProjectable)
 import Database.Relational.Pi (Pi)
 
 
@@ -172,30 +165,4 @@ flattenPiMaybe p = flatten . Record.piMaybe p
 (!??) = flattenPiMaybe
 
 
--- | Interface to run recursively identity element laws.
-class ProjectableRunIdsZip a b where
-  runIds :: ProjectableIdZip p => p a -> p b
-
--- | Run left identity element law.
-instance ProjectableRunIdsZip a b => ProjectableRunIdsZip ((), a) b where
-  runIds = runIds . leftId
-
--- | Run right identity element law.
-instance ProjectableRunIdsZip a b => ProjectableRunIdsZip (a, ()) b where
-  runIds = runIds . rightId
-
--- | Base case definition to run recursively identity element laws.
-instance ProjectableRunIdsZip a a where
-  runIds = id
-
--- | Specialize 'runIds' for 'PlaceHolders' type.
-flattenPh :: ProjectableRunIdsZip a b => PlaceHolders a -> PlaceHolders b
-flattenPh =  runIds
-
--- -- | Binary operator the same as 'generalizedZip'.
--- (>?<) :: (ProjectableIdZip p, ProjectableRunIdsZip (a, b) c)
---       => p a -> p b -> p c
--- (>?<) =  generalizedZip'
-
 infixl 8 !, ?!, ?!?, !??
--- infixl 1 >?<
