@@ -17,14 +17,14 @@
 -- from Haskell type into list of database value type.
 module Database.Record.ToSql (
   -- * Conversion from record type into list of database value type
-  ToSqlM, runToSqlM, RecordToSql,
+  ToSqlM, runToSqlM, RecordToSql, runFromRecord, wrapToSql,
   createRecordToSql,
 
   (<&>),
 
   -- * Derivation rules of 'RecordToSql' conversion
   ToSql (recordToSql),
-  putRecord, putEmpty, wrapToSql,
+  putRecord, putEmpty, fromRecord,
 
   valueRecordToSql,
 
@@ -34,9 +34,6 @@ module Database.Record.ToSql (
 
   untypedUpdateValuesIndex,
   unsafeUpdateValuesWithIndexes,
-
-  -- * deprecated
-  runFromRecord,  fromRecord,
   ) where
 
 import GHC.Generics (Generic, Rep, U1 (..), K1 (..), M1 (..), (:*:)(..), from)
@@ -76,7 +73,6 @@ runRecordToSql (RecordToSql f) = f
 wrapToSql :: (a -> ToSqlM q ()) -> RecordToSql q a
 wrapToSql =  RecordToSql
 
-{-# DEPRECATED runFromRecord "use implicit combination runToSqlM . putRecord instead of this." #-}
 -- | Run 'RecordToSql' printer function object. Convert from Haskell type 'a' into list of database value type ['q'].
 runFromRecord :: RecordToSql q a -- ^ printer function object which has capability to convert
               -> a               -- ^ Haskell type
@@ -197,7 +193,6 @@ putRecord =  runRecordToSql recordToSql
 putEmpty :: () -> ToSqlM q ()
 putEmpty =  putRecord
 
-{-# DEPRECATED fromRecord "use runToSqlM . putRecord instead of this." #-}
 -- | Run implicit 'RecordToSql' printer function object.
 --   Convert from haskell type 'a' into list of database value type ['q'].
 fromRecord :: ToSql q a => a -> [q]
