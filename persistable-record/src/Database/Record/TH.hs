@@ -169,9 +169,8 @@ recordWidthTemplate ty =
 defineColumnOffsets :: ConName -- ^ Record type constructor.
                     -> [TypeQ] -- ^ Types of record columns.
                     -> Q [Dec] -- ^ Declaration of 'PersistableWidth' instance.
-defineColumnOffsets typeName' tys = do
+defineColumnOffsets typeName' _tys = do
   let ofsVar = columnOffsetsVarNameDefault $ conName typeName'
-      widthIxE = integralE $ length tys
   ar <- simpleValD (varName ofsVar) [t| Array Int Int |]
         [| getProductConst (genericFieldOffsets :: ProductConst (Array Int Int) $(toTypeCon typeName')) |]
   pw <- [d| instance PersistableWidth $(toTypeCon typeName')
@@ -202,14 +201,6 @@ defineRecordTypeWithConfig config schema table columns =
   (recordTypeName config schema table)
   [ (columnName config schema n, t) | (n, t) <- columns ]
 
-
--- | Default name of record construction function from SQL table name.
-fromSqlNameDefault :: String -> VarName
-fromSqlNameDefault =  (`varNameWithPrefix` "fromSqlOf")
-
--- | Default name of record decomposition function from SQL table name.
-toSqlNameDefault :: String -> VarName
-toSqlNameDefault =  (`varNameWithPrefix` "toSqlOf")
 
 recordInfo' :: Info -> Maybe ((TypeQ, ExpQ), (Maybe [Name], [TypeQ]))
 recordInfo' =  d  where
