@@ -12,6 +12,8 @@ import Test.QuickCheck.Property (morallyDubiousIOProperty)
 import Test.QuickCheck.Simple (Test, qcTest)
 import Control.Monad (unless)
 import Data.List (sort)
+import Data.Functor.ProductIsomorphic ((|$|), (|*|))
+
 import Database.HDBC (IConnection, rollback, SqlValue)
 import Database.HDBC.Session (withConnectionIO')
 import Database.Record (FromSql, ToSql)

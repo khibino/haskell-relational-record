@@ -29,6 +29,7 @@ library
                        , quickcheck-simple
                        , HDBC
                        , HDBC-session
+                       , product-isomorphic
                        , persistable-record
                        , relational-query
                        , relational-query-HDBC
