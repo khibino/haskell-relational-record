@@ -14,12 +14,6 @@
 -- This module provides interfaces to preserve constraints of
 -- direct product projections.
 module Database.Relational.ProjectableClass (
-  -- * Interface to specify record constructors.
-  ProductConstructor (..),
-
-  -- * ProjectableFunctor and ProjectableApplicative
-  ProjectableFunctor (..), ProjectableApplicative (..), ipfmap,
-
   -- * Literal SQL terms
   ShowConstantTermsSQL (..), showConstantTermsSQL,
   StringSQL,
@@ -31,29 +25,6 @@ import Data.Monoid (mempty, (<>))
 import Data.DList (DList, toList)
 
 import Database.Relational.Internal.String (StringSQL)
-
-
--- | Specify tuple like record constructors which are allowed to define 'ProjectableFunctor'.
-class ProductConstructor r where
-  -- | The constructor which has type 'r'.
-  productConstructor :: r
-
--- | Restricted functor on products.
-class ProjectableFunctor p where
-  -- | Method like 'fmap'.
-  (|$|) :: ProductConstructor (a -> b) => (a -> b) -> p a -> p b
-
--- | Same as '|$|' other than using inferred record constructor.
-ipfmap :: (ProjectableFunctor p, ProductConstructor (a -> b))
-       => p a -> p b
-ipfmap =  (|$|) productConstructor
-
--- | Restricted applicative functor on products.
-class ProjectableFunctor p => ProjectableApplicative p where
-  -- | Method like '<*>'.
-  (|*|) :: p (a -> b) -> p a -> p b
-
-infixl 4 |$|, |*|
 
 
 -- | Convert from haskell record to SQL terms list.

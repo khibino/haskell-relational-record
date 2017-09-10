@@ -6,8 +6,10 @@ import qualified Test.QuickCheck.Simple as QSimple
 import Lex (eqProp, eqProp')
 import Model
 
-import Data.Int (Int32, Int64)
 import Control.Arrow (returnA, arr, (<<<), (***))
+import Data.Int (Int32, Int64)
+import Data.Functor.ProductIsomorphic ((|$|), (|*|))
+
 import Database.Relational.Arrow
 
 tables :: [Test]

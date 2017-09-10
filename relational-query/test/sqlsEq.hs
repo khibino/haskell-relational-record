@@ -2,12 +2,13 @@
 import Test.QuickCheck.Simple (Test, defaultMain)
 import qualified Test.QuickCheck.Simple as QSimple
 
-import Control.Applicative ((<$>), (<*>))
-
 import Lex (eqProp, eqProp')
 import Model
 
+import Control.Applicative ((<$>), (<*>))
+import Data.Functor.ProductIsomorphic ((|$|), (|*|))
 import Data.Int (Int32, Int64)
+
 import Database.Relational
 
 

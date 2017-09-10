@@ -113,6 +113,7 @@ library
 test-suite sqls
   build-depends:         base <5
                        , quickcheck-simple
+                       , product-isomorphic
                        , relational-query
                        , containers
                        , transformers
@@ -133,6 +134,7 @@ test-suite sqls
 test-suite sqlsArrow
   build-depends:         base <5
                        , quickcheck-simple
+                       , product-isomorphic
                        , relational-query
                        , containers
                        , transformers
