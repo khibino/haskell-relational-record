@@ -26,10 +26,11 @@ module Database.HDBC.Query.TH (
   inlineVerifiedQuery
   ) where
 
-import Data.Maybe (listToMaybe, fromMaybe)
-import qualified Data.Map as Map
 import Control.Applicative ((<$>), (<*>))
 import Control.Monad (when, void)
+import Data.Maybe (listToMaybe, fromMaybe)
+import qualified Data.Map as Map
+import Data.Functor.ProductIsomorphic.TH (reifyRecordType)
 
 import Database.HDBC (IConnection, SqlValue, prepare)
 
@@ -38,7 +39,7 @@ import Language.Haskell.TH.Name.CamelCase (varCamelcaseName)
 import Language.Haskell.TH.Lib.Extra (reportWarning, reportError)
 
 import Database.Record (ToSql, FromSql)
-import Database.Record.TH (recordTemplate, reifyRecordType)
+import Database.Record.TH (recordTemplate)
 import Database.Relational
   (Config, nameConfig, recordConfig, verboseAsCompilerWarning, defaultConfig,
    Relation, relationalQuerySQL, QuerySuffix)

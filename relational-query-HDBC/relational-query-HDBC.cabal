@@ -55,6 +55,7 @@ library
                        , template-haskell
                        , dlist
                        , th-data-compat
+                       , product-isomorphic
 
                        , names-th
                        , persistable-record >= 0.5
