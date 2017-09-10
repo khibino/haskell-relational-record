@@ -18,8 +18,8 @@ module Database.Relational.Compat
   Projection,
 
   -- * deprecated classes
-  ProductConstructor,
-  ProjectableFunctor, ProjectableApplicative,
+  ProductConstructor (..),
+  ProjectableFunctor, (|$|), ProjectableApplicative, (|*|),
 
   ProjectableIdZip, rightId, leftId,
 
@@ -28,8 +28,9 @@ module Database.Relational.Compat
   ) where
 
 import Data.Functor.ProductIsomorphic
-  (ProductConstructor, ProductIsoFunctor, (|$|), ProductIsoApplicative, (|*|),
+  (ProductIsoFunctor, (|$|), ProductIsoApplicative, (|*|),
    ProductIsoEmpty, pureE, peRight, peLeft, )
+import Data.Functor.ProductIsomorphic.Unsafe (ProductConstructor (..))
 
 import Database.Relational
 
