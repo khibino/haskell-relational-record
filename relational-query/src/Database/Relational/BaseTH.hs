@@ -14,24 +14,23 @@
 -- This module defines templates for internally using.
 module Database.Relational.BaseTH (
   defineProductConstructorInstance,
-  defineTupleProductConstructor,
   defineTupleShowConstantInstance,
   defineTuplePi,
   ) where
 
 import Control.Applicative ((<$>))
 import Data.List (foldl')
+import Data.Functor.ProductIsomorphic.Unsafe (ProductConstructor (..))
 import Language.Haskell.TH
-  (Q, Name, mkName, tupleDataName, normalB, classP, varP,
+  (Q, Name, mkName, normalB, classP, varP,
    TypeQ, forallT, arrowT, varT, tupleT, appT,
-   Dec, sigD, valD, instanceD, ExpQ, conE,
+   Dec, sigD, valD, instanceD, ExpQ,
    TyVarBndr (PlainTV), )
 import Database.Record.Persistable
   (PersistableWidth, persistableWidth,
    PersistableRecordWidth, runPersistableRecordWidth)
 
-import Database.Relational.ProjectableClass
-  (ProductConstructor (..), ShowConstantTermsSQL (..), )
+import Database.Relational.ProjectableClass (ShowConstantTermsSQL (..))
 import Database.Relational.Pi.Unsafe (Pi, definePi)
 
 
@@ -47,12 +46,6 @@ tupleN n = ((ns, vs), foldl' appT (tupleT n) vs)
   where
     ns = [ mkName $ "a" ++ show j | j <- [1 .. n] ]
     vs = map varT ns
-
--- | Make template of ProductConstructor instance of tuple type.
-defineTupleProductConstructor :: Int -> Q [Dec]
-defineTupleProductConstructor n = do
-  let ((_, vs), tty)  =  tupleN n
-  defineProductConstructorInstance tty (conE $ tupleDataName n) vs
 
 -- | Make template of 'ShowConstantTermsSQL' instance of tuple type.
 defineTupleShowConstantInstance :: Int -> Q [Dec]

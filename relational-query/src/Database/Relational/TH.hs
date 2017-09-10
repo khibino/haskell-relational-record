@@ -67,6 +67,7 @@ module Database.Relational.TH (
 import Data.Char (toUpper, toLower)
 import Data.List (foldl1')
 import Data.Array.IArray ((!))
+import Data.Functor.ProductIsomorphic.TH (defineProductConstructor)
 
 import Language.Haskell.TH
   (Name, nameBase, Q, reify, TypeQ, Type (AppT, ConT), ExpQ,
@@ -281,7 +282,7 @@ relationVarExp :: Config -- ^ Configuration which has  naming rules of templates
 relationVarExp config scm = toVarExp . relationVarName (nameConfig config) scm
 
 -- | Make template for record 'ProductConstructor' instance using specified naming rule.
-defineProductConstructorInstanceWithConfig :: Config -> String -> String -> [TypeQ] -> Q [Dec]
+defineProductConstructorInstanceWithConfig :: Config -> String -> String -> [Q Type] -> Q [Dec]
 defineProductConstructorInstanceWithConfig config schema table colTypes = do
   let tp = recordTemplate (recordConfig $ nameConfig config) schema table
   uncurry defineProductConstructorInstance tp colTypes
@@ -452,13 +453,13 @@ makeRelationalRecordDefault :: Name    -- ^ Type constructor name
                             -> Q [Dec] -- ^ Result declaration
 makeRelationalRecordDefault recTypeName = do
   let recTypeConName = ConName recTypeName
-  ((tyCon, dataCon), (mayNs, cts)) <- Record.reifyRecordType recTypeName
+  ((tyCon, _dataCon), (mayNs, cts)) <- Record.reifyRecordType recTypeName
   pw <- Record.defineColumnOffsets recTypeConName cts
   cs <- maybe
         (return [])
         (\ns -> defineColumnsDefault recTypeConName
                 [ ((nameBase n, ct), Nothing) | n  <- ns  | ct <- cts ])
         mayNs
-  pc <- defineProductConstructorInstance tyCon dataCon cts
+  pc <- defineProductConstructor recTypeName
   ct <- [d| instance ShowConstantTermsSQL $tyCon |]
   return $ concat [pw, cs, pc, ct]
