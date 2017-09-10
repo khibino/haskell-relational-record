@@ -33,9 +33,6 @@ module Database.Record.TH (
 
   recordWidthTemplate,
 
-  -- * Reify
-  reifyRecordType,
-
   -- * Templates about record name
   NameConfig,  defaultNameConfig,
   recordTypeName, columnName,
@@ -53,17 +50,16 @@ module Database.Record.TH (
 
 import GHC.Generics (Generic)
 import Data.Array (Array)
+import qualified Data.Functor.ProductIsomorphic.TH as ProdIso
 import Language.Haskell.TH.Name.CamelCase
   (ConName(conName), VarName(varName),
    conCamelcaseName, varCamelcaseName, varNameWithPrefix,
    toTypeCon, toDataCon, )
 import Language.Haskell.TH.Lib.Extra (integralE, simpleValD, reportWarning)
-import Language.Haskell.TH.Compat.Data (dataD', unDataD)
+import Language.Haskell.TH.Compat.Data (dataD')
 import Language.Haskell.TH
-  (Q, nameBase, reify, Info(TyConI), Name,
-   TypeQ, conT, Con (NormalC, RecC),
-   Dec,
-   ExpQ, conE, listE, sigE,
+  (Q, nameBase, Name, TypeQ, Dec,
+   ExpQ, listE, sigE,
    recC,
    cxt, varStrictType, strictType, isStrict)
 
@@ -201,26 +197,6 @@ defineRecordTypeWithConfig config schema table columns =
   (recordTypeName config schema table)
   [ (columnName config schema n, t) | (n, t) <- columns ]
 
-
-recordInfo' :: Info -> Maybe ((TypeQ, ExpQ), (Maybe [Name], [TypeQ]))
-recordInfo' =  d  where
-  d (TyConI tcon) = do
-    (_cxt, tcn, _bs, _mk, [r], _ds) <- unDataD tcon
-    case r of
-      NormalC dcn ts   -> Just ((conT tcn, conE dcn), (Nothing, [return t | (_, t) <- ts]))
-      RecC    dcn vts  -> Just ((conT tcn, conE dcn), (Just ns, ts))
-        where (ns, ts) = unzip [(n, return t) | (n, _, t) <- vts]
-      _                -> Nothing
-  d _                  =  Nothing
-
--- | Low-level reify interface for record type name.
-reifyRecordType :: Name -> Q ((TypeQ, ExpQ), (Maybe [Name], [TypeQ]))
-reifyRecordType recTypeName = do
-  tyConInfo   <- reify recTypeName
-  maybe
-    (fail $ "Defined record type constructor not found: " ++ show recTypeName)
-    return
-    (recordInfo' tyConInfo)
 
 -- | Record parser and printer instance templates for converting
 --   between list of SQL type and Haskell record type.
