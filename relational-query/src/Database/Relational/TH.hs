@@ -67,7 +67,8 @@ module Database.Relational.TH (
 import Data.Char (toUpper, toLower)
 import Data.List (foldl1')
 import Data.Array.IArray ((!))
-import Data.Functor.ProductIsomorphic.TH (defineProductConstructor)
+import Data.Functor.ProductIsomorphic.TH
+  (reifyRecordType, defineProductConstructor)
 
 import Language.Haskell.TH
   (Name, nameBase, Q, reify, TypeQ, Type (AppT, ConT), ExpQ,
@@ -453,7 +454,7 @@ makeRelationalRecordDefault :: Name    -- ^ Type constructor name
                             -> Q [Dec] -- ^ Result declaration
 makeRelationalRecordDefault recTypeName = do
   let recTypeConName = ConName recTypeName
-  ((tyCon, _dataCon), (mayNs, cts)) <- Record.reifyRecordType recTypeName
+  ((tyCon, _dataCon), (mayNs, cts)) <- reifyRecordType recTypeName
   pw <- Record.defineColumnOffsets recTypeConName cts
   cs <- maybe
         (return [])
