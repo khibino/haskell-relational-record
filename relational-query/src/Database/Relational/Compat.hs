@@ -62,16 +62,16 @@ leftId = peLeft
 -- Pi
 
 {-# DEPRECATED pfmap "use (|$|) in Data.Functor.ProductIsomorphic instead of this." #-}
--- | old map definition for Pi type.
+-- | deprecated map definition for Pi type. use ('|$|') instead of this.
 pfmap :: ProductConstructor (a -> b) => (a -> b) -> Pi r a -> Pi r b
 pfmap = (|$|)
 
 {-# DEPRECATED pap "use (|*|) in Data.Functor.ProductIsomorphic instead of this." #-}
--- | old ap definition for Pi type.
+-- | deprecated ap definition for Pi type. use ('|*|') instead of this.
 pap :: Pi r (a -> b) -> Pi r a -> Pi r b
 pap = (|*|)
 
 {-# DEPRECATED pzero "use pureE in Data.Functor.ProductIsomorphic instead of this." #-}
--- | old empty definition for Pi type.
+-- | deprecated empty definition for Pi type. use 'pureE' instead of this.
 pzero :: Pi a ()
 pzero = pureE
