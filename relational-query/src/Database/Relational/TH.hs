@@ -56,9 +56,6 @@ module Database.Relational.TH (
   defineSqlsWithPrimaryKey,
   defineSqlsWithPrimaryKeyDefault,
 
-  -- * Add type class instance against record type
-  defineProductConstructorInstance,
-
   -- * Reify
   makeRelationalRecordDefault,
   reifyRelation,
@@ -69,10 +66,11 @@ import Data.List (foldl1')
 import Data.Array.IArray ((!))
 import Data.Functor.ProductIsomorphic.TH
   (reifyRecordType, defineProductConstructor)
+import Data.Functor.ProductIsomorphic.Unsafe (ProductConstructor (..))
 
 import Language.Haskell.TH
   (Name, nameBase, Q, reify, TypeQ, Type (AppT, ConT), ExpQ,
-   tupleT, appT, Dec, stringE, listE)
+   tupleT, appT, arrowT, Dec, stringE, listE)
 import Language.Haskell.TH.Compat.Reify (unVarI)
 import Language.Haskell.TH.Name.CamelCase
   (VarName, varName, ConName (ConName), conName, varNameWithPrefix, varCamelcaseName, toVarExp, toTypeCon)
@@ -91,7 +89,7 @@ import Database.Relational
    Insert, derivedInsert, InsertQuery, derivedInsertQuery,
    HasConstraintKey(constraintKey), Primary, NotNull, primary, primaryUpdate)
 
-import Database.Relational.BaseTH (defineProductConstructorInstance, defineTuplePi)
+import Database.Relational.BaseTH (defineTuplePi)
 import Database.Relational.Scalar (defineScalarDegree)
 import Database.Relational.Constraint (Key, unsafeDefineConstraintKey)
 import Database.Relational.Table (TableDerivable (..))
@@ -285,8 +283,10 @@ relationVarExp config scm = toVarExp . relationVarName (nameConfig config) scm
 -- | Make template for record 'ProductConstructor' instance using specified naming rule.
 defineProductConstructorInstanceWithConfig :: Config -> String -> String -> [Q Type] -> Q [Dec]
 defineProductConstructorInstanceWithConfig config schema table colTypes = do
-  let tp = recordTemplate (recordConfig $ nameConfig config) schema table
-  uncurry defineProductConstructorInstance tp colTypes
+  let (recType, recData) = recordTemplate (recordConfig $ nameConfig config) schema table
+  [d| instance ProductConstructor $(foldr (appT . (arrowT `appT`)) recType colTypes) where
+        productConstructor = $(recData)
+    |]
 
 -- | Make templates about table and column metadatas using specified naming rule.
 defineTableTypesWithConfig :: Config                           -- ^ Configuration to generate query with

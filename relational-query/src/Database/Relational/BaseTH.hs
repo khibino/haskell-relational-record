@@ -13,18 +13,16 @@
 --
 -- This module defines templates for internally using.
 module Database.Relational.BaseTH (
-  defineProductConstructorInstance,
   defineTupleShowConstantInstance,
   defineTuplePi,
   ) where
 
 import Control.Applicative ((<$>))
 import Data.List (foldl')
-import Data.Functor.ProductIsomorphic.Unsafe (ProductConstructor (..))
 import Language.Haskell.TH
   (Q, Name, mkName, normalB, classP, varP,
-   TypeQ, forallT, arrowT, varT, tupleT, appT,
-   Dec, sigD, valD, instanceD, ExpQ,
+   TypeQ, forallT, varT, tupleT, appT,
+   Dec, sigD, valD, instanceD,
    TyVarBndr (PlainTV), )
 import Database.Record.Persistable
   (PersistableWidth, persistableWidth,
@@ -33,13 +31,6 @@ import Database.Record.Persistable
 import Database.Relational.ProjectableClass (ShowConstantTermsSQL (..))
 import Database.Relational.Pi.Unsafe (Pi, definePi)
 
-
--- | Make template for 'ProductConstructor' instance.
-defineProductConstructorInstance :: TypeQ -> ExpQ -> [TypeQ] -> Q [Dec]
-defineProductConstructorInstance recTypeQ recData colTypes =
-  [d| instance ProductConstructor $(foldr (appT . (arrowT `appT`)) recTypeQ colTypes) where
-        productConstructor = $(recData)
-    |]
 
 tupleN :: Int -> (([Name], [TypeQ]), TypeQ)
 tupleN n = ((ns, vs), foldl' appT (tupleT n) vs)
