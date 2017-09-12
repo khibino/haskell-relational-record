@@ -50,7 +50,6 @@ module Database.Record.TH (
 
 import GHC.Generics (Generic)
 import Data.Array (Array)
-import qualified Data.Functor.ProductIsomorphic.TH as ProdIso
 import Language.Haskell.TH.Name.CamelCase
   (ConName(conName), VarName(varName),
    conCamelcaseName, varCamelcaseName, varNameWithPrefix,
