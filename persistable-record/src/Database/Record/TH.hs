@@ -14,10 +14,6 @@
 -- This module defines templates for Haskell record type and
 -- type class instances to map between list of untyped SQL type and Haskell record type.
 module Database.Record.TH (
-  -- * Generate all templates about record
-  defineRecord,
-  defineRecordWithConfig,
-
   -- * Table constraint specified by key
   defineHasColumnConstraintInstance,
   defineHasPrimaryConstraintInstanceDerived,
@@ -68,8 +64,7 @@ import Control.Arrow ((&&&))
 import Database.Record
   (HasColumnConstraint(columnConstraint), Primary, NotNull,
    HasKeyConstraint(keyConstraint), derivedCompositePrimary,
-   PersistableRecordWidth, PersistableWidth(persistableWidth),
-   FromSql, ToSql, )
+   PersistableRecordWidth, PersistableWidth(persistableWidth), )
 
 import Database.Record.KeyConstraint
   (unsafeSpecifyColumnConstraint, unsafeSpecifyNotNullValue, unsafeSpecifyKeyConstraint)
@@ -194,46 +189,6 @@ defineRecordTypeWithConfig config schema table columns =
   defineRecordType
   (recordTypeName config schema table)
   [ (columnName config schema n, t) | (n, t) <- columns ]
-
--- | Record parser and printer instance templates for converting
---   between list of SQL type and Haskell record type.
-definePersistableInstance :: TypeQ   -- ^ SQL value type.
-                          -> TypeQ   -- ^ Record type constructor.
-                          -> Q [Dec] -- ^ Instance definitions.
-definePersistableInstance sqlType typeCon = do
-  [d| instance FromSql $sqlType $typeCon
-      instance ToSql $sqlType $typeCon
-    |]
-
--- | All templates for record type.
-defineRecord :: TypeQ              -- ^ SQL value type
-             -> ConName            -- ^ Record type name
-             -> [(VarName, TypeQ)] -- ^ Column schema
-             -> [Name]             -- ^ Record derivings
-             -> Q [Dec]            -- ^ Result definitions
-defineRecord
-  sqlValueType
-  tyC
-  columns drvs = do
-
-  typ     <- defineRecordType tyC columns drvs
-  withSql <- definePersistableInstance sqlValueType $ toTypeCon tyC
-  return $ typ ++ withSql
-
--- | All templates for record type with configured names.
-defineRecordWithConfig :: TypeQ             -- ^ SQL value type
-                     -> NameConfig        -- ^ name rule config
-                     -> String            -- ^ Schema name
-                     -> String            -- ^ Table name
-                     -> [(String, TypeQ)] -- ^ Column names and types
-                     -> [Name]            -- ^ Record derivings
-                     -> Q [Dec]           -- ^ Result definitions
-defineRecordWithConfig sqlValueType config schema table columns derives = do
-  typ     <- defineRecordTypeWithConfig config schema table columns derives
-  withSql <- definePersistableInstance sqlValueType . fst $ recordTemplate config schema table
-
-  return $ typ ++ withSql
-
 
 -- | Templates for single column value type.
 deriveNotNullType :: TypeQ -> Q [Dec]
