@@ -30,8 +30,11 @@ module Database.Record.TH (
 
   -- * Function declarations against defined record types
   defineColumnOffsets,
-
   recordWidthTemplate,
+
+  -- * Instance definitions against defined record types
+  definePersistableWidthInstance,
+  defineSqlPersistableInstances,
 
   -- * Templates about record name
   NameConfig,  defaultNameConfig,
@@ -57,10 +60,8 @@ import Language.Haskell.TH.Name.CamelCase
 import Language.Haskell.TH.Lib.Extra (integralE, simpleValD, reportWarning)
 import Language.Haskell.TH.Compat.Data (dataD')
 import Language.Haskell.TH
-  (Q, nameBase, Name, TypeQ, Dec,
-   ExpQ, listE, sigE,
-   recC,
-   cxt, varStrictType, strictType, isStrict)
+  (Q, nameBase, Name, Dec, TypeQ, conT, ExpQ, listE, sigE,
+   recC, cxt, varStrictType, strictType, isStrict)
 
 import Control.Arrow ((&&&))
 
@@ -76,7 +77,8 @@ import Database.Record.Persistable
   (runPersistableRecordWidth,
    ProductConst, getProductConst, genericFieldOffsets)
 import qualified Database.Record.Persistable as Persistable
-import Database.Record.InternalTH (defineTupleInstances)
+import Database.Record.InternalTH
+  (definePersistableWidthInstance, defineSqlPersistableInstances, defineTupleInstances)
 
 
 -- | 'NameConfig' type to customize names of expanded record templates.
@@ -117,14 +119,14 @@ columnOffsetsVarNameDefault =  (`varNameWithPrefix` "columnOffsets") . nameBase
 defineHasColumnConstraintInstance :: TypeQ   -- ^ Type which represent constraint type
                                   -> TypeQ   -- ^ Type constructor of record
                                   -> Int     -- ^ Key index which specifies this constraint
-                                  -> Q [Dec] -- ^ Result declaration template
+                                  -> Q [Dec] -- ^ Result definition template
 defineHasColumnConstraintInstance constraint typeCon index =
   [d| instance HasColumnConstraint $constraint $typeCon where
         columnConstraint = unsafeSpecifyColumnConstraint $(integralE index) |]
 
 -- | Template of 'HasKeyConstraint' instance.
 defineHasPrimaryConstraintInstanceDerived ::TypeQ    -- ^ Type constructor of record
-                                          -> Q [Dec] -- ^ Result declaration template
+                                          -> Q [Dec] -- ^ Result definition template
 defineHasPrimaryConstraintInstanceDerived typeCon =
   [d| instance HasKeyConstraint Primary $typeCon where
         keyConstraint = derivedCompositePrimary |]
@@ -132,7 +134,7 @@ defineHasPrimaryConstraintInstanceDerived typeCon =
 -- | Template of 'HasColumnConstraint' 'Primary' instance.
 defineHasPrimaryKeyInstance :: TypeQ   -- ^ Type constructor of record
                             -> [Int]   -- ^ Key index which specifies this constraint
-                            -> Q [Dec] -- ^ Declaration of primary key constraint instance
+                            -> Q [Dec] -- ^ Definition of primary key constraint instance
 defineHasPrimaryKeyInstance typeCon = d  where
   d []   = return []
   d [ix] = do
@@ -148,7 +150,7 @@ defineHasPrimaryKeyInstance typeCon = d  where
 -- | Template of 'HasColumnConstraint' 'NotNull' instance.
 defineHasNotNullKeyInstance :: TypeQ   -- ^ Type constructor of record
                             -> Int     -- ^ Key index which specifies this constraint
-                            -> Q [Dec] -- ^ Declaration of not null key constraint instance
+                            -> Q [Dec] -- ^ Definition of not null key constraint instance
 defineHasNotNullKeyInstance =
   defineHasColumnConstraintInstance [t| NotNull |]
 
@@ -160,23 +162,19 @@ recordWidthTemplate ty =
      $(sigE [| persistableWidth |] [t| PersistableRecordWidth $(ty) |])
    |]
 
--- | Column offset array and 'PersistableWidth' instance declaration.
+-- | Column offset array definition.
 defineColumnOffsets :: ConName -- ^ Record type constructor.
-                    -> [TypeQ] -- ^ Types of record columns.
-                    -> Q [Dec] -- ^ Declaration of 'PersistableWidth' instance.
-defineColumnOffsets typeName' _tys = do
+                    -> Q [Dec] -- ^ Result column offset array declaration.
+defineColumnOffsets typeName' = do
   let ofsVar = columnOffsetsVarNameDefault $ conName typeName'
-  ar <- simpleValD (varName ofsVar) [t| Array Int Int |]
-        [| getProductConst (genericFieldOffsets :: ProductConst (Array Int Int) $(toTypeCon typeName')) |]
-  pw <- [d| instance PersistableWidth $(toTypeCon typeName')
-          |]
-  return $ ar ++ pw
+  simpleValD (varName ofsVar) [t| Array Int Int |]
+    [| getProductConst (genericFieldOffsets :: ProductConst (Array Int Int) $(toTypeCon typeName')) |]
 
--- | Record type declaration template.
+-- | Record type definition template.
 defineRecordType :: ConName            -- ^ Name of the data type of table record type.
                  -> [(VarName, TypeQ)] -- ^ List of columns in the table. Must be legal, properly cased record columns.
                  -> [Name]             -- ^ Deriving type class names.
-                 -> Q [Dec]            -- ^ The data type record declaration.
+                 -> Q [Dec]            -- ^ The data type record definition
 defineRecordType typeName' columns derives = do
   let typeName = conName typeName'
       fld (n, tq) = varStrictType (varName n) (strictType isStrict tq)
@@ -186,22 +184,22 @@ defineRecordType typeName' columns derives = do
                       {- DROP this hack in future version ups. -}
               else    return   derives
   rec' <- dataD' (cxt []) typeName [] [recC typeName (map fld columns)] derives1
-  offs <- defineColumnOffsets typeName' [ty | (_, ty) <- columns]
-  return $ rec' : offs
+  offs <- defineColumnOffsets typeName'
+  pw   <- definePersistableWidthInstance (conT typeName) []
+  return $ rec' : offs ++ pw
 
--- | Record type declaration template with configured names.
+-- | Record type definition template with configured names.
 defineRecordTypeWithConfig :: NameConfig -> String -> String -> [(String, TypeQ)] -> [Name] -> Q [Dec]
 defineRecordTypeWithConfig config schema table columns =
   defineRecordType
   (recordTypeName config schema table)
   [ (columnName config schema n, t) | (n, t) <- columns ]
 
-
 -- | Record parser and printer instance templates for converting
 --   between list of SQL type and Haskell record type.
 definePersistableInstance :: TypeQ   -- ^ SQL value type.
                           -> TypeQ   -- ^ Record type constructor.
-                          -> Q [Dec] -- ^ Instance declarations.
+                          -> Q [Dec] -- ^ Instance definitions.
 definePersistableInstance sqlType typeCon = do
   [d| instance FromSql $sqlType $typeCon
       instance ToSql $sqlType $typeCon
@@ -212,7 +210,7 @@ defineRecord :: TypeQ              -- ^ SQL value type
              -> ConName            -- ^ Record type name
              -> [(VarName, TypeQ)] -- ^ Column schema
              -> [Name]             -- ^ Record derivings
-             -> Q [Dec]            -- ^ Result declarations
+             -> Q [Dec]            -- ^ Result definitions
 defineRecord
   sqlValueType
   tyC
@@ -229,7 +227,7 @@ defineRecordWithConfig :: TypeQ             -- ^ SQL value type
                      -> String            -- ^ Table name
                      -> [(String, TypeQ)] -- ^ Column names and types
                      -> [Name]            -- ^ Record derivings
-                     -> Q [Dec]           -- ^ Result declarations
+                     -> Q [Dec]           -- ^ Result definitions
 defineRecordWithConfig sqlValueType config schema table columns derives = do
   typ     <- defineRecordTypeWithConfig config schema table columns derives
   withSql <- definePersistableInstance sqlValueType . fst $ recordTemplate config schema table

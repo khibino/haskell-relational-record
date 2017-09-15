@@ -39,7 +39,7 @@ import Language.Haskell.TH.Name.CamelCase (varCamelcaseName)
 import Language.Haskell.TH.Lib.Extra (reportWarning, reportError)
 
 import Database.Record (ToSql, FromSql)
-import Database.Record.TH (recordTemplate)
+import Database.Record.TH (recordTemplate, defineSqlPersistableInstances)
 import Database.Relational
   (Config, nameConfig, recordConfig, verboseAsCompilerWarning, defaultConfig,
    Relation, relationalQuerySQL, QuerySuffix)
@@ -64,8 +64,8 @@ makeRelationalRecord :: Name    -- ^ Type constructor name
                      -> Q [Dec] -- ^ Result declaration
 makeRelationalRecord recTypeName = do
   rr <- Relational.makeRelationalRecordDefault recTypeName
-  ((typeCon, _), _) <- reifyRecordType recTypeName
-  ps <- defineInstancesForSqlValue typeCon
+  (((typeCon, avs), _), _) <- reifyRecordType recTypeName
+  ps <- defineSqlPersistableInstances [t| SqlValue |] typeCon avs
   return $ rr ++ ps
 
 -- | Generate all HDBC templates about table except for constraint keys.
@@ -77,7 +77,9 @@ defineTableDefault' :: Config            -- ^ Configuration to generate query wi
                     -> Q [Dec]           -- ^ Result declaration
 defineTableDefault' config schema table columns derives = do
   modelD <- Relational.defineTableTypesAndRecord config schema table columns derives
-  sqlvD <- defineInstancesForSqlValue . fst $ recordTemplate (recordConfig $ nameConfig config) schema table
+  sqlvD <- defineSqlPersistableInstances [t| SqlValue |]
+           (fst $ recordTemplate (recordConfig $ nameConfig config) schema table)
+           []
   return $ modelD ++ sqlvD
 
 -- | Generate all HDBC templates about table.

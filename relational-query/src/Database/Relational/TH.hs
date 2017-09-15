@@ -69,8 +69,8 @@ import Data.Functor.ProductIsomorphic.TH
 import Data.Functor.ProductIsomorphic.Unsafe (ProductConstructor (..))
 
 import Language.Haskell.TH
-  (Name, nameBase, Q, reify, TypeQ, Type (AppT, ConT), ExpQ,
-   tupleT, appT, arrowT, Dec, stringE, listE)
+  (Name, nameBase, Q, reify, Dec, instanceD, ExpQ, stringE, listE,
+   TypeQ, Type (AppT, ConT), varT, tupleT, appT, arrowT, classP)
 import Language.Haskell.TH.Compat.Reify (unVarI)
 import Language.Haskell.TH.Name.CamelCase
   (VarName, varName, ConName (ConName), conName, varNameWithPrefix, varCamelcaseName, toVarExp, toTypeCon)
@@ -454,13 +454,15 @@ makeRelationalRecordDefault :: Name    -- ^ Type constructor name
                             -> Q [Dec] -- ^ Result declaration
 makeRelationalRecordDefault recTypeName = do
   let recTypeConName = ConName recTypeName
-  ((tyCon, _dataCon), (mayNs, cts)) <- reifyRecordType recTypeName
-  pw <- Record.defineColumnOffsets recTypeConName cts
+  (((tyCon, vars), _dataCon), (mayNs, cts)) <- reifyRecordType recTypeName
+  off <- Record.defineColumnOffsets recTypeConName
+  pw <- Record.definePersistableWidthInstance tyCon vars
   cs <- maybe
         (return [])
         (\ns -> defineColumnsDefault recTypeConName
                 [ ((nameBase n, ct), Nothing) | n  <- ns  | ct <- cts ])
         mayNs
   pc <- defineProductConstructor recTypeName
-  ct <- [d| instance ShowConstantTermsSQL $tyCon |]
-  return $ concat [pw, cs, pc, ct]
+  let scPred v = classP ''ShowConstantTermsSQL [varT v]
+  ct <- instanceD (mapM scPred vars) (appT [t| ShowConstantTermsSQL |] tyCon) []
+  return $ concat [off, pw, cs, pc, [ct]]

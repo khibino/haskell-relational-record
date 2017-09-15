@@ -37,7 +37,7 @@ library
   build-depends:          base <5
                         , template-haskell
                         , th-data-compat
-                        , product-isomorphic
+                        , product-isomorphic >= 0.0.3
                         , array
                         , containers
                         , transformers
