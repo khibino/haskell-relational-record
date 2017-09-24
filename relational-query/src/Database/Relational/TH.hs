@@ -89,7 +89,7 @@ import Database.Relational
    Insert, derivedInsert, InsertQuery, derivedInsertQuery,
    HasConstraintKey(constraintKey), Primary, NotNull, primary, primaryUpdate)
 
-import Database.Relational.BaseTH (defineTuplePi)
+import Database.Relational.BaseTH (defineTuplePi, defineRecordProjections)
 import Database.Relational.Scalar (defineScalarDegree)
 import Database.Relational.Constraint (Key, unsafeDefineConstraintKey)
 import Database.Relational.Table (TableDerivable (..))
@@ -455,14 +455,21 @@ makeRelationalRecordDefault :: Name    -- ^ Type constructor name
 makeRelationalRecordDefault recTypeName = do
   let recTypeConName = ConName recTypeName
   (((tyCon, vars), _dataCon), (mayNs, cts)) <- reifyRecordType recTypeName
-  off <- Record.defineColumnOffsets recTypeConName
   pw <- Record.definePersistableWidthInstance tyCon vars
-  cs <- maybe
-        (return [])
-        (\ns -> defineColumnsDefault recTypeConName
-                [ ((nameBase n, ct), Nothing) | n  <- ns  | ct <- cts ])
-        mayNs
+  cols <- case mayNs of
+    Nothing   ->  return []
+    Just ns   ->  case vars of
+      []      ->  do {- monomorphic case -}
+        off <- Record.defineColumnOffsets recTypeConName
+        cs  <- defineColumnsDefault recTypeConName
+               [ ((nameBase n, ct), Nothing) | n  <- ns  | ct <- cts ]
+        return $ off ++ cs
+      _:_     ->     {- polymorphic case -}
+        defineRecordProjections tyCon vars
+          [varName $ varCamelcaseName (nameBase n ++ "'") | n <- ns]
+          cts
+
   pc <- defineProductConstructor recTypeName
   let scPred v = classP ''ShowConstantTermsSQL [varT v]
   ct <- instanceD (mapM scPred vars) (appT [t| ShowConstantTermsSQL |] tyCon) []
-  return $ concat [off, pw, cs, pc, [ct]]
+  return $ concat [pw, cols, pc, [ct]]

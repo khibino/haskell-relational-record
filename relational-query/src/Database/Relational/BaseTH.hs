@@ -15,10 +15,12 @@
 module Database.Relational.BaseTH (
   defineTupleShowConstantInstance,
   defineTuplePi,
+
+  defineRecordProjections,
   ) where
 
 import Control.Applicative ((<$>))
-import Data.List (foldl')
+import Data.List (foldl', inits)
 import Language.Haskell.TH
   (Q, Name, mkName, normalB, classP, varP,
    TypeQ, forallT, varT, tupleT, appT,
@@ -48,22 +50,27 @@ defineTupleShowConstantInstance n = do
     [t| ShowConstantTermsSQL $tty |]
     []
 
-tuplePi :: Int -> Int -> Q [Dec]
-tuplePi n i = do
-  let selN = mkName $ "tuplePi" ++ show n ++ "_" ++ show i ++ "'"
-      ((ns, vs), tty) = tupleN n
-  sig <- sigD selN $
-         forallT (map PlainTV ns)
-         (mapM (classP ''PersistableWidth . (:[])) vs)
-         [t| Pi $tty $(vs !! i) |]
-  val <- valD (varP selN)
-         (normalB [| definePi $(foldl'
-                                (\e t -> [| $e + runPersistableRecordWidth (persistableWidth :: PersistableRecordWidth $t) |])
-                                [| 0 :: Int |] $ take i vs) |])
-         []
-  return [sig, val]
+-- | Make polymorphic projection templates.
+defineRecordProjections :: TypeQ -> [Name] -> [Name] -> [TypeQ] -> Q [Dec]
+defineRecordProjections tyRec avs sels cts =
+    fmap concat . sequence $ zipWith3 template cts (inits cts) sels
+  where
+    template :: TypeQ -> [TypeQ] -> Name -> Q [Dec]
+    template ct pcts selN = do
+      sig <- sigD selN $
+             forallT (map PlainTV avs)
+             (mapM (classP ''PersistableWidth . (:[]) . varT) avs)
+             [t| Pi $tyRec $ct |]
+      let runPW t = [| runPersistableRecordWidth (persistableWidth :: PersistableRecordWidth $t) |]
+      val <- valD (varP selN)
+             (normalB [| definePi $(foldl' (\e t -> [| $e + $(runPW t) |]) [| 0 :: Int |] pcts) |]) []
+      return [sig, val]
 
 -- | Make templates of projection paths for tuple types.
 defineTuplePi :: Int -> Q [Dec]
 defineTuplePi n =
-  concat <$> mapM (tuplePi n) [0 .. n - 1]
+  defineRecordProjections tyRec avs sels cts
+  where
+    ((avs, cts), tyRec) = tupleN n
+    sels = [ mkName $ "tuplePi" ++ show n ++ "_" ++ show i ++ "'"
+           | i <- [ 0 .. n - 1] ]
