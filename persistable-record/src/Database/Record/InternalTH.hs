@@ -5,9 +5,11 @@ module Database.Record.InternalTH (
   definePersistableWidthInstance,
   defineSqlPersistableInstances,
   defineTupleInstances,
+  knownWidthIntType,
   ) where
 
 import Control.Applicative ((<$>))
+import Data.Int (Int32, Int64)
 import Language.Haskell.TH
   (Q, mkName, Name, tupleTypeName,
    TypeQ, varT, classP, Dec, instanceD, )
@@ -64,3 +66,14 @@ defineTupleInstances :: Int -> Q [Dec]
 defineTupleInstances n =
   concat <$> sequence
   [ persistableWidth n, sqlInstances n ]
+
+knownWidthIntType :: Maybe TypeQ
+knownWidthIntType
+  | toI (minBound :: Int) == toI (minBound :: Int32) &&
+    toI (maxBound :: Int) == toI (maxBound :: Int32)    =  Just [t| Int |]
+  | toI (minBound :: Int) == toI (minBound :: Int64) &&
+    toI (maxBound :: Int) == toI (maxBound :: Int64)    =  Just [t| Int |]
+  | otherwise                                           =  Nothing
+  where
+    toI :: Integral a => a -> Integer
+    toI = fromIntegral

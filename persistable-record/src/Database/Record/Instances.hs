@@ -16,9 +16,10 @@
 module Database.Record.Instances () where
 
 import Data.Int (Int8, Int16, Int32, Int64)
+import Database.Record.InternalTH (knownWidthIntType)
 import Database.Record.TH (deriveNotNullType)
 
-$(fmap concat $ mapM deriveNotNullType
+$(fmap concat $ mapM deriveNotNullType $
   [ [t| Bool |]
   , [t| Char |]
   , [t| String |]
@@ -26,4 +27,5 @@ $(fmap concat $ mapM deriveNotNullType
   , [t| Int16 |]
   , [t| Int32 |]
   , [t| Int64 |]
-  ])
+  ] ++
+  [ t | Just t <- [knownWidthIntType] ])
