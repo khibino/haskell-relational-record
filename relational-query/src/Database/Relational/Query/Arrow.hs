@@ -15,5 +15,5 @@ module Database.Relational.Query.Arrow
          module Database.Relational.Compat,
        )  where
 
-import Database.Relational.Arrow
+import Database.Relational.Arrow hiding (unsafeShowSql', unsafeShowSql, )
 import Database.Relational.Compat

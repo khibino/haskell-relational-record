@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE KindSignatures #-}
 
 -- |
 -- Module      : Database.Relational.Compat
@@ -23,6 +24,8 @@ module Database.Relational.Compat
 
   ProjectableIdZip, rightId, leftId,
 
+  ProjectableShowSql (..), unsafeShowSql,
+
   -- * deprecated defintions about Pi
   pfmap, pap, pzero,
   ) where
@@ -32,7 +35,9 @@ import Data.Functor.ProductIsomorphic
    ProductIsoEmpty, pureE, peRight, peLeft, )
 import Data.Functor.ProductIsomorphic.Unsafe (ProductConstructor (..))
 
-import Database.Relational
+import Database.Relational hiding (unsafeShowSql', unsafeShowSql, )
+import Database.Relational.Internal.String (showStringSQL)
+import qualified Database.Relational.Record as Record
 
 {-# DEPRECATED Projection "Replaced by Record type" #-}
 -- | deprecated 'Projection' type replaced by 'Record' type.
@@ -76,3 +81,19 @@ pap = (|*|)
 -- | deprecated empty definition for Pi type. use 'pureE' instead of this.
 pzero :: Pi a ()
 pzero = pureE
+
+-- type classes
+
+{-# DEPRECATED ProjectableShowSql "specialized type 'Record c' should be used instead of this constraint." #-}
+-- | Interface to get SQL expression from a record.
+class ProjectableShowSql p where
+  unsafeShowSql' :: p a -> StringSQL
+{-# DEPRECATED unsafeShowSql' "Use Database.Relational.unsafeShowSql' instead of this." #-}
+
+
+instance ProjectableShowSql (Record c) where
+  unsafeShowSql' = Record.unsafeStringSql
+
+{-# DEPRECATED unsafeShowSql "Use Database.Relational.unsafeShowSql instead of this." #-}
+unsafeShowSql :: ProjectableShowSql p => p a -> String
+unsafeShowSql = showStringSQL . unsafeShowSql'
