@@ -295,8 +295,8 @@ groupBy = queryA Monadic.groupBy
 
 -- | Same as 'Monadic.placeholder'. Arrow version.
 --   The result arrow is designed to be injected by locally built arrow using placeholders.
-placeholder :: (PersistableWidth t, SqlProjectable p, Monad m)
-            => QueryA m (QueryA m (p t) a) (PlaceHolders t, a)
+placeholder :: (PersistableWidth t, SqlContext c, Monad m)
+            => QueryA m (QueryA m (Record c t) a) (PlaceHolders t, a)
 placeholder = queryA $ Monadic.placeholder . runQueryA
 
 -- | Same as 'Monadic.relation'.
@@ -403,7 +403,7 @@ partitionBy = queryA Monadic.partitionBy
 
 -- | Same as 'Monadic.over'.
 --   Make record of window function result using built 'Window' arrow.
-over :: SqlProjectable (Record c)
+over :: SqlContext c
      => Record OverWindow a -> Window c () () -> Record c a
 over po = runAofM $ Monadic.over po
 

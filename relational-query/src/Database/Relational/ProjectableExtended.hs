@@ -39,7 +39,7 @@ import Database.Relational.SqlSyntax (Predicate, Record, )
 
 import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable
-  (unsafeUniOp, ProjectableMaybe (flattenMaybe), SqlProjectable)
+  (unsafeUniOp, ProjectableMaybe (flattenMaybe), SqlContext)
 import Database.Relational.Pi (Pi)
 
 
@@ -48,68 +48,68 @@ instance AggregatedContext Aggregated
 instance AggregatedContext OverWindow
 
 -- | Unsafely make aggregation uni-operator from SQL keyword.
-unsafeAggregateOp :: (AggregatedContext ac, SqlProjectable (p ac))
-                  => SQL.Keyword -> Record Flat a -> p ac b
+unsafeAggregateOp :: (AggregatedContext ac, SqlContext ac)
+                  => SQL.Keyword -> Record Flat a -> Record ac b
 unsafeAggregateOp op = unsafeUniOp ((op SQL.<++>) . SQL.paren)
 
 -- | Aggregation function COUNT.
-count :: (Integral b, AggregatedContext ac, SqlProjectable (p ac))
-      => Record Flat a -> p ac b
+count :: (Integral b, AggregatedContext ac, SqlContext ac)
+      => Record Flat a -> Record ac b
 count =  unsafeAggregateOp SQL.COUNT
 
 -- | Aggregation function SUM.
-sumMaybe :: (Num a, AggregatedContext ac, SqlProjectable (p ac))
-         => Record Flat (Maybe a) -> p ac (Maybe a)
+sumMaybe :: (Num a, AggregatedContext ac, SqlContext ac)
+         => Record Flat (Maybe a) -> Record ac (Maybe a)
 sumMaybe  =  unsafeAggregateOp SQL.SUM
 
 -- | Aggregation function SUM.
-sum' :: (Num a, AggregatedContext ac, SqlProjectable (p ac))
-     => Record Flat a -> p ac (Maybe a)
+sum' :: (Num a, AggregatedContext ac, SqlContext ac)
+     => Record Flat a -> Record ac (Maybe a)
 sum'  =  sumMaybe . Record.just
 
 -- | Aggregation function AVG.
-avgMaybe :: (Num a, Fractional b, AggregatedContext ac, SqlProjectable (p ac))
-         => Record Flat (Maybe a) -> p ac (Maybe b)
+avgMaybe :: (Num a, Fractional b, AggregatedContext ac, SqlContext ac)
+         => Record Flat (Maybe a) -> Record ac (Maybe b)
 avgMaybe   =  unsafeAggregateOp SQL.AVG
 
 -- | Aggregation function AVG.
-avg :: (Num a, Fractional b, AggregatedContext ac, SqlProjectable (p ac))
-    => Record Flat a -> p ac (Maybe b)
+avg :: (Num a, Fractional b, AggregatedContext ac, SqlContext ac)
+    => Record Flat a -> Record ac (Maybe b)
 avg =  avgMaybe . Record.just
 
 -- | Aggregation function MAX.
-maxMaybe :: (Ord a, AggregatedContext ac, SqlProjectable (p ac))
-         => Record Flat (Maybe a) -> p ac (Maybe a)
+maxMaybe :: (Ord a, AggregatedContext ac, SqlContext ac)
+         => Record Flat (Maybe a) -> Record ac (Maybe a)
 maxMaybe  =  unsafeAggregateOp SQL.MAX
 
 -- | Aggregation function MAX.
-max' :: (Ord a, AggregatedContext ac, SqlProjectable (p ac))
-     => Record Flat a -> p ac (Maybe a)
+max' :: (Ord a, AggregatedContext ac, SqlContext ac)
+     => Record Flat a -> Record ac (Maybe a)
 max' =  maxMaybe . Record.just
 
 -- | Aggregation function MIN.
-minMaybe :: (Ord a, AggregatedContext ac, SqlProjectable (p ac))
-         => Record Flat (Maybe a) -> p ac (Maybe a)
+minMaybe :: (Ord a, AggregatedContext ac, SqlContext ac)
+         => Record Flat (Maybe a) -> Record ac (Maybe a)
 minMaybe  =  unsafeAggregateOp SQL.MIN
 
 -- | Aggregation function MIN.
-min' :: (Ord a, AggregatedContext ac, SqlProjectable (p ac))
-     => Record Flat a -> p ac (Maybe a)
+min' :: (Ord a, AggregatedContext ac, SqlContext ac)
+     => Record Flat a -> Record ac (Maybe a)
 min' =  minMaybe . Record.just
 
 -- | Aggregation function EVERY.
-every :: (AggregatedContext ac, SqlProjectable (p ac))
-      => Predicate Flat -> p ac (Maybe Bool)
+every :: (AggregatedContext ac, SqlContext ac)
+      => Predicate Flat -> Record ac (Maybe Bool)
 every =  unsafeAggregateOp SQL.EVERY
 
 -- | Aggregation function ANY.
-any' :: (AggregatedContext ac, SqlProjectable (p ac))
-     => Predicate Flat -> p ac (Maybe Bool)
+any' :: (AggregatedContext ac, SqlContext ac)
+     => Predicate Flat -> Record ac (Maybe Bool)
 any'  =  unsafeAggregateOp SQL.ANY
 
 -- | Aggregation function SOME.
-some' :: (AggregatedContext ac, SqlProjectable (p ac))
-      => Predicate Flat -> p ac (Maybe Bool)
+some' :: (AggregatedContext ac, SqlContext ac)
+      => Predicate Flat -> Record ac (Maybe Bool)
 some' =  unsafeAggregateOp SQL.SOME
 
 -- | Get narrower record along with projection path.

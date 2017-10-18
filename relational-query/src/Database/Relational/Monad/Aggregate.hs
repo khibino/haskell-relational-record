@@ -40,7 +40,7 @@ import Database.Relational.SqlSyntax
 import qualified Database.Relational.SqlSyntax as Syntax
 
 import qualified Database.Relational.Record as Record
-import Database.Relational.Projectable (PlaceHolders, SqlProjectable)
+import Database.Relational.Projectable (PlaceHolders, SqlContext)
 import Database.Relational.Monad.Class (MonadRestrict(..))
 import Database.Relational.Monad.Trans.Restricting
   (Restrictings, restrictings, extractRestrict)
@@ -90,7 +90,7 @@ extractWindow :: Window c a -> ((a, [OrderingTerm]), [AggregateColumnRef])
 extractWindow =  runIdentity . extractAggregateTerms . extractOrderingTerms
 
 -- | Operator to make record of window function result using built 'Window' monad.
-over :: SqlProjectable (Record c)
+over :: SqlContext c
      => Record OverWindow a
      -> Window c ()
      -> Record c a

@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE KindSignatures #-}
 
@@ -24,6 +25,7 @@ module Database.Relational.Compat
 
   ProjectableIdZip, rightId, leftId,
 
+  SqlProjectable (..), unsafeProjectSql,
   ProjectableShowSql (..), unsafeShowSql,
 
   -- * deprecated defintions about Pi
@@ -35,9 +37,10 @@ import Data.Functor.ProductIsomorphic
    ProductIsoEmpty, pureE, peRight, peLeft, )
 import Data.Functor.ProductIsomorphic.Unsafe (ProductConstructor (..))
 
-import Database.Relational hiding (unsafeShowSql', unsafeShowSql, )
-import Database.Relational.Internal.String (showStringSQL)
+import Database.Relational hiding (unsafeShowSql', unsafeShowSql, unsafeProjectSqlTerms, unsafeProjectSql, )
+import Database.Relational.Internal.String (showStringSQL, stringSQL)
 import qualified Database.Relational.Record as Record
+import qualified Database.Relational.Projectable as Projectable
 
 {-# DEPRECATED Projection "Replaced by Record type" #-}
 -- | deprecated 'Projection' type replaced by 'Record' type.
@@ -84,12 +87,28 @@ pzero = pureE
 
 -- type classes
 
+
+{-# DEPRECATED SqlProjectable "use 'SqlContext c => Record c a' instead of 'SqlProjectable p => p a'." #-}
+-- | Interface to project SQL terms unsafely.
+class SqlProjectable p where
+  -- | Unsafely project from SQL expression terms.
+  unsafeProjectSqlTerms :: [StringSQL] -- ^ SQL expression strings
+                        -> p t         -- ^ Result record
+{-# DEPRECATED unsafeProjectSqlTerms "Use Database.Relational.unsafeProjectSqlTerms instead of this." #-}
+
+-- | Unsafely make 'Record' from SQL terms.
+instance SqlContext c => SqlProjectable (Record c) where
+  unsafeProjectSqlTerms = Projectable.unsafeProjectSqlTerms
+
+{-# DEPRECATED unsafeProjectSql "Use Database.Relational.unsafeProjectSql instead of this." #-}
+unsafeProjectSql :: SqlProjectable p => String -> p a
+unsafeProjectSql = unsafeProjectSqlTerms . (:[]) . stringSQL
+
 {-# DEPRECATED ProjectableShowSql "specialized type 'Record c' should be used instead of this constraint." #-}
 -- | Interface to get SQL expression from a record.
 class ProjectableShowSql p where
   unsafeShowSql' :: p a -> StringSQL
 {-# DEPRECATED unsafeShowSql' "Use Database.Relational.unsafeShowSql' instead of this." #-}
-
 
 instance ProjectableShowSql (Record c) where
   unsafeShowSql' = Record.unsafeStringSql

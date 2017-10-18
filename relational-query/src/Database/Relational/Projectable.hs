@@ -15,7 +15,7 @@
 -- This module defines operators on various projected records.
 module Database.Relational.Projectable (
   -- * Projectable from SQL strings
-  SqlProjectable (unsafeProjectSqlTerms), unsafeProjectSql',
+  SqlContext (unsafeProjectSqlTerms), unsafeProjectSql',
   unsafeProjectSql,
 
   -- * Records of values
@@ -91,57 +91,58 @@ import qualified Database.Relational.Record as Record
 
 
 -- | Interface to project SQL terms unsafely.
-class SqlProjectable p where
+class SqlContext c where
   -- | Unsafely project from SQL expression terms.
-  unsafeProjectSqlTerms :: [StringSQL] -- ^ SQL expression strings
-                        -> p t         -- ^ Result record
+  unsafeProjectSqlTerms :: [StringSQL]
+                        -> Record c t
 
 -- | Unsafely make 'Record' from SQL terms.
-instance SqlProjectable (Record Flat) where
+instance SqlContext Flat where
   unsafeProjectSqlTerms = Record.unsafeFromSqlTerms
 
 -- | Unsafely make 'Record' from SQL terms.
-instance SqlProjectable (Record Aggregated) where
+instance SqlContext Aggregated where
   unsafeProjectSqlTerms = Record.unsafeFromSqlTerms
 
 -- | Unsafely make 'Record' from SQL terms.
-instance SqlProjectable (Record OverWindow) where
+instance SqlContext OverWindow where
   unsafeProjectSqlTerms = Record.unsafeFromSqlTerms
 
-class SqlProjectable p => OperatorProjectable p
-instance OperatorProjectable (Record Flat)
-instance OperatorProjectable (Record Aggregated)
+class SqlContext c => OperatorContext c
+instance OperatorContext Flat
+instance OperatorContext Aggregated
+
 
 -- | Unsafely Project single SQL term.
-unsafeProjectSql' :: SqlProjectable p => StringSQL -> p t
-unsafeProjectSql' =  unsafeProjectSqlTerms . (:[])
+unsafeProjectSql' :: SqlContext c => StringSQL -> Record c t
+unsafeProjectSql' = unsafeProjectSqlTerms . (:[])
 
--- | Unsafely Project single SQL string. String interface of 'unsafeProjectSql''.
-unsafeProjectSql :: SqlProjectable p => String -> p t
-unsafeProjectSql =  unsafeProjectSql' . stringSQL
+-- | Unsafely Project single SQL string. String interface of 'unsafeProjectSql'''.
+unsafeProjectSql :: SqlContext c => String -> Record c t
+unsafeProjectSql = unsafeProjectSql' . stringSQL
 
 -- | Record with polymorphic phantom type of SQL null value. Semantics of comparing is unsafe.
-nothing :: (OperatorProjectable (Record c), SqlProjectable (Record c), PersistableWidth a)
+nothing :: (OperatorContext c, SqlContext c, PersistableWidth a)
         => Record c (Maybe a)
 nothing = proxyWidth persistableWidth
   where
-    proxyWidth :: SqlProjectable (Record c) => PersistableRecordWidth a -> Record c (Maybe a)
+    proxyWidth :: SqlContext c => PersistableRecordWidth a -> Record c (Maybe a)
     proxyWidth w = unsafeProjectSqlTerms $ replicate (runPersistableRecordWidth w) SQL.NULL
 
 -- | Generate record with polymorphic type of SQL constant values from Haskell value.
-value :: (ShowConstantTermsSQL t, OperatorProjectable p) => t -> p t
+value :: (ShowConstantTermsSQL t, OperatorContext c) => t -> Record c t
 value = unsafeProjectSqlTerms . showConstantTermsSQL
 
 -- | Record with polymorphic type of SQL true value.
-valueTrue  :: (OperatorProjectable p, ProjectableMaybe p) => p (Maybe Bool)
+valueTrue  :: (OperatorContext c, ProjectableMaybe (Record c)) => Record c (Maybe Bool)
 valueTrue  =  just $ value True
 
 -- | Record with polymorphic type of SQL false value.
-valueFalse :: (OperatorProjectable p, ProjectableMaybe p) => p (Maybe Bool)
+valueFalse :: (OperatorContext c, ProjectableMaybe (Record c)) => Record c (Maybe Bool)
 valueFalse =  just $ value False
 
 -- | RecordList with polymorphic type of SQL set value from Haskell list.
-values :: (ShowConstantTermsSQL t, OperatorProjectable p) => [t] -> RecordList p t
+values :: (ShowConstantTermsSQL t, OperatorContext c) => [t] -> RecordList (Record c) t
 values =  Record.list . map value
 
 
@@ -160,222 +161,222 @@ unsafeShowSql =  showStringSQL . unsafeShowSql'
 type SqlBinOp = Keyword -> Keyword -> Keyword
 
 -- | Unsafely make unary operator for records from SQL keyword.
-unsafeUniOp :: SqlProjectable p1
-            => (Keyword -> Keyword) -> Record c a -> p1 b
+unsafeUniOp :: SqlContext c2
+            => (Keyword -> Keyword) -> Record c1 a -> Record c2 b
 unsafeUniOp u = unsafeProjectSql' . u . unsafeShowSql'
 
-unsafeFlatUniOp :: SqlProjectable (Record c)
+unsafeFlatUniOp :: SqlContext c
                 => Keyword -> Record c a -> Record c b
 unsafeFlatUniOp kw = unsafeUniOp (SQL.paren . SQL.defineUniOp kw)
 
 -- | Unsafely make binary operator for records from string binary operator.
-unsafeBinOp :: SqlProjectable (Record k)
+unsafeBinOp :: SqlContext k
             => SqlBinOp
             -> Record k a -> Record k b -> Record k c
 unsafeBinOp op a b = unsafeProjectSql' . SQL.paren $
                      op (unsafeShowSql' a) (unsafeShowSql' b)
 
 -- | Unsafely make binary operator to compare records from string binary operator.
-compareBinOp :: SqlProjectable (Record c)
+compareBinOp :: SqlContext c
              => SqlBinOp
              -> Record c a -> Record c a -> Record c (Maybe Bool)
 compareBinOp =  unsafeBinOp
 
 -- | Unsafely make numrical binary operator for records from string binary operator.
-monoBinOp :: SqlProjectable (Record c)
+monoBinOp :: SqlContext c
           => SqlBinOp
           -> Record c a -> Record c a -> Record c a
 monoBinOp =  unsafeBinOp
 
 
 -- | Compare operator corresponding SQL /=/ .
-(.=.)  :: OperatorProjectable (Record c)
+(.=.)  :: OperatorContext c
        => Record c ft -> Record c ft -> Record c (Maybe Bool)
 (.=.)  =  compareBinOp (SQL..=.)
 
 -- | Compare operator corresponding SQL /</ .
-(.<.)  :: OperatorProjectable (Record c)
+(.<.)  :: OperatorContext c
        => Record c ft -> Record c ft -> Record c (Maybe Bool)
 (.<.)  =  compareBinOp (SQL..<.)
 
 -- | Compare operator corresponding SQL /<=/ .
-(.<=.)  :: OperatorProjectable (Record c)
+(.<=.)  :: OperatorContext c
         => Record c ft -> Record c ft -> Record c (Maybe Bool)
 (.<=.)  =  compareBinOp (SQL..<=.)
 
 -- | Compare operator corresponding SQL />/ .
-(.>.)  :: OperatorProjectable (Record c)
+(.>.)  :: OperatorContext c
        => Record c ft -> Record c ft -> Record c (Maybe Bool)
 (.>.)  =  compareBinOp (SQL..>.)
 
 -- | Compare operator corresponding SQL />=/ .
-(.>=.)  :: OperatorProjectable (Record c)
+(.>=.)  :: OperatorContext c
         => Record c ft -> Record c ft -> Record c (Maybe Bool)
 (.>=.)  =  compareBinOp (SQL..>=.)
 
 -- | Compare operator corresponding SQL /<>/ .
-(.<>.) :: OperatorProjectable (Record c)
+(.<>.) :: OperatorContext c
        => Record c ft -> Record c ft -> Record c (Maybe Bool)
 (.<>.) =  compareBinOp (SQL..<>.)
 
 -- | Logical operator corresponding SQL /AND/ .
-and' :: OperatorProjectable (Record c)
+and' :: OperatorContext c
      => Record c (Maybe Bool) -> Record c (Maybe Bool) -> Record c (Maybe Bool)
 and' = monoBinOp SQL.and
 
 -- | Logical operator corresponding SQL /OR/ .
-or' :: OperatorProjectable (Record c)
+or' :: OperatorContext c
     => Record c (Maybe Bool) -> Record c (Maybe Bool) -> Record c (Maybe Bool)
 or'  = monoBinOp SQL.or
 
 -- | Logical operator corresponding SQL /NOT/ .
-not' :: OperatorProjectable (Record c)
+not' :: OperatorContext c
      => Record c (Maybe Bool) -> Record c (Maybe Bool)
 not' =  unsafeFlatUniOp SQL.NOT
 
 -- | Logical operator corresponding SQL /EXISTS/ .
-exists :: OperatorProjectable (Record c)
+exists :: OperatorContext c
        => RecordList (Record Exists) r -> Record c (Maybe Bool)
 exists =  unsafeProjectSql' . SQL.paren . SQL.defineUniOp SQL.EXISTS
           . Record.unsafeStringSqlList unsafeShowSql'
 
 -- | Concatinate operator corresponding SQL /||/ .
-(.||.) :: OperatorProjectable (Record c)
+(.||.) :: OperatorContext c
        => Record c a -> Record c a -> Record c a
 (.||.) =  unsafeBinOp (SQL..||.)
 
 -- | Concatinate operator corresponding SQL /||/ . Maybe type version.
-(?||?) :: (OperatorProjectable (Record c), IsString a)
+(?||?) :: (OperatorContext c, IsString a)
        => Record c (Maybe a) -> Record c (Maybe a) -> Record c (Maybe a)
 (?||?) =  unsafeBinOp (SQL..||.)
 
-unsafeLike :: OperatorProjectable (Record c)
+unsafeLike :: OperatorContext c
            => Record c a -> Record c b -> Record c (Maybe Bool)
 unsafeLike = unsafeBinOp (SQL.defineBinOp SQL.LIKE)
 
 -- | String-compare operator corresponding SQL /LIKE/ .
-like' :: (OperatorProjectable (Record c), IsString a)
+like' :: (OperatorContext c, IsString a)
       => Record c a -> Record c a -> Record c (Maybe Bool)
 x `like'` y = x `unsafeLike` y
 
 -- | String-compare operator corresponding SQL /LIKE/ .
-likeMaybe' :: (OperatorProjectable (Record c), IsString a)
+likeMaybe' :: (OperatorContext c, IsString a)
            => Record c (Maybe a) -> Record c (Maybe a) -> Record c (Maybe Bool)
 x `likeMaybe'` y = x `unsafeLike` y
 
 -- | String-compare operator corresponding SQL /LIKE/ .
-like :: (OperatorProjectable (Record c), IsString a, ShowConstantTermsSQL a)
+like :: (OperatorContext c, IsString a, ShowConstantTermsSQL a)
        => Record c a -> a -> Record c (Maybe Bool)
 x `like` a = x `like'` value a
 
 -- | String-compare operator corresponding SQL /LIKE/ . Maybe type version.
-likeMaybe :: (OperatorProjectable (Record c), IsString a, ShowConstantTermsSQL a)
+likeMaybe :: (OperatorContext c, IsString a, ShowConstantTermsSQL a)
           => Record c (Maybe a) -> a -> Record c (Maybe Bool)
 x `likeMaybe` a = x `unsafeLike` value a
 
 -- | Unsafely make number binary operator for records from SQL operator string.
-monoBinOp' :: SqlProjectable (Record c)
+monoBinOp' :: SqlContext c
            => Keyword -> Record c a -> Record c a -> Record c a
 monoBinOp' = monoBinOp . SQL.defineBinOp
 
 -- | Number operator corresponding SQL /+/ .
-(.+.) :: (OperatorProjectable (Record c), Num a)
+(.+.) :: (OperatorContext c, Num a)
       => Record c a -> Record c a -> Record c a
 (.+.) =  monoBinOp' "+"
 
 -- | Number operator corresponding SQL /-/ .
-(.-.) :: (OperatorProjectable (Record c), Num a)
+(.-.) :: (OperatorContext c, Num a)
       => Record c a -> Record c a -> Record c a
 (.-.) =  monoBinOp' "-"
 
 -- | Number operator corresponding SQL /// .
-(./.) :: (OperatorProjectable (Record c), Num a)
+(./.) :: (OperatorContext c, Num a)
       => Record c a -> Record c a -> Record c a
 (./.) =  monoBinOp' "/"
 
 -- | Number operator corresponding SQL /*/ .
-(.*.) :: (OperatorProjectable (Record c), Num a)
+(.*.) :: (OperatorContext c, Num a)
       => Record c a -> Record c a -> Record c a
 (.*.) =  monoBinOp' "*"
 
 -- | Number negate uni-operator corresponding SQL /-/.
-negate' :: (OperatorProjectable (Record c), Num a)
+negate' :: (OperatorContext c, Num a)
         => Record c a -> Record c a
 negate' =  unsafeFlatUniOp $ SQL.word "-"
 
-unsafeCastProjectable :: SqlProjectable (Record c)
+unsafeCastProjectable :: SqlContext c
                       => Record c a -> Record c b
 unsafeCastProjectable = unsafeProjectSql' . unsafeShowSql'
 
 -- | Number fromIntegral uni-operator.
-fromIntegral' :: (SqlProjectable (Record c), Integral a, Num b)
+fromIntegral' :: (SqlContext c, Integral a, Num b)
               => Record c a -> Record c b
 fromIntegral' =  unsafeCastProjectable
 
 -- | Unsafely show number into string-like type in records.
-showNum :: (SqlProjectable (Record c), Num a, IsString b)
+showNum :: (SqlContext c, Num a, IsString b)
         => Record c a -> Record c b
 showNum =  unsafeCastProjectable
 
 -- | Number operator corresponding SQL /+/ .
-(?+?) :: (OperatorProjectable (Record c), Num a)
+(?+?) :: (OperatorContext c, Num a)
       => Record c (Maybe a) -> Record c (Maybe a) -> Record c (Maybe a)
 (?+?) =  monoBinOp' "+"
 
 -- | Number operator corresponding SQL /-/ .
-(?-?) :: (OperatorProjectable (Record c), Num a)
+(?-?) :: (OperatorContext c, Num a)
       => Record c (Maybe a) -> Record c (Maybe a) -> Record c (Maybe a)
 (?-?) =  monoBinOp' "-"
 
 -- | Number operator corresponding SQL /// .
-(?/?) :: (OperatorProjectable (Record c), Num a)
+(?/?) :: (OperatorContext c, Num a)
       => Record c (Maybe a) -> Record c (Maybe a) -> Record c (Maybe a)
 (?/?) =  monoBinOp' "/"
 
 -- | Number operator corresponding SQL /*/ .
-(?*?) :: (OperatorProjectable (Record c), Num a)
+(?*?) :: (OperatorContext c, Num a)
       => Record c (Maybe a) -> Record c (Maybe a) -> Record c (Maybe a)
 (?*?) =  monoBinOp' "*"
 
 -- | Number negate uni-operator corresponding SQL /-/.
-negateMaybe :: (OperatorProjectable (Record c), Num a)
+negateMaybe :: (OperatorContext c, Num a)
             => Record c (Maybe a) -> Record c (Maybe a)
 negateMaybe =  unsafeFlatUniOp $ SQL.word "-"
 
 -- | Number fromIntegral uni-operator.
-fromIntegralMaybe :: (SqlProjectable (Record c), Integral a, Num b)
+fromIntegralMaybe :: (SqlContext c, Integral a, Num b)
                   => Record c (Maybe a) -> Record c (Maybe b)
 fromIntegralMaybe =  unsafeCastProjectable
 
 -- | Unsafely show number into string-like type in records.
-showNumMaybe :: (SqlProjectable (Record c), Num a, IsString b)
+showNumMaybe :: (SqlContext c, Num a, IsString b)
              => Record c (Maybe a) -> Record c (Maybe b)
 showNumMaybe = unsafeCastProjectable
 
 -- | Search case operator correnponding SQL search /CASE/.
 --   Like, /CASE WHEN p0 THEN a WHEN p1 THEN b ... ELSE c END/
-caseSearch :: OperatorProjectable (Record c)
+caseSearch :: OperatorContext c
            => [(Predicate c, Record c a)] -- ^ Each when clauses
            -> Record c a                            -- ^ Else result record
            -> Record c a                            -- ^ Result record
 caseSearch = Syntax.caseSearch
 
 -- | Same as 'caseSearch', but you can write like <when list> `casesOrElse` <else clause>.
-casesOrElse :: OperatorProjectable (Record c)
+casesOrElse :: OperatorContext c
             => [(Predicate c, Record c a)] -- ^ Each when clauses
             -> Record c a                            -- ^ Else result record
             -> Record c a                            -- ^ Result record
 casesOrElse = caseSearch
 
 -- | Null default version of 'caseSearch'.
-caseSearchMaybe :: (OperatorProjectable (Record c) {- (Record c) is always ProjectableMaybe -}, PersistableWidth a)
+caseSearchMaybe :: (OperatorContext c {- (Record c) is always ProjectableMaybe -}, PersistableWidth a)
                 => [(Predicate c, Record c (Maybe a))] -- ^ Each when clauses
                 -> Record c (Maybe a)                            -- ^ Result record
 caseSearchMaybe cs = caseSearch cs nothing
 
 -- | Simple case operator correnponding SQL simple /CASE/.
 --   Like, /CASE x WHEN v THEN a WHEN w THEN b ... ELSE c END/
-case' :: OperatorProjectable (Record c)
+case' :: OperatorContext c
       => Record c a                 -- ^ Record value to match
       -> [(Record c a, Record c b)] -- ^ Each when clauses
       -> Record c b                 -- ^ Else result record
@@ -383,43 +384,43 @@ case' :: OperatorProjectable (Record c)
 case' = Syntax.case'
 
 -- | Uncurry version of 'case'', and you can write like ... `casesOrElse'` <else clause>.
-casesOrElse' :: OperatorProjectable (Record c)
+casesOrElse' :: OperatorContext c
              => (Record c a, [(Record c a, Record c b)]) -- ^ Record value to match and each when clauses list
              -> Record c b                               -- ^ Else result record
              -> Record c b                               -- ^ Result record
 casesOrElse' =  uncurry case'
 
 -- | Null default version of 'case''.
-caseMaybe :: (OperatorProjectable (Record c) {- (Record c) is always ProjectableMaybe -}, PersistableWidth b)
+caseMaybe :: (OperatorContext c {- (Record c) is always ProjectableMaybe -}, PersistableWidth b)
           => Record c a                         -- ^ Record value to match
           -> [(Record c a, Record c (Maybe b))] -- ^ Each when clauses
           -> Record c (Maybe b)                 -- ^ Result record
 caseMaybe v cs = case' v cs nothing
 
 -- | Binary operator corresponding SQL /IN/ .
-in' :: OperatorProjectable (Record c)
+in' :: OperatorContext c
     => Record c t -> RecordList (Record c) t -> Record c (Maybe Bool)
 in' a lp = unsafeProjectSql' . SQL.paren
            $ SQL.in' (unsafeShowSql' a) (Record.unsafeStringSqlList unsafeShowSql' lp)
 
 -- | Operator corresponding SQL /IS NULL/ , and extended against record types.
-isNothing :: (OperatorProjectable (Record c), HasColumnConstraint NotNull r)
+isNothing :: (OperatorContext c, HasColumnConstraint NotNull r)
           => Record c (Maybe r) -> Predicate c
 isNothing mr = unsafeProjectSql' $
                SQL.paren $ (SQL.defineBinOp SQL.IS)
                (Record.unsafeStringSqlNotNullMaybe mr) SQL.NULL
 
 -- | Operator corresponding SQL /NOT (... IS NULL)/ , and extended against record type.
-isJust :: (OperatorProjectable (Record c), HasColumnConstraint NotNull r)
+isJust :: (OperatorContext c, HasColumnConstraint NotNull r)
           => Record c (Maybe r) -> Predicate c
 isJust =  not' . isNothing
 
 -- | Operator from maybe type using record extended 'isNull'.
-fromMaybe :: (OperatorProjectable (Record c), HasColumnConstraint NotNull r)
+fromMaybe :: (OperatorContext c, HasColumnConstraint NotNull r)
           => Record c r -> Record c (Maybe r) -> Record c r
 fromMaybe d p = [ (isNothing p, d) ] `casesOrElse` unsafeCastProjectable p
 
-unsafeUniTermFunction :: SqlProjectable p => Keyword -> p t
+unsafeUniTermFunction :: SqlContext c => Keyword -> Record c t
 unsafeUniTermFunction =  unsafeProjectSql' . (SQL.<++> stringSQL "()")
 
 -- | /RANK()/ term.
@@ -466,23 +467,23 @@ unsafeCastPlaceHolders :: PlaceHolders a -> PlaceHolders b
 unsafeCastPlaceHolders PlaceHolders = PlaceHolders
 
 -- | Provide scoped placeholder from width and return its parameter object.
-pwPlaceholder :: SqlProjectable p
+pwPlaceholder :: SqlContext c
               => PersistableRecordWidth a
-              -> (p a -> b)
+              -> (Record c a -> b)
               -> (PlaceHolders a, b)
 pwPlaceholder pw f = (PlaceHolders, f $ projectPlaceHolder pw)
   where
-    projectPlaceHolder :: SqlProjectable p
+    projectPlaceHolder :: SqlContext c
                        => PersistableRecordWidth a
-                       -> p a
+                       -> Record c a
     projectPlaceHolder = unsafeProjectSqlTerms . (`replicate` "?") . runPersistableRecordWidth
 
 -- | Provide scoped placeholder and return its parameter object.
-placeholder' :: (PersistableWidth t, SqlProjectable p) => (p t -> a) ->  (PlaceHolders t, a)
+placeholder' :: (PersistableWidth t, SqlContext c) => (Record c t -> a) ->  (PlaceHolders t, a)
 placeholder' = pwPlaceholder persistableWidth
 
 -- | Provide scoped placeholder and return its parameter object. Monadic version.
-placeholder :: (PersistableWidth t, SqlProjectable p, Monad m) => (p t -> m a) -> m (PlaceHolders t, a)
+placeholder :: (PersistableWidth t, SqlContext c, Monad m) => (Record c t -> m a) -> m (PlaceHolders t, a)
 placeholder f = do
   let (ph, ma) = placeholder' f
   a <- ma

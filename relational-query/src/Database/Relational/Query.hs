@@ -15,5 +15,5 @@ module Database.Relational.Query
          module Database.Relational.Compat,
        )  where
 
-import Database.Relational hiding (unsafeShowSql', unsafeShowSql, )
+import Database.Relational hiding (unsafeShowSql', unsafeShowSql, unsafeProjectSqlTerms, unsafeProjectSql)
 import Database.Relational.Compat
