@@ -87,7 +87,6 @@ pzero = pureE
 
 -- type classes
 
-
 {-# DEPRECATED SqlProjectable "use 'SqlContext c => Record c a' instead of 'SqlProjectable p => p a'." #-}
 -- | Interface to project SQL terms unsafely.
 class SqlProjectable p where
