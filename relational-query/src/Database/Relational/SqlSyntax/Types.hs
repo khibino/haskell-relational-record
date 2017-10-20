@@ -37,9 +37,9 @@ module Database.Relational.SqlSyntax.Types (
   -- * Case
   CaseClause (..), WhenClauses(..),
 
-  -- * Column, Tuple and Record
+  -- * Column, Tuple, Record and Projection
   Column (..), Tuple, tupleWidth,
-  Record, untypeRecord, record,
+  Record, untypeRecord, record, PI,
   recordWidth,
   typeFromRawColumns,
   typeFromScalarSubQuery,
@@ -188,6 +188,9 @@ newtype Record c t =
 
 -- | Type for predicate to restrict of query result.
 type Predicate c = Record c (Maybe Bool)
+
+-- | Type for projection function.
+type PI c a b = Record c a -> Record c b
 
 -- | Unsafely type 'Tuple' value to 'Record' type.
 record :: Tuple -> Record c t
