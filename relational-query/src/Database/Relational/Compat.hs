@@ -17,7 +17,7 @@
 module Database.Relational.Compat
   {-# DEPRECATED "backward compatibility definitions relational-query <= 0.9.*" #-} (
   -- * deprecated types
-  Projection,
+  Projection, ListProjection,
 
   -- * deprecated classes
   ProductConstructor (..),
@@ -45,6 +45,10 @@ import qualified Database.Relational.Projectable as Projectable
 {-# DEPRECATED Projection "Replaced by Record type" #-}
 -- | deprecated 'Projection' type replaced by 'Record' type.
 type Projection = Record
+
+{-# DEPRECATED ListProjection "Replaced by RecordList type" #-}
+-- | deprecated 'Projection' type replaced by 'Record' type.
+type ListProjection = RecordList
 
 {-# DEPRECATED ProjectableFunctor "use ProductIsoFunctor in Data.Functor.ProductIsomorphic instead of this. " #-}
 -- | deprecated 'ProjectableFunctor' class replaced by 'ProductIsoFunctor' class.
