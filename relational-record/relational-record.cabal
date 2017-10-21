@@ -17,6 +17,7 @@ library
                      Database.Relational.Documentation
 
   build-depends:       base <5
+                     , product-isomorphic >= 0.0.3
                      , persistable-record >= 0.5
                      , relational-query >=0.9
                      , relational-query-HDBC

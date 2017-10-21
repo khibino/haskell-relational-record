@@ -53,12 +53,12 @@ module Database.Relational.Documentation (
   UpdateTarget, updateTarget,
   Restriction, restriction,
 
-  -- ** Projection
-  -- $projection
+  -- ** Record
+  -- $record
 
-  -- *** Projection Type
-  -- $projectionType
-  Projection,
+  -- *** Record Type
+  -- $recordType
+  Record,
 
   Flat, Aggregated,
 
@@ -69,7 +69,7 @@ module Database.Relational.Documentation (
   Pi, (!), (<.>),
 
   -- *** Projection Operators
-  -- $projectionOperators
+  -- $recordOperators
   ShowConstantTermsSQL,
 
   value, values,
@@ -104,8 +104,8 @@ module Database.Relational.Documentation (
   -- $setOperators
   union, except, intersect,
 
-  -- ** Maybe Projections
-  -- $maybeProjection
+  -- ** Maybe Records
+  -- $maybeRecord
   just, flattenMaybe,
 
   (?!), (?!?),
@@ -129,8 +129,8 @@ module Database.Relational.Documentation (
   -- ** Record Mapping
   -- $recordMapping
   ProductConstructor,
-  ProjectableFunctor (..),
-  ProjectableApplicative (..),
+  ProductIsoFunctor (..),
+  ProductIsoApplicative (..),
   (><),
 
   -- ** Database Statements
@@ -197,6 +197,7 @@ module Database.Relational.Documentation (
 
   ) where
 
+import Data.Functor.ProductIsomorphic
 import Database.Relational
 import Database.Record (RecordFromSql, FromSql, RecordToSql, ToSql)
 import Database.HDBC.Record
@@ -210,7 +211,7 @@ User interface of Relational Record has main two part of modules.
  -}
 
 {- $queryBuildingDSL
-Relational Query ("Database.Relational.Query") module
+Relational Query ("Database.Relational") module
 defines Typed DSL to build complex SQL query.
  -}
 
@@ -224,14 +225,14 @@ Some operators are defined to build query structures in monadic context.
 'query' and 'queryMaybe' operators grow query product of monadic context like join operation of SQL.
 'on' operator appends a new condition into recent join product condition.
 
-'groupBy' operator aggregates flat projection value, and can be used only in 'MonadAggregate' context.
+'groupBy' operator aggregates flat record value, and can be used only in 'MonadAggregate' context.
 
 'wheres' and 'having' operators appends a new condition into whole query condition.
-'having' only accepts aggregated projection value, and can be used only in 'MonadRestrict' 'Aggregated' context.
+'having' only accepts aggregated record value, and can be used only in 'MonadRestrict' 'Aggregated' context.
 
 'distinct' operator and 'all'' operator specify SELECT DISTINCT or SELECT ALL, the last specified in monad is used.
 
-'<-#' operator assigns update target column and projection value to build update statement structure.
+'<-#' operator assigns update target column and record value to build update statement structure.
  -}
 
 {- $directJoin
@@ -258,12 +259,12 @@ which can be used as update statement.
 which can be used as delete statement.
  -}
 
-{- $projection
-SQL expression can be projected to Haskell phantom type in this DSL.
+{- $record
+SQL expression corresponds to Haskell record phantom type in this DSL.
  -}
 
-{- $projectionType
-'Projection' /c/ /t/ is SQL value type projection to Haskell type with context type /c/ correspond Haskell type /t/.
+{- $recordType
+'Record' /c/ /a/ is projected SQL value type corresponding to Haskell record type /a/ with context type /c/.
 
 'Flat' is not aggregated query context type,
 'Aggregated' is aggregated query context type,
@@ -273,24 +274,24 @@ Module "Database.Relational.Context" contains documentation of other context typ
  -}
 
 {- $projectionPath
-'!' operator is projected value selector using projection path type 'Pi' /r0/ /r1/.
+'!' operator is record value selector using projection path type 'Pi' /r0/ /r1/.
 'Pi' /r0/ /r1/ is projection path type selecting column type /r1/ from record type /r0/.
 '<.>' operator makes composed projection path from two projection paths.
  -}
 
-{- $projectionOperators
-Some operators are defined to calculate projected values.
+{- $recordOperators
+Some operators are defined to calculate record values.
 
 For example,
-'value' operator projects from Haskell value into 'Projection' corresponding SQL row value,
-which projection is implicitly specified by 'ShowConstantTermsSQL' class.
+'value' operator lifts from Haskell value into 'Record' corresponding SQL row value,
+which conversion is implicitly specified by 'ShowConstantTermsSQL' class.
 Generic programming with default signature is available to define instances of 'ShowConstantTermsSQL'.
 
-'values' operator projects from Haskell list value into 'ListProjection', corresponding SQL set value,
-'.=.' operator is equal compare operation of projected value correspond to SQL =,
-'.+.' operator is plus operation of projected value correspond to SQL +, and so on.
+'values' operator converts from Haskell list value into 'RecordList', corresponding SQL set value,
+'.=.' operator is equal compare operation of record value correspond to SQL =,
+'.+.' operator is plus operation of record value correspond to SQL +, and so on.
 
-Module "Database.Relational.Projectable" contains documentation of other projection operators.
+Module "Database.Relational.Projectable" contains documentation of other record operators.
  -}
 
 {- $aggregateFunctions
@@ -298,11 +299,11 @@ Typed aggregate function operators are defined.
 Aggregated value types is distinguished with Flat value types.
 
 For example,
-'sum'' operator is aggregate function of projected flat (not aggregated) value
+'sum'' operator is aggregate function of flat (not aggregated) record value
 correspond to SQL SUM(...),
-'rank' operator is window function of projected value correspond to SQL RANK(), and so on.
+'rank' operator is window function of record value correspond to SQL RANK(), and so on.
 
-To convert window function result into normal projection, use the 'over' operator with built 'Window' monad.
+To convert window function result into normal record, use the 'over' operator with built 'Window' monad.
 
 Module "Database.Relational.Projectable" contains documentation of
 other aggregate function operators and window function operators.
@@ -316,13 +317,13 @@ Several operators are defined to manipulate relation set.
 'intersect' operator makes intersection relation set of two relation set correspond to SQL INTERSECT.
 -}
 
-{- $maybeProjection
-Some operators are provided to manage projections with 'Maybe' phantom type.
+{- $maybeRecord
+Some operators are provided to manage records with 'Maybe' phantom type.
 
-'just' operator creates 'Maybe' typed projection,
-'flattenMaybe' operator joins nested 'Maybe' typed projection.
+'just' operator creates 'Maybe' typed record,
+'flattenMaybe' operator joins nested 'Maybe' typed record.
 
-'Maybe' type flavor of operators against projection path, projection and aggregation are also provided.
+'Maybe' type flavor of operators against projection path, record and aggregation are also provided.
 
 For example,
 '?!' operator is maybe flavor of '!',
@@ -333,13 +334,13 @@ For example,
 'negateMaybe' operator is maybe flavor of 'negate'',
 'sumMaybe' operator is maybe flavor of 'sum''.
 
-Module "Database.Relational.Projectable" and "Database.Relational.Query.ProjectableExtended"
-contain documentation of other 'Maybe' flavor projection operators.
+Module "Database.Relational.Projectable" and "Database.Relational.ProjectableExtended"
+contain documentation of other 'Maybe' flavor operators.
  -}
 
 {- $placeholders
 'placeholders' operator takes
-a lambda-form which argument is 'Projection' typed placeholders and its scope is restricted by that lambda-form
+a lambda-form which argument is 'Record' typed placeholders and its scope is restricted by that lambda-form
 and then creates dummy value with 'Placeholders' typed which propagate placeholder type information into 'Relation' layer.
 
 Placeholders' flavor of operators against query operation and set operation are also provided, to realize type safe placeholders.
@@ -347,15 +348,15 @@ Placeholders' flavor of operators against query operation and set operation are 
 'query'', 'left'', 'relation'', 'updateTarget'', 'restriction'', and 'union''
 operator are placeholders' flavor 'query', 'left', 'relation', 'updateTarget', 'restriction' and 'union'.
 
-Module "Database.Relational.Relation" and "Database.Relational.Query.Effect"
+Module "Database.Relational.Relation" and "Database.Relational.Effect"
 contains documentation of other placeholders' flavor operators.
 -}
 
 {- $recordMapping
-Applicative style record mapping is supported, for 'Projection', 'Pi' and 'PlaceHolders'.
-'|$|' operator can be used on 'ProjectableFunctor' context, and
-'|*|' operator can be used on 'ProjectableApplicative' context with 'ProductConstructor',
-like /Foo |$| projection1 |*| projection2 |*| projection3/
+Applicative style record mapping is supported, for 'Record', 'Pi' and 'PlaceHolders'.
+'|$|' operator can be used on 'ProductIsoFunctor' context, and
+'|*|' operator can be used on 'ProductIsoApplicative' context with 'ProductConstructor',
+like /Foo |$| record1 |*| record2 |*| record3/
 , /Foo |$| placeholders1 |*| placeholders2 |*| placeholders3/, and so on.
 
 '><' operator constructs pair result. /x >< y/ is the same as /(,) |$| x |*| y/.
