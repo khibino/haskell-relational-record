@@ -1,5 +1,13 @@
 <!-- -*- Markdown -*- -->
 
+## 0.1.5.0
+
+- apply relational-query-0.10.0
+
+## 0.1.4.1
+
+- apply relational-query-0.9.5
+
 ## 0.1.4.0
 
 - add tested-with 8.2.1.
