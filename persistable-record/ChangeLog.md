@@ -1,8 +1,12 @@
 <!-- -*- Markdown -*- -->
 
+## 0.6.0.0
+
+- divide and apply product-isomorphic interfaces.
+
 ## 0.5.1.1
 
-- Update this changelog.
+- update this changelog.
 
 ## 0.5.1.0
 
@@ -14,11 +18,11 @@
 
 ## 0.5.0.1
 
-- Use Haskell implementation test instead of flag test in .cabal
+- use Haskell implementation test instead of flag test in .cabal
 
 ## 0.5.0.0
 
-- Add generic instances of FromSql, ToSql and PersistableWidth.
+- add generic instances of FromSql, ToSql and PersistableWidth.
 
 ## 0.4.1.1
 
