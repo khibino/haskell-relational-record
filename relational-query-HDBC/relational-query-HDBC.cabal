@@ -58,8 +58,8 @@ library
                        , product-isomorphic >= 0.0.3
 
                        , names-th
-                       , persistable-record >= 0.5
-                       , relational-query >= 0.9.5
+                       , persistable-record >= 0.6
+                       , relational-query >= 0.10
                        , relational-schemas
                        , HDBC >=2
                        , HDBC-session
