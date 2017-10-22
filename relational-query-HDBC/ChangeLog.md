@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.6.5.0
+
+- apply relational-query-0.10.0
+
 ## 0.6.4.1
 
 - apply integrated namespace with new exported symbols.
