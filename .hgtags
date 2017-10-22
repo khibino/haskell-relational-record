@@ -1,3 +1,6 @@
+1e7035fac6a69289ccd3f9c3f2fc011ae6806914 release-relational-schemas-0_1_4_1
+243aaf61552f51cb17ac8294e71be67329a674ff release-relational-query-HDBC-0_6_4_1
+d61b2a764998f70a134d77dacbeff6661ce34711 release-relational-query-0_9_5_0
 27e38a447bd3a43f3ccb36a25449ab65237e9d0b not-depends-on-relational-join-2013-05-01
 fcae1f4bf9276444515ecae21813d54c81063526 sa-projection-20130705-tag
 e5fd17e98ca8a644dee2b19a8b85de15874b239e no-untyped-projection-201308

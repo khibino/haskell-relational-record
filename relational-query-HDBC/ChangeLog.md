@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.6.4.1
+
+- apply integrated namespace with new exported symbols.
+
 ## 0.6.4.0
 
 - add new function name definitions to execute bounded statement.
