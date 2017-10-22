@@ -1,5 +1,11 @@
 <!-- -*- Markdown -*- -->
 
+## 0.10.0.0
+
+- switch namespace to Database.Relational
+- update interfaces about projection types.
+- divide and apply product-isomorphic interfaces.
+
 ## 0.9.5.0
 
 - export QuerySuffix and unsafe-query functions from Database.Relational.Query namespace for libraries.
