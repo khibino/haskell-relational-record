@@ -101,7 +101,7 @@ library
                        , product-isomorphic >= 0.0.3
                        , sql-words >=0.1.5
                        , names-th
-                       , persistable-record >= 0.5.1
+                       , persistable-record >= 0.6
   if impl(ghc == 7.4.*)
     build-depends:        ghc-prim == 0.2.*
 
