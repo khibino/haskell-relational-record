@@ -18,8 +18,8 @@ library
 
   build-depends:       base <5
                      , product-isomorphic >= 0.0.3
-                     , persistable-record >= 0.5
-                     , relational-query >=0.9
+                     , persistable-record >= 0.6
+                     , relational-query >=0.10
                      , relational-query-HDBC
                      , persistable-types-HDBC-pg
 
