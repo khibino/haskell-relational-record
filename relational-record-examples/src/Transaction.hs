@@ -2,7 +2,7 @@
 
 module Transaction where
 
-import Database.Relational.Query (Relation)
+import Database.Relational (Relation)
 import Database.Record.TH.SQLite3 (defineTable)
 
 $(defineTable "examples.db" "transaction0")

@@ -11,6 +11,7 @@ import GHC.Generics (Generic)
 import Prelude hiding (product)
 import Data.Int (Int64)
 import Data.Time (Day, LocalTime)
+import Data.Functor.ProductIsomorphic ((|$|), (|*|))
 
 import qualified Account
 import Account (Account, account)
@@ -176,7 +177,7 @@ employee_4_1_2 = relation $ do
      `or'` e ! Employee.startDate' .<. unsafeSQLiteDayValue "2003-01-01"
   return e
 
-unsafeSQLiteDayValue :: SqlProjectable p => String -> p Day
+unsafeSQLiteDayValue :: SqlContext c => String -> Record c Day
 unsafeSQLiteDayValue = unsafeProjectSqlTerms . showConstantTermsSQL
 
 -- |
@@ -809,8 +810,8 @@ data Customer1 = Customer1
   , c1City :: Maybe String
   } deriving (Show, Generic)
 
-customer1 :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c))
-          => Projection c Customer -> Projection c Customer1
+customer1 :: SqlContext c
+          => Record c Customer -> Record c Customer1
 customer1 c = Customer1 |$| c ! Customer.custId'
                         |*| c ! Customer.custTypeCd'
                         |*| c ! Customer.city'
@@ -1162,7 +1163,7 @@ updateAccount_9_4_2 = derivedUpdate $ \proj -> do
   wheres $ exists $ tl
   return unitPlaceHolder
 
-toDay :: (SqlProjectable p, ProjectableShowSql p) => p (Maybe LocalTime) -> p (Maybe Day)
+toDay :: SqlContext c => Record c (Maybe LocalTime) -> Record c (Maybe Day)
 toDay dt = unsafeProjectSql $ "date(" ++ unsafeShowSql dt ++ ")"
 
 -- |

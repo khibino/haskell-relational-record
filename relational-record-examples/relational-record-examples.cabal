@@ -41,12 +41,12 @@ library
                      , HDBC
                      , HDBC-session
                      , HDBC-sqlite3
-                     , persistable-record >= 0.5
-                     , relational-query >= 0.9
-                     , relational-query-HDBC >= 0.6.1
+                     , persistable-record >= 0.6
+                     , relational-query >= 0.10
+                     , relational-query-HDBC >= 0.6.5
                      , template-haskell
                      -- not link directly but query type map
-                     , relational-schemas >= 0.1.3
+                     , relational-schemas >= 0.1.5
   if impl(ghc == 7.4.*)
     build-depends:        ghc-prim == 0.2.*
 
@@ -72,7 +72,8 @@ executable examples
                        ProductType
                        Transaction
   build-depends:       base < 5
-                     , relational-query >= 0.7
+                     , product-isomorphic >= 0.0.3
+                     , relational-query >= 0.10
                      , relational-record-examples
                      , template-haskell
                      , time

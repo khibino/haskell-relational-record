@@ -7,7 +7,7 @@ module Database.Relational.Query.SQLite3 (
   , module Database.HDBC.Session
   , module Database.HDBC.Sqlite3
   , module Database.Record
-  , module Database.Relational.Query
+  , module Database.Relational
   , runRelation
   ) where
 
@@ -17,7 +17,7 @@ import Database.HDBC.Record hiding (execute, finish)
 import Database.HDBC.Session
 import Database.HDBC.Sqlite3
 import Database.Record hiding (unique)
-import Database.Relational.Query hiding (unique)
+import Database.Relational hiding (unique)
 
 runRelation :: (ToSql SqlValue p,
                IConnection conn,
