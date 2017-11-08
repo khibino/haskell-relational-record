@@ -24,12 +24,12 @@ import Database.HDBC.Session (withConnectionIO)
 
 import Language.SQL.Keyword (Keyword (FOR, UPDATE))
 import Database.Record (FromSql, ToSql, PersistableWidth)
-import Database.Relational.Query
+import Database.Relational
   (relationalQuery', ShowConstantTermsSQL, Relation, )
-import qualified Database.Relational.Query as Relation
-import qualified Database.Relational.Query.Table as Table
+import qualified Database.Relational as Relation
+import qualified Database.Relational.Table as Table
 import Database.HDBC.Record.Persistable ()
-import Database.HDBC.Record.Statement (bind, execute)
+import Database.HDBC.Record.Statement (bind, executeBound)
 import Database.HDBC.Record.Query (prepareQuery, fetch)
 import Database.HDBC.Record.Update (runUpdate)
 
@@ -37,7 +37,7 @@ import Sequence (Sequence, BindTableToSequence, Number, )
 import qualified Sequence
 
 
-unsafePool :: (FromSql SqlValue s, ToSql SqlValue i,
+unsafePool :: (FromSql SqlValue s, PersistableWidth s, ToSql SqlValue i,
                PersistableWidth i, ShowConstantTermsSQL i,
                Bounded i, Integral i, Show i, IConnection conn)
            => IO conn
@@ -49,7 +49,7 @@ unsafePool connAct sz seqt = withConnectionIO connAct $ \conn -> do
       name   = Table.name t
   pq    <- prepareQuery conn $ relationalQuery' (Relation.table t) [FOR, UPDATE]
 
-  es    <- execute $ pq `bind` ()
+  es    <- executeBound $ pq `bind` ()
   seq0  <- maybe
            (fail $ "No record found in sequence table: " ++ name)
            (return . Sequence.extract seqt)
@@ -65,7 +65,7 @@ unsafePool connAct sz seqt = withConnectionIO connAct $ \conn -> do
   commit conn
   return [seq0 + 1 .. seq1]
 
-unsafeAutoPool :: (FromSql SqlValue s, ToSql SqlValue i,
+unsafeAutoPool :: (FromSql SqlValue s, PersistableWidth s, ToSql SqlValue i,
                    PersistableWidth i, ShowConstantTermsSQL i,
                    Bounded i, Integral i, Show i, IConnection conn)
                => IO conn

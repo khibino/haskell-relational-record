@@ -16,7 +16,9 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     Sequence
+  exposed-modules:
+                       Sequence
+                       SequenceHDBC
   -- other-modules:
   other-extensions:
                        FlexibleContexts
