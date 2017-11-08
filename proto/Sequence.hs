@@ -18,7 +18,7 @@ module Sequence (
 
   SequenceDerivable (..),
 
-  BindTableToSequence (..), fromRelation,
+  Binding (..), fromRelation,
 
   Number, unsafeSpecifyNumber, unsafeExtractNumber,
   ($$!), ($$),
@@ -54,11 +54,11 @@ class TableDerivable s => SequenceDerivable s i | s -> i where
   derivedSequence :: Sequence s i
 
 class (TableDerivable r, SequenceDerivable s i)
-      => BindTableToSequence r s i | r -> s  where
+      => Binding r s i | r -> s  where
   fromTable :: Table r -> Sequence s i
   fromTable = const derivedSequence
 
-fromRelation :: BindTableToSequence r s i
+fromRelation :: Binding r s i
              => Relation () r
              -> Sequence s i
 fromRelation = fromTable . tableOf
@@ -66,7 +66,7 @@ fromRelation = fromTable . tableOf
 newtype Number r i = Number i deriving (Eq, Ord, Show)
 
 -- | Unsafely specify sequence number.
-unsafeSpecifyNumber :: BindTableToSequence r s i => i -> Number r i
+unsafeSpecifyNumber :: Binding r s i => i -> Number r i
 unsafeSpecifyNumber = Number
 
 unsafeExtractNumber :: Number r i -> i
@@ -77,7 +77,7 @@ unsafeExtractNumber (Number i) = i
 ($$!) = (. unsafeExtractNumber)
 
 -- | Unsafely apply sequence number. Only safe to build corresponding record type.
-($$) :: BindTableToSequence r s i => (i -> r) -> Number r i -> r
+($$) :: Binding r s i => (i -> r) -> Number r i -> r
 ($$) = ($$!)
 
 {-
