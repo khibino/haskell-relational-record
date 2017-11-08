@@ -18,7 +18,6 @@ module Sequence (
 
   SequenceDerivable (..),
 
-  bindTripleFromPi, primaryBindTriple,
   BindTableToSequence (..), fromRelation,
 
   Number, unsafeSpecifyNumber, unsafeExtractNumber,
@@ -33,8 +32,7 @@ import Database.Record (PersistableWidth)
 import Database.Relational
   (ShowConstantTermsSQL, updateTarget', Update, typedUpdate,
    Pi, TableDerivable, derivedTable, tableOf, Table, Relation,
-   (<-#), (.<=.), (!), wheres, unitPlaceHolder, value,
-   HasConstraintKey, constraintKey, projectionKey, Primary, Key, )
+   (<-#), (.<=.), (!), wheres, unitPlaceHolder, value, )
 import qualified Database.Relational as Relational
 
 
@@ -55,29 +53,15 @@ relation = Relational.table . table
 class TableDerivable s => SequenceDerivable s i | s -> i where
   derivedSequence :: Sequence s i
 
-bindTripleFromPi :: (TableDerivable r, SequenceDerivable s i)
-                 => Pi r i
-                 -> (Table r, Pi r i, Sequence s i)
-bindTripleFromPi pi' = (derivedTable, pi', derivedSequence)
-
-primaryBindTriple :: (TableDerivable r, SequenceDerivable s i, HasConstraintKey Primary r i)
-                  => (Table r, Pi r i, Sequence s i)
-primaryBindTriple = bindTripleFromPi $ projectionKey primaryKey
-  where
-    primaryKey :: HasConstraintKey Primary r i => Key Primary r i
-    primaryKey = constraintKey
-
 class (TableDerivable r, SequenceDerivable s i)
       => BindTableToSequence r s i | r -> s  where
-  bindTriple :: (Table r, Pi r i, Sequence s i)
+  fromTable :: Table r -> Sequence s i
+  fromTable = const derivedSequence
 
 fromRelation :: BindTableToSequence r s i
              => Relation () r
              -> Sequence s i
-fromRelation rel = s
-  where
-    (t, _, s) = bindTriple
-    _t = t `asTypeOf` tableOf rel
+fromRelation = fromTable . tableOf
 
 newtype Number r i = Number i deriving (Eq, Ord, Show)
 
