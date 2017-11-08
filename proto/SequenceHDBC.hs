@@ -37,8 +37,8 @@ import Sequence (Sequence, Binding, Number, )
 import qualified Sequence
 
 
-unsafePool :: (FromSql SqlValue s, PersistableWidth s, ToSql SqlValue i,
-               PersistableWidth i, ShowConstantTermsSQL i,
+unsafePool :: (FromSql SqlValue s, PersistableWidth s,
+               ToSql SqlValue i, ShowConstantTermsSQL i,
                Bounded i, Integral i, Show i, IConnection conn)
            => IO conn
            -> i
@@ -65,8 +65,8 @@ unsafePool connAct sz seqt = withConnectionIO connAct $ \conn -> do
   commit conn
   return [seq0 + 1 .. seq1]
 
-unsafeAutoPool :: (FromSql SqlValue s, PersistableWidth s, ToSql SqlValue i,
-                   PersistableWidth i, ShowConstantTermsSQL i,
+unsafeAutoPool :: (FromSql SqlValue s, PersistableWidth s,
+                   ToSql SqlValue i, ShowConstantTermsSQL i,
                    Bounded i, Integral i, Show i, IConnection conn)
                => IO conn
                -> i
@@ -91,8 +91,8 @@ pool connAct sz =
   . unsafePool connAct sz
   . Sequence.fromRelation
 
-autoPool :: (FromSql SqlValue s, ToSql SqlValue i,
-             PersistableWidth i, ShowConstantTermsSQL i,
+autoPool :: (FromSql SqlValue s,
+             ToSql SqlValue i, ShowConstantTermsSQL i,
              Bounded i, Integral i, Show i, IConnection conn,
              Binding r s i)
          => IO conn
