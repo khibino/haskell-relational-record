@@ -29,12 +29,13 @@ module Sequence (
 
 import Prelude hiding (seq)
 
-import Database.Relational.Query
+import Database.Record (PersistableWidth)
+import Database.Relational
   (ShowConstantTermsSQL, updateTarget', Update, typedUpdate,
    Pi, TableDerivable, derivedTable, tableOf, Table, Relation,
    (<-#), (.<=.), (!), wheres, unitPlaceHolder, value,
    HasConstraintKey, constraintKey, projectionKey, Primary, Key, )
-import qualified Database.Relational.Query as Relational
+import qualified Database.Relational as Relational
 
 
 data Sequence s i =
@@ -103,7 +104,7 @@ updateNumber seqt = typedUpdate (table seqt) . updateTarget' $ \ proj -> do
   return $ (,) |$| phv' |*| phx'
  -}
 
-updateNumber :: (Integral i, ShowConstantTermsSQL i)
+updateNumber :: (PersistableWidth s, Integral i, ShowConstantTermsSQL i)
              => i            -- ^ sequence number to set. expect not SQL injectable.
              -> Sequence s i -- ^ sequence table
              -> Update ()
