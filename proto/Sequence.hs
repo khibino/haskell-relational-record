@@ -13,7 +13,7 @@
 --
 -- This module provides the structure of binding between table and sequence table.
 module Sequence (
-  Sequence (..), relation,
+  Sequence (..), seqRelation,
   unsafeSpecifySequence,
 
   SequenceDerivable (..),
@@ -45,17 +45,17 @@ import Database.Relational.Type (Update, typedUpdate)
 
 data Sequence s i =
   Sequence
-  { table :: Table s
-  , extract :: s -> i
-  , key :: Pi s i
+  { seqTable :: Table s
+  , seqExtract :: s -> i
+  , seqKey :: Pi s i
   }
 
 -- | Unsafely specify sequence table.
 unsafeSpecifySequence :: TableDerivable s => (s -> i) -> Pi s i -> Sequence s i
 unsafeSpecifySequence = Sequence derivedTable
 
-relation :: TableDerivable s => Sequence s i -> Relation () s
-relation = Relation.table . table
+seqRelation :: TableDerivable s => Sequence s i -> Relation () s
+seqRelation = Relation.table . seqTable
 
 class TableDerivable s => SequenceDerivable s i | s -> i where
   derivedSequence :: Sequence s i
@@ -99,8 +99,8 @@ updateNumber :: (PersistableWidth s, Integral i, ShowConstantTermsSQL i)
              => i            -- ^ sequence number to set. expect not SQL injectable.
              -> Sequence s i -- ^ sequence table
              -> Update ()
-updateNumber i seqt = typedUpdate (table seqt) . updateTarget' $ \ proj -> do
+updateNumber i seqt = typedUpdate (seqTable seqt) . updateTarget' $ \ proj -> do
   let iv = value i
-  key seqt <-# iv
-  wheres $ proj ! key seqt .<=. iv -- fool proof
+  seqKey seqt <-# iv
+  wheres $ proj ! seqKey seqt .<=. iv -- fool proof
   return unitPlaceHolder

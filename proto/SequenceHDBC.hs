@@ -33,7 +33,7 @@ import Database.HDBC.Record.Statement (bind, executeBound)
 import Database.HDBC.Record.Query (prepareQuery, fetch)
 import Database.HDBC.Record.Update (runUpdate)
 
-import Sequence (Sequence, Binding, Number, )
+import Sequence (Sequence (..), Binding, Number, )
 import qualified Sequence
 
 
@@ -45,14 +45,14 @@ unsafePool :: (FromSql SqlValue s, PersistableWidth s,
            -> Sequence s i
            -> IO [i]
 unsafePool connAct sz seqt = withConnectionIO connAct $ \conn -> do
-  let t      = Sequence.table seqt
+  let t      = seqTable seqt
       name   = Table.name t
   pq    <- prepareQuery conn $ relationalQuery' (Relation.table t) [FOR, UPDATE]
 
   es    <- executeBound $ pq `bind` ()
   seq0  <- maybe
            (fail $ "No record found in sequence table: " ++ name)
-           (return . Sequence.extract seqt)
+           (return . seqExtract seqt)
            =<< fetch es
   when (maxBound - seq0 < sz) . fail
     $ "Not enough size in sequence table: "
