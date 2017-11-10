@@ -11,7 +11,7 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- This module provides sequence model for relational-record.
+-- This module provides the structure of binding between table and sequence table.
 module Sequence (
   Sequence (..), relation,
   unsafeSpecifySequence,
@@ -29,11 +29,18 @@ module Sequence (
 import Prelude hiding (seq)
 
 import Database.Record (PersistableWidth)
-import Database.Relational
-  (ShowConstantTermsSQL, updateTarget', Update, typedUpdate,
-   Pi, TableDerivable, derivedTable, tableOf, Table, Relation,
-   (<-#), (.<=.), (!), wheres, unitPlaceHolder, value, )
-import qualified Database.Relational as Relational
+import Database.Relational.Monad.Class (wheres)
+import Database.Relational.Monad.BaseType (Relation)
+import Database.Relational.Monad.Trans.Assigning ((<-#))
+import Database.Relational.Table (TableDerivable, derivedTable, Table)
+import Database.Relational.Pi (Pi)
+import Database.Relational.Projectable ((.<=.), value, unitPlaceHolder)
+import Database.Relational.ProjectableExtended ((!))
+import Database.Relational.ProjectableClass (ShowConstantTermsSQL)
+import Database.Relational.Relation (tableOf)
+import qualified Database.Relational.Relation as Relation
+import Database.Relational.Effect (updateTarget')
+import Database.Relational.Type (Update, typedUpdate)
 
 
 data Sequence s i =
@@ -48,7 +55,7 @@ unsafeSpecifySequence :: TableDerivable s => (s -> i) -> Pi s i -> Sequence s i
 unsafeSpecifySequence = Sequence derivedTable
 
 relation :: TableDerivable s => Sequence s i -> Relation () s
-relation = Relational.table . table
+relation = Relation.table . table
 
 class TableDerivable s => SequenceDerivable s i | s -> i where
   derivedSequence :: Sequence s i
