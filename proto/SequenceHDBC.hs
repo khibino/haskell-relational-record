@@ -9,7 +9,7 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- This module provides sequence operations of relational-record for HDBC.
+-- This module provides operations for sequence tables of relational-query with HDBC.
 module SequenceHDBC (
   pool, autoPool,
 
@@ -37,6 +37,7 @@ import Sequence (Sequence (..), Binding, Number, )
 import qualified Sequence
 
 
+-- | Unsafely get a raw sequence number pool of specified size
 unsafePool :: (FromSql SqlValue s, PersistableWidth s,
                ToSql SqlValue i, ShowConstantTermsSQL i,
                Bounded i, Integral i, Show i, IConnection conn)
@@ -65,6 +66,7 @@ unsafePool connAct sz seqt = withConnectionIO connAct $ \conn -> do
   commit conn
   return [seq0 + 1 .. seq1]
 
+-- | Unsafely get a raw lazy pool of sequence number
 unsafeAutoPool :: (FromSql SqlValue s, PersistableWidth s,
                    ToSql SqlValue i, ShowConstantTermsSQL i,
                    Bounded i, Integral i, Show i, IConnection conn)
@@ -78,6 +80,7 @@ unsafeAutoPool connAct sz seqt = loop  where
     (hd ++) <$> loop
 
 
+-- | Get a sized sequence number pool corresponding proper table 'r'
 pool :: (FromSql SqlValue s, ToSql SqlValue i,
          PersistableWidth i, ShowConstantTermsSQL i,
          Bounded i, Integral i, Show i, IConnection conn,
@@ -91,6 +94,7 @@ pool connAct sz =
   . unsafePool connAct sz
   . Sequence.fromRelation
 
+-- | Get a lazy pool corresponding proper table 'r'
 autoPool :: (FromSql SqlValue s,
              ToSql SqlValue i, ShowConstantTermsSQL i,
              Bounded i, Integral i, Show i, IConnection conn,
