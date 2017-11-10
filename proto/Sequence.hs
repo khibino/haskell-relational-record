@@ -20,7 +20,7 @@ module Sequence (
 
   Binding (..), fromRelation,
 
-  Number, unsafeSpecifyNumber, unsafeExtractNumber,
+  Number, unsafeSpecifyNumber, extractNumber,
   ($$!), ($$),
 
   updateNumber,
@@ -82,15 +82,21 @@ newtype Number r i = Number i deriving (Eq, Ord, Show)
 unsafeSpecifyNumber :: Binding r s i => i -> Number r i
 unsafeSpecifyNumber = Number
 
-unsafeExtractNumber :: Number r i -> i
-unsafeExtractNumber (Number i) = i
+-- | Untype sequence number.
+extractNumber :: Number r i -> i
+extractNumber (Number i) = i
 
 -- | Unsafely apply sequence number.
-($$!) :: (i -> r) -> Number r i -> r
-($$!) = (. unsafeExtractNumber)
+($$!) :: (i -> r)    -- ^ sequence number should be passed to proper field of record
+      -> Number r i
+      -> r
+($$!) = (. extractNumber)
 
 -- | Unsafely apply sequence number. Only safe to build corresponding record type.
-($$) :: Binding r s i => (i -> r) -> Number r i -> r
+($$) :: Binding r s i
+     => (i -> r)   -- ^ sequence number should be passed to proper field of record
+     -> Number r i
+     -> r
 ($$) = ($$!)
 
 {-
