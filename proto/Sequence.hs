@@ -82,7 +82,7 @@ newtype Number r i = Number i deriving (Eq, Ord, Show)
 unsafeSpecifyNumber :: Binding r s i => i -> Number r i
 unsafeSpecifyNumber = Number
 
--- | Untype sequence number.
+-- | Get untyped sequence number.
 extractNumber :: Number r i -> i
 extractNumber (Number i) = i
 
