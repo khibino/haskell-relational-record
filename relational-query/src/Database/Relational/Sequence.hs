@@ -3,7 +3,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 -- |
--- Module      : Sequence
+-- Module      : Database.Relational.Sequence
 -- Copyright   : 2017 Kei Hibino
 -- License     : BSD3
 --
@@ -12,7 +12,7 @@
 -- Portability : unknown
 --
 -- This module provides structures about sequence tables.
-module Sequence (
+module Database.Relational.Sequence (
   Sequence (..), seqRelation,
   unsafeSpecifySequence,
 

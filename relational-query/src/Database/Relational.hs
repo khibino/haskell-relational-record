@@ -35,6 +35,7 @@ module Database.Relational (
   module Database.Relational.Monad.Register,
   module Database.Relational.Relation,
   module Database.Relational.Set,
+  module Database.Relational.Sequence,
   module Database.Relational.Scalar,
   module Database.Relational.Type,
   module Database.Relational.Effect,
@@ -83,6 +84,7 @@ import Database.Relational.Monad.Assign (Assign)
 import Database.Relational.Monad.Register (Register)
 import Database.Relational.Relation
 import Database.Relational.Set
+import Database.Relational.Sequence
 import Database.Relational.Scalar (ScalarDegree)
 import Database.Relational.Type hiding
   (unsafeTypedKeyUpdate, unsafeTypedDelete,
