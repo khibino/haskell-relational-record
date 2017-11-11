@@ -68,14 +68,14 @@ unsafePiAppend wbf wcf (Pi f) (Pi g) = Pi $ \wa ->
       (pbc, wc) = g $ wbf wb
   in (pab `unsafePiAppend'` pbc, wcf wc)
 
--- | Unsafely untype key to expand indexes.
+-- | Unsafely expand indexes from key.
 unsafeExpandIndexes' :: PersistableRecordWidth a -> Pi a b -> [Int]
 unsafeExpandIndexes' wa (Pi f) = d $ f wa where
   d (Map is, _)    = is
   d (Leftest i, w) = [ i .. i + w' - 1 ]  where
     w' = runPersistableRecordWidth w
 
--- | Unsafely untype key to expand indexes.
+-- | Unsafely expand indexes from key. Infered width version.
 unsafeExpandIndexes :: PersistableWidth a => Pi a b -> [Int]
 unsafeExpandIndexes = unsafeExpandIndexes' persistableWidth
 
