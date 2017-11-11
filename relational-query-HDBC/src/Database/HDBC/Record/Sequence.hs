@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 -- |
--- Module      : SequenceHDBC
+-- Module      : Database.HDBC.Record.Sequence
 -- Copyright   : 2017 Kei Hibino
 -- License     : BSD3
 --
@@ -10,7 +10,7 @@
 -- Portability : unknown
 --
 -- This module provides operations for sequence tables of relational-query with HDBC.
-module SequenceHDBC (
+module Database.HDBC.Record.Sequence (
   pool, autoPool,
 
   unsafePool, unsafeAutoPool,
@@ -33,8 +33,8 @@ import Database.HDBC.Record.Statement (bind, executeBound)
 import Database.HDBC.Record.Query (prepareQuery, fetch)
 import Database.HDBC.Record.Update (runUpdate)
 
-import Sequence (Sequence (..), Binding, Number, )
-import qualified Sequence
+import Database.Relational (Sequence (..), Binding, Number, )
+import qualified Database.Relational as Relational
 
 
 -- | Unsafely get a raw sequence number pool of specified size
@@ -60,7 +60,7 @@ unsafePool connAct sz seqt = withConnectionIO connAct $ \conn -> do
     ++ name ++ ": " ++ show (maxBound - seq0) ++ " < " ++ show sz
 
   let seq1 = seq0 + sz
-  void $ runUpdate conn (Sequence.updateNumber seq1 seqt) ()
+  void $ runUpdate conn (Relational.updateNumber seq1 seqt) ()
   maybe (return ()) (const . fail $ "More than two record found in seq table: " ++ name) =<< fetch es
 
   commit conn
@@ -90,9 +90,9 @@ pool :: (FromSql SqlValue s, ToSql SqlValue i,
      -> Relation () r
      -> IO [Number r i]
 pool connAct sz =
-  (map Sequence.unsafeSpecifyNumber <$>)
+  (map Relational.unsafeSpecifyNumber <$>)
   . unsafePool connAct sz
-  . Sequence.fromRelation
+  . Relational.fromRelation
 
 -- | Get a lazy pool corresponding proper table 'r'
 autoPool :: (FromSql SqlValue s,
@@ -104,6 +104,6 @@ autoPool :: (FromSql SqlValue s,
          -> Relation () r
          -> IO [Number r i]
 autoPool connAct sz =
-  (map Sequence.unsafeSpecifyNumber <$>)
+  (map Relational.unsafeSpecifyNumber <$>)
   . unsafeAutoPool connAct sz
-  . Sequence.fromRelation
+  . Relational.fromRelation

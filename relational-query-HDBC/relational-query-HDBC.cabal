@@ -27,6 +27,7 @@ library
   exposed-modules:
                        Database.HDBC.Record.Persistable
                        Database.HDBC.Record.TH
+                       Database.HDBC.Record.Sequence
                        Database.HDBC.Record.Statement
                        Database.HDBC.Record.Query
                        Database.HDBC.Record.Update
@@ -58,6 +59,7 @@ library
                        , product-isomorphic >= 0.0.3
 
                        , names-th
+                       , sql-words
                        , persistable-record >= 0.6
                        , relational-query >= 0.10
                        , relational-schemas
