@@ -10,7 +10,9 @@
 -- This module defines table type which has table metadatas.
 module Database.Relational.Table (
   -- * Phantom typed table type
-  Table, unType, name, shortName, width, columns, index, table, toMaybe, recordWidth,
+  Table, untype, name, shortName, width, columns, index, table, toMaybe, recordWidth,
+  unType,
+
   toSubQuery,
 
   -- * Table existence inference
@@ -32,12 +34,17 @@ import qualified Database.Relational.SqlSyntax as Syntax
 newtype Table r = Table Untyped
 
 -- | Untype table.
+untype :: Table t -> Untyped
+untype (Table u) = u
+
+{-# DEPRECATED unType "Use untype instead of this." #-}
+-- | Deprecated. use 'untype'.
 unType :: Table t -> Untyped
-unType (Table u) = u
+unType = untype
 
 -- | Name string of table in SQL
 name :: Table r -> String
-name   = name' . unType
+name   = name' . untype
 
 -- | Not qualified name string of table in SQL
 shortName :: Table r -> String
@@ -45,17 +52,17 @@ shortName =  tail . dropWhile (/= '.') . name
 
 -- | Width of table
 width :: Table r -> Int
-width  = width' . unType
+width  = width' . untype
 
 -- | Column name strings in SQL
 columns :: Table r -> [StringSQL]
-columns =  columns' . unType
+columns =  columns' . untype
 
 -- | Column name string in SQL specified by index
 index :: Table r
       -> Int       -- ^ Column index
       -> StringSQL -- ^ Column name String in SQL
-index =  (!) . unType
+index =  (!) . untype
 
 -- | Cast phantom type into 'Maybe' type.
 toMaybe :: Table r -> Table (Maybe r)
@@ -70,7 +77,7 @@ table n f = Table $ Untyped n w fa  where
 -- | 'SubQuery' from 'Table'.
 toSubQuery :: Table r  -- ^ Typed 'Table' metadata
            -> SubQuery -- ^ Result 'SubQuery'
-toSubQuery = Syntax.Table . unType
+toSubQuery = Syntax.Table . untype
 
 -- | Inference rule of 'Table' existence.
 class PersistableWidth r => TableDerivable r where
