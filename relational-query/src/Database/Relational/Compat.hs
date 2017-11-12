@@ -104,6 +104,7 @@ instance SqlContext c => SqlProjectable (Record c) where
   unsafeProjectSqlTerms = Projectable.unsafeProjectSqlTerms
 
 {-# DEPRECATED unsafeProjectSql "Use Database.Relational.unsafeProjectSql instead of this." #-}
+-- | Deprecated. Use Database.Relational.unsafeProjectSql instead of this.
 unsafeProjectSql :: SqlProjectable p => String -> p a
 unsafeProjectSql = unsafeProjectSqlTerms . (:[]) . stringSQL
 
@@ -117,5 +118,6 @@ instance ProjectableShowSql (Record c) where
   unsafeShowSql' = Record.unsafeStringSql
 
 {-# DEPRECATED unsafeShowSql "Use Database.Relational.unsafeShowSql instead of this." #-}
+-- | Deprecated. Use Database.Relational.unsafeShowSql instead of this.
 unsafeShowSql :: ProjectableShowSql p => p a -> String
 unsafeShowSql = showStringSQL . unsafeShowSql'
