@@ -76,8 +76,7 @@ import Database.Record
    HasColumnConstraint, NotNull)
 import Database.Record.Persistable (runPersistableRecordWidth)
 
-import Database.Relational.Internal.ContextType
-  (Flat, Aggregated, Exists, OverWindow)
+import Database.Relational.Internal.ContextType (Exists, OverWindow)
 import Database.Relational.Internal.String (StringSQL, stringSQL, showStringSQL)
 import Database.Relational.SqlSyntax (Record, Predicate)
 import qualified Database.Relational.SqlSyntax as Syntax
@@ -90,22 +89,7 @@ import Database.Relational.Record (RecordList)
 import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable.Unsafe
   (SqlContext (..), OperatorContext)
-
-
--- | Unsafely make 'Record' from SQL terms.
-instance SqlContext Flat where
-  unsafeProjectSqlTerms = Record.unsafeFromSqlTerms
-
--- | Unsafely make 'Record' from SQL terms.
-instance SqlContext Aggregated where
-  unsafeProjectSqlTerms = Record.unsafeFromSqlTerms
-
--- | Unsafely make 'Record' from SQL terms.
-instance SqlContext OverWindow where
-  unsafeProjectSqlTerms = Record.unsafeFromSqlTerms
-
-instance OperatorContext Flat
-instance OperatorContext Aggregated
+import Database.Relational.Projectable.Instances ()
 
 
 -- | Unsafely Project single SQL term.
