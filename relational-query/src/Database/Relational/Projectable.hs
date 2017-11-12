@@ -65,8 +65,7 @@ import Prelude hiding (pi)
 
 import Data.String (IsString)
 import Data.Functor.ProductIsomorphic
-  (ProductIsoFunctor, (|$|), ProductIsoApplicative, pureP, (|*|),
-   ProductIsoEmpty, pureE, peRight, peLeft, )
+  ((|$|), ProductIsoApplicative, pureP, (|*|), )
 
 import Language.SQL.Keyword (Keyword)
 import qualified Language.SQL.Keyword as SQL
@@ -88,7 +87,7 @@ import Database.Relational.ProjectableClass
 import Database.Relational.Record (RecordList)
 import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable.Unsafe
-  (SqlContext (..), OperatorContext)
+  (SqlContext (..), OperatorContext, PlaceHolders (..))
 import Database.Relational.Projectable.Instances ()
 
 
@@ -422,9 +421,6 @@ percentRank =  unsafeUniTermFunction SQL.PERCENT_RANK
 cumeDist :: Record OverWindow Double
 cumeDist =  unsafeUniTermFunction SQL.CUME_DIST
 
--- | Placeholder parameter type which has real parameter type arguemnt 'p'.
-data PlaceHolders p = PlaceHolders
-
 -- | Unsafely add placeholder parameter to queries.
 unsafeAddPlaceHolders :: Functor f => f a -> f (PlaceHolders p, a)
 unsafeAddPlaceHolders =  fmap ((,) PlaceHolders)
@@ -493,21 +489,6 @@ instance ProjectableMaybe PlaceHolders where
 instance ProjectableMaybe (Record c) where
   just         = Record.just
   flattenMaybe = Record.flattenMaybe
-
--- | Zipping except for identity element laws against placeholder parameter type.
-instance ProductIsoEmpty PlaceHolders () where
-  pureE   = unsafePlaceHolders
-  peRight = unsafeCastPlaceHolders
-  peLeft  = unsafeCastPlaceHolders
-
--- | Compose seed of record type 'PlaceHolders'.
-instance ProductIsoFunctor PlaceHolders where
-  _ |$| PlaceHolders = PlaceHolders
-
--- | Compose record type 'PlaceHolders' using applicative style.
-instance ProductIsoApplicative PlaceHolders where
-  pureP _   = unsafeCastPlaceHolders unitPH
-  pf |*| pa = unsafeCastPlaceHolders (pf >< pa)
 
 infixl 7 .*., ./., ?*?, ?/?
 infixl 6 .+., .-., ?+?, ?-?

@@ -9,7 +9,8 @@
 --
 -- This module provides unsafe interfaces between projected terms and SQL terms.
 module Database.Relational.Projectable.Unsafe (
-  SqlContext (..), OperatorContext, AggregatedContext
+  SqlContext (..), OperatorContext, AggregatedContext,
+  PlaceHolders (..)
   ) where
 
 import Database.Relational.Internal.String (StringSQL)
@@ -28,3 +29,7 @@ class SqlContext c => OperatorContext c
 
 -- | Constraint to restrict context of aggregated SQL context.
 class AggregatedContext ac
+
+
+-- | Placeholder parameter type which has real parameter type arguemnt 'p'.
+data PlaceHolders p = PlaceHolders
