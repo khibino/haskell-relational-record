@@ -19,7 +19,6 @@ module Database.Relational (
   module Database.Relational.Record,
   module Database.Relational.ProjectableClass,
   module Database.Relational.Projectable,
-  module Database.Relational.ProjectableExtended,
   module Database.Relational.TupleInstances,
   module Database.Relational.Monad.BaseType,
   module Database.Relational.Monad.Class,
@@ -60,7 +59,6 @@ import Database.Relational.SqlSyntax
 import Database.Relational.Record (RecordList, list)
 import Database.Relational.ProjectableClass
 import Database.Relational.Projectable
-import Database.Relational.ProjectableExtended
 import Database.Relational.TupleInstances
 import Database.Relational.Monad.BaseType
 import Database.Relational.Monad.Class
