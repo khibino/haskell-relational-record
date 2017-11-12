@@ -16,7 +16,7 @@ import Database.Relational.Internal.ContextType
   (Flat, Aggregated, OverWindow)
 import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable.Unsafe
-  (SqlContext (..), OperatorContext)
+  (SqlContext (..), OperatorContext, AggregatedContext)
 
 
 -- | Unsafely make 'Record' from SQL terms.
@@ -31,5 +31,12 @@ instance SqlContext Aggregated where
 instance SqlContext OverWindow where
   unsafeProjectSqlTerms = Record.unsafeFromSqlTerms
 
+-- | full SQL expression is availabe in Flat context
 instance OperatorContext Flat
+-- | full SQL expression is availabe in Aggregated context
 instance OperatorContext Aggregated
+
+-- | 'Aggregated' context is aggregated context
+instance AggregatedContext Aggregated
+-- | 'OverWindow' context is aggregated context
+instance AggregatedContext OverWindow

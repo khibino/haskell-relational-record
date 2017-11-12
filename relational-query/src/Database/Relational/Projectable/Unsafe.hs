@@ -9,7 +9,7 @@
 --
 -- This module provides unsafe interfaces between projected terms and SQL terms.
 module Database.Relational.Projectable.Unsafe (
-  SqlContext (..), OperatorContext
+  SqlContext (..), OperatorContext, AggregatedContext
   ) where
 
 import Database.Relational.Internal.String (StringSQL)
@@ -25,3 +25,6 @@ class SqlContext c where
 --   For example, the expression at the left of OVER clause
 --   is not allowed using full SQL expression.
 class SqlContext c => OperatorContext c
+
+-- | Constraint to restrict context of aggregated SQL context.
+class AggregatedContext ac

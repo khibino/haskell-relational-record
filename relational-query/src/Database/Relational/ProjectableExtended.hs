@@ -39,13 +39,10 @@ import Database.Relational.SqlSyntax (Predicate, Record, )
 
 import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable
-  (unsafeUniOp, ProjectableMaybe (flattenMaybe), SqlContext)
+  (unsafeUniOp, ProjectableMaybe (flattenMaybe))
 import Database.Relational.Pi (Pi)
+import Database.Relational.Projectable.Unsafe (SqlContext, AggregatedContext)
 
-
-class AggregatedContext ac
-instance AggregatedContext Aggregated
-instance AggregatedContext OverWindow
 
 -- | Unsafely make aggregation uni-operator from SQL keyword.
 unsafeAggregateOp :: (AggregatedContext ac, SqlContext ac)
