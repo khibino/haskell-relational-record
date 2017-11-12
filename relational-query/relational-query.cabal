@@ -43,6 +43,7 @@ library
                        Database.Relational.Record
                        Database.Relational.ProjectableClass
                        Database.Relational.Projectable
+                       Database.Relational.Projectable.Unsafe
                        Database.Relational.ProjectableExtended
                        Database.Relational.TupleInstances
                        Database.Relational.Monad.BaseType

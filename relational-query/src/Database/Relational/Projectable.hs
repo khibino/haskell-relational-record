@@ -88,13 +88,9 @@ import Database.Relational.ProjectableClass
   (ShowConstantTermsSQL, showConstantTermsSQL, )
 import Database.Relational.Record (RecordList)
 import qualified Database.Relational.Record as Record
+import Database.Relational.Projectable.Unsafe
+  (SqlContext (..), OperatorContext)
 
-
--- | Interface to project SQL terms unsafely.
-class SqlContext c where
-  -- | Unsafely project from SQL expression terms.
-  unsafeProjectSqlTerms :: [StringSQL]
-                        -> Record c t
 
 -- | Unsafely make 'Record' from SQL terms.
 instance SqlContext Flat where
@@ -108,7 +104,6 @@ instance SqlContext Aggregated where
 instance SqlContext OverWindow where
   unsafeProjectSqlTerms = Record.unsafeFromSqlTerms
 
-class SqlContext c => OperatorContext c
 instance OperatorContext Flat
 instance OperatorContext Aggregated
 
