@@ -18,7 +18,7 @@ module Database.Relational.TupleInstances where
 
 import Control.Applicative ((<$>))
 
-import Database.Relational.BaseTH
+import Database.Relational.InternalTH.Base
   (defineTuplePi, defineTupleShowConstantInstance,)
 
 

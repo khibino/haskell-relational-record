@@ -89,7 +89,7 @@ import Database.Relational
    Insert, derivedInsert, InsertQuery, derivedInsertQuery,
    HasConstraintKey(constraintKey), Primary, NotNull, primary, primaryUpdate)
 
-import Database.Relational.BaseTH (defineTuplePi, defineRecordProjections)
+import Database.Relational.InternalTH.Base (defineTuplePi, defineRecordProjections)
 import Database.Relational.Scalar (defineScalarDegree)
 import Database.Relational.Constraint (Key, unsafeDefineConstraintKey)
 import Database.Relational.Table (TableDerivable (..))

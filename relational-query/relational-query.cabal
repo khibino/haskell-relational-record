@@ -68,7 +68,6 @@ library
                        Database.Relational.Scalar
                        Database.Relational.Type
                        Database.Relational.Derives
-                       Database.Relational.BaseTH
                        Database.Relational.TH
 
                        Database.Relational.Compat
@@ -88,6 +87,7 @@ library
                        Database.Relational.SqlSyntax.Updates
                        Database.Relational.Monad.Trans.JoinState
                        Database.Relational.Monad.Trans.Qualify
+                       Database.Relational.InternalTH.Base
 
   build-depends:         base <5
                        , array

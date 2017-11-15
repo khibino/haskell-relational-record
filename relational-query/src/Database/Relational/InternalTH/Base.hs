@@ -3,7 +3,7 @@
 {-# LANGUAGE ConstraintKinds #-}
 
 -- |
--- Module      : Database.Relational.BaseTH
+-- Module      : Database.Relational.InternalTH.Base
 -- Copyright   : 2017 Kei Hibino
 -- License     : BSD3
 --
@@ -12,7 +12,7 @@
 -- Portability : unknown
 --
 -- This module defines templates for internally using.
-module Database.Relational.BaseTH (
+module Database.Relational.InternalTH.Base (
   defineTupleShowConstantInstance,
   defineTuplePi,
 
