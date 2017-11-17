@@ -91,7 +91,7 @@ import Database.Relational
 
 import Database.Relational.InternalTH.Base (defineTuplePi, defineRecordProjections)
 import Database.Relational.Scalar (defineScalarDegree)
-import Database.Relational.Constraint (Key, unsafeDefineConstraintKey)
+import Database.Relational.Constraint (unsafeDefineConstraintKey)
 import Database.Relational.Table (TableDerivable (..))
 import qualified Database.Relational.Table as Table
 import Database.Relational.Relation (derivedRelation)
@@ -150,51 +150,32 @@ defineHasNotNullKeyInstanceWithConfig config scm =
   defineHasNotNullKeyInstance . fst . recordTemplate (recordConfig $ nameConfig config) scm
 
 
--- | Column projection path 'Pi' template.
-columnTemplate' :: TypeQ   -- ^ Record type
-                -> VarName -- ^ Column declaration variable name
-                -> ExpQ    -- ^ Column index expression in record (begin with 0)
-                -> TypeQ   -- ^ Column type
-                -> Q [Dec] -- ^ Column projection path declaration
-columnTemplate' recType var' iExp colType = do
-  let var = varName var'
-  simpleValD var [t| Pi $recType $colType |]
-    [| UnsafePi.definePi $(iExp) |]
-
--- | Column projection path 'Pi' and constraint key template.
-columnTemplate :: Maybe (TypeQ, VarName) -- ^ May Constraint type and constraint object name
-               -> TypeQ                  -- ^ Record type
-               -> VarName                -- ^ Column declaration variable name
-               -> ExpQ                   -- ^ Column index expression in record (begin with 0)
-               -> TypeQ                  -- ^ Column type
-               -> Q [Dec]                -- ^ Column projection path declaration
-columnTemplate mayConstraint recType var' iExp colType = do
-  col <- columnTemplate' recType var' iExp colType
-  cr  <- maybe
-    (return [])
-    ( \(constraint, cname') -> do
-         simpleValD (varName cname') [t| Key $constraint $recType $colType |]
-           [| unsafeDefineConstraintKey $(iExp) |] )
-    mayConstraint
-  return $ col ++ cr
+projectionTemplate :: ConName   -- ^ Record type name
+                   -> VarName   -- ^ Column declaration variable name
+                   -> Int       -- ^ Column leftest index
+                   -> TypeQ     -- ^ Column type
+                   -> Q [Dec]   -- ^ Column projection path declaration
+projectionTemplate recName var ix colType = do
+  let offsetsExp = toVarExp . columnOffsetsVarNameDefault $ conName recName
+  simpleValD (varName var)
+    [t| Pi $(toTypeCon recName) $colType |]
+    [| UnsafePi.definePi $ $offsetsExp ! $(integralE ix) |]
 
 -- | Column projection path 'Pi' templates.
-defineColumns :: ConName                                      -- ^ Record type name
-              -> [((VarName, TypeQ), Maybe (TypeQ, VarName))] -- ^ Column info list
-              -> Q [Dec]                                      -- ^ Column projection path declarations
+defineColumns :: ConName            -- ^ Record type name
+              -> [(VarName, TypeQ)] -- ^ Column info list
+              -> Q [Dec]            -- ^ Column projection path declarations
 defineColumns recTypeName cols = do
-  let defC ((cn, ct), mayCon) ix = columnTemplate mayCon (toTypeCon recTypeName) cn
-                                   [| $(toVarExp . columnOffsetsVarNameDefault $ conName recTypeName) ! $(integralE ix) |] ct
+  let defC (cn, ct) ix = projectionTemplate recTypeName cn ix ct
   fmap concat . sequence $ zipWith defC cols [0 :: Int ..]
 
 -- | Make column projection path and constraint key templates using default naming rule.
-defineColumnsDefault :: ConName                          -- ^ Record type name
-                     -> [((String, TypeQ), Maybe TypeQ)] -- ^ Column info list
-                     -> Q [Dec]                          -- ^ Column projection path declarations
-defineColumnsDefault recTypeName cols =
-  defineColumns recTypeName [((varN n, ct), fmap (withCName n) mayC) | ((n, ct), mayC) <- cols]
-  where varN      name   = varCamelcaseName (name ++ "'")
-        withCName name t = (t, varCamelcaseName ("constraint_key_" ++ name))
+defineColumnsDefault :: ConName           -- ^ Record type name
+                     -> [(String, TypeQ)] -- ^ Column info list
+                     -> Q [Dec]           -- ^ Column projection path declarations
+defineColumnsDefault recTypeName cols = do
+    let varN name = varCamelcaseName (name ++ "'")
+    defineColumns recTypeName [(varN n, ct) | (n, ct) <- cols]
 
 -- | Rule template to infer table derivations.
 defineTableDerivableInstance :: TypeQ -> String -> [String] -> Q [Dec]
@@ -289,11 +270,11 @@ defineProductConstructorInstanceWithConfig config schema table colTypes = do
     |]
 
 -- | Make templates about table and column metadatas using specified naming rule.
-defineTableTypesWithConfig :: Config                           -- ^ Configuration to generate query with
-                           -> String                           -- ^ Schema name
-                           -> String                           -- ^ Table name
-                           -> [((String, TypeQ), Maybe TypeQ)] -- ^ Column names and types and constraint type
-                           -> Q [Dec]                          -- ^ Result declarations
+defineTableTypesWithConfig :: Config            -- ^ Configuration to generate query with
+                           -> String            -- ^ Schema name
+                           -> String            -- ^ Table name
+                           -> [(String, TypeQ)] -- ^ Column names and types and constraint type
+                           -> Q [Dec]           -- ^ Result declarations
 defineTableTypesWithConfig config schema table columns = do
   let nmconfig = nameConfig config
       recConfig = recordConfig nmconfig
@@ -304,7 +285,7 @@ defineTableTypesWithConfig config schema table columns = do
              (table `varNameWithPrefix` "insertQuery")
              (fst $ recordTemplate recConfig schema table)
              (tableSQL (normalizedTableName config) (schemaNameMode config) (identifierQuotation config) schema table)
-             (map ((quote (identifierQuotation config)) . fst . fst) columns)
+             (map ((quote (identifierQuotation config)) . fst) columns)
   colsDs <- defineColumnsDefault (recordTypeName recConfig schema table) columns
   return $ tableDs ++ colsDs
 
@@ -320,7 +301,7 @@ defineTableTypesAndRecord config schema table columns derives = do
   recD    <- defineRecordTypeWithConfig recConfig schema table columns derives
   rconD   <- defineProductConstructorInstanceWithConfig config schema table [t | (_, t) <- columns]
   ctD     <- [d| instance ShowConstantTermsSQL $(fst $ recordTemplate recConfig schema table) |]
-  tableDs <- defineTableTypesWithConfig config schema table [(c, Nothing) | c <- columns ]
+  tableDs <- defineTableTypesWithConfig config schema table columns
   return $ recD ++ rconD ++ ctD ++ tableDs
 
 -- | Template of derived primary 'Query'.
@@ -462,7 +443,7 @@ makeRelationalRecordDefault recTypeName = do
       []      ->  do {- monomorphic case -}
         off <- Record.defineColumnOffsets recTypeConName
         cs  <- defineColumnsDefault recTypeConName
-               [ ((nameBase n, ct), Nothing) | n  <- ns  | ct <- cts ]
+               [ (nameBase n, ct) | n  <- ns  | ct <- cts ]
         return $ off ++ cs
       _:_     ->     {- polymorphic case -}
         defineRecordProjections tyCon vars
