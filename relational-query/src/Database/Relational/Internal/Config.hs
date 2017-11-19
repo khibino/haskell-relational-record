@@ -16,6 +16,7 @@ module Database.Relational.Internal.Config (
          , schemaNameMode
          , normalizedTableName
          , verboseAsCompilerWarning
+         , disableOverloadedProjection
          , identifierQuotation
          , nameConfig),
   defaultConfig,
@@ -50,25 +51,27 @@ data IdentifierQuotation = NoQuotation | Quotation Char deriving Show
 -- | Configuration type.
 data Config =
   Config
-  { productUnitSupport        ::  !ProductUnitSupport
-  , chunksInsertSize          ::  !Int
-  , schemaNameMode            ::  !SchemaNameMode
-  , normalizedTableName       ::  !Bool
-  , verboseAsCompilerWarning  ::  !Bool
-  , identifierQuotation       ::  !IdentifierQuotation
-  , nameConfig                ::  !NameConfig
+  { productUnitSupport          ::  !ProductUnitSupport
+  , chunksInsertSize            ::  !Int
+  , schemaNameMode              ::  !SchemaNameMode
+  , normalizedTableName         ::  !Bool
+  , verboseAsCompilerWarning    ::  !Bool
+  , disableOverloadedProjection ::  !Bool
+  , identifierQuotation         ::  !IdentifierQuotation
+  , nameConfig                  ::  !NameConfig
   } deriving Show
 
 -- | Default configuration.
 defaultConfig :: Config
 defaultConfig =
-  Config { productUnitSupport        =  PUSupported
-         , chunksInsertSize          =  256
-         , schemaNameMode            =  SchemaQualified
-         , normalizedTableName       =  True
-         , verboseAsCompilerWarning  =  False
-         , identifierQuotation       =  NoQuotation
-         , nameConfig                =  NameConfig { recordConfig     =  RecordTH.defaultNameConfig
-                                                   , relationVarName  =  const varCamelcaseName
+  Config { productUnitSupport           =  PUSupported
+         , chunksInsertSize             =  256
+         , schemaNameMode               =  SchemaQualified
+         , normalizedTableName          =  True
+         , verboseAsCompilerWarning     =  False
+         , disableOverloadedProjection  =  False
+         , identifierQuotation          =  NoQuotation
+         , nameConfig                   =  NameConfig { recordConfig     =  RecordTH.defaultNameConfig
+                                                      , relationVarName  =  const varCamelcaseName
                                                    }
          }
