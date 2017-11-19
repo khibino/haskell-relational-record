@@ -74,6 +74,9 @@ library
                        Database.Relational.Query
                        Database.Relational.Query.Arrow
 
+                       -- for GHC version equal or more than 8.0
+                       Database.Relational.OverloadedProjection
+
   other-modules:
                        Database.Relational.Internal.ContextType
                        Database.Relational.Internal.Config
@@ -88,6 +91,9 @@ library
                        Database.Relational.Monad.Trans.JoinState
                        Database.Relational.Monad.Trans.Qualify
                        Database.Relational.InternalTH.Base
+
+                       -- for GHC version equal or more than 8.0
+                       Database.Relational.InternalTH.Overloaded
 
   build-depends:         base <5
                        , array
