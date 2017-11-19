@@ -3,6 +3,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ExplicitForAll #-}
 {-# LANGUAGE ParallelListComp #-}
+{-# LANGUAGE CPP #-}
 
 -- |
 -- Module      : Database.Relational.TH
@@ -36,7 +37,8 @@ module Database.Relational.TH (
   defineScalarDegree,
 
   -- * Column projections
-  defineColumns, defineColumnsDefault,
+  defineColumnsDefault, definePolyColumnsDefault,
+  defineColumns, definePolyColumns,
 
   defineTuplePi,
 
@@ -58,6 +60,7 @@ module Database.Relational.TH (
 
   -- * Reify
   makeRelationalRecordDefault,
+  makeRelationalRecordDefault',
   reifyRelation,
   ) where
 
@@ -73,7 +76,8 @@ import Language.Haskell.TH
    TypeQ, Type (AppT, ConT), varT, tupleT, appT, arrowT, classP)
 import Language.Haskell.TH.Compat.Reify (unVarI)
 import Language.Haskell.TH.Name.CamelCase
-  (VarName, varName, ConName (ConName), conName, varNameWithPrefix, varCamelcaseName, toVarExp, toTypeCon)
+  (VarName, varName, ConName (ConName), conName,
+   varNameWithPrefix, varCamelcaseName, toVarExp, toTypeCon)
 import Language.Haskell.TH.Lib.Extra (simpleValD, maybeD, integralE)
 
 import Database.Record.TH
@@ -83,8 +87,8 @@ import qualified Database.Record.TH as Record
 
 import Database.Relational
   (Table, Pi, id', Relation, ShowConstantTermsSQL,
-   NameConfig (..), SchemaNameMode (..), IdentifierQuotation (..),
-   Config (normalizedTableName, schemaNameMode, nameConfig, identifierQuotation),
+   NameConfig (..), SchemaNameMode (..), IdentifierQuotation (..), defaultConfig,
+   Config (normalizedTableName, disableOverloadedProjection, schemaNameMode, nameConfig, identifierQuotation),
    relationalQuerySQL, Query, relationalQuery, KeyUpdate,
    Insert, derivedInsert, InsertQuery, derivedInsertQuery,
    HasConstraintKey(constraintKey), Primary, NotNull, primary, primaryUpdate)
@@ -99,6 +103,7 @@ import Database.Relational.SimpleSql (QuerySuffix)
 import Database.Relational.Type (unsafeTypedQuery)
 import qualified Database.Relational.Pi.Unsafe as UnsafePi
 
+import qualified Database.Relational.InternalTH.Overloaded as Overloaded
 
 -- | Rule template to infer constraint key.
 defineHasConstraintKeyInstance :: TypeQ   -- ^ Constraint type
@@ -162,20 +167,33 @@ projectionTemplate recName var ix colType = do
     [| UnsafePi.definePi $ $offsetsExp ! $(integralE ix) |]
 
 -- | Column projection path 'Pi' templates.
-defineColumns :: ConName            -- ^ Record type name
+defineColumns :: ConName           -- ^ Record type name
               -> [(VarName, TypeQ)] -- ^ Column info list
-              -> Q [Dec]            -- ^ Column projection path declarations
+              -> Q [Dec]           -- ^ Column projection path declarations
 defineColumns recTypeName cols = do
-  let defC (cn, ct) ix = projectionTemplate recTypeName cn ix ct
+  let defC (name, typ) ix = projectionTemplate recTypeName name ix typ
+  fmap concat . sequence $ zipWith defC cols [0 :: Int ..]
+
+definePolyColumns :: ConName           -- ^ Record type name
+                  -> [(String, TypeQ)] -- ^ Column info list
+                  -> Q [Dec]           -- ^ Column projection path declarations
+definePolyColumns recTypeName cols = do
+  let defC (name, typ) ix =
+        Overloaded.monomorphicProjection recTypeName name ix typ
   fmap concat . sequence $ zipWith defC cols [0 :: Int ..]
 
 -- | Make column projection path and constraint key templates using default naming rule.
 defineColumnsDefault :: ConName           -- ^ Record type name
                      -> [(String, TypeQ)] -- ^ Column info list
                      -> Q [Dec]           -- ^ Column projection path declarations
-defineColumnsDefault recTypeName cols = do
-    let varN name = varCamelcaseName (name ++ "'")
-    defineColumns recTypeName [(varN n, ct) | (n, ct) <- cols]
+defineColumnsDefault recTypeName cols =
+  defineColumns     recTypeName [ (varCamelcaseName $ name ++ "'",             typ) | (name, typ) <- cols ]
+
+definePolyColumnsDefault :: ConName           -- ^ Record type name
+                         -> [(String, TypeQ)] -- ^ Column info list
+                         -> Q [Dec]           -- ^ Column projection path declarations
+definePolyColumnsDefault recTypeName cols =
+  definePolyColumns recTypeName [ (nameBase . varName $ varCamelcaseName name, typ) | (name, typ) <- cols ]
 
 -- | Rule template to infer table derivations.
 defineTableDerivableInstance :: TypeQ -> String -> [String] -> Q [Dec]
@@ -286,8 +304,12 @@ defineTableTypesWithConfig config schema table columns = do
              (fst $ recordTemplate recConfig schema table)
              (tableSQL (normalizedTableName config) (schemaNameMode config) (identifierQuotation config) schema table)
              (map ((quote (identifierQuotation config)) . fst) columns)
-  colsDs <- defineColumnsDefault (recordTypeName recConfig schema table) columns
-  return $ tableDs ++ colsDs
+  let typeName = recordTypeName recConfig schema table
+  colsDs  <- defineColumnsDefault     typeName columns
+  pcolsDs <- if disableOverloadedProjection config
+             then [d| |]
+             else definePolyColumnsDefault typeName columns
+  return $ tableDs ++ colsDs ++ pcolsDs
 
 -- | Make templates about table, column and haskell record using specified naming rule.
 defineTableTypesAndRecord :: Config            -- ^ Configuration to generate query with
@@ -431,9 +453,10 @@ inlineQuery relVar rel config sufs qns = do
 
 -- | Generate all templates against defined record like type constructor
 --   other than depending on sql-value type.
-makeRelationalRecordDefault :: Name    -- ^ Type constructor name
-                            -> Q [Dec] -- ^ Result declaration
-makeRelationalRecordDefault recTypeName = do
+makeRelationalRecordDefault' :: Config
+                             -> Name    -- ^ Type constructor name
+                             -> Q [Dec] -- ^ Result declaration
+makeRelationalRecordDefault' config recTypeName = do
   let recTypeConName = ConName recTypeName
   (((tyCon, vars), _dataCon), (mayNs, cts)) <- reifyRecordType recTypeName
   pw <- Record.definePersistableWidthInstance tyCon vars
@@ -442,15 +465,30 @@ makeRelationalRecordDefault recTypeName = do
     Just ns   ->  case vars of
       []      ->  do {- monomorphic case -}
         off <- Record.defineColumnOffsets recTypeConName
-        cs  <- defineColumnsDefault recTypeConName
-               [ (nameBase n, ct) | n  <- ns  | ct <- cts ]
-        return $ off ++ cs
-      _:_     ->     {- polymorphic case -}
-        defineRecordProjections tyCon vars
-          [varName $ varCamelcaseName (nameBase n ++ "'") | n <- ns]
-          cts
+        let cnames =  [ (nameBase n, ct) | n  <- ns  | ct <- cts ]
+        cs  <- defineColumnsDefault     recTypeConName cnames
+        pcs <- if disableOverloadedProjection config
+               then [d| |]
+               else definePolyColumnsDefault recTypeConName cnames
+        return $ off ++ cs ++ pcs
+      _:_     ->  do {- polymorphic case -}
+        cols <- defineRecordProjections tyCon vars
+                [varName $ varCamelcaseName (nameBase n ++ "'") | n <- ns]
+                cts
+        ovls <- if disableOverloadedProjection config
+                then [d| |]
+                else Overloaded.polymorphicProjections tyCon vars
+                     [nameBase n | n <- ns]
+                     cts
+        return $ cols ++ ovls
 
   pc <- defineProductConstructor recTypeName
   let scPred v = classP ''ShowConstantTermsSQL [varT v]
   ct <- instanceD (mapM scPred vars) (appT [t| ShowConstantTermsSQL |] tyCon) []
   return $ concat [pw, cols, pc, [ct]]
+
+-- | Generate all templates against defined record like type constructor
+--   other than depending on sql-value type.
+makeRelationalRecordDefault ::  Name   -- ^ Type constructor name
+                            -> Q [Dec] -- ^ Result declaration
+makeRelationalRecordDefault = makeRelationalRecordDefault' defaultConfig
