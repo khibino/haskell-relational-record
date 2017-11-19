@@ -18,6 +18,9 @@ module Database.Relational.TupleInstances where
 
 import Control.Applicative ((<$>))
 
+import Database.Record (PersistableWidth)
+
+import Database.Relational.Pi (Pi)
 import Database.Relational.InternalTH.Base
   (defineTuplePi, defineTupleShowConstantInstance,)
 
@@ -25,3 +28,11 @@ import Database.Relational.InternalTH.Base
 $(concat <$> mapM defineTuplePi [2..7])
 $(concat <$> mapM defineTupleShowConstantInstance [2..7])
 -- Generic instances of tuple types are generated from 2 to 7 in GHC.Generics.
+
+-- | Projection path for fst of tuple.
+fst' :: (PersistableWidth a, PersistableWidth b) => Pi (a, b) a
+fst' = tuplePi2_0'
+
+-- | Projection path for snd of tuple.
+snd' :: (PersistableWidth a, PersistableWidth b) => Pi (a, b) b
+snd' = tuplePi2_1'

@@ -13,30 +13,14 @@ module Database.Relational.Pi (
   -- * Projection path
   Pi, (<.>), (<?.>), (<?.?>),
 
-  id', fst', snd'
+  id',
   ) where
 
 import qualified Control.Category as Category
-import Database.Record
-  (PersistableWidth, persistableWidth, PersistableRecordWidth)
-import Database.Record.Persistable
-  (runPersistableRecordWidth)
 
-import Database.Relational.Pi.Unsafe
-  (Pi, (<.>), (<?.>), (<?.?>), definePi)
+import Database.Relational.Pi.Unsafe (Pi, (<.>), (<?.>), (<?.?>))
 
 
 -- | Identity projection path.
 id' :: Pi a a
 id' = Category.id
-
--- | Projection path for fst of tuple.
-fst' :: PersistableWidth a => Pi (a, b) a -- ^ Projection path of fst.
-fst' =  definePi 0
-
-snd'' :: PersistableWidth b => PersistableRecordWidth a -> Pi (a, b) b
-snd'' wa = definePi (runPersistableRecordWidth wa)
-
--- | Projection path for snd of tuple.
-snd' :: (PersistableWidth a, PersistableWidth b) =>  Pi (a, b) b -- ^ Projection path of snd.
-snd' =  snd'' persistableWidth
