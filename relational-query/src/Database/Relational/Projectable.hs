@@ -66,7 +66,7 @@ module Database.Relational.Projectable (
   flattenPiMaybe,
 
   -- * Get narrower records
-  (!), (?!), (?!?), (!??),
+  (!), (?), (??), (?!), (?!?), (!??),
 
   -- * Aggregate functions
   unsafeAggregateOp,
@@ -624,8 +624,21 @@ flattenPiMaybe p = flatten . Record.piMaybe p
       -> Record cont c         -- ^ Narrower flatten and projected object.
 (!??) = flattenPiMaybe
 
+-- | Same as '(?!)'. Use this operator like '(? #foo) mayX'.
+(?) :: PersistableWidth a
+    => Record c (Maybe a) -- ^ Source 'Record'. 'Maybe' type
+    -> Pi a b             -- ^ Record path
+    -> Record c (Maybe b) -- ^ Narrower projected object. 'Maybe' type result
+(?) = (?!)
 
-infixl 8 !, ?!, ?!?, !??
+-- | Same as '(?!?)'. Use this operator like '(?? #foo) mayX'.
+(??) :: PersistableWidth a
+     => Record c (Maybe a) -- ^ Source 'Record'. 'Maybe' phantom type
+     -> Pi a (Maybe b)     -- ^ Record path. 'Maybe' type leaf
+     -> Record c (Maybe b) -- ^ Narrower projected object. 'Maybe' phantom type result
+(??) = (?!?)
+
+infixl 8 !, ?, ??, ?!, ?!?, !??
 infixl 7 .*., ./., ?*?, ?/?
 infixl 6 .+., .-., ?+?, ?-?
 infixl 5 .||., ?||?
