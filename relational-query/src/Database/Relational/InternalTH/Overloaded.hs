@@ -34,8 +34,9 @@ import Database.Record.TH (columnOffsetsVarNameDefault)
 import Database.Relational.Pi.Unsafe (definePi)
 import Database.Relational.OverloadedProjection (HasProjection (projection))
 #else
-import Language.Haskell.TH (Name, Q, TypeQ, Dec)
+import Language.Haskell.TH (Name, mkName, Q, TypeQ, appT, tupleT, varT, Dec)
 import Language.Haskell.TH.Name.CamelCase (ConName)
+import Data.List (foldl')
 #endif
 
 monomorphicProjection :: ConName
