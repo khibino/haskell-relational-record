@@ -63,7 +63,7 @@ defineRecordProjections tyRec avs sels cts =
              [t| Pi $tyRec $ct |]
       let runPW t = [| runPersistableRecordWidth (persistableWidth :: PersistableRecordWidth $t) |]
       val <- valD (varP selN)
-             (normalB [| definePi $(foldl' (\e t -> [| $e + $(runPW t) |]) [| 0 :: Int |] pcts) |]) []
+             (normalB [| definePi $(foldl' (\e t -> [| $e + $(runPW t) :: Int |]) [| 0 :: Int |] pcts) |]) []
       return [sig, val]
 
 -- | Make templates of projection paths for tuple types.
