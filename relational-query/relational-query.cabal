@@ -76,6 +76,7 @@ library
 
                        -- for GHC version equal or more than 8.0
                        Database.Relational.OverloadedProjection
+                       Database.Relational.OverloadedInstances
 
   other-modules:
                        Database.Relational.Internal.ContextType
