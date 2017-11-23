@@ -56,7 +56,7 @@ run =  handleSqlError' $ withConnectionIO connect
            run' groups ()
            run' doubleValue1 ()
            run' doubleValue2 ()
-           run' userGroup2Fail ()
+           -- run' userGroup2Fail ()
        )
 
 runU :: Show a => (ExecutedStatement (User, Group) -> IO a) -> IO ()
