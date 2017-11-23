@@ -37,8 +37,8 @@ module Database.Relational.TH (
   defineScalarDegree,
 
   -- * Column projections
-  defineColumnsDefault, definePolyColumnsDefault,
-  defineColumns, definePolyColumns,
+  defineColumnsDefault, defineOverloadedColumnsDefault,
+  defineColumns, defineOverloadedColumns,
 
   defineTuplePi,
 
@@ -174,10 +174,10 @@ defineColumns recTypeName cols = do
   let defC (name, typ) ix = projectionTemplate recTypeName name ix typ
   fmap concat . sequence $ zipWith defC cols [0 :: Int ..]
 
-definePolyColumns :: ConName           -- ^ Record type name
-                  -> [(String, TypeQ)] -- ^ Column info list
-                  -> Q [Dec]           -- ^ Column projection path declarations
-definePolyColumns recTypeName cols = do
+defineOverloadedColumns :: ConName           -- ^ Record type name
+                        -> [(String, TypeQ)] -- ^ Column info list
+                        -> Q [Dec]           -- ^ Column projection path declarations
+defineOverloadedColumns recTypeName cols = do
   let defC (name, typ) ix =
         Overloaded.monomorphicProjection recTypeName name ix typ
   fmap concat . sequence $ zipWith defC cols [0 :: Int ..]
@@ -189,11 +189,11 @@ defineColumnsDefault :: ConName           -- ^ Record type name
 defineColumnsDefault recTypeName cols =
   defineColumns     recTypeName [ (varCamelcaseName $ name ++ "'",             typ) | (name, typ) <- cols ]
 
-definePolyColumnsDefault :: ConName           -- ^ Record type name
-                         -> [(String, TypeQ)] -- ^ Column info list
-                         -> Q [Dec]           -- ^ Column projection path declarations
-definePolyColumnsDefault recTypeName cols =
-  definePolyColumns recTypeName [ (nameBase . varName $ varCamelcaseName name, typ) | (name, typ) <- cols ]
+defineOverloadedColumnsDefault :: ConName           -- ^ Record type name
+                               -> [(String, TypeQ)] -- ^ Column info list
+                               -> Q [Dec]           -- ^ Column projection path declarations
+defineOverloadedColumnsDefault recTypeName cols =
+  defineOverloadedColumns recTypeName [ (nameBase . varName $ varCamelcaseName name, typ) | (name, typ) <- cols ]
 
 -- | Rule template to infer table derivations.
 defineTableDerivableInstance :: TypeQ -> String -> [String] -> Q [Dec]
@@ -308,7 +308,7 @@ defineTableTypesWithConfig config schema table columns = do
   colsDs  <- defineColumnsDefault     typeName columns
   pcolsDs <- if disableOverloadedProjection config
              then [d| |]
-             else definePolyColumnsDefault typeName columns
+             else defineOverloadedColumnsDefault typeName columns
   return $ tableDs ++ colsDs ++ pcolsDs
 
 -- | Make templates about table, column and haskell record using specified naming rule.
@@ -469,7 +469,7 @@ makeRelationalRecordDefault' config recTypeName = do
         cs  <- defineColumnsDefault     recTypeConName cnames
         pcs <- if disableOverloadedProjection config
                then [d| |]
-               else definePolyColumnsDefault recTypeConName cnames
+               else defineOverloadedColumnsDefault recTypeConName cnames
         return $ off ++ cs ++ pcs
       _:_     ->  do {- polymorphic case -}
         cols <- defineRecordProjections tyCon vars
