@@ -105,22 +105,6 @@ userGroup1 =
   , ()  <- asc $ u ?! User.id'
   ]
 
-{-
-userGroup1E :: Relation () (Maybe User, Maybe Group)
-userGroup1E =
-  relation
-  [ u >< g
-  | umg <- query $
-           user `left` membership `on'` [\ u m -> u ! User.id' .=. m .! userId' ]
-           `full` group `on'` [ \ um g -> um ?!? snd' .! groupId' .=. g .! Group.id' ]
-  , let um = umg ! fst'
-        u  = um ?! fst'
-        g  = umg ! snd'
-
-  , ()  <- asc $ u ?! User.id'
-  ]
--}
-
 -- Nested monad
 userGroup2 :: Relation () (Maybe User, Maybe Group)
 userGroup2 =
