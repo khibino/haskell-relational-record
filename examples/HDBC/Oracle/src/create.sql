@@ -15,7 +15,7 @@ create table hrr_datatype_test (
   number_9_1 number(9, -2) not null,     -- 9桁、下二桁を丸めた整数
   binary_float binary_float not null,    -- 32bit 浮動小数点数
   binary_double binary_double not null,  -- 64bit 倍精度浮動小数点数
-  number_2_2 number(2, 2) not null,      -- issue#6
+  -- number_2_2 number(2, 2) not null,      -- issue#6
   date_raw date not null,                -- 年（世紀を含む）、月、日、時、分および秒（真夜中から数える）
   blob_raw blob not null,                -- 128TBまでのバイナリデータ
   clob_raw clob not null,                -- 128TBまでの可変長文字列
@@ -30,7 +30,7 @@ create table hrr_datatype_test (
 
 insert into hrr_datatype_test values (
   'abcd', 'a', 'abcd', 'abcd', 'abあい', 'abあい',
-  1234.1234, 1234.12, 1234, 1234.1234, 1234.1234, 1234.1234, 1234.1234, 0.2,
+  1234.1234, 1234.12, 1234, 1234.1234, 1234.1234, 1234.1234, 1234.1234, -- 0.2,
   sysdate, '123456789ABCDEF', 'abcdあいうえ', 'abcdあいうえ',
   '1234abcd', '1234abcd', 'AAAK6mAAAAAABF8AAA', 'AAAK6mAAAAAABF8AAA'
   -- xmltype.createxml('<test></test>'), httpuritype.createuri('http://www.example.com')
