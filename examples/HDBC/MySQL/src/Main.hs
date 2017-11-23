@@ -2,7 +2,7 @@
 {-# LANGUAGE MonadComprehensions, FlexibleContexts #-}
 module Main where
 
-import Database.Relational.Query    ( query
+import Database.Relational          ( query
                                     , relation
                                     , aggregateRelation
                                     , wheres
