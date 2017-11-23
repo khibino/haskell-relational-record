@@ -9,10 +9,13 @@ module Database.Relational.Query.SQLite3 (
   , module Database.Record
   , module Database.Relational
   , runRelation
+  , makeRelationalRecord
   ) where
 
+import Language.Haskell.TH (Name, Q, Dec)
+
 import Database.HDBC hiding (execute, finish, run)
-import Database.HDBC.Query.TH
+import Database.HDBC.Query.TH hiding (makeRelationalRecord)
 import Database.HDBC.Record hiding (execute, finish)
 import Database.HDBC.Session
 import Database.HDBC.Sqlite3
@@ -24,3 +27,6 @@ runRelation :: (ToSql SqlValue p,
                FromSql SqlValue a) =>
                conn -> Relation p a -> p -> IO [a]
 runRelation conn q p = runQuery conn (relationalQuery q) p
+
+makeRelationalRecord :: Name -> Q [Dec]
+makeRelationalRecord = makeRelationalRecord' defaultConfig { disableOverloadedProjection = True }
