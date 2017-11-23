@@ -35,6 +35,30 @@ Executable example1
   hs-source-dirs:      example/1, example
   ghc-options:         -Wall
 
+Executable example1O
+  default-language:    Haskell2010
+  build-depends:         base <5
+                       , template-haskell
+                       , product-isomorphic
+                       , names-th
+                       , persistable-record
+                       , relational-query
+                       , HDBC
+                       , HDBC-session
+                       , HDBC-postgresql
+                       , relational-query-HDBC
+  if impl(ghc == 7.4.*)
+    build-depends:        ghc-prim == 0.2.*
+
+  other-modules:
+                       User
+                       Group
+                       Membership
+                       QueryExampleO
+  main-is:             runO.hs
+  hs-source-dirs:      example/1, example
+  ghc-options:         -Wall
+
 Executable example1Arr
   default-language:    Haskell2010
   build-depends:         base <5
