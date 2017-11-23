@@ -7,7 +7,7 @@ ncpu = $(shell cat /proc/cpuinfo | egrep '^processor' | wc -l)
 jobs = --jobs=$(shell expr $(ncpu) '*' 3 '/' 4)
 
 build:
-	cabal configure
+	cabal configure -O0
 	cabal build $(jobs) --ghc-option=-Wall
 	cabal haddock $(haddock_opt)
 
