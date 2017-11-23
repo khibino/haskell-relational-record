@@ -16,6 +16,7 @@
 -- and HDBC instances correspond to RDB table schema.
 module Database.HDBC.Query.TH (
   makeRelationalRecord,
+  makeRelationalRecord',
 
   defineTableDefault',
   defineTableDefault,
@@ -60,13 +61,19 @@ defineInstancesForSqlValue typeCon = do
     |]
 
 -- | Generate all persistable templates against defined record like type constructor.
-makeRelationalRecord :: Name    -- ^ Type constructor name
-                     -> Q [Dec] -- ^ Result declaration
-makeRelationalRecord recTypeName = do
-  rr <- Relational.makeRelationalRecordDefault recTypeName
+makeRelationalRecord' :: Config
+                      -> Name    -- ^ Type constructor name
+                      -> Q [Dec] -- ^ Result declaration
+makeRelationalRecord' config recTypeName = do
+  rr <- Relational.makeRelationalRecordDefault' config recTypeName
   (((typeCon, avs), _), _) <- reifyRecordType recTypeName
   ps <- defineSqlPersistableInstances [t| SqlValue |] typeCon avs
   return $ rr ++ ps
+
+-- | Generate all persistable templates against defined record like type constructor.
+makeRelationalRecord :: Name    -- ^ Type constructor name
+                     -> Q [Dec] -- ^ Result declaration
+makeRelationalRecord = makeRelationalRecord' defaultConfig
 
 -- | Generate all HDBC templates about table except for constraint keys.
 defineTableDefault' :: Config            -- ^ Configuration to generate query with
