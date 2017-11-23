@@ -1,9 +1,10 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 import Prelude hiding (seq)
+import Data.Functor.ProductIsomorphic
 import Database.HDBC (IConnection, SqlValue, commit)
 import Database.Record
-import Database.Relational.Query
+import Database.Relational
 import Database.HDBC.Record
 import Database.HDBC.Session
 import qualified One

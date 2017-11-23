@@ -1,9 +1,10 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
 
+import Data.Functor.ProductIsomorphic
 import Database.Record
 
-import Database.Relational.Query
+import Database.Relational
 import Database.HDBC (IConnection, SqlValue)
 import Data.Int (Int32)
 

@@ -5,7 +5,7 @@ import QueryArrowExample
 
 import Database.Record
 
-import Database.Relational.Query.Arrow
+import Database.Relational.Arrow
 import Database.HDBC (IConnection, SqlValue)
 
 import User (User)
@@ -13,8 +13,8 @@ import Group (Group)
 
 import PgTestDataSource (connect)
 import Database.HDBC.Record
-  (ExecutedStatement, bindTo, execute
-  ,runQuery, prepareQuery, fetchUnique, fetchUnique')
+  (ExecutedStatement, bindTo, executeBound,
+   runQuery, prepareQuery, fetchUnique, fetchUnique')
 import Database.HDBC.Session (withConnectionIO, handleSqlError')
 
 
@@ -56,7 +56,7 @@ runU f = handleSqlError' $ withConnectionIO connect
             putStrLn $ "SQL: " ++ show userGroupU
             pq <- prepareQuery conn (relationalQuery userGroupU)
             let bs = ("Kei Hibino", "Haskell") `bindTo` pq
-            es <- execute bs
+            es <- executeBound bs
             r  <- f es
             print r
         )

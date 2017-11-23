@@ -5,9 +5,10 @@
 module QueryArrowExample where
 
 import GHC.Generics (Generic)
+import Data.Functor.ProductIsomorphic
 import Database.Record
 
-import Database.Relational.Query.Arrow
+import Database.Relational.Arrow
 import Database.HDBC.Query.TH (makeRelationalRecord)
 import Data.Int (Int32, Int64)
 import Control.Arrow (returnA)

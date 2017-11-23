@@ -15,6 +15,7 @@ Executable example1
   default-language:    Haskell2010
   build-depends:         base <5
                        , template-haskell
+                       , product-isomorphic
                        , names-th
                        , persistable-record
                        , relational-query
@@ -38,6 +39,7 @@ Executable example1Arr
   default-language:    Haskell2010
   build-depends:         base <5
                        , template-haskell
+                       , product-isomorphic
                        , names-th
                        , persistable-record
                        , relational-query
@@ -61,6 +63,7 @@ Executable example2
   default-language:    Haskell2010
   build-depends:         base <5
                        , template-haskell
+                       , product-isomorphic
                        , names-th
                        , persistable-record
                        , relational-query
@@ -79,6 +82,7 @@ Executable example3
   default-language:    Haskell2010
   build-depends:         base <5
                        , template-haskell
+                       , product-isomorphic
                        , names-th
                        , persistable-record
                        , relational-query
@@ -97,6 +101,7 @@ Executable example4
   default-language:    Haskell2010
   build-depends:         base <5
                        , template-haskell
+                       , product-isomorphic
                        , names-th
                        , persistable-record
                        , relational-query

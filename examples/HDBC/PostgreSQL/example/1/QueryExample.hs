@@ -6,9 +6,10 @@
 module QueryExample where
 
 import GHC.Generics (Generic)
+import Data.Functor.ProductIsomorphic
 import Database.Record
 
-import Database.Relational.Query
+import Database.Relational
 import Database.HDBC.Query.TH (makeRelationalRecord)
 import Data.Int (Int32, Int64)
 
