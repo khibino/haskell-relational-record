@@ -1,11 +1,13 @@
-{-# LANGUAGE TemplateHaskell, MultiParamTypeClasses, FlexibleInstances #-}
+{-# LANGUAGE TemplateHaskell, MultiParamTypeClasses, FlexibleInstances, DeriveGeneric #-}
 
 module HrrDatatypeTest where
 
+import GHC.Generics (Generic)
+import Language.Haskell.TH (runIO)
 import Database.HDBC.Query.TH (defineTableFromDB)
 import Database.HDBC.Schema.Oracle (driverOracle)
-import Database.Record.TH (derivingShow)
 
-import DataSource (connect, owner)
+import DataSource (connect, getOwner)
 
-defineTableFromDB connect driverOracle owner "hrr_datatype_test" [derivingShow]
+$(do owner <- runIO getOwner
+     defineTableFromDB connect driverOracle owner "hrr_datatype_test" [''Show, ''Generic])

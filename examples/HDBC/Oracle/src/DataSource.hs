@@ -1,38 +1,41 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 module DataSource where
 
-import Control.Applicative ((<$>), (<*>))
-import System.IO (stdin, stdout, hSetBuffering, hPutStr, hGetLine, BufferMode (NoBuffering))
-import System.IO.Unsafe (unsafePerformIO)
-
+import Control.Applicative ((<$>), pure)
+import Data.String (fromString)
 import Database.HDBC.ODBC (Connection, connectODBC)
+
+import Database.Relational (ShowConstantTermsSQL (..))
 
 data Option = Option
     { dsn :: String
     , uid :: String
     , pwd :: String
-    }
+    } deriving (Show, Read)
 
-instance Show Option where
-    show (Option d u p) = concat
-        [ "DSN=", d, ";"
-        , "UID=", u, ";"
-        , "PWD=", p
-        ]
+data Param = Param
+     { option :: Option
+     , owner  :: String
+     } deriving (Show, Read)
 
-get :: String -> IO String
-get str = do
-    hSetBuffering stdin NoBuffering
-    hSetBuffering stdout NoBuffering
-    hPutStr stdout str
-    hGetLine stdin
+dsString :: Option -> String
+dsString (Option d u p) =
+  concat
+  [ "DSN=", d, ";"
+  , "UID=", u, ";"
+  , "PWD=", p
+  ]
 
-getOption :: IO Option
-getOption = Option <$> get "DSN: " <*> get "UID: " <*> get "PWD: "
+getParam :: IO Param
+getParam = readIO =<< readFile "datasource.show"
 
 connect :: IO Connection
-connect = do
-    option <- getOption
-    connectODBC $ show option
+connect = connectODBC . dsString . option =<< getParam
 
-owner :: String
-owner = unsafePerformIO $ get "OWNER: "
+getOwner :: IO String
+getOwner = owner <$> getParam
+
+
+instance ShowConstantTermsSQL Integer where
+  showConstantTermsSQL' = pure . fromString . show
