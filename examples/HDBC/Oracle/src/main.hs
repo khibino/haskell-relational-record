@@ -1,6 +1,6 @@
 module Main where
 
-import Database.Relational.Query (relationalQuery)
+import Database.Relational (relationalQuery)
 import Database.HDBC.Session (withConnectionIO, handleSqlError')
 import Database.HDBC.Record.Query (runQuery)
 
