@@ -1,5 +1,5 @@
 {-# LANGUAGE Arrows #-}
-{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, DeriveGeneric #-}
+{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, DataKinds, DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module QueryArrowExample where

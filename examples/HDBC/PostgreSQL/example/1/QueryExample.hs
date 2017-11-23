@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fsimpl-tick-factor=200 #-}
 {-# LANGUAGE MonadComprehensions #-}
-{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, DeriveGeneric #-}
+{-# LANGUAGE FlexibleContexts, FlexibleInstances, MultiParamTypeClasses, DataKinds, DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module QueryExample where
