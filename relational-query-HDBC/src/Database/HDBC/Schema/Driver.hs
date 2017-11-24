@@ -137,10 +137,10 @@ emptyDriver = Driver [] defaultConfig (\_ _ _ _ _ -> return ([],[])) (\_ _ _ _ -
 
 -- | Helper function to call 'getFieldsWithMap' using 'typeMap' of 'Driver'.
 getFields :: IConnection conn
-          => Driver conn
-          -> conn
-          -> LogChan
-          -> String
-          -> String
+          => Driver conn   -- ^ driver record
+          -> conn          -- ^ connection
+          -> LogChan       -- ^ log channel
+          -> String        -- ^ schema name string
+          -> String        -- ^ table name string
           -> IO ([(String, TypeQ)], [Int])
 getFields drv = getFieldsWithMap drv (typeMap drv)
