@@ -219,7 +219,7 @@ userGroup3 =
                  $ user `inner` membership `on'` [\ u m -> #id u .=. #userId m ]
                  `inner'` specifiedGroup `on'` [ \ um g -> um ! #snd ! #groupId .=. #id g ]
   , let um = #fst umg
-        u  = (! #fst) um
+        u  = (! #fst) um  --- operator (!) forces Pi type, but function apply does not force PI type.
         g  = #snd umg
 
   , ()  <- asc $ u ! User.id'
