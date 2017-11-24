@@ -166,7 +166,7 @@ projectionTemplate recName var ix colType = do
     [t| Pi $(toTypeCon recName) $colType |]
     [| UnsafePi.definePi $ $offsetsExp ! $(integralE ix) |]
 
--- | Column projection path 'Pi' templates.
+-- | Projection path 'Pi' templates.
 defineColumns :: ConName           -- ^ Record type name
               -> [(VarName, TypeQ)] -- ^ Column info list
               -> Q [Dec]           -- ^ Column projection path declarations
@@ -174,6 +174,7 @@ defineColumns recTypeName cols = do
   let defC (name, typ) ix = projectionTemplate recTypeName name ix typ
   fmap concat . sequence $ zipWith defC cols [0 :: Int ..]
 
+-- | Overloaded projection path 'Pi' templates.
 defineOverloadedColumns :: ConName           -- ^ Record type name
                         -> [(String, TypeQ)] -- ^ Column info list
                         -> Q [Dec]           -- ^ Column projection path declarations
@@ -182,13 +183,14 @@ defineOverloadedColumns recTypeName cols = do
         Overloaded.monomorphicProjection recTypeName name ix typ
   fmap concat . sequence $ zipWith defC cols [0 :: Int ..]
 
--- | Make column projection path and constraint key templates using default naming rule.
+-- | Make projection path templates using default naming rule.
 defineColumnsDefault :: ConName           -- ^ Record type name
                      -> [(String, TypeQ)] -- ^ Column info list
                      -> Q [Dec]           -- ^ Column projection path declarations
 defineColumnsDefault recTypeName cols =
   defineColumns     recTypeName [ (varCamelcaseName $ name ++ "'",             typ) | (name, typ) <- cols ]
 
+-- | Make overloaded projection path templates using default naming rule.
 defineOverloadedColumnsDefault :: ConName           -- ^ Record type name
                                -> [(String, TypeQ)] -- ^ Column info list
                                -> Q [Dec]           -- ^ Column projection path declarations
