@@ -39,6 +39,7 @@ import Language.Haskell.TH.Name.CamelCase (ConName)
 import Data.List (foldl')
 #endif
 
+-- | Projection template for monomorphic record type.
 monomorphicProjection :: ConName
                       -> String
                       -> Int
@@ -55,6 +56,7 @@ monomorphicProjection recName colStr ix colType =
 monomorphicProjection _ _ _ _ = [d| |]
 #endif
 
+-- | Projection templates for record type with type variable.
 polymorphicProjections :: TypeQ
                        -> [Name]
                        -> [String]
@@ -85,6 +87,7 @@ projectionDec cts =
 polymorphicProjections _ _ _ _ = [d| |]
 #endif
 
+-- | Projection templates for tuple type.
 tupleProjection :: Int -> Q [Dec]
 tupleProjection n =
     polymorphicProjections tyRec avs sels cts
