@@ -16,7 +16,7 @@ module Database.HDBC.Schema.Driver (
   LogChan, newLogChan, takeLogs, putWarning, putError, putVerbose,
   failWith, hoistMaybe, maybeIO,
 
-  Driver(Driver, typeMap, config, getFieldsWithMap, getPrimaryKey),
+  Driver(Driver, typeMap, driverConfig, getFieldsWithMap, getPrimaryKey),
   emptyDriver,
   getFields
   ) where
@@ -111,7 +111,8 @@ data Driver conn =
   { -- | Custom type mapping of this driver
     typeMap   :: TypeMap
 
-  , config    :: Config
+    -- | Custom configuration for this driver
+  , driverConfig :: Config
 
     -- | Get column name and Haskell type pairs and not-null columns index.
   , getFieldsWithMap :: TypeMap                       --  Custom type mapping
