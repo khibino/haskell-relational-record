@@ -50,7 +50,7 @@ import Database.HDBC.Session (withConnectionIO)
 import Database.HDBC.Record.Persistable ()
 
 import Database.HDBC.Schema.Driver
-  (runLog, newLogChan, takeLogs, Driver, getFields, getPrimaryKey)
+  (runLog, newLogChan, takeLogs, Driver, driverConfig, getFields, getPrimaryKey)
 
 
 defineInstancesForSqlValue :: TypeQ   -- ^ Record type constructor.
@@ -103,16 +103,15 @@ defineTableDefault config schema table columns derives primary notNull = do
   sqlvD <- defineInstancesForSqlValue . fst $ recordTemplate (recordConfig $ nameConfig config) schema table
   return $ modelD ++ sqlvD
 
--- | Generate all HDBC templates using system catalog informations with specified config.
-defineTableFromDB' :: IConnection conn
-                   => IO conn     -- ^ Connect action to system catalog database
-                   -> Config      -- ^ Configuration to generate query with
-                   -> Driver conn -- ^ Driver definition
-                   -> String      -- ^ Schema name
-                   -> String      -- ^ Table name
-                   -> [Name]      -- ^ Derivings
-                   -> Q [Dec]     -- ^ Result declaration
-defineTableFromDB' connect config drv scm tbl derives = do
+tableAlongWithSchema :: IConnection conn
+                     => IO conn     -- ^ Connect action to system catalog database
+                     -> Config      -- ^ Configuration to generate query with
+                     -> Driver conn -- ^ Driver definition
+                     -> String      -- ^ Schema name
+                     -> String      -- ^ Table name
+                     -> [Name]      -- ^ Derivings
+                     -> Q [Dec]     -- ^ Result declaration
+tableAlongWithSchema connect config drv scm tbl derives = do
   let getDBinfo = do
         logChan  <-  newLogChan $ verboseAsCompilerWarning config
         infoP    <-  withConnectionIO connect
@@ -137,6 +136,18 @@ defineTableFromDB' connect config drv scm tbl derives = do
 
   defineTableDefault config scm tbl cols derives primaryIxs (listToMaybe notNullIdxs)
 
+{-# DEPRECATED defineTableFromDB' "Use defineTableFromDB with updated driverConfig field of Driver argument." #-}
+-- | Generate all HDBC templates using system catalog informations with specified config.
+defineTableFromDB' :: IConnection conn
+                   => IO conn     -- ^ Connect action to system catalog database
+                   -> Config      -- ^ Configuration to generate query with
+                   -> Driver conn -- ^ Driver definition
+                   -> String      -- ^ Schema name
+                   -> String      -- ^ Table name
+                   -> [Name]      -- ^ Derivings
+                   -> Q [Dec]     -- ^ Result declaration
+defineTableFromDB' = tableAlongWithSchema
+
 -- | Generate all HDBC templates using system catalog informations.
 defineTableFromDB :: IConnection conn
                   => IO conn     -- ^ Connect action to system catalog database
@@ -145,7 +156,7 @@ defineTableFromDB :: IConnection conn
                   -> String      -- ^ Table name
                   -> [Name]      -- ^ Derivings
                   -> Q [Dec]     -- ^ Result declaration
-defineTableFromDB connect = defineTableFromDB' connect defaultConfig
+defineTableFromDB connect driver = tableAlongWithSchema connect (driverConfig driver) driver
 
 -- | Verify composed 'Query' and inline it in compile type.
 inlineVerifiedQuery :: IConnection conn
