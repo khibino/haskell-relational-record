@@ -16,7 +16,7 @@ module Database.HDBC.Schema.Driver (
   LogChan, newLogChan, takeLogs, putWarning, putError, putVerbose,
   failWith, hoistMaybe, maybeIO,
 
-  Driver(Driver, typeMap, getFieldsWithMap, getPrimaryKey),
+  Driver(Driver, typeMap, config, getFieldsWithMap, getPrimaryKey),
   emptyDriver,
   getFields
   ) where
@@ -31,6 +31,7 @@ import Data.Monoid (mempty, (<>))
 import Data.DList (DList, toList)
 
 import Database.HDBC (IConnection)
+import Database.Relational (Config, defaultConfig)
 
 
 -- | Mapping between type name string of DBMS and type in Haskell.
@@ -110,6 +111,8 @@ data Driver conn =
   { -- | Custom type mapping of this driver
     typeMap   :: TypeMap
 
+  , config    :: Config
+
     -- | Get column name and Haskell type pairs and not-null columns index.
   , getFieldsWithMap :: TypeMap                       --  Custom type mapping
                      -> conn                          --  Connection to query system catalog
@@ -128,9 +131,16 @@ data Driver conn =
   }
 
 -- | Empty definition of 'Driver'
-emptyDriver :: IConnection conn => Driver conn
-emptyDriver =  Driver [] (\_ _ _ _ _ -> return ([],[])) (\_ _ _ _ -> return [])
+emptyDriver :: IConnection conn
+            => Driver conn
+emptyDriver = Driver [] defaultConfig (\_ _ _ _ _ -> return ([],[])) (\_ _ _ _ -> return [])
 
 -- | Helper function to call 'getFieldsWithMap' using 'typeMap' of 'Driver'.
-getFields :: IConnection conn => Driver conn -> conn -> LogChan -> String -> String -> IO ([(String, TypeQ)], [Int])
+getFields :: IConnection conn
+          => Driver conn
+          -> conn
+          -> LogChan
+          -> String
+          -> String
+          -> IO ([(String, TypeQ)], [Int])
 getFields drv = getFieldsWithMap drv (typeMap drv)
