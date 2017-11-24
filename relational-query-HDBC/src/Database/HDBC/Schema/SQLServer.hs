@@ -4,7 +4,7 @@
 
 -- |
 -- Module      : Database.HDBC.Schema.SQLServer
--- Copyright   : 2013 Shohei Murayama
+-- Copyright   : 2013 Shohei Murayama, 2017 Kei Hibiono
 -- License     : BSD3
 --
 -- Maintainer  : shohei.murayama@gmail.com

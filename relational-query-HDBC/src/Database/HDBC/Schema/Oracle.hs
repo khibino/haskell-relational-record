@@ -3,7 +3,7 @@
 
 -- |
 -- Module      : Database.HDBC.Schema.Oracle
--- Copyright   : 2013 Shohei Yasutake
+-- Copyright   : 2013 Shohei Yasutake, 2017 Kei Hibiono
 -- License     : BSD3
 --
 -- Maintainer  : amutake.s@gmail.com

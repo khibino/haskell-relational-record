@@ -4,7 +4,7 @@
 
 -- |
 -- Module      : Database.HDBC.Schema.MySQL
--- Copyright   : 2013 Sho KURODA
+-- Copyright   : 2013 Sho KURODA, 2017 Kei Hibiono
 -- License     : BSD3
 --
 -- Maintainer  : krdlab@gmail.com
