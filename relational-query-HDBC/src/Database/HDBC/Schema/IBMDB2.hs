@@ -40,10 +40,11 @@ import Database.Relational.Schema.IBMDB2
   (normalizeColumn, notNull, getType, columnsQuerySQL, primaryKeyQuerySQL)
 import Database.Relational.Schema.DB2Syscat.Columns (Columns)
 import qualified Database.Relational.Schema.DB2Syscat.Columns as Columns
+import Database.Relational.Schema.DB2Syscat.Config (config)
 
 import Database.HDBC.Schema.Driver
   (TypeMap, LogChan, putVerbose, failWith, maybeIO, hoistMaybe,
-   Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
+   Driver, driverConfig, getFieldsWithMap, getPrimaryKey, emptyDriver)
 
 
 instance FromSql SqlValue Columns
@@ -104,3 +105,4 @@ driverIBMDB2 :: IConnection conn => Driver conn
 driverIBMDB2 =
   emptyDriver { getFieldsWithMap = getColumns' }
               { getPrimaryKey    = getPrimaryKey' }
+              { driverConfig     = config }

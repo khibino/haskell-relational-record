@@ -27,13 +27,14 @@ import Database.HDBC (IConnection, SqlValue)
 import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
 import Database.HDBC.Schema.Driver
-  (TypeMap, LogChan, putVerbose, failWith, maybeIO,
-   Driver, hoistMaybe, getFieldsWithMap, getPrimaryKey, emptyDriver)
+  (TypeMap, LogChan, putVerbose, failWith, maybeIO, hoistMaybe,
+   Driver, driverConfig, getFieldsWithMap, getPrimaryKey, emptyDriver)
 import Database.Record (FromSql, ToSql)
 import Database.Relational.Schema.SQLServer (columnTypeQuerySQL, getType, normalizeColumn,
                                             notNull, primaryKeyQuerySQL)
 import Database.Relational.Schema.SQLServerSyscat.Columns (Columns)
 import Database.Relational.Schema.SQLServerSyscat.Types (Types)
+import Database.Relational.Schema.SQLServerSyscat.Config (config)
 import Language.Haskell.TH (TypeQ)
 
 
@@ -94,3 +95,4 @@ driverSQLServer :: IConnection conn => Driver conn
 driverSQLServer =
     emptyDriver { getFieldsWithMap = getColumns' }
                 { getPrimaryKey    = getPrimaryKey' }
+                { driverConfig     = config }

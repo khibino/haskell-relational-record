@@ -28,14 +28,15 @@ import Database.HDBC (IConnection, SqlValue)
 import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
 import Database.HDBC.Schema.Driver
-  (TypeMap, LogChan, putVerbose, failWith, maybeIO,
-   Driver, hoistMaybe, getFieldsWithMap, getPrimaryKey, emptyDriver)
+  (TypeMap, LogChan, putVerbose, failWith, maybeIO, hoistMaybe,
+   Driver, driverConfig, getFieldsWithMap, getPrimaryKey, emptyDriver)
 import Database.Record (FromSql, ToSql)
 import Database.Relational.Schema.SQLite3 (getType, indexInfoQuerySQL, indexListQuerySQL, normalizeColumn,
                                            normalizeType, notNull, tableInfoQuerySQL)
 import Database.Relational.Schema.SQLite3Syscat.IndexInfo (IndexInfo)
 import Database.Relational.Schema.SQLite3Syscat.IndexList (IndexList)
 import Database.Relational.Schema.SQLite3Syscat.TableInfo (TableInfo)
+import Database.Relational.Schema.SQLite3Syscat.Config (config)
 import Language.Haskell.TH (TypeQ)
 
 
@@ -113,3 +114,4 @@ driverSQLite3 :: IConnection conn => Driver conn
 driverSQLite3 =
     emptyDriver { getFieldsWithMap = getColumns' }
                 { getPrimaryKey    = getPrimaryKey' }
+                { driverConfig     = config }

@@ -2,7 +2,7 @@
 {-# LANGUAGE TemplateHaskell, MultiParamTypeClasses #-}
 
 -- |
--- Module      : Database.HDBC.Schema.MySQL
+-- Module      : Database.HDBC.Schema.Oracle
 -- Copyright   : 2013 Shohei Yasutake
 -- License     : BSD3
 --
@@ -29,7 +29,7 @@ import Database.HDBC.Record.Query (runQuery')
 import Database.HDBC.Record.Persistable ()
 import Database.HDBC.Schema.Driver
     ( TypeMap, LogChan, putVerbose, failWith, maybeIO, hoistMaybe,
-      Driver, getFieldsWithMap, getPrimaryKey, emptyDriver
+      Driver, driverConfig, getFieldsWithMap, getPrimaryKey, emptyDriver
     )
 
 import Database.Relational.Schema.Oracle
@@ -38,6 +38,7 @@ import Database.Relational.Schema.Oracle
     )
 import Database.Relational.Schema.OracleDataDictionary.TabColumns (DbaTabColumns)
 import qualified Database.Relational.Schema.OracleDataDictionary.TabColumns as Cols
+import Database.Relational.Schema.OracleDataDictionary.Config (config)
 
 
 instance FromSql SqlValue DbaTabColumns
@@ -96,3 +97,4 @@ driverOracle :: IConnection conn => Driver conn
 driverOracle =
     emptyDriver { getFieldsWithMap = getColumns' }
                 { getPrimaryKey = getPrimaryKey' }
+                { driverConfig  = config }

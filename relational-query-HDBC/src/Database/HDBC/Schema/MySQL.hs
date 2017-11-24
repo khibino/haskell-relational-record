@@ -36,6 +36,7 @@ import           Database.HDBC.Schema.Driver        ( TypeMap
                                                     , maybeIO
                                                     , hoistMaybe
                                                     , Driver
+                                                    , driverConfig
                                                     , getFieldsWithMap
                                                     , getPrimaryKey
                                                     , emptyDriver
@@ -49,6 +50,7 @@ import           Database.Relational.Schema.MySQL   ( normalizeColumn
 
 import           Database.Relational.Schema.MySQLInfo.Columns (Columns)
 import qualified Database.Relational.Schema.MySQLInfo.Columns as Columns
+import           Database.Relational.Schema.MySQLInfo.Config (config)
 
 
 instance FromSql SqlValue Columns
@@ -106,3 +108,4 @@ driverMySQL :: IConnection conn => Driver conn
 driverMySQL =
     emptyDriver { getFieldsWithMap = getColumns' }
                 { getPrimaryKey    = getPrimaryKey' }
+                { driverConfig     = config }

@@ -39,10 +39,11 @@ import Database.Relational.Schema.PostgreSQL
 import Database.Relational.Schema.PgCatalog.PgAttribute (PgAttribute)
 import Database.Relational.Schema.PgCatalog.PgType (PgType)
 import qualified Database.Relational.Schema.PgCatalog.PgType as Type
+import Database.Relational.Schema.PgCatalog.Config (config)
 
 import Database.HDBC.Schema.Driver
   (TypeMap, LogChan, putVerbose, failWith, maybeIO, hoistMaybe,
-   Driver, getFieldsWithMap, getPrimaryKey, emptyDriver)
+   Driver, driverConfig, getFieldsWithMap, getPrimaryKey, emptyDriver)
 
 
 instance FromSql SqlValue PgAttribute
@@ -113,3 +114,4 @@ driverPostgreSQL :: IConnection conn => Driver conn
 driverPostgreSQL =
   emptyDriver { getFieldsWithMap = getColumns' }
               { getPrimaryKey    = getPrimaryKey' }
+              { driverConfig     = config }
