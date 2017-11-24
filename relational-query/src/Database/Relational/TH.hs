@@ -88,7 +88,8 @@ import qualified Database.Record.TH as Record
 import Database.Relational
   (Table, Pi, id', Relation, ShowConstantTermsSQL,
    NameConfig (..), SchemaNameMode (..), IdentifierQuotation (..), defaultConfig,
-   Config (normalizedTableName, disableOverloadedProjection, schemaNameMode, nameConfig, identifierQuotation),
+   Config (normalizedTableName, disableOverloadedProjection, disableSpecializedProjection,
+           schemaNameMode, nameConfig, identifierQuotation),
    relationalQuerySQL, Query, relationalQuery, KeyUpdate,
    Insert, derivedInsert, InsertQuery, derivedInsertQuery,
    HasConstraintKey(constraintKey), Primary, NotNull, primary, primaryUpdate)
@@ -307,7 +308,9 @@ defineTableTypesWithConfig config schema table columns = do
              (tableSQL (normalizedTableName config) (schemaNameMode config) (identifierQuotation config) schema table)
              (map ((quote (identifierQuotation config)) . fst) columns)
   let typeName = recordTypeName recConfig schema table
-  colsDs  <- defineColumnsDefault     typeName columns
+  colsDs  <- if disableSpecializedProjection config
+             then [d| |]
+             else defineColumnsDefault     typeName columns
   pcolsDs <- if disableOverloadedProjection config
              then [d| |]
              else defineOverloadedColumnsDefault typeName columns
@@ -468,15 +471,19 @@ makeRelationalRecordDefault' config recTypeName = do
       []      ->  do {- monomorphic case -}
         off <- Record.defineColumnOffsets recTypeConName
         let cnames =  [ (nameBase n, ct) | n  <- ns  | ct <- cts ]
-        cs  <- defineColumnsDefault     recTypeConName cnames
+        cs  <- if disableSpecializedProjection config
+               then [d| |]
+               else defineColumnsDefault     recTypeConName cnames
         pcs <- if disableOverloadedProjection config
                then [d| |]
                else defineOverloadedColumnsDefault recTypeConName cnames
         return $ off ++ cs ++ pcs
       _:_     ->  do {- polymorphic case -}
-        cols <- defineRecordProjections tyCon vars
-                [varName $ varCamelcaseName (nameBase n ++ "'") | n <- ns]
-                cts
+        cols <- if disableSpecializedProjection config
+                then [d| |]
+                else defineRecordProjections tyCon vars
+                     [varName $ varCamelcaseName (nameBase n ++ "'") | n <- ns]
+                     cts
         ovls <- if disableOverloadedProjection config
                 then [d| |]
                 else Overloaded.polymorphicProjections tyCon vars
