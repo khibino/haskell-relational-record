@@ -1,6 +1,6 @@
 -- |
 -- Module      : Database.HDBC.Schema.Driver
--- Copyright   : 2013 Kei Hibino
+-- Copyright   : 2013-2017 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
@@ -21,15 +21,16 @@ module Database.HDBC.Schema.Driver (
   getFields
   ) where
 
-import Database.HDBC (IConnection)
-import Data.IORef (IORef, newIORef, readIORef, writeIORef, modifyIORef)
-import Data.Monoid (mempty, (<>))
-import Data.DList (DList, toList)
+import Language.Haskell.TH (TypeQ)
 import Control.Applicative ((<$>), pure, (<*>))
 import Control.Monad (MonadPlus, mzero)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Maybe (MaybeT (..))
-import Language.Haskell.TH (TypeQ)
+import Data.IORef (IORef, newIORef, readIORef, writeIORef, modifyIORef)
+import Data.Monoid (mempty, (<>))
+import Data.DList (DList, toList)
+
+import Database.HDBC (IConnection)
 
 
 -- | Mapping between type name string of DBMS and type in Haskell.
