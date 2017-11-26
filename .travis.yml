@@ -20,6 +20,8 @@ before_cache:
 
 matrix:
   include:
+    - env: STACK_RESOLVER=lts-9.14
+      addons: {apt: {packages: [libgmp-dev]}}
     - env: STACK_RESOLVER=lts-8.22
       addons: {apt: {packages: [libgmp-dev]}}
     - env: STACK_RESOLVER=lts-7.24
