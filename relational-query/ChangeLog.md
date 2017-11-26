@@ -1,8 +1,12 @@
 <!-- -*- Markdown -*- -->
 
+## 0.10.1.1
+
+- fix overloaded-labels instances for GHC 8.2.
+
 ## 0.10.1.0
 
-- add overloaded projections.
+- define projections with overloaded-labels.
 - add a portable sequence number operation.
 
 ## 0.10.0.0
