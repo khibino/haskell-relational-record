@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.6.4.2
+
+- add an upper bound of version constraint.
+
 ## 0.6.4.1
 
 - apply integrated namespace with new exported symbols.
