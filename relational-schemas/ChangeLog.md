@@ -1,5 +1,13 @@
 <!-- -*- Markdown -*- -->
 
+## 0.1.4.2
+
+- add an upper bound of version constraint.
+
+## 0.1.4.1
+
+- update version constraint.
+
 ## 0.1.4.0
 
 - add tested-with 8.2.1.
