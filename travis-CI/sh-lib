@@ -28,7 +28,7 @@ STACK_RESOLVER: $STACK_RESOLVER
 TRAVIS_BRANCH: $TRAVIS_BRANCH
 EOF
     case x"$STACK_RESOLVER" in
-        xlts-9)
+        xlts-9.*)
             case x"$TRAVIS_BRANCH" in
                 xlts-9)
                     cat <<EOF
@@ -44,7 +44,7 @@ EOF
                     ;;
             esac
             ;;
-        xlts-[678]*)
+        xlts-[678].*)
             case x"$TRAVIS_BRANCH" in
                 xlts-8)
                     cat <<EOF
