@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.1.6.0
+
+- apply projections with overloaded-labels to schema tables.
+
 ## 0.1.5.0
 
 - apply relational-query-0.10.0
