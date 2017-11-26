@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.9.5.1
+
+- add an upper bound of version constraint.
+
 ## 0.9.5.0
 
 - export QuerySuffix and unsafe-query functions from Database.Relational.Query namespace for libraries.
