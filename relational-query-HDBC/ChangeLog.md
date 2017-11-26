@@ -1,5 +1,10 @@
 <!-- -*- Markdown -*- -->
 
+## 0.6.6.0
+
+- add a portable sequence number operation.
+- defaultly use custom configuration in defineTableFromDB.
+
 ## 0.6.5.0
 
 - apply relational-query-0.10.0
