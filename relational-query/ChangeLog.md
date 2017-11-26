@@ -1,5 +1,10 @@
 <!-- -*- Markdown -*- -->
 
+## 0.10.1.0
+
+- add overloaded projections.
+- add a portable sequence number operation.
+
 ## 0.10.0.0
 
 - switch namespace to Database.Relational
