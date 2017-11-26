@@ -38,14 +38,25 @@ data PiLabel (l :: Symbol) = GetPi
 class HasProjection l a b | l a -> b where
   projection :: PiLabel l -> Pi a b
 
+#if __GLASGOW_HASKELL__ >= 802
+-- | Derive 'IsLabel' instance from 'HasProjection'.
+instance HasProjection l a b => IsLabel l (Pi a b) where
+  fromLabel = projection (GetPi :: PiLabel l)
+
+-- | Derive 'PI' label.
+instance (PersistableWidth a, HasProjection l a b)
+          => IsLabel l (PI c a b) where
+  fromLabel = (! projection (GetPi :: PiLabel l))
+#else
 -- | Derive 'IsLabel' instance from 'HasProjection'.
 instance HasProjection l a b => IsLabel l (Pi a b) where
   fromLabel _ = projection (GetPi :: PiLabel l)
 
 -- | Derive 'PI' label.
-instance (PersistableWidth a, IsLabel l (Pi a b))
+instance (PersistableWidth a, HasProjection l a b)
           => IsLabel l (PI c a b) where
-  fromLabel s = (! fromLabel s)
+  fromLabel _ = (! projection (GetPi :: PiLabel l))
+#endif
 #else
 module Database.Relational.OverloadedProjection () where
 #endif
