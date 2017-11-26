@@ -20,7 +20,7 @@ library
                      , product-isomorphic >= 0.0.3
                      , persistable-record >= 0.6
                      , relational-query >=0.10.1
-                     , relational-query-HDBC
+                     , relational-query-HDBC >= 0.6.6
                      , persistable-types-HDBC-pg
 
   hs-source-dirs:    src
