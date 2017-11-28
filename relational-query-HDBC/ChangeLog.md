@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.6.6.1
+
+- update version constraint. ( along with re-versioned relational-query. )
+
 ## 0.6.6.0
 
 - add a portable sequence number operation.
