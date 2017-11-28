@@ -68,6 +68,9 @@ module Database.Relational.Documentation (
   -- $projectionPath
   Pi, (!), (<.>),
 
+  -- *** Overloaded Projection
+  -- $overloadedProjection
+
   -- *** Record Operators
   -- $recordOperators
   ShowConstantTermsSQL,
@@ -277,6 +280,30 @@ Module "Database.Relational.Context" contains documentation of other context typ
 '!' operator is record value selector using projection path type 'Pi' /r0/ /r1/.
 'Pi' /r0/ /r1/ is projection path type selecting column type /r1/ from record type /r0/.
 '<.>' operator makes composed projection path from two projection paths.
+'fst'' and 'snd'' are projection paths for pair type.
+ -}
+
+{- $overloadedProjection
+On newer or equal GHC 8.0, overloaded projections are supported.
+So you can use projections like below:
+
+@
+   a ! \#foo .=. b ! \#bar
+@
+
+instead of:
+
+@
+   a ! A.foo' .=. b ! B.bar'
+@
+
+Funtion application style is also available:
+
+@
+   \#foo a .=. \#bar b
+@
+
+@ \#fst @ and @ \#snd @ are overloaded-projection for pair type.
  -}
 
 {- $recordOperators
@@ -329,6 +356,9 @@ For example,
 '?!' operator is maybe flavor of '!',
 '<?.>' operator is maybe flavor of '<.>'.
 '?!?' operator and '<?.?>' operator 'join' two 'Maybe' phantom functors.
+
+'?' is same as '?!', which is assumed to use with overloaded-projection like @ (? \#foo) @.
+'??' is same as '?!?', which is assumed to use with overloaded-projection like @ (?? \#foo) @.
 
 '?+?' operator is maybe flavor of '.+.',
 'negateMaybe' operator is maybe flavor of 'negate'',
