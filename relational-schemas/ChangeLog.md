@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.1.6.1
+
+- update version constraint. ( along with re-versioned relational-query. )
+
 ## 0.1.6.0
 
 - apply projections with overloaded-labels to schema tables.

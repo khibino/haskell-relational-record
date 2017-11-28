@@ -1,5 +1,5 @@
 name:                relational-schemas
-version:             0.1.6.0
+version:             0.1.6.1
 synopsis:            RDBMSs' schema templates for relational-query
 description:         This package contains some RDBMSs' schema structure definitions.
                      Supported RDBMS schemas are below:
@@ -80,7 +80,7 @@ library
                        , time
                        , bytestring
 
-                       , relational-query >= 0.10.1
+                       , relational-query >= 0.11
 
   if impl(ghc == 7.4.*)
     build-depends:        ghc-prim == 0.2.*
