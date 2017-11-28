@@ -297,7 +297,7 @@ instead of:
    a ! A.foo' .=. b ! B.bar'
 @
 
-Funtion application style is also available:
+Function application style is also available:
 
 @
    \#foo a .=. \#bar b
