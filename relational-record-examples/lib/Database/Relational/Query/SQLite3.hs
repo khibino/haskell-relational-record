@@ -29,4 +29,4 @@ runRelation :: (ToSql SqlValue p,
 runRelation conn q p = runQuery conn (relationalQuery q) p
 
 makeRelationalRecord :: Name -> Q [Dec]
-makeRelationalRecord = makeRelationalRecord' defaultConfig { disableOverloadedProjection = True }
+makeRelationalRecord = makeRelationalRecord' defaultConfig
