@@ -68,7 +68,7 @@ module Database.Relational.Documentation (
   -- $projectionPath
   Pi, (!), (<.>),
 
-  -- *** Projection Operators
+  -- *** Record Operators
   -- $recordOperators
   ShowConstantTermsSQL,
 
