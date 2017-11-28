@@ -42,7 +42,7 @@ library
                      , HDBC-session
                      , HDBC-sqlite3
                      , persistable-record >= 0.6
-                     , relational-query >= 0.10
+                     , relational-query >= 0.11
                      , relational-query-HDBC >= 0.6.5
                      , template-haskell
                      -- not link directly but query type map
@@ -73,7 +73,7 @@ executable examples
                        Transaction
   build-depends:       base < 5
                      , product-isomorphic >= 0.0.3
-                     , relational-query >= 0.10.1
+                     , relational-query >= 0.11
                      , relational-record-examples
                      , template-haskell
                      , time
