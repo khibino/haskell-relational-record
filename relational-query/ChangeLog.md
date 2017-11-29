@@ -10,7 +10,7 @@
 
 ## 0.10.1.0
 
-- define projections with overloaded-labels.
+- define projections with overloaded-labels. -- Thanks for Ryan Mulligan
 - add a portable sequence number operation.
 
 ## 0.10.0.0
