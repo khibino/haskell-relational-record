@@ -24,12 +24,14 @@ Following installation methods are selectable
     % stack build relational-record
 
 You may want to use LTS Haskell release of stackage.
-For example, command-line to build with LTS-9:
+For example, command-line to build with LTS-10:
 
-    % stack --resolver lts-9 build relational-record
+    % stack --resolver lts-10 build relational-record
 
-You can use [LTS-9.x](https://www.stackage.org/lts-9) and
-older LTS Haskell releases, [LTS-8.x](https://www.stackage.org/lts-8),
+You can use [LTS-10.x](https://www.stackage.org/lts-10) and
+older LTS Haskell releases,
+[LTS-9.x](https://www.stackage.org/lts-9),
+[LTS-8.x](https://www.stackage.org/lts-8),
 [LTS-7.x](https://www.stackage.org/lts-7) or [LTS-6.x](https://www.stackage.org/lts-6).
 
 #### <a name="build-with-cabal"></a> Build with cabal
