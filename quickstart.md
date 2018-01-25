@@ -58,10 +58,9 @@ In HRR, select statements are called relations.
 Let's define our first relation. Copy the following to "hello.hs":
 
 {% highlight haskell %}
-import Data.Int (Int32)
-import Database.Relational.Query
+import Database.Relational
 
-hello :: Relation () (Int32, String)
+hello :: Relation () (Int, String)
 hello = relation $ return (value 0 >< value "Hello")
 
 main :: IO ()
@@ -89,21 +88,21 @@ We got "0\|Hello"! Note that "dummy.db" is just a dummy file.
 Next, let's compose relations. Copy the following to "helloworld.hs":
 
 {% highlight haskell %}
-import Data.Int (Int32)
-import Database.Relational.Query
+import Data.Functor.ProductIsomorphic
+import Database.Relational
 
-hello :: Relation () (Int32, String)
+hello :: Relation () (Int, String)
 hello = relation $ return (value 0 >< value "Hello")
 
-world :: Relation () (Int32, String)
+world :: Relation () (Int, String)
 world = relation $ return (value 0 >< value "World!")
 
-helloWorld :: Relation () (Int32, (String, String))
+helloWorld :: Relation () (Int, String, String)
 helloWorld = relation $ do
     h <- query hello
     w <- query world
     on $ h ! fst' .=. w ! fst'
-    return $ h ! fst' >< (h ! snd' >< w ! snd')
+    return $ (,,) |$| h ! fst' |*| h ! snd' |*| w ! snd'
 
 main :: IO ()
 main = putStrLn $ show helloWorld ++ ";"
