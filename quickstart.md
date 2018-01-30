@@ -11,13 +11,13 @@ Following installation methods are selectable
 
     % sudo apt-get install haskell-relational-record
 
-#### <a name="install-on-opensuse"></a> OpenSUSE
+#### <a name="install-on-opensuse"></a> openSUSE
 
     OpenSUSE Tumbleweed
 
     # zypper addrepo http://download.opensuse.org/repositories/devel:languages:haskell:lts:10/openSUSE_Tumbleweed/devel:languages:haskell:lts:10.repo
     # zypper refresh
-    # zypper install ghc-relational-record
+    # zypper install ghc-relational-record-devel
 
 #### <a name="build-with-stack"></a> Build with stack
 
