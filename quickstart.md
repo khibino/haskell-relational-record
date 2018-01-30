@@ -13,7 +13,7 @@ Following installation methods are selectable
 
 #### <a name="install-on-opensuse"></a> openSUSE
 
-    OpenSUSE Tumbleweed
+openSUSE Tumbleweed
 
     # zypper addrepo http://download.opensuse.org/repositories/devel:languages:haskell:lts:10/openSUSE_Tumbleweed/devel:languages:haskell:lts:10.repo
     # zypper refresh
