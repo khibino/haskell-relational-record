@@ -15,7 +15,7 @@ Following installation methods are selectable
 
     OpenSUSE Tumbleweed
 
-    # zypper addrepo http://download.opensuse.org/repositories/devel:languages:haskell:lts:6/openSUSE_Tumbleweed/devel:languages:haskell:lts:6.repo
+    # zypper addrepo http://download.opensuse.org/repositories/devel:languages:haskell:lts:10/openSUSE_Tumbleweed/devel:languages:haskell:lts:10.repo
     # zypper refresh
     # zypper install ghc-relational-record
 
