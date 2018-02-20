@@ -26,10 +26,6 @@ title: Technical information
 - [Haskell Relational Record をリリースしましたComments](http://d.hatena.ne.jp/kazu-yamamoto/20141225/1419490692), Kazu Yamamoto, 2013.12.25
 - [Extending Query, Relational, Typeful, Composable](http://khibino.hatenadiary.jp/entry/20131219/1387423818), Kei Hibino, 2013.12.19
 
-### Wiki
-
-- [HRR Wiki in github](https://github.com/khibino/haskell-relational-record/wiki)
-
 ### Slides of others
 
 - [Composable, type-safe SQL generation in Haskell](https://github.com/charlydagos/haskell-sql-edsl-demo/blob/master/slides/presentation.md), Carlos D'Agostino, 2016.5.19, HaskellerZ Meetup, Zürich
