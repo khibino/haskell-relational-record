@@ -58,7 +58,8 @@ In HRR, select statements are called relations.
 Let's define our first relation. Copy the following to "hello.hs":
 
 {% highlight haskell %}
-import Database.Relational
+import Database.Relational -- for LTS-10
+-- import Database.Relational.Query -- instead of "import Database.Relational" for LTS-9 or LTS-8
 
 hello :: Relation () (Int, String)
 hello = relation $ return (value 0 >< value "Hello")
