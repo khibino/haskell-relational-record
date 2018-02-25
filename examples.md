@@ -1005,7 +1005,7 @@ HRR:
 -- an unique constraint, it is not possible to use queryScalar.
 -- The name column of branch table is the same.
 insertEmployee_s2 :: InsertQuery ()
-insertEmployee_s2 = typedInsertQuery piEmployee3 . relation $ do
+insertEmployee_s2 = derivedInsertQuery piEmployee3 . relation $ do
   d <- query department
   b <- query branch
   wheres $ d ! Department.name' .=. value "Administration"
@@ -1059,7 +1059,7 @@ Unsafe HRR:
 -- unsafeUnique. By that means we throw away the safety given by HRR
 -- and the type system.
 insertEmployee_s2U :: InsertQuery ()
-insertEmployee_s2U = typedInsertQuery piEmployee3 . relation $ do
+insertEmployee_s2U = derivedInsertQuery piEmployee3 . relation $ do
   d <- queryScalar . unsafeUnique . relation $ do
     d' <- query department
     wheres $ d' ! Department.name' .=. value "Administration"
@@ -1107,7 +1107,7 @@ data Employee4 = Employee4
 $(makeRelationalRecord ''Employee4)
 
 insertEmployee_s2P :: InsertQuery Employee4
-insertEmployee_s2P = typedInsertQuery piEmployee3 . relation' $ do
+insertEmployee_s2P = derivedInsertQuery piEmployee3 . relation' $ do
   d <- query department
   b <- query branch
   wheres $ d ! Department.name' .=. value "Administration"
@@ -1241,8 +1241,9 @@ HRR:
 
 {% highlight haskell %}
 deleteAccount_o1 :: Delete ()
-deleteAccount_o1 = typedDelete tableOfAccount . restriction $ \proj -> do
+deleteAccount_o1 = derivedDelete $ \proj -> do
   wheres $ proj ! Account.accountId' .=. value 2
+  return unitPlaceHolder
 {% endhighlight %}
 
 Generated SQL:
@@ -1265,9 +1266,10 @@ HRR:
 
 {% highlight haskell %}
 deleteAccount_o2 :: Delete ()
-deleteAccount_o2 = typedDelete tableOfAccount . restriction $ \proj -> do
+deleteAccount_o2 = derivedDelete $ \proj -> do
   wheres $ proj ! Account.accountId' .>=. value 10
   wheres $ proj ! Account.accountId' .<=. value 20
+  return unitPlaceHolder
 {% endhighlight %}
 
 Generated SQL:
