@@ -109,6 +109,10 @@ main :: IO ()
 main = putStrLn $ show helloWorld ++ ";"
 {% endhighlight %}
 
+(You may use older LTS. Please check
+ [LTS-9 - helloworld.hs](helloworld-9.html) or
+ [LTS-8 - helloworld.hs](helloworld-8.html).)
+
 This code defines queries called `hello` and `world`. And `helloworld` composes them by joining them on the first element of the tuples.
 
 This code generates the following SQL statement:
