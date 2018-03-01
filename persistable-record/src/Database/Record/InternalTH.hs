@@ -2,15 +2,17 @@
 {-# LANGUAGE ConstraintKinds #-}
 
 module Database.Record.InternalTH (
-  defineTupleInstances
+  defineTupleInstances,
+  knownWidthIntType,
   ) where
 
 import Control.Applicative ((<$>))
+import Data.Int (Int32, Int64)
 import Data.List (foldl')
 import Language.Haskell.TH
   (Q, mkName, Name,
    conT, varT, tupleT, appT, classP,
-   Dec, instanceD, )
+   TypeQ, Dec, instanceD, )
 
 import Database.Record.Persistable (PersistableWidth)
 import Database.Record.FromSql (FromSql)
@@ -43,3 +45,14 @@ defineTupleInstances n =
   [ persistableWidth n
   , tupleInstance2 n ''FromSql
   , tupleInstance2 n ''ToSql ]
+
+knownWidthIntType :: Maybe TypeQ
+knownWidthIntType
+  | toI (minBound :: Int) == toI (minBound :: Int32) &&
+    toI (maxBound :: Int) == toI (maxBound :: Int32)    =  Just [t| Int |]
+  | toI (minBound :: Int) == toI (minBound :: Int64) &&
+    toI (maxBound :: Int) == toI (maxBound :: Int64)    =  Just [t| Int |]
+  | otherwise                                           =  Nothing
+  where
+    toI :: Integral a => a -> Integer
+    toI = fromIntegral
