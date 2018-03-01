@@ -1,5 +1,10 @@
 <!-- -*- Markdown -*- -->
 
+## 0.5.2.0
+
+- check width of Int type and add instances. (backport)
+- fix typo.
+
 ## 0.5.1.1
 
 - Update this changelog.
