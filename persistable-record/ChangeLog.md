@@ -1,8 +1,14 @@
 <!-- -*- Markdown -*- -->
 
+## 0.6.0.1
+
+- fix changelog.
+- fix typo.
+
 ## 0.6.0.0
 
 - divide and apply product-isomorphic interfaces.
+- check width of Int type and add instances.
 
 ## 0.5.1.1
 
