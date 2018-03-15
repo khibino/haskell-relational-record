@@ -80,9 +80,11 @@ import Database.Record.InternalTH
 data NameConfig =
   NameConfig
   { recordTypeName  ::  String -> String -> ConName
-    -- ^ Make record type symbol name from schema name and table name in SQL
+    -- ^ Make record type name generated from the table's definition.
+    --   The first argument is the schema name of the table, and the second argument is the table name.
   , columnName      ::  String -> String -> VarName
-    -- ^ Make column variable symbol name from table name and column name in SQL
+    -- ^ Make each field label of the record type generated from the table's definition.
+    --   The first argument is the table name, and the second argument is the column name.
   }
 
 -- | Dummy show instance. Handy to define show instance recursively.
@@ -90,7 +92,15 @@ instance Show NameConfig where
   show = const "<nameConfig>"
 
 -- | Default implementation of 'NameConfig' type.
---   To customize this, use record update syntax.
+--   To change how the generated record type and its columns are named,
+--   use record update syntax:
+--
+-- > defaultNameConfig
+-- >   { recordTypeName = \schema table -> varNameWithPrefix table schema
+-- >     ^ append the table name after the schema name. e.g. "schemaTable"
+-- >   , columnName = \table column -> varNameWithPrefix column table
+-- >     ^ append the column name after the table name. e.g. "tableColumn"
+-- >   }
 defaultNameConfig :: NameConfig
 defaultNameConfig =
   NameConfig
@@ -188,7 +198,7 @@ defineRecordTypeWithConfig :: NameConfig -> String -> String -> [(String, TypeQ)
 defineRecordTypeWithConfig config schema table columns =
   defineRecordType
   (recordTypeName config schema table)
-  [ (columnName config schema n, t) | (n, t) <- columns ]
+  [ (columnName config table n, t) | (n, t) <- columns ]
 
 -- | Templates for single column value type.
 deriveNotNullType :: TypeQ -> Q [Dec]
