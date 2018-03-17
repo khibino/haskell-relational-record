@@ -13,8 +13,11 @@
 --
 -- This module provides structures about sequence tables.
 module Database.Relational.Sequence (
-  Sequence (..), seqRelation,
+  Sequence, seqTable, seqExtract, seqKey, seqRelation,
   unsafeSpecifySequence,
+
+  SeqBinding, boundTable, boundKey, boundSequence,
+  unsafeSpecifyBinding,
 
   SequenceDerivable (..),
 
@@ -62,11 +65,24 @@ seqRelation = Relation.table . seqTable
 class TableDerivable s => SequenceDerivable s i | s -> i where
   derivedSequence :: Sequence s i
 
+data SeqBinding r s i =
+  SeqBinding
+  { boundTable    :: Table r
+  , boundKey      :: Pi r i
+  , boundSequence :: Sequence s i
+  }
+
+unsafeSpecifyBinding :: (TableDerivable r, SequenceDerivable s i)
+                     => Pi r i -> SeqBinding r s i
+unsafeSpecifyBinding k = SeqBinding derivedTable k derivedSequence
+
 -- | Derivation rule for binding between 'Table' and 'Sequence'
 class (TableDerivable r, SequenceDerivable s i)
       => Binding r s i | r -> s  where
-  fromTable :: Table r -> Sequence s i
-  fromTable = const derivedSequence
+  binding :: SeqBinding r s i
+
+fromTable :: Binding r s i => Table r -> Sequence s i
+fromTable = const derivedSequence
 
 -- | Derive 'Sequence' from corresponding 'Relation'
 fromRelation :: Binding r s i
