@@ -1,6 +1,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DefaultSignatures #-}
 
 -- |
 -- Module      : Database.Relational.Sequence
@@ -17,7 +18,7 @@ module Database.Relational.Sequence (
   unsafeSpecifySequence,
 
   SeqBinding, boundTable, boundKey, boundSequence,
-  unsafeSpecifyBinding,
+  unsafeSpecifyBinding, primaryBinding,
 
   SequenceDerivable (..),
 
@@ -37,6 +38,8 @@ import Database.Relational.Monad.BaseType (Relation)
 import Database.Relational.Monad.Trans.Assigning ((<-#))
 import Database.Relational.Table (TableDerivable, derivedTable, Table)
 import Database.Relational.Pi (Pi)
+import Database.Relational.Constraint
+  (HasConstraintKey (..), Key, Primary, projectionKey)
 import Database.Relational.Projectable ((.<=.), value, unitPlaceHolder, (!))
 import Database.Relational.ProjectableClass (ShowConstantTermsSQL)
 import Database.Relational.Relation (tableOf)
@@ -76,10 +79,21 @@ unsafeSpecifyBinding :: (TableDerivable r, SequenceDerivable s i)
                      => Pi r i -> SeqBinding r s i
 unsafeSpecifyBinding k = SeqBinding derivedTable k derivedSequence
 
+primaryBinding :: (TableDerivable r, SequenceDerivable s i,
+                   HasConstraintKey Primary r i)
+               => SeqBinding r s i
+primaryBinding = unsafeSpecifyBinding $ primaryKey constraintKey
+  where
+    primaryKey :: Key Primary r ct -> Pi r ct
+    primaryKey = projectionKey
+
 -- | Derivation rule for binding between 'Table' and 'Sequence'
 class (TableDerivable r, SequenceDerivable s i)
       => Binding r s i | r -> s  where
   binding :: SeqBinding r s i
+
+  default binding :: HasConstraintKey Primary r i => SeqBinding r s i
+  binding = primaryBinding
 
 fromTable :: Binding r s i => Table r -> Sequence s i
 fromTable = const derivedSequence
