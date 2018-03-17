@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.5.2.1
+
+- bugfix: pass correct table name to macro for field label defintion.
+
 ## 0.5.2.0
 
 - check width of Int type and add instances. (backport)
