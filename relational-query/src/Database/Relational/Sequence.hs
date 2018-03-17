@@ -48,12 +48,14 @@ import Database.Relational.Effect (updateTarget')
 import Database.Relational.Type (Update, typedUpdate)
 
 
--- | Basic record to express sequence table
+-- | Basic record to express sequence-table.
+--   actual sequence-table is a table which has only one column
+--   of integer type.
 data Sequence s i =
   Sequence
-  { seqTable :: Table s
-  , seqExtract :: s -> i
-  , seqKey :: Pi s i
+  { seqTable    :: Table s   -- ^ actual sequence-table
+  , seqExtract  :: s -> i    -- ^ sequence number selector for sequence record
+  , seqKey      :: Pi s i    -- ^ sequence number projection for sequence record
   }
 
 -- | Unsafely specify sequence table.
@@ -68,17 +70,20 @@ seqRelation = Relation.table . seqTable
 class TableDerivable s => SequenceDerivable s i | s -> i where
   derivedSequence :: Sequence s i
 
+-- | Record to express binding between normal-table and sequence-table.
 data SeqBinding r s i =
   SeqBinding
-  { boundTable    :: Table r
-  , boundKey      :: Pi r i
-  , boundSequence :: Sequence s i
+  { boundTable     :: Table r       -- ^ normal-table bound to sequence-table
+  , boundKey       :: Pi r i        -- ^ sequence key projection for bound record
+  , boundSequence  :: Sequence s i  -- ^ sequence table record
   }
 
+-- | Unsafely specify binding between normal-table and sequence-table.
 unsafeSpecifyBinding :: (TableDerivable r, SequenceDerivable s i)
                      => Pi r i -> SeqBinding r s i
 unsafeSpecifyBinding k = SeqBinding derivedTable k derivedSequence
 
+-- | Derive binding using primary key.
 primaryBinding :: (TableDerivable r, SequenceDerivable s i,
                    HasConstraintKey Primary r i)
                => SeqBinding r s i
