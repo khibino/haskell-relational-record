@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.6.0.2
+
+- bugfix: pass correct table name to macro for field label defintion.
+
 ## 0.6.0.1
 
 - fix changelog.
