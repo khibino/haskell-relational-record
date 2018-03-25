@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.5.2.2
+
+- fix example of NameConfig customization.
+
 ## 0.5.2.1
 
 - bugfix: pass correct table name to macro for field label defintion.
