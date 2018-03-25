@@ -96,9 +96,9 @@ instance Show NameConfig where
 --   use record update syntax:
 --
 -- > defaultNameConfig
--- >   { recordTypeName = \schema table -> varNameWithPrefix table schema
+-- >   { recordTypeName = \schema table -> varCamelcaseName $ schema ++ "_" ++ table
 -- >     ^ append the table name after the schema name. e.g. "schemaTable"
--- >   , columnName = \table column -> varNameWithPrefix column table
+-- >   , columnName = \table column -> varCamelcaseName $ table ++ "_" ++ column
 -- >     ^ append the column name after the table name. e.g. "tableColumn"
 -- >   }
 defaultNameConfig :: NameConfig
