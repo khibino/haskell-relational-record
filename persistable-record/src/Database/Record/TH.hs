@@ -51,7 +51,7 @@ import GHC.Generics (Generic)
 import Data.Array (Array)
 import Language.Haskell.TH.Name.CamelCase
   (ConName(conName), VarName(varName),
-   conCamelcaseName, varCamelcaseName, varNameWithPrefix,
+   conCamelcaseName, varCamelcaseName,
    toTypeCon, toDataCon, )
 import Language.Haskell.TH.Lib.Extra (integralE, simpleValD, reportWarning)
 import Language.Haskell.TH.Compat.Data (dataD')
@@ -118,7 +118,7 @@ recordTemplate config scm = (toTypeCon &&& toDataCon) . recordTypeName config sc
 -- | Variable expression of record column offset array.
 columnOffsetsVarNameDefault :: Name    -- ^ Table type name
                             -> VarName -- ^ Result expression variable name
-columnOffsetsVarNameDefault =  (`varNameWithPrefix` "columnOffsets") . nameBase
+columnOffsetsVarNameDefault = varCamelcaseName . ("column_offsets_" ++) . nameBase
 
 -- | Template of 'HasColumnConstraint' instance.
 defineHasColumnConstraintInstance :: TypeQ   -- ^ Type which represent constraint type
