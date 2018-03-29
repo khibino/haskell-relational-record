@@ -77,7 +77,7 @@ import Language.Haskell.TH
 import Language.Haskell.TH.Compat.Reify (unVarI)
 import Language.Haskell.TH.Name.CamelCase
   (VarName, varName, ConName (ConName), conName,
-   varNameWithPrefix, varCamelcaseName, toVarExp, toTypeCon)
+   varCamelcaseName, toVarExp, toTypeCon)
 import Language.Haskell.TH.Lib.Extra (simpleValD, maybeD, integralE)
 
 import Database.Record.TH
@@ -258,6 +258,9 @@ quote :: IdentifierQuotation -> String -> String
 quote NoQuotation   s = s
 quote (Quotation q) s = q : (escape s) ++ q : []
   where escape = (>>= (\c -> if c == q then [q, q] else [c]))
+
+varNameWithPrefix :: String -> String -> VarName
+varNameWithPrefix n p = varCamelcaseName $ p ++ "_" ++ n
 
 derivationVarNameDefault :: String -> VarName
 derivationVarNameDefault =  (`varNameWithPrefix` "derivationFrom")
