@@ -9,18 +9,24 @@
 --
 -- This module defines configuration datatype used in query products.
 module Database.Relational.Internal.Config (
-  NameConfig (..),
-  ProductUnitSupport (..), SchemaNameMode (..), IdentifierQuotation (..),
-  Config ( productUnitSupport
-         , chunksInsertSize
-         , schemaNameMode
-         , normalizedTableName
-         , verboseAsCompilerWarning
-         , disableOverloadedProjection
-         , disableSpecializedProjection
-         , identifierQuotation
-         , nameConfig),
+  Config,
+
   defaultConfig,
+
+  productUnitSupport,
+  chunksInsertSize,
+  schemaNameMode,
+  normalizedTableName,
+  verboseAsCompilerWarning,
+  disableOverloadedProjection,
+  disableSpecializedProjection,
+  identifierQuotation,
+  nameConfig,
+
+  NameConfig (..),
+  defaultNameConfig,
+
+  ProductUnitSupport (..), SchemaNameMode (..), IdentifierQuotation (..),
   ) where
 
 import Language.Haskell.TH.Name.CamelCase (VarName, varCamelcaseName)
@@ -31,11 +37,23 @@ import qualified Database.Record.TH as RecordTH
 data NameConfig =
   NameConfig
   { recordConfig       ::  RecordTH.NameConfig
+  -- ^ Configurations related to the names of generated record types
+  --   and their field labels.
   , relationVarName    ::  String -> String -> VarName
+  -- ^ Function to build the name of 'Database.Relational.Monad.BaseType.Relation' representing the table.
+  --   The first argument is the scheme name, and second argument is the table name.
   }
 
 instance Show NameConfig where
   show = const "<NameConfig>"
+
+-- | Default implementation of 'NameConfig' type.
+defaultNameConfig :: NameConfig
+defaultNameConfig =
+  NameConfig
+  { recordConfig    = RecordTH.defaultNameConfig
+  , relationVarName = const varCamelcaseName
+  }
 
 -- | Unit of product is supported or not.
 data ProductUnitSupport = PUSupported | PUNotSupported  deriving Show
@@ -56,14 +74,39 @@ data Config =
   , chunksInsertSize             ::  !Int
   , schemaNameMode               ::  !SchemaNameMode
   , normalizedTableName          ::  !Bool
+  -- ^ If True, schema names become uppercase, and table names become lowercase.
   , verboseAsCompilerWarning     ::  !Bool
+  -- ^ If True, more detailed logs are printed when generating record types from schema.
   , disableOverloadedProjection  ::  !Bool
+  -- ^ If True, instance of 'Database.Relational.OverloadedProjection.HasProjection' for each column is NOT generated.
   , disableSpecializedProjection ::  !Bool
+  -- ^ If True, 'Database.Relational.Pi.Pi' for each column is NOT generated.
   , identifierQuotation          ::  !IdentifierQuotation
   , nameConfig                   ::  !NameConfig
   } deriving Show
 
--- | Default configuration.
+-- | Default configuration of 'Config'.
+--   To change some behaviour of relational-query,
+--   use record update syntax:
+--
+-- @
+--   defaultConfig
+--     { productUnitSupport            =  'PUSupported'
+--     , chunksInsertSize              =  256
+--     , schemaNameMode                =  'SchemaQualified'
+--     , normalizedTableName           =  True
+--     , verboseAsCompilerWarning      =  False
+--     , disableOverloadedProjection   =  False
+--     , disableSpecializedProjection  =  False
+--     , identifierQuotation           =  'NoQuotation'
+--     , nameConfig                    =
+--        defaultNameConfig
+--        { recordConfig     =  'RecordTH.defaultNameConfig'
+--        , relationVarName  =  \\schema table -> 'varCamelcaseName' $ table ++ "_" ++ scheme
+--        -- ^ append the table name after the schema name. e.g. "schemaTable"
+--        }
+--     }
+-- @
 defaultConfig :: Config
 defaultConfig =
   Config { productUnitSupport            =  PUSupported
@@ -74,7 +117,5 @@ defaultConfig =
          , disableOverloadedProjection   =  False
          , disableSpecializedProjection  =  False
          , identifierQuotation           =  NoQuotation
-         , nameConfig                    =  NameConfig { recordConfig     =  RecordTH.defaultNameConfig
-                                                       , relationVarName  =  const varCamelcaseName
-                                                   }
+         , nameConfig                    =  defaultNameConfig
          }

@@ -16,4 +16,4 @@ module Database.Relational.Config
 import Database.Relational.Internal.Config
   (NameConfig (..),
    ProductUnitSupport (..), SchemaNameMode (..), IdentifierQuotation (..),
-   Config (..), defaultConfig,)
+   Config (..), defaultConfig, defaultNameConfig)

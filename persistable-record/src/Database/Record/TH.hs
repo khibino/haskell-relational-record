@@ -92,15 +92,17 @@ instance Show NameConfig where
   show = const "<nameConfig>"
 
 -- | Default implementation of 'NameConfig' type.
---   To change how the generated record type and its columns are named,
+--   To change how generated record types and their columns are named,
 --   use record update syntax:
 --
--- > defaultNameConfig
--- >   { recordTypeName = \schema table -> varCamelcaseName $ schema ++ "_" ++ table
--- >     ^ append the table name after the schema name. e.g. "schemaTable"
--- >   , columnName = \table column -> varCamelcaseName $ table ++ "_" ++ column
--- >     ^ append the column name after the table name. e.g. "tableColumn"
--- >   }
+-- @
+--   defaultNameConfig
+--     { recordTypeName = \\schema table -> 'varCamelcaseName' $ schema ++ "_" ++ table
+--     -- ^ append the table name after the schema name. e.g. "SchemaTable"
+--     , columnName = \\table column -> 'varCamelcaseName' $ table ++ "_" ++ column
+--     -- ^ append the column name after the table name. e.g. "tableColumn"
+--     }
+-- @
 defaultNameConfig :: NameConfig
 defaultNameConfig =
   NameConfig
