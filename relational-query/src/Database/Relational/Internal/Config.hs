@@ -13,6 +13,9 @@ module Database.Relational.Internal.Config (
 
   defaultConfig,
 
+  {- field labels of 'Config' type.
+     To avoid haddock bug ( https://github.com/haskell/haddock/issues/456 ),
+     they are not listed in Config ( ... ). -}
   productUnitSupport,
   chunksInsertSize,
   schemaNameMode,
