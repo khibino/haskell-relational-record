@@ -12,14 +12,23 @@
 -- This module provides typed 'Query' running sequence
 -- which intermediate structures are typed.
 module Database.HDBC.Record.Query (
+  -- * Prepare
   PreparedQuery, prepare, prepareQuery, withPrepareQuery,
 
-  fetch, fetchAll, fetchAll',
+  -- * Fetch strictly
+  fetch, fetchAll',
   listToUnique, fetchUnique, fetchUnique',
 
-  runStatement, runStatement',
-  runPreparedQuery, runPreparedQuery',
-  runQuery, runQuery'
+  runStatement',
+  runPreparedQuery',
+  runQuery',
+
+  -- * Fetch with Lazy-IO
+  -- $fetchWithLazyIO
+  fetchAll,
+  runStatement,
+  runPreparedQuery,
+  runQuery,
   ) where
 
 import Data.Maybe (listToMaybe)
@@ -69,15 +78,22 @@ fetchRecords fetchs es = do
   rows <- fetchs (executed es)
   return $ fmap toRecord rows
 
+{- $fetchWithLazyIO
+__CAUTION!!__
+
+/Lazy-IO/ APIs may be harmful in complex transaction with RDBMs interfaces
+which require sequential ordered calls of low-level APIs.
+ -}
+
 -- | Fetch a record.
 fetch :: FromSql SqlValue a => ExecutedStatement a -> IO (Maybe a)
 fetch =  fetchRecords HDBC.fetchRow
 
--- | Lazily Fetch all records.
+-- | /Lazy-IO/ version of 'fetchAll''.
 fetchAll :: FromSql SqlValue a => ExecutedStatement a -> IO [a]
 fetchAll =  fetchRecords HDBC.fetchAllRows
 
--- | Strict version of 'fetchAll'.
+-- | Strictly fetch all records.
 fetchAll' :: FromSql SqlValue a => ExecutedStatement a -> IO [a]
 fetchAll' =  fetchRecords HDBC.fetchAllRows'
 
@@ -108,29 +124,29 @@ fetchUnique' es = do
   HDBC.finish $ executed es
   return z
 
--- | Execute statement and lazily fetch all records.
+-- | /Lazy-IO/ version of 'runStatement''.
 runStatement :: FromSql SqlValue a => BoundStatement a -> IO [a]
 runStatement =  (>>= fetchAll) . executeBound
 
--- | Strict version of 'runStatement'.
+-- | Execute a parameter-bounded statement and strictly fetch all records.
 runStatement' :: FromSql SqlValue a => BoundStatement a -> IO [a]
 runStatement' =  (>>= fetchAll') . executeBound
 
--- | Bind parameters, execute statement and lazily fetch all records.
+-- | /Lazy-IO/ version of 'runPreparedQuery''.
 runPreparedQuery :: (ToSql SqlValue p, FromSql SqlValue a)
                  => PreparedQuery p a -- ^ Statement to bind to
                  -> p                 -- ^ Parameter type
                  -> IO [a]            -- ^ Action to get records
 runPreparedQuery ps = runStatement . bind ps
 
--- | Strict version of 'runPreparedQuery'.
+-- | Bind parameters, execute statement and strictly fetch all records.
 runPreparedQuery' :: (ToSql SqlValue p, FromSql SqlValue a)
                   => PreparedQuery p a -- ^ Statement to bind to
                   -> p                 -- ^ Parameter type
                   -> IO [a]            -- ^ Action to get records
 runPreparedQuery' ps = runStatement' . bind ps
 
--- | Prepare SQL, bind parameters, execute statement and lazily fetch all records.
+-- | /Lazy-IO/ version of 'runQuery''.
 runQuery :: (IConnection conn, ToSql SqlValue p, FromSql SqlValue a)
          => conn      -- ^ Database connection
          -> Query p a -- ^ Query to get record type 'a' requires parameter 'p'
@@ -138,7 +154,7 @@ runQuery :: (IConnection conn, ToSql SqlValue p, FromSql SqlValue a)
          -> IO [a]    -- ^ Action to get records
 runQuery conn q p = prepare conn q >>= (`runPreparedQuery` p)
 
--- | Strict version of 'runQuery'.
+-- | Prepare SQL, bind parameters, execute statement and strictly fetch all records.
 runQuery' :: (IConnection conn, ToSql SqlValue p, FromSql SqlValue a)
           => conn      -- ^ Database connection
           -> Query p a -- ^ Query to get record type 'a' requires parameter 'p'
