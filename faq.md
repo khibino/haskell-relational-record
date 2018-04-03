@@ -15,7 +15,7 @@ Q. <a name="mysql-commands-out-of-sync"></a> I received "Commands out of sync; .
 A. Lazy-IO API like ```runQuery``` may cause not expected sequence of low-level primitives in RDBMs drivers.
 Trying strict API like ```runQuery'``` instead of lazy-IO API may help to resolve your problem.
 
-ex. http://kakkun61.hatenablog.com/entry/2017/02/28/Yesod_%E3%81%A8_HDBC-mysql_%E3%81%A8_haskell-relational-record_%E3%81%A7_%E2%80%9CCommands_out_of_sync%E2%80%9D
+ex. [Commands out of sync example](http://kakkun61.hatenablog.com/entry/2017/02/28/Yesod_%E3%81%A8_HDBC-mysql_%E3%81%A8_haskell-relational-record_%E3%81%A7_%E2%80%9CCommands_out_of_sync%E2%80%9D)
 
 Q. <a name="mysql-table-does-not-exist"></a> I received "Table xxx doesn't exist" error of MySQL.
 
