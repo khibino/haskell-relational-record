@@ -71,7 +71,7 @@ library
   ghc-options:         -Wall
 
 executable examples
-  if flag(binary)
+  if impl(ghc >= 8.0) && flag(binary)
     buildable:         True
   else
     buildable:         False
