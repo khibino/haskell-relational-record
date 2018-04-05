@@ -12,6 +12,13 @@ Also, please download "relational-record-examples" as follows:
     % cabal unpack relational-record-examples
     % cd relational-record-examples-<VERSION>
 
+If you prefer stack, run as follows:
+
+    % stack unpack relational-record-examples
+    % cd relational-record-examples-<VERSION>
+
+Replace `cabal unpack` with `stack unpack` also in the following example like above if you are a stack user.
+
 If you want to use previous LTS Haskell releases of stackage
 ( [LTS-9.x](https://www.stackage.org/lts-9)
 please download the previous version of "relational-record-examples" as follows:
@@ -174,6 +181,44 @@ OK. Let's execute our relation on "examples.db":
     Account3 {a3AccountId = 1, a3CustId = 1, a3OpenDate = 2000-01-15, a3ProductCd = "CHK"}
     Account3 {a3AccountId = 2, a3CustId = 1, a3OpenDate = 2000-01-15, a3ProductCd = "SAV"}
     ...
+
+Great!
+
+For stack users:
+
+1. Copy and paste this as `stack.yaml`:
+    ```yaml
+    resolver: lts-10.10
+    packages:
+    - '.'
+    extra-deps:
+    - HDBC-sqlite3-2.3.3.1
+    flags:
+      relational-record-examples:
+        binary: true
+    extra-package-dbs: []
+
+    # Uncomment here if you put sqlite3.h and other required sqlite3 library
+    # in a non-standard path.
+    # THIS IS REQUIRED ON WINDOWS!!
+    #extra-include-dirs:
+    #- 'C:\lib\sqlite'
+    #extra-lib-dirs:
+    #- 'C:\lib\sqlite'
+    ```
+1. Uncomment and edit `extra-include-dirs` and `extra-lib-dirs` for your environment.
+    - THIS IS REQUIRED ON WINDOWS!!
+1. Then run as follows:
+    ```
+    % stack build
+    % stack ghci :examples
+    > conn <- connectSqlite3 "examples.db"
+    > run conn () join_5_1_3
+    SQL: SELECT ALL T0.account_id AS f0, T0.cust_id AS f1, T0.open_date AS f2, T0.product_cd AS f3 FROM (MAIN.account T0 INNER JOIN MAIN.employee T1 ON (T0.open_emp_id = T1.emp_id)) INNER JOIN MAIN.branch T2 ON (T1.assigned_branch_id = T2.branch_id) WHERE (T1.start_date <= '2004-01-01') AND ((T1.title = 'Teller') OR (T1.title = 'Head Teller')) AND (T2.name = 'Woburn Branch')
+    Account3 {a3AccountId = 1, a3CustId = 1, a3OpenDate = 2000-01-15, a3ProductCd = "CHK"}
+    Account3 {a3AccountId = 2, a3CustId = 1, a3OpenDate = 2000-01-15, a3ProductCd = "SAV"}
+    ...
+    ```
 
 Great!
 
