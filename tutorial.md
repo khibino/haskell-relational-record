@@ -186,7 +186,7 @@ Great!
 
 For stack users:
 
-1. Copy and paste this as `stack.yaml`:
+Copy and paste this as `stack.yaml`:
 
 {% highlight yaml %}
 resolver: lts-10.10
@@ -208,9 +208,10 @@ extra-package-dbs: []
 #- 'C:\lib\sqlite'
 {% endhighlight %}
 
-1. Uncomment and edit `extra-include-dirs` and `extra-lib-dirs` for your environment.
+Uncomment and edit `extra-include-dirs` and `extra-lib-dirs` for your environment.
     - THIS IS REQUIRED ON WINDOWS!!
-1. Then run as follows:
+
+Then run as follows:
 
     % stack build
     % stack ghci :examples
