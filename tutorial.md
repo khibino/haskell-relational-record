@@ -187,29 +187,31 @@ Great!
 For stack users:
 
 1. Copy and paste this as `stack.yaml`:
-    ```yaml
-    resolver: lts-10.10
-    packages:
-    - '.'
-    extra-deps:
-    - HDBC-sqlite3-2.3.3.1
-    flags:
-      relational-record-examples:
-        binary: true
-    extra-package-dbs: []
 
-    # Uncomment here if you put sqlite3.h and other required sqlite3 library
-    # in a non-standard path.
-    # THIS IS REQUIRED ON WINDOWS!!
-    #extra-include-dirs:
-    #- 'C:\lib\sqlite'
-    #extra-lib-dirs:
-    #- 'C:\lib\sqlite'
-    ```
+{% highlight yaml %}
+resolver: lts-10.10
+packages:
+- '.'
+extra-deps:
+- HDBC-sqlite3-2.3.3.1
+flags:
+  relational-record-examples:
+    binary: true
+extra-package-dbs: []
+
+# Uncomment here if you put sqlite3.h and other required sqlite3 library
+# in a non-standard path.
+# THIS IS REQUIRED ON WINDOWS!!
+#extra-include-dirs:
+#- 'C:\lib\sqlite'
+#extra-lib-dirs:
+#- 'C:\lib\sqlite'
+{% endhighlight %}
+
 1. Uncomment and edit `extra-include-dirs` and `extra-lib-dirs` for your environment.
     - THIS IS REQUIRED ON WINDOWS!!
 1. Then run as follows:
-    ```
+
     % stack build
     % stack ghci :examples
     > conn <- connectSqlite3 "examples.db"
@@ -218,7 +220,6 @@ For stack users:
     Account3 {a3AccountId = 1, a3CustId = 1, a3OpenDate = 2000-01-15, a3ProductCd = "CHK"}
     Account3 {a3AccountId = 2, a3CustId = 1, a3OpenDate = 2000-01-15, a3ProductCd = "SAV"}
     ...
-    ```
 
 Great!
 
