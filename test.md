@@ -21,7 +21,6 @@ test
 
 ### yaml test
 
-    ```
     resolver: lts-10.10
     packages:
     - '.'
@@ -29,7 +28,6 @@ test
     - HDBC-sqlite3-2.3.3.1
 
     # Uncomment here if you put sqlite3.h and other required sqlite3 library
-    ```
 
 {% highlight yaml %}
 resolver: lts-10.10
