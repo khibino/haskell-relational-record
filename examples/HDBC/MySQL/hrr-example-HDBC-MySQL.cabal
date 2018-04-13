@@ -17,7 +17,9 @@ executable example
     src
   main-is:
     Main.hs
-  -- other-modules:
+  other-modules:
+    Example.DataSource
+    Example.User
   other-extensions:
       TemplateHaskell
     , FlexibleInstances
