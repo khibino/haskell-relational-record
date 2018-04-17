@@ -19,7 +19,8 @@ module Language.SQL.Keyword.Internal.Type (
 
 import Data.String (IsString(..))
 import Data.List (find)
-import Data.Monoid (Monoid (..), (<>))
+import Data.Semigroup (Semigroup (..))
+import Data.Monoid (Monoid (..))
 
 
 -- | Diff String type for low-cost concatination.
@@ -46,12 +47,15 @@ instance Show DString where
 instance Read DString where
   readsPrec _ s = [(dString s, [])]
 
+dappend :: DString -> DString -> DString
+DString f `dappend` DString g = DString $ f . g
+
+instance Semigroup DString where
+  (<>) = dappend
+
 instance Monoid DString where
   mempty  = DString id
-  DString f `mappend` DString g = DString $ f . g
-
-dspace :: DString
-dspace =  dString " "
+  mappend = dappend
 
 -- | Type represent SQL keywords.
 data Keyword = SELECT | ALL | DISTINCT | ON
@@ -130,14 +134,23 @@ instance IsString Keyword where
    found  Nothing      s = word s
    found (Just (w, _)) _ = w
 
--- | 'Keyword' default concatination separate by space.
-instance Monoid Keyword where
-  mempty  = fromDString mempty
-  a `mappend` b = fromDString $ toDString a `append'` toDString b  where
+kappend :: Keyword -> Keyword -> Keyword
+a `kappend` b = fromDString $ toDString a `append'` toDString b
+  where
     append' p q
       | isEmptyDString p = q
       | isEmptyDString q = p
       | otherwise        = p <> dspace <> q
+    dspace :: DString
+    dspace =  dString " "
+
+instance Semigroup Keyword where
+  (<>) = kappend
+
+-- | 'Keyword' default concatination separate by space.
+instance Monoid Keyword where
+  mempty  = fromDString mempty
+  mappend = kappend
 
 
 -- | Show 'Keyword'
