@@ -24,12 +24,13 @@ openSUSE Tumbleweed
     % stack build relational-record
 
 You may want to use LTS Haskell release of stackage.
-For example, command-line to build with LTS-10:
+For example, command-line to build with LTS-11:
 
-    % stack --resolver lts-10 build relational-record
+    % stack --resolver lts-11 build relational-record
 
-You can use [LTS-10.x](https://www.stackage.org/lts-10) and
+You can use [LTS-11.x](https://www.stackage.org/lts-11) or
 older LTS Haskell releases,
+[LTS-10.x](https://www.stackage.org/lts-10),
 [LTS-9.x](https://www.stackage.org/lts-9),
 [LTS-8.x](https://www.stackage.org/lts-8),
 [LTS-7.x](https://www.stackage.org/lts-7) or [LTS-6.x](https://www.stackage.org/lts-6).
@@ -58,7 +59,7 @@ In HRR, select statements are called relations.
 Let's define our first relation. Copy the following to "hello.hs":
 
 {% highlight haskell %}
-import Database.Relational -- for LTS-10
+import Database.Relational -- for LTS-11 or LTS-10
 -- import Database.Relational.Query -- instead of "import Database.Relational" for LTS-9 or LTS-8
 
 hello :: Relation () (Int, String)

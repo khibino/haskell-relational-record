@@ -189,7 +189,7 @@ For stack users:
 Copy and paste this as `stack.yaml`:
 
 {% highlight yaml %}
-resolver: lts-10.10
+resolver: lts-11.5
 packages:
 - '.'
 extra-deps:
