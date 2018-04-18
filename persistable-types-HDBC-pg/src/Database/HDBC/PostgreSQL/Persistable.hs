@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Database.HDBC.PostgreSQL.Persistable () where
 
@@ -7,18 +8,16 @@ import Data.Convertible (convert)
 import Data.PostgreSQL.NetworkAddress (Inet, Cidr)
 import Database.HDBC (SqlValue)
 import Database.HDBC.Record.Persistable ()
-import Database.Record.Persistable (PersistableWidth (..), unsafeValueWidth)
 import Database.Record.FromSql (FromSql (..), valueRecordFromSql)
 import Database.Record.ToSql (ToSql (..), valueRecordToSql)
+import Database.Record.TH (deriveNotNullType)
 
 import Database.HDBC.PostgreSQL.Instances ()
 
 
-instance PersistableWidth Inet where
-  persistableWidth = unsafeValueWidth
+$(deriveNotNullType [t| Inet |])
 
-instance PersistableWidth Cidr where
-  persistableWidth = unsafeValueWidth
+$(deriveNotNullType [t| Cidr |])
 
 instance FromSql SqlValue Inet where
   recordFromSql = valueRecordFromSql convert
