@@ -4,9 +4,10 @@
 module Database.HDBC.PostgreSQL.Instances () where
 
 import Control.Applicative ((<$>), pure, (<*))
+import Data.String (IsString, fromString)
 import Data.ByteString.Char8 (unpack)
 import Data.Convertible (Convertible (..), ConvertResult, ConvertError (..))
-import Data.PostgreSQL.NetworkAddress (NetAddress (..), Inet (..), Cidr (..))
+import Data.PostgreSQL.NetworkAddress (NetAddress, Inet (..), Cidr (..))
 import Database.HDBC (SqlValue (..))
 import Database.HDBC.Record.Persistable ()
 import Database.PostgreSQL.Parser (evalParser)
@@ -54,3 +55,6 @@ instance Convertible Inet SqlValue where
 
 instance Convertible Cidr SqlValue where
   safeConvert (Cidr n) = fromNetAddress n
+
+showNetAddr :: IsString s => NetAddress -> s
+showNetAddr = fromString . execPrinter Printer.netAddress
