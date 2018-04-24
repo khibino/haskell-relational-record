@@ -56,5 +56,5 @@ instance Convertible Inet SqlValue where
 instance Convertible Cidr SqlValue where
   safeConvert (Cidr n) = fromNetAddress n
 
-showNetAddr :: IsString s => NetAddress -> s
-showNetAddr = fromString . execPrinter Printer.netAddress
+qstringNetAddr :: IsString s => NetAddress -> s
+qstringNetAddr = fromString . ("'" ++) . (++ "'") . execPrinter Printer.netAddress
