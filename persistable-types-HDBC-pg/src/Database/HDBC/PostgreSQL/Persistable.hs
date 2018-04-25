@@ -2,6 +2,16 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell #-}
 
+-- |
+-- Module      : Database.HDBC.PostgreSQL.Persistable
+-- Copyright   : 2015-2018 Kei Hibino
+-- License     : BSD3
+--
+-- Maintainer  : ex8k.hibino@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
+--
+-- This module defines Persistable instances for PostgreSQL types
 module Database.HDBC.PostgreSQL.Persistable () where
 
 import Data.Convertible (convert)
