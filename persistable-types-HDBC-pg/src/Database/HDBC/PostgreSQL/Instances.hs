@@ -2,6 +2,17 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 
+-- |
+-- Module      : Database.HDBC.PostgreSQL.Instances
+-- Copyright   : 2015-2018 Kei Hibino
+-- License     : BSD3
+--
+-- Maintainer  : ex8k.hibino@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
+--
+-- This module defines HDBC instances and SQL-literal instances for
+-- PostgreSQL types
 module Database.HDBC.PostgreSQL.Instances () where
 
 import Control.Applicative ((<$>), pure, (<*))
