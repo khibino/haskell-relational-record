@@ -1,15 +1,19 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Database.HDBC.PostgreSQL.Instances () where
 
 import Control.Applicative ((<$>), pure, (<*))
 import Data.String (IsString, fromString)
+import Data.Monoid ((<>))
+import Data.DList ()
 import Data.ByteString.Char8 (unpack)
 import Data.Convertible (Convertible (..), ConvertResult, ConvertError (..))
 import Data.PostgreSQL.NetworkAddress (NetAddress, Inet (..), Cidr (..))
 import Database.HDBC (SqlValue (..))
 import Database.HDBC.Record.Persistable ()
+import Database.Relational (ShowConstantTermsSQL (..))
 import Database.PostgreSQL.Parser (evalParser)
 import qualified Database.PostgreSQL.Parser as Parser
 import Database.PostgreSQL.Printer (execPrinter)
@@ -58,3 +62,9 @@ instance Convertible Cidr SqlValue where
 
 qstringNetAddr :: IsString s => NetAddress -> s
 qstringNetAddr = fromString . ("'" ++) . (++ "'") . execPrinter Printer.netAddress
+
+instance ShowConstantTermsSQL Inet where
+  showConstantTermsSQL' (Inet na) = pure $ "INET" <> qstringNetAddr na
+
+instance ShowConstantTermsSQL Cidr where
+  showConstantTermsSQL' (Cidr na) = pure $ "CIDR" <> qstringNetAddr na
