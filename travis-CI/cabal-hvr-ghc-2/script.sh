@@ -6,6 +6,9 @@ set -e
 
 set -x
 
+BENCH=${BENCH---enable-benchmarks}
+TEST=${TEST---enable-tests}
+
 script_build() {
     PKGNAME="$1"
 
