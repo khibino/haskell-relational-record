@@ -31,7 +31,7 @@ script_build() {
 
     # build & run tests
     cabal new-build -w ${HC} ${TEST} ${BENCH} all
-    if [ "x$TEST" = "x--enable-tests" ]; then cabal new-test -w ${HC} ${TEST} all; fi
+    if [ "x$TEST" = "x--enable-tests" ]; then cabal new-test -w ${HC} ${TEST}; fi
 }
 
 if [ x"$dirs" = x ]; then
