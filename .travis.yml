@@ -20,12 +20,6 @@ before_cache:
 
 matrix:
   include:
-    - env: STACK_RESOLVER=lts-9.14
-      addons: {apt: {packages: [libgmp-dev]}}
-    - env: STACK_RESOLVER=lts-8.22
-      addons: {apt: {packages: [libgmp-dev]}}
-    - env: STACK_RESOLVER=lts-7.24
-      addons: {apt: {packages: [libgmp-dev]}}
     - compiler: "ghc-8.4.2"
     # env: TEST=--disable-tests BENCH=--disable-benchmarks
       addons: {apt: {packages: [ghc-ppa-tools,cabal-install-head,ghc-8.4.2], sources: [hvr-ghc]}}
@@ -47,6 +41,12 @@ matrix:
     - compiler: "ghc-7.4.1" # with Debian Wheezy
       env: DEBIANVER=wheezy
       addons: {apt: {packages: [ghc-ppa-tools,cabal-install-head,ghc-7.4.1], sources: [hvr-ghc]}}
+    - env: STACK_RESOLVER=lts-9.14
+      addons: {apt: {packages: [libgmp-dev]}}
+    - env: STACK_RESOLVER=lts-8.22
+      addons: {apt: {packages: [libgmp-dev]}}
+    - env: STACK_RESOLVER=lts-7.24
+      addons: {apt: {packages: [libgmp-dev]}}
     - compiler: "ghc-7.4.1"
     # env: TEST=--disable-tests BENCH=--disable-benchmarks
       addons: {apt: {packages: [ghc-ppa-tools,cabal-install-head,ghc-7.4.1], sources: [hvr-ghc]}}
