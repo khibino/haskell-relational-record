@@ -9,3 +9,11 @@ relational-query-HDBC
 text-postgresql
 persistable-types-HDBC-pg
 '
+
+test_pkgs='
+sql-words
+persistable-record
+relational-query
+text-postgresql
+persistable-types-HDBC-pg
+'
