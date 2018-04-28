@@ -44,16 +44,16 @@ EOF
                     ;;
             esac
             ;;
-        xrelational-query-0.9.x|xlts-9.*)
+        xlts-9.*)
             case x"$TRAVIS_BRANCH" in
-                xlts-9)
+                xrelational-query-0.9.x|xlts-9)
                     cat <<EOF
 STACK_RESOLVER is LTS-9 and TRAVIS_BRANCH is LTS-9 or relational-query-0.9.x.
 EOF
                     ;;
                 *)
                     cat <<EOF
-Skipping. STACK_RESOLVER is LTS-9 and TRAVIS_BRANCH is NOT LTS-9.
+Skipping. STACK_RESOLVER is LTS-9 and TRAVIS_BRANCH is NOT LTS-9 or NOT relational-query-0.9.x.
 EOF
                     set -x
                     exit 0
