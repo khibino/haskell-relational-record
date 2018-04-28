@@ -50,6 +50,8 @@ test-suite test
                        , relational-query-HDBC
                        , text-postgresql
                        , persistable-types-HDBC-pg
+  if impl(ghc == 7.4.*)
+    build-depends:       ghc-prim == 0.2.*
 
   type:                exitcode-stdio-1.0
   main-is:             runTest.hs
