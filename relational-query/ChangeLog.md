@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.11.1.0
+
+- add compatibility module  Database.Relational.Query.TH for upgrading from 0.9.
+
 ## 0.11.0.0
 
 - same as 0.10.1.1. re-versioned for TH incompatibility against 0.10.0.
