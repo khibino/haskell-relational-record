@@ -10,7 +10,7 @@
 -- This module defines network-address types of PostgreSQL.
 -- http://www.postgresql.org/docs/current/static/datatype-net-types.html
 module Data.PostgreSQL.NetworkAddress
-       ( NetAddress (..)
+       ( NetAddress (..), netAddress4, netAddress6
        , V4HostAddress (..), v4HostAddressOctets
        , V6HostAddress (..), v6HostAddressLong, v6HostAddressWords
        , v6HostAddress, v6HostAddressL, v6HostAddressR
@@ -67,6 +67,16 @@ data NetAddress
   = NetAddress4 !V4HostAddress !Word8
   | NetAddress6 !V6HostAddress !Word8
   deriving (Eq, Ord, Show, Read)
+
+netAddress4 :: V4HostAddress -> Word8 -> Maybe NetAddress
+netAddress4 a4 m
+  | 0 <= m && m <= 32  =  Just $ NetAddress4 a4 m
+  | otherwise          =  Nothing
+
+netAddress6 :: V6HostAddress -> Word8 -> Maybe NetAddress
+netAddress6 a6 m
+  | 0 <= m && m <= 128 =  Just $ NetAddress6 a6 m
+  | otherwise          =  Nothing
 
 newtype Inet = Inet NetAddress  deriving (Eq, Ord, Show, Read)
 
