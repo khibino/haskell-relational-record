@@ -26,7 +26,7 @@ import Data.Word (Word8, Word16)
 -- | Host address type along with IPv4 address string.
 data V4HostAddress =
   V4HostAddress !Word8 !Word8 !Word8 !Word8
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Read)
 
 v4HostAddressOctets :: V4HostAddress -> (Word8, Word8, Word8, Word8)
 v4HostAddressOctets (V4HostAddress a b c d) = (a, b, c, d)
@@ -38,7 +38,7 @@ v4HostAddressOctets (V4HostAddress a b c d) = (a, b, c, d)
 --   Network byte order is only needed, when communicating other hosts.
 data V6HostAddress =
   V6HostAddress !Word16 !Word16 !Word16 !Word16 !Word16 !Word16 !Word16 !Word16
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Read)
 
 v6HostAddressLong :: Word16 -> Word16 -> Word16 -> Word16
                   -> Word16 -> Word16 -> Word16 -> Word16
@@ -66,8 +66,8 @@ v6HostAddressWords (V6HostAddress a b c d e f g h) =
 data NetAddress
   = NetAddress4 !V4HostAddress !Word8
   | NetAddress6 !V6HostAddress !Word8
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Read)
 
-newtype Inet = Inet NetAddress  deriving (Eq, Ord, Show)
+newtype Inet = Inet NetAddress  deriving (Eq, Ord, Show, Read)
 
-newtype Cidr = Cidr NetAddress  deriving (Eq, Ord, Show)
+newtype Cidr = Cidr NetAddress  deriving (Eq, Ord, Show, Read)
