@@ -6,7 +6,8 @@ import Test.QuickCheck
 import Test.QuickCheck.Simple (defaultMain, Test, qcTest)
 
 import Control.Applicative ((<$>), (<*>))
-import Data.Word (Word8)
+import Control.Monad (replicateM)
+import Data.Word (Word8, Word16)
 
 import Data.PostgreSQL.NetworkAddress
 import Database.PostgreSQL.Parser (Parser, evalParser)
@@ -31,6 +32,13 @@ mask4 = choose (0, 32)
 
 mask6 :: Gen Word8
 mask6 = choose (0, 128)
+
+newtype A6Input =
+  A6Input [Word16]
+  deriving (Eq, Show)
+
+instance Arbitrary A6Input where
+  arbitrary= A6Input <$> (choose (0, 8) >>= (`replicateM` arbitrary))
 
 instance Arbitrary NetAddress where
   arbitrary =
@@ -62,6 +70,13 @@ prop_v6hostAddressDcIsoR a6 =
   where
     (w0, w1, w2, w3, w4, w5, w6, w7) = v6HostAddressWords a6
 
+prop_v6hostAddressCons :: A6Input -> A6Input -> Bool
+prop_v6hostAddressCons (A6Input il) (A6Input ir)
+  | length (il ++ ir)  <=  8  =  mayA6  /=  Nothing
+  | otherwise                 =  mayA6  ==  Nothing
+  where
+    mayA6 = v6HostAddress il ir
+
 prop_netAddressPpIso :: NetAddress -> Bool
 prop_netAddressPpIso =
   isoProp Printer.netAddress Parser.netAddress
@@ -78,6 +93,7 @@ tests =
   , qcTest "v6 address iso - print parse"      prop_v6HostAddressIso
   , qcTest "v6 address iso - destruct construct-left"  prop_v6hostAddressDcIsoL
   , qcTest "v6 address iso - destruct construct-right" prop_v6hostAddressDcIsoR
+  , qcTest "v6 address construction - succeed or fail" prop_v6hostAddressCons
   , qcTest "network address iso - print parse" prop_netAddressPpIso
   , qcTest "network address iso - destruct construct" prop_netAddressDcIso
   ]
