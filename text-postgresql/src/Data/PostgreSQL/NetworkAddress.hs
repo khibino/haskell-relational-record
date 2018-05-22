@@ -15,12 +15,13 @@ module Data.PostgreSQL.NetworkAddress
        , V6HostAddress (..), v6HostAddressLong, v6HostAddressWords
        , v6HostAddress, v6HostAddressL, v6HostAddressR
 
-       , Inet (..), Cidr (..)
+       , Inet (..), Cidr (..), cidr4, cidr6,
        ) where
 
 import Control.Applicative (pure)
 import Control.Monad (guard)
-import Data.Word (Word8, Word16)
+import Data.Word (Word8, Word16, Word32)
+import Data.Bits (shiftL, (.&.), (.|.))
 
 
 -- | Host address type along with IPv4 address string.
@@ -81,3 +82,35 @@ netAddress6 a6 m
 newtype Inet = Inet NetAddress  deriving (Eq, Ord, Show, Read)
 
 newtype Cidr = Cidr NetAddress  deriving (Eq, Ord, Show, Read)
+
+verifyCidr4 :: V4HostAddress -> Word8 -> Bool
+verifyCidr4 (V4HostAddress w0 w1 w2 w3) m =
+    a4 .&. (1 `shiftL` (32 - fromIntegral m) - 1)  ==  0
+  where
+    a4 :: Word32
+    a4 = foldr (.|.) 0 $ zipWith
+         (\w x -> fromIntegral w `shiftL` x)
+         [w3, w2, w1, w0]
+         [0,8 ..]
+
+cidr4 :: V4HostAddress -> Word8 -> Maybe Cidr
+cidr4 a4 m = do
+  na <- netAddress4 a4 m
+  guard $ verifyCidr4 a4 m
+  return $ Cidr na
+
+verifyCidr6 :: V6HostAddress -> Word8 -> Bool
+verifyCidr6 (V6HostAddress w0 w1 w2 w3 w4 w5 w6 w7) m =
+    a6 .&. (1 `shiftL` (128 - fromIntegral m) - 1)  ==  0
+  where
+    a6 :: Integer
+    a6 = foldr (.|.) 0 $ zipWith
+         (\w x -> fromIntegral w `shiftL` x)
+         [w7, w6, w5, w4, w3, w2, w1, w0]
+         [0,16 ..]
+
+cidr6 :: V6HostAddress -> Word8 -> Maybe Cidr
+cidr6 a6 m = do
+  na <- netAddress6 a6 m
+  guard $ verifyCidr6 a6 m
+  return $ Cidr na
