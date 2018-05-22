@@ -50,6 +50,18 @@ prop_v6HostAddressIso :: V6HostAddress -> Bool
 prop_v6HostAddressIso =
   isoProp Printer.v6HostAddress Parser.v6HostAddress
 
+prop_v6hostAddressDcIsoL :: V6HostAddress -> Bool
+prop_v6hostAddressDcIsoL a6 =
+    v6HostAddress [w0, w1, w2, w3, w4, w5, w6, w7] [] == Just a6
+  where
+    (w0, w1, w2, w3, w4, w5, w6, w7) = v6HostAddressWords a6
+
+prop_v6hostAddressDcIsoR :: V6HostAddress -> Bool
+prop_v6hostAddressDcIsoR a6 =
+    v6HostAddress [] [w0, w1, w2, w3, w4, w5, w6, w7] == Just a6
+  where
+    (w0, w1, w2, w3, w4, w5, w6, w7) = v6HostAddressWords a6
+
 prop_netAddressPpIso :: NetAddress -> Bool
 prop_netAddressPpIso =
   isoProp Printer.netAddress Parser.netAddress
@@ -64,6 +76,8 @@ tests :: [Test]
 tests =
   [ qcTest "v4 address iso - print parse"      prop_v4HostAddressIso
   , qcTest "v6 address iso - print parse"      prop_v6HostAddressIso
+  , qcTest "v6 address iso - destruct construct-left"  prop_v6hostAddressDcIsoL
+  , qcTest "v6 address iso - destruct construct-right" prop_v6hostAddressDcIsoR
   , qcTest "network address iso - print parse" prop_netAddressPpIso
   , qcTest "network address iso - destruct construct" prop_netAddressDcIso
   ]
