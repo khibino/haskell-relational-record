@@ -94,6 +94,18 @@ prop_netAddressDcIso na = dc == Just na  where
         NetAddress4 a4 m  ->  netAddress4 a4 m
         NetAddress6 a6 m  ->  netAddress6 a6 m
 
+prop_netAddress4Cons :: V4HostAddress -> Word8 -> Bool
+prop_netAddress4Cons a4 m = case netAddress4 a4 m of
+  Nothing                   ->  m > 32
+  Just (NetAddress4 a4' m') ->  a4 == a4' && m == m'
+  Just (NetAddress6 {})     ->  False
+
+prop_netAddress6Cons :: V6HostAddress -> Word8 -> Bool
+prop_netAddress6Cons a6 m = case netAddress6 a6 m of
+  Nothing                   ->  m > 128
+  Just (NetAddress4 {})     ->  False
+  Just (NetAddress6 a6' m') ->  a6 == a6' && m == m'
+
 tests :: [Test]
 tests =
   [ qcTest "v4 address iso - print parse"      prop_v4HostAddressIso
@@ -103,6 +115,8 @@ tests =
   , qcTest "v6 address construction - succeed or fail" prop_v6HostAddressCons
   , qcTest "network address iso - print parse" prop_netAddressPpIso
   , qcTest "network address iso - destruct construct" prop_netAddressDcIso
+  , qcTest "network address 4 construction"    prop_netAddress4Cons
+  , qcTest "network address 6 construction"    prop_netAddress6Cons
   ]
 
 main :: IO ()
