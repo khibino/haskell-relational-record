@@ -59,20 +59,20 @@ prop_v6HostAddressIso :: V6HostAddress -> Bool
 prop_v6HostAddressIso =
   isoProp Printer.v6HostAddress Parser.v6HostAddress
 
-prop_v6hostAddressDcIsoL :: V6HostAddress -> Bool
-prop_v6hostAddressDcIsoL a6 =
+prop_v6HostAddressDcIsoL :: V6HostAddress -> Bool
+prop_v6HostAddressDcIsoL a6 =
     v6HostAddress [w0, w1, w2, w3, w4, w5, w6, w7] [] == Just a6
   where
     (w0, w1, w2, w3, w4, w5, w6, w7) = v6HostAddressWords a6
 
-prop_v6hostAddressDcIsoR :: V6HostAddress -> Bool
-prop_v6hostAddressDcIsoR a6 =
+prop_v6HostAddressDcIsoR :: V6HostAddress -> Bool
+prop_v6HostAddressDcIsoR a6 =
     v6HostAddress [] [w0, w1, w2, w3, w4, w5, w6, w7] == Just a6
   where
     (w0, w1, w2, w3, w4, w5, w6, w7) = v6HostAddressWords a6
 
-prop_v6hostAddressCons :: A6Input -> A6Input -> Bool
-prop_v6hostAddressCons (A6Input il) (A6Input ir)
+prop_v6HostAddressCons :: A6Input -> A6Input -> Bool
+prop_v6HostAddressCons (A6Input il) (A6Input ir)
   | length (il ++ ir)  <=  8  =
     case mayA6 of
       Nothing  ->  False
@@ -98,9 +98,9 @@ tests :: [Test]
 tests =
   [ qcTest "v4 address iso - print parse"      prop_v4HostAddressIso
   , qcTest "v6 address iso - print parse"      prop_v6HostAddressIso
-  , qcTest "v6 address iso - destruct construct-left"  prop_v6hostAddressDcIsoL
-  , qcTest "v6 address iso - destruct construct-right" prop_v6hostAddressDcIsoR
-  , qcTest "v6 address construction - succeed or fail" prop_v6hostAddressCons
+  , qcTest "v6 address iso - destruct construct-left"  prop_v6HostAddressDcIsoL
+  , qcTest "v6 address iso - destruct construct-right" prop_v6HostAddressDcIsoR
+  , qcTest "v6 address construction - succeed or fail" prop_v6HostAddressCons
   , qcTest "network address iso - print parse" prop_netAddressPpIso
   , qcTest "network address iso - destruct construct" prop_netAddressDcIso
   ]
