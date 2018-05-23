@@ -72,17 +72,11 @@ prop_v6HostAddressDcIsoR a6 =
     (w0, w1, w2, w3, w4, w5, w6, w7) = v6HostAddressWords a6
 
 prop_v6HostAddressCons :: A6Input -> A6Input -> Bool
-prop_v6HostAddressCons (A6Input il) (A6Input ir)
-  | length (il ++ ir)  <=  8  =
-    case mayA6 of
-      Nothing  ->  False
-      Just (V6HostAddress w0 w1 w2 w3 w4 w5 w6 w7)
-        | let ws = [w0, w1, w2, w3, w4, w5, w6, w7] ->
-          il `isPrefixOf` ws && ir `isSuffixOf` ws
-  | otherwise                 =
-      mayA6  ==  Nothing
-  where
-    mayA6 = v6HostAddress il ir
+prop_v6HostAddressCons (A6Input il) (A6Input ir) = case v6HostAddress il ir of
+  Nothing  ->  length (il ++ ir) > 8
+  Just (V6HostAddress w0 w1 w2 w3 w4 w5 w6 w7)
+    | let ws = [w0, w1, w2, w3, w4, w5, w6, w7] ->
+      length (il ++ ir) <= 8 && il `isPrefixOf` ws && ir `isSuffixOf` ws
 
 prop_netAddressPpIso :: NetAddress -> Bool
 prop_netAddressPpIso =
