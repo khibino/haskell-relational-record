@@ -89,10 +89,10 @@ prop_netAddressPpIso =
   isoProp Printer.netAddress Parser.netAddress
 
 prop_netAddressDcIso :: NetAddress -> Bool
-prop_netAddressDcIso na =
-  Just na == (case na of
-                NetAddress4 a4 m  ->  netAddress4 a4 m
-                NetAddress6 a6 m  ->  netAddress6 a6 m)
+prop_netAddressDcIso na = dc == Just na  where
+ dc = case na of
+        NetAddress4 a4 m  ->  netAddress4 a4 m
+        NetAddress6 a6 m  ->  netAddress6 a6 m
 
 tests :: [Test]
 tests =
