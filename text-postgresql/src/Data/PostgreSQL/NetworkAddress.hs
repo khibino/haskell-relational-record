@@ -71,13 +71,13 @@ data NetAddress
 
 netAddress4 :: V4HostAddress -> Word8 -> Maybe NetAddress
 netAddress4 a4 m
-  | 0 <= m && m <= 32  =  Just $ NetAddress4 a4 m
-  | otherwise          =  Nothing
+  | m <= 32    =  Just $ NetAddress4 a4 m
+  | otherwise  =  Nothing
 
 netAddress6 :: V6HostAddress -> Word8 -> Maybe NetAddress
 netAddress6 a6 m
-  | 0 <= m && m <= 128 =  Just $ NetAddress6 a6 m
-  | otherwise          =  Nothing
+  | m <= 128   =  Just $ NetAddress6 a6 m
+  | otherwise  =  Nothing
 
 newtype Inet = Inet NetAddress  deriving (Eq, Ord, Show, Read)
 
