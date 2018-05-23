@@ -49,8 +49,9 @@ v6HostAddressLong = V6HostAddress
 v6HostAddress :: [Word16] -> [Word16] -> Maybe V6HostAddress
 v6HostAddress ls rs  = do
   let v6length = 8
-  guard . null . drop v6length $ ls ++ rs
-  [a, b, c, d, e, f, g, h]  <-  pure $ ls ++ replicate (v6length - length ls - length rs) 0 ++ rs
+      lrlength = length $ ls ++ rs
+  guard $ lrlength <= v6length
+  [a, b, c, d, e, f, g, h]  <-  pure $ ls ++ replicate (v6length - lrlength) 0 ++ rs
   pure $ v6HostAddressLong a b c d e f g h
 
 v6HostAddressR :: [Word16] -> Maybe V6HostAddress
