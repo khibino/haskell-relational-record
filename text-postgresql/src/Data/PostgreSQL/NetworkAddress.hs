@@ -15,13 +15,13 @@ module Data.PostgreSQL.NetworkAddress
        , V6HostAddress (..), v6HostAddressLong, v6HostAddressWords
        , v6HostAddress, v6HostAddressL, v6HostAddressR
 
-       , Inet (..), Cidr (..), cidr4, cidr6,
+       , Inet (..), Cidr (..), cidr4', cidr4, cidr6,
        ) where
 
 import Control.Applicative (pure)
 import Control.Monad (guard)
 import Data.Word (Word8, Word16, Word32)
-import Data.Bits (shiftL, (.&.), (.|.))
+import Data.Bits (shiftL, shiftR, (.&.), (.|.))
 
 
 -- | Host address type along with IPv4 address string.
@@ -69,6 +69,9 @@ data NetAddress
   | NetAddress6 !V6HostAddress !Word8
   deriving (Eq, Ord, Show, Read)
 
+vmask4 :: (Ord a, Integral a) => a -> Bool
+vmask4 = (<= 32)
+
 netAddress4 :: V4HostAddress -> Word8 -> Maybe NetAddress
 netAddress4 a4 m
   | m <= 32    =  Just $ NetAddress4 a4 m
@@ -83,20 +86,34 @@ newtype Inet = Inet NetAddress  deriving (Eq, Ord, Show, Read)
 
 newtype Cidr = Cidr NetAddress  deriving (Eq, Ord, Show, Read)
 
-verifyCidr4 :: V4HostAddress -> Word8 -> Bool
-verifyCidr4 (V4HostAddress w0 w1 w2 w3) m =
-    a4 .&. (1 `shiftL` (32 - fromIntegral m) - 1)  ==  0
+maskCidr4 :: V4HostAddress -> Word8 -> (Word32, Word32)
+maskCidr4 (V4HostAddress w0 w1 w2 w3) m =
+    (a4 .&. (1 `shiftL` mi - 1) `shiftL` (32 - mi), a4)
   where
+    mi = fromIntegral m
     a4 :: Word32
     a4 = foldr (.|.) 0 $ zipWith
          (\w x -> fromIntegral w `shiftL` x)
          [w3, w2, w1, w0]
          [0,8 ..]
 
+cidr4' :: V4HostAddress -> Word8 -> Maybe Cidr
+cidr4' ha0 m = do
+  guard $ vmask4 m
+  let (ra, _) = maskCidr4 ha0 m
+      byte = fromIntegral . (.&. 0xff)
+      ha = V4HostAddress
+           (byte $ ra `shiftR` 24)
+           (byte $ ra `shiftR` 16)
+           (byte $ ra `shiftR` 8 )
+           (byte $ ra            )
+  return . Cidr $ NetAddress4 ha m
+
 cidr4 :: V4HostAddress -> Word8 -> Maybe Cidr
-cidr4 a4 m = do
-  na <- netAddress4 a4 m
-  guard $ verifyCidr4 a4 m
+cidr4 ha m = do
+  na <- netAddress4 ha m
+  let (ma, ra) = maskCidr4 ha m
+  guard $ ma == ra
   return $ Cidr na
 
 verifyCidr6 :: V6HostAddress -> Word8 -> Bool
