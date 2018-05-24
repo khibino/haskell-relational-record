@@ -105,10 +105,10 @@ prop_cidr4Cons a4 m = case cidr4 a4 m of
   Nothing  ->  m > 32 ||
                case cidr4' a4 m of
                  Nothing  ->  False
-                 Just (Cidr (NetAddress6 {}))     ->  False
                  Just (Cidr (NetAddress4 a4' m')) ->  m' == m && a4' /= a4
-  Just (Cidr (NetAddress6 {}))                    ->  False
+                 Just (Cidr (NetAddress6 {}))     ->  False
   Just (Cidr (NetAddress4 a4' m'))                ->  m' == m && a4' == a4
+  Just (Cidr (NetAddress6 {}))                    ->  False
 
 tests :: [Test]
 tests =
