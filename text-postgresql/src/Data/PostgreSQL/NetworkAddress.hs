@@ -102,15 +102,14 @@ maskCidr4 (V4HostAddress w0 w1 w2 w3) m =
 
 cidr4' :: V4HostAddress -> Word8 -> Maybe Cidr
 cidr4' ha0 m = do
-  guard $ vmask4 m
-  let (ra, _) = maskCidr4 ha0 m
-      byte = fromIntegral . (.&. 0xff)
-      ha = V4HostAddress
-           (byte $ ra `shiftR` 24)
-           (byte $ ra `shiftR` 16)
-           (byte $ ra `shiftR` 8 )
-           (byte $ ra            )
-  return . Cidr $ NetAddress4 ha m
+    guard $ vmask4 m
+    let (ra, _) = maskCidr4 ha0 m
+        ha = fromList4 $ map (byte . (ra `shiftR`)) [24,16,8,0]
+    return . Cidr $ NetAddress4 ha m
+  where
+    byte = fromIntegral . (.&. 0xff)
+    fromList4 ws = V4HostAddress w0 w1 w2 w3
+      where [w0, w1, w2, w3] = ws
 
 cidr4 :: V4HostAddress -> Word8 -> Maybe Cidr
 cidr4 ha m = do
@@ -132,19 +131,14 @@ maskCidr6 (V6HostAddress w0 w1 w2 w3 w4 w5 w6 w7) m =
 
 cidr6' :: V6HostAddress -> Word8 -> Maybe Cidr
 cidr6' ha0 m = do
-  guard $ vmask6 m
-  let (ra, _) = maskCidr6 ha0 m
-      word = fromIntegral . (.&. 0xffff)
-      ha = V6HostAddress
-           (word $ ra `shiftR` 112)
-           (word $ ra `shiftR`  96)
-           (word $ ra `shiftR`  80)
-           (word $ ra `shiftR`  64)
-           (word $ ra `shiftR`  48)
-           (word $ ra `shiftR`  32)
-           (word $ ra `shiftR`  16)
-           (word $ ra             )
-  return . Cidr $ NetAddress6 ha m
+    guard $ vmask6 m
+    let (ra, _) = maskCidr6 ha0 m
+        ha = fromList6 $ map (word . (ra `shiftR`)) [112, 96 .. 0]
+    return . Cidr $ NetAddress6 ha m
+  where
+    word = fromIntegral . (.&. 0xffff)
+    fromList6 ws = V6HostAddress w0 w1 w2 w3 w4 w5 w6 w7
+      where [w0, w1, w2, w3, w4, w5, w6, w7] = ws
 
 cidr6 :: V6HostAddress -> Word8 -> Maybe Cidr
 cidr6 ha m = do
