@@ -15,7 +15,7 @@ module Data.PostgreSQL.NetworkAddress
        , V6HostAddress (..), v6HostAddressLong, v6HostAddressWords
        , v6HostAddress, v6HostAddressL, v6HostAddressR
 
-       , Inet (..), Cidr (..), cidr4', cidr4, cidr6,
+       , Inet (..), Cidr (..), cidr4', cidr4, cidr6', cidr6,
        ) where
 
 import Control.Applicative (pure)
@@ -74,8 +74,11 @@ vmask4 = (<= 32)
 
 netAddress4 :: V4HostAddress -> Word8 -> Maybe NetAddress
 netAddress4 a4 m
-  | m <= 32    =  Just $ NetAddress4 a4 m
+  | vmask4 m   =  Just $ NetAddress4 a4 m
   | otherwise  =  Nothing
+
+vmask6 :: (Ord a, Integral a) => a -> Bool
+vmask6 = (<= 128)
 
 netAddress6 :: V6HostAddress -> Word8 -> Maybe NetAddress
 netAddress6 a6 m
@@ -116,18 +119,36 @@ cidr4 ha m = do
   guard $ ma == ra
   return $ Cidr na
 
-verifyCidr6 :: V6HostAddress -> Word8 -> Bool
-verifyCidr6 (V6HostAddress w0 w1 w2 w3 w4 w5 w6 w7) m =
-    a6 .&. (1 `shiftL` (128 - fromIntegral m) - 1)  ==  0
+maskCidr6 :: V6HostAddress -> Word8 -> (Integer, Integer)
+maskCidr6 (V6HostAddress w0 w1 w2 w3 w4 w5 w6 w7) m =
+    (a6 .&. (1 `shiftL` mi - 1) `shiftL` (128 - mi), a6)
   where
+    mi = fromIntegral m
     a6 :: Integer
     a6 = foldr (.|.) 0 $ zipWith
          (\w x -> fromIntegral w `shiftL` x)
          [w7, w6, w5, w4, w3, w2, w1, w0]
          [0,16 ..]
 
+cidr6' :: V6HostAddress -> Word8 -> Maybe Cidr
+cidr6' ha0 m = do
+  guard $ vmask6 m
+  let (ra, _) = maskCidr6 ha0 m
+      word = fromIntegral . (.&. 0xffff)
+      ha = V6HostAddress
+           (word $ ra `shiftR` 112)
+           (word $ ra `shiftR`  96)
+           (word $ ra `shiftR`  80)
+           (word $ ra `shiftR`  64)
+           (word $ ra `shiftR`  48)
+           (word $ ra `shiftR`  32)
+           (word $ ra `shiftR`  16)
+           (word $ ra             )
+  return . Cidr $ NetAddress6 ha m
+
 cidr6 :: V6HostAddress -> Word8 -> Maybe Cidr
-cidr6 a6 m = do
-  na <- netAddress6 a6 m
-  guard $ verifyCidr6 a6 m
+cidr6 ha m = do
+  na <- netAddress6 ha m
+  let (ma, ra) = maskCidr6 ha m
+  guard $ ma == ra
   return $ Cidr na
