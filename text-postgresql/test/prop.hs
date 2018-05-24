@@ -110,6 +110,16 @@ prop_cidr4Cons a4 m = case cidr4 a4 m of
   Just (Cidr (NetAddress4 a4' m'))                ->  m' == m && a4' == a4
   Just (Cidr (NetAddress6 {}))                    ->  False
 
+prop_cidr6Cons :: V6HostAddress -> Word8 -> Bool
+prop_cidr6Cons a6 m = case cidr6 a6 m of
+  Nothing  ->  m > 128 ||
+               case cidr6' a6 m of
+                 Nothing  ->  False
+                 Just (Cidr (NetAddress4 {}))     ->  False
+                 Just (Cidr (NetAddress6 a6' m')) ->  m' == m && a6' /= a6
+  Just (Cidr (NetAddress4 {}))                    ->  False
+  Just (Cidr (NetAddress6 a6' m'))                ->  m' == m && a6' == a6
+
 tests :: [Test]
 tests =
   [ qcTest "v4 address iso - print parse"      prop_v4HostAddressIso
@@ -122,6 +132,7 @@ tests =
   , qcTest "network address 4 construction"    prop_netAddress4Cons
   , qcTest "network address 6 construction"    prop_netAddress6Cons
   , qcTest "cidr 4 construction"               prop_cidr4Cons
+  , qcTest "cidr 6 construction"               prop_cidr6Cons
   ]
 
 main :: IO ()
