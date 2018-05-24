@@ -1,5 +1,4 @@
 {-# OPTIONS -fno-warn-orphans #-}
-{--# LANGUAGE FlexibleInstances #--}
 
 import Test.QuickCheck
   (Gen, Arbitrary (..), choose, oneof)
