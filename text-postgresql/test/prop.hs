@@ -6,6 +6,7 @@ import Test.QuickCheck.Simple (defaultMain, Test, qcTest)
 
 import Control.Applicative ((<$>), (<*>))
 import Control.Monad (replicateM)
+import Data.Maybe (fromJust)
 import Data.List (isPrefixOf, isSuffixOf)
 import Data.Word (Word8, Word16)
 
@@ -45,6 +46,12 @@ instance Arbitrary NetAddress where
     oneof
     [ NetAddress4 <$> arbitrary <*> mask4
     , NetAddress6 <$> arbitrary <*> mask6 ]
+
+instance Arbitrary Cidr where
+  arbitrary =
+    oneof
+    [ fromJust <$> (cidr4' <$> arbitrary <*> mask4)
+    , fromJust <$> (cidr6' <$> arbitrary <*> mask6) ]
 
 isoProp :: Eq a => Printer a -> Parser a -> a -> Bool
 isoProp pr ps a =
@@ -99,6 +106,12 @@ prop_netAddress6Cons a6 m = case netAddress6 a6 m of
   Just (NetAddress4 {})     ->  False
   Just (NetAddress6 a6' m') ->  a6 == a6' && m == m'
 
+prop_cidrDcIso :: Cidr -> Bool
+prop_cidrDcIso cidr@(Cidr na) = dc == Just cidr  where
+  dc = case na of
+         NetAddress4 a4 m  ->  cidr4 a4 m
+         NetAddress6 a6 m  ->  cidr6 a6 m
+
 prop_cidr4Cons :: V4HostAddress -> Word8 -> Bool
 prop_cidr4Cons a4 m = case cidr4 a4 m of
   Nothing  ->  m > 32 ||
@@ -130,6 +143,7 @@ tests =
   , qcTest "network address iso - destruct construct" prop_netAddressDcIso
   , qcTest "network address 4 construction"    prop_netAddress4Cons
   , qcTest "network address 6 construction"    prop_netAddress6Cons
+  , qcTest "cidr - destruct construct"         prop_cidrDcIso
   , qcTest "cidr-4 construction"               prop_cidr4Cons
   , qcTest "cidr-6 construction"               prop_cidr6Cons
   ]
