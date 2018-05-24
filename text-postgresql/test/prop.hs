@@ -126,13 +126,13 @@ tests =
   , qcTest "v6 address iso - print parse"      prop_v6HostAddressIso
   , qcTest "v6 address iso - destruct construct-left"  prop_v6HostAddressDcIsoL
   , qcTest "v6 address iso - destruct construct-right" prop_v6HostAddressDcIsoR
-  , qcTest "v6 address construction - succeed or fail" prop_v6HostAddressCons
+  , qcTest "v6 address construction"           prop_v6HostAddressCons
   , qcTest "network address iso - print parse" prop_netAddressPpIso
   , qcTest "network address iso - destruct construct" prop_netAddressDcIso
   , qcTest "network address 4 construction"    prop_netAddress4Cons
   , qcTest "network address 6 construction"    prop_netAddress6Cons
-  , qcTest "cidr 4 construction"               prop_cidr4Cons
-  , qcTest "cidr 6 construction"               prop_cidr6Cons
+  , qcTest "cidr-4 construction"               prop_cidr4Cons
+  , qcTest "cidr-6 construction"               prop_cidr6Cons
   ]
 
 main :: IO ()
