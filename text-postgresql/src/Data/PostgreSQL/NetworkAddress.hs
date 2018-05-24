@@ -82,7 +82,7 @@ vmask6 = (<= 128)
 
 netAddress6 :: V6HostAddress -> Word8 -> Maybe NetAddress
 netAddress6 a6 m
-  | m <= 128   =  Just $ NetAddress6 a6 m
+  | vmask6 m   =  Just $ NetAddress6 a6 m
   | otherwise  =  Nothing
 
 newtype Inet = Inet NetAddress  deriving (Eq, Ord, Show, Read)
