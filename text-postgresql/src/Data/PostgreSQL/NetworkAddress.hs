@@ -10,12 +10,12 @@
 -- This module defines network-address types of PostgreSQL.
 -- http://www.postgresql.org/docs/current/static/datatype-net-types.html
 module Data.PostgreSQL.NetworkAddress
-       ( NetAddress (..), netAddress4, netAddress6
-       , V4HostAddress (..), v4HostAddressOctets
-       , V6HostAddress (..), v6HostAddressLong, v6HostAddressWords
-       , v6HostAddress, v6HostAddressL, v6HostAddressR
-
-       , Inet (..), Cidr (..), cidr4', cidr4, cidr6', cidr6,
+       (
+         Inet (..), Cidr (..), cidr4', cidr4, cidr6', cidr6,
+         NetAddress (..), netAddress4, netAddress6,
+         V4HostAddress (..), v4HostAddressOctets,
+         V6HostAddress (..), v6HostAddressLong, v6HostAddressWords,
+         v6HostAddress, v6HostAddressL, v6HostAddressR,
        ) where
 
 import Control.Applicative (pure)
