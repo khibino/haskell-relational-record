@@ -143,7 +143,7 @@ tests =
   , qcTest "network address iso - destruct construct" prop_netAddressDcIso
   , qcTest "network address 4 construction"    prop_netAddress4Cons
   , qcTest "network address 6 construction"    prop_netAddress6Cons
-  , qcTest "cidr - destruct construct"         prop_cidrDcIso
+  , qcTest "cidr iso - destruct construct"     prop_cidrDcIso
   , qcTest "cidr-4 construction"               prop_cidr4Cons
   , qcTest "cidr-6 construction"               prop_cidr6Cons
   ]
