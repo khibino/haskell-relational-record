@@ -1,6 +1,7 @@
 {-# OPTIONS -fno-warn-orphans #-}
 
-import Language.SQL.Keyword (Keyword, DString)
+import Language.SQL.Keyword
+  (Keyword (Sequence), DString, (<++>))
 
 import Data.Monoid (Monoid, mempty, (<>))
 import Data.String (fromString)
@@ -44,6 +45,12 @@ kwAssoc =  assoc
 instance Arbitrary Keyword where
   arbitrary = fmap fromString arbitrary
 
+concatCommutative :: DString -> DString -> Bool
+concatCommutative x y =
+  Sequence x <++> Sequence y
+  ==
+  Sequence (x <> y)
+
 tests :: [Test]
 tests =  [ prop "DString left Id"  dsLeftId
          , prop "DString right Id" dsRightId
@@ -51,6 +58,7 @@ tests =  [ prop "DString left Id"  dsLeftId
          , prop "Keyword left Id"  kwLeftId
          , prop "Keyword right Id" kwRightId
          , prop "Keyword associativity" kwAssoc
+         , prop "concat commutative" concatCommutative
          ]
 
 main :: IO ()
