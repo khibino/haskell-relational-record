@@ -1,5 +1,5 @@
 name:                text-postgresql
-version:             0.0.2.3
+version:             0.0.3.0
 synopsis:            Parser and Printer of PostgreSQL extended types
 description:         This package involves parser and printer for
                      text expressions of PostgreSQL extended types.
