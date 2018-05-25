@@ -158,6 +158,7 @@ paren w = concat' ["(", w, ")"]
 in' :: Keyword -> Keyword -> Keyword
 in'    =  defineBinOp IN
 
+infixr 6 <++>
 infixr 5 .||.
 infixr 4 .=., .<., .<=., .>., .>=., .<>.
 infix  4 `in'`
