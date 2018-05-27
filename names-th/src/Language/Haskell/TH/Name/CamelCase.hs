@@ -1,6 +1,6 @@
 -- |
 -- Module      : Language.Haskell.TH.Name.CamelCase
--- Copyright   : 2013 Kei Hibino
+-- Copyright   : 2013-2018 Kei Hibino, 2015 Shohei Murayama
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
