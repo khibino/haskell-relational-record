@@ -96,11 +96,11 @@ withPrepareChunksInsert conn i0 body =
 
 -- Prepare and insert with chunk insert statement.
 chunksInsertActions :: ToSql SqlValue a
-                 => [a]
-                 -> PreparedInsert a
-                 -> PreparedStatement [a] ()
-                 -> Int
-                 -> IO [[Integer]]
+                    => [a]
+                    -> PreparedInsert a
+                    -> PreparedStatement [a] ()
+                    -> Int
+                    -> IO [[Integer]]
 chunksInsertActions rs ins iChunk size =
     mapM insert $ chunks size rs
   where
