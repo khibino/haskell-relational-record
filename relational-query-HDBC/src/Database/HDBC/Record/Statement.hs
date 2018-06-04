@@ -47,7 +47,7 @@ data BoundStatement a =
   BoundStatement
   {
     -- | Untyped prepared statement before executed.
-    bound  :: Statement
+    bound  :: !Statement
     -- | Bound parameters.
   , params :: [SqlValue]
   }
@@ -56,9 +56,9 @@ data BoundStatement a =
 data ExecutedStatement a =
   ExecutedStatement
   { -- | Untyped executed statement.
-    executed :: Statement
+    executed :: !Statement
     -- | Result of HDBC execute.
-  , result   :: Integer
+  , result   :: !Integer
   }
 
 -- | Unsafely untype prepared statement.
@@ -123,7 +123,7 @@ executeBound :: BoundStatement a -> IO (ExecutedStatement a)
 executeBound bs = do
   let stmt = bound bs
   n <- HDBC.execute stmt (params bs)
-  return $ ExecutedStatement stmt n
+  n `seq` return (ExecutedStatement stmt n)
 
 {-# WARNING execute "Use 'executeBound' instead of this. This name will be used for executePrepared function in future release." #-}
 -- | Use 'executeBound' instead of this.
