@@ -106,7 +106,7 @@ chunksInsertActions rs ins iChunk size =
   where
     insert (Right c) = do
       rv <- executeBoundNoFetch $ chunkBind iChunk c
-      return [rv]
+      rv `seq` return [rv]
     insert (Left  c) =
       mapM (runPreparedInsert ins) c
 
