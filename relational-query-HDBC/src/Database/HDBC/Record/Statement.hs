@@ -134,7 +134,7 @@ executePrepared st = executeBound . bind st
 executeBoundNoFetch :: BoundStatement () -> IO Integer
 executeBoundNoFetch = fmap result . executeBound
 
-{- WARNING executeNoFetch "Use 'executeBoundNoFetch' instead of this. This name will be used for runPreparedNoFetch function in future release." -}
+{-# WARNING executeNoFetch "Use 'executeBoundNoFetch' instead of this. This name will be used for runPreparedNoFetch function in future release." #-}
 -- | Use 'executeBoundNoFetch' instead of this.
 --   WARNING! This name will be used for runPreparedNoFetch function in future release.
 executeNoFetch :: BoundStatement () -> IO Integer
