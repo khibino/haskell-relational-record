@@ -26,7 +26,7 @@ import Database.Record (ToSql, fromRecord)
 
 import Database.HDBC.Record.Statement
   (prepareNoFetch, withPrepareNoFetch, withUnsafePrepare, PreparedStatement, untypePrepared,
-   BoundStatement (..), runPreparedNoFetch, runNoFetch, mapNoFetch, executeNoFetch)
+   BoundStatement (..), runPreparedNoFetch, runNoFetch, mapNoFetch, executeBoundNoFetch)
 
 
 -- | Typed prepared insert type.
@@ -105,7 +105,7 @@ chunksInsertActions rs ins iChunk size =
     mapM insert $ chunks size rs
   where
     insert (Right c) = do
-      rv <- executeNoFetch $ chunkBind iChunk c
+      rv <- executeBoundNoFetch $ chunkBind iChunk c
       return [rv]
     insert (Left  c) =
       mapM (runPreparedInsert ins) c
