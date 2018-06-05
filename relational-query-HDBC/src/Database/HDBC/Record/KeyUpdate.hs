@@ -31,7 +31,7 @@ import qualified Database.Relational as DSL
 import Database.Record (ToSql)
 
 import Database.HDBC.Record.Statement
-  (BoundStatement (BoundStatement, bound, params), executeNoFetch)
+  (BoundStatement (BoundStatement, bound, params), executeBoundNoFetch)
 
 
 -- | Typed prepared key-update type.
@@ -87,7 +87,7 @@ runPreparedKeyUpdate :: ToSql SqlValue a
                      => PreparedKeyUpdate p a
                      -> a
                      -> IO Integer
-runPreparedKeyUpdate pre = executeNoFetch . bindKeyUpdate pre
+runPreparedKeyUpdate pre = executeBoundNoFetch . bindKeyUpdate pre
 
 -- | Prepare insert statement, bind parameters,
 --   execute statement and get execution result.
