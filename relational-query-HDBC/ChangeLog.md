@@ -1,5 +1,10 @@
 <!-- -*- Markdown -*- -->
 
+## 0.6.4.3
+
+- evaluate thunks in the result list of chunksInsert call.
+- enable the is-disabled warning message of executeNoFetch.
+
 ## 0.6.4.2
 
 - add an upper bound of version constraint.
