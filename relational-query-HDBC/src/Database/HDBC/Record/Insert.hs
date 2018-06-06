@@ -19,6 +19,8 @@ module Database.HDBC.Record.Insert (
   chunksInsert,
   ) where
 
+import Control.Applicative ((<$>), (<*>))
+import System.IO.Unsafe (unsafeInterleaveIO)
 import Database.HDBC (IConnection, SqlValue)
 
 import Database.Relational (Insert (..), untypeChunkInsert, chunkSizeOfInsert)
@@ -75,15 +77,6 @@ mapInsert = mapNoFetch
 chunkBind :: ToSql SqlValue p => PreparedStatement [p] () -> [p] -> BoundStatement ()
 chunkBind q ps = BoundStatement { bound = untypePrepared q, params =  ps >>= fromRecord }
 
-chunks :: Int -> [a] -> [Either [a] [a]]
-chunks n = rec'  where
-  rec' xs
-    | null tl    =  [ if length c == n
-                      then Right c
-                      else Left  c ]
-    | otherwise  =  Right c : rec' tl  where
-      (c, tl) = splitAt n xs
-
 withPrepareChunksInsert :: (IConnection conn, ToSql SqlValue a)
                         => conn
                         -> Insert a
@@ -94,23 +87,41 @@ withPrepareChunksInsert conn i0 body =
   (\ins -> withUnsafePrepare conn (untypeChunkInsert i0)
            (\iChunk -> body ins iChunk $ chunkSizeOfInsert i0)  )
 
--- Prepare and insert with chunk insert statement.
-chunksInsertActions :: ToSql SqlValue a
-                    => [a]
-                    -> PreparedInsert a
-                    -> PreparedStatement [a] ()
-                    -> Int
-                    -> IO [[Integer]]
-chunksInsertActions rs ins iChunk size =
-    mapM insert $ chunks size rs
+chunks :: Int -> [a] -> ([[a]], [a])
+chunks n = rec'  where
+  rec' xs
+    | null tl    =  if length c == n
+                    then ([c], [])
+                    else ( [], c)
+    | otherwise  =  (c : cs, ys)  where
+      (c, tl) = splitAt n xs
+      (cs, ys) = rec' tl
+
+lazyMapIO :: (a -> IO b) -> [a] -> IO [b]
+lazyMapIO _  []     =  return []
+lazyMapIO f (x:xs)  =  unsafeInterleaveIO $ (:) <$> f x <*> lazyMapIO f xs
+
+chunksLazyAction :: ToSql SqlValue a
+                 => [a]
+                 -> PreparedInsert a
+                 -> PreparedStatement [a] ()
+                 -> Int
+                 -> IO ([Integer], [Integer])
+chunksLazyAction rs ins iChunk size =
+    (,)
+    <$> lazyMapIO (executeBoundNoFetch . chunkBind iChunk) cs
+    <*> (unsafeInterleaveIO $ mapM (runPreparedInsert ins) xs)
   where
-    insert (Right c) = do
-      rv <- executeBoundNoFetch $ chunkBind iChunk c
-      rv `seq` return [rv]
-    insert (Left  c) =
-      mapM (runPreparedInsert ins) c
+    (cs, xs) = chunks size rs
 
 -- | Prepare and insert with chunk insert statement.
-chunksInsert :: (IConnection conn, ToSql SqlValue a) => conn -> Insert a -> [a] -> IO [[Integer]]
-chunksInsert conn ins rs =
-  withPrepareChunksInsert conn ins $ chunksInsertActions rs
+chunksInsert :: (IConnection conn, ToSql SqlValue a)
+             => conn
+             -> Insert a
+             -> [a]
+             -> IO [[Integer]]
+chunksInsert conn ins rs = do
+  (zs, os) <- withPrepareChunksInsert conn ins $ chunksLazyAction rs
+  let zl = length zs
+      ol = length os
+  zl `seq` ol `seq` return (map (: []) zs ++ [os])
