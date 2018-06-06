@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.6.4.4
+
+- switch internal implementation of chunksInsert to lazy-IO.
+
 ## 0.6.4.3
 
 - evaluate thunks in the result list of chunksInsert call.
