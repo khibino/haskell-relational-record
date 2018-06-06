@@ -16,10 +16,15 @@ module Database.HDBC.Record.Insert (
 
   runPreparedInsert, runInsert, mapInsert,
 
+  bulkInsert,
+  bulkInsert',
+  bulkInsertInterleave,
+
   chunksInsert,
   ) where
 
 import Control.Applicative ((<$>), (<*>))
+import Control.Monad (unless)
 import System.IO.Unsafe (unsafeInterleaveIO)
 import Database.HDBC (IConnection, SqlValue)
 
@@ -114,14 +119,56 @@ chunksLazyAction rs ins iChunk size =
   where
     (cs, xs) = chunks size rs
 
--- | Prepare and insert with chunk insert statement.
+-- | Prepare and insert using chunk insert statement, with the Lazy-IO results of insert statements.
+bulkInsertInterleave :: (IConnection conn, ToSql SqlValue a)
+                     => conn
+                     -> Insert a
+                     -> [a]
+                     -> IO ([Integer], [Integer])
+bulkInsertInterleave conn ins =
+  withPrepareChunksInsert conn ins . chunksLazyAction
+
+chunksAction :: ToSql SqlValue a
+             => [a]
+             -> PreparedInsert a
+             -> PreparedStatement [a] ()
+             -> Int
+             -> IO ()
+chunksAction rs ins iChunk size = do
+    (zs, os)  <-  chunksLazyAction rs ins iChunk size
+    unless (all (== fromIntegral size) zs)
+      $ fail "chunksAction: chunks: unexpected result size!"
+    unless (all (== 1) os)
+      $ fail "chunksAction: tails: unexpected result size!"
+
+-- | Prepare and insert using chunk insert statement.
+bulkInsert :: (IConnection conn, ToSql SqlValue a)
+           => conn
+           -> Insert a
+           -> [a]
+           -> IO ()
+bulkInsert conn ins =
+  withPrepareChunksInsert conn ins . chunksAction
+
+-- | Prepare and insert using chunk insert statement, with the results of insert statements.
+bulkInsert' :: (IConnection conn, ToSql SqlValue a)
+             => conn
+             -> Insert a
+             -> [a]
+             -> IO ([Integer], [Integer])
+bulkInsert' conn ins rs = do
+  p@(zs, os) <- withPrepareChunksInsert conn ins $ chunksLazyAction rs
+  let zl = length zs
+      ol = length os
+  zl `seq` ol `seq` return p
+
+{-# DEPRECATED chunksInsert "use bulkInsert' instead of this." #-}
+-- | Deprecated. Use bulkInsert' instead of this. Prepare and insert using chunk insert statement.
 chunksInsert :: (IConnection conn, ToSql SqlValue a)
              => conn
              -> Insert a
              -> [a]
              -> IO [[Integer]]
 chunksInsert conn ins rs = do
-  (zs, os) <- withPrepareChunksInsert conn ins $ chunksLazyAction rs
-  let zl = length zs
-      ol = length os
-  zl `seq` ol `seq` return (map (: []) zs ++ [os])
+  (zs, os) <- bulkInsert' conn ins rs
+  return $ map (: []) zs ++ [os]
