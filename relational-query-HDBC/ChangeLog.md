@@ -1,5 +1,11 @@
 <!-- -*- Markdown -*- -->
 
+## 0.6.7.0
+
+- add bulkInsert definitions, and deprecate chunksInsert.
+- enable the mis-disabled warning message of executeNoFetch.
+- make statement operations strict.
+
 ## 0.6.6.1
 
 - update version constraint. ( along with re-versioned relational-query. )
