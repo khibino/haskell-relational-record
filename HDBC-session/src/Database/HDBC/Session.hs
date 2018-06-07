@@ -63,14 +63,14 @@ bracketConnection :: (Monad m, IConnection conn)
                   -> IO conn                                             -- ^ Connect action
                   -> (conn -> m a)                                       -- ^ Transaction body
                   -> m a
-bracketConnection bracket' lift connect tbody =
-    bracket' (lift open') (lift . close') bodyWithRollback
+bracketConnection bracket_ lift connect tbody =
+    bracket_ (lift open) (lift . close) bodyWithRollback
   where
-    open'  = handleSqlError' connect
-    close' :: IConnection conn => conn -> IO ()
-    close' =  handleSqlError' . HDBC.disconnect
+    open  = handleSqlError' connect
+    close :: IConnection conn => conn -> IO ()
+    close =  handleSqlError' . HDBC.disconnect
     bodyWithRollback conn =
-      bracket'
+      bracket_
       (return ())
       -- Do rollback independent from driver default behavior when disconnect.
       (const . lift . handleSqlError' $ HDBC.rollback conn)
