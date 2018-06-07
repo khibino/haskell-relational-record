@@ -14,7 +14,7 @@
 module Database.HDBC.Session (
   -- * Bracketed session
   -- $bracketedSession
-  withConnectionCommit,
+  transaction,
 
   withConnectionIO, withConnectionIO_,
 
@@ -27,6 +27,7 @@ module Database.HDBC.Session (
   -- * Deprecated
   withConnection,
   withConnectionIO',
+  withConnectionCommit,
   ) where
 
 import Database.HDBC (IConnection, handleSql,
@@ -96,6 +97,7 @@ withConnectionIO_ :: IConnection conn
 withConnectionIO_ = bracketConnection bracket id
 
 -- | Run a transaction on a HDBC 'IConnection' and close the connection.
+--   Not issuing commit at last, so if you need, issue commit manually in transaction body.
 withConnectionIO :: IConnection conn
                  => IO conn        -- ^ Connect action
                  -> (conn -> IO a) -- ^ Transaction body
@@ -110,9 +112,21 @@ withConnectionIO' :: IConnection conn
                   -> IO a           -- ^ Result transaction action
 withConnectionIO' = withConnectionIO
 
--- | Same as 'withConnectionIO' other than issuing commit at the end of transaction body.
+-- | Run a transaction on a HDBC 'IConnection' and commit at last, and then close the connection.
 --   In other words, the transaction with no exception is committed.
 --   Handy defintion for simple transactions.
+transaction :: IConnection conn
+            => IO conn        -- ^ Connect action
+            -> (conn -> IO a) -- ^ Transaction body
+            -> IO a           -- ^ Result transaction action
+transaction conn body =
+  withConnectionIO conn $ \c -> do
+    x <- body c
+    HDBC.commit c
+    return x
+
+{-# DEPRECATED withConnectionCommit "use 'transaction' instead of this." #-}
+-- | Deprecated. use 'transaction' instead of this.
 withConnectionCommit :: IConnection conn
                      => IO conn        -- ^ Connect action
                      -> (conn -> IO a) -- ^ Transaction body
