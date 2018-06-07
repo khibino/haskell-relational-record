@@ -2,7 +2,7 @@
 
 -- |
 -- Module      : Database.HDBC.Session
--- Copyright   : 2013-2016 Kei Hibino
+-- Copyright   : 2013-2018 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
