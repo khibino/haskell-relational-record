@@ -17,11 +17,14 @@ module Database.HDBC.Session (
   withConnectionCommit,
   withConnectionIO, withConnectionIO',
 
-  withConnection,
+  bracketConnection,
 
   -- * Show errors
   -- $showErrors
-  showSqlError, handleSqlError'
+  showSqlError, handleSqlError',
+
+  -- * Deprecated
+  withConnection,
   ) where
 
 import Database.HDBC (IConnection, handleSql,
@@ -52,14 +55,15 @@ handleSqlError' :: IO a -> IO a
 handleSqlError' =  handleSql (fail . reformat . showSqlError)  where
   reformat = ("SQL error: \n" ++) . unlines . map ("  " ++) . lines
 
--- | Run a transaction on a HDBC IConnection and close the connection.
-withConnection :: (Monad m, IConnection conn)
-               => (forall c. m c -> (c -> m ()) -> (c -> m a) -> m a) -- ^ bracket
-               -> (forall b. IO b -> m b)                             -- ^ lift
-               -> IO conn                                             -- ^ Connect action
-               -> (conn -> m a)                                       -- ^ Transaction body
-               -> m a
-withConnection bracket' lift connect tbody =
+-- | Generalized session with bracketed HDBC connection.
+--   Run a transaction on a HDBC IConnection and close the connection.
+bracketConnection :: (Monad m, IConnection conn)
+                  => (forall c. m c -> (c -> m ()) -> (c -> m a) -> m a) -- ^ bracket
+                  -> (forall b. IO b -> m b)                             -- ^ lift
+                  -> IO conn                                             -- ^ Connect action
+                  -> (conn -> m a)                                       -- ^ Transaction body
+                  -> m a
+bracketConnection bracket' lift connect tbody =
   bracket' (lift open') (lift . close') bodyWithRollback
   where
     open'  = handleSqlError' connect
@@ -72,13 +76,23 @@ withConnection bracket' lift connect tbody =
       (const . lift . handleSqlError' $ HDBC.rollback conn)
       (const $ tbody conn)
 
+{-# DEPRECATED withConnection "use 'bracketConnection' instead of this." #-}
+-- | Deprecated. use 'bracketConnection' instead of this.
+withConnection :: (Monad m, IConnection conn)
+               => (forall c. m c -> (c -> m ()) -> (c -> m a) -> m a)
+               -> (forall b. IO b -> m b)
+               -> IO conn
+               -> (conn -> m a)
+               -> m a
+withConnection = bracketConnection
+
 -- | Run a transaction on a HDBC 'IConnection' and close the connection.
 --   Simple 'IO' version.
 withConnectionIO :: IConnection conn
                  => IO conn        -- ^ Connect action
                  -> (conn -> IO a) -- ^ Transaction body
                  -> IO a           -- ^ Result transaction action
-withConnectionIO =  withConnection bracket id
+withConnectionIO = bracketConnection bracket id
 
 -- | Same as 'withConnectionIO' other than issuing commit at the end of transaction body.
 --   In other words, the transaction with no exception is committed.
