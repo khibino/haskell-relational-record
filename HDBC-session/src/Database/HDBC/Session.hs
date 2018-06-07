@@ -15,7 +15,8 @@ module Database.HDBC.Session (
   -- * Bracketed session
   -- $bracketedSession
   withConnectionCommit,
-  withConnectionIO, withConnectionIO',
+
+  withConnectionIO, withConnectionIO_,
 
   bracketConnection,
 
@@ -25,6 +26,7 @@ module Database.HDBC.Session (
 
   -- * Deprecated
   withConnection,
+  withConnectionIO',
   ) where
 
 import Database.HDBC (IConnection, handleSql,
@@ -86,13 +88,27 @@ withConnection :: (Monad m, IConnection conn)
                -> m a
 withConnection = bracketConnection
 
+-- | Same as 'withConnectionIO' other than not wrapping transaction body in 'handleSqlError''.
+withConnectionIO_ :: IConnection conn
+                  => IO conn        -- ^ Connect action
+                  -> (conn -> IO a) -- ^ Transaction body
+                  -> IO a           -- ^ Result transaction action
+withConnectionIO_ = bracketConnection bracket id
+
 -- | Run a transaction on a HDBC 'IConnection' and close the connection.
---   Simple 'IO' version.
 withConnectionIO :: IConnection conn
                  => IO conn        -- ^ Connect action
                  -> (conn -> IO a) -- ^ Transaction body
                  -> IO a           -- ^ Result transaction action
-withConnectionIO = bracketConnection bracket id
+withConnectionIO connect body = withConnectionIO_ connect $ handleSqlError' . body
+
+{-# DEPRECATED withConnectionIO' "use 'withConnectionIO' instead of this." #-}
+-- | Deprecated. use 'withConnectionIO' instead of this.
+withConnectionIO' :: IConnection conn
+                  => IO conn        -- ^ Connect action
+                  -> (conn -> IO a) -- ^ Transaction body
+                  -> IO a           -- ^ Result transaction action
+withConnectionIO' = withConnectionIO
 
 -- | Same as 'withConnectionIO' other than issuing commit at the end of transaction body.
 --   In other words, the transaction with no exception is committed.
@@ -102,14 +118,7 @@ withConnectionCommit :: IConnection conn
                      -> (conn -> IO a) -- ^ Transaction body
                      -> IO a           -- ^ Result transaction action
 withConnectionCommit conn body =
-  withConnectionIO conn $ \c -> do
+  withConnectionIO_ conn $ \c -> do
     x <- body c
     HDBC.commit c
     return x
-
--- | Same as 'withConnectionIO' other than wrapping transaction body in 'handleSqlError''.
-withConnectionIO' :: IConnection conn
-                  => IO conn        -- ^ Connect action
-                  -> (conn -> IO a) -- ^ Transaction body
-                  -> IO a           -- ^ Result transaction action
-withConnectionIO' connect body = withConnectionIO connect $ handleSqlError' . body
