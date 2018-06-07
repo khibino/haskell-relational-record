@@ -64,7 +64,7 @@ bracketConnection :: (Monad m, IConnection conn)
                   -> (conn -> m a)                                       -- ^ Transaction body
                   -> m a
 bracketConnection bracket' lift connect tbody =
-  bracket' (lift open') (lift . close') bodyWithRollback
+    bracket' (lift open') (lift . close') bodyWithRollback
   where
     open'  = handleSqlError' connect
     close' :: IConnection conn => conn -> IO ()
