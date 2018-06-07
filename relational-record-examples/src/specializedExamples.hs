@@ -33,7 +33,7 @@ import Product (product)
 --import qualified ProductType
 --import ProductType (ProductType, productType)
 import qualified Transaction
-import Transaction (transaction)
+-- import Transaction (transaction)
 import qualified Employee
 import Employee (Employee, employee)
 
@@ -1152,12 +1152,12 @@ updateEmployee_o3P = derivedUpdate $ \proj -> do
 updateAccount_9_4_2 :: Update ()
 updateAccount_9_4_2 = derivedUpdate $ \proj -> do
   ts <- queryScalar $ aggregatedUnique (relation $ do
-    t <- query transaction
+    t <- query Transaction.transaction
     wheres $ t ! Transaction.accountId' .=. proj ! Account.accountId'
     return (t ! Transaction.txnDate')
     ) id' max'
   tl <- queryList $ relation $ do
-    t <- query transaction
+    t <- query Transaction.transaction
     wheres $ t ! Transaction.accountId' .=. proj ! Account.accountId'
     return (value (1 :: Int64))
   Account.lastActivityDate' <-# (toDay $ flattenMaybe ts)
