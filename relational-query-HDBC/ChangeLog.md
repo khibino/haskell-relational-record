@@ -1,5 +1,10 @@
 <!-- -*- Markdown -*- -->
 
+## 0.6.4.5
+
+- fix do safe convert for integral conversion from SQL value.
+- add test suite of conversion from and to SQL value.
+
 ## 0.6.4.4
 
 - switch internal implementation of chunksInsert to lazy-IO.
