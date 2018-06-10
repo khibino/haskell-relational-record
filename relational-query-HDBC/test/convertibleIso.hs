@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
 
+import Control.Applicative ((<$>))
 import Data.Int (Int8, Int16)
 import Data.Convertible (Convertible, safeConvert, ConvertResult)
 import Database.HDBC (SqlValue (SqlInteger))
