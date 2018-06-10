@@ -1,4 +1,5 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS -fno-warn-orphans #-}
 
 -- |
@@ -20,9 +21,9 @@ safeConvertFromIntegral32 :: Integral a => a -> ConvertResult SqlValue
 safeConvertFromIntegral32 i =
   safeConvert (fromIntegral i :: Int32)
 
-safeConvertToIntegral32 :: Integral a => SqlValue -> ConvertResult a
+safeConvertToIntegral32 :: Convertible Int32 a => SqlValue -> ConvertResult a
 safeConvertToIntegral32 v =
-  fmap fromIntegral (safeConvert v :: ConvertResult Int32)
+  safeConvert =<< (safeConvert v :: ConvertResult Int32)
 
 instance Convertible Int8 SqlValue where
   safeConvert = safeConvertFromIntegral32
