@@ -1,5 +1,10 @@
 <!-- -*- Markdown -*- -->
 
+## 0.6.7.1
+
+- fix do safe convert for integral conversion from SQL value.
+- add test suite of conversion from and to SQL value.
+
 ## 0.6.7.0
 
 - add bulkInsert definitions, and deprecate chunksInsert.
