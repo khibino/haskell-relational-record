@@ -72,6 +72,18 @@ library
 
   default-language:    Haskell2010
 
+test-suite convertible-iso
+  build-depends:         base <5
+                       , QuickCheck
+                       , quickcheck-simple
+                       , convertible
+                       , HDBC
+                       , relational-query-HDBC
+  type:                exitcode-stdio-1.0
+  main-is:             convertibleIso.hs
+  hs-source-dirs:      test
+  ghc-options:         -Wall
+  default-language:    Haskell2010
 
 source-repository head
   type:       git
