@@ -72,8 +72,7 @@ getPrimaryKey' conn lchan scm' tbl' = do
       tbl = map toLower tbl'
   mayKeyLen <- runQuery' conn primaryKeyLengthQuerySQL (scm, tbl)
   case mayKeyLen of
-    []        -> do
-      putLog lchan   "getPrimaryKey: Primary key not found."
+    []        ->
       return []
     [keyLen]  -> do
       primCols <- runQuery' conn (primaryKeyQuerySQL keyLen) (scm, tbl)
