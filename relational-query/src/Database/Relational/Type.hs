@@ -17,27 +17,38 @@ module Database.Relational.Type (
   relationalQuerySQL,
 
   -- * Typed update statement
-  KeyUpdate (..), unsafeTypedKeyUpdate, typedKeyUpdate, typedKeyUpdateTable, derivedKeyUpdate,
-  Update (..), unsafeTypedUpdate, typedUpdate', typedUpdate, derivedUpdate', derivedUpdate,
-  typedUpdateAllColumn, derivedUpdateAllColumn', derivedUpdateAllColumn,
+  KeyUpdate (..), unsafeTypedKeyUpdate, typedKeyUpdate, typedKeyUpdateTable, keyUpdate,
+  Update (..), unsafeTypedUpdate, typedUpdate', typedUpdate, update', update,
+  typedUpdateAllColumn, updateAllColumn', updateAllColumn,
 
   updateSQL,
 
   -- * Typed insert statement
   Insert (..), untypeChunkInsert, chunkSizeOfInsert,
-  unsafeTypedInsert', unsafeTypedInsert, typedInsert', typedInsert, derivedInsert,
-  typedInsertValue', typedInsertValue, derivedInsertValue', derivedInsertValue,
-  InsertQuery (..), unsafeTypedInsertQuery, typedInsertQuery', typedInsertQuery, derivedInsertQuery,
+  unsafeTypedInsert', unsafeTypedInsert, typedInsert', typedInsert, insert,
+  typedInsertValue', typedInsertValue, insertValue', insertValue,
+  InsertQuery (..), unsafeTypedInsertQuery, typedInsertQuery', typedInsertQuery, insertQuery,
 
   insertQuerySQL,
 
   -- * Typed delete statement
-  Delete (..), unsafeTypedDelete, typedDelete', typedDelete, derivedDelete', derivedDelete,
+  Delete (..), unsafeTypedDelete, typedDelete', typedDelete, delete', delete,
 
   deleteSQL,
 
   -- * Generalized interfaces
-  UntypeableNoFetch (..)
+  UntypeableNoFetch (..),
+
+  -- * Deprecated
+  derivedKeyUpdate,
+  derivedUpdate', derivedUpdate,
+  derivedUpdateAllColumn', derivedUpdateAllColumn,
+
+  derivedInsert,
+  derivedInsertValue', derivedInsertValue,
+  derivedInsertQuery,
+
+  derivedDelete', derivedDelete,
   ) where
 
 import Data.Monoid ((<>))
@@ -107,12 +118,17 @@ typedKeyUpdate tbl key = unsafeTypedKeyUpdate key $ updateOtherThanKeySQL tbl ke
 typedKeyUpdateTable :: TableDerivable r => Relation () r -> Pi r p -> KeyUpdate p r
 typedKeyUpdateTable =  typedKeyUpdate . tableOf
 
--- derivedKeyUpdate'
+-- keyUpdate'
 -- Config parameter is not yet required for KeyUpdate.
 
 -- | Make typed 'KeyUpdate' from derived table and key columns selector 'Pi'.
+keyUpdate :: TableDerivable r => Pi r p -> KeyUpdate p r
+keyUpdate = typedKeyUpdate derivedTable
+
+{-# DEPRECATED derivedKeyUpdate "use keyUpdate instead of this." #-}
+-- | Make typed 'KeyUpdate' from derived table and key columns selector 'Pi'.
 derivedKeyUpdate :: TableDerivable r => Pi r p -> KeyUpdate p r
-derivedKeyUpdate = typedKeyUpdate derivedTable
+derivedKeyUpdate = keyUpdate
 
 -- | Show update SQL string
 instance Show (KeyUpdate p a) where
@@ -142,13 +158,23 @@ targetTable :: TableDerivable r => UpdateTarget p r -> Table r
 targetTable =  const derivedTable
 
 -- | Make typed 'Update' from 'Config', derived table and 'AssignStatement'
-derivedUpdate' :: TableDerivable r => Config -> AssignStatement r (PlaceHolders p) -> Update p
-derivedUpdate' config utc =  typedUpdate' config (targetTable ut) ut  where
+update' :: TableDerivable r => Config -> AssignStatement r (PlaceHolders p) -> Update p
+update' config utc =  typedUpdate' config (targetTable ut) ut  where
   ut = updateTarget' utc
 
+{-# DEPRECATED derivedUpdate' "use `update'` instead of this." #-}
+-- | Make typed 'Update' from 'Config', derived table and 'AssignStatement'
+derivedUpdate' :: TableDerivable r => Config -> AssignStatement r (PlaceHolders p) -> Update p
+derivedUpdate' = update'
+
+-- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement'
+update :: TableDerivable r => AssignStatement r (PlaceHolders p) -> Update p
+update = derivedUpdate' defaultConfig
+
+{-# DEPRECATED derivedUpdate "use `update` instead of this." #-}
 -- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement'
 derivedUpdate :: TableDerivable r => AssignStatement r (PlaceHolders p) -> Update p
-derivedUpdate = derivedUpdate' defaultConfig
+derivedUpdate = update
 
 
 -- | Make typed 'Update' from 'Config', 'Table' and 'Restriction'.
@@ -170,18 +196,35 @@ typedUpdateAllColumn tbl r = typedUpdate tbl $ liftTargetAllColumn' r
 
 -- | Make typed 'Update' from 'Config', derived table and 'AssignStatement'.
 --   Update target is all column.
+updateAllColumn' :: (PersistableWidth r, TableDerivable r)
+                        => Config
+                        -> RestrictedStatement r (PlaceHolders p)
+                        -> Update (r, p)
+updateAllColumn' config = typedUpdateAllColumn' config derivedTable .restriction'
+
+{-# DEPRECATED derivedUpdateAllColumn' "use `updateAllColumn'` instead of this." #-}
+-- | Make typed 'Update' from 'Config', derived table and 'AssignStatement'.
+--   Update target is all column.
 derivedUpdateAllColumn' :: (PersistableWidth r, TableDerivable r)
                         => Config
                         -> RestrictedStatement r (PlaceHolders p)
                         -> Update (r, p)
-derivedUpdateAllColumn' config = typedUpdateAllColumn' config derivedTable .restriction'
+derivedUpdateAllColumn' = updateAllColumn'
 
+-- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement'.
+--   Update target is all column.
+updateAllColumn :: (PersistableWidth r, TableDerivable r)
+                       => RestrictedStatement r (PlaceHolders p)
+                       -> Update (r, p)
+updateAllColumn = derivedUpdateAllColumn' defaultConfig
+
+{-# DEPRECATED derivedUpdateAllColumn "use `updateAllColumn` instead of this." #-}
 -- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement'.
 --   Update target is all column.
 derivedUpdateAllColumn :: (PersistableWidth r, TableDerivable r)
                        => RestrictedStatement r (PlaceHolders p)
                        -> Update (r, p)
-derivedUpdateAllColumn = derivedUpdateAllColumn' defaultConfig
+derivedUpdateAllColumn = updateAllColumn
 
 -- | Show update SQL string
 instance Show (Update p) where
@@ -221,8 +264,13 @@ typedInsert :: PersistableWidth r => Table r -> Pi r r' -> Insert r'
 typedInsert =  typedInsert' defaultConfig
 
 -- | Table type inferred 'Insert'.
+insert :: (PersistableWidth r, TableDerivable r) => Pi r r' -> Insert r'
+insert = typedInsert derivedTable
+
+{-# DEPRECATED derivedInsert "use `insert` instead of this." #-}
+-- | Table type inferred 'Insert'.
 derivedInsert :: (PersistableWidth r, TableDerivable r) => Pi r r' -> Insert r'
-derivedInsert = typedInsert derivedTable
+derivedInsert = insert
 
 -- | Make typed 'Insert' from 'Config', 'Table' and monadic builded 'InsertTarget' object.
 typedInsertValue' :: Config -> Table r -> InsertTarget p r -> Insert p
@@ -238,15 +286,25 @@ typedInsertValue :: Table r -> InsertTarget p r -> Insert p
 typedInsertValue = typedInsertValue' defaultConfig
 
 -- | Make typed 'Insert' from 'Config', derived table and monadic builded 'Register' object.
-derivedInsertValue' :: TableDerivable r => Config -> Register r (PlaceHolders p) -> Insert p
-derivedInsertValue' config rs = typedInsertValue' config (rt rs) $ insertTarget' rs
+insertValue' :: TableDerivable r => Config -> Register r (PlaceHolders p) -> Insert p
+insertValue' config rs = typedInsertValue' config (rt rs) $ insertTarget' rs
   where
     rt :: TableDerivable r => Register r (PlaceHolders p) -> Table r
     rt =  const derivedTable
 
+{-# DEPRECATED derivedInsertValue' "use `insertValue'` instead of this." #-}
+-- | Make typed 'Insert' from 'Config', derived table and monadic builded 'Register' object.
+derivedInsertValue' :: TableDerivable r => Config -> Register r (PlaceHolders p) -> Insert p
+derivedInsertValue' = insertValue'
+
+-- | Make typed 'Insert' from 'defaultConfig', derived table and monadic builded 'Register' object.
+insertValue :: TableDerivable r => Register r (PlaceHolders p) -> Insert p
+insertValue = derivedInsertValue' defaultConfig
+
+{-# DEPRECATED derivedInsertValue "use `insertValue` instead of this." #-}
 -- | Make typed 'Insert' from 'defaultConfig', derived table and monadic builded 'Register' object.
 derivedInsertValue :: TableDerivable r => Register r (PlaceHolders p) -> Insert p
-derivedInsertValue = derivedInsertValue' defaultConfig
+derivedInsertValue = insertValue
 
 -- | Show insert SQL string.
 instance Show (Insert a) where
@@ -272,8 +330,13 @@ typedInsertQuery :: Table r -> Pi r r' -> Relation p r' -> InsertQuery p
 typedInsertQuery =  typedInsertQuery' defaultConfig
 
 -- | Table type inferred 'InsertQuery'.
+insertQuery :: TableDerivable r => Pi r r' -> Relation p r' -> InsertQuery p
+insertQuery =  typedInsertQuery derivedTable
+
+{-# DEPRECATED derivedInsertQuery "use `insertQuery` instead of this." #-}
+-- | Table type inferred 'InsertQuery'.
 derivedInsertQuery :: TableDerivable r => Pi r r' -> Relation p r' -> InsertQuery p
-derivedInsertQuery =  typedInsertQuery derivedTable
+derivedInsertQuery = insertQuery
 
 -- | Show insert SQL string.
 instance Show (InsertQuery p) where
@@ -303,13 +366,23 @@ restrictedTable :: TableDerivable r => Restriction p r -> Table r
 restrictedTable =  const derivedTable
 
 -- | Make typed 'Delete' from 'Config', derived table and 'RestrictContext'
-derivedDelete' :: TableDerivable r => Config -> RestrictedStatement r (PlaceHolders p) -> Delete p
-derivedDelete' config rc = typedDelete' config (restrictedTable rs) rs  where
+delete' :: TableDerivable r => Config -> RestrictedStatement r (PlaceHolders p) -> Delete p
+delete' config rc = typedDelete' config (restrictedTable rs) rs  where
   rs = restriction' rc
 
+{-# DEPRECATED derivedDelete' "use `delete'` instead of this." #-}
+-- | Make typed 'Delete' from 'Config', derived table and 'RestrictContext'
+derivedDelete' :: TableDerivable r => Config -> RestrictedStatement r (PlaceHolders p) -> Delete p
+derivedDelete' = delete'
+
+-- | Make typed 'Delete' from 'defaultConfig', derived table and 'RestrictContext'
+delete :: TableDerivable r => RestrictedStatement r (PlaceHolders p) -> Delete p
+delete = derivedDelete' defaultConfig
+
+{-# DEPRECATED derivedDelete "use `delete` instead of this." #-}
 -- | Make typed 'Delete' from 'defaultConfig', derived table and 'RestrictContext'
 derivedDelete :: TableDerivable r => RestrictedStatement r (PlaceHolders p) -> Delete p
-derivedDelete = derivedDelete' defaultConfig
+derivedDelete = delete
 
 -- | Show delete SQL string
 instance Show (Delete p) where
