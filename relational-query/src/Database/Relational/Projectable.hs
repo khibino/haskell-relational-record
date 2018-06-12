@@ -128,11 +128,11 @@ value :: (ShowConstantTermsSQL t, OperatorContext c) => t -> Record c t
 value = unsafeProjectSqlTerms . showConstantTermsSQL
 
 -- | Record with polymorphic type of SQL true value.
-valueTrue  :: (OperatorContext c, ProjectableMaybe (Record c)) => Record c (Maybe Bool)
+valueTrue  :: OperatorContext c => Record c (Maybe Bool)
 valueTrue  =  just $ value True
 
 -- | Record with polymorphic type of SQL false value.
-valueFalse :: (OperatorContext c, ProjectableMaybe (Record c)) => Record c (Maybe Bool)
+valueFalse :: OperatorContext c => Record c (Maybe Bool)
 valueFalse =  just $ value False
 
 -- | RecordList with polymorphic type of SQL set value from Haskell list.
@@ -611,14 +611,14 @@ instance ProjectableFlattenMaybe (Maybe a) (Maybe a) where
   flatten = id
 
 -- | Get narrower record with flatten leaf phantom Maybe types along with projection path.
-flattenPiMaybe :: (PersistableWidth a, ProjectableMaybe (Record cont), ProjectableFlattenMaybe (Maybe b) c)
+flattenPiMaybe :: (PersistableWidth a, ProjectableFlattenMaybe (Maybe b) c)
                => Record cont (Maybe a) -- ^ Source 'Record'. 'Maybe' phantom type
                -> Pi a b                -- ^ Projection path
                -> Record cont c         -- ^ Narrower 'Record'. Flatten 'Maybe' phantom type
 flattenPiMaybe p = flatten . Record.piMaybe p
 
 -- | Get narrower record with flatten leaf phantom Maybe types along with projection path.
-(!??) :: (PersistableWidth a, ProjectableMaybe (Record cont), ProjectableFlattenMaybe (Maybe b) c)
+(!??) :: (PersistableWidth a, ProjectableFlattenMaybe (Maybe b) c)
       => Record cont (Maybe a) -- ^ Source 'Record'. 'Maybe' phantom type
       -> Pi a b                -- ^ Projection path
       -> Record cont c         -- ^ Narrower flatten and projected object.
