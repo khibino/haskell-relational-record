@@ -20,6 +20,7 @@ module Database.Relational.Internal.Config (
   chunksInsertSize,
   schemaNameMode,
   normalizedTableName,
+  enableWarning,
   verboseAsCompilerWarning,
   disableOverloadedProjection,
   disableSpecializedProjection,
@@ -81,6 +82,8 @@ data Config =
   -- ^ 'SchemaNameMode' configuration
   , normalizedTableName          ::  !Bool
   -- ^ If True, schema names become uppercase, and table names become lowercase.
+  , enableWarning                ::  !Bool
+  -- ^ If True, print warning messages in macros of relational-record.
   , verboseAsCompilerWarning     ::  !Bool
   -- ^ If True, more detailed logs are printed when generating record types from schema.
   , disableOverloadedProjection  ::  !Bool
@@ -121,6 +124,7 @@ defaultConfig =
          , chunksInsertSize              =  256
          , schemaNameMode                =  SchemaQualified
          , normalizedTableName           =  True
+         , enableWarning                   =  True
          , verboseAsCompilerWarning      =  False
          , disableOverloadedProjection   =  False
          , disableSpecializedProjection  =  False
