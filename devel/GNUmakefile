@@ -10,6 +10,7 @@ build:
 	cabal configure -O0
 	cabal build $(jobs) --ghc-option=-Wall
 	cabal haddock $(haddock_opt)
+	cabal test
 
 haddock:
 	cabal configure
