@@ -74,8 +74,11 @@ data IdentifierQuotation = NoQuotation | Quotation Char deriving Show
 data Config =
   Config
   { productUnitSupport           ::  !ProductUnitSupport
+  -- ^ If True, no FROM clause is allowed, corresponding the unit of JOIN.
   , chunksInsertSize             ::  !Int
+  -- ^ Threshold count of placeholders in the insert statement with multi-values.
   , schemaNameMode               ::  !SchemaNameMode
+  -- ^ 'SchemaNameMode' configuration
   , normalizedTableName          ::  !Bool
   -- ^ If True, schema names become uppercase, and table names become lowercase.
   , verboseAsCompilerWarning     ::  !Bool
@@ -85,7 +88,9 @@ data Config =
   , disableSpecializedProjection ::  !Bool
   -- ^ If True, 'Database.Relational.Pi.Pi' for each column is NOT generated.
   , identifierQuotation          ::  !IdentifierQuotation
+  -- ^ 'IdentifierQuotation' configuration
   , nameConfig                   ::  !NameConfig
+  -- ^ 'NameConfig' configuration
   } deriving Show
 
 -- | Default configuration of 'Config'.
