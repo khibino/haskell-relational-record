@@ -74,7 +74,7 @@ data IdentifierQuotation = NoQuotation | Quotation Char deriving Show
 data Config =
   Config
   { productUnitSupport           ::  !ProductUnitSupport
-  -- ^ If True, no FROM clause is allowed, corresponding the unit of JOIN.
+  -- ^ No FROM clause (corresponding the unit of JOIN) is allowed or not.
   , chunksInsertSize             ::  !Int
   -- ^ Threshold count of placeholders in the insert statement with multi-values.
   , schemaNameMode               ::  !SchemaNameMode
