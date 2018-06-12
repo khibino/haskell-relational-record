@@ -47,9 +47,9 @@ module Database.Relational.Arrow (
 
   assign,
 
-  derivedUpdate', derivedUpdate,
-  derivedInsertValue', derivedInsertValue,
-  derivedDelete', derivedDelete,
+  update', update,
+  insertValue', insertValue,
+  delete', delete,
 
   QueryA,
 
@@ -60,6 +60,11 @@ module Database.Relational.Arrow (
   Orderings, Window, Assignings,
 
   AssignStatement, Register, RestrictedStatement,
+
+  -- * Deprecated
+  derivedUpdate', derivedUpdate,
+  derivedInsertValue', derivedInsertValue,
+  derivedDelete', derivedDelete,
   ) where
 
 import Control.Category (Category)
@@ -76,9 +81,9 @@ import Database.Relational hiding
    relation, relation', aggregateRelation, aggregateRelation', uniqueRelation',
    groupBy', key, key', set, bkey, rollup, cube, groupingSets,
    orderBy', orderBy, asc, desc, partitionBy, over,
-   derivedUpdate', derivedUpdate,
-   derivedInsertValue', derivedInsertValue,
-   derivedDelete', derivedDelete,
+   update', update, derivedUpdate', derivedUpdate,
+   insertValue', insertValue, derivedInsertValue', derivedInsertValue,
+   delete', delete, derivedDelete', derivedDelete,
    QuerySimple, QueryAggregate, QueryUnique, Window, Register)
 import qualified Database.Relational as Monadic
 import qualified Database.Relational.Monad.Trans.Aggregating as Monadic
@@ -418,30 +423,66 @@ assign t = queryA (`Monadic.assignTo` t)
 
 -- | Same as 'Monadic.derivedUpdate''.
 --   Make 'Update' from assigning statement arrow using configuration.
-derivedUpdate' :: TableDerivable r => Config -> AssignStatement r (PlaceHolders p) -> Update p
-derivedUpdate' config = Monadic.update' config . runQueryA
+update' :: TableDerivable r => Config -> AssignStatement r (PlaceHolders p) -> Update p
+update' config = Monadic.update' config . runQueryA
 
 -- | Same as 'Monadic.derivedUpdate'.
 --   Make 'Update' from assigning statement arrow.
-derivedUpdate :: TableDerivable r => AssignStatement r (PlaceHolders p) -> Update p
-derivedUpdate = Monadic.update . runQueryA
+update :: TableDerivable r => AssignStatement r (PlaceHolders p) -> Update p
+update = Monadic.update . runQueryA
 
 -- | Same as 'Monadic.derivedInsertValue''.
 --   Make 'Insert' from register arrow using configuration.
-derivedInsertValue' :: TableDerivable r => Config -> Register r (PlaceHolders p) -> Insert p
-derivedInsertValue' config = Monadic.insertValue' config . ($ ()) . runQueryA
+insertValue' :: TableDerivable r => Config -> Register r (PlaceHolders p) -> Insert p
+insertValue' config = Monadic.insertValue' config . ($ ()) . runQueryA
 
 -- | Same as 'Monadic.derivedInsertValue'.
 --   Make 'Insert' from register arrow.
-derivedInsertValue :: TableDerivable r => Register r (PlaceHolders p) -> Insert p
-derivedInsertValue = Monadic.insertValue . ($ ()) . runQueryA
+insertValue :: TableDerivable r => Register r (PlaceHolders p) -> Insert p
+insertValue = Monadic.insertValue . ($ ()) . runQueryA
 
 -- | Same as 'Monadic.derivedDelete''.
 --   Make 'Update' from restrict statement arrow using configuration.
-derivedDelete' :: TableDerivable r => Config -> RestrictedStatement r (PlaceHolders p) -> Delete p
-derivedDelete' config = Monadic.delete' config . runQueryA
+delete' :: TableDerivable r => Config -> RestrictedStatement r (PlaceHolders p) -> Delete p
+delete' config = Monadic.delete' config . runQueryA
 
 -- | Same as 'Monadic.derivedDelete'.
 --   Make 'Update' from restrict statement arrow.
+delete :: TableDerivable r => RestrictedStatement r (PlaceHolders p) -> Delete p
+delete = Monadic.delete . runQueryA
+
+{-# DEPRECATED derivedUpdate' "use `update'` instead of this." #-}
+-- | Same as 'Monadic.derivedUpdate''.
+--   Make 'Update' from assigning statement arrow using configuration.
+derivedUpdate' :: TableDerivable r => Config -> AssignStatement r (PlaceHolders p) -> Update p
+derivedUpdate' = update'
+
+{-# DEPRECATED derivedUpdate "use `update` instead of this." #-}
+-- | Same as 'Monadic.derivedUpdate'.
+--   Make 'Update' from assigning statement arrow.
+derivedUpdate :: TableDerivable r => AssignStatement r (PlaceHolders p) -> Update p
+derivedUpdate = update
+
+{-# DEPRECATED derivedInsertValue' "use `insertValue'` instead of this." #-}
+-- | Same as 'Monadic.derivedInsertValue''.
+--   Make 'Insert' from register arrow using configuration.
+derivedInsertValue' :: TableDerivable r => Config -> Register r (PlaceHolders p) -> Insert p
+derivedInsertValue' = insertValue'
+
+{-# DEPRECATED derivedInsertValue "use `insertValue` instead of this." #-}
+-- | Same as 'Monadic.derivedInsertValue'.
+--   Make 'Insert' from register arrow.
+derivedInsertValue :: TableDerivable r => Register r (PlaceHolders p) -> Insert p
+derivedInsertValue = insertValue
+
+{-# DEPRECATED derivedDelete' "use `derivedDelete'` instead of this." #-}
+-- | Same as 'Monadic.derivedDelete''.
+--   Make 'Update' from restrict statement arrow using configuration.
+derivedDelete' :: TableDerivable r => Config -> RestrictedStatement r (PlaceHolders p) -> Delete p
+derivedDelete' = delete'
+
+{-# DEPRECATED derivedDelete "use `derivedDelete` instead of this." #-}
+-- | Same as 'Monadic.derivedDelete'.
+--   Make 'Update' from restrict statement arrow.
 derivedDelete :: TableDerivable r => RestrictedStatement r (PlaceHolders p) -> Delete p
-derivedDelete = Monadic.delete . runQueryA
+derivedDelete = delete
