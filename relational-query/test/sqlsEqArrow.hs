@@ -75,12 +75,12 @@ all'X = relation $ proc () -> do
   returnA -< a ! intA0'
 
 assignX :: Update ()
-assignX = derivedUpdate $ proc _proj -> do
+assignX = update $ proc _proj -> do
   assign intA0' -< value (0 :: Int32)
   returnA -< unitPlaceHolder
 
 registerX :: Insert (String, Maybe String)
-registerX = derivedInsertValue $ proc () -> do
+registerX = insertValue $ proc () -> do
   assign intC0' -< value 1
   (ph1, ()) <- placeholder -< proc ph' -> do assign strC1' -< ph'
   assign intC2' -< value 2
@@ -545,13 +545,13 @@ updateKeyX :: KeyUpdate Int32 SetA
 updateKeyX =  primaryUpdate tableOfSetA
 
 updateX :: Update ()
-updateX =  derivedUpdate $ proc proj -> do
+updateX =  update $ proc proj -> do
   assign strA2' -< value "X"
   wheres -< proj ! strA1' .=. value "A"
   returnA -< unitPlaceHolder
 
 deleteX :: Delete ()
-deleteX =  derivedDelete $ proc proj -> do
+deleteX =  delete $ proc proj -> do
   wheres -< proj ! strA1' .=. value "A"
   returnA -< unitPlaceHolder
 
