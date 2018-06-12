@@ -75,12 +75,12 @@ all'X = relation $ do
   return $ a ! intA0'
 
 assignX :: Update ()
-assignX = derivedUpdate $ \_proj -> do
+assignX = update $ \_proj -> do
   intA0' <-# value (0 :: Int32)
   return unitPlaceHolder
 
 registerX :: Insert (String, Maybe String)
-registerX = derivedInsertValue $ do
+registerX = insertValue $ do
   intC0' <-# value 1
   (ph1, ()) <- placeholder (\ph' -> strC1' <-# ph')
   intC2' <-# value 2
@@ -622,25 +622,25 @@ exps =
   ]
 
 insertX :: Insert SetA
-insertX =  derivedInsert id'
+insertX =  insert id'
 
 insertI :: Insert SetI
-insertI =  derivedInsert id'
+insertI =  insert id'
 
 insertQueryX :: InsertQuery ()
-insertQueryX =  derivedInsertQuery setAFromB setA
+insertQueryX =  insertQuery setAFromB setA
 
 updateKeyX :: KeyUpdate Int32 SetA
 updateKeyX =  primaryUpdate tableOfSetA
 
 updateX :: Update ()
-updateX =  derivedUpdate $ \proj -> do
+updateX =  update $ \proj -> do
   strA2' <-# value "X"
   wheres $ proj ! strA1' .=. value "A"
   return unitPlaceHolder
 
 deleteX :: Delete ()
-deleteX =  derivedDelete $ \proj -> do
+deleteX =  delete $ \proj -> do
   wheres $ proj ! strA1' .=. value "A"
   return unitPlaceHolder
 
@@ -665,7 +665,7 @@ effs =
   ]
 
 updateExistsX :: Update ()
-updateExistsX = derivedUpdate $ \proj -> do
+updateExistsX = update $ \proj -> do
   strA2' <-# value "X"
   wheres . exists
     =<< (queryList . relation $ do
@@ -675,7 +675,7 @@ updateExistsX = derivedUpdate $ \proj -> do
   return unitPlaceHolder
 
 updateScalarX :: Update ()
-updateScalarX = derivedUpdate $ \proj -> do
+updateScalarX = update $ \proj -> do
   strA2' <-# value "X"
   sb <- queryScalar . unsafeUnique . relation $ do
     b <- query setB
@@ -685,7 +685,7 @@ updateScalarX = derivedUpdate $ \proj -> do
   return unitPlaceHolder
 
 deleteExistsX :: Delete ()
-deleteExistsX =  derivedDelete $ \proj -> do
+deleteExistsX =  delete $ \proj -> do
   wheres . exists
     =<< (queryList . relation $ do
             b <- query setB
@@ -694,7 +694,7 @@ deleteExistsX =  derivedDelete $ \proj -> do
   return unitPlaceHolder
 
 deleteScalarX :: Delete ()
-deleteScalarX = derivedDelete $ \proj -> do
+deleteScalarX = delete $ \proj -> do
   sb <- queryScalar . unsafeUnique . relation $ do
     b <- query setB
     wheres $ b ! intB0' .=. value 0

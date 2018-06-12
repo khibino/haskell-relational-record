@@ -91,7 +91,7 @@ import Database.Relational
    Config (normalizedTableName, disableOverloadedProjection, disableSpecializedProjection,
            schemaNameMode, nameConfig, identifierQuotation),
    relationalQuerySQL, Query, relationalQuery, KeyUpdate,
-   Insert, derivedInsert, InsertQuery, derivedInsertQuery,
+   Insert, insert, InsertQuery, insertQuery,
    HasConstraintKey(constraintKey), Primary, NotNull, primary, primaryUpdate)
 
 import Database.Relational.InternalTH.Base (defineTuplePi, defineRecordProjections)
@@ -221,10 +221,10 @@ defineTableDerivations tableVar' relVar' insVar' insQVar' recordType' = do
              [| derivedRelation |]
   let insVar   = varName insVar'
   insDs   <- simpleValD insVar   [t| Insert $recordType' |]
-             [| derivedInsert id' |]
+             [| insert id' |]
   let insQVar  = varName insQVar'
   insQDs  <- simpleValD insQVar  [t| forall p . Relation p $recordType' -> InsertQuery p |]
-             [| derivedInsertQuery id' |]
+             [| insertQuery id' |]
   return $ concat [tableDs, relDs, insDs, insQDs]
 
 -- | 'Table' and 'Relation' templates.

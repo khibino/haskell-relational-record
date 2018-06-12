@@ -533,13 +533,13 @@ exps =
   ]
 
 insertX :: Insert SetA
-insertX =  derivedInsert id'
+insertX =  insert id'
 
 insertI :: Insert SetI
-insertI =  derivedInsert id'
+insertI =  insert id'
 
 insertQueryX :: InsertQuery ()
-insertQueryX =  derivedInsertQuery setAFromB setA
+insertQueryX =  insertQuery setAFromB setA
 
 updateKeyX :: KeyUpdate Int32 SetA
 updateKeyX =  primaryUpdate tableOfSetA
