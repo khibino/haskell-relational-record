@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.6.4.6
+
+- fix. treat the error of compile-time macro as error.
+
 ## 0.6.4.5
 
 - fix. do safe convert for integral conversion from SQL value.
