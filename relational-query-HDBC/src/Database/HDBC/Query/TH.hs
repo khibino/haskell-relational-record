@@ -42,15 +42,15 @@ import Language.Haskell.TH.Lib.Extra (reportWarning, reportError)
 import Database.Record (ToSql, FromSql)
 import Database.Record.TH (recordTemplate, defineSqlPersistableInstances)
 import Database.Relational
-  (Config, nameConfig, recordConfig, verboseAsCompilerWarning, defaultConfig,
-   Relation, relationalQuerySQL, QuerySuffix)
+  (Config, nameConfig, recordConfig, enableWarning, verboseAsCompilerWarning,
+   defaultConfig, Relation, relationalQuerySQL, QuerySuffix)
 import qualified Database.Relational.TH as Relational
 
 import Database.HDBC.Session (withConnectionIO)
 import Database.HDBC.Record.Persistable ()
 
 import Database.HDBC.Schema.Driver
-  (runLog, newLogChan, takeLogs, Driver, driverConfig, getFields, getPrimaryKey)
+  (foldLog, emptyLogChan, takeLogs, Driver, driverConfig, getFields, getPrimaryKey)
 
 
 defineInstancesForSqlValue :: TypeQ   -- ^ Record type constructor.
@@ -113,7 +113,7 @@ tableAlongWithSchema :: IConnection conn
                      -> Q [Dec]     -- ^ Result declaration
 tableAlongWithSchema connect config drv scm tbl derives = do
   let getDBinfo = do
-        logChan  <-  newLogChan $ verboseAsCompilerWarning config
+        logChan  <-  emptyLogChan
         infoP    <-  withConnectionIO connect
                      (\conn ->
                        (,)
@@ -122,7 +122,13 @@ tableAlongWithSchema connect config drv scm tbl derives = do
         (,) infoP <$> takeLogs logChan
 
   (((cols, notNullIdxs), primaryCols), logs) <- runIO getDBinfo
-  mapM_ (runLog reportWarning reportError) logs
+  let reportWarning'
+        | enableWarning config             =  reportWarning
+        | otherwise                        =  const $ pure ()
+      reportVerbose
+        | verboseAsCompilerWarning config  =  reportWarning
+        | otherwise                        =  const $ pure ()
+  mapM_ (foldLog reportVerbose reportWarning' reportError) logs
   when (null primaryCols) . reportWarning
     $ "getPrimaryKey: Primary key not found for table: " ++ scm ++ "." ++ tbl
 
