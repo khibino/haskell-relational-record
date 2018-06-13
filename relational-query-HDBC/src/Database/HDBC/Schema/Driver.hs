@@ -12,17 +12,20 @@
 module Database.HDBC.Schema.Driver (
   TypeMap,
 
-  Log, runLog,
-  LogChan, newLogChan, takeLogs, putWarning, putError, putVerbose,
+  Log, foldLog,
+  LogChan, emptyLogChan, takeLogs, putWarning, putError, putVerbose,
   failWith, hoistMaybe, maybeIO,
 
   Driver(Driver, typeMap, driverConfig, getFieldsWithMap, getPrimaryKey),
   emptyDriver,
-  getFields
+  getFields,
+
+  -- * Deprecated
+  runLog, newLogChan,
   ) where
 
 import Language.Haskell.TH (TypeQ)
-import Control.Applicative ((<$>), pure, (<*>))
+import Control.Applicative ((<$>), pure)
 import Control.Monad (MonadPlus, mzero)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Maybe (MaybeT (..))
@@ -40,26 +43,33 @@ type TypeMap = [(String, TypeQ)]
 
 -- | Log string type for compile time.
 data Log
-  = Warning String
+  = Verbose String
+  | Warning String
   | Error String
 
 -- | Folding operation of 'Log' type.
-runLog :: (String -> t) -> (String -> t) -> Log -> t
-runLog wf ef = d  where
+foldLog :: (String -> t) -> (String -> t) -> (String -> t) -> Log -> t
+foldLog vf wf ef = d  where
+  d (Verbose m) = vf m
   d (Warning m) = wf m
   d (Error m)   = ef m
 
+{-# DEPRECATED runLog "use foldLog instead of this." #-}
+-- | Deprecated.
+runLog :: (String -> t) -> (String -> t) -> Log -> t
+runLog wf = foldLog wf wf
+
 -- | Channel to store compile-time warning messages.
-data LogChan =
-  LogChan
-  { chan :: IORef (DList Log)
-  , verboseAsWarning :: Bool
-  }
+newtype LogChan = LogChan { chan :: IORef (DList Log) }
 
 -- | Build and return a new instance of 'LogChan'.
+emptyLogChan :: IO LogChan
+emptyLogChan = LogChan <$> newIORef mempty
+
+{-# DEPRECATED newLogChan "use emptyLogChan instead of this." #-}
+-- | Deprecated.
 newLogChan :: Bool -> IO LogChan
-newLogChan v =
-  LogChan <$> newIORef mempty <*> pure v
+newLogChan _ = emptyLogChan
 
 -- | Take all logs list from channel.
 takeLogs :: LogChan -> IO [Log]
@@ -81,9 +91,7 @@ putError lchan = putLog lchan . Error
 
 -- | Put verbose compile-time message as warning when 'verboseAsWarning'.
 putVerbose :: LogChan -> String -> IO ()
-putVerbose lchan
-  | verboseAsWarning lchan  =  putWarning lchan . ("info: " ++)
-  | otherwise               =  const $ pure ()
+putVerbose lchan = putLog lchan . Verbose
 
 -- | Push an error string into 'LogChan' and return failed context.
 failWith :: LogChan -> String -> MaybeT IO a
