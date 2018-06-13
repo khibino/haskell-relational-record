@@ -79,6 +79,12 @@ putWarning lchan = putLog lchan . Warning
 putError :: LogChan -> String -> IO ()
 putError lchan = putLog lchan . Error
 
+-- | Put verbose compile-time message as warning when 'verboseAsWarning'.
+putVerbose :: LogChan -> String -> IO ()
+putVerbose lchan
+  | verboseAsWarning lchan  =  putWarning lchan . ("info: " ++)
+  | otherwise               =  const $ pure ()
+
 -- | Push an error string into 'LogChan' and return failed context.
 failWith :: LogChan -> String -> MaybeT IO a
 failWith lchan m = do
@@ -98,12 +104,6 @@ maybeT zero f = (maybe zero f <$>) . runMaybeT
 -- | Run 'MaybeT' with default value.
 maybeIO :: b -> (a -> b) -> MaybeT IO a -> IO b
 maybeIO = maybeT
-
--- | Put verbose compile-time message as warning when 'verboseAsWarning'.
-putVerbose :: LogChan -> String -> IO ()
-putVerbose lchan
-  | verboseAsWarning lchan  =  putWarning lchan . ("info: " ++)
-  | otherwise               =  const $ pure ()
 
 -- | Interface type to load database system catalog via HDBC.
 data Driver conn =
