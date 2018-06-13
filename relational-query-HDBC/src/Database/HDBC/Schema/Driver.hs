@@ -75,7 +75,7 @@ putWarning lchan = putLog lchan . Warning
 
 -- | Push an error string into 'LogChan'.
 putError :: LogChan -> String -> IO ()
-putError lchan = putLog lchan . Warning
+putError lchan = putLog lchan . Error
 
 -- | Push an error string into 'LogChan' and return failed context.
 failWith :: LogChan -> String -> MaybeT IO a
