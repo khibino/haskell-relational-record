@@ -13,7 +13,9 @@ module Database.Relational.SqlSyntax.Updates (
   AssignColumn, AssignTerm, Assignment,
 
   composeSets,
-  composeChunkValues, composeChunkValuesWithColumns,
+  composeChunkValues,
+  composeChunkValuesWithColumns,
+  composeValuesListWithColumns,
   ) where
 
 import Data.Monoid ((<>))
@@ -42,7 +44,7 @@ composeSets as = assigns  where
   assigns | null assignList = error "Update assignment list is null!"
           | otherwise       = SET <> SQL.fold (|*|) assignList
 
--- | Compose VALUES clause from value expression list.
+-- | Compose VALUES clause from a row of value expressions.
 composeChunkValues :: Int          -- ^ record count per chunk
                    -> [AssignTerm] -- ^ value expression list
                    -> Keyword
@@ -53,7 +55,7 @@ composeChunkValues n0 vs =
       | otherwise  =  error $ "Invalid record count value: " ++ show n0
     cvs = SQL.fold (|*|) . replicate n $ rowConsStringSQL vs
 
--- | Compose VALUES clause from value expression list.
+-- | Compose columns row and VALUES clause from a row of value expressions.
 composeChunkValuesWithColumns :: Int          -- ^ record count per chunk
                               -> [Assignment] -- ^
                               -> StringSQL
@@ -61,3 +63,14 @@ composeChunkValuesWithColumns sz as =
     rowConsStringSQL cs <> composeChunkValues sz vs
   where
     (cs, vs) = unzip as
+
+-- | Compose columns row and VALUES clause from rows list of value expressions.
+composeValuesListWithColumns :: [[Assignment]]
+                             -> StringSQL
+composeValuesListWithColumns pss =
+    rowConsStringSQL cs <> VALUES <> SQL.fold (|*|) (map rowConsStringSQL vss)
+  where
+    cs = case pss of
+           []    ->  error "insertValueList: no assignment chunks"
+           ps:_  ->  fst $ unzip ps
+    vss = map (snd . unzip) pss
