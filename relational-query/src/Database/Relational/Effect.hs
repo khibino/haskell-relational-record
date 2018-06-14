@@ -26,9 +26,11 @@ module Database.Relational.Effect (
   sqlFromUpdateTarget,
   sqlChunkFromInsertTarget,
   sqlFromInsertTarget,
+  sqlChunksFromRecordList,
   ) where
 
 import Data.Monoid ((<>))
+import Data.List (unfoldr)
 import Data.Functor.ProductIsomorphic (peRight)
 
 import Language.SQL.Keyword (Keyword(..))
@@ -37,16 +39,17 @@ import Database.Record.Persistable (PersistableWidth)
 import Database.Relational.Internal.Config (Config (chunksInsertSize), defaultConfig)
 import Database.Relational.Internal.String (StringSQL, stringSQL, showStringSQL)
 import Database.Relational.SqlSyntax
-  (composeWhere, composeSets, composeChunkValuesWithColumns)
+  (composeWhere, composeSets, composeChunkValuesWithColumns, composeValuesListWithColumns)
 
 import Database.Relational.Pi (Pi, id')
 import qualified Database.Relational.Pi.Unsafe as Pi
 import Database.Relational.Table (Table, TableDerivable, derivedTable)
 import qualified Database.Relational.Table as Table
 import qualified Database.Relational.Record as Record
+import Database.Relational.ProjectableClass (ShowConstantTermsSQL)
 import Database.Relational.Projectable
   (PlaceHolders, unitPlaceHolder,
-   pwPlaceholder, placeholder, (><), )
+   pwPlaceholder, placeholder, (><), value, )
 import Database.Relational.Monad.Trans.Assigning (assignings, (<-#))
 import Database.Relational.Monad.Restrict (RestrictedStatement)
 import qualified Database.Relational.Monad.Restrict as Restrict
@@ -168,6 +171,15 @@ sqlChunkFromInsertTarget' config sz tbl (InsertTarget q) =
   where
     (_ph, asR) = Register.extract q config
 
+countChunks :: Config
+            -> Table r
+            -> Int
+countChunks config tbl =
+    (th + w - 1) `quot` w
+  where
+    th = chunksInsertSize config
+    w  = Table.width tbl
+
 -- | Make 'StringSQL' string of SQL INSERT record chunk statement from 'InsertTarget'
 sqlChunkFromInsertTarget :: Config
                          -> Table r
@@ -176,10 +188,30 @@ sqlChunkFromInsertTarget :: Config
 sqlChunkFromInsertTarget config tbl it =
     (sqlChunkFromInsertTarget' config n tbl it, n)
   where
-    th = chunksInsertSize config
-    n  = (th + w - 1) `quot` w
-    w  = Table.width tbl
+    n = countChunks config tbl
 
 -- | Make 'StringSQL' string of SQL INSERT statement from 'InsertTarget'
 sqlFromInsertTarget :: Config -> Table r -> InsertTarget p r -> StringSQL
 sqlFromInsertTarget config = sqlChunkFromInsertTarget' config 1
+
+-- | Make 'StringSQL' strings of SQL INSERT strings from records list
+sqlChunksFromRecordList :: ShowConstantTermsSQL r'
+                        => Config
+                        -> Table r
+                        -> Pi r r'
+                        -> [r']
+                        -> [StringSQL]
+sqlChunksFromRecordList config tbl pi' xs =
+    [ INSERT <> INTO <> stringSQL (Table.name tbl) <>
+      composeValuesListWithColumns
+      [ tf tbl
+      | r <- rs
+      , let ((), tf) = Register.extract (pi' <-# value r) config
+      ]
+    | rs <- unfoldr step xs
+    ]
+  where
+    n = countChunks config tbl
+    step ys
+      | null ys    =  Nothing
+      | otherwise  =  Just $ splitAt n ys
