@@ -27,6 +27,7 @@ module Database.Relational.Type (
   Insert (..), untypeChunkInsert, chunkSizeOfInsert,
   unsafeTypedInsert', unsafeTypedInsert, typedInsert', typedInsert, insert,
   typedInsertValue', typedInsertValue, insertValue', insertValue,
+  insertValueList', insertValueList,
   InsertQuery (..), unsafeTypedInsertQuery, typedInsertQuery', typedInsertQuery, insertQuery,
 
   insertQuerySQL,
@@ -64,10 +65,13 @@ import Database.Relational.Monad.Assign (AssignStatement)
 import Database.Relational.Monad.Register (Register)
 import Database.Relational.Relation (tableOf)
 import Database.Relational.Effect
-  (Restriction, restriction', UpdateTarget, updateTarget', liftTargetAllColumn', InsertTarget, insertTarget',
-   sqlWhereFromRestriction, sqlFromUpdateTarget, piRegister, sqlChunkFromInsertTarget, sqlFromInsertTarget)
+  (Restriction, restriction', UpdateTarget, updateTarget', liftTargetAllColumn',
+   InsertTarget, insertTarget',
+   sqlWhereFromRestriction, sqlFromUpdateTarget, piRegister,
+   sqlChunkFromInsertTarget, sqlFromInsertTarget, sqlChunksFromRecordList)
 import Database.Relational.Pi (Pi)
 import Database.Relational.Table (Table, TableDerivable, derivedTable)
+import Database.Relational.ProjectableClass (ShowConstantTermsSQL)
 import Database.Relational.Projectable (PlaceHolders)
 import Database.Relational.SimpleSql
   (QuerySuffix, showsQuerySuffix, insertPrefixSQL,
@@ -305,6 +309,23 @@ insertValue = derivedInsertValue' defaultConfig
 -- | Make typed 'Insert' from 'defaultConfig', derived table and monadic builded 'Register' object.
 derivedInsertValue :: TableDerivable r => Register r (PlaceHolders p) -> Insert p
 derivedInsertValue = insertValue
+
+-- | Make typed 'Insert' list from 'Config' and records list.
+insertValueList' :: (TableDerivable r, ShowConstantTermsSQL r')
+                 => Config
+                 -> Pi r r'
+                 -> [r']
+                 -> [Insert ()]
+insertValueList' config pi' =
+  map (unsafeTypedInsert . showStringSQL)
+  . sqlChunksFromRecordList config derivedTable pi'
+
+-- | Make typed 'Insert' list from records list.
+insertValueList :: (TableDerivable r, ShowConstantTermsSQL r')
+                => Pi r r'
+                -> [r']
+                -> [Insert ()]
+insertValueList = insertValueList' defaultConfig
 
 -- | Show insert SQL string.
 instance Show (Insert a) where
