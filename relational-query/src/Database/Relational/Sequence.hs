@@ -27,12 +27,13 @@ module Database.Relational.Sequence (
   Number, unsafeSpecifyNumber, extractNumber,
   ($$!), ($$),
 
-  updateNumber,
+  updateNumber', updateNumber,
   ) where
 
 import Prelude hiding (seq)
 
 import Database.Record (PersistableWidth)
+import Database.Relational.Internal.Config (Config, defaultConfig)
 import Database.Relational.Monad.Class (wheres)
 import Database.Relational.Monad.BaseType (Relation)
 import Database.Relational.Monad.Trans.Assigning ((<-#))
@@ -45,7 +46,7 @@ import Database.Relational.ProjectableClass (ShowConstantTermsSQL)
 import Database.Relational.Relation (tableOf)
 import qualified Database.Relational.Relation as Relation
 import Database.Relational.Effect (updateTarget')
-import Database.Relational.Type (Update, typedUpdate)
+import Database.Relational.Type (Update, typedUpdate')
 
 
 -- | Basic record to express sequence-table.
@@ -133,21 +134,21 @@ extractNumber (Number i) = i
      -> r
 ($$) = ($$!)
 
-{-
-updateNumber :: PersistableWidth p => Sequence r p -> Update (p, p)
-updateNumber seqt = typedUpdate (table seqt) . updateTarget' $ \ proj -> do
-  (phv', ()) <- placeholder (\ph -> key seqt <-# ph)
-  (phx', ()) <- placeholder (\ph -> wheres $ proj ! key seqt .<=. ph)
-  return $ (,) |$| phv' |*| phx'
- -}
+-- | Update statement for sequence table
+updateNumber' :: (PersistableWidth s, Integral i, ShowConstantTermsSQL i)
+              => Config
+              -> i            -- ^ sequence number to set. expect not SQL injectable.
+              -> Sequence s i -- ^ sequence table
+              -> Update ()
+updateNumber' config i seqt = typedUpdate' config (seqTable seqt) . updateTarget' $ \ proj -> do
+  let iv = value i
+  seqKey seqt <-# iv
+  wheres $ proj ! seqKey seqt .<=. iv -- fool proof
+  return unitPlaceHolder
 
 -- | Update statement for sequence table
 updateNumber :: (PersistableWidth s, Integral i, ShowConstantTermsSQL i)
              => i            -- ^ sequence number to set. expect not SQL injectable.
              -> Sequence s i -- ^ sequence table
              -> Update ()
-updateNumber i seqt = typedUpdate (seqTable seqt) . updateTarget' $ \ proj -> do
-  let iv = value i
-  seqKey seqt <-# iv
-  wheres $ proj ! seqKey seqt .<=. iv -- fool proof
-  return unitPlaceHolder
+updateNumber = updateNumber' defaultConfig
