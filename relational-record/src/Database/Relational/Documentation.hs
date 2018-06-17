@@ -398,18 +398,21 @@ into flat SQL statements to be used by database operation.
 
 'relationalQuery' function converts 'Relation' type info flat SQL query like SELECT statement.
 
-'typedInsert' function converts 'Pi' key type info flat SQL INSERT statement.
+'derivedInsert' function converts 'Pi' key type info flat SQL INSERT statement.
 
-'typedInsertQuery' function converts 'Pi' key type and 'Relation' type info flat SQL INSERT ... SELECT ... statement.
+'derivedInsertValue' function converts 'InsertTarget' into flat SQL INSERT statement.
 
-'typedUpdate' function converts 'UpdateTarget' type into flat SQL UPDATE statement.
+'derivedInsertQuery' function converts 'Pi' key type and 'Relation' type info flat SQL INSERT ... SELECT ... statement.
 
-'typedDelete' function converts 'Restriction' into flat SQL DELETE statement.
+'derivedUpdate' function converts 'UpdateTarget' type into flat SQL UPDATE statement.
 
-'typedKeyUpdate' function converts 'Pi' key type info flat SQL UPDATE statement.
+'derivedDelete' function converts 'Restriction' into flat SQL DELETE statement.
 
-Some handy table type inferred functions are provided,
-'derivedInsert', 'derivedInsertQuery', 'derivedUpdate' and 'derivedDelete'.
+'derivedKeyUpdate' function converts 'Pi' key type info flat SQL UPDATE statement.
+
+Some functions which requires to be specified table type,
+'typedInsert', 'typedInsertQuery', 'typedUpdate' and 'typedDelete'.
+These functions are useful when table type is undecidable from its statement contexts.
  -}
 
 
