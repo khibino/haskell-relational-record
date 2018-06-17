@@ -202,7 +202,7 @@ typedUpdateAllColumn :: PersistableWidth r
                      => Table r
                      -> Restriction p r
                      -> Update (r, p)
-typedUpdateAllColumn tbl r = typedUpdate tbl $ liftTargetAllColumn' r
+typedUpdateAllColumn = typedUpdateAllColumn' defaultConfig
 
 -- | Make typed 'Update' from 'Config', derived table and 'AssignStatement'.
 --   Update target is all column.
@@ -284,7 +284,7 @@ typedInsert =  typedInsert' defaultConfig
 
 -- | Table type inferred 'Insert'.
 insert :: (PersistableWidth r, TableDerivable r) => Pi r r' -> Insert r'
-insert = typedInsert derivedTable
+insert = typedInsert' defaultConfig derivedTable
 
 {-# DEPRECATED derivedInsert "use `insert` instead of this." #-}
 -- | Table type inferred 'Insert'.
@@ -371,7 +371,7 @@ typedInsertQuery =  typedInsertQuery' defaultConfig
 
 -- | Table type inferred 'InsertQuery'.
 insertQuery :: TableDerivable r => Pi r r' -> Relation p r' -> InsertQuery p
-insertQuery =  typedInsertQuery derivedTable
+insertQuery =  typedInsertQuery' defaultConfig derivedTable
 
 {-# DEPRECATED derivedInsertQuery "use `insertQuery` instead of this." #-}
 -- | Table type inferred 'InsertQuery'.
