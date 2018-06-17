@@ -175,7 +175,7 @@ derivedUpdate' = update'
 
 -- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement'
 update :: TableDerivable r => AssignStatement r (PlaceHolders p) -> Update p
-update = derivedUpdate' defaultConfig
+update = update' defaultConfig
 
 -- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement' with no(unit) placeholder.
 updateNoPH :: TableDerivable r => AssignStatement r () -> Update ()
@@ -226,7 +226,7 @@ derivedUpdateAllColumn' = updateAllColumn'
 updateAllColumn :: (PersistableWidth r, TableDerivable r)
                        => RestrictedStatement r (PlaceHolders p)
                        -> Update (r, p)
-updateAllColumn = derivedUpdateAllColumn' defaultConfig
+updateAllColumn = updateAllColumn' defaultConfig
 
 -- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement'
 --   without placeholder other than target table columns.
@@ -318,7 +318,7 @@ derivedInsertValue' = insertValue'
 
 -- | Make typed 'Insert' from 'defaultConfig', derived table and monadic builded 'Register' object.
 insertValue :: TableDerivable r => Register r (PlaceHolders p) -> Insert p
-insertValue = derivedInsertValue' defaultConfig
+insertValue = insertValue' defaultConfig
 
 -- | Make typed 'Insert' from 'defaultConfig', derived table and monadic builded 'Register' object with no(unit) placeholder.
 insertValueNoPH :: TableDerivable r => Register r () -> Insert ()
@@ -417,7 +417,7 @@ derivedDelete' = delete'
 
 -- | Make typed 'Delete' from 'defaultConfig', derived table and 'RestrictContext'
 delete :: TableDerivable r => RestrictedStatement r (PlaceHolders p) -> Delete p
-delete = derivedDelete' defaultConfig
+delete = delete' defaultConfig
 
 -- | Make typed 'Delete' from 'defaultConfig', derived table and 'RestrictContext' with no(unit) placeholder.
 deleteNoPH :: TableDerivable r => RestrictedStatement r () -> Delete ()
