@@ -18,22 +18,22 @@ module Database.Relational.Type (
 
   -- * Typed update statement
   KeyUpdate (..), unsafeTypedKeyUpdate, typedKeyUpdate, typedKeyUpdateTable, keyUpdate,
-  Update (..), unsafeTypedUpdate, typedUpdate', typedUpdate, update', update, updateNoPH,
+  Update (..), unsafeTypedUpdate, typedUpdate', update', update, updateNoPH,
   typedUpdateAllColumn, updateAllColumn', updateAllColumn, updateAllColumnNoPH,
 
   updateSQL,
 
   -- * Typed insert statement
   Insert (..), untypeChunkInsert, chunkSizeOfInsert,
-  unsafeTypedInsert', unsafeTypedInsert, typedInsert', typedInsert, insert,
-  typedInsertValue', typedInsertValue, insertValue', insertValue, insertValueNoPH,
+  unsafeTypedInsert', unsafeTypedInsert, typedInsert', insert,
+  typedInsertValue', insertValue', insertValue, insertValueNoPH,
   insertValueList', insertValueList,
-  InsertQuery (..), unsafeTypedInsertQuery, typedInsertQuery', typedInsertQuery, insertQuery,
+  InsertQuery (..), unsafeTypedInsertQuery, typedInsertQuery', insertQuery,
 
   insertQuerySQL,
 
   -- * Typed delete statement
-  Delete (..), unsafeTypedDelete, typedDelete', typedDelete, delete', delete, deleteNoPH,
+  Delete (..), unsafeTypedDelete, typedDelete', delete', delete, deleteNoPH,
 
   deleteSQL,
 
@@ -41,6 +41,10 @@ module Database.Relational.Type (
   UntypeableNoFetch (..),
 
   -- * Deprecated
+  typedUpdate,
+  typedInsert, typedInsertValue, typedInsertQuery,
+  typedDelete,
+
   derivedKeyUpdate,
   derivedUpdate', derivedUpdate,
   derivedUpdateAllColumn', derivedUpdateAllColumn,
@@ -156,6 +160,7 @@ updateSQL config tbl ut = showStringSQL $ updatePrefixSQL tbl <> sqlFromUpdateTa
 typedUpdate' :: Config -> Table r -> UpdateTarget p r -> Update p
 typedUpdate' config tbl ut = unsafeTypedUpdate $ updateSQL config tbl ut
 
+{-# DEPRECATED typedUpdate "use `typedUpdate' defaultConfig` instead of this." #-}
 -- | Make typed 'Update' using 'defaultConfig', 'Table' and 'UpdateTarget'.
 typedUpdate :: Table r -> UpdateTarget p r -> Update p
 typedUpdate =  typedUpdate' defaultConfig
@@ -278,6 +283,7 @@ typedInsert' :: PersistableWidth r => Config -> Table r -> Pi r r' -> Insert r'
 typedInsert' config tbl =
   typedInsertValue' config tbl . insertTarget' . piRegister
 
+{-# DEPRECATED typedInsert "use `typedInsert' defaultConfig` instead of this." #-}
 -- | Make typed 'Insert' from 'Table' and columns selector 'Pi'.
 typedInsert :: PersistableWidth r => Table r -> Pi r r' -> Insert r'
 typedInsert =  typedInsert' defaultConfig
@@ -300,6 +306,7 @@ typedInsertValue' config tbl it =
   where
     (ci, n) = sqlChunkFromInsertTarget config tbl it
 
+{-# DEPRECATED typedInsertValue "use `typedInsertValue' defaultConfig` instead of this." #-}
 -- | Make typed 'Insert' from 'Table' and monadic builded 'InsertTarget' object.
 typedInsertValue :: Table r -> InsertTarget p r -> Insert p
 typedInsertValue = typedInsertValue' defaultConfig
@@ -365,6 +372,7 @@ insertQuerySQL config tbl pi' rel = showStringSQL $ insertPrefixSQL pi' tbl <> s
 typedInsertQuery' :: Config -> Table r -> Pi r r' -> Relation p r' -> InsertQuery p
 typedInsertQuery' config tbl pi' rel = unsafeTypedInsertQuery $ insertQuerySQL config tbl pi' rel
 
+{-# DEPRECATED typedInsertQuery "use `typedInsertQuery' defaultConfig` instead of this." #-}
 -- | Make typed 'InsertQuery' from columns selector 'Table', 'Pi' and 'Relation'.
 typedInsertQuery :: Table r -> Pi r r' -> Relation p r' -> InsertQuery p
 typedInsertQuery =  typedInsertQuery' defaultConfig
@@ -398,6 +406,7 @@ deleteSQL config tbl r = showStringSQL $ deletePrefixSQL tbl <> sqlWhereFromRest
 typedDelete' :: Config -> Table r -> Restriction p r -> Delete p
 typedDelete' config tbl r = unsafeTypedDelete $ deleteSQL config tbl r
 
+{-# DEPRECATED typedDelete "use `typedDelete' defaultConfig` instead of this." #-}
 -- | Make typed 'Delete' from 'Table' and 'Restriction'.
 typedDelete :: Table r -> Restriction p r -> Delete p
 typedDelete =  typedDelete' defaultConfig
