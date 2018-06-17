@@ -129,7 +129,7 @@ tableAlongWithSchema connect config drv scm tbl derives = do
         | verboseAsCompilerWarning config  =  reportWarning
         | otherwise                        =  const $ pure ()
   mapM_ (foldLog reportVerbose reportWarning' reportError) logs
-  when (null primaryCols) . reportWarning
+  when (null primaryCols) . reportWarning'
     $ "getPrimaryKey: Primary key not found for table: " ++ scm ++ "." ++ tbl
 
   let colIxMap = Map.fromList $ zip [c | (c, _) <- cols] [(0 :: Int) .. ]
