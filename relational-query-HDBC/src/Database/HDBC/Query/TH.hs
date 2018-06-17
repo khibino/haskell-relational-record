@@ -27,7 +27,7 @@ module Database.HDBC.Query.TH (
   inlineVerifiedQuery
   ) where
 
-import Control.Applicative ((<$>), (<*>))
+import Control.Applicative ((<$>), pure, (<*>))
 import Control.Monad (when, void)
 import Data.Maybe (listToMaybe, fromMaybe)
 import qualified Data.Map as Map
