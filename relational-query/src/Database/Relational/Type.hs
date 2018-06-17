@@ -18,22 +18,22 @@ module Database.Relational.Type (
 
   -- * Typed update statement
   KeyUpdate (..), unsafeTypedKeyUpdate, typedKeyUpdate, typedKeyUpdateTable, keyUpdate,
-  Update (..), unsafeTypedUpdate, typedUpdate', typedUpdate, update', update,
-  typedUpdateAllColumn, updateAllColumn', updateAllColumn,
+  Update (..), unsafeTypedUpdate, typedUpdate', typedUpdate, update', update, updateNoPH,
+  typedUpdateAllColumn, updateAllColumn', updateAllColumn, updateAllColumnNoPH,
 
   updateSQL,
 
   -- * Typed insert statement
   Insert (..), untypeChunkInsert, chunkSizeOfInsert,
   unsafeTypedInsert', unsafeTypedInsert, typedInsert', typedInsert, insert,
-  typedInsertValue', typedInsertValue, insertValue', insertValue,
+  typedInsertValue', typedInsertValue, insertValue', insertValue, insertValueNoPH,
   insertValueList', insertValueList,
   InsertQuery (..), unsafeTypedInsertQuery, typedInsertQuery', typedInsertQuery, insertQuery,
 
   insertQuerySQL,
 
   -- * Typed delete statement
-  Delete (..), unsafeTypedDelete, typedDelete', typedDelete, delete', delete,
+  Delete (..), unsafeTypedDelete, typedDelete', typedDelete, delete', delete, deleteNoPH,
 
   deleteSQL,
 
@@ -52,6 +52,7 @@ module Database.Relational.Type (
   derivedDelete', derivedDelete,
   ) where
 
+import Control.Applicative ((<*))
 import Data.Monoid ((<>))
 
 import Database.Record (PersistableWidth)
@@ -65,14 +66,15 @@ import Database.Relational.Monad.Assign (AssignStatement)
 import Database.Relational.Monad.Register (Register)
 import Database.Relational.Relation (tableOf)
 import Database.Relational.Effect
-  (Restriction, restriction', UpdateTarget, updateTarget', liftTargetAllColumn',
+  (Restriction, restriction, restriction', UpdateTarget, updateTarget',
+   liftTargetAllColumn, liftTargetAllColumn',
    InsertTarget, insertTarget',
    sqlWhereFromRestriction, sqlFromUpdateTarget, piRegister,
    sqlChunkFromInsertTarget, sqlFromInsertTarget, sqlChunksFromRecordList)
 import Database.Relational.Pi (Pi)
 import Database.Relational.Table (Table, TableDerivable, derivedTable)
 import Database.Relational.ProjectableClass (ShowConstantTermsSQL)
-import Database.Relational.Projectable (PlaceHolders)
+import Database.Relational.Projectable (PlaceHolders, unitPH)
 import Database.Relational.SimpleSql
   (QuerySuffix, showsQuerySuffix, insertPrefixSQL,
    updateOtherThanKeySQL, updatePrefixSQL, deletePrefixSQL)
@@ -175,6 +177,10 @@ derivedUpdate' = update'
 update :: TableDerivable r => AssignStatement r (PlaceHolders p) -> Update p
 update = derivedUpdate' defaultConfig
 
+-- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement' with no(unit) placeholder.
+updateNoPH :: TableDerivable r => AssignStatement r () -> Update ()
+updateNoPH af = update $ (return unitPH <*) . af
+
 {-# DEPRECATED derivedUpdate "use `update` instead of this." #-}
 -- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement'
 derivedUpdate :: TableDerivable r => AssignStatement r (PlaceHolders p) -> Update p
@@ -221,6 +227,15 @@ updateAllColumn :: (PersistableWidth r, TableDerivable r)
                        => RestrictedStatement r (PlaceHolders p)
                        -> Update (r, p)
 updateAllColumn = derivedUpdateAllColumn' defaultConfig
+
+-- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement'
+--   without placeholder other than target table columns.
+--   Update target is all column.
+updateAllColumnNoPH :: (PersistableWidth r, TableDerivable r)
+                    => RestrictedStatement r ()
+                    -> Update r
+updateAllColumnNoPH =
+  typedUpdate' defaultConfig derivedTable . liftTargetAllColumn . restriction
 
 {-# DEPRECATED derivedUpdateAllColumn "use `updateAllColumn` instead of this." #-}
 -- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement'.
@@ -304,6 +319,10 @@ derivedInsertValue' = insertValue'
 -- | Make typed 'Insert' from 'defaultConfig', derived table and monadic builded 'Register' object.
 insertValue :: TableDerivable r => Register r (PlaceHolders p) -> Insert p
 insertValue = derivedInsertValue' defaultConfig
+
+-- | Make typed 'Insert' from 'defaultConfig', derived table and monadic builded 'Register' object with no(unit) placeholder.
+insertValueNoPH :: TableDerivable r => Register r () -> Insert ()
+insertValueNoPH = insertValue . (return unitPH <*)
 
 {-# DEPRECATED derivedInsertValue "use `insertValue` instead of this." #-}
 -- | Make typed 'Insert' from 'defaultConfig', derived table and monadic builded 'Register' object.
@@ -399,6 +418,10 @@ derivedDelete' = delete'
 -- | Make typed 'Delete' from 'defaultConfig', derived table and 'RestrictContext'
 delete :: TableDerivable r => RestrictedStatement r (PlaceHolders p) -> Delete p
 delete = derivedDelete' defaultConfig
+
+-- | Make typed 'Delete' from 'defaultConfig', derived table and 'RestrictContext' with no(unit) placeholder.
+deleteNoPH :: TableDerivable r => RestrictedStatement r () -> Delete ()
+deleteNoPH rf = delete $ (return unitPH <*) . rf
 
 {-# DEPRECATED derivedDelete "use `delete` instead of this." #-}
 -- | Make typed 'Delete' from 'defaultConfig', derived table and 'RestrictContext'
