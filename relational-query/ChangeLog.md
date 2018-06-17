@@ -1,5 +1,12 @@
 <!-- -*- Markdown -*- -->
 
+## 0.11.2.0
+
+- add insertValueList API.
+- (re-)add xxxNoPH effect APIs.
+- prepare to rename derivedXxx to xxx.
+- deprecate typed* APIs with implicit defaultConfig.
+
 ## 0.11.1.0
 
 - add compatibility module  Database.Relational.Query.TH for upgrading from 0.9.
