@@ -50,9 +50,9 @@ import Database.Relational.Type (KeyUpdate, typedKeyUpdate)
 
 -- | Query restricted with specified key.
 specifiedKey :: PersistableWidth p
-      => Pi a p        -- ^ Unique key proof object which record type is 'a' and key type is 'p'.
-      -> Relation () a -- ^ 'Relation' to add restriction.
-      -> Relation p a  -- ^ Result restricted 'Relation'
+             => Pi a p        -- ^ Projection path
+             -> Relation () a -- ^ 'Relation' to add restriction.
+             -> Relation p a  -- ^ Result restricted 'Relation'
 specifiedKey key rel = relation' $ do
   q <- query rel
   (param, ()) <- placeholder (\ph -> wheres $ Record.wpi (relationWidth rel) q key .=. ph)
