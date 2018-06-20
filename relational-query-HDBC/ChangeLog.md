@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.6.8.0
+
+- apply enableWarning flag in Config type.
+
 ## 0.6.7.1
 
 - fix. do safe convert for integral conversion from SQL value.
