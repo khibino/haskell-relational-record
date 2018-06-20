@@ -112,12 +112,10 @@ defineHasConstraintKeyInstance :: TypeQ   -- ^ Constraint type
                                -> TypeQ   -- ^ Key type
                                -> [Int]   -- ^ Indexes specifies key
                                -> Q [Dec] -- ^ Result 'HasConstraintKey' declaration
-defineHasConstraintKeyInstance constraint recType colType indexes = do
-  -- kc <- defineHasColumnConstraintInstance constraint recType index
-  ck <- [d| instance HasConstraintKey $constraint $recType $colType  where
-              constraintKey = unsafeDefineConstraintKey $(listE [integralE ix | ix <- indexes])
-          |]
-  return ck
+defineHasConstraintKeyInstance constraint recType colType indexes =
+  [d| instance HasConstraintKey $constraint $recType $colType  where
+        constraintKey = unsafeDefineConstraintKey $(listE [integralE ix | ix <- indexes])
+    |]
 
 -- | Rule template to infer primary key.
 defineHasPrimaryKeyInstance :: TypeQ   -- ^ Record type
