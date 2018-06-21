@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DataKinds #-}
 
 -- |
 -- Module      : Database.Relational.InternalTH.Overloaded
@@ -15,12 +16,13 @@ module Database.Relational.InternalTH.Overloaded (
   monomorphicProjection,
   polymorphicProjections,
   tupleProjection,
+  definePrimaryHasProjection,
   ) where
 
 #if __GLASGOW_HASKELL__ >= 800
 import Language.Haskell.TH
   (Name, mkName, Q, TypeQ, Dec, instanceD, funD, classP,
-   appT, tupleT, varT, litT, strTyLit, clause, normalB)
+   appT, tupleT, varT, litT, strTyLit, clause, normalB, listE)
 import Language.Haskell.TH.Lib.Extra (integralE)
 import Language.Haskell.TH.Name.CamelCase
   (ConName, conName, toVarExp, toTypeCon)
@@ -32,6 +34,7 @@ import Database.Record.Persistable
 import Database.Record.TH (columnOffsetsVarNameDefault)
 
 import Database.Relational.Pi.Unsafe (definePi)
+import Database.Relational.Constraint (unsafeDefineConstraintKey, projectionKey)
 import Database.Relational.OverloadedProjection (HasProjection (projection))
 #else
 import Language.Haskell.TH (Name, mkName, Q, TypeQ, appT, tupleT, varT, Dec)
@@ -101,3 +104,17 @@ tupleProjection n =
       where
         ns = [ mkName $ "a" ++ show j | j <- [1 .. n] ]
         vs = map varT ns
+
+definePrimaryHasProjection :: TypeQ   -- ^ Record type
+                           -> TypeQ   -- ^ Key type
+                           -> [Int]   -- ^ Indexes specifies key
+                           -> Q [Dec] -- ^ Result 'HasProjection' declaration
+#if __GLASGOW_HASKELL__ >= 800
+definePrimaryHasProjection recType colType indexes =
+  [d| instance HasProjection "primary" $recType $colType  where
+        projection _ = projectionKey
+                       $ unsafeDefineConstraintKey $(listE [integralE ix | ix <- indexes])
+    |]
+#else
+definePrimaryHasProjection _ _ _ = [d| |]
+#endif
