@@ -92,10 +92,11 @@ polymorphicProjections _ _ _ _ = [d| |]
 
 -- | Projection templates for tuple type.
 tupleProjection :: Int -> Q [Dec]
-tupleProjection n =
-    (++)
-    <$> polymorphicProjections tyRec avs sels cts
-    <*> polymorphicProjections tyRec avs oldSels cts -- DEPRECATED. drop in 0.12.0
+tupleProjection n = do
+    p <- polymorphicProjections tyRec avs ["fst", "snd"] cts
+    q <- polymorphicProjections tyRec avs sels cts
+    r <- polymorphicProjections tyRec avs oldSels cts -- DEPRECATED. drop in 0.12.0
+    return $ p ++ q ++ r
   where
     sels = [ "pi" ++ show i
            | i <- [ 0 .. n - 1] ]
