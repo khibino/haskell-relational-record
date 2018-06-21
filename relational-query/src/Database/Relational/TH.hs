@@ -92,7 +92,7 @@ import Database.Relational
            schemaNameMode, nameConfig, identifierQuotation),
    relationalQuerySQL, Query, relationalQuery, KeyUpdate,
    Insert, insert, InsertQuery, insertQuery,
-   HasConstraintKey(constraintKey), Primary, NotNull, primary, primaryUpdate)
+   HasConstraintKey(constraintKey), Primary, NotNull, primarySelect, primaryUpdate)
 
 import Database.Relational.InternalTH.Base (defineTuplePi, defineRecordProjections)
 import Database.Relational.Scalar (defineScalarDegree)
@@ -343,7 +343,7 @@ definePrimaryQuery toDef' paramType recType relE = do
   let toDef = varName toDef'
   simpleValD toDef
     [t| Query $paramType $recType |]
-    [|  relationalQuery (primary $relE) |]
+    [|  relationalQuery (primarySelect $relE) |]
 
 -- | Template of derived primary 'Update'.
 definePrimaryUpdate :: VarName -- ^ Variable name of result declaration
