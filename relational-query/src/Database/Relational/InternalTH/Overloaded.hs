@@ -93,10 +93,14 @@ polymorphicProjections _ _ _ _ = [d| |]
 -- | Projection templates for tuple type.
 tupleProjection :: Int -> Q [Dec]
 tupleProjection n =
-    polymorphicProjections tyRec avs sels cts
+    (++)
+    <$> polymorphicProjections tyRec avs sels cts
+    <*> polymorphicProjections tyRec avs oldSels cts -- DEPRECATED. drop in 0.12.0
   where
-    sels = [ "tuplePi" ++ show n ++ "_" ++ show i
+    sels = [ "pi" ++ show i
            | i <- [ 0 .. n - 1] ]
+    oldSels = [ "tuplePi" ++ show n ++ "_" ++ show i
+              | i <- [ 0 .. n - 1] ]
     ((avs, cts), tyRec) = tupleN
     tupleN :: (([Name], [TypeQ]), TypeQ)
     --- same as tupleN of InternalTH.Base, merge after dropping GHC 7.x
