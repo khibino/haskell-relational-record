@@ -105,6 +105,7 @@ tupleProjection n =
         ns = [ mkName $ "a" ++ show j | j <- [1 .. n] ]
         vs = map varT ns
 
+-- | Projection template for primary key.
 definePrimaryHasProjection :: TypeQ   -- ^ Record type
                            -> TypeQ   -- ^ Key type
                            -> [Int]   -- ^ Indexes specifies key
