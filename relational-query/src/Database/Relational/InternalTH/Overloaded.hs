@@ -4,7 +4,7 @@
 
 -- |
 -- Module      : Database.Relational.InternalTH.Overloaded
--- Copyright   : 2017 Kei Hibino
+-- Copyright   : 2017-2018 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
