@@ -125,7 +125,8 @@ defineHasPrimaryKeyInstance :: TypeQ   -- ^ Record type
 defineHasPrimaryKeyInstance recType colType indexes = do
   kc <- Record.defineHasPrimaryKeyInstance recType indexes
   ck <- defineHasConstraintKeyInstance [t| Primary |] recType colType indexes
-  return $ kc ++ ck
+  pp <- Overloaded.definePrimaryHasProjection recType colType indexes
+  return $ kc ++ ck ++ pp
 
 -- | Rule template to infer primary key.
 defineHasPrimaryKeyInstanceWithConfig :: Config  -- ^ configuration parameters
