@@ -14,9 +14,8 @@ module Database.Relational.Derives (
   -- * Query derivation
   specifiedKey,
 
-  unique,
-
-  primary', primary,
+  selectUnique,
+  selectPrimary,
 
   -- * Update derivation
   updateByConstraintKey,
@@ -25,7 +24,11 @@ module Database.Relational.Derives (
   updateValuesWithKey,
 
   -- * Derived objects from table
-  derivedUniqueRelation
+  derivedUniqueRelation,
+
+  -- * Deprecated
+  unique,
+  primary', primary,
   ) where
 
 import Database.Record (PersistableWidth, ToSql)
@@ -59,13 +62,22 @@ specifiedKey key rel = relation' $ do
   return (param, q)
 
 -- | Query restricted with specified unique key.
-unique :: PersistableWidth p
-       => Key Unique a p -- ^ Unique key proof object which record type is 'a' and key type is 'p'.
-       -> Relation () a  -- ^ 'Relation' to add restriction.
-       -> Relation p a   -- ^ Result restricted 'Relation'
-unique =  specifiedKey . projectionKey
+selectUnique :: PersistableWidth p
+             => Key Unique a p -- ^ Unique key proof object which record type is 'a' and key type is 'p'.
+             -> Relation () a  -- ^ 'Relation' to add restriction.
+             -> Relation p a   -- ^ Result restricted 'Relation'
+selectUnique =  specifiedKey . projectionKey
 
--- | Query restricted with specified primary key.
+{-# DEPRECATED unique "use `selectUnique` instead of this." #-}
+-- | Deprecated.
+unique :: PersistableWidth p
+       => Key Unique a p
+       -> Relation () a
+       -> Relation p a
+unique = selectUnique
+
+{-# DEPRECATED primary' "use `selectPrimary` instead of this." #-}
+-- | Deprecated.
 primary' :: PersistableWidth p
          => Key Primary a p -- ^ Primary key proof object which record type is 'a' and key type is 'p'.
          -> Relation () a   -- ^ 'Relation' to add restriction.
@@ -73,11 +85,17 @@ primary' :: PersistableWidth p
 primary' =  specifiedKey . projectionKey
 
 -- | Query restricted with inferred primary key.
-primary :: HasConstraintKey Primary a p
-        => Relation () a -- ^ 'Relation' to add restriction.
-        -> Relation p a  -- ^ Result restricted 'Relation'
-primary =  primary' constraintKey
+selectPrimary :: HasConstraintKey Primary a p
+              => Relation () a -- ^ 'Relation' to add restriction.
+              -> Relation p a  -- ^ Result restricted 'Relation'
+selectPrimary =  primary' constraintKey
 
+{-# DEPRECATED primary "use `selectPrimary` instead of this." #-}
+-- | Deprecated.
+primary :: HasConstraintKey Primary a p
+        => Relation () a
+        -> Relation p a
+primary = selectPrimary
 
 -- | Convert from Haskell type `r` into SQL value `q` list expected by update form like
 --
