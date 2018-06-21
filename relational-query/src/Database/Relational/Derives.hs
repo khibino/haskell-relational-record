@@ -14,8 +14,8 @@ module Database.Relational.Derives (
   -- * Query derivation
   specifiedKey,
 
-  selectUnique,
-  selectPrimary,
+  uniqueSelect,
+  primarySelect,
 
   -- * Update derivation
   updateByConstraintKey,
@@ -62,21 +62,21 @@ specifiedKey key rel = relation' $ do
   return (param, q)
 
 -- | Query restricted with specified unique key.
-selectUnique :: PersistableWidth p
+uniqueSelect :: PersistableWidth p
              => Key Unique a p -- ^ Unique key proof object which record type is 'a' and key type is 'p'.
              -> Relation () a  -- ^ 'Relation' to add restriction.
              -> Relation p a   -- ^ Result restricted 'Relation'
-selectUnique =  specifiedKey . projectionKey
+uniqueSelect =  specifiedKey . projectionKey
 
-{-# DEPRECATED unique "use `selectUnique` instead of this." #-}
+{-# DEPRECATED unique "use `uniqueSelect` instead of this." #-}
 -- | Deprecated.
 unique :: PersistableWidth p
        => Key Unique a p
        -> Relation () a
        -> Relation p a
-unique = selectUnique
+unique = uniqueSelect
 
-{-# DEPRECATED primary' "use `selectPrimary` instead of this." #-}
+{-# DEPRECATED primary' "use `primarySelect` instead of this." #-}
 -- | Deprecated.
 primary' :: PersistableWidth p
          => Key Primary a p -- ^ Primary key proof object which record type is 'a' and key type is 'p'.
@@ -85,17 +85,17 @@ primary' :: PersistableWidth p
 primary' =  specifiedKey . projectionKey
 
 -- | Query restricted with inferred primary key.
-selectPrimary :: HasConstraintKey Primary a p
+primarySelect :: HasConstraintKey Primary a p
               => Relation () a -- ^ 'Relation' to add restriction.
               -> Relation p a  -- ^ Result restricted 'Relation'
-selectPrimary =  primary' constraintKey
+primarySelect =  primary' constraintKey
 
-{-# DEPRECATED primary "use `selectPrimary` instead of this." #-}
+{-# DEPRECATED primary "use `primarySelect` instead of this." #-}
 -- | Deprecated.
 primary :: HasConstraintKey Primary a p
         => Relation () a
         -> Relation p a
-primary = selectPrimary
+primary = primarySelect
 
 -- | Convert from Haskell type `r` into SQL value `q` list expected by update form like
 --
