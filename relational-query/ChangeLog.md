@@ -1,5 +1,10 @@
 <!-- -*- Markdown -*- -->
 
+## 0.11.3.0
+
+- add some overloaded projection instances for tuple types.
+- add #primary overloaded projection instance.
+
 ## 0.11.2.0
 
 - add insertValueList API.
