@@ -23,9 +23,6 @@ module Language.Haskell.TH.Name.CamelCase (
   toTypeCon, toDataCon,
 
   toVarExp, toVarPat,
-
-  -- * Deprecated
-  varNameWithPrefix,
   ) where
 
 import Data.Char (toUpper, toLower)
@@ -102,14 +99,6 @@ conCamelcaseName =  toConName . camelcaseUpper
 -- | Make camel-cased variable name from 'String'.
 varCamelcaseName :: String -> VarName
 varCamelcaseName =  toVarName . camelcaseUpper
-
--- | Make camel-cased variable name with prefix like below.
---
--- >  name `varNamePrefix` prefix
---
-{-# DEPRECATED varNameWithPrefix "should simply use toVarName." #-}
-varNameWithPrefix :: String -> String -> VarName
-varNameWithPrefix n p =  toVarName $ p ++ camelcaseUpper n
 
 {- $makeTemplates
 Make haskell templates from names.
