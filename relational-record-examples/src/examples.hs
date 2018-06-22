@@ -832,7 +832,7 @@ $(makeRelationalRecord ''Customer1)
 -- @
 --
 insertBranch_s1 :: Insert ()
-insertBranch_s1 = derivedInsertValue $ do
+insertBranch_s1 = insertValue $ do
   Branch.name'     <-#  value "Headquarters"
   #address  <-#  value (Just "3882 Main St.")
   #city     <-#  value (Just "Waltham")
@@ -849,7 +849,7 @@ insertBranch_s1 = derivedInsertValue $ do
 -- @
 --
 insertBranch_s1P :: Insert Branch1
-insertBranch_s1P = derivedInsert piBranch1
+insertBranch_s1P = insert piBranch1
 
 piBranch1 :: Pi Branch Branch1
 piBranch1 = Branch1 |$| #name
@@ -889,7 +889,7 @@ branch1 = Branch1
 -- Above SQL is the same to the monadic building version.
 --
 insertBranch_s1R :: Insert ()
-insertBranch_s1R = derivedInsertValue $ do
+insertBranch_s1R = insertValue $ do
   piBranch1   <-#  value Branch1
                          { b1Name = "Headquarters"
                          , b1Address = Just "3882 Main St."
@@ -911,7 +911,7 @@ insertBranch_s1R = derivedInsertValue $ do
 -- Above SQL is the same to ad-hoc defined record version.
 --
 insertBranch_s1PT :: Insert (String, Maybe String, Maybe String, Maybe String, Maybe String)
-insertBranch_s1PT = derivedInsert piBranchTuple
+insertBranch_s1PT = insert piBranchTuple
 
 piBranchTuple :: Pi Branch (String, Maybe String, Maybe String, Maybe String, Maybe String)
 piBranchTuple = (,,,,)
@@ -958,7 +958,7 @@ branchTuple = ("Headquarters",
 -- The name column of branch table is the same.
 --
 insertEmployee_s2 :: InsertQuery ()
-insertEmployee_s2 = derivedInsertQuery piEmployee3 . relation $ do
+insertEmployee_s2 = insertQuery piEmployee3 . relation $ do
   d <- query department
   b <- query branch
   wheres $ #name d .=. value "Administration"
@@ -1007,7 +1007,7 @@ $(makeRelationalRecord ''Employee3)
 -- @
 --
 insertEmployee_s2U :: InsertQuery ()
-insertEmployee_s2U = derivedInsertQuery piEmployee3 . relation $ do
+insertEmployee_s2U = insertQuery piEmployee3 . relation $ do
   d <- queryScalar . unsafeUnique . relation $ do
     d' <- query department
     wheres $ #name d' .=. value "Administration"
@@ -1046,7 +1046,7 @@ $(makeRelationalRecord ''Employee4)
 -- @
 --
 insertEmployee_s2P :: InsertQuery Employee4
-insertEmployee_s2P = derivedInsertQuery piEmployee3 . relation' $ do
+insertEmployee_s2P = insertQuery piEmployee3 . relation' $ do
   d <- query department
   b <- query branch
   wheres $ #name d .=. value "Administration"
@@ -1087,7 +1087,7 @@ employee4 = Employee4
 -- @
 --
 updateEmployee_o3 :: Update ()
-updateEmployee_o3 = derivedUpdate $ \proj -> do
+updateEmployee_o3 = update $ \proj -> do
   #lname  <-# value "Bush"
   #deptId <-# just (value 3)
   wheres $ #empId (proj :: Record Flat Employee) .=. value 10
@@ -1112,7 +1112,7 @@ updateEmployee_o3 = derivedUpdate $ \proj -> do
 -- @
 --
 updateEmployee_o3P :: Update (String, Int, Int)
-updateEmployee_o3P = derivedUpdate $ \proj -> do
+updateEmployee_o3P = update $ \proj -> do
   (phLname,()) <- placeholder (\ph -> #lname <-# ph)
   (phDeptId,()) <- placeholder (\ph -> #deptId <-# just ph)
   (phEmpId,()) <- placeholder (\ph -> wheres $ #empId (proj :: Record Flat Employee) .=. ph)
@@ -1145,7 +1145,7 @@ updateEmployee_o3P = derivedUpdate $ \proj -> do
 -- @
 --
 updateAccount_9_4_2 :: Update ()
-updateAccount_9_4_2 = derivedUpdate $ \proj -> do
+updateAccount_9_4_2 = update $ \proj -> do
   ts <- queryScalar $ aggregatedUnique (relation $ do
     t <- query Transaction.transaction
     wheres $ #accountId t .=. #accountId proj
@@ -1179,7 +1179,7 @@ toDay dt = unsafeProjectSql $ "date(" ++ unsafeShowSql dt ++ ")"
 -- @
 --
 deleteAccount_o1 :: Delete ()
-deleteAccount_o1 = derivedDelete $ \proj -> do
+deleteAccount_o1 = delete $ \proj -> do
   wheres $ proj ! Account.accountId' .=. value 2
   return unitPlaceHolder
 
@@ -1199,7 +1199,7 @@ deleteAccount_o1 = derivedDelete $ \proj -> do
 -- @
 --
 deleteAccount_o1P :: Delete Int
-deleteAccount_o1P = derivedDelete $ \proj -> do
+deleteAccount_o1P = delete $ \proj -> do
   fmap fst $ placeholder (\ph -> wheres $ proj ! Account.accountId' .=. ph)
 
 -- |
@@ -1220,7 +1220,7 @@ deleteAccount_o1P = derivedDelete $ \proj -> do
 -- @
 --
 deleteAccount_o2 :: Delete ()
-deleteAccount_o2 = derivedDelete $ \proj' -> do
+deleteAccount_o2 = delete $ \proj' -> do
   let proj = proj' :: Record Flat Account
   wheres $ #accountId proj .>=. value 10
   wheres $ #accountId proj .<=. value 20
@@ -1235,7 +1235,7 @@ deleteAccount_o2 = derivedDelete $ \proj' -> do
 -- @
 --
 deleteAccount_o2P :: Delete (Int, Int)
-deleteAccount_o2P = derivedDelete $ \proj' -> do
+deleteAccount_o2P = delete $ \proj' -> do
   let proj = proj' :: Record Flat Account
   (phMin,()) <- placeholder (\ph -> wheres $ #accountId proj .>=. ph)
   (phMax,()) <- placeholder (\ph -> wheres $ #accountId proj .<=. ph)
@@ -1261,7 +1261,7 @@ deleteAccount_o2P = derivedDelete $ \proj' -> do
 -- @
 --
 deleteEmployee_9_4_2 :: Delete ()
-deleteEmployee_9_4_2 = derivedDelete $ \proj -> do
+deleteEmployee_9_4_2 = delete $ \proj -> do
   el <- queryList $ relation $ do
     e <- query employee
     wheres $ #deptId e .=. just (#deptId (proj :: Record Flat Department))
