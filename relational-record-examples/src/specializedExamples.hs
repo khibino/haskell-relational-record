@@ -837,13 +837,12 @@ $(makeRelationalRecord ''Customer1)
 -- @
 --
 insertBranch_s1 :: Insert ()
-insertBranch_s1 = insertValue $ do
+insertBranch_s1 = insertValueNoPH $ do
   Branch.name'     <-#  value "Headquarters"
   Branch.address'  <-#  value (Just "3882 Main St.")
   Branch.city'     <-#  value (Just "Waltham")
   Branch.state'    <-#  value (Just "MA")
   Branch.zip'      <-#  value (Just "02451")
-  return unitPlaceHolder
 
 -- |
 -- Placeholder version of Generated SQL:
@@ -894,7 +893,7 @@ branch1 = Branch1
 -- Above SQL is the same to the monadic building version.
 --
 insertBranch_s1R :: Insert ()
-insertBranch_s1R = insertValue $ do
+insertBranch_s1R = insertValueNoPH $ do
   piBranch1   <-#  value Branch1
                          { b1Name = "Headquarters"
                          , b1Address = Just "3882 Main St."
@@ -902,7 +901,6 @@ insertBranch_s1R = insertValue $ do
                          , b1State = Just "MA"
                          , b1Zip = Just "02451"
                          }
-  return unitPlaceHolder
 
 -- |
 -- Placeholder version of Generated SQL:
@@ -1092,11 +1090,10 @@ employee4 = Employee4
 -- @
 --
 updateEmployee_o3 :: Update ()
-updateEmployee_o3 = update $ \proj -> do
+updateEmployee_o3 = updateNoPH $ \proj -> do
   Employee.lname' <-# value "Bush"
   Employee.deptId' <-# just (value 3)
   wheres $ proj ! Employee.empId' .=. value 10
-  return unitPlaceHolder
 
 -- |
 -- Placeholder version of Generated SQL:
@@ -1150,7 +1147,7 @@ updateEmployee_o3P = update $ \proj -> do
 -- @
 --
 updateAccount_9_4_2 :: Update ()
-updateAccount_9_4_2 = update $ \proj -> do
+updateAccount_9_4_2 = updateNoPH $ \proj -> do
   ts <- queryScalar $ aggregatedUnique (relation $ do
     t <- query Transaction.transaction
     wheres $ t ! Transaction.accountId' .=. proj ! Account.accountId'
@@ -1162,7 +1159,6 @@ updateAccount_9_4_2 = update $ \proj -> do
     return (value (1 :: Int64))
   Account.lastActivityDate' <-# (toDay $ flattenMaybe ts)
   wheres $ exists $ tl
-  return unitPlaceHolder
 
 toDay :: SqlContext c => Record c (Maybe LocalTime) -> Record c (Maybe Day)
 toDay dt = unsafeProjectSql $ "date(" ++ unsafeShowSql dt ++ ")"
@@ -1184,9 +1180,8 @@ toDay dt = unsafeProjectSql $ "date(" ++ unsafeShowSql dt ++ ")"
 -- @
 --
 deleteAccount_o1 :: Delete ()
-deleteAccount_o1 = delete $ \proj -> do
+deleteAccount_o1 = deleteNoPH $ \proj -> do
   wheres $ proj ! Account.accountId' .=. value 2
-  return unitPlaceHolder
 
 -- |
 -- Placeholder version of Generated SQL:
@@ -1225,10 +1220,9 @@ deleteAccount_o1P = delete $ \proj -> do
 -- @
 --
 deleteAccount_o2 :: Delete ()
-deleteAccount_o2 = delete $ \proj -> do
+deleteAccount_o2 = deleteNoPH $ \proj -> do
   wheres $ proj ! Account.accountId' .>=. value 10
   wheres $ proj ! Account.accountId' .<=. value 20
-  return unitPlaceHolder
 
 -- |
 -- Placeholder version of Generated SQL:
@@ -1264,13 +1258,12 @@ deleteAccount_o2P = delete $ \proj -> do
 -- @
 --
 deleteEmployee_9_4_2 :: Delete ()
-deleteEmployee_9_4_2 = delete $ \proj -> do
+deleteEmployee_9_4_2 = deleteNoPH $ \proj -> do
   el <- queryList $ relation $ do
     e <- query employee
     wheres $ e ! Employee.deptId' .=. just (proj ! Department.deptId')
     return (value (1 :: Int64))
   wheres $ not' . exists $ el
-  return unitPlaceHolder
 
 --
 -- run and print sql
