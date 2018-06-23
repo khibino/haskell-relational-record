@@ -41,7 +41,7 @@ import Database.Relational.Table (TableDerivable, derivedTable, Table)
 import Database.Relational.Pi (Pi)
 import Database.Relational.Constraint
   (HasConstraintKey (..), Key, Primary, projectionKey)
-import Database.Relational.Projectable ((.<=.), value, unitPlaceHolder, (!))
+import Database.Relational.Projectable ((.<=.), value, unitPH, (!))
 import Database.Relational.ProjectableClass (ShowConstantTermsSQL)
 import Database.Relational.Relation (tableOf)
 import qualified Database.Relational.Relation as Relation
@@ -144,7 +144,7 @@ updateNumber' config i seqt = typedUpdate' config (seqTable seqt) . updateTarget
   let iv = value i
   seqKey seqt <-# iv
   wheres $ proj ! seqKey seqt .<=. iv -- fool proof
-  return unitPlaceHolder
+  return unitPH
 
 -- | Update statement for sequence table
 updateNumber :: (PersistableWidth s, Integral i, ShowConstantTermsSQL i)
