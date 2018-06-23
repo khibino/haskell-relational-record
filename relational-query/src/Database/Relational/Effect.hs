@@ -48,8 +48,7 @@ import qualified Database.Relational.Table as Table
 import qualified Database.Relational.Record as Record
 import Database.Relational.ProjectableClass (ShowConstantTermsSQL)
 import Database.Relational.Projectable
-  (PlaceHolders, unitPlaceHolder,
-   pwPlaceholder, placeholder, (><), value, )
+  (PlaceHolders, unitPH, pwPlaceholder, placeholder, (><), value, )
 import Database.Relational.Monad.Trans.Assigning (assignings, (<-#))
 import Database.Relational.Monad.Restrict (RestrictedStatement)
 import qualified Database.Relational.Monad.Restrict as Restrict
@@ -64,7 +63,7 @@ newtype Restriction p r = Restriction (RestrictedStatement r (PlaceHolders p))
 
 -- | Finalize 'Restrict' monad and generate 'Restriction'.
 restriction :: RestrictedStatement r () -> Restriction () r
-restriction = Restriction . ((>> return unitPlaceHolder) .)
+restriction = Restriction . ((>> return unitPH) .)
 
 -- | Finalize 'Restrict' monad and generate 'Restriction' with place-holder parameter 'p'
 restriction' :: RestrictedStatement r (PlaceHolders p) -> Restriction p r
@@ -90,7 +89,7 @@ newtype UpdateTarget p r = UpdateTarget (AssignStatement r (PlaceHolders p))
 -- | Finalize 'Target' monad and generate 'UpdateTarget'.
 updateTarget :: AssignStatement r ()
              -> UpdateTarget () r
-updateTarget =  UpdateTarget . ((>> return unitPlaceHolder) .)
+updateTarget =  UpdateTarget . ((>> return unitPH) .)
 
 -- | Finalize 'Target' monad and generate 'UpdateTarget' with place-holder parameter 'p'.
 updateTarget' :: AssignStatement r (PlaceHolders p)
@@ -145,7 +144,7 @@ newtype InsertTarget p r = InsertTarget (Register r (PlaceHolders p))
 -- | Finalize 'Register' monad and generate 'InsertTarget'.
 insertTarget :: Register r ()
              -> InsertTarget () r
-insertTarget =  InsertTarget . (>> return unitPlaceHolder)
+insertTarget =  InsertTarget . (>> return unitPH)
 
 -- | Finalize 'Target' monad and generate 'UpdateTarget' with place-holder parameter 'p'.
 insertTarget' :: Register r (PlaceHolders p)
