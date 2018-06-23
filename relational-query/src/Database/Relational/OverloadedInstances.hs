@@ -21,12 +21,7 @@ module Database.Relational.OverloadedInstances () where
 
 import Control.Applicative ((<$>))
 #if __GLASGOW_HASKELL__ >= 800
-import Database.Record.Persistable
-  (PersistableWidth, persistableWidth,
-   PersistableRecordWidth, runPersistableRecordWidth)
-
-import Database.Relational.Pi.Unsafe (definePi)
-import Database.Relational.OverloadedProjection (HasProjection (projection))
+import Database.Relational.OverloadedProjection (projection)
 #endif
 import Database.Relational.InternalTH.Overloaded (tupleProjection)
 
