@@ -212,9 +212,9 @@ typedUpdateAllColumn = typedUpdateAllColumn' defaultConfig
 -- | Make typed 'Update' from 'Config', derived table and 'AssignStatement'.
 --   Update target is all column.
 updateAllColumn' :: (PersistableWidth r, TableDerivable r)
-                        => Config
-                        -> RestrictedStatement r (PlaceHolders p)
-                        -> Update (r, p)
+                 => Config
+                 -> RestrictedStatement r (PlaceHolders p)
+                 -> Update (r, p)
 updateAllColumn' config = typedUpdateAllColumn' config derivedTable .restriction'
 
 {-# DEPRECATED derivedUpdateAllColumn' "use `updateAllColumn'` instead of this." #-}
