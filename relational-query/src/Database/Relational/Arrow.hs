@@ -470,7 +470,7 @@ insertValue' config = Monadic.insertValue' config . ($ ()) . runQueryA
 insertValue :: TableDerivable r => Register r (PlaceHolders p) -> Insert p
 insertValue = Monadic.insertValue . ($ ()) . runQueryA
 
--- | Same as 'Monadic.insertValue'.
+-- | Same as 'Monadic.insertValueNoPH'.
 --   Make 'Insert' from register arrow.
 insertValueNoPH :: TableDerivable r => Register r () -> Insert ()
 insertValueNoPH = Monadic.insertValueNoPH . ($ ()) . runQueryA
@@ -486,7 +486,7 @@ delete' config = Monadic.delete' config . runQueryA
 delete :: TableDerivable r => RestrictedStatement r (PlaceHolders p) -> Delete p
 delete = Monadic.delete . runQueryA
 
--- | Same as 'Monadic.delete'.
+-- | Same as 'Monadic.deleteNoPH'.
 --   Make 'Update' from restrict statement arrow.
 deleteNoPH :: TableDerivable r => RestrictedStatement r () -> Delete ()
 deleteNoPH = Monadic.deleteNoPH . runQueryA
