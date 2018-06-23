@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.11.4.0
+
+- add xxxNoPH effect APIs of arrow-interface.
+
 ## 0.11.3.0
 
 - add some overloaded projection instances for tuple types.
