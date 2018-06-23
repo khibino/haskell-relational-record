@@ -27,14 +27,8 @@ module Database.Relational.Internal.Config (
   identifierQuotation,
   nameConfig,
 
-  NameConfig,
+  NameConfig (..),
   defaultNameConfig,
-
-  {- field labels of 'NameConfig' type.
-     To avoid haddock bug ( https://github.com/haskell/haddock/issues/456 ),
-     they are not listed in NameConfig ( ... ). -}
-  recordConfig,
-  relationVarName,
 
   ProductUnitSupport (..), SchemaNameMode (..), IdentifierQuotation (..),
   ) where
