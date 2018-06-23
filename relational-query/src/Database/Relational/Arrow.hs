@@ -48,6 +48,7 @@ module Database.Relational.Arrow (
   assign,
 
   update', update, updateNoPH,
+  updateAllColumn', updateAllColumn, updateAllColumnNoPH,
   insertValue', insertValue, insertValueNoPH,
   delete', delete, deleteNoPH,
 
@@ -82,6 +83,7 @@ import Database.Relational hiding
    groupBy', key, key', set, bkey, rollup, cube, groupingSets,
    orderBy', orderBy, asc, desc, partitionBy, over,
    update', update, updateNoPH, derivedUpdate', derivedUpdate,
+   updateAllColumn', updateAllColumn, updateAllColumnNoPH,
    insertValue', insertValue, insertValueNoPH, derivedInsertValue', derivedInsertValue,
    delete', delete, deleteNoPH, derivedDelete', derivedDelete,
    QuerySimple, QueryAggregate, QueryUnique, Window, Register)
@@ -435,6 +437,28 @@ update = Monadic.update . runQueryA
 --   Make 'Update' from assigning statement arrow.
 updateNoPH :: TableDerivable r => AssignStatement r () -> Update ()
 updateNoPH = Monadic.updateNoPH . runQueryA
+
+-- | Same as 'Monadic.updateAllColumn''.
+--   Make 'Update' from restrected statement arrow.
+updateAllColumn' :: (PersistableWidth r, TableDerivable r)
+                 => Config
+                 -> RestrictedStatement r (PlaceHolders p)
+                 -> Update (r, p)
+updateAllColumn' config = Monadic.updateAllColumn' config . runQueryA
+
+-- | Same as 'Monadic.updateAllColumn'.
+--   Make 'Update' from restrected statement arrow.
+updateAllColumn :: (PersistableWidth r, TableDerivable r)
+                => RestrictedStatement r (PlaceHolders p)
+                -> Update (r, p)
+updateAllColumn = Monadic.updateAllColumn . runQueryA
+
+-- | Same as 'Monadic.updateAllColumnNoPH'.
+--   Make 'Update' from restrected statement arrow.
+updateAllColumnNoPH :: (PersistableWidth r, TableDerivable r)
+                    => RestrictedStatement r ()
+                    -> Update r
+updateAllColumnNoPH = Monadic.updateAllColumnNoPH . runQueryA
 
 -- | Same as 'Monadic.insertValue''.
 --   Make 'Insert' from register arrow using configuration.
