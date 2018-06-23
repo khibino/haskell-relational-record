@@ -75,9 +75,8 @@ all'X = relation $ do
   return $ a ! intA0'
 
 assignX :: Update ()
-assignX = update $ \_proj -> do
+assignX = updateNoPH $ \_proj ->
   intA0' <-# value (0 :: Int32)
-  return unitPlaceHolder
 
 registerX :: Insert (String, Maybe String)
 registerX = insertValue $ do
@@ -634,15 +633,13 @@ updateKeyX :: KeyUpdate Int32 SetA
 updateKeyX =  primaryUpdate tableOfSetA
 
 updateX :: Update ()
-updateX =  update $ \proj -> do
+updateX =  updateNoPH $ \proj -> do
   strA2' <-# value "X"
   wheres $ proj ! strA1' .=. value "A"
-  return unitPlaceHolder
 
 deleteX :: Delete ()
-deleteX =  delete $ \proj -> do
+deleteX =  deleteNoPH $ \proj ->
   wheres $ proj ! strA1' .=. value "A"
-  return unitPlaceHolder
 
 effs :: [Test]
 effs =
@@ -665,42 +662,38 @@ effs =
   ]
 
 updateExistsX :: Update ()
-updateExistsX = update $ \proj -> do
+updateExistsX = updateNoPH $ \proj -> do
   strA2' <-# value "X"
   wheres . exists
     =<< (queryList . relation $ do
             b <- query setB
             wheres $ b ! intB0' .=. proj ! intA0'
             return b)
-  return unitPlaceHolder
 
 updateScalarX :: Update ()
-updateScalarX = update $ \proj -> do
+updateScalarX = updateNoPH $ \proj -> do
   strA2' <-# value "X"
   sb <- queryScalar . unsafeUnique . relation $ do
     b <- query setB
     wheres $ b ! intB0' .=. value 0
     return $ b ! intB0'
   wheres $ just (proj ! intA0') .=. sb
-  return unitPlaceHolder
 
 deleteExistsX :: Delete ()
-deleteExistsX =  delete $ \proj -> do
+deleteExistsX =  deleteNoPH $ \proj ->
   wheres . exists
     =<< (queryList . relation $ do
             b <- query setB
             wheres $ b ! intB0' .=. proj ! intA0'
             return b)
-  return unitPlaceHolder
 
 deleteScalarX :: Delete ()
-deleteScalarX = delete $ \proj -> do
+deleteScalarX = deleteNoPH $ \proj -> do
   sb <- queryScalar . unsafeUnique . relation $ do
     b <- query setB
     wheres $ b ! intB0' .=. value 0
     return $ b ! intB0'
   wheres $ just (proj ! intA0') .=. sb
-  return unitPlaceHolder
 
 correlated :: [Test]
 correlated =

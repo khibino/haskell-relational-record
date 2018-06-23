@@ -75,9 +75,8 @@ all'X = relation $ proc () -> do
   returnA -< a ! intA0'
 
 assignX :: Update ()
-assignX = update $ proc _proj -> do
+assignX = updateNoPH $ proc _proj ->
   assign intA0' -< value (0 :: Int32)
-  returnA -< unitPlaceHolder
 
 registerX :: Insert (String, Maybe String)
 registerX = insertValue $ proc () -> do
@@ -545,15 +544,13 @@ updateKeyX :: KeyUpdate Int32 SetA
 updateKeyX =  primaryUpdate tableOfSetA
 
 updateX :: Update ()
-updateX =  update $ proc proj -> do
+updateX =  updateNoPH $ proc proj -> do
   assign strA2' -< value "X"
   wheres -< proj ! strA1' .=. value "A"
-  returnA -< unitPlaceHolder
 
 deleteX :: Delete ()
-deleteX =  delete $ proc proj -> do
+deleteX =  deleteNoPH $ proc proj -> do
   wheres -< proj ! strA1' .=. value "A"
-  returnA -< unitPlaceHolder
 
 effs :: [Test]
 effs =
