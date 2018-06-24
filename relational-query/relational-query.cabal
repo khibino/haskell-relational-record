@@ -71,12 +71,6 @@ library
                        Database.Relational.Derives
                        Database.Relational.TH
 
-                       -- definitions and namespaces compatible with <= 0.9
-                       Database.Relational.Compat
-                       Database.Relational.Query
-                       Database.Relational.Query.Arrow
-                       Database.Relational.Query.TH
-
                        -- for GHC version equal or more than 8.0
                        Database.Relational.OverloadedProjection
                        Database.Relational.OverloadedInstances
