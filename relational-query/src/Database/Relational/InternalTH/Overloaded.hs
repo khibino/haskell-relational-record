@@ -95,13 +95,10 @@ tupleProjection :: Int -> Q [Dec]
 tupleProjection n = do
     p <- polymorphicProjections tyRec avs ["fst", "snd"] cts
     q <- polymorphicProjections tyRec avs sels cts
-    r <- polymorphicProjections tyRec avs oldSels cts -- DEPRECATED. drop in 0.12.0
-    return $ p ++ q ++ r
+    return $ p ++ q
   where
     sels = [ "pi" ++ show i
            | i <- [ 0 .. n - 1] ]
-    oldSels = [ "tuplePi" ++ show n ++ "_" ++ show i
-              | i <- [ 0 .. n - 1] ]
     ((avs, cts), tyRec) = tupleN
     tupleN :: (([Name], [TypeQ]), TypeQ)
     --- same as tupleN of InternalTH.Base, merge after dropping GHC 7.x
