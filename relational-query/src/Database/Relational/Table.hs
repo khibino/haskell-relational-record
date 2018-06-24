@@ -11,7 +11,6 @@
 module Database.Relational.Table (
   -- * Phantom typed table type
   Table, untype, name, shortName, width, columns, index, table, toMaybe, recordWidth,
-  unType,
 
   toSubQuery,
 
@@ -36,11 +35,6 @@ newtype Table r = Table Untyped
 -- | Untype table.
 untype :: Table t -> Untyped
 untype (Table u) = u
-
-{-# DEPRECATED unType "Use untype instead of this." #-}
--- | Deprecated. use 'untype'.
-unType :: Table t -> Untyped
-unType = untype
 
 -- | Name string of table in SQL
 name :: Table r -> String
