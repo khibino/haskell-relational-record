@@ -70,10 +70,10 @@ library
                        Database.Relational.Type
                        Database.Relational.Derives
                        Database.Relational.TH
-
                        -- for GHC version equal or more than 8.0
                        Database.Relational.OverloadedProjection
                        Database.Relational.OverloadedInstances
+                       Database.Relational.Experiment
 
   other-modules:
                        Database.Relational.Internal.ContextType
@@ -104,6 +104,9 @@ library
                        , dlist
                        , template-haskell
                        , th-reify-compat
+                       , extensible >= 0.4
+                       , indexed >= 0.1
+                       , indexed-extras >= 0.2
                        , product-isomorphic >= 0.0.3
                        , sql-words >=0.1.5
                        , names-th
