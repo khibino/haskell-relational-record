@@ -107,93 +107,6 @@ runQueryM cfg params action = (show . HRR.relationalQuery . HRR.unsafeTypeRelati
   (>>) :: Monad m => m a -> m b -> m b
   (>>) = (Prelude.>>)
 
-{-
--- | Simple (not-aggregated) query monad type.
-type QuerySimple = Orderings Flat QueryCore
-
--- | Simple (not-aggregated) query type. 'SimpleQuery'' p r == 'QuerySimple' ('PlaceHolders' p, 'Record' r).
-type SimpleQuery p r = OrderedQuery Flat QueryCore p r
-
--- | Type to accumulate ordering context.
---   Type 'c' is ordering term record context type.
-newtype Orderings c m a =
-  Orderings (WriterT (DList OrderingTerm) m a)
-  deriving (MonadTrans, Monad, Functor, Applicative)
-
--- | OrderedQuery monad type with placeholder type 'p'. Record must be the same as 'Orderings' context type parameter 'c'.
-type OrderedQuery c m p r = Orderings c m (PlaceHolders p, Record c r)
-
--- | Run 'Orderings' to get 'OrderingTerms'
-extractOrderingTerms :: (Monad m, Functor m) => Orderings c m a -> m (a, [OrderingTerm])
-extractOrderingTerms (Orderings oc) = second toList <$> runWriterT oc
-
--- | Lift to 'Orderings'.
-orderings :: Monad m => m a -> Orderings c m a
-orderings =  lift
-
-extract :: SimpleQuery p r
-        -> ConfigureQuery (((((PlaceHolders p, Record Flat r), [OrderingTerm]), [Predicate Flat]),
-                           JoinProduct), Duplication)
-extract =  extractCore . extractOrderingTerms
-
--- | Run 'SimpleQuery' to get 'SubQuery' with 'Qualify' computation.
-toSubQuery :: SimpleQuery p r        -- ^ 'SimpleQuery'' to run
-           -> ConfigureQuery SubQuery -- ^ Result 'SubQuery' with 'Qualify' computation
-toSubQuery q = do
-   (((((_ph, pj), ot), rs), pd), da) <- extract q
-   c <- askConfig
-   return $ flatSubQuery c (Record.untype pj) da pd rs ot
-
-
--- | Finalize 'QuerySimple' monad and generate 'Relation' with place-holder parameter 'p'.
-relation' :: SimpleQuery p r -> Relation p r
-relation' =  unsafeTypeRelation . Simple.toSubQuery
-
--- | Finalize 'QuerySimple' monad and generate 'Relation'.
-relation :: QuerySimple (Record Flat r) -> Relation () r
-relation =  relation' . addUnitPH
-
--- | Relation type with place-holder parameter 'p' and query result type 'r'.
-newtype Relation p r = SubQuery (ConfigureQuery SubQuery)
-
--- | Unsafely type qualified subquery into record typed relation type.
-unsafeTypeRelation :: ConfigureQuery SubQuery -> Relation p r
-unsafeTypeRelation = SubQuery
-
--- | Sub-query Qualify monad from relation.
-untypeRelation :: Relation p r -> ConfigureQuery SubQuery
-untypeRelation (SubQuery qsub) = qsub
-
--- | Generate SQL string from 'Relation' with configuration.
-sqlFromRelationWith :: Relation p r -> Config -> StringSQL
-sqlFromRelationWith =  configureQuery . (showSQL <$>) . untypeRelation
-
-
--- | Query type with place-holder parameter 'p' and query result type 'a'.
-newtype Query p a = Query { untypeQuery :: String }
-
--- | Unsafely make typed 'Query' from SQL string.
-unsafeTypedQuery :: String    -- ^ Query SQL to type
-                 -> Query p a -- ^ Typed result
-unsafeTypedQuery =  Query
-
--- | Show query SQL string
-instance Show (Query p a) where
-  show = untypeQuery
-
--- | From 'Relation' into untyped SQL query string.
-relationalQuerySQL :: Config -> Relation p r -> QuerySuffix -> String
-relationalQuerySQL config rel qsuf = showStringSQL $ sqlFromRelationWith rel config <> showsQuerySuffix qsuf
-
--- | From 'Relation' into typed 'Query' with suffix SQL words.
-relationalQuery' :: Relation p r -> QuerySuffix -> Query p r
-relationalQuery' rel qsuf = unsafeTypedQuery $ relationalQuerySQL defaultConfig rel qsuf
-
--- | From 'Relation' into typed 'Query'.
-relationalQuery :: Relation p r -> Query p r
-relationalQuery =  (`relationalQuery'` [])
--}
-
 
 singlePlaceholderValue :: Show a => a -> PlaceHolderValues
 singlePlaceholderValue = PlaceHolderValues . DL.singleton . show
@@ -202,31 +115,6 @@ singlePlaceholderValue = PlaceHolderValues . DL.singleton . show
 unsafeAppendValue
   :: (Monad m, Show a) => a -> Placeholders m (Record xs) (Record xs) ()
 unsafeAppendValue = Placeholders . ilift . tell . singlePlaceholderValue
-
-{-
--- | Provide scoped placeholder from width and return its parameter object.
-pwPlaceholder :: SqlContext c
-              => PersistableRecordWidth a
-              -> (Record c a -> b)
-              -> (PlaceHolders a, b)
-pwPlaceholder pw f = (PlaceHolders, f $ projectPlaceHolder pw)
-  where
-    projectPlaceHolder :: SqlContext c
-                       => PersistableRecordWidth a
-                       -> Record c a
-    projectPlaceHolder = unsafeProjectSqlTerms . (`replicate` "?") . runPersistableRecordWidth
-
--- | Provide scoped placeholder and return its parameter object.
-placeholder' :: (PersistableWidth t, SqlContext c) => (Record c t -> a) ->  (PlaceHolders t, a)
-placeholder' = pwPlaceholder persistableWidth
-
--- | Provide scoped placeholder and return its parameter object. Monadic version.
-placeholder :: (PersistableWidth t, SqlContext c, Monad m) => (Record c t -> m a) -> m (PlaceHolders t, a)
-placeholder f = do
-  let (ph, ma) = placeholder' f
-  a <- ma
-  return (ph, a)
--}
 
 
 ph
