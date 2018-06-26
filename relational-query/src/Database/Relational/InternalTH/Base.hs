@@ -40,7 +40,7 @@ tupleN n = ((ns, vs), foldl' appT (tupleT n) vs)
     ns = [ mkName $ "a" ++ show j | j <- [1 .. n] ]
     vs = map varT ns
 
--- | Make template of 'ShowConstantTermsSQL' instance of tuple type.
+-- | Make template of 'LiteralSQL' instance of tuple type.
 defineTupleShowLiteralInstance :: Int -> Q [Dec]
 defineTupleShowLiteralInstance n = do
   let ((_, vs), tty)  =  tupleN n
