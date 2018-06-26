@@ -86,7 +86,7 @@ import Database.Record.TH
 import qualified Database.Record.TH as Record
 
 import Database.Relational
-  (Table, Pi, id', Relation, ShowConstantTermsSQL,
+  (Table, Pi, id', Relation, LiteralSQL,
    NameConfig (..), SchemaNameMode (..), IdentifierQuotation (..), defaultConfig,
    Config (normalizedTableName, disableOverloadedProjection, disableSpecializedProjection,
            schemaNameMode, nameConfig, identifierQuotation),
@@ -329,7 +329,7 @@ defineTableTypesAndRecord config schema table columns derives = do
   let recConfig = recordConfig $ nameConfig config
   recD    <- defineRecordTypeWithConfig recConfig schema table columns derives
   rconD   <- defineProductConstructorInstanceWithConfig config schema table [t | (_, t) <- columns]
-  ctD     <- [d| instance ShowConstantTermsSQL $(fst $ recordTemplate recConfig schema table) |]
+  ctD     <- [d| instance LiteralSQL $(fst $ recordTemplate recConfig schema table) |]
   tableDs <- defineTableTypesWithConfig config schema table columns
   return $ recD ++ rconD ++ ctD ++ tableDs
 
@@ -494,8 +494,8 @@ makeRelationalRecordDefault' config recTypeName = do
         return $ cols ++ ovls
 
   pc <- defineProductConstructor recTypeName
-  let scPred v = classP ''ShowConstantTermsSQL [varT v]
-  ct <- instanceD (mapM scPred vars) (appT [t| ShowConstantTermsSQL |] tyCon) []
+  let scPred v = classP ''LiteralSQL [varT v]
+  ct <- instanceD (mapM scPred vars) (appT [t| LiteralSQL |] tyCon) []
   return $ concat [pw, cols, pc, [ct]]
 
 -- | Generate all templates against defined record like type constructor

@@ -37,7 +37,7 @@ import Database.Record.Persistable
 
 import Database.Relational.Internal.String (StringSQL, stringSQL, boolSQL)
 
-import Database.Relational.ProjectableClass (ShowConstantTermsSQL (..))
+import Database.Relational.ProjectableClass (LiteralSQL (..))
 
 
 -- | Constant integral SQL terms.
@@ -59,56 +59,56 @@ stringTermsSQL :: String -> DList StringSQL
 stringTermsSQL = pure . stringExprSQL
 
 -- | Constant SQL terms of '()'.
-instance ShowConstantTermsSQL ()
+instance LiteralSQL ()
 
 -- | Constant SQL terms of 'Int8'.
-instance ShowConstantTermsSQL Int8 where
-  showConstantTermsSQL' = intTermsSQL
+instance LiteralSQL Int8 where
+  showLiteral' = intTermsSQL
 
 -- | Constant SQL terms of 'Int16'.
-instance ShowConstantTermsSQL Int16 where
-  showConstantTermsSQL' = intTermsSQL
+instance LiteralSQL Int16 where
+  showLiteral' = intTermsSQL
 
 -- | Constant SQL terms of 'Int32'.
-instance ShowConstantTermsSQL Int32 where
-  showConstantTermsSQL' = intTermsSQL
+instance LiteralSQL Int32 where
+  showLiteral' = intTermsSQL
 
 -- | Constant SQL terms of 'Int64'.
-instance ShowConstantTermsSQL Int64 where
-  showConstantTermsSQL' = intTermsSQL
+instance LiteralSQL Int64 where
+  showLiteral' = intTermsSQL
 
 -- | Constant SQL terms of 'Int'.
 --   Use this carefully, because this is architecture dependent size of integer type.
-instance ShowConstantTermsSQL Int where
-  showConstantTermsSQL' = intTermsSQL
+instance LiteralSQL Int where
+  showLiteral' = intTermsSQL
 
 -- | Constant SQL terms of 'String'.
-instance ShowConstantTermsSQL String where
-  showConstantTermsSQL' = stringTermsSQL
+instance LiteralSQL String where
+  showLiteral' = stringTermsSQL
 
 -- | Constant SQL terms of 'ByteString'.
-instance ShowConstantTermsSQL ByteString where
-  showConstantTermsSQL' = stringTermsSQL . T.unpack . T.decodeUtf8
+instance LiteralSQL ByteString where
+  showLiteral' = stringTermsSQL . T.unpack . T.decodeUtf8
 
 -- | Constant SQL terms of 'LB.ByteString'.
-instance ShowConstantTermsSQL LB.ByteString where
-  showConstantTermsSQL' = stringTermsSQL . LT.unpack . LT.decodeUtf8
+instance LiteralSQL LB.ByteString where
+  showLiteral' = stringTermsSQL . LT.unpack . LT.decodeUtf8
 
 -- | Constant SQL terms of 'Text'.
-instance ShowConstantTermsSQL Text where
-  showConstantTermsSQL' = stringTermsSQL . T.unpack
+instance LiteralSQL Text where
+  showLiteral' = stringTermsSQL . T.unpack
 
 -- | Constant SQL terms of 'LT.Text'.
-instance ShowConstantTermsSQL LT.Text where
-  showConstantTermsSQL' = stringTermsSQL . LT.unpack
+instance LiteralSQL LT.Text where
+  showLiteral' = stringTermsSQL . LT.unpack
 
 -- | Constant SQL terms of 'Char'.
-instance ShowConstantTermsSQL Char where
-  showConstantTermsSQL' = stringTermsSQL . (:"")
+instance LiteralSQL Char where
+  showLiteral' = stringTermsSQL . (:"")
 
 -- | Constant SQL terms of 'Bool'.
-instance ShowConstantTermsSQL Bool where
-  showConstantTermsSQL' = pure . boolSQL
+instance LiteralSQL Bool where
+  showLiteral' = pure . boolSQL
 
 floatTerms :: (PrintfArg a, Ord a, Num a)=> a -> DList StringSQL
 floatTerms f = pure . stringSQL $ printf fmt f  where
@@ -117,44 +117,44 @@ floatTerms f = pure . stringSQL $ printf fmt f  where
     | otherwise = "(%f)"
 
 -- | Constant SQL terms of 'Float'. Caution for floating-point error rate.
-instance ShowConstantTermsSQL Float where
-  showConstantTermsSQL' = floatTerms
+instance LiteralSQL Float where
+  showLiteral' = floatTerms
 
 -- | Constant SQL terms of 'Double'. Caution for floating-point error rate.
-instance ShowConstantTermsSQL Double where
-  showConstantTermsSQL' = floatTerms
+instance LiteralSQL Double where
+  showLiteral' = floatTerms
 
 constantTimeTerms :: FormatTime t => Keyword -> String -> t -> DList StringSQL
 constantTimeTerms kw fmt t = pure $ kw <> stringExprSQL (formatTime defaultTimeLocale fmt t)
 
 -- | Constant SQL terms of 'Day'.
-instance ShowConstantTermsSQL Day where
-  showConstantTermsSQL' = constantTimeTerms DATE "%Y-%m-%d"
+instance LiteralSQL Day where
+  showLiteral' = constantTimeTerms DATE "%Y-%m-%d"
 
 -- | Constant SQL terms of 'TimeOfDay'.
-instance ShowConstantTermsSQL TimeOfDay where
-  showConstantTermsSQL' = constantTimeTerms TIME "%H:%M:%S"
+instance LiteralSQL TimeOfDay where
+  showLiteral' = constantTimeTerms TIME "%H:%M:%S"
 
 -- | Constant SQL terms of 'LocalTime'.
-instance ShowConstantTermsSQL LocalTime where
-  showConstantTermsSQL' = constantTimeTerms TIMESTAMP "%Y-%m-%d %H:%M:%S"
+instance LiteralSQL LocalTime where
+  showLiteral' = constantTimeTerms TIMESTAMP "%Y-%m-%d %H:%M:%S"
 
 -- | Constant SQL terms of 'ZonedTime'.
 --   This generates ***NOT STANDARD*** SQL of TIMESTAMPTZ literal.
-instance ShowConstantTermsSQL ZonedTime where
-  showConstantTermsSQL' = constantTimeTerms TIMESTAMPTZ "%Y-%m-%d %H:%M:%S%z"
+instance LiteralSQL ZonedTime where
+  showLiteral' = constantTimeTerms TIMESTAMPTZ "%Y-%m-%d %H:%M:%S%z"
 
 -- | Constant SQL terms of 'UTCTime'.
 --   This generates ***NOT STANDARD*** SQL of TIMESTAMPTZ literal with UTC timezone.
-instance ShowConstantTermsSQL UTCTime where
-  showConstantTermsSQL' = constantTimeTerms TIMESTAMPTZ "%Y-%m-%d %H:%M:%S%z"
+instance LiteralSQL UTCTime where
+  showLiteral' = constantTimeTerms TIMESTAMPTZ "%Y-%m-%d %H:%M:%S%z"
 
-showMaybeTerms :: ShowConstantTermsSQL a => PersistableRecordWidth a -> Maybe a -> DList StringSQL
+showMaybeTerms :: LiteralSQL a => PersistableRecordWidth a -> Maybe a -> DList StringSQL
 showMaybeTerms wa = d  where
-  d (Just a) = showConstantTermsSQL' a
+  d (Just a) = showLiteral' a
   d Nothing  = fromList . replicate (runPersistableRecordWidth wa) $ stringSQL "NULL"
 
 -- | Constant SQL terms of 'Maybe' type. Width inference is required.
-instance (PersistableWidth a, ShowConstantTermsSQL a)
-         => ShowConstantTermsSQL (Maybe a) where
-  showConstantTermsSQL' = showMaybeTerms persistableWidth
+instance (PersistableWidth a, LiteralSQL a)
+         => LiteralSQL (Maybe a) where
+  showLiteral' = showMaybeTerms persistableWidth

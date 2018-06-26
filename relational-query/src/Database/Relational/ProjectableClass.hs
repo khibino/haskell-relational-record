@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE ConstraintKinds #-}
 
 -- |
 -- Module      : Database.Relational.ProjectableClass
@@ -15,9 +16,11 @@
 -- direct product projections.
 module Database.Relational.ProjectableClass (
   -- * Literal SQL terms
-  ShowConstantTermsSQL (..), showConstantTermsSQL,
+  LiteralSQL (..), showLiteral,
   StringSQL,
 
+  -- * Deprecated.
+  ShowConstantTermsSQL, showConstantTermsSQL', showConstantTermsSQL,
   ) where
 
 import GHC.Generics (Generic, Rep, U1 (..), K1 (..), M1 (..), (:*:)(..), from)
@@ -27,18 +30,18 @@ import Data.DList (DList, toList)
 import Database.Relational.Internal.String (StringSQL)
 
 
--- | Convert from haskell record to SQL terms list.
-showConstantTermsSQL :: ShowConstantTermsSQL a
-                     => a
-                     -> [StringSQL]
-showConstantTermsSQL = toList . showConstantTermsSQL'
+-- | Convert from haskell record to SQL literal row-value.
+showLiteral :: LiteralSQL a
+            => a
+            -> [StringSQL]
+showLiteral = toList . showLiteral'
 
 {- |
-'ShowConstantTermsSQL' 'a' is implicit rule to derive function to convert
-from haskell record type 'a' into constant SQL terms.
+'LiteralSQL' 'a' is implicit rule to derive function to convert
+from haskell record type 'a' into SQL literal row-value.
 
 Generic programming (<https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/glasgow_exts.html#generic-programming>)
-with default signature is available for 'ShowConstantTermsSQL' class,
+with default signature is available for 'LiteralSQL' class,
 so you can make instance like below:
 
 @
@@ -46,28 +49,45 @@ so you can make instance like below:
   import GHC.Generics (Generic)
   --
   data Foo = Foo { ... } deriving Generic
-  instance ShowConstantTermsSQL Foo
+  instance LiteralSQL Foo
 @
 
 -}
-class ShowConstantTermsSQL a where
-  showConstantTermsSQL' :: a -> DList StringSQL
+class LiteralSQL a where
+  showLiteral' :: a -> DList StringSQL
 
-  default showConstantTermsSQL' :: (Generic a, GShowConstantTermsSQL (Rep a)) => a -> DList StringSQL
-  showConstantTermsSQL' = gShowConstantTermsSQL . from
+  default showLiteral' :: (Generic a, GLiteralSQL (Rep a)) => a -> DList StringSQL
+  showLiteral' = gShowLiteral . from
 
-class GShowConstantTermsSQL f where
-  gShowConstantTermsSQL :: f a -> DList StringSQL
+class GLiteralSQL f where
+  gShowLiteral :: f a -> DList StringSQL
 
-instance GShowConstantTermsSQL U1 where
-  gShowConstantTermsSQL U1 = mempty
+instance GLiteralSQL U1 where
+  gShowLiteral U1 = mempty
 
-instance (GShowConstantTermsSQL a, GShowConstantTermsSQL b) =>
-         GShowConstantTermsSQL (a :*: b) where
-  gShowConstantTermsSQL (a :*: b) = gShowConstantTermsSQL a <> gShowConstantTermsSQL b
+instance (GLiteralSQL a, GLiteralSQL b) =>
+         GLiteralSQL (a :*: b) where
+  gShowLiteral (a :*: b) = gShowLiteral a <> gShowLiteral b
 
-instance GShowConstantTermsSQL a => GShowConstantTermsSQL (M1 i c a) where
-  gShowConstantTermsSQL (M1 a) = gShowConstantTermsSQL a
+instance GLiteralSQL a => GLiteralSQL (M1 i c a) where
+  gShowLiteral (M1 a) = gShowLiteral a
 
-instance ShowConstantTermsSQL a => GShowConstantTermsSQL (K1 i a) where
-  gShowConstantTermsSQL (K1 a) = showConstantTermsSQL' a
+instance ShowConstantTermsSQL a => GLiteralSQL (K1 i a) where
+  gShowLiteral (K1 a) = showLiteral' a
+
+---
+
+{-# DEPRECATED ShowConstantTermsSQL "Use `LiteralSQL` instead of this." #-}
+-- | Deprecated.
+type ShowConstantTermsSQL = LiteralSQL
+
+{-# DEPRECATED showConstantTermsSQL' "Use `showLiteral'` instead of this." #-}
+showConstantTermsSQL' :: ShowConstantTermsSQL a => a -> DList StringSQL
+showConstantTermsSQL' = showLiteral'
+
+{-# DEPRECATED showConstantTermsSQL "Use `showLiteral` instead of this." #-}
+-- | Deprecated.
+showConstantTermsSQL :: ShowConstantTermsSQL a
+                     => a
+                     -> [StringSQL]
+showConstantTermsSQL = toList . showConstantTermsSQL'

@@ -22,11 +22,11 @@ import Database.Record (PersistableWidth)
 
 import Database.Relational.Pi (Pi)
 import Database.Relational.InternalTH.Base
-  (defineTuplePi, defineTupleShowConstantInstance,)
+  (defineTuplePi, defineTupleShowLiteralInstance,)
 
 
 $(concat <$> mapM defineTuplePi [2..7])
-$(concat <$> mapM defineTupleShowConstantInstance [2..7])
+$(concat <$> mapM defineTupleShowLiteralInstance [2..7])
 -- Generic instances of tuple types are generated from 2 to 7 in GHC.Generics.
 
 -- | Projection path for fst of tuple.

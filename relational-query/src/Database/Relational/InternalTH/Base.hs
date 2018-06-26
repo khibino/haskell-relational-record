@@ -13,7 +13,7 @@
 --
 -- This module defines templates for internally using.
 module Database.Relational.InternalTH.Base (
-  defineTupleShowConstantInstance,
+  defineTupleShowLiteralInstance,
   defineTuplePi,
 
   defineRecordProjections,
@@ -30,7 +30,7 @@ import Database.Record.Persistable
   (PersistableWidth, persistableWidth,
    PersistableRecordWidth, runPersistableRecordWidth)
 
-import Database.Relational.ProjectableClass (ShowConstantTermsSQL (..))
+import Database.Relational.ProjectableClass (LiteralSQL (..))
 import Database.Relational.Pi.Unsafe (Pi, definePi)
 
 
@@ -41,13 +41,13 @@ tupleN n = ((ns, vs), foldl' appT (tupleT n) vs)
     vs = map varT ns
 
 -- | Make template of 'ShowConstantTermsSQL' instance of tuple type.
-defineTupleShowConstantInstance :: Int -> Q [Dec]
-defineTupleShowConstantInstance n = do
+defineTupleShowLiteralInstance :: Int -> Q [Dec]
+defineTupleShowLiteralInstance n = do
   let ((_, vs), tty)  =  tupleN n
   (:[]) <$> instanceD
     -- in template-haskell 2.8 or older, Pred is not Type
-    (mapM (classP ''ShowConstantTermsSQL . (:[])) vs)
-    [t| ShowConstantTermsSQL $tty |]
+    (mapM (classP ''LiteralSQL . (:[])) vs)
+    [t| LiteralSQL $tty |]
     []
 
 -- | Make polymorphic projection templates.
