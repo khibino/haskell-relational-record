@@ -99,7 +99,7 @@ import Database.Relational.Pure ()
 import Database.Relational.TupleInstances ()
 import Database.Relational.Pi (Pi)
 import Database.Relational.ProjectableClass
-  (ShowConstantTermsSQL, showConstantTermsSQL, )
+  (LiteralSQL, showLiteral, )
 import Database.Relational.Record (RecordList)
 import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable.Unsafe
@@ -124,8 +124,8 @@ nothing = proxyWidth persistableWidth
     proxyWidth w = unsafeProjectSqlTerms $ replicate (runPersistableRecordWidth w) SQL.NULL
 
 -- | Generate record with polymorphic type of SQL constant values from Haskell value.
-value :: (ShowConstantTermsSQL t, OperatorContext c) => t -> Record c t
-value = unsafeProjectSqlTerms . showConstantTermsSQL
+value :: (LiteralSQL t, OperatorContext c) => t -> Record c t
+value = unsafeProjectSqlTerms . showLiteral
 
 -- | Record with polymorphic type of SQL true value.
 valueTrue  :: OperatorContext c => Record c (Maybe Bool)
@@ -136,7 +136,7 @@ valueFalse :: OperatorContext c => Record c (Maybe Bool)
 valueFalse =  just $ value False
 
 -- | RecordList with polymorphic type of SQL set value from Haskell list.
-values :: (ShowConstantTermsSQL t, OperatorContext c) => [t] -> RecordList (Record c) t
+values :: (LiteralSQL t, OperatorContext c) => [t] -> RecordList (Record c) t
 values =  Record.list . map value
 
 
@@ -259,12 +259,12 @@ likeMaybe' :: (OperatorContext c, IsString a)
 x `likeMaybe'` y = x `unsafeLike` y
 
 -- | String-compare operator corresponding SQL /LIKE/ .
-like :: (OperatorContext c, IsString a, ShowConstantTermsSQL a)
+like :: (OperatorContext c, IsString a, LiteralSQL a)
        => Record c a -> a -> Record c (Maybe Bool)
 x `like` a = x `like'` value a
 
 -- | String-compare operator corresponding SQL /LIKE/ . Maybe type version.
-likeMaybe :: (OperatorContext c, IsString a, ShowConstantTermsSQL a)
+likeMaybe :: (OperatorContext c, IsString a, LiteralSQL a)
           => Record c (Maybe a) -> a -> Record c (Maybe Bool)
 x `likeMaybe` a = x `unsafeLike` value a
 

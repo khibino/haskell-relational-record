@@ -46,7 +46,7 @@ import qualified Database.Relational.Pi.Unsafe as Pi
 import Database.Relational.Table (Table, TableDerivable, derivedTable)
 import qualified Database.Relational.Table as Table
 import qualified Database.Relational.Record as Record
-import Database.Relational.ProjectableClass (ShowConstantTermsSQL)
+import Database.Relational.ProjectableClass (LiteralSQL)
 import Database.Relational.Projectable
   (PlaceHolders, unitPH, pwPlaceholder, placeholder, (><), value, )
 import Database.Relational.Monad.Trans.Assigning (assignings, (<-#))
@@ -194,7 +194,7 @@ sqlFromInsertTarget :: Config -> Table r -> InsertTarget p r -> StringSQL
 sqlFromInsertTarget config = sqlChunkFromInsertTarget' config 1
 
 -- | Make 'StringSQL' strings of SQL INSERT strings from records list
-sqlChunksFromRecordList :: ShowConstantTermsSQL r'
+sqlChunksFromRecordList :: LiteralSQL r'
                         => Config
                         -> Table r
                         -> Pi r r'

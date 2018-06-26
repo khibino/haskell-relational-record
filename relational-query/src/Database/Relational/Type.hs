@@ -77,7 +77,7 @@ import Database.Relational.Effect
    sqlChunkFromInsertTarget, sqlFromInsertTarget, sqlChunksFromRecordList)
 import Database.Relational.Pi (Pi)
 import Database.Relational.Table (Table, TableDerivable, derivedTable)
-import Database.Relational.ProjectableClass (ShowConstantTermsSQL)
+import Database.Relational.ProjectableClass (LiteralSQL)
 import Database.Relational.Projectable (PlaceHolders, unitPH)
 import Database.Relational.SimpleSql
   (QuerySuffix, showsQuerySuffix, insertPrefixSQL,
@@ -337,7 +337,7 @@ derivedInsertValue :: TableDerivable r => Register r (PlaceHolders p) -> Insert 
 derivedInsertValue = insertValue
 
 -- | Make typed 'Insert' list from 'Config' and records list.
-insertValueList' :: (TableDerivable r, ShowConstantTermsSQL r')
+insertValueList' :: (TableDerivable r, LiteralSQL r')
                  => Config
                  -> Pi r r'
                  -> [r']
@@ -347,7 +347,7 @@ insertValueList' config pi' =
   . sqlChunksFromRecordList config derivedTable pi'
 
 -- | Make typed 'Insert' list from records list.
-insertValueList :: (TableDerivable r, ShowConstantTermsSQL r')
+insertValueList :: (TableDerivable r, LiteralSQL r')
                 => Pi r r'
                 -> [r']
                 -> [Insert ()]

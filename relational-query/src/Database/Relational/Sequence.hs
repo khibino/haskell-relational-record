@@ -42,7 +42,7 @@ import Database.Relational.Pi (Pi)
 import Database.Relational.Constraint
   (HasConstraintKey (..), Key, Primary, projectionKey)
 import Database.Relational.Projectable ((.<=.), value, unitPH, (!))
-import Database.Relational.ProjectableClass (ShowConstantTermsSQL)
+import Database.Relational.ProjectableClass (LiteralSQL)
 import Database.Relational.Relation (tableOf)
 import qualified Database.Relational.Relation as Relation
 import Database.Relational.Effect (updateTarget')
@@ -135,7 +135,7 @@ extractNumber (Number i) = i
 ($$) = ($$!)
 
 -- | Update statement for sequence table
-updateNumber' :: (PersistableWidth s, Integral i, ShowConstantTermsSQL i)
+updateNumber' :: (PersistableWidth s, Integral i, LiteralSQL i)
               => Config
               -> i            -- ^ sequence number to set. expect not SQL injectable.
               -> Sequence s i -- ^ sequence table
@@ -147,7 +147,7 @@ updateNumber' config i seqt = typedUpdate' config (seqTable seqt) . updateTarget
   return unitPH
 
 -- | Update statement for sequence table
-updateNumber :: (PersistableWidth s, Integral i, ShowConstantTermsSQL i)
+updateNumber :: (PersistableWidth s, Integral i, LiteralSQL i)
              => i            -- ^ sequence number to set. expect not SQL injectable.
              -> Sequence s i -- ^ sequence table
              -> Update ()
