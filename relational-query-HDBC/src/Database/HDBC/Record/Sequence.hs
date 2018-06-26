@@ -25,7 +25,7 @@ import Database.HDBC.Session (withConnectionIO)
 import Language.SQL.Keyword (Keyword (FOR, UPDATE))
 import Database.Record (FromSql, ToSql, PersistableWidth)
 import Database.Relational
-  (relationalQuery', ShowConstantTermsSQL, Relation, )
+  (relationalQuery', LiteralSQL, Relation, )
 import qualified Database.Relational as Relation
 import qualified Database.Relational.Table as Table
 import Database.HDBC.Record.Persistable ()
@@ -39,7 +39,7 @@ import qualified Database.Relational as Relational
 
 -- | Unsafely get a raw sequence number pool of specified size
 unsafePool :: (FromSql SqlValue s, PersistableWidth s,
-               ToSql SqlValue i, ShowConstantTermsSQL i,
+               ToSql SqlValue i, LiteralSQL i,
                Bounded i, Integral i, Show i, IConnection conn)
            => IO conn
            -> i
@@ -68,7 +68,7 @@ unsafePool connAct sz seqt = withConnectionIO connAct $ \conn -> do
 
 -- | Unsafely get a raw lazy pool of sequence number
 unsafeAutoPool :: (FromSql SqlValue s, PersistableWidth s,
-                   ToSql SqlValue i, ShowConstantTermsSQL i,
+                   ToSql SqlValue i, LiteralSQL i,
                    Bounded i, Integral i, Show i, IConnection conn)
                => IO conn
                -> i
@@ -82,7 +82,7 @@ unsafeAutoPool connAct sz seqt = loop  where
 
 -- | Get a sized sequence number pool corresponding proper table 'r'
 pool :: (FromSql SqlValue s, ToSql SqlValue i,
-         PersistableWidth i, ShowConstantTermsSQL i,
+         PersistableWidth i, LiteralSQL i,
          Bounded i, Integral i, Show i, IConnection conn,
          Binding r s i)
      => IO conn
@@ -96,7 +96,7 @@ pool connAct sz =
 
 -- | Get a lazy pool corresponding proper table 'r'
 autoPool :: (FromSql SqlValue s,
-             ToSql SqlValue i, ShowConstantTermsSQL i,
+             ToSql SqlValue i, LiteralSQL i,
              Bounded i, Integral i, Show i, IConnection conn,
              Binding r s i)
          => IO conn
