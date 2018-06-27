@@ -19,9 +19,6 @@ module Database.HDBC.Schema.Driver (
   Driver(Driver, typeMap, driverConfig, getFieldsWithMap, getPrimaryKey),
   emptyDriver,
   getFields,
-
-  -- * Deprecated
-  runLog, newLogChan,
   ) where
 
 import Language.Haskell.TH (TypeQ)
@@ -54,22 +51,12 @@ foldLog vf wf ef = d  where
   d (Warning m) = wf m
   d (Error m)   = ef m
 
-{-# DEPRECATED runLog "use foldLog instead of this." #-}
--- | Deprecated.
-runLog :: (String -> t) -> (String -> t) -> Log -> t
-runLog wf = foldLog wf wf
-
 -- | Channel to store compile-time warning messages.
 newtype LogChan = LogChan { chan :: IORef (DList Log) }
 
 -- | Build and return a new instance of 'LogChan'.
 emptyLogChan :: IO LogChan
 emptyLogChan = LogChan <$> newIORef mempty
-
-{-# DEPRECATED newLogChan "use emptyLogChan instead of this." #-}
--- | Deprecated.
-newLogChan :: Bool -> IO LogChan
-newLogChan _ = emptyLogChan
 
 -- | Take all logs list from channel.
 takeLogs :: LogChan -> IO [Log]
