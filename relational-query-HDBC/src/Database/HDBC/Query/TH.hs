@@ -35,7 +35,7 @@ import Data.Functor.ProductIsomorphic.TH (reifyRecordType)
 
 import Database.HDBC (IConnection, SqlValue, prepare)
 
-import Language.Haskell.TH (Q, runIO, Name, TypeQ, Dec)
+import Language.Haskell.TH (Q, runIO, Name, TypeQ, Type (AppT, ConT), Dec)
 import Language.Haskell.TH.Name.CamelCase (varCamelcaseName)
 import Language.Haskell.TH.Lib.Extra (reportWarning, reportError)
 
@@ -104,15 +104,16 @@ defineTableDefault config schema table columns derives primary notNull = do
   return $ modelD ++ sqlvD
 
 tableAlongWithSchema :: IConnection conn
-                     => IO conn     -- ^ Connect action to system catalog database
-                     -> Config      -- ^ Configuration to generate query with
-                     -> Driver conn -- ^ Driver definition
-                     -> String      -- ^ Schema name
-                     -> String      -- ^ Table name
-                     -> [Name]      -- ^ Derivings
-                     -> Q [Dec]     -- ^ Result declaration
-tableAlongWithSchema connect config drv scm tbl derives = do
-  let getDBinfo = do
+                     => IO conn           -- ^ Connect action to system catalog database
+                     -> Driver conn       -- ^ Driver definition
+                     -> String            -- ^ Schema name
+                     -> String            -- ^ Table name
+                     -> [(String, TypeQ)] -- ^ Additional column-name and column-type mapping to overwrite default
+                     -> [Name]            -- ^ Derivings
+                     -> Q [Dec]           -- ^ Result declaration
+tableAlongWithSchema connect drv scm tbl cmap derives = do
+  let config = driverConfig drv
+      getDBinfo = do
         logChan  <-  emptyLogChan
         infoP    <-  withConnectionIO connect
                      (\conn ->
@@ -140,18 +141,23 @@ tableAlongWithSchema connect config drv scm tbl derives = do
       primaryIxs = fromMaybe [] . sequence $ map snd ixLookups
   mapM_ (uncurry warnLk) ixLookups
 
-  defineTableDefault config scm tbl cols derives primaryIxs (listToMaybe notNullIdxs)
+  let liftMaybe tyQ sty = do
+        ty <- tyQ
+        case ty of
+          (AppT (ConT n) _) | n == ''Maybe  -> [t| Maybe $(sty) |]
+          _                                 -> sty
+      cols1 = [ (,) cn . maybe ty (liftMaybe ty) . Map.lookup cn $ Map.fromList cmap | (cn, ty) <- cols ]
+  defineTableDefault config scm tbl cols1 derives primaryIxs (listToMaybe notNullIdxs)
 
-{-# DEPRECATED defineTableFromDB' "Use defineTableFromDB with updated driverConfig field of Driver argument." #-}
 -- | Generate all HDBC templates using system catalog informations with specified config.
 defineTableFromDB' :: IConnection conn
-                   => IO conn     -- ^ Connect action to system catalog database
-                   -> Config      -- ^ Configuration to generate query with
-                   -> Driver conn -- ^ Driver definition
-                   -> String      -- ^ Schema name
-                   -> String      -- ^ Table name
-                   -> [Name]      -- ^ Derivings
-                   -> Q [Dec]     -- ^ Result declaration
+                   => IO conn           -- ^ Connect action to system catalog database
+                   -> Driver conn       -- ^ Driver definition
+                   -> String            -- ^ Schema name
+                   -> String            -- ^ Table name
+                   -> [(String, TypeQ)] -- ^ Additional column-name and column-type mapping to overwrite default
+                   -> [Name]            -- ^ Derivings
+                   -> Q [Dec]           -- ^ Result declaration
 defineTableFromDB' = tableAlongWithSchema
 
 -- | Generate all HDBC templates using system catalog informations.
@@ -162,7 +168,7 @@ defineTableFromDB :: IConnection conn
                   -> String      -- ^ Table name
                   -> [Name]      -- ^ Derivings
                   -> Q [Dec]     -- ^ Result declaration
-defineTableFromDB connect driver = tableAlongWithSchema connect (driverConfig driver) driver
+defineTableFromDB connect driver tbl scm = tableAlongWithSchema connect driver tbl scm []
 
 -- | Verify composed 'Query' and inline it in compile type.
 inlineVerifiedQuery :: IConnection conn
