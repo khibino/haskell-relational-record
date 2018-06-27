@@ -1,5 +1,5 @@
 name:                persistable-types-HDBC-pg
-version:             0.0.3.4
+version:             0.0.3.5
 synopsis:            HDBC and Relational-Record instances of PostgreSQL extended types
 description:         This package contains HDBC Convertible instances and
                      Relational-Record persistable instances of PostgreSQL extended types
