@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.6.8.1
+
+- apply renamed LiteralSQL class.
+
 ## 0.6.8.0
 
 - apply enableWarning flag in Config type.
