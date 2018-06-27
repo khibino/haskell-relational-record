@@ -1,5 +1,10 @@
 <!-- -*- Markdown -*- -->
 
+## 0.7.0.0
+
+- support overwriting of type-map along with column-name.
+- replace `execute` and `executeNoFetch`.
+
 ## 0.6.8.1
 
 - apply renamed LiteralSQL class.
