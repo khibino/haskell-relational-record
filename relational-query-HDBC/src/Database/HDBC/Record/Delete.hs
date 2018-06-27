@@ -23,7 +23,7 @@ import Database.Relational (Delete)
 import Database.Record (ToSql)
 
 import Database.HDBC.Record.Statement
-  (prepareNoFetch, withPrepareNoFetch, PreparedStatement, runPreparedNoFetch, runNoFetch)
+  (prepareNoFetch, withPrepareNoFetch, PreparedStatement, executeNoFetch, runNoFetch)
 
 
 -- | Typed prepared delete type.
@@ -56,7 +56,7 @@ runPreparedDelete :: ToSql SqlValue p
                   => PreparedDelete p
                   -> p
                   -> IO Integer
-runPreparedDelete =  runPreparedNoFetch
+runPreparedDelete =  executeNoFetch
 
 -- | Prepare delete statement, bind parameters,
 --   execute statement and get execution result.

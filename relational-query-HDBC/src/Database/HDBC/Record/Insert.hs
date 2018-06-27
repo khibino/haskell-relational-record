@@ -33,7 +33,7 @@ import Database.Record (ToSql, fromRecord)
 
 import Database.HDBC.Record.Statement
   (prepareNoFetch, withPrepareNoFetch, withUnsafePrepare, PreparedStatement, untypePrepared,
-   BoundStatement (..), runPreparedNoFetch, runNoFetch, mapNoFetch, executeBoundNoFetch)
+   BoundStatement (..), executeNoFetch, runNoFetch, mapNoFetch, executeBoundNoFetch)
 
 
 -- | Typed prepared insert type.
@@ -58,7 +58,7 @@ runPreparedInsert :: ToSql SqlValue a
                   => PreparedInsert a
                   -> a
                   -> IO Integer
-runPreparedInsert =  runPreparedNoFetch
+runPreparedInsert =  executeNoFetch
 
 -- | Prepare insert statement, bind parameters,
 --   execute statement and get execution result.

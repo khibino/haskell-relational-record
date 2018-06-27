@@ -23,7 +23,7 @@ import Database.Relational (Update)
 import Database.Record (ToSql)
 
 import Database.HDBC.Record.Statement
-  (prepareNoFetch, withPrepareNoFetch, PreparedStatement, runPreparedNoFetch, runNoFetch, mapNoFetch)
+  (prepareNoFetch, withPrepareNoFetch, PreparedStatement, executeNoFetch, runNoFetch, mapNoFetch)
 
 
 -- | Typed prepared update type.
@@ -56,7 +56,7 @@ runPreparedUpdate :: ToSql SqlValue p
                   => PreparedUpdate p
                   -> p
                   -> IO Integer
-runPreparedUpdate = runPreparedNoFetch
+runPreparedUpdate = executeNoFetch
 
 -- | Prepare update statement, bind parameters,
 --   execute statement and get execution result.

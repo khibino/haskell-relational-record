@@ -23,7 +23,7 @@ import Database.Relational (InsertQuery)
 import Database.Record (ToSql)
 
 import Database.HDBC.Record.Statement
-  (prepareNoFetch, withPrepareNoFetch, PreparedStatement, runPreparedNoFetch, runNoFetch)
+  (prepareNoFetch, withPrepareNoFetch, PreparedStatement, executeNoFetch, runNoFetch)
 
 -- | Typed prepared insert query type.
 type PreparedInsertQuery p = PreparedStatement p ()
@@ -55,7 +55,7 @@ runPreparedInsertQuery :: ToSql SqlValue p
                        => PreparedInsertQuery p
                        -> p
                        -> IO Integer
-runPreparedInsertQuery =  runPreparedNoFetch
+runPreparedInsertQuery =  executeNoFetch
 
 -- | Prepare insert statement, bind parameters,
 --   execute statement and get execution result.
