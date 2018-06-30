@@ -79,7 +79,7 @@ executable examples
   main-is:             examples.hs
   build-depends:       base < 5
                      , product-isomorphic >= 0.0.3
-                     , relational-query >= 0.11
+                     , relational-query >= 0.12
                      , relational-record-examples
                      , template-haskell
                      , time
@@ -98,7 +98,7 @@ executable specialized-examples
   main-is:             specializedExamples.hs
   build-depends:       base < 5
                      , product-isomorphic >= 0.0.3
-                     , relational-query >= 0.11
+                     , relational-query >= 0.12
                      , relational-record-examples
                      , template-haskell
                      , time

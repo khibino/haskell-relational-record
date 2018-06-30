@@ -175,7 +175,7 @@ employee_4_1_2 = relation $ do
   return e
 
 unsafeSQLiteDayValue :: SqlContext c => String -> Record c Day
-unsafeSQLiteDayValue = unsafeProjectSqlTerms . showConstantTermsSQL
+unsafeSQLiteDayValue = unsafeProjectSqlTerms . showLiteral
 
 -- |
 -- Another way, use a placeholder instead of a date literal.
