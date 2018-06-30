@@ -32,7 +32,7 @@ executable example
     , HDBC-mysql >=0.6 && <0.8
     , HDBC-session
     , names-th
-    , relational-query >= 0.7
+    , relational-query >= 0.10
     , relational-schemas
     , relational-query-HDBC >= 0.4
     , time
