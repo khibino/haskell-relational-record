@@ -16,7 +16,9 @@ CREATE TABLE EXAMPLE1.group (
 
 CREATE TABLE EXAMPLE1.membership (
  user_id integer NOT NULL,
- group_id integer NOT NULL
+ group_id integer NOT NULL,
+
+ PRIMARY KEY(user_id, group_id)
 );
 
 INSERT INTO EXAMPLE1.user (id, name) VALUES (1, 'Kei Hibino');
