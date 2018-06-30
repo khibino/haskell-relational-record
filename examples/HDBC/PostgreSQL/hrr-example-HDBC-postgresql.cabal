@@ -27,6 +27,7 @@ Executable example1
     build-depends:        ghc-prim == 0.2.*
 
   other-modules:
+                       PgTestDataSource
                        User
                        Group
                        Membership
@@ -53,6 +54,7 @@ Executable example1O
     build-depends:        ghc-prim == 0.2.*
 
   other-modules:
+                       PgTestDataSource
                        User
                        Group
                        Membership
@@ -77,6 +79,7 @@ Executable example1Arr
     build-depends:        ghc-prim == 0.2.*
 
   other-modules:
+                       PgTestDataSource
                        User
                        Group
                        Membership
@@ -100,6 +103,9 @@ Executable example2
   if impl(ghc == 7.4.*)
     build-depends:        ghc-prim == 0.2.*
 
+  other-modules:
+                       PgTestDataSource
+                       KeyTest
   main-is:             show.hs
   hs-source-dirs:      example/2, example
   ghc-options:         -Wall
@@ -119,6 +125,11 @@ Executable example3
   if impl(ghc == 7.4.*)
     build-depends:        ghc-prim == 0.2.*
 
+  other-modules:
+                       PgTestDataSource
+                       History
+                       SetA
+                       SetB
   main-is:             query.hs
   hs-source-dirs:      example/3, example
   ghc-options:         -Wall
@@ -138,6 +149,10 @@ Executable example4
   if impl(ghc == 7.4.*)
     build-depends:        ghc-prim == 0.2.*
 
+  other-modules:
+                       PgTestDataSource
+                       One
+                       StockGoods
   main-is:             modifyExample.hs
   hs-source-dirs:      example/4, example
   ghc-options:         -Wall
