@@ -24,7 +24,7 @@ handleConnectionIO :: IConnection conn => IO conn -> (conn -> IO a) -> IO a
 handleConnectionIO c p = handleSqlError' $ withConnectionIO c p
 
 insertOne :: Insert Int32
-insertOne = derivedInsert One.data'
+insertOne = insert One.data'
 
 runInsertList :: ToSql SqlValue a => Insert a -> [a] -> IO ()
 runInsertList q ss = handleConnectionIO connect $ \conn -> do
@@ -45,10 +45,10 @@ pine =  relation .
   return $ StockGoods |$| value 6 |*| value "Pine" |*| value 300 |*| value 3
 
 insertPine :: InsertQuery ()
-insertPine =  derivedInsertQuery id' pine
+insertPine = insertQuery id' pine
 
 insertFig :: Insert ()
-insertFig = derivedInsertValue $ do
+insertFig = insertValue $ do
   StockGoods.seq'    <-#  value 7
   StockGoods.name'   <-#  value "Fig"
   StockGoods.unit'   <-#  value 200
@@ -61,7 +61,7 @@ runInsertQuery1 ins = handleConnectionIO connect $ \conn -> do
   commit conn
 
 riseOfBanana :: Update ()
-riseOfBanana =  derivedUpdate $ \proj -> do
+riseOfBanana = update $ \proj -> do
   unit' <-# proj ! unit' .*. value 2
   wheres $ proj ! name' .=. value "Banana"
   return unitPH
@@ -71,7 +71,7 @@ newCherry :: StockGoods
 newCherry =  StockGoods 5 "Black Cherry" 190 50
 
 updateCherry :: Update (StockGoods, (Int32, String))
-updateCherry =  derivedUpdateAllColumn $ \proj -> do
+updateCherry = updateAllColumn $ \proj -> do
   (ph', ()) <- placeholder (\ph -> wheres $ proj ! (seq' >< name') .=. ph)
   return ph'
 
@@ -86,7 +86,7 @@ newOrange :: StockGoods
 newOrange =  StockGoods 2 "Orange" 150 10
 
 keyUpdateUidName :: KeyUpdate (Int32, String) StockGoods
-keyUpdateUidName =  derivedKeyUpdate $ seq' >< name'
+keyUpdateUidName = keyUpdate $ seq' >< name'
 
 runKeyUpdateAndPrint :: ToSql SqlValue a => KeyUpdate p a -> a -> IO ()
 runKeyUpdateAndPrint ku r = handleConnectionIO connect $ \conn -> do
@@ -102,7 +102,7 @@ allStock =  handleConnectionIO connect $ \conn -> do
   runQuery' conn (relationalQuery q) ()
 
 deleteStock :: Delete Int32
-deleteStock =  derivedDelete $ \proj -> do
+deleteStock = delete $ \proj -> do
   (ph', ()) <- placeholder (\ph -> wheres $ proj ! seq' .=. ph)
   return ph'
 

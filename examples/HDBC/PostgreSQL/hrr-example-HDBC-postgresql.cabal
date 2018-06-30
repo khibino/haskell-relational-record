@@ -141,7 +141,7 @@ Executable example4
                        , product-isomorphic
                        , names-th
                        , persistable-record
-                       , relational-query
+                       , relational-query >= 0.11.2
                        , HDBC
                        , HDBC-session
                        , HDBC-postgresql
