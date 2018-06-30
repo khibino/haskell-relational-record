@@ -21,3 +21,4 @@ executable hrr-oracle-example
                      , template-haskell
   hs-source-dirs: src
   default-language:    Haskell2010
+  ghc-options:       -Wall
