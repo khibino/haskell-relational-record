@@ -16,7 +16,7 @@ executable hrr-oracle-example
                      , HDBC
                      , HDBC-odbc
                      , HDBC-session
-                     , relational-query
+                     , relational-query >=0.12
                      , relational-query-HDBC
                      , template-haskell
   hs-source-dirs: src

@@ -6,7 +6,7 @@ import Control.Applicative ((<$>), pure)
 import Data.String (fromString)
 import Database.HDBC.ODBC (Connection, connectODBC)
 
-import Database.Relational (ShowConstantTermsSQL (..))
+import Database.Relational (LiteralSQL (..))
 
 data Option = Option
     { dsn :: String
@@ -37,5 +37,5 @@ getOwner :: IO String
 getOwner = owner <$> getParam
 
 
-instance ShowConstantTermsSQL Integer where
-  showConstantTermsSQL' = pure . fromString . show
+instance LiteralSQL Integer where
+  showLiteral' = pure . fromString . show
