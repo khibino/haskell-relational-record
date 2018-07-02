@@ -15,7 +15,7 @@ import Data.List (sort)
 import Data.Functor.ProductIsomorphic ((|$|), (|*|))
 
 import Database.HDBC (IConnection, rollback, SqlValue)
-import Database.HDBC.Session (withConnectionIO')
+import Database.HDBC.Session (withConnectionIO)
 import Database.Record (FromSql, ToSql)
 import Database.Relational
 import Database.HDBC.Record (runQuery', runInsert)
@@ -29,7 +29,7 @@ initializeTable :: (IConnection conn, TableDerivable a, ToSql SqlValue a)
                 => conn
                 -> [a]
                 -> IO ()
-initializeTable conn xs = mapM_ (runInsert conn $ derivedInsert id') xs
+initializeTable conn xs = mapM_ (runInsert conn $ insert id') xs
 
 propQueryResult :: (Eq a, Show a, FromSql SqlValue a, IConnection conn)
                 => IO conn
@@ -38,7 +38,7 @@ propQueryResult :: (Eq a, Show a, FromSql SqlValue a, IConnection conn)
                 -> [a]
                 -> Property
 propQueryResult connect initialize select expect =
-  morallyDubiousIOProperty . withConnectionIO' connect $ \conn -> do
+  morallyDubiousIOProperty . withConnectionIO connect $ \conn -> do
     initialize conn
     qresult  <-  runQuery' conn select ()
     let judge = qresult == expect
