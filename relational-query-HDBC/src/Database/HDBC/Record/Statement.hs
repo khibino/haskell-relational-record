@@ -82,11 +82,15 @@ prepareNoFetch :: (UntypeableNoFetch s, IConnection conn)
 prepareNoFetch conn = unsafePrepare conn . untypeNoFetch
 
 -- | Close PreparedStatement. Useful for connection pooling cases.
+--   PreparedStatement is released on closing connection,
+--   so connection pooling cases often cause resource leaks.
 finish :: PreparedStatement p a -> IO ()
 finish = HDBC.finish . prepared
 
 -- | Bracketed prepare operation.
 --   Unsafely make Typed prepared statement.
+--   PreparedStatement is released on closing connection,
+--   so connection pooling cases often cause resource leaks.
 withUnsafePrepare :: IConnection conn
                   => conn   -- ^ Database connection
                   -> String -- ^ Raw SQL String
