@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.12.0.1
+
+- Update missing of this changelog.
+
 ## 0.12.0.0
 
 - rename from ShowConstantTermsSQL to LiteralSQL.
