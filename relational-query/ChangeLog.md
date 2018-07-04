@@ -1,5 +1,11 @@
 <!-- -*- Markdown -*- -->
 
+## 0.12.0.0
+
+- rename from ShowConstantTermsSQL to LiteralSQL.
+- drop #tuplePiM_N.
+- drop old compat modules for relational-query-0.9.x.
+
 ## 0.11.4.0
 
 - add xxxNoPH effect APIs of arrow-interface.
