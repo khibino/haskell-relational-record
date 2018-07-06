@@ -14,7 +14,7 @@ cabal.sandbox.config
 *.prof
 *.aux
 *.hp
-/.stack-work/
+.stack-work/
 .idea/
 *.iml
 stack.yaml
