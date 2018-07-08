@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.7.0.1
+
+- update haddock about bracketed-prepare operations.
+
 ## 0.7.0.0
 
 - support overwriting of type-map along with column-name.
