@@ -62,6 +62,8 @@ prepareQuery :: IConnection conn
 prepareQuery = prepare
 
 -- | Bracketed prepare operation.
+--   PreparedStatement is released on closing connection,
+--   so connection pooling cases often cause resource leaks.
 withPrepareQuery :: IConnection conn
                  => conn                        -- ^ Database connection
                  -> Query p a                   -- ^ Typed query
