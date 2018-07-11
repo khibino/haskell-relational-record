@@ -80,7 +80,7 @@ type OrderColumn = StringSQL
 type OrderingTerm = ((Order, Maybe Nulls), OrderColumn)
 
 -- | Type for group-by term
-type AggregateColumnRef = StringSQL
+type AggregateColumnRef = Column
 
 -- | Type for group key.
 newtype AggregateBitKey = AggregateBitKey [AggregateColumnRef] deriving Show

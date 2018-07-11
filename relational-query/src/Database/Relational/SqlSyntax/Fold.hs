@@ -26,7 +26,10 @@ module Database.Relational.SqlSyntax.Fold (
   recordRawColumns,
 
   -- * Query restriction
-  composeWhere, composeHaving
+  composeWhere, composeHaving,
+
+  -- * Aggregation
+  composeGroupBy, composePartitionBy,
   ) where
 
 import Control.Applicative ((<$>), pure)
@@ -44,12 +47,12 @@ import qualified Database.Relational.Internal.UntypedTable as UntypedTable
 import Database.Relational.Internal.String
   (StringSQL, stringSQL, rowStringSQL, showStringSQL, boolSQL, )
 import Database.Relational.SqlSyntax.Query (composeOrderBy, )
-import Database.Relational.SqlSyntax.Aggregate (composeGroupBy, )
 import Database.Relational.SqlSyntax.Types
   (SubQuery (..), Record, Tuple, Predicate,
    Column (..), CaseClause(..), WhenClauses (..),
    NodeAttr (Just', Maybe), ProductTree (Leaf, Join), JoinProduct,
-   Duplication (..), SetOp (..), BinOp (..), Qualifier (..), Qualified (..), )
+   Duplication (..), SetOp (..), BinOp (..), Qualifier (..), Qualified (..),
+   AggregateBitKey (..), AggregateSet (..),  AggregateElem (..), AggregateColumnRef, )
 import qualified Database.Relational.SqlSyntax.Types as Syntax
 
 
@@ -268,3 +271,33 @@ composeWhere =  composeRestrict WHERE
 -- | Compose HAVING clause from 'QueryRestriction'.
 composeHaving :: [Predicate Aggregated] -> StringSQL
 composeHaving =  composeRestrict HAVING
+
+-----
+
+commaed :: [StringSQL] -> StringSQL
+commaed =  SQL.fold (|*|)
+
+pComma :: (a -> StringSQL) -> [a] -> StringSQL
+pComma qshow =  SQL.paren . commaed . map qshow
+
+showsAggregateBitKey :: AggregateBitKey -> StringSQL
+showsAggregateBitKey (AggregateBitKey ts) = pComma id $ map showColumn ts
+
+-- | Compose GROUP BY clause from AggregateElem list.
+composeGroupBy :: [AggregateElem] -> StringSQL
+composeGroupBy =  d where
+  d []       = mempty
+  d es@(_:_) = GROUP <> BY <> rec es
+  keyList op ss = op <> pComma showsAggregateBitKey ss
+  rec = commaed . map showsE
+  showsGs (AggregateSet s) = SQL.paren $ rec s
+  showsE (ColumnRef t)     = showColumn t
+  showsE (Rollup ss)       = keyList ROLLUP ss
+  showsE (Cube   ss)       = keyList CUBE   ss
+  showsE (GroupingSets ss) = GROUPING <> SETS <> pComma showsGs ss
+
+-- | Compose PARTITION BY clause from AggregateColumnRef list.
+composePartitionBy :: [AggregateColumnRef] -> StringSQL
+composePartitionBy =  d where
+  d []       = mempty
+  d ts@(_:_) = PARTITION <> BY <> commaed (map showColumn ts)

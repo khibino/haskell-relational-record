@@ -13,17 +13,9 @@ module Database.Relational.SqlSyntax.Aggregate (
   aggregatePowerKey, aggregateGroupingSet,
   aggregateRollup, aggregateCube, aggregateSets,
 
-  composeGroupBy, composePartitionBy,
-
   aggregateKeyRecord, aggregateKeyElement, unsafeAggregateKey,
   ) where
 
-import Data.Monoid (Monoid (..), (<>))
-
-import Language.SQL.Keyword (Keyword(..), (|*|))
-import qualified Language.SQL.Keyword as SQL
-
-import Database.Relational.Internal.String (StringSQL)
 import Database.Relational.SqlSyntax.Types
   (AggregateBitKey (..), AggregateSet (..), AggregateElem (..),
    AggregateColumnRef, AggregateKey (..), )
@@ -52,34 +44,6 @@ aggregateCube =  Cube
 -- | Grouping sets aggregation.
 aggregateSets :: [AggregateSet] -> AggregateElem
 aggregateSets =  GroupingSets
-
-commaed :: [StringSQL] -> StringSQL
-commaed =  SQL.fold (|*|)
-
-pComma :: (a -> StringSQL) -> [a] -> StringSQL
-pComma qshow =  SQL.paren . commaed . map qshow
-
-showsAggregateBitKey :: AggregateBitKey -> StringSQL
-showsAggregateBitKey (AggregateBitKey ts) = pComma id ts
-
--- | Compose GROUP BY clause from AggregateElem list.
-composeGroupBy :: [AggregateElem] -> StringSQL
-composeGroupBy =  d where
-  d []       = mempty
-  d es@(_:_) = GROUP <> BY <> rec es
-  keyList op ss = op <> pComma showsAggregateBitKey ss
-  rec = commaed . map showsE
-  showsGs (AggregateSet s) = SQL.paren $ rec s
-  showsE (ColumnRef t)     = t
-  showsE (Rollup ss)       = keyList ROLLUP ss
-  showsE (Cube   ss)       = keyList CUBE   ss
-  showsE (GroupingSets ss) = GROUPING <> SETS <> pComma showsGs ss
-
--- | Compose PARTITION BY clause from AggregateColumnRef list.
-composePartitionBy :: [AggregateColumnRef] -> StringSQL
-composePartitionBy =  d where
-  d []       = mempty
-  d ts@(_:_) = PARTITION <> BY <> commaed ts
 
 -- | Extract typed record from 'AggregateKey'.
 aggregateKeyRecord :: AggregateKey a -> a

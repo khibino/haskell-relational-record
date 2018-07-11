@@ -39,7 +39,7 @@ import Data.Functor.Identity (Identity (runIdentity))
 import Database.Relational.Internal.ContextType
   (Flat, Aggregated, Set, Power, SetList)
 import Database.Relational.SqlSyntax
-  (Record,
+  (Record, untypeRecord,
    AggregateColumnRef, AggregateElem, aggregateColumnRef, AggregateSet, aggregateGroupingSet,
    AggregateBitKey, aggregatePowerKey, aggregateRollup, aggregateCube, aggregateSets,
    AggregateKey, aggregateKeyRecord, aggregateKeyElement, unsafeAggregateKey)
@@ -99,13 +99,13 @@ aggregateKey k = do
 -- | Aggregated query instance.
 instance MonadQuery m => MonadAggregate (AggregatingSetT m) where
   groupBy p = do
-    mapM_ unsafeAggregateWithTerm [ aggregateColumnRef col | col <- Record.columns p]
+    mapM_ unsafeAggregateWithTerm [ aggregateColumnRef col | col <- untypeRecord p]
     return $ Record.unsafeToAggregated p
   groupBy'  = aggregateKey
 
 -- | Partition clause instance
 instance Monad m => MonadPartition c (PartitioningSetT c m) where
-  partitionBy =  mapM_ unsafeAggregateWithTerm . Record.columns
+  partitionBy =  mapM_ unsafeAggregateWithTerm . untypeRecord
 
 -- | Run 'Aggregatings' to get terms list.
 extractAggregateTerms :: (Monad m, Functor m) => Aggregatings ac at m a -> m (a, [at])
@@ -130,7 +130,7 @@ type PartitioningSet c   = PartitioningSetT c   Identity
 key :: Record Flat r
     -> AggregatingSet (Record Aggregated (Maybe r))
 key p = do
-  mapM_ unsafeAggregateWithTerm [ aggregateColumnRef col | col <- Record.columns p]
+  mapM_ unsafeAggregateWithTerm [ aggregateColumnRef col | col <- untypeRecord p]
   return . Record.just $ Record.unsafeToAggregated p
 
 -- | Specify key of single grouping set.
@@ -150,7 +150,7 @@ set s = do
 bkey :: Record Flat r
      -> AggregatingPowerSet (Record Aggregated (Maybe r))
 bkey p = do
-  unsafeAggregateWithTerm . aggregatePowerKey $ Record.columns p
+  unsafeAggregateWithTerm . aggregatePowerKey $ untypeRecord p
   return . Record.just $ Record.unsafeToAggregated p
 
 finalizePower :: ([AggregateBitKey] -> AggregateElem)
