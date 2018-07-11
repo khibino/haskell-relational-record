@@ -2,7 +2,7 @@
 
 -- |
 -- Module      : Database.Relational.SqlSyntax.Types
--- Copyright   : 2015-2017 Kei Hibino
+-- Copyright   : 2015-2018 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com

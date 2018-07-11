@@ -4,7 +4,7 @@
 
 -- |
 -- Module      : Database.Relational.Monad.Trans.Aggregating
--- Copyright   : 2013-2017 Kei Hibino
+-- Copyright   : 2013-2018 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
