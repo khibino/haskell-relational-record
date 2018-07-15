@@ -17,6 +17,7 @@ module Database.Relational.Pure () where
 import Control.Applicative (pure)
 import Data.Monoid ((<>))
 import Data.Int (Int8, Int16, Int32, Int64)
+import Data.Word (Word8, Word16, Word32, Word64, Word)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as LB
 import Data.Text (Text)
@@ -80,6 +81,30 @@ instance LiteralSQL Int64 where
 -- | Constant SQL terms of 'Int'.
 --   Use this carefully, because this is architecture dependent size of integer type.
 instance LiteralSQL Int where
+  showLiteral' = intTermsSQL
+
+-- | Constant SQL terms of 'Word8'.
+instance LiteralSQL Word8 where
+  showLiteral' = intTermsSQL
+
+-- | Constant SQL terms of 'Word16'.
+instance LiteralSQL Word16 where
+  showLiteral' = intTermsSQL
+
+-- | Constant SQL terms of 'Word32'.
+instance LiteralSQL Word32 where
+  showLiteral' = intTermsSQL
+
+-- | Constant SQL terms of 'Word64'.
+instance LiteralSQL Word64 where
+  showLiteral' = intTermsSQL
+
+-- | Constant SQL terms of 'Word'.
+--   Use this carefully, because this is architecture dependent size of integer type.
+instance LiteralSQL Word where
+  showLiteral' = intTermsSQL
+
+instance LiteralSQL Integer where
   showLiteral' = intTermsSQL
 
 -- | Constant SQL terms of 'String'.
