@@ -14,6 +14,7 @@ module Database.HDBC.SqlValueExtra () where
 
 import Data.Convertible (Convertible(safeConvert), ConvertResult)
 import Data.Int (Int8, Int16, Int32)
+import Data.Word (Word8, Word16)
 import Database.HDBC (SqlValue)
 
 -- Convert from narrower width than Int32
@@ -35,4 +36,16 @@ instance Convertible Int16 SqlValue where
   safeConvert = safeConvertFromIntegral32
 
 instance Convertible SqlValue Int16 where
+  safeConvert = safeConvertToIntegral32
+
+instance Convertible Word8 SqlValue where
+  safeConvert = safeConvertFromIntegral32
+
+instance Convertible SqlValue Word8 where
+  safeConvert = safeConvertToIntegral32
+
+instance Convertible Word16 SqlValue where
+  safeConvert = safeConvertFromIntegral32
+
+instance Convertible SqlValue Word16 where
   safeConvert = safeConvertToIntegral32
