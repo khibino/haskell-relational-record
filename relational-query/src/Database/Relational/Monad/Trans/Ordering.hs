@@ -32,9 +32,8 @@ import Control.Arrow (second)
 import Data.DList (DList, toList)
 
 import Database.Relational.SqlSyntax
-  (Order (..), Nulls (..), OrderingTerm, Record)
+  (Order (..), Nulls (..), OrderingTerm, Record, untypeRecord)
 
-import qualified Database.Relational.Record as Record
 import Database.Relational.Monad.Class
   (MonadQualify (..), MonadRestrict(..), MonadQuery(..), MonadAggregate(..), MonadPartition(..))
 
@@ -79,7 +78,7 @@ updateOrderBys :: Monad m
                -> Record c t       -- ^ Ordering terms to add
                -> Orderings c m ()     -- ^ Result context with ordering
 updateOrderBys opair p = Orderings . mapM_ tell $ terms  where
-  terms = curry pure opair `map` Record.columns p
+  terms = curry pure opair `map` untypeRecord p
 
 -- | Add ordering terms with null ordering.
 orderBy' :: Monad m

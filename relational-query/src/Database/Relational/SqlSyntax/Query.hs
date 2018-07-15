@@ -12,21 +12,13 @@ module Database.Relational.SqlSyntax.Query (
   flatSubQuery, aggregatedSubQuery,
   union, except, intersect,
   caseSearch, case',
-
-  composeOrderBy,
   ) where
-
-import Data.Monoid (mempty, (<>))
-
-import Language.SQL.Keyword (Keyword(..), (|*|))
-import qualified Language.SQL.Keyword as SQL
 
 import Database.Relational.Internal.Config (Config)
 import Database.Relational.Internal.ContextType (Flat, Aggregated)
-import Database.Relational.Internal.String (StringSQL)
 import Database.Relational.SqlSyntax.Types
   (Duplication (..), SetOp (..), BinOp (..),
-   Order (..), Nulls (..), OrderingTerm, AggregateElem,
+   OrderingTerm, AggregateElem,
    JoinProduct, Predicate, WhenClauses (..), CaseClause (..), SubQuery (..),
    Column (..), Tuple, Record, record, untypeRecord, recordWidth, )
 
@@ -100,15 +92,3 @@ case' v ws e =
     record [ Case c i | i <- [0 .. recordWidth e - 1] ]
   where
     c = CaseSimple (untypeRecord v) $ whenClauses "case'" ws e
-
-
--- | Compose ORDER BY clause from OrderingTerms
-composeOrderBy :: [OrderingTerm] -> StringSQL
-composeOrderBy =  d where
-  d []       = mempty
-  d ts@(_:_) = ORDER <> BY <> SQL.fold (|*|) (map showsOt ts)
-  showsOt ((o, mn), e) = e <> order o <> maybe mempty ((NULLS <>) . nulls) mn
-  order Asc  = ASC
-  order Desc = DESC
-  nulls NullsFirst = FIRST
-  nulls NullsLast  = LAST

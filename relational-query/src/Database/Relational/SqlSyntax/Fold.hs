@@ -30,7 +30,10 @@ module Database.Relational.SqlSyntax.Fold (
 
   -- * Aggregation
   composeGroupBy, composePartitionBy,
-  ) where
+
+  -- * Ordering
+  composeOrderBy,
+) where
 
 import Control.Applicative ((<$>), pure)
 import Data.Monoid (mempty, (<>), mconcat)
@@ -46,13 +49,13 @@ import Database.Relational.Internal.UntypedTable ((!))
 import qualified Database.Relational.Internal.UntypedTable as UntypedTable
 import Database.Relational.Internal.String
   (StringSQL, stringSQL, rowStringSQL, showStringSQL, boolSQL, )
-import Database.Relational.SqlSyntax.Query (composeOrderBy, )
 import Database.Relational.SqlSyntax.Types
   (SubQuery (..), Record, Tuple, Predicate,
    Column (..), CaseClause(..), WhenClauses (..),
    NodeAttr (Just', Maybe), ProductTree (Leaf, Join), JoinProduct,
    Duplication (..), SetOp (..), BinOp (..), Qualifier (..), Qualified (..),
-   AggregateBitKey (..), AggregateSet (..),  AggregateElem (..), AggregateColumnRef, )
+   AggregateBitKey (..), AggregateSet (..),  AggregateElem (..), AggregateColumnRef,
+   Order (..), Nulls (..), OrderingTerm, )
 import qualified Database.Relational.SqlSyntax.Types as Syntax
 
 
@@ -301,3 +304,16 @@ composePartitionBy :: [AggregateColumnRef] -> StringSQL
 composePartitionBy =  d where
   d []       = mempty
   d ts@(_:_) = PARTITION <> BY <> commaed (map showColumn ts)
+
+-----
+
+-- | Compose ORDER BY clause from OrderingTerms
+composeOrderBy :: [OrderingTerm] -> StringSQL
+composeOrderBy =  d where
+  d []       = mempty
+  d ts@(_:_) = ORDER <> BY <> SQL.fold (|*|) (map showsOt ts)
+  showsOt ((o, mn), e) = showColumn e <> order o <> maybe mempty ((NULLS <>) . nulls) mn
+  order Asc  = ASC
+  order Desc = DESC
+  nulls NullsFirst = FIRST
+  nulls NullsLast  = LAST

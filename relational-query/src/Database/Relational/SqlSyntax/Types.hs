@@ -74,7 +74,7 @@ data Order = Asc | Desc  deriving Show
 data Nulls =  NullsFirst | NullsLast deriving Show
 
 -- | Type for order-by column
-type OrderColumn = StringSQL
+type OrderColumn = Column
 
 -- | Type for order-by term
 type OrderingTerm = ((Order, Maybe Nulls), OrderColumn)
