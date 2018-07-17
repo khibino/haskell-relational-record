@@ -1,5 +1,10 @@
 <!-- -*- Markdown -*- -->
 
+## 0.7.1.0
+
+- add convertible instances of Word8 type and Word16 type.
+- add foldlFetch and forFetch.
+
 ## 0.7.0.1
 
 - update haddock about bracketed-prepare operations.
