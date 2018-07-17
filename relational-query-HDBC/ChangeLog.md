@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.7.1.1
+
+- fix build for old GHCs.
+
 ## 0.7.1.0
 
 - add convertible instances of Word8 type and Word16 type.
