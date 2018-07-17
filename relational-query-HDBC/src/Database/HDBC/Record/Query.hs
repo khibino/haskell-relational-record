@@ -23,6 +23,9 @@ module Database.HDBC.Record.Query (
   runPreparedQuery',
   runQuery',
 
+  -- * Fetch loop
+  foldlFetch, forFetch,
+
   -- * Fetch with Lazy-IO
   -- $fetchWithLazyIO
   fetchAll,
@@ -31,7 +34,10 @@ module Database.HDBC.Record.Query (
   runQuery,
   ) where
 
+import Control.Applicative ((<$>))
+import Data.Monoid (mempty, (<>))
 import Data.Maybe (listToMaybe)
+import Data.DList (toList)
 import Database.HDBC (IConnection, Statement, SqlValue)
 import qualified Database.HDBC as HDBC
 
@@ -125,6 +131,32 @@ fetchUnique' es = do
   z <- listToUnique recs
   HDBC.finish $ executed es
   return z
+
+-- | Fetch fold-left loop convenient for
+--   the sequence of cursor-solid lock actions.
+--   Each action is executed after each fetch.
+foldlFetch :: FromSql SqlValue a
+           => (b -> a -> IO b)    -- ^ action executed after each fetch
+           -> b                   -- ^ zero element of result
+           -> ExecutedStatement a -- ^ statement to fetch from
+           -> IO b
+foldlFetch f z st =
+    go z
+  where
+    go ac = do
+      let step = (go =<<) . f ac
+      maybe (return ac) step =<< fetch st
+
+-- | Fetch loop convenient for
+--   the sequence of cursor-solid lock actions.
+--   Each action is executed after each fetch.
+forFetch :: FromSql SqlValue a
+         => ExecutedStatement a -- ^ statement to fetch from
+         -> (a -> IO b)         -- ^ action executed after each fetch
+         -> IO [b]
+forFetch st action =
+  toList <$>
+  foldlFetch (\ac x -> ((ac <>) . pure) <$> action x) mempty st
 
 -- | /Lazy-IO/ version of 'runStatement''.
 runStatement :: FromSql SqlValue a => BoundStatement a -> IO [a]
