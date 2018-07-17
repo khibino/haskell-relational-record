@@ -2,11 +2,8 @@
 
 module DataSource where
 
-import Control.Applicative ((<$>), pure)
-import Data.String (fromString)
+import Control.Applicative ((<$>))
 import Database.HDBC.ODBC (Connection, connectODBC)
-
-import Database.Relational (LiteralSQL (..))
 
 data Option = Option
     { dsn :: String
@@ -35,7 +32,3 @@ connect = connectODBC . dsString . option =<< getParam
 
 getOwner :: IO String
 getOwner = owner <$> getParam
-
-
-instance LiteralSQL Integer where
-  showLiteral' = pure . fromString . show
