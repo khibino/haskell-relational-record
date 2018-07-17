@@ -34,7 +34,7 @@ module Database.HDBC.Record.Query (
   runQuery,
   ) where
 
-import Control.Applicative ((<$>))
+import Control.Applicative ((<$>), pure)
 import Data.Monoid (mempty, (<>))
 import Data.Maybe (listToMaybe)
 import Data.DList (toList)
