@@ -1,8 +1,12 @@
 <!-- -*- Markdown -*- -->
 
+## 0.12.1.0
+
+- add LiteralSQL instances of word and integer types.
+
 ## 0.12.0.1
 
-- Update missing of this changelog.
+- update missing of this changelog.
 
 ## 0.12.0.0
 
