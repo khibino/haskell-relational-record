@@ -22,6 +22,7 @@ import           Control.Applicative                ((<$>), (<|>))
 import           Control.Monad                      (guard)
 import           Control.Monad.Trans.Class          (lift)
 import           Control.Monad.Trans.Maybe          (MaybeT)
+import           Data.Char                          (toUpper)
 import qualified Data.List                          as List
 import           Data.Map                           (fromList)
 
@@ -101,7 +102,7 @@ getColumns' tmap conn lchan scm tbl = maybeIO ([], []) id $ do
             hoistMaybe (getType (fromList tmap) col) <|>
             compileError lchan
             ("Type mapping is not defined against MySQL type: "
-             ++ Columns.dataType col)
+             ++ (map toUpper (Columns.columnType col)))
 
 -- | Driver implementation
 driverMySQL :: IConnection conn => Driver conn
