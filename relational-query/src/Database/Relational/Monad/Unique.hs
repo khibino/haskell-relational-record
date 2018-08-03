@@ -21,10 +21,9 @@ module Database.Relational.Monad.Unique
 
 import Control.Applicative (Applicative)
 
-import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax
   (Duplication, Record, JoinProduct, NodeAttr,
-   SubQuery, Predicate, Qualified, )
+   SubQuery, Tuple, Qualified, )
 
 import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable (PlaceHolders)
@@ -43,15 +42,15 @@ newtype QueryUnique a = QueryUnique (QueryCore a)
 -- | Unsafely join sub-query with this unique query.
 unsafeUniqueSubQuery :: NodeAttr                 -- ^ Attribute maybe or just
                      -> Qualified SubQuery       -- ^ 'SubQuery' to join
-                     -> QueryUnique (Record c r) -- ^ Result joined context and record of 'SubQuery' result.
+                     -> QueryUnique (Record i j c r) -- ^ Result joined context and record of 'SubQuery' result.
 unsafeUniqueSubQuery a  = QueryUnique . restrictings . unsafeSubQueryWithAttr a
 
 extract :: QueryUnique a
-        -> ConfigureQuery (((a, [Predicate Flat]), JoinProduct), Duplication)
+        -> ConfigureQuery (((a, [Tuple{-Predicate i j Flat-}]), JoinProduct), Duplication)
 extract (QueryUnique c) = extractCore c
 
 -- | Run 'SimpleQuery' to get 'SubQuery' with 'Qualify' computation.
-toSubQuery :: QueryUnique (PlaceHolders p, Record c r) -- ^ 'QueryUnique' to run
+toSubQuery :: QueryUnique (PlaceHolders p, Record i j c r) -- ^ 'QueryUnique' to run
            -> ConfigureQuery SubQuery                  -- ^ Result 'SubQuery' with 'Qualify' computation
 toSubQuery q = do
   ((((_ph, pj), rs), pd), da) <- extract q

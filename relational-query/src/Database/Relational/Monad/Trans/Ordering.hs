@@ -76,14 +76,14 @@ instance MonadPartition c m => MonadPartition c (Orderings c m) where
 -- | Add ordering terms.
 updateOrderBys :: Monad m
                => (Order, Maybe Nulls) -- ^ Order direction
-               -> Record c t       -- ^ Ordering terms to add
+               -> Record i j c t       -- ^ Ordering terms to add
                -> Orderings c m ()     -- ^ Result context with ordering
 updateOrderBys opair p = Orderings . mapM_ tell $ terms  where
   terms = curry pure opair `map` Record.columns p
 
 -- | Add ordering terms with null ordering.
 orderBy' :: Monad m
-         => Record c t   -- ^ Ordering terms to add
+         => Record i j c t   -- ^ Ordering terms to add
          -> Order            -- ^ Order direction
          -> Nulls            -- ^ Order of null
          -> Orderings c m () -- ^ Result context with ordering
@@ -91,20 +91,20 @@ orderBy' p o n = updateOrderBys (o, Just n) p
 
 -- | Add ordering terms.
 orderBy :: Monad m
-        => Record c t   -- ^ Ordering terms to add
+        => Record i j c t   -- ^ Ordering terms to add
         -> Order        -- ^ Order direction
         -> Orderings c m () -- ^ Result context with ordering
 orderBy p o = updateOrderBys (o, Nothing) p
 
 -- | Add ascendant ordering term.
 asc :: Monad m
-    => Record c t   -- ^ Ordering terms to add
+    => Record i j c t   -- ^ Ordering terms to add
     -> Orderings c m () -- ^ Result context with ordering
 asc  =  updateOrderBys (Asc, Nothing)
 
 -- | Add descendant ordering term.
 desc :: Monad m
-     => Record c t   -- ^ Ordering terms to add
+     => Record i j c t   -- ^ Ordering terms to add
      -> Orderings c m () -- ^ Result context with ordering
 desc =  updateOrderBys (Desc, Nothing)
 

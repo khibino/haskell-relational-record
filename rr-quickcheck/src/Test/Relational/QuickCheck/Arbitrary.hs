@@ -144,50 +144,50 @@ instance Arbitrary (Selector a) => Arbitrary (D (Pred a)) where
 
 
 opSQL :: Op
-      -> Record Flat Int64
-      -> Record Flat Int64
-      -> Record Flat Int64
+      -> Record i j Flat Int64
+      -> Record i j Flat Int64
+      -> Record i j Flat Int64
 opSQL = d  where
   d Plus   = (.+.)
   d Minus  = (.-.)
 
 varExprSQL :: PersistableWidth a
-           => Record Flat a
+           => Record i j Flat a
            -> VarExpr a
-           -> Record Flat Int64
+           -> Record i j Flat Int64
 varExprSQL r  =  d  where
   d (Column s)       =  r ! sql s
   d (VLeft  ve op i)  =  opSQL op (d ve) (value i)
   d (VRight i op ve)  =  opSQL op (value i) (d ve)
 
 exprSQL :: PersistableWidth a
-        => Record Flat a
+        => Record i j Flat a
         -> Expr a
-        -> Record Flat Int64
+        -> Record i j Flat Int64
 exprSQL r  =  d  where
   d (Var ve)     =  varExprSQL r ve
   d (e0 :+: e1)  =  d e0 .+. d e1
   d (e0 :-: e1)  =  d e0 .-. d e1
 
 cmpSQL :: Cmp
-       -> Record Flat a
-       -> Record Flat a
-       -> Record Flat (Maybe Bool)
+       -> Record i j Flat a
+       -> Record i j Flat a
+       -> Record i j Flat (Maybe Bool)
 cmpSQL = d  where
   d Lt = (.<.)
   d Eq = (.=.)
   d Gt = (.>.)
 
 termSQL :: PersistableWidth a
-        => Record Flat a
+        => Record i j Flat a
         -> Term a
-        -> Record Flat (Maybe Bool)
+        -> Record i j Flat (Maybe Bool)
 termSQL r (Term (e0, op, e1))  =  cmpSQL op (exprSQL r e0) (exprSQL r e1)
 
 predSQL :: PersistableWidth a
-        => Record Flat a
+        => Record i j Flat a
         -> Pred a
-        -> Record Flat (Maybe Bool)
+        -> Record i j Flat (Maybe Bool)
 predSQL r = d  where
   d (PTerm t)    =  termSQL r t
   d (Not p)      =  not' $ d p

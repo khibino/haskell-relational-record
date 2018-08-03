@@ -26,7 +26,7 @@ import Control.Applicative (Applicative, pure, (<$>))
 import Control.Arrow (second)
 import Data.DList (DList, toList)
 
-import Database.Relational.SqlSyntax (Predicate)
+import Database.Relational.SqlSyntax (Predicate, Tuple, untypeRecord)
 
 import Database.Relational.Monad.Class
   (MonadQualify (..), MonadRestrict(..), MonadQuery (..), MonadAggregate(..))
@@ -36,7 +36,7 @@ import Database.Relational.Monad.Class
 --   Type 'c' is context tag of restriction building like
 --   Flat (where) or Aggregated (having).
 newtype Restrictings c m a =
-  Restrictings (WriterT (DList (Predicate c)) m a)
+  Restrictings (WriterT (DList Tuple{-Predicate i j c-}) m a)
   deriving (MonadTrans, Monad, Functor, Applicative)
 
 -- | Lift to 'Restrictings'
@@ -44,8 +44,8 @@ restrictings :: Monad m => m a -> Restrictings c m a
 restrictings =  lift
 
 -- | Add whole query restriction.
-updateRestriction :: Monad m => Predicate c -> Restrictings c m ()
-updateRestriction =  Restrictings . tell . pure
+updateRestriction :: Monad m => Predicate i j c -> Restrictings c m ()
+updateRestriction =  Restrictings . tell . pure . untypeRecord
 
 -- | 'MonadRestrict' instance.
 instance (Monad q, Functor q) => MonadRestrict c (Restrictings c q) where
@@ -68,5 +68,5 @@ instance MonadAggregate m => MonadAggregate (Restrictings c m) where
   groupBy' = restrictings . groupBy'
 
 -- | Run 'Restrictings' to get 'QueryRestriction'
-extractRestrict :: (Monad m, Functor m) => Restrictings c m a -> m (a, [Predicate c])
+extractRestrict :: (Monad m, Functor m) => Restrictings c m a -> m (a, [Tuple{-Predicate i j c-}])
 extractRestrict (Restrictings rc) = second toList <$> runWriterT rc

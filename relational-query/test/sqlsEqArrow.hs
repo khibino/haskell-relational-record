@@ -281,7 +281,7 @@ _p_nested =  mapM_ print [show nestedPiRec, show nestedPiCol, show nestedPi]
 
 -- Record Operators
 
-bin53 :: (Record Flat Int32 -> Record Flat Int32 -> Record Flat r) -> Relation () r
+bin53 :: (Record i j Flat Int32 -> Record i j Flat Int32 -> Record i j Flat r) -> Relation () r
 bin53 op = relation $ proc () -> do
   returnA -< value 5 `op` value 3
 
@@ -289,7 +289,7 @@ strIn :: Relation () (Maybe Bool)
 strIn = relation $ proc () -> do
   returnA -< value "foo" `in'` values ["foo", "bar"]
 
-boolTF :: (Record Flat (Maybe Bool) -> Record Flat (Maybe Bool) -> Record Flat r) -> Relation () r
+boolTF :: (Record i j Flat (Maybe Bool) -> Record i j Flat (Maybe Bool) -> Record i j Flat r) -> Relation () r
 boolTF op = relation $ proc () -> do
   returnA -< valueTrue `op` valueFalse
 
@@ -301,7 +301,7 @@ strLike :: Relation () (Maybe Bool)
 strLike = relation $ proc () -> do
   returnA -< value "Hoge" `like` "H%"
 
-_p_bin53 :: (Record Flat Int32 -> Record Flat Int32 -> Record Flat r) -> IO ()
+_p_bin53 :: (Record i j Flat Int32 -> Record i j Flat Int32 -> Record i j Flat r) -> IO ()
 _p_bin53 = print . bin53
 
 bin :: [Test]

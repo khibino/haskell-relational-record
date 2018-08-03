@@ -43,17 +43,17 @@ import Database.Relational.Relation (relation', relation, query, queryMaybe, )
 --
 -- @
 --   do xy <- query $
---            relX `inner` relY `on'` [ \x y -> ... ] -- this lambda form has JoinRestriction type
+--            relX `inner` relY `on'` [ \x y -> ... ] -- this lambda form has JoinRestriction i j type
 --      ...
 -- @
-type JoinRestriction a b = Record Flat a -> Record Flat b -> Predicate Flat
+type JoinRestriction i j a b = Record i j Flat a -> Record i j Flat b -> Predicate i j Flat
 
 -- | Basic direct join operation with place-holder parameters.
-join' :: (qa -> QuerySimple (PlaceHolders pa, Record Flat a))
-      -> (qb -> QuerySimple (PlaceHolders pb, Record Flat b))
+join' :: (qa -> QuerySimple (PlaceHolders pa, Record i j Flat a))
+      -> (qb -> QuerySimple (PlaceHolders pb, Record i j Flat b))
       -> qa
       -> qb
-      -> [JoinRestriction a b]
+      -> [JoinRestriction i j a b]
       -> Relation (pa, pb) (a, b)
 join' qL qR r0 r1 rs = relation' $ do
   (ph0, pj0) <- qL r0
@@ -64,37 +64,37 @@ join' qL qR r0 r1 rs = relation' $ do
 -- | Direct inner join with place-holder parameters.
 inner' :: Relation pa a            -- ^ Left query to join
        -> Relation pb b            -- ^ Right query to join
-       -> [JoinRestriction a b]    -- ^ Join restrictions
+       -> [JoinRestriction i j a b]    -- ^ Join restrictions
        -> Relation (pa, pb) (a, b) -- ^ Result joined relation
 inner' =  join' query' query'
 
 -- | Direct left outer join with place-holder parameters.
 left' :: Relation pa a                  -- ^ Left query to join
       -> Relation pb b                  -- ^ Right query to join
-      -> [JoinRestriction a (Maybe b)]  -- ^ Join restrictions
+      -> [JoinRestriction i j a (Maybe b)]  -- ^ Join restrictions
       -> Relation (pa, pb) (a, Maybe b) -- ^ Result joined relation
 left'  =  join' query' queryMaybe'
 
 -- | Direct right outer join with place-holder parameters.
 right' :: Relation pa a                 -- ^ Left query to join
        -> Relation pb b                 -- ^ Right query to join
-       -> [JoinRestriction (Maybe a) b] -- ^ Join restrictions
+       -> [JoinRestriction i j (Maybe a) b] -- ^ Join restrictions
        -> Relation (pa, pb)(Maybe a, b) -- ^ Result joined relation
 right' =  join' queryMaybe' query'
 
 -- | Direct full outer join with place-holder parameters.
 full' :: Relation pa a                         -- ^ Left query to join
       -> Relation pb b                         -- ^ Right query to join
-      -> [JoinRestriction (Maybe a) (Maybe b)] -- ^ Join restrictions
+      -> [JoinRestriction i j (Maybe a) (Maybe b)] -- ^ Join restrictions
       -> Relation (pa, pb) (Maybe a, Maybe b)  -- ^ Result joined relation
 full'  =  join' queryMaybe' queryMaybe'
 
 -- | Basic direct join operation.
-join_ :: (qa -> QuerySimple (Record Flat a))
-      -> (qb -> QuerySimple (Record Flat b))
+join_ :: (qa -> QuerySimple (Record i j Flat a))
+      -> (qb -> QuerySimple (Record i j Flat b))
       -> qa
       -> qb
-      -> [JoinRestriction a b]
+      -> [JoinRestriction i j a b]
       -> Relation () (a, b)
 join_ qL qR r0 r1 rs = relation $ do
   pj0 <- qL r0
@@ -105,34 +105,34 @@ join_ qL qR r0 r1 rs = relation $ do
 -- | Direct inner join.
 inner :: Relation () a         -- ^ Left query to join
       -> Relation () b         -- ^ Right query to join
-      -> [JoinRestriction a b] -- ^ Join restrictions
+      -> [JoinRestriction i j a b] -- ^ Join restrictions
       -> Relation () (a, b)    -- ^ Result joined relation
 inner =  join_ query query
 
 -- | Direct left outer join.
 left :: Relation () a                 -- ^ Left query to join
      -> Relation () b                 -- ^ Right query to join
-     -> [JoinRestriction a (Maybe b)] -- ^ Join restrictions
+     -> [JoinRestriction i j a (Maybe b)] -- ^ Join restrictions
      -> Relation () (a, Maybe b)      -- ^ Result joined relation
 left  =  join_ query queryMaybe
 
 -- | Direct right outer join.
 right :: Relation () a                 -- ^ Left query to join
       -> Relation () b                 -- ^ Right query to join
-      -> [JoinRestriction (Maybe a) b] -- ^ Join restrictions
+      -> [JoinRestriction i j (Maybe a) b] -- ^ Join restrictions
       -> Relation () (Maybe a, b)      -- ^ Result joined relation
 right =  join_ queryMaybe query
 
 -- | Direct full outer join.
 full :: Relation () a                         -- ^ Left query to join
      -> Relation () b                         -- ^ Right query to join
-     -> [JoinRestriction (Maybe a) (Maybe b)] -- ^ Join restrictions
+     -> [JoinRestriction i j (Maybe a) (Maybe b)] -- ^ Join restrictions
      -> Relation () (Maybe a, Maybe b)        -- ^ Result joined relation
 full  =  join_ queryMaybe queryMaybe
 
 -- | Apply restriction for direct join style.
-on' :: ([JoinRestriction a b] -> Relation pc (a, b))
-    -> [JoinRestriction a b]
+on' :: ([JoinRestriction i j a b] -> Relation pc (a, b))
+    -> [JoinRestriction i j a b]
     -> Relation pc (a, b)
 on' =  ($)
 

@@ -223,13 +223,13 @@ showTupleIndex up i
     error $ "showTupleIndex: index out of bounds: " ++ show i
 
 -- | Get column SQL string list of record.
-recordRawColumns :: Record c r  -- ^ Source 'Record'
+recordRawColumns :: Record i j c r  -- ^ Source 'Record'
                  -> [StringSQL] -- ^ Result SQL string list
 recordRawColumns = map showColumn . Syntax.untypeRecord
 
 
 -- | Show product tree of query into SQL. StringSQL result.
-showsQueryProduct :: ProductTree [Predicate Flat] -> StringSQL
+showsQueryProduct :: ProductTree [Tuple] -> StringSQL
 showsQueryProduct =  rec  where
   joinType Just' Just' = INNER
   joinType Just' Maybe = LEFT
@@ -245,7 +245,7 @@ showsQueryProduct =  rec  where
      joinType (Syntax.nodeAttr left') (Syntax.nodeAttr right'), JOIN,
      urec right',
      ON, foldr1 SQL.and $ ps ++ concat [ pure $ boolSQL True | null ps ] ]
-    where ps = [ rowStringSQL $ recordRawColumns p | p <- rs ]
+    where ps = [ rowStringSQL $ map showColumn p | p <- rs ]
 
 -- | Shows join product of query.
 showsJoinProduct :: ProductUnitSupport -> JoinProduct -> StringSQL
@@ -256,15 +256,15 @@ showsJoinProduct ups =  maybe (up ups) from  where
 
 
 -- | Compose SQL String from 'QueryRestriction'.
-composeRestrict :: Keyword -> [Predicate c] -> StringSQL
+composeRestrict :: Keyword -> [Tuple] -> StringSQL
 composeRestrict k = d  where
   d     []    =  mempty
-  d ps@(_:_)  =  k <> foldr1 SQL.and [ rowStringSQL $ recordRawColumns p | p <- ps ]
+  d ps@(_:_)  =  k <> foldr1 SQL.and [ rowStringSQL $ map showColumn p | p <- ps ]
 
 -- | Compose WHERE clause from 'QueryRestriction'.
-composeWhere :: [Predicate Flat] -> StringSQL
+composeWhere :: [Tuple] -> StringSQL
 composeWhere =  composeRestrict WHERE
 
 -- | Compose HAVING clause from 'QueryRestriction'.
-composeHaving :: [Predicate Aggregated] -> StringSQL
+composeHaving :: [Tuple] -> StringSQL
 composeHaving =  composeRestrict HAVING

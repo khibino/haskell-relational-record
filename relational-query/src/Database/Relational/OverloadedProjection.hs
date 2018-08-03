@@ -45,7 +45,7 @@ instance HasProjection l a b => IsLabel l (Pi a b) where
 
 -- | Derive 'PI' label.
 instance (PersistableWidth a, HasProjection l a b)
-          => IsLabel l (PI c a b) where
+          => IsLabel l (PI i c a b) where
   fromLabel = (! projection (GetPi :: PiLabel l))
 #else
 -- | Derive 'IsLabel' instance from 'HasProjection'.

@@ -108,45 +108,45 @@ import Database.Relational.Projectable.Instances ()
 
 
 -- | Unsafely Project single SQL term.
-unsafeProjectSql' :: SqlContext c => StringSQL -> Record c t
+unsafeProjectSql' :: SqlContext c => StringSQL -> Record i j c t
 unsafeProjectSql' = unsafeProjectSqlTerms . (:[])
 
 -- | Unsafely Project single SQL string. String interface of 'unsafeProjectSql'''.
-unsafeProjectSql :: SqlContext c => String -> Record c t
+unsafeProjectSql :: SqlContext c => String -> Record i j c t
 unsafeProjectSql = unsafeProjectSql' . stringSQL
 
 -- | Record with polymorphic phantom type of SQL null value. Semantics of comparing is unsafe.
 nothing :: (OperatorContext c, SqlContext c, PersistableWidth a)
-        => Record c (Maybe a)
+        => Record i j c (Maybe a)
 nothing = proxyWidth persistableWidth
   where
-    proxyWidth :: SqlContext c => PersistableRecordWidth a -> Record c (Maybe a)
+    proxyWidth :: SqlContext c => PersistableRecordWidth a -> Record i j c (Maybe a)
     proxyWidth w = unsafeProjectSqlTerms $ replicate (runPersistableRecordWidth w) SQL.NULL
 
 -- | Generate record with polymorphic type of SQL constant values from Haskell value.
-value :: (ShowConstantTermsSQL t, OperatorContext c) => t -> Record c t
+value :: (ShowConstantTermsSQL t, OperatorContext c) => t -> Record i j c t
 value = unsafeProjectSqlTerms . showConstantTermsSQL
 
 -- | Record with polymorphic type of SQL true value.
-valueTrue  :: OperatorContext c => Record c (Maybe Bool)
+valueTrue  :: OperatorContext c => Record i j c (Maybe Bool)
 valueTrue  =  just $ value True
 
 -- | Record with polymorphic type of SQL false value.
-valueFalse :: OperatorContext c => Record c (Maybe Bool)
+valueFalse :: OperatorContext c => Record i j c (Maybe Bool)
 valueFalse =  just $ value False
 
 -- | RecordList with polymorphic type of SQL set value from Haskell list.
-values :: (ShowConstantTermsSQL t, OperatorContext c) => [t] -> RecordList (Record c) t
+values :: (ShowConstantTermsSQL t, OperatorContext c) => [t] -> RecordList (Record i j c) t
 values =  Record.list . map value
 
 
 -- | Unsafely generate SQL expression term from record object.
-unsafeShowSql' :: Record c a -> StringSQL
+unsafeShowSql' :: Record i j c a -> StringSQL
 unsafeShowSql' = Record.unsafeStringSql
 
 -- | Unsafely generate SQL expression string from record object.
 --   String interface of 'unsafeShowSql''.
-unsafeShowSql :: Record c a    -- ^ Source record object
+unsafeShowSql :: Record i j c a    -- ^ Source record object
               -> String -- ^ Result SQL expression string.
 unsafeShowSql =  showStringSQL . unsafeShowSql'
 
@@ -156,285 +156,285 @@ type SqlBinOp = Keyword -> Keyword -> Keyword
 
 -- | Unsafely make unary operator for records from SQL keyword.
 unsafeUniOp :: SqlContext c2
-            => (Keyword -> Keyword) -> Record c1 a -> Record c2 b
+            => (Keyword -> Keyword) -> Record i j c1 a -> Record i j c2 b
 unsafeUniOp u = unsafeProjectSql' . u . unsafeShowSql'
 
 unsafeFlatUniOp :: SqlContext c
-                => Keyword -> Record c a -> Record c b
+                => Keyword -> Record i j c a -> Record i j c b
 unsafeFlatUniOp kw = unsafeUniOp (SQL.paren . SQL.defineUniOp kw)
 
 -- | Unsafely make binary operator for records from string binary operator.
 unsafeBinOp :: SqlContext k
             => SqlBinOp
-            -> Record k a -> Record k b -> Record k c
+            -> Record i j k a -> Record i j k b -> Record i j k c
 unsafeBinOp op a b = unsafeProjectSql' . SQL.paren $
                      op (unsafeShowSql' a) (unsafeShowSql' b)
 
 -- | Unsafely make binary operator to compare records from string binary operator.
 compareBinOp :: SqlContext c
              => SqlBinOp
-             -> Record c a -> Record c a -> Record c (Maybe Bool)
+             -> Record i j c a -> Record i j c a -> Record i j c (Maybe Bool)
 compareBinOp =  unsafeBinOp
 
 -- | Unsafely make numrical binary operator for records from string binary operator.
 monoBinOp :: SqlContext c
           => SqlBinOp
-          -> Record c a -> Record c a -> Record c a
+          -> Record i j c a -> Record i j c a -> Record i j c a
 monoBinOp =  unsafeBinOp
 
 
 -- | Compare operator corresponding SQL /=/ .
 (.=.)  :: OperatorContext c
-       => Record c ft -> Record c ft -> Record c (Maybe Bool)
+       => Record i j c ft -> Record i j c ft -> Record i j c (Maybe Bool)
 (.=.)  =  compareBinOp (SQL..=.)
 
 -- | Compare operator corresponding SQL /</ .
 (.<.)  :: OperatorContext c
-       => Record c ft -> Record c ft -> Record c (Maybe Bool)
+       => Record i j c ft -> Record i j c ft -> Record i j c (Maybe Bool)
 (.<.)  =  compareBinOp (SQL..<.)
 
 -- | Compare operator corresponding SQL /<=/ .
 (.<=.)  :: OperatorContext c
-        => Record c ft -> Record c ft -> Record c (Maybe Bool)
+        => Record i j c ft -> Record i j c ft -> Record i j c (Maybe Bool)
 (.<=.)  =  compareBinOp (SQL..<=.)
 
 -- | Compare operator corresponding SQL />/ .
 (.>.)  :: OperatorContext c
-       => Record c ft -> Record c ft -> Record c (Maybe Bool)
+       => Record i j c ft -> Record i j c ft -> Record i j c (Maybe Bool)
 (.>.)  =  compareBinOp (SQL..>.)
 
 -- | Compare operator corresponding SQL />=/ .
 (.>=.)  :: OperatorContext c
-        => Record c ft -> Record c ft -> Record c (Maybe Bool)
+        => Record i j c ft -> Record i j c ft -> Record i j c (Maybe Bool)
 (.>=.)  =  compareBinOp (SQL..>=.)
 
 -- | Compare operator corresponding SQL /<>/ .
 (.<>.) :: OperatorContext c
-       => Record c ft -> Record c ft -> Record c (Maybe Bool)
+       => Record i j c ft -> Record i j c ft -> Record i j c (Maybe Bool)
 (.<>.) =  compareBinOp (SQL..<>.)
 
 -- | Logical operator corresponding SQL /AND/ .
 and' :: OperatorContext c
-     => Record c (Maybe Bool) -> Record c (Maybe Bool) -> Record c (Maybe Bool)
+     => Record i j c (Maybe Bool) -> Record i j c (Maybe Bool) -> Record i j c (Maybe Bool)
 and' = monoBinOp SQL.and
 
 -- | Logical operator corresponding SQL /OR/ .
 or' :: OperatorContext c
-    => Record c (Maybe Bool) -> Record c (Maybe Bool) -> Record c (Maybe Bool)
+    => Record i j c (Maybe Bool) -> Record i j c (Maybe Bool) -> Record i j c (Maybe Bool)
 or'  = monoBinOp SQL.or
 
 -- | Logical operator corresponding SQL /NOT/ .
 not' :: OperatorContext c
-     => Record c (Maybe Bool) -> Record c (Maybe Bool)
+     => Record i j c (Maybe Bool) -> Record i j c (Maybe Bool)
 not' =  unsafeFlatUniOp SQL.NOT
 
 -- | Logical operator corresponding SQL /EXISTS/ .
 exists :: OperatorContext c
-       => RecordList (Record Exists) r -> Record c (Maybe Bool)
+       => RecordList (Record i j Exists) r -> Record i j c (Maybe Bool)
 exists =  unsafeProjectSql' . SQL.paren . SQL.defineUniOp SQL.EXISTS
           . Record.unsafeStringSqlList unsafeShowSql'
 
 -- | Concatinate operator corresponding SQL /||/ .
 (.||.) :: OperatorContext c
-       => Record c a -> Record c a -> Record c a
+       => Record i j c a -> Record i j c a -> Record i j c a
 (.||.) =  unsafeBinOp (SQL..||.)
 
 -- | Concatinate operator corresponding SQL /||/ . Maybe type version.
 (?||?) :: (OperatorContext c, IsString a)
-       => Record c (Maybe a) -> Record c (Maybe a) -> Record c (Maybe a)
+       => Record i j c (Maybe a) -> Record i j c (Maybe a) -> Record i j c (Maybe a)
 (?||?) =  unsafeBinOp (SQL..||.)
 
 unsafeLike :: OperatorContext c
-           => Record c a -> Record c b -> Record c (Maybe Bool)
+           => Record i j c a -> Record i j c b -> Record i j c (Maybe Bool)
 unsafeLike = unsafeBinOp (SQL.defineBinOp SQL.LIKE)
 
 -- | String-compare operator corresponding SQL /LIKE/ .
 like' :: (OperatorContext c, IsString a)
-      => Record c a -> Record c a -> Record c (Maybe Bool)
+      => Record i j c a -> Record i j c a -> Record i j c (Maybe Bool)
 x `like'` y = x `unsafeLike` y
 
 -- | String-compare operator corresponding SQL /LIKE/ .
 likeMaybe' :: (OperatorContext c, IsString a)
-           => Record c (Maybe a) -> Record c (Maybe a) -> Record c (Maybe Bool)
+           => Record i j c (Maybe a) -> Record i j c (Maybe a) -> Record i j c (Maybe Bool)
 x `likeMaybe'` y = x `unsafeLike` y
 
 -- | String-compare operator corresponding SQL /LIKE/ .
 like :: (OperatorContext c, IsString a, ShowConstantTermsSQL a)
-       => Record c a -> a -> Record c (Maybe Bool)
+       => Record i j c a -> a -> Record i j c (Maybe Bool)
 x `like` a = x `like'` value a
 
 -- | String-compare operator corresponding SQL /LIKE/ . Maybe type version.
 likeMaybe :: (OperatorContext c, IsString a, ShowConstantTermsSQL a)
-          => Record c (Maybe a) -> a -> Record c (Maybe Bool)
+          => Record i j c (Maybe a) -> a -> Record i j c (Maybe Bool)
 x `likeMaybe` a = x `unsafeLike` value a
 
 -- | Unsafely make number binary operator for records from SQL operator string.
 monoBinOp' :: SqlContext c
-           => Keyword -> Record c a -> Record c a -> Record c a
+           => Keyword -> Record i j c a -> Record i j c a -> Record i j c a
 monoBinOp' = monoBinOp . SQL.defineBinOp
 
 -- | Number operator corresponding SQL /+/ .
 (.+.) :: (OperatorContext c, Num a)
-      => Record c a -> Record c a -> Record c a
+      => Record i j c a -> Record i j c a -> Record i j c a
 (.+.) =  monoBinOp' "+"
 
 -- | Number operator corresponding SQL /-/ .
 (.-.) :: (OperatorContext c, Num a)
-      => Record c a -> Record c a -> Record c a
+      => Record i j c a -> Record i j c a -> Record i j c a
 (.-.) =  monoBinOp' "-"
 
 -- | Number operator corresponding SQL /// .
 (./.) :: (OperatorContext c, Num a)
-      => Record c a -> Record c a -> Record c a
+      => Record i j c a -> Record i j c a -> Record i j c a
 (./.) =  monoBinOp' "/"
 
 -- | Number operator corresponding SQL /*/ .
 (.*.) :: (OperatorContext c, Num a)
-      => Record c a -> Record c a -> Record c a
+      => Record i j c a -> Record i j c a -> Record i j c a
 (.*.) =  monoBinOp' "*"
 
 -- | Number negate uni-operator corresponding SQL /-/.
 negate' :: (OperatorContext c, Num a)
-        => Record c a -> Record c a
+        => Record i j c a -> Record i j c a
 negate' =  unsafeFlatUniOp $ SQL.word "-"
 
 unsafeCastProjectable :: SqlContext c
-                      => Record c a -> Record c b
+                      => Record i j c a -> Record i j c b
 unsafeCastProjectable = unsafeProjectSql' . unsafeShowSql'
 
 -- | Number fromIntegral uni-operator.
 fromIntegral' :: (SqlContext c, Integral a, Num b)
-              => Record c a -> Record c b
+              => Record i j c a -> Record i j c b
 fromIntegral' =  unsafeCastProjectable
 
 -- | Unsafely show number into string-like type in records.
 showNum :: (SqlContext c, Num a, IsString b)
-        => Record c a -> Record c b
+        => Record i j c a -> Record i j c b
 showNum =  unsafeCastProjectable
 
 -- | Number operator corresponding SQL /+/ .
 (?+?) :: (OperatorContext c, Num a)
-      => Record c (Maybe a) -> Record c (Maybe a) -> Record c (Maybe a)
+      => Record i j c (Maybe a) -> Record i j c (Maybe a) -> Record i j c (Maybe a)
 (?+?) =  monoBinOp' "+"
 
 -- | Number operator corresponding SQL /-/ .
 (?-?) :: (OperatorContext c, Num a)
-      => Record c (Maybe a) -> Record c (Maybe a) -> Record c (Maybe a)
+      => Record i j c (Maybe a) -> Record i j c (Maybe a) -> Record i j c (Maybe a)
 (?-?) =  monoBinOp' "-"
 
 -- | Number operator corresponding SQL /// .
 (?/?) :: (OperatorContext c, Num a)
-      => Record c (Maybe a) -> Record c (Maybe a) -> Record c (Maybe a)
+      => Record i j c (Maybe a) -> Record i j c (Maybe a) -> Record i j c (Maybe a)
 (?/?) =  monoBinOp' "/"
 
 -- | Number operator corresponding SQL /*/ .
 (?*?) :: (OperatorContext c, Num a)
-      => Record c (Maybe a) -> Record c (Maybe a) -> Record c (Maybe a)
+      => Record i j c (Maybe a) -> Record i j c (Maybe a) -> Record i j c (Maybe a)
 (?*?) =  monoBinOp' "*"
 
 -- | Number negate uni-operator corresponding SQL /-/.
 negateMaybe :: (OperatorContext c, Num a)
-            => Record c (Maybe a) -> Record c (Maybe a)
+            => Record i j c (Maybe a) -> Record i j c (Maybe a)
 negateMaybe =  unsafeFlatUniOp $ SQL.word "-"
 
 -- | Number fromIntegral uni-operator.
 fromIntegralMaybe :: (SqlContext c, Integral a, Num b)
-                  => Record c (Maybe a) -> Record c (Maybe b)
+                  => Record i j c (Maybe a) -> Record i j c (Maybe b)
 fromIntegralMaybe =  unsafeCastProjectable
 
 -- | Unsafely show number into string-like type in records.
 showNumMaybe :: (SqlContext c, Num a, IsString b)
-             => Record c (Maybe a) -> Record c (Maybe b)
+             => Record i j c (Maybe a) -> Record i j c (Maybe b)
 showNumMaybe = unsafeCastProjectable
 
 -- | Search case operator correnponding SQL search /CASE/.
 --   Like, /CASE WHEN p0 THEN a WHEN p1 THEN b ... ELSE c END/
 caseSearch :: OperatorContext c
-           => [(Predicate c, Record c a)] -- ^ Each when clauses
-           -> Record c a                            -- ^ Else result record
-           -> Record c a                            -- ^ Result record
+           => [(Predicate i j c, Record i j c a)] -- ^ Each when clauses
+           -> Record i j c a                            -- ^ Else result record
+           -> Record i j c a                            -- ^ Result record
 caseSearch = Syntax.caseSearch
 
 -- | Same as 'caseSearch', but you can write like <when list> `casesOrElse` <else clause>.
 casesOrElse :: OperatorContext c
-            => [(Predicate c, Record c a)] -- ^ Each when clauses
-            -> Record c a                            -- ^ Else result record
-            -> Record c a                            -- ^ Result record
+            => [(Predicate i j c, Record i j c a)] -- ^ Each when clauses
+            -> Record i j c a                            -- ^ Else result record
+            -> Record i j c a                            -- ^ Result record
 casesOrElse = caseSearch
 
 -- | Null default version of 'caseSearch'.
-caseSearchMaybe :: (OperatorContext c {- (Record c) is always ProjectableMaybe -}, PersistableWidth a)
-                => [(Predicate c, Record c (Maybe a))] -- ^ Each when clauses
-                -> Record c (Maybe a)                            -- ^ Result record
+caseSearchMaybe :: (OperatorContext c {- (Record i j c) is always ProjectableMaybe -}, PersistableWidth a)
+                => [(Predicate i j c, Record i j c (Maybe a))] -- ^ Each when clauses
+                -> Record i j c (Maybe a)                            -- ^ Result record
 caseSearchMaybe cs = caseSearch cs nothing
 
 -- | Simple case operator correnponding SQL simple /CASE/.
 --   Like, /CASE x WHEN v THEN a WHEN w THEN b ... ELSE c END/
 case' :: OperatorContext c
-      => Record c a                 -- ^ Record value to match
-      -> [(Record c a, Record c b)] -- ^ Each when clauses
-      -> Record c b                 -- ^ Else result record
-      -> Record c b                 -- ^ Result record
+      => Record i j c a                 -- ^ Record value to match
+      -> [(Record i j c a, Record i j c b)] -- ^ Each when clauses
+      -> Record i j c b                 -- ^ Else result record
+      -> Record i j c b                 -- ^ Result record
 case' = Syntax.case'
 
 -- | Uncurry version of 'case'', and you can write like ... `casesOrElse'` <else clause>.
 casesOrElse' :: OperatorContext c
-             => (Record c a, [(Record c a, Record c b)]) -- ^ Record value to match and each when clauses list
-             -> Record c b                               -- ^ Else result record
-             -> Record c b                               -- ^ Result record
+             => (Record i j c a, [(Record i j c a, Record i j c b)]) -- ^ Record value to match and each when clauses list
+             -> Record i j c b                               -- ^ Else result record
+             -> Record i j c b                               -- ^ Result record
 casesOrElse' =  uncurry case'
 
 -- | Null default version of 'case''.
-caseMaybe :: (OperatorContext c {- (Record c) is always ProjectableMaybe -}, PersistableWidth b)
-          => Record c a                         -- ^ Record value to match
-          -> [(Record c a, Record c (Maybe b))] -- ^ Each when clauses
-          -> Record c (Maybe b)                 -- ^ Result record
+caseMaybe :: (OperatorContext c {- (Record i j c) is always ProjectableMaybe -}, PersistableWidth b)
+          => Record i j c a                         -- ^ Record value to match
+          -> [(Record i j c a, Record i j c (Maybe b))] -- ^ Each when clauses
+          -> Record i j c (Maybe b)                 -- ^ Result record
 caseMaybe v cs = case' v cs nothing
 
 -- | Binary operator corresponding SQL /IN/ .
 in' :: OperatorContext c
-    => Record c t -> RecordList (Record c) t -> Record c (Maybe Bool)
+    => Record i j c t -> RecordList (Record i j c) t -> Record i j c (Maybe Bool)
 in' a lp = unsafeProjectSql' . SQL.paren
            $ SQL.in' (unsafeShowSql' a) (Record.unsafeStringSqlList unsafeShowSql' lp)
 
 -- | Operator corresponding SQL /IS NULL/ , and extended against record types.
 isNothing :: (OperatorContext c, HasColumnConstraint NotNull r)
-          => Record c (Maybe r) -> Predicate c
+          => Record i j c (Maybe r) -> Predicate i j c
 isNothing mr = unsafeProjectSql' $
                SQL.paren $ (SQL.defineBinOp SQL.IS)
                (Record.unsafeStringSqlNotNullMaybe mr) SQL.NULL
 
 -- | Operator corresponding SQL /NOT (... IS NULL)/ , and extended against record type.
 isJust :: (OperatorContext c, HasColumnConstraint NotNull r)
-          => Record c (Maybe r) -> Predicate c
+          => Record i j c (Maybe r) -> Predicate i j c
 isJust =  not' . isNothing
 
 -- | Operator from maybe type using record extended 'isNull'.
 fromMaybe :: (OperatorContext c, HasColumnConstraint NotNull r)
-          => Record c r -> Record c (Maybe r) -> Record c r
+          => Record i j c r -> Record i j c (Maybe r) -> Record i j c r
 fromMaybe d p = [ (isNothing p, d) ] `casesOrElse` unsafeCastProjectable p
 
-unsafeUniTermFunction :: SqlContext c => Keyword -> Record c t
+unsafeUniTermFunction :: SqlContext c => Keyword -> Record i j c t
 unsafeUniTermFunction =  unsafeProjectSql' . (SQL.<++> stringSQL "()")
 
 -- | /RANK()/ term.
-rank :: Integral a => Record OverWindow a
+rank :: Integral a => Record i j OverWindow a
 rank =  unsafeUniTermFunction SQL.RANK
 
 -- | /DENSE_RANK()/ term.
-denseRank :: Integral a => Record OverWindow a
+denseRank :: Integral a => Record i j OverWindow a
 denseRank =  unsafeUniTermFunction SQL.DENSE_RANK
 
 -- | /ROW_NUMBER()/ term.
-rowNumber :: Integral a => Record OverWindow a
+rowNumber :: Integral a => Record i j OverWindow a
 rowNumber =  unsafeUniTermFunction SQL.ROW_NUMBER
 
 -- | /PERCENT_RANK()/ term.
-percentRank :: Record OverWindow Double
+percentRank :: Record i j OverWindow Double
 percentRank =  unsafeUniTermFunction SQL.PERCENT_RANK
 
 -- | /CUME_DIST()/ term.
-cumeDist :: Record OverWindow Double
+cumeDist :: Record i j OverWindow Double
 cumeDist =  unsafeUniTermFunction SQL.CUME_DIST
 
 -- | Unsafely add placeholder parameter to queries.
@@ -460,21 +460,22 @@ unsafeCastPlaceHolders PlaceHolders = PlaceHolders
 -- | Provide scoped placeholder from width and return its parameter object.
 pwPlaceholder :: SqlContext c
               => PersistableRecordWidth a
-              -> (Record c a -> b)
+              -> (Record i j c a -> b)
               -> (PlaceHolders a, b)
 pwPlaceholder pw f = (PlaceHolders, f $ projectPlaceHolder pw)
   where
     projectPlaceHolder :: SqlContext c
                        => PersistableRecordWidth a
-                       -> Record c a
+                       -> Record i j c a
     projectPlaceHolder = unsafeProjectSqlTerms . (`replicate` "?") . runPersistableRecordWidth
+-- igrep NOTE: the placeholder characer "?" is appended here.
 
 -- | Provide scoped placeholder and return its parameter object.
-placeholder' :: (PersistableWidth t, SqlContext c) => (Record c t -> a) ->  (PlaceHolders t, a)
+placeholder' :: (PersistableWidth t, SqlContext c) => (Record i j c t -> a) ->  (PlaceHolders t, a)
 placeholder' = pwPlaceholder persistableWidth
 
 -- | Provide scoped placeholder and return its parameter object. Monadic version.
-placeholder :: (PersistableWidth t, SqlContext c, Monad m) => (Record c t -> m a) -> m (PlaceHolders t, a)
+placeholder :: (PersistableWidth t, SqlContext c, Monad m) => (Record i j c t -> m a) -> m (PlaceHolders t, a)
 placeholder f = do
   let (ph, ma) = placeholder' f
   a <- ma
@@ -502,98 +503,98 @@ instance ProjectableMaybe PlaceHolders where
   flattenMaybe = unsafeCastPlaceHolders
 
 -- | Control phantom 'Maybe' type in record type 'Record'.
-instance ProjectableMaybe (Record c) where
+instance ProjectableMaybe (Record i j c) where
   just         = Record.just
   flattenMaybe = Record.flattenMaybe
 
 
 -- | Unsafely make aggregation uni-operator from SQL keyword.
 unsafeAggregateOp :: (AggregatedContext ac, SqlContext ac)
-                  => SQL.Keyword -> Record Flat a -> Record ac b
+                  => SQL.Keyword -> Record i j Flat a -> Record i j ac b
 unsafeAggregateOp op = unsafeUniOp ((op SQL.<++>) . SQL.paren)
 
 -- | Aggregation function COUNT.
 count :: (Integral b, AggregatedContext ac, SqlContext ac)
-      => Record Flat a -> Record ac b
+      => Record i j Flat a -> Record i j ac b
 count =  unsafeAggregateOp SQL.COUNT
 
 -- | Aggregation function SUM.
 sumMaybe :: (Num a, AggregatedContext ac, SqlContext ac)
-         => Record Flat (Maybe a) -> Record ac (Maybe a)
+         => Record i j Flat (Maybe a) -> Record i j ac (Maybe a)
 sumMaybe  =  unsafeAggregateOp SQL.SUM
 
 -- | Aggregation function SUM.
 sum' :: (Num a, AggregatedContext ac, SqlContext ac)
-     => Record Flat a -> Record ac (Maybe a)
+     => Record i j Flat a -> Record i j ac (Maybe a)
 sum'  =  sumMaybe . Record.just
 
 -- | Aggregation function AVG.
 avgMaybe :: (Num a, Fractional b, AggregatedContext ac, SqlContext ac)
-         => Record Flat (Maybe a) -> Record ac (Maybe b)
+         => Record i j Flat (Maybe a) -> Record i j ac (Maybe b)
 avgMaybe   =  unsafeAggregateOp SQL.AVG
 
 -- | Aggregation function AVG.
 avg :: (Num a, Fractional b, AggregatedContext ac, SqlContext ac)
-    => Record Flat a -> Record ac (Maybe b)
+    => Record i j Flat a -> Record i j ac (Maybe b)
 avg =  avgMaybe . Record.just
 
 -- | Aggregation function MAX.
 maxMaybe :: (Ord a, AggregatedContext ac, SqlContext ac)
-         => Record Flat (Maybe a) -> Record ac (Maybe a)
+         => Record i j Flat (Maybe a) -> Record i j ac (Maybe a)
 maxMaybe  =  unsafeAggregateOp SQL.MAX
 
 -- | Aggregation function MAX.
 max' :: (Ord a, AggregatedContext ac, SqlContext ac)
-     => Record Flat a -> Record ac (Maybe a)
+     => Record i j Flat a -> Record i j ac (Maybe a)
 max' =  maxMaybe . Record.just
 
 -- | Aggregation function MIN.
 minMaybe :: (Ord a, AggregatedContext ac, SqlContext ac)
-         => Record Flat (Maybe a) -> Record ac (Maybe a)
+         => Record i j Flat (Maybe a) -> Record i j ac (Maybe a)
 minMaybe  =  unsafeAggregateOp SQL.MIN
 
 -- | Aggregation function MIN.
 min' :: (Ord a, AggregatedContext ac, SqlContext ac)
-     => Record Flat a -> Record ac (Maybe a)
+     => Record i j Flat a -> Record i j ac (Maybe a)
 min' =  minMaybe . Record.just
 
 -- | Aggregation function EVERY.
 every :: (AggregatedContext ac, SqlContext ac)
-      => Predicate Flat -> Record ac (Maybe Bool)
+      => Predicate i j Flat -> Record i j ac (Maybe Bool)
 every =  unsafeAggregateOp SQL.EVERY
 
 -- | Aggregation function ANY.
 any' :: (AggregatedContext ac, SqlContext ac)
-     => Predicate Flat -> Record ac (Maybe Bool)
+     => Predicate i j Flat -> Record i j ac (Maybe Bool)
 any'  =  unsafeAggregateOp SQL.ANY
 
 -- | Aggregation function SOME.
 some' :: (AggregatedContext ac, SqlContext ac)
-      => Predicate Flat -> Record ac (Maybe Bool)
+      => Predicate i j Flat -> Record i j ac (Maybe Bool)
 some' =  unsafeAggregateOp SQL.SOME
 
 -- | Get narrower record along with projection path.
 (!) :: PersistableWidth a
-    => Record c a -- ^ Source 'Record'
+    => Record i j c a -- ^ Source 'Record'
     -> Pi a b     -- ^ Record path
-    -> Record c b -- ^ Narrower projected object
+    -> Record i j c b -- ^ Narrower projected object
 (!) = Record.pi
 
 -- | Get narrower record along with projection path
 --   'Maybe' phantom functor is 'map'-ed.
 (?!) :: PersistableWidth a
-     => Record c (Maybe a) -- ^ Source 'Record'. 'Maybe' type
+     => Record i j c (Maybe a) -- ^ Source 'Record'. 'Maybe' type
      -> Pi a b             -- ^ Record path
-     -> Record c (Maybe b) -- ^ Narrower projected object. 'Maybe' type result
+     -> Record i j c (Maybe b) -- ^ Narrower projected object. 'Maybe' type result
 (?!) = Record.piMaybe
 
 -- | Get narrower record along with projection path
 --   and project into result record type.
 --   Source record 'Maybe' phantom functor and projection path leaf 'Maybe' functor are 'join'-ed.
 (?!?) :: PersistableWidth a
-      => Record c (Maybe a) -- ^ Source 'Record'. 'Maybe' phantom type
+      => Record i j c (Maybe a) -- ^ Source 'Record'. 'Maybe' phantom type
       -> Pi a (Maybe b)     -- ^ Record path. 'Maybe' type leaf
-      -> Record c (Maybe b) -- ^ Narrower projected object. 'Maybe' phantom type result
+      -> Record i j c (Maybe b) -- ^ Narrower projected object. 'Maybe' phantom type result
 (?!?) = Record.piMaybe'
 
 
@@ -612,30 +613,30 @@ instance ProjectableFlattenMaybe (Maybe a) (Maybe a) where
 
 -- | Get narrower record with flatten leaf phantom Maybe types along with projection path.
 flattenPiMaybe :: (PersistableWidth a, ProjectableFlattenMaybe (Maybe b) c)
-               => Record cont (Maybe a) -- ^ Source 'Record'. 'Maybe' phantom type
+               => Record i j cont (Maybe a) -- ^ Source 'Record'. 'Maybe' phantom type
                -> Pi a b                -- ^ Projection path
-               -> Record cont c         -- ^ Narrower 'Record'. Flatten 'Maybe' phantom type
+               -> Record i j cont c         -- ^ Narrower 'Record'. Flatten 'Maybe' phantom type
 flattenPiMaybe p = flatten . Record.piMaybe p
 
 -- | Get narrower record with flatten leaf phantom Maybe types along with projection path.
 (!??) :: (PersistableWidth a, ProjectableFlattenMaybe (Maybe b) c)
-      => Record cont (Maybe a) -- ^ Source 'Record'. 'Maybe' phantom type
+      => Record i j cont (Maybe a) -- ^ Source 'Record'. 'Maybe' phantom type
       -> Pi a b                -- ^ Projection path
-      -> Record cont c         -- ^ Narrower flatten and projected object.
+      -> Record i j cont c         -- ^ Narrower flatten and projected object.
 (!??) = flattenPiMaybe
 
 -- | Same as '(?!)'. Use this operator like '(? #foo) mayX'.
 (?) :: PersistableWidth a
-    => Record c (Maybe a) -- ^ Source 'Record'. 'Maybe' type
+    => Record i j c (Maybe a) -- ^ Source 'Record'. 'Maybe' type
     -> Pi a b             -- ^ Record path
-    -> Record c (Maybe b) -- ^ Narrower projected object. 'Maybe' type result
+    -> Record i j c (Maybe b) -- ^ Narrower projected object. 'Maybe' type result
 (?) = (?!)
 
 -- | Same as '(?!?)'. Use this operator like '(?? #foo) mayX'.
 (??) :: PersistableWidth a
-     => Record c (Maybe a) -- ^ Source 'Record'. 'Maybe' phantom type
+     => Record i j c (Maybe a) -- ^ Source 'Record'. 'Maybe' phantom type
      -> Pi a (Maybe b)     -- ^ Record path. 'Maybe' type leaf
-     -> Record c (Maybe b) -- ^ Narrower projected object. 'Maybe' phantom type result
+     -> Record i j c (Maybe b) -- ^ Narrower projected object. 'Maybe' phantom type result
 (??) = (?!?)
 
 infixl 8 !, ?, ??, ?!, ?!?, !??

@@ -173,7 +173,7 @@ employee_4_1_2 = relation $ do
      `or'` #startDate e .<. unsafeSQLiteDayValue "2003-01-01"
   return e
 
-unsafeSQLiteDayValue :: SqlContext c => String -> Record c Day
+unsafeSQLiteDayValue :: SqlContext c => String -> Record i j c Day
 unsafeSQLiteDayValue = unsafeProjectSqlTerms . showConstantTermsSQL
 
 -- |
@@ -807,7 +807,7 @@ data Customer1 = Customer1
   } deriving (Show, Generic)
 
 customer1 :: SqlContext c
-          => Record c Customer -> Record c Customer1
+          => Record i j c Customer -> Record i j c Customer1
 customer1 c = Customer1 |$| #custId c
                         |*| #custTypeCd c
                         |*| #city c
@@ -1088,7 +1088,7 @@ updateEmployee_o3 :: Update ()
 updateEmployee_o3 = updateNoPH $ \proj -> do
   #lname  <-# value "Bush"
   #deptId <-# just (value 3)
-  wheres $ #empId (proj :: Record Flat Employee) .=. value 10
+  wheres $ #empId (proj :: Record i j Flat Employee) .=. value 10
 
 -- |
 -- Placeholder version of Generated SQL:
@@ -1112,7 +1112,7 @@ updateEmployee_o3P :: Update (String, Int, Int)
 updateEmployee_o3P = update $ \proj -> do
   (phLname,()) <- placeholder (\ph -> #lname <-# ph)
   (phDeptId,()) <- placeholder (\ph -> #deptId <-# just ph)
-  (phEmpId,()) <- placeholder (\ph -> wheres $ #empId (proj :: Record Flat Employee) .=. ph)
+  (phEmpId,()) <- placeholder (\ph -> wheres $ #empId (proj :: Record i j Flat Employee) .=. ph)
   return $ (,,) |$| phLname |*| phDeptId |*| phEmpId
 
 -- |
@@ -1155,7 +1155,7 @@ updateAccount_9_4_2 = updateNoPH $ \proj -> do
   Account.lastActivityDate' <-# (toDay $ flattenMaybe ts)
   wheres $ exists $ tl
 
-toDay :: SqlContext c => Record c (Maybe LocalTime) -> Record c (Maybe Day)
+toDay :: SqlContext c => Record i j c (Maybe LocalTime) -> Record i j c (Maybe Day)
 toDay dt = unsafeProjectSql $ "date(" ++ unsafeShowSql dt ++ ")"
 
 -- |
@@ -1216,7 +1216,7 @@ deleteAccount_o1P = delete $ \proj -> do
 --
 deleteAccount_o2 :: Delete ()
 deleteAccount_o2 = deleteNoPH $ \proj' -> do
-  let proj = proj' :: Record Flat Account
+  let proj = proj' :: Record i j Flat Account
   wheres $ #accountId proj .>=. value 10
   wheres $ #accountId proj .<=. value 20
 
@@ -1230,7 +1230,7 @@ deleteAccount_o2 = deleteNoPH $ \proj' -> do
 --
 deleteAccount_o2P :: Delete (Int, Int)
 deleteAccount_o2P = delete $ \proj' -> do
-  let proj = proj' :: Record Flat Account
+  let proj = proj' :: Record i j Flat Account
   (phMin,()) <- placeholder (\ph -> wheres $ #accountId proj .>=. ph)
   (phMax,()) <- placeholder (\ph -> wheres $ #accountId proj .<=. ph)
   return (phMin >< phMax)
@@ -1258,7 +1258,7 @@ deleteEmployee_9_4_2 :: Delete ()
 deleteEmployee_9_4_2 = deleteNoPH $ \proj -> do
   el <- queryList $ relation $ do
     e <- query employee
-    wheres $ #deptId e .=. just (#deptId (proj :: Record Flat Department))
+    wheres $ #deptId e .=. just (#deptId (proj :: Record i j Flat Department))
     return (value (1 :: Int64))
   wheres $ not' . exists $ el
 

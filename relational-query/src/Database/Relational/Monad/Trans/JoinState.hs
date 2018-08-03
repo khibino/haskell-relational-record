@@ -27,7 +27,7 @@ import qualified Database.Relational.SqlSyntax as Product
 -- | JoinContext type for QueryJoin.
 newtype JoinContext =
   JoinContext
-  { product  :: Maybe (Node (DList (Predicate Flat)))
+  { product  :: Maybe (Node (DList Product.Tuple{-Predicate i j Flat-}))
   }
 
 -- | Initial 'JoinContext'.
@@ -35,7 +35,7 @@ primeJoinContext :: JoinContext
 primeJoinContext =  JoinContext Nothing
 
 -- | Update product of 'JoinContext'.
-updateProduct :: (Maybe (Node (DList (Predicate Flat))) -> Node (DList (Predicate Flat)))
+updateProduct :: (Maybe (Node (DList Product.Tuple{-Predicate i j Flat-})) -> Node (DList Product.Tuple{-Predicate i j Flat-}))
               -> JoinContext
               -> JoinContext
 updateProduct uf ctx = ctx { product = Just . uf . product $ ctx }

@@ -59,46 +59,46 @@ import qualified Database.Relational.Monad.Register as Register
 
 
 -- | Restriction type with place-holder parameter 'p' and projected record type 'r'.
-newtype Restriction p r = Restriction (RestrictedStatement r (PlaceHolders p))
+newtype Restriction i j p r = Restriction (RestrictedStatement i j r (PlaceHolders p))
 
 -- | Finalize 'Restrict' monad and generate 'Restriction'.
-restriction :: RestrictedStatement r () -> Restriction () r
+restriction :: RestrictedStatement i j r () -> Restriction i j () r
 restriction = Restriction . ((>> return unitPH) .)
 
 -- | Finalize 'Restrict' monad and generate 'Restriction' with place-holder parameter 'p'
-restriction' :: RestrictedStatement r (PlaceHolders p) -> Restriction p r
+restriction' :: RestrictedStatement i j r (PlaceHolders p) -> Restriction i j p r
 restriction' = Restriction
 
-runRestriction :: Restriction p r
-               -> RestrictedStatement r (PlaceHolders p)
+runRestriction :: Restriction i j p r
+               -> RestrictedStatement i j r (PlaceHolders p)
 runRestriction (Restriction qf) = qf
 
 -- | SQL WHERE clause 'StringSQL' string from 'Restriction'.
-sqlWhereFromRestriction :: Config -> Table r -> Restriction p r -> StringSQL
+sqlWhereFromRestriction :: Config -> Table r -> Restriction i j p r -> StringSQL
 sqlWhereFromRestriction config tbl (Restriction q) = composeWhere rs
   where (_ph, rs) = Restrict.extract (q $ Record.unsafeFromTable tbl) config
 
 -- | Show where clause.
-instance TableDerivable r => Show (Restriction p r) where
+instance TableDerivable r => Show (Restriction i j p r) where
   show = showStringSQL . sqlWhereFromRestriction defaultConfig derivedTable
 
 
 -- | UpdateTarget type with place-holder parameter 'p' and projected record type 'r'.
-newtype UpdateTarget p r = UpdateTarget (AssignStatement r (PlaceHolders p))
+newtype UpdateTarget i j p r = UpdateTarget (AssignStatement i j r (PlaceHolders p))
 
 -- | Finalize 'Target' monad and generate 'UpdateTarget'.
-updateTarget :: AssignStatement r ()
-             -> UpdateTarget () r
+updateTarget :: AssignStatement i j r ()
+             -> UpdateTarget i j () r
 updateTarget =  UpdateTarget . ((>> return unitPH) .)
 
 -- | Finalize 'Target' monad and generate 'UpdateTarget' with place-holder parameter 'p'.
-updateTarget' :: AssignStatement r (PlaceHolders p)
-              -> UpdateTarget p r
+updateTarget' :: AssignStatement i j r (PlaceHolders p)
+              -> UpdateTarget i j p r
 updateTarget' = UpdateTarget
 
 updateAllColumn :: PersistableWidth r
-                => Restriction p r
-                -> AssignStatement r (PlaceHolders (r, p))
+                => Restriction i j p r
+                -> AssignStatement i j r (PlaceHolders (r, p))
 updateAllColumn rs proj = do
   (ph0, ()) <- placeholder (\ph -> id' <-# ph)
   ph1       <- assignings $ runRestriction rs proj
@@ -106,35 +106,35 @@ updateAllColumn rs proj = do
 
 -- | Lift 'Restriction' to 'UpdateTarget'. Update target columns are all.
 liftTargetAllColumn :: PersistableWidth r
-                     => Restriction () r
-                     -> UpdateTarget r r
+                     => Restriction i j () r
+                     -> UpdateTarget i j r r
 liftTargetAllColumn rs = updateTarget' $ \proj -> fmap peRight $ updateAllColumn rs proj
 
 -- | Lift 'Restriction' to 'UpdateTarget'. Update target columns are all. With placefolder type 'p'.
 liftTargetAllColumn' :: PersistableWidth r
-                     => Restriction p r
-                     -> UpdateTarget (r, p) r
+                     => Restriction i j p r
+                     -> UpdateTarget i j (r, p) r
 liftTargetAllColumn' rs = updateTarget' $ updateAllColumn rs
 
 -- | Finalize 'Restrict' monad and generate 'UpdateTarget'. Update target columns are all.
 updateTargetAllColumn :: PersistableWidth r
-                      => RestrictedStatement r ()
-                      -> UpdateTarget r r
+                      => RestrictedStatement i j r ()
+                      -> UpdateTarget i j r r
 updateTargetAllColumn = liftTargetAllColumn . restriction
 
 -- | Finalize 'Restrict' monad and generate 'UpdateTarget'. Update target columns are all. With placefolder type 'p'.
 updateTargetAllColumn' :: PersistableWidth r
-                       => RestrictedStatement r (PlaceHolders p)
-                       -> UpdateTarget (r, p) r
+                       => RestrictedStatement i j r (PlaceHolders p)
+                       -> UpdateTarget i j (r, p) r
 updateTargetAllColumn' = liftTargetAllColumn' . restriction'
 
 
 -- | SQL SET clause and WHERE clause 'StringSQL' string from 'UpdateTarget'
-sqlFromUpdateTarget :: Config -> Table r -> UpdateTarget p r -> StringSQL
+sqlFromUpdateTarget :: Config -> Table r -> UpdateTarget i j p r -> StringSQL
 sqlFromUpdateTarget config tbl (UpdateTarget q) = composeSets (asR tbl) <> composeWhere rs
   where ((_ph, asR), rs) = Assign.extract (q (Record.unsafeFromTable tbl)) config
 
-instance TableDerivable r => Show (UpdateTarget p r) where
+instance TableDerivable r => Show (UpdateTarget i j p r) where
   show = showStringSQL . sqlFromUpdateTarget defaultConfig derivedTable
 
 

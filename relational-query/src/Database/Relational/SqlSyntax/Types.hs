@@ -101,11 +101,11 @@ newtype AggregateKey a = AggregateKey (a, AggregateElem)
 -- | Sub-query type
 data SubQuery = Table Untyped
               | Flat Config
-                Tuple Duplication JoinProduct [Predicate Flat]
+                Tuple Duplication JoinProduct [Tuple{-Predicate i j Flat-}]
                 [OrderingTerm]
               | Aggregated Config
-                Tuple Duplication JoinProduct [Predicate Flat]
-                [AggregateElem] [Predicate Aggregated] [OrderingTerm]
+                Tuple Duplication JoinProduct [Tuple{-Predicate i j Flat-}]
+                [AggregateElem] [Tuple{-Predicate i j Aggregated-}] [OrderingTerm]
               | Bin BinOp SubQuery SubQuery
               deriving Show
 
@@ -153,7 +153,7 @@ nodeTree :: Node rs -> ProductTree rs
 nodeTree (Node _ t) = t
 
 -- | Type for join product of query.
-type JoinProduct = Maybe (ProductTree [Predicate Flat])
+type JoinProduct = Maybe (ProductTree [Tuple{-Predicate i j Flat-}])
 
 -- | when clauses
 data WhenClauses =
@@ -182,29 +182,29 @@ tupleWidth :: Tuple -> Int
 tupleWidth = length
 
 -- | Phantom typed record. Projected into Haskell record type 't'.
-newtype Record c t =
+newtype Record i j c t =
   Record
   { untypeRecord :: Tuple {- ^ Discard record type -} }  deriving Show
 
 -- | Type for predicate to restrict of query result.
-type Predicate c = Record c (Maybe Bool)
+type Predicate i j c = Record i j c (Maybe Bool)
 
 -- | Type for projection function.
-type PI c a b = Record c a -> Record c b
+type PI i c a b = Record i i c a -> Record i i c b
 
 -- | Unsafely type 'Tuple' value to 'Record' type.
-record :: Tuple -> Record c t
+record :: Tuple -> Record i j c t
 record = Record
 
 -- | Width of 'Record'.
-recordWidth :: Record c r -> Int
+recordWidth :: Record i j c r -> Int
 recordWidth = length . untypeRecord
 
 -- | Unsafely generate 'Record' from SQL string list.
 typeFromRawColumns :: [StringSQL] -- ^ SQL string list specifies columns
-                   -> Record c r  -- ^ Result 'Record'
+                   -> Record i j c r  -- ^ Result 'Record'
 typeFromRawColumns =  record . map RawColumn
 
 -- | Unsafely generate 'Record' from scalar sub-query.
-typeFromScalarSubQuery :: SubQuery -> Record c t
+typeFromScalarSubQuery :: SubQuery -> Record i j c t
 typeFromScalarSubQuery = record . (:[]) . Scalar

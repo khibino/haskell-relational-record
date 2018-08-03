@@ -178,7 +178,7 @@ employee_4_1_2 = relation $ do
      `or'` e ! Employee.startDate' .<. unsafeSQLiteDayValue "2003-01-01"
   return e
 
-unsafeSQLiteDayValue :: SqlContext c => String -> Record c Day
+unsafeSQLiteDayValue :: SqlContext c => String -> Record i j c Day
 unsafeSQLiteDayValue = unsafeProjectSqlTerms . showConstantTermsSQL
 
 -- |
@@ -812,7 +812,7 @@ data Customer1 = Customer1
   } deriving (Show, Generic)
 
 customer1 :: SqlContext c
-          => Record c Customer -> Record c Customer1
+          => Record i j c Customer -> Record i j c Customer1
 customer1 c = Customer1 |$| c ! Customer.custId'
                         |*| c ! Customer.custTypeCd'
                         |*| c ! Customer.city'
@@ -1160,7 +1160,7 @@ updateAccount_9_4_2 = updateNoPH $ \proj -> do
   Account.lastActivityDate' <-# (toDay $ flattenMaybe ts)
   wheres $ exists $ tl
 
-toDay :: SqlContext c => Record c (Maybe LocalTime) -> Record c (Maybe Day)
+toDay :: SqlContext c => Record i j c (Maybe LocalTime) -> Record i j c (Maybe Day)
 toDay dt = unsafeProjectSql $ "date(" ++ unsafeShowSql dt ++ ")"
 
 -- |

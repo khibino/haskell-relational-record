@@ -20,7 +20,7 @@ import Database.Relational.SqlSyntax (Record)
 class SqlContext c where
   -- | Unsafely project from SQL expression terms.
   unsafeProjectSqlTerms :: [StringSQL]
-                        -> Record c t
+                        -> Record i j c t
 
 -- | Constraint to restrict context of full SQL expressions.
 --   For example, the expression at the left of OVER clause

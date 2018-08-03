@@ -71,7 +71,7 @@ placeHoldersFromRelation =  const unsafePlaceHolders
 -- | Join sub-query. Query result is not 'Maybe'.
 query :: (MonadQualify ConfigureQuery m, MonadQuery m)
       => Relation () r
-      -> m (Record Flat r)
+      -> m (Record i j Flat r)
 query =  fmap snd . query'
 
 -- | Join sub-query. Query result is 'Maybe'.
@@ -88,10 +88,10 @@ query =  fmap snd . query'
 -- @
 queryMaybe :: (MonadQualify ConfigureQuery m, MonadQuery m)
            => Relation () r
-           -> m (Record Flat (Maybe r))
+           -> m (Record i j Flat (Maybe r))
 queryMaybe =  fmap snd . queryMaybe'
 
-queryList0 :: MonadQualify ConfigureQuery m => Relation p r -> m (RecordList (Record c) r)
+queryList0 :: MonadQualify ConfigureQuery m => Relation p r -> m (RecordList (Record i j c) r)
 queryList0 =  liftQualify
               . fmap Record.unsafeListFromSubQuery
               . untypeRelation
@@ -99,7 +99,7 @@ queryList0 =  liftQualify
 -- | List sub-query, for /IN/ and /EXIST/ with place-holder parameter 'p'.
 queryList' :: MonadQualify ConfigureQuery m
            => Relation p r
-           -> m (PlaceHolders p, RecordList (Record c) r)
+           -> m (PlaceHolders p, RecordList (Record i j c) r)
 queryList' rel = do
   ql <- queryList0 rel
   return (placeHoldersFromRelation rel, ql)
@@ -107,26 +107,26 @@ queryList' rel = do
 -- | List sub-query, for /IN/ and /EXIST/.
 queryList :: MonadQualify ConfigureQuery m
           => Relation () r
-          -> m (RecordList (Record c) r)
+          -> m (RecordList (Record i j c) r)
 queryList =  queryList0
 
 addUnitPH :: Functor f => f t -> f (PlaceHolders (), t)
 addUnitPH =  ((,) unitPlaceHolder <$>)
 
 -- | Finalize 'QuerySimple' monad and generate 'Relation' with place-holder parameter 'p'.
-relation' :: SimpleQuery p r -> Relation p r
+relation' :: SimpleQuery i j p r -> Relation p r
 relation' =  unsafeTypeRelation . Simple.toSubQuery
 
 -- | Finalize 'QuerySimple' monad and generate 'Relation'.
-relation :: QuerySimple (Record Flat r) -> Relation () r
+relation :: QuerySimple (Record i j Flat r) -> Relation () r
 relation =  relation' . addUnitPH
 
 -- | Finalize 'QueryAggregate' monad and geneate 'Relation' with place-holder parameter 'p'.
-aggregateRelation' :: AggregatedQuery p r -> Relation p r
+aggregateRelation' :: AggregatedQuery i j p r -> Relation p r
 aggregateRelation' =  unsafeTypeRelation . Aggregate.toSubQuery
 
 -- | Finalize 'QueryAggregate' monad and geneate 'Relation'.
-aggregateRelation :: QueryAggregate (Record Aggregated r) -> Relation () r
+aggregateRelation :: QueryAggregate (Record i j Aggregated r) -> Relation () r
 aggregateRelation =  aggregateRelation' . addUnitPH
 
 
@@ -144,7 +144,7 @@ unUnique (Unique r) = r
 -- | Basic monadic join operation using 'MonadQuery'.
 uniqueQueryWithAttr :: NodeAttr
                     -> UniqueRelation p c r
-                    -> QueryUnique (PlaceHolders p, Record c r)
+                    -> QueryUnique (PlaceHolders p, Record i j c r)
 uniqueQueryWithAttr attr = unsafeAddPlaceHolders . run where
   run rel = do
     q <- liftQualify $ do
@@ -154,24 +154,24 @@ uniqueQueryWithAttr attr = unsafeAddPlaceHolders . run where
 
 -- | Join unique sub-query with place-holder parameter 'p'.
 uniqueQuery' :: UniqueRelation p c r
-             -> QueryUnique (PlaceHolders p, Record c r)
+             -> QueryUnique (PlaceHolders p, Record i j c r)
 uniqueQuery' = uniqueQueryWithAttr Just'
 
 -- | Join unique sub-query with place-holder parameter 'p'. Query result is 'Maybe'.
 uniqueQueryMaybe' :: UniqueRelation p c r
-                  -> QueryUnique (PlaceHolders p, Record c (Maybe r))
+                  -> QueryUnique (PlaceHolders p, Record i j c (Maybe r))
 uniqueQueryMaybe' pr =  do
   (ph, pj) <- uniqueQueryWithAttr Maybe pr
   return (ph, Record.just pj)
 
 -- | Finalize 'QueryUnique' monad and generate 'UniqueRelation'.
-uniqueRelation' :: QueryUnique (PlaceHolders p, Record c r) -> UniqueRelation p c r
+uniqueRelation' :: QueryUnique (PlaceHolders p, Record i j c r) -> UniqueRelation p c r
 uniqueRelation' =  unsafeUnique . unsafeTypeRelation . Unique.toSubQuery
 
 -- | Aggregated 'UniqueRelation'.
 aggregatedUnique :: Relation ph r
                  -> Pi r a
-                 -> (Record Flat a -> Record Aggregated b)
+                 -> (Record i j Flat a -> Record i j Aggregated b)
                  -> UniqueRelation ph Flat b
 aggregatedUnique rel k ag = unsafeUnique . aggregateRelation' $ do
   (ph, a) <- query' rel
@@ -180,7 +180,7 @@ aggregatedUnique rel k ag = unsafeUnique . aggregateRelation' $ do
 -- | Scalar sub-query with place-holder parameter 'p'.
 queryScalar' :: (MonadQualify ConfigureQuery m, ScalarDegree r)
              => UniqueRelation p c r
-             -> m (PlaceHolders p, Record c (Maybe r))
+             -> m (PlaceHolders p, Record i j c (Maybe r))
 queryScalar' ur =
   unsafeAddPlaceHolders . liftQualify $
   Record.unsafeFromScalarSubQuery <$> untypeRelation (unUnique ur)
@@ -188,5 +188,5 @@ queryScalar' ur =
 -- | Scalar sub-query.
 queryScalar :: (MonadQualify ConfigureQuery m, ScalarDegree r)
             => UniqueRelation () c r
-            -> m (Record c (Maybe r))
+            -> m (Record i j c (Maybe r))
 queryScalar =  fmap snd . queryScalar'

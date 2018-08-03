@@ -45,9 +45,8 @@ import qualified Prelude ((>>=), (>>))
 
 newtype PlaceHolderValues = PlaceHolderValues { placeHolderValuesAsDList :: DList String } deriving (Eq, Show, Monoid)
 
--- Effに書き換えるのは難しい？
 newtype Placeholders m p1 p2 a =
-  Placeholders { unPlaceholders :: (IxStateT (WriterT PlaceHolderValues m) p1 p2 a) }
+  Placeholders { unPlaceholders :: IxStateT (WriterT PlaceHolderValues m) p1 p2 a }
   deriving (IxFunctor, IxPointed, IxApplicative, IxMonad, Functor)
 
 instance Monad m => Applicative (Placeholders m p p)
@@ -91,7 +90,7 @@ type QueryM p1 p2 a = Placeholders HRR.QuerySimple p1 p2 a
 runQueryM
   :: HRR.Config
   -> Record xs -- ^ Parameter record
-  -> QueryM (Record xs) (Record '[]) (HRR.Record HRR.Flat r)
+  -> QueryM (Record xs) (Record '[]) (HRR.Record (Record xs) (Record '[]) HRR.Flat r)
   -> (String, [String]) -- ^ Built SQL and parameters converted into string
 runQueryM cfg params action = (show . HRR.relationalQuery . HRR.unsafeTypeRelation *** DL.toList . placeHolderValuesAsDList) sq
  where

@@ -33,10 +33,10 @@ import Control.Arrow (second, (***))
 import Data.Maybe (fromMaybe)
 import Data.Monoid (Last (Last, getLast))
 
-import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax
-  (Duplication (All), NodeAttr (Just', Maybe), Predicate, Record,
-   SubQuery, Qualified, JoinProduct, restrictProduct, growProduct, )
+  (Duplication (All), NodeAttr (Just', Maybe), Record,
+   SubQuery, Qualified, JoinProduct, restrictProduct, growProduct,
+   Tuple, untypeRecord)
 
 import Database.Relational.Monad.Trans.JoinState
   (JoinContext, primeJoinContext, updateProduct, joinProduct)
@@ -63,7 +63,7 @@ updateContext :: Monad m => (JoinContext -> JoinContext) -> QueryJoin m ()
 updateContext =  QueryJoin . modify
 
 -- | Add last join product restriction.
-updateJoinRestriction :: Monad m => Predicate Flat -> QueryJoin m ()
+updateJoinRestriction :: Monad m => Tuple{-Predicate i j Flat-} -> QueryJoin m ()
 updateJoinRestriction e = updateContext (updateProduct d)  where
   d  Nothing  = error "on: Product is empty! Restrict target product is not found!"
   d (Just pt) = restrictProduct pt e
@@ -74,7 +74,7 @@ instance MonadQualify q m => MonadQualify q (QueryJoin m) where
 -- | Joinable query instance.
 instance MonadQuery (QueryJoin ConfigureQuery) where
   setDuplication     = QueryJoin . lift . tell . Last . Just
-  restrictJoin       = updateJoinRestriction
+  restrictJoin       = updateJoinRestriction . untypeRecord
   query'             = queryWithAttr Just'
   queryMaybe' pr     = do
     (ph, pj) <- queryWithAttr Maybe pr
@@ -84,7 +84,7 @@ instance MonadQuery (QueryJoin ConfigureQuery) where
 unsafeSubQueryWithAttr :: Monad q
                        => NodeAttr                 -- ^ Attribute maybe or just
                        -> Qualified SubQuery       -- ^ 'SubQuery' to join
-                       -> QueryJoin q (Record c r) -- ^ Result joined context and record of 'SubQuery' result.
+                       -> QueryJoin q (Record i j c r) -- ^ Result joined context and record of 'SubQuery' result.
 unsafeSubQueryWithAttr attr qsub = do
   updateContext (updateProduct (`growProduct` (attr, qsub)))
   return $ Record.unsafeFromQualifiedSubQuery qsub
@@ -92,7 +92,7 @@ unsafeSubQueryWithAttr attr qsub = do
 -- | Basic monadic join operation using 'MonadQuery'.
 queryWithAttr :: NodeAttr
               -> Relation p r
-              -> QueryJoin ConfigureQuery (PlaceHolders p, Record c r)
+              -> QueryJoin ConfigureQuery (PlaceHolders p, Record i j c r)
 queryWithAttr attr = unsafeAddPlaceHolders . run where
   run rel = do
     q <- liftQualify $ do

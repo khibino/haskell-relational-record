@@ -18,37 +18,35 @@ import Control.Applicative (pure)
 import Data.Monoid ((<>), mempty)
 import Data.DList (DList)
 
-import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax.Types
-  (NodeAttr (..), ProductTree (..), Node (..), Qualified, SubQuery,
-   Predicate)
+  (NodeAttr (..), ProductTree (..), Node (..), Qualified, SubQuery, Tuple)
 
 
 -- | Push new tree into product right term.
-growRight :: Maybe (Node (DList (Predicate Flat)))            -- ^ Current tree
-          -> (NodeAttr, ProductTree (DList (Predicate Flat))) -- ^ New tree to push into right
-          -> Node (DList (Predicate Flat))                    -- ^ Result node
+growRight :: Maybe (Node (DList Tuple{-Predicate i j Flat-}))            -- ^ Current tree
+          -> (NodeAttr, ProductTree (DList Tuple{-Predicate i j Flat-})) -- ^ New tree to push into right
+          -> Node (DList Tuple{-Predicate i j Flat-})                    -- ^ Result node
 growRight = d  where
   d Nothing  (naR, q) = Node naR q
   d (Just l) (naR, q) = Node Just' $ Join l (Node naR q) mempty
 
 -- | Push new leaf node into product right term.
-growProduct :: Maybe (Node (DList (Predicate Flat))) -- ^ Current tree
+growProduct :: Maybe (Node (DList Tuple{-Predicate i j Flat-})) -- ^ Current tree
             -> (NodeAttr, Qualified SubQuery)       -- ^ New leaf to push into right
-            -> Node (DList (Predicate Flat))         -- ^ Result node
+            -> Node (DList Tuple{-Predicate i j Flat-})         -- ^ Result node
 growProduct =  match  where
   match t (na, q) =  growRight t (na, Leaf q)
 
 -- | Add restriction into top product of product tree.
-restrictProduct' :: ProductTree (DList (Predicate Flat)) -- ^ Product to restrict
-                 -> Predicate Flat                       -- ^ Restriction to add
-                 -> ProductTree (DList (Predicate Flat)) -- ^ Result product
+restrictProduct' :: ProductTree (DList Tuple{-Predicate i j Flat-}) -- ^ Product to restrict
+                 -> Tuple{-Predicate i j Flat-}                       -- ^ Restriction to add
+                 -> ProductTree (DList Tuple{-Predicate i j Flat-}) -- ^ Result product
 restrictProduct' =  d  where
   d (Join lp rp rs) rs' = Join lp rp (rs <> pure rs')
   d leaf'@(Leaf _)         _   = leaf' -- or error on compile
 
 -- | Add restriction into top product of product tree node.
-restrictProduct :: Node (DList (Predicate Flat)) -- ^ Target node which has product to restrict
-                -> Predicate Flat                -- ^ Restriction to add
-                -> Node (DList (Predicate Flat)) -- ^ Result node
+restrictProduct :: Node (DList Tuple{-Predicate i j Flat-}) -- ^ Target node which has product to restrict
+                -> Tuple{-Predicate i j Flat-}                       -- ^ Restriction to add
+                -> Node (DList Tuple{-Predicate i j Flat-}) -- ^ Result node
 restrictProduct (Node a t) e = Node a (restrictProduct' t e)

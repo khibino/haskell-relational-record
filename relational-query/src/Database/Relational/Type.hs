@@ -153,42 +153,42 @@ unsafeTypedUpdate :: String -> Update p
 unsafeTypedUpdate =  Update
 
 -- | Make untyped update SQL string from 'Table' and 'UpdateTarget'.
-updateSQL :: Config -> Table r -> UpdateTarget p r -> String
+updateSQL :: Config -> Table r -> UpdateTarget i j p r -> String
 updateSQL config tbl ut = showStringSQL $ updatePrefixSQL tbl <> sqlFromUpdateTarget config tbl ut
 
 -- | Make typed 'Update' from 'Config', 'Table' and 'UpdateTarget'.
-typedUpdate' :: Config -> Table r -> UpdateTarget p r -> Update p
+typedUpdate' :: Config -> Table r -> UpdateTarget i j p r -> Update p
 typedUpdate' config tbl ut = unsafeTypedUpdate $ updateSQL config tbl ut
 
 {-# DEPRECATED typedUpdate "use `typedUpdate' defaultConfig` instead of this." #-}
 -- | Make typed 'Update' using 'defaultConfig', 'Table' and 'UpdateTarget'.
-typedUpdate :: Table r -> UpdateTarget p r -> Update p
+typedUpdate :: Table r -> UpdateTarget i j p r -> Update p
 typedUpdate =  typedUpdate' defaultConfig
 
-targetTable :: TableDerivable r => UpdateTarget p r -> Table r
+targetTable :: TableDerivable r => UpdateTarget i j p r -> Table r
 targetTable =  const derivedTable
 
 -- | Make typed 'Update' from 'Config', derived table and 'AssignStatement'
-update' :: TableDerivable r => Config -> AssignStatement r (PlaceHolders p) -> Update p
+update' :: TableDerivable r => Config -> AssignStatement i j r (PlaceHolders p) -> Update p
 update' config utc =  typedUpdate' config (targetTable ut) ut  where
   ut = updateTarget' utc
 
 {-# DEPRECATED derivedUpdate' "use `update'` instead of this." #-}
 -- | Make typed 'Update' from 'Config', derived table and 'AssignStatement'
-derivedUpdate' :: TableDerivable r => Config -> AssignStatement r (PlaceHolders p) -> Update p
+derivedUpdate' :: TableDerivable r => Config -> AssignStatement i j r (PlaceHolders p) -> Update p
 derivedUpdate' = update'
 
 -- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement'
-update :: TableDerivable r => AssignStatement r (PlaceHolders p) -> Update p
+update :: TableDerivable r => AssignStatement i j r (PlaceHolders p) -> Update p
 update = update' defaultConfig
 
 -- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement' with no(unit) placeholder.
-updateNoPH :: TableDerivable r => AssignStatement r () -> Update ()
+updateNoPH :: TableDerivable r => AssignStatement i j r () -> Update ()
 updateNoPH af = update $ (return unitPH <*) . af
 
 {-# DEPRECATED derivedUpdate "use `update` instead of this." #-}
 -- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement'
-derivedUpdate :: TableDerivable r => AssignStatement r (PlaceHolders p) -> Update p
+derivedUpdate :: TableDerivable r => AssignStatement i j r (PlaceHolders p) -> Update p
 derivedUpdate = update
 
 
@@ -197,7 +197,7 @@ derivedUpdate = update
 typedUpdateAllColumn' :: PersistableWidth r
                       => Config
                       -> Table r
-                      -> Restriction p r
+                      -> Restriction i j p r
                       -> Update (r, p)
 typedUpdateAllColumn' config tbl r = typedUpdate' config tbl $ liftTargetAllColumn' r
 
@@ -205,7 +205,7 @@ typedUpdateAllColumn' config tbl r = typedUpdate' config tbl $ liftTargetAllColu
 --   Update target is all column.
 typedUpdateAllColumn :: PersistableWidth r
                      => Table r
-                     -> Restriction p r
+                     -> Restriction i j p r
                      -> Update (r, p)
 typedUpdateAllColumn = typedUpdateAllColumn' defaultConfig
 
@@ -213,7 +213,7 @@ typedUpdateAllColumn = typedUpdateAllColumn' defaultConfig
 --   Update target is all column.
 updateAllColumn' :: (PersistableWidth r, TableDerivable r)
                  => Config
-                 -> RestrictedStatement r (PlaceHolders p)
+                 -> RestrictedStatement i j r (PlaceHolders p)
                  -> Update (r, p)
 updateAllColumn' config = typedUpdateAllColumn' config derivedTable .restriction'
 
@@ -222,14 +222,14 @@ updateAllColumn' config = typedUpdateAllColumn' config derivedTable .restriction
 --   Update target is all column.
 derivedUpdateAllColumn' :: (PersistableWidth r, TableDerivable r)
                         => Config
-                        -> RestrictedStatement r (PlaceHolders p)
+                        -> RestrictedStatement i j r (PlaceHolders p)
                         -> Update (r, p)
 derivedUpdateAllColumn' = updateAllColumn'
 
 -- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement'.
 --   Update target is all column.
 updateAllColumn :: (PersistableWidth r, TableDerivable r)
-                       => RestrictedStatement r (PlaceHolders p)
+                       => RestrictedStatement i j r (PlaceHolders p)
                        -> Update (r, p)
 updateAllColumn = updateAllColumn' defaultConfig
 
@@ -237,7 +237,7 @@ updateAllColumn = updateAllColumn' defaultConfig
 --   without placeholder other than target table columns.
 --   Update target is all column.
 updateAllColumnNoPH :: (PersistableWidth r, TableDerivable r)
-                    => RestrictedStatement r ()
+                    => RestrictedStatement i j r ()
                     -> Update r
 updateAllColumnNoPH =
   typedUpdate' defaultConfig derivedTable . liftTargetAllColumn . restriction
@@ -246,7 +246,7 @@ updateAllColumnNoPH =
 -- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement'.
 --   Update target is all column.
 derivedUpdateAllColumn :: (PersistableWidth r, TableDerivable r)
-                       => RestrictedStatement r (PlaceHolders p)
+                       => RestrictedStatement i j r (PlaceHolders p)
                        -> Update (r, p)
 derivedUpdateAllColumn = updateAllColumn
 
@@ -399,42 +399,42 @@ unsafeTypedDelete :: String -> Delete p
 unsafeTypedDelete =  Delete
 
 -- | Make untyped delete SQL string from 'Table' and 'Restriction'.
-deleteSQL :: Config -> Table r -> Restriction p r -> String
+deleteSQL :: Config -> Table r -> Restriction i j p r -> String
 deleteSQL config tbl r = showStringSQL $ deletePrefixSQL tbl <> sqlWhereFromRestriction config tbl r
 
 -- | Make typed 'Delete' from 'Config', 'Table' and 'Restriction'.
-typedDelete' :: Config -> Table r -> Restriction p r -> Delete p
+typedDelete' :: Config -> Table r -> Restriction i j p r -> Delete p
 typedDelete' config tbl r = unsafeTypedDelete $ deleteSQL config tbl r
 
 {-# DEPRECATED typedDelete "use `typedDelete' defaultConfig` instead of this." #-}
 -- | Make typed 'Delete' from 'Table' and 'Restriction'.
-typedDelete :: Table r -> Restriction p r -> Delete p
+typedDelete :: Table r -> Restriction i j p r -> Delete p
 typedDelete =  typedDelete' defaultConfig
 
-restrictedTable :: TableDerivable r => Restriction p r -> Table r
+restrictedTable :: TableDerivable r => Restriction i j p r -> Table r
 restrictedTable =  const derivedTable
 
 -- | Make typed 'Delete' from 'Config', derived table and 'RestrictContext'
-delete' :: TableDerivable r => Config -> RestrictedStatement r (PlaceHolders p) -> Delete p
+delete' :: TableDerivable r => Config -> RestrictedStatement i j r (PlaceHolders p) -> Delete p
 delete' config rc = typedDelete' config (restrictedTable rs) rs  where
   rs = restriction' rc
 
 {-# DEPRECATED derivedDelete' "use `delete'` instead of this." #-}
 -- | Make typed 'Delete' from 'Config', derived table and 'RestrictContext'
-derivedDelete' :: TableDerivable r => Config -> RestrictedStatement r (PlaceHolders p) -> Delete p
+derivedDelete' :: TableDerivable r => Config -> RestrictedStatement i j r (PlaceHolders p) -> Delete p
 derivedDelete' = delete'
 
 -- | Make typed 'Delete' from 'defaultConfig', derived table and 'RestrictContext'
-delete :: TableDerivable r => RestrictedStatement r (PlaceHolders p) -> Delete p
+delete :: TableDerivable r => RestrictedStatement i j r (PlaceHolders p) -> Delete p
 delete = delete' defaultConfig
 
 -- | Make typed 'Delete' from 'defaultConfig', derived table and 'RestrictContext' with no(unit) placeholder.
-deleteNoPH :: TableDerivable r => RestrictedStatement r () -> Delete ()
+deleteNoPH :: TableDerivable r => RestrictedStatement i j r () -> Delete ()
 deleteNoPH rf = delete $ (return unitPH <*) . rf
 
 {-# DEPRECATED derivedDelete "use `delete` instead of this." #-}
 -- | Make typed 'Delete' from 'defaultConfig', derived table and 'RestrictContext'
-derivedDelete :: TableDerivable r => RestrictedStatement r (PlaceHolders p) -> Delete p
+derivedDelete :: TableDerivable r => RestrictedStatement i j r (PlaceHolders p) -> Delete p
 derivedDelete = delete
 
 -- | Show delete SQL string

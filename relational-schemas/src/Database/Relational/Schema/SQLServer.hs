@@ -75,14 +75,14 @@ getType mapFromSql rec@((cols,typs),typScms) = do
                     then typ
                     else [t|Maybe $(typ)|]
 
-sqlsrvTrue :: Record Flat Bool
+sqlsrvTrue :: Record i j Flat Bool
 sqlsrvTrue =  unsafeProjectSql "1"
 
-sqlsrvObjectId :: Record Flat String -> Record Flat String -> Record Flat Int32
+sqlsrvObjectId :: Record i j Flat String -> Record i j Flat String -> Record i j Flat Int32
 sqlsrvObjectId s t = unsafeProjectSql $
     "OBJECT_ID(" ++ unsafeShowSql s ++ " + '.' + " ++ unsafeShowSql t ++ ")"
 
-sqlsrvOidPlaceHolder :: (PlaceHolders (String, String), Record Flat Int32)
+sqlsrvOidPlaceHolder :: (PlaceHolders (String, String), Record i j Flat Int32)
 sqlsrvOidPlaceHolder =  (nsParam >< relParam, oid)
   where
     (nsParam, (relParam, oid)) =
@@ -98,7 +98,7 @@ columnTypeRelation = relation' $ do
     wheres $ cols ! Columns.userTypeId' .=. typs ! Types.userTypeId'
     wheres $ cols ! Columns.objectId'   .=. oid
     asc $ cols ! Columns.columnId'
-    return   (params, cols >< typs >< sqlsrvSchemaName (typs ! Types.schemaId' :: Record Flat Int32))
+    return   (params, cols >< typs >< sqlsrvSchemaName (typs ! Types.schemaId' :: Record i j Flat Int32))
   where
     (params, oid) = sqlsrvOidPlaceHolder
     sqlsrvSchemaName i = unsafeProjectSql $

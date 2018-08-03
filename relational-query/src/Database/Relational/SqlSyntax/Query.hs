@@ -22,7 +22,6 @@ import Language.SQL.Keyword (Keyword(..), (|*|))
 import qualified Language.SQL.Keyword as SQL
 
 import Database.Relational.Internal.Config (Config)
-import Database.Relational.Internal.ContextType (Flat, Aggregated)
 import Database.Relational.Internal.String (StringSQL)
 import Database.Relational.SqlSyntax.Types
   (Duplication (..), SetOp (..), BinOp (..),
@@ -36,7 +35,7 @@ flatSubQuery :: Config
              -> Tuple
              -> Duplication
              -> JoinProduct
-             -> [Predicate Flat]
+             -> [Tuple]
              -> [OrderingTerm]
              -> SubQuery
 flatSubQuery = Flat
@@ -46,9 +45,9 @@ aggregatedSubQuery :: Config
                    -> Tuple
                    -> Duplication
                    -> JoinProduct
-                   -> [Predicate Flat]
+                   -> [Tuple]
                    -> [AggregateElem]
-                   -> [Predicate Aggregated]
+                   -> [Tuple]
                    -> [OrderingTerm]
                    -> SubQuery
 aggregatedSubQuery = Aggregated
@@ -70,8 +69,8 @@ intersect =  setBin Intersect
 
 
 whenClauses :: String                     -- ^ Error tag
-            -> [(Record c a, Record c b)] -- ^ Each when clauses
-            -> Record c b                 -- ^ Else result record
+            -> [(Record i j c a, Record i j c b)] -- ^ Each when clauses
+            -> Record i j c b                 -- ^ Else result record
             -> WhenClauses                -- ^ Result clause
 whenClauses eTag ws0 e = d ws0
   where
@@ -82,9 +81,9 @@ whenClauses eTag ws0 e = d ws0
 
 -- | Search case operator correnponding SQL search /CASE/.
 --   Like, /CASE WHEN p0 THEN a WHEN p1 THEN b ... ELSE c END/
-caseSearch :: [(Predicate c, Record c a)] -- ^ Each when clauses
-           -> Record c a                  -- ^ Else result record
-           -> Record c a                  -- ^ Result record
+caseSearch :: [(Predicate i j c, Record i j c a)] -- ^ Each when clauses
+           -> Record i j c a                  -- ^ Else result record
+           -> Record i j c a                  -- ^ Result record
 caseSearch ws e =
     record [ Case c i | i <- [0 .. recordWidth e - 1] ]
   where
@@ -92,10 +91,10 @@ caseSearch ws e =
 
 -- | Simple case operator correnponding SQL simple /CASE/.
 --   Like, /CASE x WHEN v THEN a WHEN w THEN b ... ELSE c END/
-case' :: Record c a                 -- ^ Record value to match
-      -> [(Record c a, Record c b)] -- ^ Each when clauses
-      -> Record c b                 -- ^ Else result record
-      -> Record c b                 -- ^ Result record
+case' :: Record i j c a                 -- ^ Record value to match
+      -> [(Record i j c a, Record i j c b)] -- ^ Each when clauses
+      -> Record i j c b                 -- ^ Else result record
+      -> Record i j c b                 -- ^ Result record
 case' v ws e =
     record [ Case c i | i <- [0 .. recordWidth e - 1] ]
   where
