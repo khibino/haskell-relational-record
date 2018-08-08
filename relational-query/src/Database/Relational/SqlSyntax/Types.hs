@@ -46,6 +46,8 @@ module Database.Relational.SqlSyntax.Types (
 
   -- * Predicate to restrict Query result
   Predicate,
+
+  nextIndexOfRecord
   )  where
 
 import Prelude hiding (and, product)
@@ -195,6 +197,9 @@ type PI i c a b = Record i i c a -> Record i i c b
 -- | Unsafely type 'Tuple' value to 'Record' type.
 record :: Tuple -> Record i j c t
 record = Record
+
+nextIndexOfRecord :: Record i j c r -> j
+nextIndexOfRecord = error "nextIndexOfRecord: Impossible"
 
 -- | Width of 'Record'.
 recordWidth :: Record i j c r -> Int

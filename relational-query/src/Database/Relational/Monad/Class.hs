@@ -14,12 +14,14 @@
 -- This module defines query building interface classes.
 module Database.Relational.Monad.Class
        ( -- * Query interface classes
-         MonadQualify (..), MonadRestrict (..),
+         MonadPlaceholder(..), MonadQualify (..), MonadRestrict (..),
          MonadQuery (..), MonadAggregate (..), MonadPartition (..),
 
          all', distinct,
          on, wheres, having,
        ) where
+
+import Control.Monad.Indexed.Trans (IxMonadTrans)
 
 import Database.Relational.Internal.ContextType (Flat, Aggregated)
 import Database.Relational.SqlSyntax
@@ -29,7 +31,11 @@ import Database.Relational.Projectable (PlaceHolders)
 import Database.Relational.Monad.BaseType (ConfigureQuery, Relation)
 
 
+class IxMonadTrans t => MonadPlaceholder t where
+  dropPlaceholder :: Monad m => Record i j c r -> t m i j ()
+
 -- | Restrict context interface
+-- igrep TODO: Add index parameter to the monad
 class (Functor m, Monad m) => MonadRestrict c m where
   -- | Add restriction to this context.
   restrict :: Predicate i j c -- ^ 'Record' which represent restriction
@@ -41,6 +47,7 @@ class (Functor m, Monad m, MonadQualify ConfigureQuery m) => MonadQuery m where
   setDuplication :: Duplication -> m ()
   -- | Add restriction to last join.
   -- but actually required?
+  -- igrep TODO: Add index parameter to the monad
   restrictJoin :: Predicate i j Flat -- ^ 'Record' which represent restriction
                -> m ()           -- ^ Restricted query context
   {- Haddock BUG? -}
@@ -63,6 +70,7 @@ instance (Functor q, Monad q) => MonadQualify q q where
 -- | Aggregated query building interface extends 'MonadQuery'.
 class MonadQuery m => MonadAggregate m where
   -- | Add /GROUP BY/ term into context and get aggregated record.
+  -- igrep TODO: Add index parameter to the monad
   groupBy :: Record i j Flat r           -- ^ Record to add into group by
           -> m (Record i j Aggregated r) -- ^ Result context and aggregated record
   -- | Add /GROUP BY/ term into context and get aggregated record. Non-traditional group-by version.
@@ -72,6 +80,7 @@ class MonadQuery m => MonadAggregate m where
 -- | Window specification building interface.
 class Monad m => MonadPartition c m where
   -- | Add /PARTITION BY/ term into context.
+  -- igrep TODO: Add index parameter to the monad
   partitionBy :: Record i j c r -> m ()
 
 -- | Specify ALL attribute to query context.

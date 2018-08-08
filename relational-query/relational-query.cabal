@@ -62,6 +62,7 @@ library
                        Database.Relational.Monad.Restrict
                        Database.Relational.Monad.Assign
                        Database.Relational.Monad.Register
+                       Database.Relational.Monad.Placeholders
                        Database.Relational.Relation
                        Database.Relational.Set
                        Database.Relational.Sequence
@@ -73,7 +74,6 @@ library
                        -- for GHC version equal or more than 8.0
                        Database.Relational.OverloadedProjection
                        Database.Relational.OverloadedInstances
-                       Database.Relational.Experiment
 
   other-modules:
                        Database.Relational.Internal.ContextType
