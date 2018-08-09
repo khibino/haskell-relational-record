@@ -1,3 +1,5 @@
+{-# LANGUAGE DataKinds #-}
+
 -- |
 -- Module      : Database.Relational.Monad.Type
 -- Copyright   : 2013-2017 Kei Hibino
@@ -18,9 +20,11 @@ import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax
   (Duplication, Record, JoinProduct, Tuple, )
 
+import Database.Relational.ExtensibleRecord
 import Database.Relational.Projectable (PlaceHolders)
 import Database.Relational.Monad.BaseType (ConfigureQuery)
 import Database.Relational.Monad.Trans.Join (QueryJoin, extractProduct)
+import qualified Database.Relational.Monad.Trans.Placeholders as P
 import Database.Relational.Monad.Trans.Restricting (Restrictings, extractRestrict)
 import Database.Relational.Monad.Trans.Ordering (Orderings)
 
@@ -34,4 +38,6 @@ extractCore :: QueryCore a
 extractCore =  extractProduct . extractRestrict
 
 -- | OrderedQuery monad type with placeholder type 'p'. Record must be the same as 'Orderings' context type parameter 'c'.
-type OrderedQuery i j c m p r = Orderings c m (PlaceHolders p, Record i j c r)
+--   igrep TODO: Make composable with PlaceHolders?
+--   igrep TODO: Change `j` of `Record (ExRecord '[]`
+type OrderedQuery i j c m p r = P.Placeholders (Orderings c m) i j (PlaceHolders p, Record (ExRecord '[]) (ExRecord '[])  c r)

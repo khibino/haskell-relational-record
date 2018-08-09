@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
@@ -20,6 +21,7 @@ module Database.Relational.Monad.Restrict (
   extract
   ) where
 
+import Database.Relational.ExtensibleRecord
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.Internal.Config (Config)
 import Database.Relational.SqlSyntax (Record, Tuple)
@@ -30,12 +32,13 @@ import Database.Relational.Monad.BaseType (ConfigureQuery, configureQuery)
 
 
 -- | Restrict only monad type used from update statement and delete statement.
+  -- igrep TODO: wrap with Placeholders
 type Restrict = Restrictings Flat ConfigureQuery
 
 -- | RestrictedStatement type synonym.
 --   Record type 'r' must be
 --   the same as 'Restrictings' type parameter 'r'.
-type RestrictedStatement i j r a = Record i j Flat r -> Restrict a
+type RestrictedStatement r j a = Record (ExRecord '[]) j Flat r -> Restrict a
 
 -- -- | 'return' of 'Restrict'
 -- restricted :: a -> Restrict a

@@ -73,10 +73,10 @@ instance MonadQualify q m => MonadQualify q (QueryJoin m) where
 
 -- | Joinable query instance.
 instance MonadQuery (QueryJoin ConfigureQuery) where
-  setDuplication     = QueryJoin . lift . tell . Last . Just
-  restrictJoin       = updateJoinRestriction . untypeRecord
-  query'             = queryWithAttr Just'
-  queryMaybe' pr     = do
+  setDuplication                            = QueryJoin . lift . tell . Last . Just
+  restrictJoin                              = updateJoinRestriction . untypeRecord
+  queryWithoutUpdatingPlaceholders'         = queryWithAttr Just'
+  queryMaybeWithoutUpdatingPlaceholders' pr = do
     (ph, pj) <- queryWithAttr Maybe pr
     return (ph, Record.just pj)
 
@@ -91,8 +91,8 @@ unsafeSubQueryWithAttr attr qsub = do
 
 -- | Basic monadic join operation using 'MonadQuery'.
 queryWithAttr :: NodeAttr
-              -> Relation p r
-              -> QueryJoin ConfigureQuery (PlaceHolders p, Record i j c r)
+              -> Relation i j p r
+              -> QueryJoin ConfigureQuery (PlaceHolders p, Record k l c r)
 queryWithAttr attr = unsafeAddPlaceHolders . run where
   run rel = do
     q <- liftQualify $ do

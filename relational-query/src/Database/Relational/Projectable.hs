@@ -1,7 +1,11 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RebindableSyntax #-}
+{-# LANGUAGE TypeOperators #-}
 
 -- |
 -- Module      : Database.Relational.Projectable
@@ -74,13 +78,14 @@ module Database.Relational.Projectable (
   sum', sumMaybe, avg, avgMaybe,
   max', maxMaybe, min', minMaybe,
   every, any', some',
-  ) where
 
-import Prelude hiding (pi)
+  ph,
+  ) where
 
 import Data.String (IsString)
 import Data.Functor.ProductIsomorphic
   ((|$|), ProductIsoApplicative, pureP, (|*|), )
+import Data.Type.Equality
 
 import Language.SQL.Keyword (Keyword)
 import qualified Language.SQL.Keyword as SQL
@@ -89,6 +94,7 @@ import Database.Record
   (PersistableWidth, persistableWidth, PersistableRecordWidth,
    HasColumnConstraint, NotNull)
 import Database.Record.Persistable (runPersistableRecordWidth)
+import Database.Relational.ExtensibleRecord
 
 import Database.Relational.Internal.ContextType (Flat, Exists, OverWindow)
 import Database.Relational.Internal.String (StringSQL, stringSQL, showStringSQL)
@@ -101,11 +107,13 @@ import Database.Relational.Pi (Pi)
 import Database.Relational.ProjectableClass
   (ShowConstantTermsSQL, showConstantTermsSQL, )
 import Database.Relational.Record (RecordList)
+import           Database.Relational.ReboundSyntax
 import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable.Unsafe
   (SqlContext (..), OperatorContext, AggregatedContext, PlaceHolders (..))
 import Database.Relational.Projectable.Instances ()
 
+import Database.Relational.Projectable.Placeholders (ph)
 
 -- | Unsafely Project single SQL term.
 unsafeProjectSql' :: SqlContext c => StringSQL -> Record i j c t
@@ -117,26 +125,26 @@ unsafeProjectSql = unsafeProjectSql' . stringSQL
 
 -- | Record with polymorphic phantom type of SQL null value. Semantics of comparing is unsafe.
 nothing :: (OperatorContext c, SqlContext c, PersistableWidth a)
-        => Record i j c (Maybe a)
+        => Record i i c (Maybe a)
 nothing = proxyWidth persistableWidth
   where
-    proxyWidth :: SqlContext c => PersistableRecordWidth a -> Record i j c (Maybe a)
+    proxyWidth :: SqlContext c => PersistableRecordWidth a -> Record i i c (Maybe a)
     proxyWidth w = unsafeProjectSqlTerms $ replicate (runPersistableRecordWidth w) SQL.NULL
 
 -- | Generate record with polymorphic type of SQL constant values from Haskell value.
-value :: (ShowConstantTermsSQL t, OperatorContext c) => t -> Record i j c t
+value :: (ShowConstantTermsSQL t, OperatorContext c) => t -> Record (ExRecord '[]) (ExRecord '[]) c t
 value = unsafeProjectSqlTerms . showConstantTermsSQL
 
 -- | Record with polymorphic type of SQL true value.
-valueTrue  :: OperatorContext c => Record i j c (Maybe Bool)
+valueTrue  :: OperatorContext c => Record (ExRecord '[]) (ExRecord '[]) c (Maybe Bool)
 valueTrue  =  just $ value True
 
 -- | Record with polymorphic type of SQL false value.
-valueFalse :: OperatorContext c => Record i j c (Maybe Bool)
+valueFalse :: OperatorContext c => Record (ExRecord '[]) (ExRecord '[]) c (Maybe Bool)
 valueFalse =  just $ value False
 
 -- | RecordList with polymorphic type of SQL set value from Haskell list.
-values :: (ShowConstantTermsSQL t, OperatorContext c) => [t] -> RecordList (Record i j c) t
+values :: (ShowConstantTermsSQL t, OperatorContext c) => [t] -> RecordList (Record (ExRecord '[]) (ExRecord '[]) c) t
 values =  Record.list . map value
 
 
@@ -164,133 +172,133 @@ unsafeFlatUniOp :: SqlContext c
 unsafeFlatUniOp kw = unsafeUniOp (SQL.paren . SQL.defineUniOp kw)
 
 -- | Unsafely make binary operator for records from string binary operator.
-unsafeBinOp :: SqlContext k
+unsafeBinOp :: SqlContext ctx
             => SqlBinOp
-            -> Record i j k a -> Record i j k b -> Record i j k c
+            -> Record (ExRecord '[]) (ExRecord xs) ctx a -> Record (ExRecord '[]) (ExRecord ys) ctx b -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) ctx c
 unsafeBinOp op a b = unsafeProjectSql' . SQL.paren $
                      op (unsafeShowSql' a) (unsafeShowSql' b)
 
 -- | Unsafely make binary operator to compare records from string binary operator.
 compareBinOp :: SqlContext c
              => SqlBinOp
-             -> Record i j c a -> Record i j c a -> Record i j c (Maybe Bool)
+             -> Record (ExRecord '[]) (ExRecord xs) c a -> Record (ExRecord '[]) (ExRecord ys) c a -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) c (Maybe Bool)
 compareBinOp =  unsafeBinOp
 
 -- | Unsafely make numrical binary operator for records from string binary operator.
 monoBinOp :: SqlContext c
           => SqlBinOp
-          -> Record i j c a -> Record i j c a -> Record i j c a
+          -> Record (ExRecord '[]) (ExRecord xs) c a -> Record (ExRecord '[]) (ExRecord ys) c a -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) c a
 monoBinOp =  unsafeBinOp
 
 
 -- | Compare operator corresponding SQL /=/ .
 (.=.)  :: OperatorContext c
-       => Record i j c ft -> Record i j c ft -> Record i j c (Maybe Bool)
+       => Record (ExRecord '[]) (ExRecord xs) c ft -> Record (ExRecord '[]) (ExRecord ys) c ft -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) c (Maybe Bool)
 (.=.)  =  compareBinOp (SQL..=.)
 
 -- | Compare operator corresponding SQL /</ .
 (.<.)  :: OperatorContext c
-       => Record i j c ft -> Record i j c ft -> Record i j c (Maybe Bool)
+       => Record (ExRecord '[]) (ExRecord xs) c ft -> Record (ExRecord '[]) (ExRecord ys) c ft -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) c (Maybe Bool)
 (.<.)  =  compareBinOp (SQL..<.)
 
 -- | Compare operator corresponding SQL /<=/ .
 (.<=.)  :: OperatorContext c
-        => Record i j c ft -> Record i j c ft -> Record i j c (Maybe Bool)
+        => Record (ExRecord '[]) (ExRecord xs) c ft -> Record (ExRecord '[]) (ExRecord ys) c ft -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) c (Maybe Bool)
 (.<=.)  =  compareBinOp (SQL..<=.)
 
 -- | Compare operator corresponding SQL />/ .
 (.>.)  :: OperatorContext c
-       => Record i j c ft -> Record i j c ft -> Record i j c (Maybe Bool)
+       => Record (ExRecord '[]) (ExRecord xs) c ft -> Record (ExRecord '[]) (ExRecord ys) c ft -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) c (Maybe Bool)
 (.>.)  =  compareBinOp (SQL..>.)
 
 -- | Compare operator corresponding SQL />=/ .
 (.>=.)  :: OperatorContext c
-        => Record i j c ft -> Record i j c ft -> Record i j c (Maybe Bool)
+        => Record (ExRecord '[]) (ExRecord xs) c ft -> Record (ExRecord '[]) (ExRecord ys) c ft -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) c (Maybe Bool)
 (.>=.)  =  compareBinOp (SQL..>=.)
 
 -- | Compare operator corresponding SQL /<>/ .
 (.<>.) :: OperatorContext c
-       => Record i j c ft -> Record i j c ft -> Record i j c (Maybe Bool)
+       => Record (ExRecord '[]) (ExRecord xs) c ft -> Record (ExRecord '[]) (ExRecord ys) c ft -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) c (Maybe Bool)
 (.<>.) =  compareBinOp (SQL..<>.)
 
 -- | Logical operator corresponding SQL /AND/ .
 and' :: OperatorContext c
-     => Record i j c (Maybe Bool) -> Record i j c (Maybe Bool) -> Record i j c (Maybe Bool)
+     => Record (ExRecord '[]) (ExRecord xs) c (Maybe Bool) -> Record (ExRecord '[]) (ExRecord ys) c (Maybe Bool) -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) c (Maybe Bool)
 and' = monoBinOp SQL.and
 
 -- | Logical operator corresponding SQL /OR/ .
 or' :: OperatorContext c
-    => Record i j c (Maybe Bool) -> Record i j c (Maybe Bool) -> Record i j c (Maybe Bool)
+    => Record (ExRecord '[]) (ExRecord xs) c (Maybe Bool) -> Record (ExRecord '[]) (ExRecord ys) c (Maybe Bool) -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) c (Maybe Bool)
 or'  = monoBinOp SQL.or
 
 -- | Logical operator corresponding SQL /NOT/ .
 not' :: OperatorContext c
-     => Record i j c (Maybe Bool) -> Record i j c (Maybe Bool)
+     => Record (ExRecord '[]) (ExRecord xs) c (Maybe Bool) -> Record (ExRecord '[]) (ExRecord xs) c (Maybe Bool)
 not' =  unsafeFlatUniOp SQL.NOT
 
 -- | Logical operator corresponding SQL /EXISTS/ .
 exists :: OperatorContext c
-       => RecordList (Record i j Exists) r -> Record i j c (Maybe Bool)
+       => RecordList (Record (ExRecord '[]) (ExRecord xs) Exists) r -> Record i j c (Maybe Bool)
 exists =  unsafeProjectSql' . SQL.paren . SQL.defineUniOp SQL.EXISTS
           . Record.unsafeStringSqlList unsafeShowSql'
 
 -- | Concatinate operator corresponding SQL /||/ .
 (.||.) :: OperatorContext c
-       => Record i j c a -> Record i j c a -> Record i j c a
+       => Record (ExRecord '[]) (ExRecord xs) c a -> Record (ExRecord '[]) (ExRecord ys) c a -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) c a
 (.||.) =  unsafeBinOp (SQL..||.)
 
 -- | Concatinate operator corresponding SQL /||/ . Maybe type version.
 (?||?) :: (OperatorContext c, IsString a)
-       => Record i j c (Maybe a) -> Record i j c (Maybe a) -> Record i j c (Maybe a)
+       => Record (ExRecord '[]) (ExRecord xs) c (Maybe a) -> Record (ExRecord '[]) (ExRecord ys) c (Maybe a) -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) c (Maybe a)
 (?||?) =  unsafeBinOp (SQL..||.)
 
 unsafeLike :: OperatorContext c
-           => Record i j c a -> Record i j c b -> Record i j c (Maybe Bool)
+           => Record (ExRecord '[]) (ExRecord xs) c a -> Record (ExRecord '[]) (ExRecord ys) c b -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) c (Maybe Bool)
 unsafeLike = unsafeBinOp (SQL.defineBinOp SQL.LIKE)
 
 -- | String-compare operator corresponding SQL /LIKE/ .
 like' :: (OperatorContext c, IsString a)
-      => Record i j c a -> Record i j c a -> Record i j c (Maybe Bool)
+      => Record (ExRecord '[]) (ExRecord xs) c a -> Record (ExRecord '[]) (ExRecord ys) c a -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) c (Maybe Bool)
 x `like'` y = x `unsafeLike` y
 
 -- | String-compare operator corresponding SQL /LIKE/ .
 likeMaybe' :: (OperatorContext c, IsString a)
-           => Record i j c (Maybe a) -> Record i j c (Maybe a) -> Record i j c (Maybe Bool)
+           => Record (ExRecord '[]) (ExRecord xs) c (Maybe a) -> Record (ExRecord '[]) (ExRecord ys) c (Maybe a) -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) c (Maybe Bool)
 x `likeMaybe'` y = x `unsafeLike` y
 
 -- | String-compare operator corresponding SQL /LIKE/ .
 like :: (OperatorContext c, IsString a, ShowConstantTermsSQL a)
-       => Record i j c a -> a -> Record i j c (Maybe Bool)
-x `like` a = x `like'` value a
+       => Record (ExRecord '[]) (ExRecord xs) c a -> a -> Record (ExRecord '[]) (ExRecord xs) c (Maybe Bool)
+x `like` a = case rightId (Syntax.nextIndexOf x) of Refl -> x `like'` value a
 
 -- | String-compare operator corresponding SQL /LIKE/ . Maybe type version.
 likeMaybe :: (OperatorContext c, IsString a, ShowConstantTermsSQL a)
-          => Record i j c (Maybe a) -> a -> Record i j c (Maybe Bool)
-x `likeMaybe` a = x `unsafeLike` value a
+          => Record (ExRecord '[]) (ExRecord xs) c (Maybe a) -> a -> Record (ExRecord '[]) (ExRecord xs) c (Maybe Bool)
+x `likeMaybe` a = case rightId (Syntax.nextIndexOf x) of Refl -> x `unsafeLike` value a
 
 -- | Unsafely make number binary operator for records from SQL operator string.
 monoBinOp' :: SqlContext c
-           => Keyword -> Record i j c a -> Record i j c a -> Record i j c a
+           => Keyword -> Record (ExRecord '[]) (ExRecord xs) c a -> Record (ExRecord '[]) (ExRecord ys) c a -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) c a
 monoBinOp' = monoBinOp . SQL.defineBinOp
 
 -- | Number operator corresponding SQL /+/ .
 (.+.) :: (OperatorContext c, Num a)
-      => Record i j c a -> Record i j c a -> Record i j c a
+      => Record (ExRecord '[]) (ExRecord xs) c a -> Record (ExRecord '[]) (ExRecord ys) c a -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) c a
 (.+.) =  monoBinOp' "+"
 
 -- | Number operator corresponding SQL /-/ .
 (.-.) :: (OperatorContext c, Num a)
-      => Record i j c a -> Record i j c a -> Record i j c a
+      => Record (ExRecord '[]) (ExRecord xs) c a -> Record (ExRecord '[]) (ExRecord ys) c a -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) c a
 (.-.) =  monoBinOp' "-"
 
 -- | Number operator corresponding SQL /// .
 (./.) :: (OperatorContext c, Num a)
-      => Record i j c a -> Record i j c a -> Record i j c a
+      => Record (ExRecord '[]) (ExRecord xs) c a -> Record (ExRecord '[]) (ExRecord ys) c a -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) c a
 (./.) =  monoBinOp' "/"
 
 -- | Number operator corresponding SQL /*/ .
 (.*.) :: (OperatorContext c, Num a)
-      => Record i j c a -> Record i j c a -> Record i j c a
+      => Record (ExRecord '[]) (ExRecord xs) c a -> Record (ExRecord '[]) (ExRecord ys) c a -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) c a
 (.*.) =  monoBinOp' "*"
 
 -- | Number negate uni-operator corresponding SQL /-/.
@@ -314,22 +322,22 @@ showNum =  unsafeCastProjectable
 
 -- | Number operator corresponding SQL /+/ .
 (?+?) :: (OperatorContext c, Num a)
-      => Record i j c (Maybe a) -> Record i j c (Maybe a) -> Record i j c (Maybe a)
+      => Record (ExRecord '[]) (ExRecord xs) c (Maybe a) -> Record (ExRecord '[]) (ExRecord ys) c (Maybe a) -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) c (Maybe a)
 (?+?) =  monoBinOp' "+"
 
 -- | Number operator corresponding SQL /-/ .
 (?-?) :: (OperatorContext c, Num a)
-      => Record i j c (Maybe a) -> Record i j c (Maybe a) -> Record i j c (Maybe a)
+      => Record (ExRecord '[]) (ExRecord xs) c (Maybe a) -> Record (ExRecord '[]) (ExRecord ys) c (Maybe a) -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) c (Maybe a)
 (?-?) =  monoBinOp' "-"
 
 -- | Number operator corresponding SQL /// .
 (?/?) :: (OperatorContext c, Num a)
-      => Record i j c (Maybe a) -> Record i j c (Maybe a) -> Record i j c (Maybe a)
+      => Record (ExRecord '[]) (ExRecord xs) c (Maybe a) -> Record (ExRecord '[]) (ExRecord ys) c (Maybe a) -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) c (Maybe a)
 (?/?) =  monoBinOp' "/"
 
 -- | Number operator corresponding SQL /*/ .
 (?*?) :: (OperatorContext c, Num a)
-      => Record i j c (Maybe a) -> Record i j c (Maybe a) -> Record i j c (Maybe a)
+      => Record (ExRecord '[]) (ExRecord xs) c (Maybe a) -> Record (ExRecord '[]) (ExRecord ys) c (Maybe a) -> Record (ExRecord '[]) (ExRecord (xs ++ ys)) c (Maybe a)
 (?*?) =  monoBinOp' "*"
 
 -- | Number negate uni-operator corresponding SQL /-/.
@@ -349,45 +357,51 @@ showNumMaybe = unsafeCastProjectable
 
 -- | Search case operator correnponding SQL search /CASE/.
 --   Like, /CASE WHEN p0 THEN a WHEN p1 THEN b ... ELSE c END/
+-- igrep TODO: Create a separate version which can refer placeholders
 caseSearch :: OperatorContext c
-           => [(Predicate i j c, Record i j c a)] -- ^ Each when clauses
+           => [(Predicate i i c, Record i i c a)] -- ^ Each when clauses
            -> Record i j c a                            -- ^ Else result record
            -> Record i j c a                            -- ^ Result record
 caseSearch = Syntax.caseSearch
 
 -- | Same as 'caseSearch', but you can write like <when list> `casesOrElse` <else clause>.
+-- igrep TODO: Create a separate version which can refer placeholders
 casesOrElse :: OperatorContext c
-            => [(Predicate i j c, Record i j c a)] -- ^ Each when clauses
+            => [(Predicate i i c, Record i i c a)] -- ^ Each when clauses
             -> Record i j c a                            -- ^ Else result record
             -> Record i j c a                            -- ^ Result record
 casesOrElse = caseSearch
 
 -- | Null default version of 'caseSearch'.
+-- igrep TODO: Create a separate version which can refer placeholders
 caseSearchMaybe :: (OperatorContext c {- (Record i j c) is always ProjectableMaybe -}, PersistableWidth a)
-                => [(Predicate i j c, Record i j c (Maybe a))] -- ^ Each when clauses
-                -> Record i j c (Maybe a)                            -- ^ Result record
+                => [(Predicate i i c, Record i i c (Maybe a))] -- ^ Each when clauses
+                -> Record i i c (Maybe a)                            -- ^ Result record
 caseSearchMaybe cs = caseSearch cs nothing
 
 -- | Simple case operator correnponding SQL simple /CASE/.
 --   Like, /CASE x WHEN v THEN a WHEN w THEN b ... ELSE c END/
+-- igrep TODO: Create a separate version which can refer placeholders
 case' :: OperatorContext c
       => Record i j c a                 -- ^ Record value to match
-      -> [(Record i j c a, Record i j c b)] -- ^ Each when clauses
-      -> Record i j c b                 -- ^ Else result record
-      -> Record i j c b                 -- ^ Result record
+      -> [(Record j j c a, Record j j c b)] -- ^ Each when clauses
+      -> Record j k c b                 -- ^ Else result record
+      -> Record i k c b                 -- ^ Result record
 case' = Syntax.case'
 
 -- | Uncurry version of 'case'', and you can write like ... `casesOrElse'` <else clause>.
+-- igrep TODO: Create a separate version which can refer placeholders
 casesOrElse' :: OperatorContext c
-             => (Record i j c a, [(Record i j c a, Record i j c b)]) -- ^ Record value to match and each when clauses list
+             => (Record i i c a, [(Record i i c a, Record i i c b)]) -- ^ Record value to match and each when clauses list
              -> Record i j c b                               -- ^ Else result record
              -> Record i j c b                               -- ^ Result record
 casesOrElse' =  uncurry case'
 
 -- | Null default version of 'case''.
+-- igrep TODO: Create a separate version which can refer placeholders
 caseMaybe :: (OperatorContext c {- (Record i j c) is always ProjectableMaybe -}, PersistableWidth b)
           => Record i j c a                         -- ^ Record value to match
-          -> [(Record i j c a, Record i j c (Maybe b))] -- ^ Each when clauses
+          -> [(Record j j c a, Record j j c (Maybe b))] -- ^ Each when clauses
           -> Record i j c (Maybe b)                 -- ^ Result record
 caseMaybe v cs = case' v cs nothing
 
@@ -406,12 +420,13 @@ isNothing mr = unsafeProjectSql' $
 
 -- | Operator corresponding SQL /NOT (... IS NULL)/ , and extended against record type.
 isJust :: (OperatorContext c, HasColumnConstraint NotNull r)
-          => Record i j c (Maybe r) -> Predicate i j c
+          => Record (ExRecord '[]) (ExRecord xs) c (Maybe r) -> Predicate (ExRecord '[]) (ExRecord xs) c
 isJust =  not' . isNothing
 
 -- | Operator from maybe type using record extended 'isNull'.
+-- igrep TODO: Create a separate version which can refer placeholders
 fromMaybe :: (OperatorContext c, HasColumnConstraint NotNull r)
-          => Record i j c r -> Record i j c (Maybe r) -> Record i j c r
+          => Record i i c r -> Record i i c (Maybe r) -> Record i i c r
 fromMaybe d p = [ (isNothing p, d) ] `casesOrElse` unsafeCastProjectable p
 
 unsafeUniTermFunction :: SqlContext c => Keyword -> Record i j c t
@@ -475,11 +490,11 @@ placeholder' :: (PersistableWidth t, SqlContext c) => (Record i j c t -> a) ->  
 placeholder' = pwPlaceholder persistableWidth
 
 -- | Provide scoped placeholder and return its parameter object. Monadic version.
-placeholder :: (PersistableWidth t, SqlContext c, Monad m) => (Record i j c t -> m a) -> m (PlaceHolders t, a)
+placeholder :: (PersistableWidth t, SqlContext c, IxMonad m) => (Record i j c t -> m k l a) -> m k l (PlaceHolders t, a)
 placeholder f = do
-  let (ph, ma) = placeholder' f
+  let (ph', ma) = placeholder' f
   a <- ma
-  return (ph, a)
+  ireturn (ph', a)
 
 
 -- | Zipping projections.

@@ -1,7 +1,9 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE RebindableSyntax #-}
 
 -- |
 -- Module      : Database.Relational.Sequence
@@ -30,11 +32,13 @@ module Database.Relational.Sequence (
   updateNumber', updateNumber,
   ) where
 
-import Prelude hiding (seq)
+import Prelude hiding ((>>=), (>>))
 
+import Control.Monad.Indexed
 import Database.Record (PersistableWidth)
+import Database.Relational.ExtensibleRecord
 import Database.Relational.Internal.Config (Config, defaultConfig)
-import Database.Relational.Monad.Class (wheres)
+import Database.Relational.Monad.Trans.Placeholders (wheres)
 import Database.Relational.Monad.BaseType (Relation)
 import Database.Relational.Monad.Trans.Assigning ((<-#))
 import Database.Relational.Table (TableDerivable, derivedTable, Table)
@@ -64,7 +68,7 @@ unsafeSpecifySequence :: TableDerivable s => (s -> i) -> Pi s i -> Sequence s i
 unsafeSpecifySequence = Sequence derivedTable
 
 -- | Infer 'Relation' of sequence table
-seqRelation :: TableDerivable s => Sequence s i -> Relation () s
+seqRelation :: TableDerivable s => Sequence s i -> Relation (ExRecord '[]) j () s
 seqRelation = Relation.table . seqTable
 
 -- | 'Sequence' derivation rule
@@ -106,7 +110,7 @@ fromTable = const derivedSequence
 
 -- | Derive 'Sequence' from corresponding 'Relation'
 fromRelation :: Binding r s i
-             => Relation () r
+             => Relation (ExRecord '[]) (ExRecord '[]) () r
              -> Sequence s i
 fromRelation = fromTable . tableOf
 
@@ -144,7 +148,10 @@ updateNumber' config i seqt = typedUpdate' config (seqTable seqt) . updateTarget
   let iv = value i
   seqKey seqt <-# iv
   wheres $ proj ! seqKey seqt .<=. iv -- fool proof
-  return unitPH
+  ireturn unitPH
+ where
+  (>>=) = (>>>=)
+  ma >> k = ma >>= const k
 
 -- | Update statement for sequence table
 updateNumber :: (PersistableWidth s, Integral i, ShowConstantTermsSQL i)

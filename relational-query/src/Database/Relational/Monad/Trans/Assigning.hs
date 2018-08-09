@@ -1,6 +1,8 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeOperators #-}
 
 -- |
 -- Module      : Database.Relational.Monad.Trans.Assigning
@@ -31,6 +33,7 @@ import Control.Arrow (second)
 import Data.Monoid (mconcat)
 import Data.DList (DList, toList)
 
+import Database.Relational.ExtensibleRecord
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax (Record, Assignment)
 
@@ -38,6 +41,7 @@ import Database.Relational.Pi (Pi)
 import Database.Relational.Table (Table, recordWidth)
 import qualified Database.Relational.Record as Record
 import Database.Relational.Monad.Class (MonadQualify (..), MonadRestrict(..))
+import qualified Database.Relational.Monad.Trans.Placeholders as P
 
 
 -- | Type to accumulate assigning context.
@@ -65,14 +69,15 @@ targetRecord :: AssignTarget r v ->  Table r -> Record i j Flat v
 targetRecord pi' tbl = Record.wpi (recordWidth tbl) (Record.unsafeFromTable tbl) pi'
 
 -- | Add an assignment.
-assignTo :: Monad m => Record i j Flat v ->  AssignTarget r v -> Assignings r m ()
-assignTo vp target = Assignings . tell
-                     $ \t -> mconcat $ zipWith (curry pure) (leftsR t) rights  where
+assignTo :: Monad m => Record (ExRecord '[]) (ExRecord ys) Flat v -> AssignTarget r v -> P.Placeholders (Assignings r m) (ExRecord xs) (ExRecord (xs ++ ys)) ()
+assignTo vp target =
+  P.addingPlaceholders vp $ Assignings . tell $ \t -> mconcat $ zipWith (curry pure) (leftsR t) rights
+ where
   leftsR = Record.columns . targetRecord target
   rights = Record.columns vp
 
 -- | Add and assginment.
-(<-#) :: Monad m => AssignTarget r v -> Record i j Flat v -> Assignings r m ()
+(<-#) :: Monad m => AssignTarget r v -> Record (ExRecord '[]) (ExRecord ys) Flat v -> P.Placeholders (Assignings r m) (ExRecord xs) (ExRecord (xs ++ ys)) ()
 (<-#) =  flip assignTo
 
 infix 4 <-#

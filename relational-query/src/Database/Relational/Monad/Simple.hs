@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
@@ -28,8 +29,10 @@ import Database.Relational.SqlSyntax
    SubQuery, flatSubQuery, )
 import qualified Database.Relational.SqlSyntax as Syntax
 
+import Database.Relational.ExtensibleRecord
 import qualified Database.Relational.Record as Record
 import Database.Relational.Monad.Trans.Join (join')
+import qualified Database.Relational.Monad.Trans.Placeholders as P
 import Database.Relational.Monad.Trans.Restricting (restrictings)
 import Database.Relational.Monad.Trans.Ordering
   (Orderings, orderings, extractOrderingTerms)
@@ -39,19 +42,20 @@ import Database.Relational.Projectable (PlaceHolders)
 
 
 -- | Simple (not-aggregated) query monad type.
-type QuerySimple = Orderings Flat QueryCore
+type QuerySimple = P.Placeholders (Orderings Flat QueryCore)
 
 -- | Simple (not-aggregated) query type. 'SimpleQuery'' p r == 'QuerySimple' ('PlaceHolders' p, 'Record' r).
 type SimpleQuery i j p r = OrderedQuery i j Flat QueryCore p r
 
 -- | Lift from qualified table forms into 'QuerySimple'.
-simple :: ConfigureQuery a -> QuerySimple a
-simple =  orderings . restrictings . join'
+-- igrep NOTE: unused function?
+simple :: ConfigureQuery a -> QuerySimple i i a
+simple =  P.placeholders . orderings . restrictings . join'
 
 extract :: SimpleQuery i j p r
-        -> ConfigureQuery (((((PlaceHolders p, Record i j Flat r), [OrderingTerm]), [Tuple{-Predicate i j Flat-}]),
+        -> ConfigureQuery (((((PlaceHolders p, Record (ExRecord '[]) (ExRecord '[]) Flat r), [OrderingTerm]), [Tuple{-Predicate i j Flat-}]),
                            JoinProduct), Duplication)
-extract =  extractCore . extractOrderingTerms
+extract =  extractCore . extractOrderingTerms . P.extractPlaceholders
 
 -- | Run 'SimpleQuery' to get SQL string with 'Qualify' computation.
 toSQL :: SimpleQuery i j p r         -- ^ 'SimpleQuery' to run

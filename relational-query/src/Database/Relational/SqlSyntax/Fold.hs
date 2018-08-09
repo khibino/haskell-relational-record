@@ -36,7 +36,6 @@ import Data.Traversable (traverse)
 import Language.SQL.Keyword (Keyword(..), (|*|))
 import qualified Language.SQL.Keyword as SQL
 
-import Database.Relational.Internal.ContextType (Flat, Aggregated)
 import Database.Relational.Internal.Config
   (Config (productUnitSupport), ProductUnitSupport (PUSupported, PUNotSupported), )
 import Database.Relational.Internal.UntypedTable ((!))
@@ -46,7 +45,7 @@ import Database.Relational.Internal.String
 import Database.Relational.SqlSyntax.Query (composeOrderBy, )
 import Database.Relational.SqlSyntax.Aggregate (composeGroupBy, )
 import Database.Relational.SqlSyntax.Types
-  (SubQuery (..), Record, Tuple, Predicate,
+  (SubQuery (..), Record, Tuple,
    Column (..), CaseClause(..), WhenClauses (..),
    NodeAttr (Just', Maybe), ProductTree (Leaf, Join), JoinProduct,
    Duplication (..), SetOp (..), BinOp (..), Qualifier (..), Qualified (..), )

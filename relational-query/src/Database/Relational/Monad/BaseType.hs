@@ -52,44 +52,44 @@ askConfig =  qualify askQueryConfig
 
 
 -- | Relation type with place-holder parameter 'p' and query result type 'r'.
-newtype Relation p r = SubQuery (ConfigureQuery SubQuery)
+newtype Relation i j p r = SubQuery (ConfigureQuery SubQuery)
 
 -- | Unsafely type qualified subquery into record typed relation type.
-unsafeTypeRelation :: ConfigureQuery SubQuery -> Relation p r
+unsafeTypeRelation :: ConfigureQuery SubQuery -> Relation i j p r
 unsafeTypeRelation = SubQuery
 
 -- | Sub-query Qualify monad from relation.
-untypeRelation :: Relation p r -> ConfigureQuery SubQuery
+untypeRelation :: Relation i j p r -> ConfigureQuery SubQuery
 untypeRelation (SubQuery qsub) = qsub
 
 -- | 'PersistableRecordWidth' of 'Relation' type.
-relationWidth :: Relation p r ->  PersistableRecordWidth r
+relationWidth :: Relation i j p r ->  PersistableRecordWidth r
 relationWidth rel =
   unsafePersistableRecordWidth . width $ configureQuery (untypeRelation rel) defaultConfig
   ---                               Assume that width is independent from Config structure
 
-unsafeCastPlaceHolder :: Relation a r -> Relation b r
+unsafeCastPlaceHolder :: Relation i j a r -> Relation i j b r
 unsafeCastPlaceHolder (SubQuery qsub) = SubQuery qsub
 
 -- | Simplify placeholder type applying left identity element.
-rightPh :: Relation ((), p) r -> Relation p r
+rightPh :: Relation i j ((), p) r -> Relation i j p r
 rightPh =  unsafeCastPlaceHolder
 
 -- | Simplify placeholder type applying right identity element.
-leftPh :: Relation (p, ()) r -> Relation p r
+leftPh :: Relation i j (p, ()) r -> Relation i j p r
 leftPh =  unsafeCastPlaceHolder
 
 -- | Generate SQL string from 'Relation' with configuration.
-sqlFromRelationWith :: Relation p r -> Config -> StringSQL
+sqlFromRelationWith :: Relation i j p r -> Config -> StringSQL
 sqlFromRelationWith =  configureQuery . (showSQL <$>) . untypeRelation
 
 -- | SQL string from 'Relation'.
-sqlFromRelation :: Relation p r -> StringSQL
+sqlFromRelation :: Relation i j p r -> StringSQL
 sqlFromRelation =  (`sqlFromRelationWith` defaultConfig)
 
 -- | Dump internal structure tree.
-dump :: Relation p r -> String
+dump :: Relation i j p r -> String
 dump =  show . (`configureQuery` defaultConfig) . untypeRelation
 
-instance Show (Relation p r) where
+instance Show (Relation i j p r) where
   show = showStringSQL . sqlFromRelation

@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
@@ -19,6 +20,7 @@ module Database.Relational.Monad.Assign (
   extract,
   ) where
 
+import Database.Relational.ExtensibleRecord
 import Database.Relational.Internal.Config (Config)
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax
@@ -28,21 +30,22 @@ import Database.Relational.Table (Table)
 import Database.Relational.Monad.Restrict (Restrict)
 import qualified Database.Relational.Monad.Restrict as Restrict
 import Database.Relational.Monad.Trans.Assigning (Assignings, extractAssignments)
+import Database.Relational.Monad.Trans.Placeholders (Placeholders, extractPlaceholders)
 
 
 -- | Target update monad type used from update statement and merge statement.
-type Assign r = Assignings r Restrict
+type Assign r i j = Placeholders (Assignings r Restrict) i j
 
 -- | AssignStatement type synonym.
 --   Specifying assignments and restrictions like update statement.
 --   Record type must be
 --   the same as 'Target' type parameter 'r'.
-type AssignStatement i j r a = Record i j Flat r -> Assign r a
+type AssignStatement r i j a = Record (ExRecord '[]) (ExRecord '[]) Flat r -> Assign r i j a
 
 -- -- | 'return' of 'Update'
 -- updateStatement :: a -> Assignings r (Restrictings Identity) a
 -- updateStatement =  assignings . restrictings . Identity
 
 -- | Run 'Assign'.
-extract :: Assign r a -> Config -> ((a, Table r -> [Assignment]), [Tuple{-Predicate i j Flat-}])
-extract =  Restrict.extract . extractAssignments
+extract :: Assign r i j a -> Config -> ((a, Table r -> [Assignment]), [Tuple{-Predicate i j Flat-}])
+extract =  Restrict.extract . extractAssignments . extractPlaceholders

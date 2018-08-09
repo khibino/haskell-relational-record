@@ -33,7 +33,8 @@ module Database.Relational.Record (
 
   flattenMaybe, just,
 
-  unsafeToAggregated, unsafeToFlat, unsafeChangeContext,
+  unsafeToAggregated, unsafeToFlat,
+  unsafeChangeContext, unsafeChangeIndices,
   unsafeStringSqlNotNullMaybe,
 
   -- * List of Record
@@ -151,6 +152,9 @@ just =  unsafeCast
 -- | Unsafely cast context type tag.
 unsafeChangeContext :: Record i j c r -> Record i j c' r
 unsafeChangeContext = Syntax.record . Syntax.untypeRecord
+
+unsafeChangeIndices :: Record i j c r -> Record i' j' c r
+unsafeChangeIndices = Syntax.record . Syntax.untypeRecord
 
 -- | Unsafely lift to aggregated context.
 unsafeToAggregated :: Record i j Flat r -> Record i j Aggregated r

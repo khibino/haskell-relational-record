@@ -47,7 +47,10 @@ module Database.Relational.SqlSyntax.Types (
   -- * Predicate to restrict Query result
   Predicate,
 
-  nextIndexOfRecord
+  nextIndexOf,
+  previousIndexOf,
+  setNextIndexOf,
+  setPreviousIndexOf,
   )  where
 
 import Prelude hiding (and, product)
@@ -55,7 +58,6 @@ import Data.Foldable (Foldable)
 import Data.Traversable (Traversable)
 
 import Database.Relational.Internal.Config (Config)
-import Database.Relational.Internal.ContextType (Flat, Aggregated)
 import Database.Relational.Internal.String (StringSQL)
 import Database.Relational.Internal.UntypedTable (Untyped)
 
@@ -184,6 +186,8 @@ tupleWidth :: Tuple -> Int
 tupleWidth = length
 
 -- | Phantom typed record. Projected into Haskell record type 't'.
+-- TODO: Delete @i@ type parameter
+-- TODO: pass xs and ys to directly. i.e. Record (ExRecord xs) c t
 newtype Record i j c t =
   Record
   { untypeRecord :: Tuple {- ^ Discard record type -} }  deriving Show
@@ -198,8 +202,22 @@ type PI i c a b = Record i i c a -> Record i i c b
 record :: Tuple -> Record i j c t
 record = Record
 
-nextIndexOfRecord :: Record i j c r -> j
-nextIndexOfRecord = error "nextIndexOfRecord: Impossible"
+-- igrep TODO: Really impossible?
+nextIndexOf :: recordOrRelation i j c r -> j
+nextIndexOf = error "nextIndexOf: Impossible"
+
+-- igrep TODO: Really impossible?
+previousIndexOf :: recordOrRelation i j c r -> i
+previousIndexOf = error "nextIndexOf: Impossible"
+
+-- igrep TODO: Really impossible?
+setNextIndexOf :: k -> recordOrRelation i j c r -> recordOrRelation i k c r
+setNextIndexOf = error "nextIndexOf: Impossible"
+
+-- igrep TODO: Really impossible?
+setPreviousIndexOf :: j -> recordOrRelation i k c r -> recordOrRelation j k c r
+setPreviousIndexOf = error "nextIndexOf: Impossible"
+
 
 -- | Width of 'Record'.
 recordWidth :: Record i j c r -> Int

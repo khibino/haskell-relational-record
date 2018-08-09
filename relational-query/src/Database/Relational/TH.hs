@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -93,6 +94,8 @@ import Database.Relational
    relationalQuerySQL, Query, relationalQuery, KeyUpdate,
    Insert, insert, InsertQuery, insertQuery,
    HasConstraintKey(constraintKey), Primary, NotNull, primarySelect, primaryUpdate)
+
+import Database.Relational.ExtensibleRecord (ExRecord)
 
 import Database.Relational.InternalTH.Base (defineTuplePi, defineRecordProjections)
 import Database.Relational.Scalar (defineScalarDegree)
@@ -216,13 +219,13 @@ defineTableDerivations tableVar' relVar' insVar' insQVar' recordType' = do
   tableDs <- simpleValD tableVar [t| Table $recordType' |]
              [| derivedTable |]
   let relVar   = varName relVar'
-  relDs   <- simpleValD relVar   [t| Relation () $recordType' |]
+  relDs   <- simpleValD relVar   [t| Relation (ExRecord '[]) (ExRecord '[]) () $recordType' |]
              [| derivedRelation |]
   let insVar   = varName insVar'
   insDs   <- simpleValD insVar   [t| Insert $recordType' |]
              [| insert id' |]
   let insQVar  = varName insQVar'
-  insQDs  <- simpleValD insQVar  [t| forall p . Relation p $recordType' -> InsertQuery p |]
+  insQDs  <- simpleValD insQVar  [t| forall i j p . Relation i j p $recordType' -> InsertQuery p |]
              [| insertQuery id' |]
   return $ concat [tableDs, relDs, insDs, insQDs]
 
@@ -446,12 +449,12 @@ reifyRelation relVar = do
       fail $ "expandRelation: Variable must have Relation type: " ++ show relVar
 
 -- | Inlining composed 'Query' in compile type.
-inlineQuery :: Name         -- ^ Top-level variable name which has 'Relation' type
-            -> Relation p r -- ^ Object which has 'Relation' type
-            -> Config       -- ^ Configuration to generate SQL
-            -> QuerySuffix  -- ^ suffix SQL words
-            -> String       -- ^ Variable name to define as inlined query
-            -> Q [Dec]      -- ^ Result declarations
+inlineQuery :: Name             -- ^ Top-level variable name which has 'Relation' type
+            -> Relation i j p r -- ^ Object which has 'Relation' type
+            -> Config           -- ^ Configuration to generate SQL
+            -> QuerySuffix      -- ^ suffix SQL words
+            -> String           -- ^ Variable name to define as inlined query
+            -> Q [Dec]          -- ^ Result declarations
 inlineQuery relVar rel config sufs qns = do
   (p, r) <- reifyRelation relVar
   unsafeInlineQuery (return p) (return r)

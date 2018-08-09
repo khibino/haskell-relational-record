@@ -21,11 +21,12 @@ import Database.Relational.SqlSyntax (Assignment)
 import Database.Relational.Table (Table)
 import Database.Relational.Monad.BaseType (ConfigureQuery, configureQuery)
 import Database.Relational.Monad.Trans.Assigning (Assignings, extractAssignments)
+import qualified Database.Relational.Monad.Trans.Placeholders as P
 
 
 -- | Target register monad type used from insert statement.
-type Register r = Assignings r ConfigureQuery
+type Register i j r = P.Placeholders (Assignings r ConfigureQuery) i j
 
 -- | Run 'InsertStatement'.
-extract :: Assignings r ConfigureQuery a -> Config -> (a, Table r -> [Assignment])
-extract = configureQuery . extractAssignments
+extract :: Register i j r a -> Config -> (a, Table r -> [Assignment])
+extract = configureQuery . extractAssignments . P.extractPlaceholders

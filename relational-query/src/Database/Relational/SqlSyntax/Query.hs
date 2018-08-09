@@ -68,8 +68,9 @@ intersect :: Duplication -> SubQuery -> SubQuery -> SubQuery
 intersect =  setBin Intersect
 
 
+-- igrep TODO: Create a separate version which can refer placeholders
 whenClauses :: String                     -- ^ Error tag
-            -> [(Record i j c a, Record i j c b)] -- ^ Each when clauses
+            -> [(Record i i c a, Record i i c b)] -- ^ Each when clauses
             -> Record i j c b                 -- ^ Else result record
             -> WhenClauses                -- ^ Result clause
 whenClauses eTag ws0 e = d ws0
@@ -81,7 +82,8 @@ whenClauses eTag ws0 e = d ws0
 
 -- | Search case operator correnponding SQL search /CASE/.
 --   Like, /CASE WHEN p0 THEN a WHEN p1 THEN b ... ELSE c END/
-caseSearch :: [(Predicate i j c, Record i j c a)] -- ^ Each when clauses
+-- igrep TODO: Create a separate version which can refer placeholders
+caseSearch :: [(Predicate i i c, Record i i c a)] -- ^ Each when clauses
            -> Record i j c a                  -- ^ Else result record
            -> Record i j c a                  -- ^ Result record
 caseSearch ws e =
@@ -92,9 +94,9 @@ caseSearch ws e =
 -- | Simple case operator correnponding SQL simple /CASE/.
 --   Like, /CASE x WHEN v THEN a WHEN w THEN b ... ELSE c END/
 case' :: Record i j c a                 -- ^ Record value to match
-      -> [(Record i j c a, Record i j c b)] -- ^ Each when clauses
-      -> Record i j c b                 -- ^ Else result record
-      -> Record i j c b                 -- ^ Result record
+      -> [(Record j j c a, Record j j c b)] -- ^ Each when clauses
+      -> Record j k c b                 -- ^ Else result record
+      -> Record i k c b                 -- ^ Result record
 case' v ws e =
     record [ Case c i | i <- [0 .. recordWidth e - 1] ]
   where

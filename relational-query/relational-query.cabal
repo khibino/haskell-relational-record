@@ -44,8 +44,10 @@ library
                        Database.Relational.Record
                        Database.Relational.ProjectableClass
                        Database.Relational.Projectable
+                       Database.Relational.Projectable.Placeholders
                        Database.Relational.Projectable.Unsafe
                        Database.Relational.Projectable.Instances
+                       Database.Relational.ReboundSyntax
                        Database.Relational.TupleInstances
                        Database.Relational.Monad.BaseType
                        Database.Relational.Monad.Class
@@ -55,6 +57,7 @@ library
                        Database.Relational.Monad.Trans.Join
                        Database.Relational.Monad.Trans.Config
                        Database.Relational.Monad.Trans.Assigning
+                       Database.Relational.Monad.Trans.Placeholders
                        Database.Relational.Monad.Type
                        Database.Relational.Monad.Simple
                        Database.Relational.Monad.Aggregate
@@ -62,11 +65,11 @@ library
                        Database.Relational.Monad.Restrict
                        Database.Relational.Monad.Assign
                        Database.Relational.Monad.Register
-                       Database.Relational.Monad.Placeholders
                        Database.Relational.Relation
                        Database.Relational.Set
                        Database.Relational.Sequence
                        Database.Relational.Effect
+                       Database.Relational.ExtensibleRecord
                        Database.Relational.Scalar
                        Database.Relational.Type
                        Database.Relational.Derives

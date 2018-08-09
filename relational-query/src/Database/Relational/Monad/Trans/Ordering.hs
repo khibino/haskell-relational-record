@@ -1,7 +1,9 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeOperators #-}
 
 -- |
 -- Module      : Database.Relational.Monad.Trans.Ordering
@@ -31,6 +33,8 @@ import Control.Applicative (Applicative, pure, (<$>))
 import Control.Arrow (second)
 import Data.DList (DList, toList)
 
+import Database.Relational.ExtensibleRecord
+import qualified Database.Relational.Monad.Trans.Placeholders as P
 import Database.Relational.SqlSyntax
   (Order (..), Nulls (..), OrderingTerm, Record)
 
@@ -59,54 +63,54 @@ instance MonadQualify q m => MonadQualify q (Orderings c m) where
 
 -- | 'MonadQuery' with ordering.
 instance MonadQuery m => MonadQuery (Orderings c m) where
-  setDuplication     = orderings . setDuplication
-  restrictJoin       = orderings . restrictJoin
-  query'             = orderings . query'
-  queryMaybe'        = orderings . queryMaybe'
+  setDuplication                         = orderings . setDuplication
+  restrictJoin                           = orderings . restrictJoin
+  queryWithoutUpdatingPlaceholders'      = orderings . queryWithoutUpdatingPlaceholders'
+  queryMaybeWithoutUpdatingPlaceholders' = orderings . queryMaybeWithoutUpdatingPlaceholders'
 
 -- | 'MonadAggregate' with ordering.
 instance MonadAggregate m => MonadAggregate (Orderings c m) where
-  groupBy  = orderings . groupBy
-  groupBy' = orderings . groupBy'
+  groupByWithoutUpdatingPlaceholders  = orderings . groupByWithoutUpdatingPlaceholders
+  groupByWithoutUpdatingPlaceholders' = orderings . groupByWithoutUpdatingPlaceholders'
 
 -- | 'MonadPartition' with ordering.
 instance MonadPartition c m => MonadPartition c (Orderings c m) where
-  partitionBy = orderings . partitionBy
+  partitionByWithoutUpdatingPlaceholders = orderings . partitionByWithoutUpdatingPlaceholders
 
 -- | Add ordering terms.
 updateOrderBys :: Monad m
                => (Order, Maybe Nulls) -- ^ Order direction
-               -> Record i j c t       -- ^ Ordering terms to add
+               -> Record (ExRecord '[]) (ExRecord ys) c t       -- ^ Ordering terms to add
                -> Orderings c m ()     -- ^ Result context with ordering
 updateOrderBys opair p = Orderings . mapM_ tell $ terms  where
   terms = curry pure opair `map` Record.columns p
 
 -- | Add ordering terms with null ordering.
 orderBy' :: Monad m
-         => Record i j c t   -- ^ Ordering terms to add
+         => Record (ExRecord '[]) (ExRecord ys) c t   -- ^ Ordering terms to add
          -> Order            -- ^ Order direction
          -> Nulls            -- ^ Order of null
-         -> Orderings c m () -- ^ Result context with ordering
-orderBy' p o n = updateOrderBys (o, Just n) p
+         -> P.Placeholders (Orderings c m) (ExRecord xs) (ExRecord (xs ++ ys)) () -- ^ Result context with ordering
+orderBy' p o n = P.addingPlaceholders p $ updateOrderBys (o, Just n) p
 
 -- | Add ordering terms.
 orderBy :: Monad m
-        => Record i j c t   -- ^ Ordering terms to add
+        => Record (ExRecord '[]) (ExRecord ys) c t   -- ^ Ordering terms to add
         -> Order        -- ^ Order direction
-        -> Orderings c m () -- ^ Result context with ordering
-orderBy p o = updateOrderBys (o, Nothing) p
+        -> P.Placeholders (Orderings c m) (ExRecord xs) (ExRecord (xs ++ ys)) () -- ^ Result context with ordering
+orderBy p o = P.addingPlaceholders p $ updateOrderBys (o, Nothing) p
 
 -- | Add ascendant ordering term.
 asc :: Monad m
-    => Record i j c t   -- ^ Ordering terms to add
-    -> Orderings c m () -- ^ Result context with ordering
-asc  =  updateOrderBys (Asc, Nothing)
+    => Record (ExRecord '[]) (ExRecord ys) c t   -- ^ Ordering terms to add
+    -> P.Placeholders (Orderings c m) (ExRecord xs) (ExRecord (xs ++ ys)) () -- ^ Result context with ordering
+asc p =  P.addingPlaceholders p $ updateOrderBys (Asc, Nothing) p
 
 -- | Add descendant ordering term.
 desc :: Monad m
-     => Record i j c t   -- ^ Ordering terms to add
-     -> Orderings c m () -- ^ Result context with ordering
-desc =  updateOrderBys (Desc, Nothing)
+     => Record (ExRecord '[]) (ExRecord ys) c t   -- ^ Ordering terms to add
+     -> P.Placeholders (Orderings c m) (ExRecord xs) (ExRecord (xs ++ ys)) () -- ^ Result context with ordering
+desc p =  P.addingPlaceholders p $ updateOrderBys (Desc, Nothing) p
 
 -- | Run 'Orderings' to get 'OrderingTerms'
 extractOrderingTerms :: (Monad m, Functor m) => Orderings c m a -> m (a, [OrderingTerm])

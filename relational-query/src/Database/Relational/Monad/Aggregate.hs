@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeSynonymInstances #-}
@@ -39,6 +40,7 @@ import Database.Relational.SqlSyntax
    AggregateColumnRef, AggregateElem, composePartitionBy, )
 import qualified Database.Relational.SqlSyntax as Syntax
 
+import Database.Relational.ExtensibleRecord
 import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable (PlaceHolders, SqlContext)
 import Database.Relational.Monad.Class (MonadRestrict(..))
@@ -48,30 +50,31 @@ import Database.Relational.Monad.Trans.Aggregating
   (extractAggregateTerms, AggregatingSetT, PartitioningSet)
 import Database.Relational.Monad.Trans.Ordering
   (Orderings, extractOrderingTerms)
+import qualified Database.Relational.Monad.Trans.Placeholders as P 
 import Database.Relational.Monad.BaseType (ConfigureQuery, askConfig)
 import Database.Relational.Monad.Type (QueryCore, extractCore, OrderedQuery)
 
 
 -- | Aggregated query monad type.
-type QueryAggregate     = Orderings Aggregated (Restrictings Aggregated (AggregatingSetT QueryCore))
+type QueryAggregate     = P.Placeholders (Orderings Aggregated (Restrictings Aggregated (AggregatingSetT QueryCore)))
 
 -- | Aggregated query type. 'AggregatedQuery' p r == 'QueryAggregate' ('PlaceHolders' p, 'Record' 'Aggregated' r).
 type AggregatedQuery i j p r = OrderedQuery i j Aggregated (Restrictings Aggregated (AggregatingSetT QueryCore)) p r
 
 -- | Partition monad type for partition-by clause.
-type Window           c = Orderings c (PartitioningSet c)
+type Window            c i j = P.Placeholders (Orderings c (PartitioningSet c)) i j
 
 -- | Restricted 'MonadRestrict' instance.
 instance MonadRestrict Flat q => MonadRestrict Flat (Restrictings Aggregated q) where
   restrict = restrictings . restrict
 
 extract :: AggregatedQuery i j p r
-        -> ConfigureQuery (((((((PlaceHolders p, Record i j Aggregated r), [OrderingTerm]),
+        -> ConfigureQuery (((((((PlaceHolders p, Record (ExRecord '[]) (ExRecord '[]) Aggregated r), [OrderingTerm]),
                                [Tuple{-Predicate i j Aggregated-}]),
                               [AggregateElem]),
                              [Tuple{-Predicate i j Flat-}]),
                             JoinProduct), Duplication)
-extract =  extractCore . extractAggregateTerms . extractRestrict . extractOrderingTerms
+extract =  extractCore . extractAggregateTerms . extractRestrict . extractOrderingTerms . P.extractPlaceholders
 
 -- | Run 'AggregatedQuery' to get SQL with 'ConfigureQuery' computation.
 toSQL :: AggregatedQuery i j p r   -- ^ 'AggregatedQuery' to run
@@ -86,13 +89,13 @@ toSubQuery q = do
   c <- askConfig
   return $ aggregatedSubQuery c (Record.untype pj) da pd rs ag grs ot
 
-extractWindow :: Window c a -> ((a, [OrderingTerm]), [AggregateColumnRef])
-extractWindow =  runIdentity . extractAggregateTerms . extractOrderingTerms
+extractWindow :: Window c i j a -> ((a, [OrderingTerm]), [AggregateColumnRef])
+extractWindow =  runIdentity . extractAggregateTerms . extractOrderingTerms . P.extractPlaceholders
 
 -- | Operator to make record of window function result using built 'Window' monad.
 over :: SqlContext c
      => Record i j OverWindow a
-     -> Window c ()
+     -> Window c i j ()
      -> Record i j c a
 wp `over` win =
   Record.unsafeFromSqlTerms

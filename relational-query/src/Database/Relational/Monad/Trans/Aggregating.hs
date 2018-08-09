@@ -47,6 +47,7 @@ import Database.Relational.SqlSyntax
 import qualified Database.Relational.Record as Record
 import Database.Relational.Monad.Class
   (MonadQualify (..), MonadRestrict(..), MonadQuery(..), MonadAggregate(..), MonadPartition(..))
+import qualified Database.Relational.Monad.Trans.Placeholders as P
 
 
 -- | Type to accumulate aggregating context.
@@ -83,10 +84,10 @@ instance MonadQualify q m => MonadQualify q (AggregatingSetT m) where
 
 -- | Aggregated 'MonadQuery'.
 instance MonadQuery m => MonadQuery (AggregatingSetT m) where
-  setDuplication     = aggregatings . setDuplication
-  restrictJoin       = aggregatings . restrictJoin
-  query'             = aggregatings . query'
-  queryMaybe'        = aggregatings . queryMaybe'
+  setDuplication                         = aggregatings . setDuplication
+  restrictJoin                           = aggregatings . restrictJoin
+  queryWithoutUpdatingPlaceholders'      = aggregatings . queryWithoutUpdatingPlaceholders'
+  queryMaybeWithoutUpdatingPlaceholders' = aggregatings . queryMaybeWithoutUpdatingPlaceholders'
 
 unsafeAggregateWithTerm :: Monad m => at -> Aggregatings ac at m ()
 unsafeAggregateWithTerm =  Aggregatings . tell . pure
@@ -98,14 +99,14 @@ aggregateKey k = do
 
 -- | Aggregated query instance.
 instance MonadQuery m => MonadAggregate (AggregatingSetT m) where
-  groupBy p = do
+  groupByWithoutUpdatingPlaceholders p = do
     mapM_ unsafeAggregateWithTerm [ aggregateColumnRef col | col <- Record.columns p]
-    return $ Record.unsafeToAggregated p
-  groupBy'  = aggregateKey
+    return $ Record.unsafeChangeIndices $ Record.unsafeToAggregated p
+  groupByWithoutUpdatingPlaceholders'  = fmap Record.unsafeChangeIndices . aggregateKey
 
 -- | Partition clause instance
 instance Monad m => MonadPartition c (PartitioningSetT c m) where
-  partitionBy =  mapM_ unsafeAggregateWithTerm . Record.columns
+  partitionByWithoutUpdatingPlaceholders =  mapM_ unsafeAggregateWithTerm . Record.columns
 
 -- | Run 'Aggregatings' to get terms list.
 extractAggregateTerms :: (Monad m, Functor m) => Aggregatings ac at m a -> m (a, [at])
@@ -115,56 +116,60 @@ extractTermList :: Aggregatings ac at Identity a -> (a, [at])
 extractTermList =  runIdentity . extractAggregateTerms
 
 -- | Context monad type to build single grouping set.
-type AggregatingSet      = AggregatingSetT      Identity
+type AggregatingSet      = P.Placeholders (AggregatingSetT      Identity)
 
 -- | Context monad type to build grouping power set.
-type AggregatingPowerSet = AggregatingPowerSetT Identity
+type AggregatingPowerSet = P.Placeholders (AggregatingPowerSetT Identity)
 
 -- | Context monad type to build grouping set list.
-type AggregatingSetList  = AggregatingSetListT  Identity
+type AggregatingSetList  = P.Placeholders (AggregatingSetListT  Identity)
 
 -- | Context monad type to build partition keys set.
 type PartitioningSet c   = PartitioningSetT c   Identity
 
 -- | Specify key of single grouping set from Record.
 key :: Record i j Flat r
-    -> AggregatingSet (Record i j Aggregated (Maybe r))
+    -- -> AggregatingSet i j (Record i j Aggregated (Maybe r))
+    -> AggregatingSet i i (Record i j Aggregated (Maybe r))
 key p = do
-  mapM_ unsafeAggregateWithTerm [ aggregateColumnRef col | col <- Record.columns p]
+  mapM_ (P.placeholders . unsafeAggregateWithTerm) [ aggregateColumnRef col | col <- Record.columns p]
   return . Record.just $ Record.unsafeToAggregated p
 
 -- | Specify key of single grouping set.
 key' :: AggregateKey a
-     -> AggregatingSet a
-key' = aggregateKey
+     -- -> AggregatingSet i j a
+     -> AggregatingSet i i a
+key' = P.placeholders . aggregateKey
 
 -- | Finalize and specify single grouping set.
-set :: AggregatingSet a
-    -> AggregatingSetList a
+-- set :: AggregatingSet i j a
+--     -> AggregatingSetList i j a
+set :: AggregatingSet i i a
+    -> AggregatingSetList i i a
 set s = do
-  let (p, c) = second aggregateGroupingSet . extractTermList $ s
-  unsafeAggregateWithTerm c
+  let (p, c) = second aggregateGroupingSet . extractTermList . P.extractPlaceholders $ s
+  P.placeholders $ unsafeAggregateWithTerm c
   return p
 
 -- | Specify key of rollup and cube power set.
 bkey :: Record i j Flat r
-     -> AggregatingPowerSet (Record i j Aggregated (Maybe r))
+     -> AggregatingPowerSet i i (Record i j Aggregated (Maybe r))
 bkey p = do
-  unsafeAggregateWithTerm . aggregatePowerKey $ Record.columns p
+  P.placeholders . unsafeAggregateWithTerm . aggregatePowerKey $ Record.columns p
   return . Record.just $ Record.unsafeToAggregated p
 
 finalizePower :: ([AggregateBitKey] -> AggregateElem)
-              -> AggregatingPowerSet a -> AggregateKey a
-finalizePower finalize pow = unsafeAggregateKey . second finalize . extractTermList $ pow
+              -> AggregatingPowerSet i j a -> AggregateKey a
+finalizePower finalize pow = unsafeAggregateKey . second finalize . extractTermList . P.extractPlaceholders $ pow
 
 -- | Finalize grouping power set as rollup power set.
-rollup :: AggregatingPowerSet a -> AggregateKey a
+rollup :: AggregatingPowerSet i j a -> AggregateKey a
 rollup =  finalizePower aggregateRollup
 
 -- | Finalize grouping power set as cube power set.
-cube   :: AggregatingPowerSet a -> AggregateKey a
+cube   :: AggregatingPowerSet i j a -> AggregateKey a
 cube   =  finalizePower aggregateCube
 
 -- | Finalize grouping set list.
-groupingSets :: AggregatingSetList a -> AggregateKey a
-groupingSets =  unsafeAggregateKey . second aggregateSets . extractTermList
+groupingSets :: AggregatingSetList i j a -> AggregateKey a
+groupingSets =  unsafeAggregateKey . second aggregateSets . extractTermList . P.extractPlaceholders

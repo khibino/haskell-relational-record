@@ -57,15 +57,15 @@ instance MonadQualify q m => MonadQualify q (Restrictings c m) where
 
 -- | Restricted 'MonadQuery' instance.
 instance MonadQuery q => MonadQuery (Restrictings c q) where
-  setDuplication     = restrictings . setDuplication
-  restrictJoin       = restrictings . restrictJoin
-  query'             = restrictings . query'
-  queryMaybe'        = restrictings . queryMaybe'
+  setDuplication                          = restrictings . setDuplication
+  restrictJoin                            = restrictings . restrictJoin
+  queryWithoutUpdatingPlaceholders'      = restrictings . queryWithoutUpdatingPlaceholders'
+  queryMaybeWithoutUpdatingPlaceholders' = restrictings . queryMaybeWithoutUpdatingPlaceholders'
 
 -- | Resticted 'MonadAggregate' instance.
 instance MonadAggregate m => MonadAggregate (Restrictings c m) where
-  groupBy  = restrictings . groupBy
-  groupBy' = restrictings . groupBy'
+  groupByWithoutUpdatingPlaceholders  = restrictings . groupByWithoutUpdatingPlaceholders
+  groupByWithoutUpdatingPlaceholders' = restrictings . groupByWithoutUpdatingPlaceholders'
 
 -- | Run 'Restrictings' to get 'QueryRestriction'
 extractRestrict :: (Monad m, Functor m) => Restrictings c m a -> m (a, [Tuple{-Predicate i j c-}])

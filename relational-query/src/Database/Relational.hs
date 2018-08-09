@@ -25,6 +25,7 @@ module Database.Relational (
   module Database.Relational.Monad.Trans.Ordering,
   module Database.Relational.Monad.Trans.Aggregating,
   module Database.Relational.Monad.Trans.Assigning,
+  module Database.Relational.Monad.Trans.Placeholders,
   module Database.Relational.Monad.Type,
   module Database.Relational.Monad.Simple,
   module Database.Relational.Monad.Aggregate,
@@ -63,15 +64,17 @@ import Database.Relational.TupleInstances
 import Database.Relational.Monad.BaseType
 import Database.Relational.Monad.Class
   (MonadQualify,
-   MonadRestrict, wheres, having, restrict,
-   MonadAggregate, groupBy, groupBy',
-   MonadQuery, query', queryMaybe',
-   MonadPartition, partitionBy,
-   distinct, all', on)
+   MonadRestrict, restrict,
+   MonadAggregate,
+   MonadQuery,
+   MonadPartition,
+   distinct, all')
 import Database.Relational.Monad.Trans.Ordering (orderBy', orderBy, asc, desc)
 import Database.Relational.Monad.Trans.Aggregating
   (key, key', set, bkey, rollup, cube, groupingSets)
 import Database.Relational.Monad.Trans.Assigning (assignTo, (<-#))
+import Database.Relational.Monad.Trans.Placeholders
+  (wheres, having, groupBy, groupBy', query', queryMaybe', partitionBy, on)
 import Database.Relational.Monad.Type
 import Database.Relational.Monad.Simple (QuerySimple, SimpleQuery)
 import Database.Relational.Monad.Aggregate
