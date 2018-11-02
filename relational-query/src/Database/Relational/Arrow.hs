@@ -86,7 +86,7 @@ import Database.Relational hiding
    updateAllColumn', updateAllColumn, updateAllColumnNoPH,
    insertValue', insertValue, insertValueNoPH, derivedInsertValue', derivedInsertValue,
    delete', delete, deleteNoPH, derivedDelete', derivedDelete,
-   QuerySimple, QueryAggregate, QueryUnique, Window, Register)
+   QuerySimple, QueryAggregate, QueryUnique, Orderings, Window, Register)
 import qualified Database.Relational as Monadic
 import qualified Database.Relational.Monad.Trans.Aggregating as Monadic
 import qualified Database.Relational.Monad.Trans.Ordering as Monadic
