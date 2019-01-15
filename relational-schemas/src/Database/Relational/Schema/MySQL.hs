@@ -1,4 +1,9 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeOperators #-}
+
 module Database.Relational.Schema.MySQL
     ( normalizeColumn
     , notNull
@@ -18,18 +23,22 @@ import           Data.ByteString        (ByteString)
 import           Control.Applicative    ((<|>))
 import           Language.Haskell.TH    (TypeQ)
 
-import Database.Relational              ( Query
+import Database.Relational              ( Relation
+                                        , Query
                                         , relationalQuery
                                         , query
-                                        , relation'
+                                        , relation
                                         , wheres
                                         , (.=.)
                                         , (!)
-                                        , (><)
-                                        , placeholder
                                         , asc
                                         , value
+                                        , ph
                                         )
+
+import Database.Relational.ReboundSyntax hiding ((>>=), (>>))
+import qualified Database.Relational.ReboundSyntax as ReboundSyntax
+import Database.Relational.ExtensibleRecord (ExRecord, type (>:))
 
 import           Database.Relational.Schema.MySQLInfo.Columns           (Columns, columns)
 import qualified Database.Relational.Schema.MySQLInfo.Columns           as Columns
@@ -37,6 +46,9 @@ import           Database.Relational.Schema.MySQLInfo.TableConstraints  (tableCo
 import qualified Database.Relational.Schema.MySQLInfo.TableConstraints  as Tabconst
 import           Database.Relational.Schema.MySQLInfo.KeyColumnUsage    (keyColumnUsage)
 import qualified Database.Relational.Schema.MySQLInfo.KeyColumnUsage    as Keycoluse
+
+import Prelude hiding ((>>=), (>>))
+import qualified Prelude
 
 -- TODO: Need to check unsigned int types to avoid wrong mapping
 
@@ -83,21 +95,38 @@ getType mapFromSql rec = do
         mayNull typ = if notNull rec
                       then typ
                       else [t|Maybe $(typ)|]
+        (>>=) :: Monad m => m a -> (a -> m b) -> m b
+        (>>=) = (Prelude.>>=)
 
-columnsQuerySQL :: Query (String, String) Columns
+
+type NameInSchema = ExRecord
+ '[ "tableSchema" >: String
+  , "tableName" >: String
+  ]
+
+
+columnsQuerySQL :: Query () Columns
 columnsQuerySQL = relationalQuery columnsRelationFromTable
     where
-        columnsRelationFromTable = relation' $ do
+        columnsRelationFromTable :: Relation (ExRecord '[]) NameInSchema () Columns
+        columnsRelationFromTable = relation $ do
             c <- query columns
-            (schemaP, ()) <- placeholder (\ph -> wheres $ c ! Columns.tableSchema' .=. ph)
-            (nameP  , ()) <- placeholder (\ph -> wheres $ c ! Columns.tableName'   .=. ph)
+            wheres $ c ! Columns.tableSchema' .=. ph #tableSchema
+            wheres $ c ! Columns.tableName'   .=. ph #tableName
             asc $ c ! Columns.ordinalPosition'
-            return (schemaP >< nameP, c)
+            ireturn c
 
-primaryKeyQuerySQL :: Query (String, String) String
+        (>>=) :: IxMonad m => m i j a -> (a -> m j k b) -> m i k b
+        (>>=) = (ReboundSyntax.>>=)
+        (>>) :: IxMonad m => m i j a -> m j k b -> m i k b
+        (>>) = (ReboundSyntax.>>)
+
+-- igrep TODO: Convert to IxMonad
+primaryKeyQuerySQL :: Query () String
 primaryKeyQuerySQL = relationalQuery primaryKeyRelation
     where
-        primaryKeyRelation = relation' $ do
+        primaryKeyRelation :: Relation (ExRecord '[]) NameInSchema () String
+        primaryKeyRelation = relation $ do
             cons <- query tableConstraints
             key  <- query keyColumnUsage
 
@@ -105,10 +134,15 @@ primaryKeyQuerySQL = relationalQuery primaryKeyRelation
             wheres $ cons ! Tabconst.tableName'      .=. key ! Keycoluse.tableName'
             wheres $ cons ! Tabconst.constraintName' .=. key ! Keycoluse.constraintName'
 
-            (schemaP, ()) <- placeholder (\ph -> wheres $ cons ! Tabconst.tableSchema' .=. ph)
-            (nameP  , ()) <- placeholder (\ph -> wheres $ cons ! Tabconst.tableName'   .=. ph)
+            wheres $ cons ! Tabconst.tableSchema' .=. ph #tableSchema
+            wheres $ cons ! Tabconst.tableName'   .=. ph #tableName
             wheres $ cons ! Tabconst.constraintType' .=. value "PRIMARY KEY"
 
             asc $ key ! Keycoluse.ordinalPosition'
 
-            return (schemaP >< nameP, key ! Keycoluse.columnName')
+            ireturn (key ! Keycoluse.columnName')
+
+        (>>=) :: IxMonad m => m i j a -> (a -> m j k b) -> m i k b
+        (>>=) = (ReboundSyntax.>>=)
+        (>>) :: IxMonad m => m i j a -> m j k b -> m i k b
+        (>>) = (ReboundSyntax.>>)

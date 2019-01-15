@@ -1,4 +1,8 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Database.Relational.Schema.Oracle
     ( normalizeColumn, notNull, getType
@@ -16,12 +20,19 @@ import Language.Haskell.TH (TypeQ)
 
 import Database.Relational
 
+import Database.Relational.ReboundSyntax hiding ((>>=), (>>))
+import qualified Database.Relational.ReboundSyntax as ReboundSyntax
+import Database.Relational.ExtensibleRecord (ExRecord, type (>:))
+
 import Database.Relational.Schema.OracleDataDictionary.ConsColumns (dbaConsColumns)
 import qualified Database.Relational.Schema.OracleDataDictionary.ConsColumns as ConsCols
 import Database.Relational.Schema.OracleDataDictionary.Constraints (dbaConstraints)
 import qualified Database.Relational.Schema.OracleDataDictionary.Constraints as Cons
 import Database.Relational.Schema.OracleDataDictionary.TabColumns (DbaTabColumns, dbaTabColumns)
 import qualified Database.Relational.Schema.OracleDataDictionary.TabColumns as Cols
+
+import Prelude hiding ((>>=), (>>))
+import qualified Prelude
 
 -- NOT COMPLETED
 -- (ref: http://docs.oracle.com/cd/B28359_01/server.111/b28318/datatype.htm)
@@ -73,24 +84,37 @@ getType mapFromSql cols = do
         | n <= 0 = [t|Integer|]
         | otherwise = [t|Double|]
 
+    (>>=) :: Monad m => m a -> (a -> m b) -> m b
+    (>>=) = (Prelude.>>=)
+
+
+type OwnerAndTable = ExRecord
+ '[ "owner" >: String
+  , "table" >: String
+  ]
+
+
 -- | 'Relation' to query 'DbaTabColumns' from owner name and table name.
-columnsRelationFromTable :: Relation (String, String) DbaTabColumns
-columnsRelationFromTable = relation' $ do
+columnsRelationFromTable :: Relation (ExRecord '[]) OwnerAndTable () DbaTabColumns
+columnsRelationFromTable = relation $ do
     cols <- query dbaTabColumns
-    (owner, ()) <- placeholder $ \owner ->
-        wheres $ cols ! Cols.owner' .=. owner
-    (name, ()) <- placeholder $ \name ->
-        wheres $ cols ! Cols.tableName' .=. name
+    wheres $ cols ! Cols.owner' .=. ph #owner
+    wheres $ cols ! Cols.tableName' .=. ph #table
     asc $ cols ! Cols.columnId'
-    return (owner >< name, cols)
+    ireturn cols
+  where
+    (>>=) :: IxMonad m => m i j a -> (a -> m j k b) -> m i k b
+    (>>=) = (ReboundSyntax.>>=)
+    (>>) :: IxMonad m => m i j a -> m j k b -> m i k b
+    (>>) = (ReboundSyntax.>>)
 
 -- | Phantom typed 'Query' to get 'DbaTabColumns' from owner name and table name.
-columnsQuerySQL :: Query (String, String) DbaTabColumns
+columnsQuerySQL :: Query () DbaTabColumns
 columnsQuerySQL = relationalQuery columnsRelationFromTable
 
 -- | 'Relation' to query primary key name from owner name and table name.
-primaryKeyRelation :: Relation (String, String) (Maybe String)
-primaryKeyRelation = relation' $ do
+primaryKeyRelation :: Relation (ExRecord '[]) OwnerAndTable () (Maybe String)
+primaryKeyRelation = relation $ do
     cons <- query dbaConstraints
     cols <- query dbaTabColumns
     consCols <- query dbaConsColumns
@@ -103,15 +127,19 @@ primaryKeyRelation = relation' $ do
     wheres $ cols ! Cols.nullable' .=. just (value "N")
     wheres $ cons ! Cons.constraintType' .=. just (value "P")
 
-    (owner, ()) <- placeholder $ \owner ->
-        wheres $ cons ! Cons.owner' .=. just owner
-    (name, ()) <- placeholder $ \name ->
-        wheres $ cons ! Cons.tableName' .=. name
+    wheres $ cons ! Cons.owner' .=. just (ph #owner)
+    wheres $ cons ! Cons.tableName' .=. ph #table
 
     asc $ consCols ! ConsCols.position'
 
-    return (owner >< name, consCols ! ConsCols.columnName')
+    ireturn (consCols ! ConsCols.columnName')
+
+  where
+    (>>=) :: IxMonad m => m i j a -> (a -> m j k b) -> m i k b
+    (>>=) = (ReboundSyntax.>>=)
+    (>>) :: IxMonad m => m i j a -> m j k b -> m i k b
+    (>>) = (ReboundSyntax.>>)
 
 -- | Phantom typed 'Query' to get primary key name from owner name and table name.
-primaryKeyQuerySQL :: Query (String, String) (Maybe String)
+primaryKeyQuerySQL :: Query () (Maybe String)
 primaryKeyQuerySQL = relationalQuery primaryKeyRelation

@@ -1,4 +1,8 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeOperators #-}
 
 -- |
 -- Module      : Database.Relational.Schema.PostgreSQL
@@ -21,8 +25,6 @@ module Database.Relational.Schema.PostgreSQL (
   primaryKeyLengthQuerySQL, primaryKeyQuerySQL
   ) where
 
-import Prelude hiding (or)
-
 import Language.Haskell.TH (TypeQ)
 
 import Data.Int (Int16, Int32, Int64)
@@ -35,9 +37,13 @@ import Data.Time
    LocalTime, ZonedTime, Day, TimeOfDay)
 
 import Database.Relational
-  (Query, relationalQuery, Relation, query, query', relation', relation, union,
-   wheres, (.=.), (.>.), in', values, (!), fst', snd',
-   placeholder, asc, value, unsafeProjectSql, (><))
+  (Query, relationalQuery, Relation, query, relation, union,
+   wheres, (.=.), (.>.), in', values, (!), fst', snd', ph,
+   asc, value, unsafeProjectSql, (><))
+
+import Database.Relational.ReboundSyntax hiding ((>>=), (>>))
+import qualified Database.Relational.ReboundSyntax as ReboundSyntax
+import Database.Relational.ExtensibleRecord (ExRecord, type (>:))
 
 import Database.Relational.Schema.PgCatalog.PgNamespace (pgNamespace)
 import qualified Database.Relational.Schema.PgCatalog.PgNamespace as Namespace
@@ -52,6 +58,9 @@ import Database.Relational.Schema.PgCatalog.PgType (PgType(..), pgType)
 import qualified Database.Relational.Schema.PgCatalog.PgType as Type
 
 import Control.Applicative ((<|>))
+
+import Prelude hiding ((>>=), (>>), or)
+import qualified Prelude
 
 
 -- | Mapping between type in PostgreSQL and Haskell type.
@@ -112,35 +121,56 @@ getType mapFromSql column@(pgAttr, pgTyp) = do
         mayNull typ = if notNull column
                       then typ
                       else [t| Maybe $typ |]
+        (>>=) :: Monad m => m a -> (a -> m b) -> m b
+        (>>=) = (Prelude.>>=)
+
+
+type NspAndRel = ExRecord
+ '[ "nsp" >: String
+  , "rel" >: String
+  ]
+
 
 -- | 'Relation' to query PostgreSQL relation oid from schema name and table name.
-relOidRelation :: Relation (String, String) Int32
-relOidRelation = relation' $ do
+relOidRelation :: Relation (ExRecord '[]) NspAndRel () Int32
+relOidRelation = relation $ do
   nsp <- query pgNamespace
   cls <- query pgClass
 
   wheres $ cls ! Class.relnamespace' .=. nsp ! Namespace.oid'
-  (nspP, ()) <- placeholder (\ph -> wheres $ nsp ! Namespace.nspname'  .=. ph)
-  (relP, ()) <- placeholder (\ph -> wheres $ cls ! Class.relname'      .=. ph)
+  wheres $ nsp ! Namespace.nspname'  .=. ph #nsp
+  wheres $ cls ! Class.relname'      .=. ph #rel
 
-  return   (nspP >< relP, cls ! Class.oid')
+  ireturn (cls ! Class.oid')
+
+ where
+  (>>=) :: IxMonad m => m i j a -> (a -> m j k b) -> m i k b
+  (>>=) = (ReboundSyntax.>>=)
+  (>>) :: IxMonad m => m i j a -> m j k b -> m i k b
+  (>>) = (ReboundSyntax.>>)
 
 -- | 'Relation' to query column attribute from schema name and table name.
-attributeRelation :: Relation (String, String) PgAttribute
-attributeRelation =  relation' $ do
-  (ph, reloid) <- query' relOidRelation
-  att          <- query  pgAttribute
+attributeRelation :: Relation (ExRecord '[]) NspAndRel () PgAttribute
+attributeRelation =  relation $ do
+  reloid <- query relOidRelation
+  att    <- query pgAttribute
 
   wheres $ att ! Attr.attrelid' .=. reloid
   wheres $ att ! Attr.attnum'   .>. value 0
 
-  return   (ph, att)
+  ireturn att
+
+ where
+  (>>=) :: IxMonad m => m i j a -> (a -> m j k b) -> m i k b
+  (>>=) = (ReboundSyntax.>>=)
+  (>>) :: IxMonad m => m i j a -> m j k b -> m i k b
+  (>>) = (ReboundSyntax.>>)
 
 -- | 'Relation' to query 'Column' from schema name and table name.
-columnRelation :: Relation (String, String) Column
-columnRelation = relation' $ do
-  (ph, att) <- query' attributeRelation
-  typ       <- query  pgType
+columnRelation :: Relation (ExRecord '[]) NspAndRel () Column
+columnRelation = relation $ do
+  att <- query attributeRelation
+  typ <- query pgType
 
   wheres $ att ! Attr.atttypid'    .=. typ ! Type.oid'
   wheres $ typ ! Type.typtype'     .=. value 'b'  -- 'b': base type only
@@ -155,44 +185,60 @@ columnRelation = relation' $ do
 
   asc $ att ! Attr.attnum'
 
-  return (ph, att >< typ)
+  ireturn $ att >< typ
+
+ where
+  (>>=) :: IxMonad m => m i j a -> (a -> m j k b) -> m i k b
+  (>>=) = (ReboundSyntax.>>=)
+  (>>) :: IxMonad m => m i j a -> m j k b -> m i k b
+  (>>) = (ReboundSyntax.>>)
 
 -- | Phantom typed 'Query' to get 'Column' from schema name and table name.
-columnQuerySQL :: Query (String, String) Column
+columnQuerySQL :: Query () Column
 columnQuerySQL =  relationalQuery columnRelation
 
 -- | 'Relation' to query primary key length from schema name and table name.
-primaryKeyLengthRelation :: Relation (String, String) Int32
-primaryKeyLengthRelation =  relation' $ do
-  (ph, reloid) <- query' relOidRelation
-  con       <- query  pgConstraint
+primaryKeyLengthRelation :: Relation (ExRecord '[]) NspAndRel () Int32
+primaryKeyLengthRelation =  relation $ do
+  reloid <- query relOidRelation
+  con    <- query pgConstraint
 
   wheres $ con ! Constraint.conrelid' .=. reloid
   wheres $ con ! Constraint.contype'  .=. value 'p'  -- 'p': primary key constraint type
 
-  return (ph, unsafeProjectSql "array_length (conkey, 1)")
+  ireturn (unsafeProjectSql "array_length (conkey, 1)")
+
+ where
+  (>>=) :: IxMonad m => m i j a -> (a -> m j k b) -> m i k b
+  (>>=) = (ReboundSyntax.>>=)
+  (>>) :: IxMonad m => m i j a -> m j k b -> m i k b
+  (>>) = (ReboundSyntax.>>)
 
 -- | Phantom typed 'Query' to get primary key length from schema name and table name.
-primaryKeyLengthQuerySQL :: Query (String, String) Int32
+primaryKeyLengthQuerySQL :: Query () Int32
 primaryKeyLengthQuerySQL =  relationalQuery primaryKeyLengthRelation
 
 -- | One column which is nth column of composite primary key.
-constraintColRelation :: Int32 -> Relation () (PgConstraint, (Int16, Int32))
+constraintColRelation :: Int32 -> Relation (ExRecord '[]) (ExRecord '[]) () (PgConstraint, (Int16, Int32))
 constraintColRelation i = relation $ do
   con <- query pgConstraint
 
-  return $ con >< (unsafeProjectSql ("conkey[" ++ show i ++ "]") >< value i)
+  ireturn $ con >< (unsafeProjectSql ("conkey[" ++ show i ++ "]") >< value i)
+
+ where
+  (>>=) :: IxMonad m => m i j a -> (a -> m j k b) -> m i k b
+  (>>=) = (ReboundSyntax.>>=)
 
 -- | Make composite primary key relation from primary key length.
-constraintColExpandRelation :: Int32 -> Relation () (PgConstraint, (Int16, Int32))
+constraintColExpandRelation :: Int32 -> Relation (ExRecord '[]) (ExRecord '[]) () (PgConstraint, (Int16, Int32))
 constraintColExpandRelation n =
   foldl1' union [constraintColRelation i | i <- [1..n] ]
 
 -- | 'Relation' to query primary key name from schema name and table name.
-primaryKeyRelation :: Int32 -> Relation (String, String) String
-primaryKeyRelation n = relation' $ do
-  (ph, att) <- query' attributeRelation
-  conEx     <- query  (constraintColExpandRelation n)
+primaryKeyRelation :: Int32 -> Relation (ExRecord '[]) NspAndRel () String
+primaryKeyRelation n = relation $ do
+  att   <- query attributeRelation
+  conEx <- query (constraintColExpandRelation n)
 
   let con = conEx ! fst'
       col' = conEx ! snd'
@@ -205,8 +251,14 @@ primaryKeyRelation n = relation' $ do
 
   asc  $ keyN
 
-  return (ph, att ! Attr.attname')
+  ireturn (att ! Attr.attname')
+
+ where
+  (>>=) :: IxMonad m => m i j a -> (a -> m j k b) -> m i k b
+  (>>=) = (ReboundSyntax.>>=)
+  (>>) :: IxMonad m => m i j a -> m j k b -> m i k b
+  (>>) = (ReboundSyntax.>>)
 
 -- | Phantom typed 'Query' to get primary key name from schema name and table name.
-primaryKeyQuerySQL :: Int32 -> Query (String, String) String
+primaryKeyQuerySQL :: Int32 -> Query () String
 primaryKeyQuerySQL =  relationalQuery . primaryKeyRelation

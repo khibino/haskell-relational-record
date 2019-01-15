@@ -1,4 +1,8 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Database.Relational.Schema.SQLServer (
   getType, normalizeColumn, notNull,
@@ -19,13 +23,21 @@ import Data.Map (Map)
 import Data.Time (LocalTime, Day, TimeOfDay)
 import Database.Relational (Query, Relation, PlaceHolders, Record, Flat,
                             (!), (.=.), (><), asc, relationalQuery, just, placeholder',
-                            query, relation', unsafeShowSql,
-                            unsafeProjectSql, wheres)
+                            query, relation, unsafeShowSql,
+                            unsafeProjectSql, wheres, ph)
+
+import Database.Relational.ReboundSyntax hiding ((>>=), (>>))
+import qualified Database.Relational.ReboundSyntax as ReboundSyntax
+import Database.Relational.ExtensibleRecord (ExRecord, ExRecordNil, type (>:), type (++))
+
 import Database.Relational.Schema.SQLServerSyscat.Columns
 import Database.Relational.Schema.SQLServerSyscat.Indexes
 import Database.Relational.Schema.SQLServerSyscat.IndexColumns
 import Database.Relational.Schema.SQLServerSyscat.Types
 import Language.Haskell.TH (TypeQ)
+
+import Prelude hiding ((>>=), (>>))
+import qualified Prelude
 
 --{-# ANN module "HLint: ignore Redundant $" #-}
 
@@ -74,41 +86,49 @@ getType mapFromSql rec@((cols,typs),typScms) = do
     mayNull typ = if notNull rec
                     then typ
                     else [t|Maybe $(typ)|]
+    (>>=) :: Monad m => m a -> (a -> m b) -> m b
+    (>>=) = (Prelude.>>=)
 
-sqlsrvTrue :: Record i j Flat Bool
+
+type ObjectIdArgs = ExRecord
+ '[ "objectName" >: String
+  , "objectType" >: String
+  ]
+
+
+sqlsrvTrue :: Record ExRecordNil ExRecordNil Flat Bool
 sqlsrvTrue =  unsafeProjectSql "1"
 
-sqlsrvObjectId :: Record i j Flat String -> Record i j Flat String -> Record i j Flat Int32
+sqlsrvObjectId :: Record ExRecordNil (ExRecord xs) Flat String -> Record ExRecordNil (ExRecord ys) Flat String -> Record ExRecordNil (ExRecord (xs ++ ys)) Flat Int32
 sqlsrvObjectId s t = unsafeProjectSql $
     "OBJECT_ID(" ++ unsafeShowSql s ++ " + '.' + " ++ unsafeShowSql t ++ ")"
 
-sqlsrvOidPlaceHolder :: (PlaceHolders (String, String), Record i j Flat Int32)
-sqlsrvOidPlaceHolder =  (nsParam >< relParam, oid)
-  where
-    (nsParam, (relParam, oid)) =
-      placeholder' (\nsPh ->
-                     placeholder' (\relPh ->
-                                    sqlsrvObjectId nsPh relPh))
+sqlsrvOidPlaceHolder :: Record ExRecordNil ObjectIdArgs Flat Int32
+sqlsrvOidPlaceHolder =  sqlsrvObjectId (ph #objectName) (ph #objectType)
 
-columnTypeRelation :: Relation (String,String) ((Columns,Types),String)
-columnTypeRelation = relation' $ do
+columnTypeRelation :: Relation ExRecordNil ObjectIdArgs () ((Columns, Types), String)
+columnTypeRelation = relation $ do
     cols <- query columns
     typs <- query types
 
     wheres $ cols ! Columns.userTypeId' .=. typs ! Types.userTypeId'
     wheres $ cols ! Columns.objectId'   .=. oid
     asc $ cols ! Columns.columnId'
-    return   (params, cols >< typs >< sqlsrvSchemaName (typs ! Types.schemaId' :: Record i j Flat Int32))
+    ireturn   (cols >< typs >< sqlsrvSchemaName (typs ! Types.schemaId' :: Record ExRecordNil ExRecordNil Flat Int32))
   where
-    (params, oid) = sqlsrvOidPlaceHolder
+    oid = sqlsrvOidPlaceHolder
     sqlsrvSchemaName i = unsafeProjectSql $
         "SCHEMA_NAME(" ++ unsafeShowSql i ++ ")"
+    (>>=) :: IxMonad m => m i j a -> (a -> m j k b) -> m i k b
+    (>>=) = (ReboundSyntax.>>=)
+    (>>) :: IxMonad m => m i j a -> m j k b -> m i k b
+    (>>) = (ReboundSyntax.>>)
 
-columnTypeQuerySQL :: Query (String, String) ((Columns, Types), String)
+columnTypeQuerySQL :: Query () ((Columns, Types), String)
 columnTypeQuerySQL =  relationalQuery columnTypeRelation
 
-primaryKeyRelation :: Relation (String,String) (Maybe String)
-primaryKeyRelation = relation' $ do
+primaryKeyRelation :: Relation ExRecordNil ObjectIdArgs () (Maybe String)
+primaryKeyRelation = relation $ do
     idxes  <- query indexes
     idxcol <- query indexColumns
     cols   <- query columns
@@ -117,10 +137,15 @@ primaryKeyRelation = relation' $ do
     wheres $ idxcol ! IndexColumns.objectId' .=. cols   ! Columns.objectId'
     wheres $ idxcol ! IndexColumns.columnId' .=. cols   ! Columns.columnId'
     wheres $ idxes  ! Indexes.isPrimaryKey'  .=. just sqlsrvTrue
-    let (params, oid) = sqlsrvOidPlaceHolder
+    let oid = sqlsrvOidPlaceHolder
     wheres $ idxes  ! Indexes.objectId'      .=. oid
     asc    $ idxcol ! IndexColumns.keyOrdinal'
-    return   (params, cols   ! Columns.name')
+    ireturn (cols   ! Columns.name')
+  where
+    (>>=) :: IxMonad m => m i j a -> (a -> m j k b) -> m i k b
+    (>>=) = (ReboundSyntax.>>=)
+    (>>) :: IxMonad m => m i j a -> m j k b -> m i k b
+    (>>) = (ReboundSyntax.>>)
 
-primaryKeyQuerySQL :: Query (String,String) (Maybe String)
+primaryKeyQuerySQL :: Query () (Maybe String)
 primaryKeyQuerySQL =  relationalQuery primaryKeyRelation
