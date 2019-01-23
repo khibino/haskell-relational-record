@@ -18,7 +18,7 @@ slide_opts = \
 ##	--incremental
 
 %.html: %.md
-	pandoc -f $(md_format) -t s5 -r markdown $(slide_opts) -o $@ $<
+	pandoc -f $(md_format) -t s5 $(slide_opts) -o $@ $<
 
 %.tex: %.md
 	pandoc -f $(md_format) -t beamer -s --slide-level=2 -o $@ $<
