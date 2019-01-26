@@ -35,6 +35,7 @@ library
                        Database.Relational.Table
                        Database.Relational.SimpleSql
                        Database.Relational.Pure
+                       Database.Relational.Pure.NonStandard.TIMESTAMPTZ
                        Database.Relational.Pi
                        Database.Relational.Pi.Unsafe
                        Database.Relational.Constraint
@@ -80,6 +81,7 @@ library
                        Database.Relational.Internal.Config
                        Database.Relational.Internal.String
                        Database.Relational.Internal.UntypedTable
+                       Database.Relational.Pure.Internal
                        Database.Relational.SqlSyntax.Types
                        Database.Relational.SqlSyntax.Join
                        Database.Relational.SqlSyntax.Aggregate

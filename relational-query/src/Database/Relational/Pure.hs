@@ -26,7 +26,7 @@ import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy as LT
 import qualified Data.Text.Lazy.Encoding as LT
 import Text.Printf (PrintfArg, printf)
-import Data.Time (FormatTime, Day, TimeOfDay, LocalTime, UTCTime, ZonedTime, formatTime)
+import Data.Time (FormatTime, Day, TimeOfDay, LocalTime, formatTime)
 import Data.Time.Locale.Compat (defaultTimeLocale)
 import Data.DList (DList, fromList)
 
@@ -39,25 +39,7 @@ import Database.Record.Persistable
 import Database.Relational.Internal.String (StringSQL, stringSQL, boolSQL)
 
 import Database.Relational.ProjectableClass (LiteralSQL (..))
-
-
--- | Constant integral SQL terms.
-intTermsSQL :: (Show a, Integral a) => a -> DList StringSQL
-intTermsSQL =  pure . stringSQL . show
-
--- | Escape 'String' for constant SQL string expression.
-escapeStringToSqlExpr :: String -> String
-escapeStringToSqlExpr =  rec  where
-  rec ""        = ""
-  rec ('\'':cs) = '\'' : '\'' : rec cs
-  rec (c:cs)    = c : rec cs
-
--- | From 'String' into constant SQL string expression.
-stringExprSQL :: String -> StringSQL
-stringExprSQL =  stringSQL . ('\'':) . (++ "'") . escapeStringToSqlExpr
-
-stringTermsSQL :: String -> DList StringSQL
-stringTermsSQL = pure . stringExprSQL
+import Database.Relational.Pure.Internal (intTermsSQL, stringTermsSQL, stringExprSQL)
 
 -- | Constant SQL terms of '()'.
 instance LiteralSQL ()
@@ -163,16 +145,6 @@ instance LiteralSQL TimeOfDay where
 -- | Constant SQL terms of 'LocalTime'.
 instance LiteralSQL LocalTime where
   showLiteral' = constantTimeTerms TIMESTAMP "%Y-%m-%d %H:%M:%S"
-
--- | Constant SQL terms of 'ZonedTime'.
---   This generates ***NOT STANDARD*** SQL of TIMESTAMPTZ literal.
-instance LiteralSQL ZonedTime where
-  showLiteral' = constantTimeTerms TIMESTAMPTZ "%Y-%m-%d %H:%M:%S%z"
-
--- | Constant SQL terms of 'UTCTime'.
---   This generates ***NOT STANDARD*** SQL of TIMESTAMPTZ literal with UTC timezone.
-instance LiteralSQL UTCTime where
-  showLiteral' = constantTimeTerms TIMESTAMPTZ "%Y-%m-%d %H:%M:%S%z"
 
 showMaybeTerms :: LiteralSQL a => PersistableRecordWidth a -> Maybe a -> DList StringSQL
 showMaybeTerms wa = d  where
