@@ -9,17 +9,18 @@
 --
 -- This module provides unsafe interfaces between projected terms and SQL terms.
 module Database.Relational.Projectable.Unsafe (
-  SqlContext (..), OperatorContext, AggregatedContext,
-  PlaceHolders (..)
+  SqlContext (..), OperatorContext, AggregatedContext, PlaceHolders (..)
   ) where
 
 import Database.Relational.Internal.String (StringSQL)
 import Database.Relational.SqlSyntax (Record)
+import Data.DList (DList)
 
 -- | Interface to project SQL terms unsafely.
 class SqlContext c where
   -- | Unsafely project from SQL expression terms.
-  unsafeProjectSqlTerms :: [StringSQL]
+  unsafeProjectSqlTerms :: DList Int
+                        -> [StringSQL]
                         -> Record c t
 
 -- | Constraint to restrict context of full SQL expressions.

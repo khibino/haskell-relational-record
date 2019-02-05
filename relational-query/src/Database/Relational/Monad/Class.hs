@@ -16,10 +16,13 @@ module Database.Relational.Monad.Class
        ( -- * Query interface classes
          MonadQualify (..), MonadRestrict (..),
          MonadQuery (..), MonadAggregate (..), MonadPartition (..),
+         MonadReferPlaceholders (..),
 
          all', distinct,
          on, wheres, having,
        ) where
+
+import Data.DList (DList)
 
 import Database.Relational.Internal.ContextType (Flat, Aggregated)
 import Database.Relational.SqlSyntax
@@ -72,6 +75,10 @@ class MonadQuery m => MonadAggregate m where
 class Monad m => MonadPartition c m where
   -- | Add /PARTITION BY/ term into context.
   partitionBy :: Record c r -> m ()
+
+class Monad m => MonadReferPlaceholders m where
+  appendPlaceholderOffsets :: DList Int -> m ()
+
 
 -- | Specify ALL attribute to query context.
 all' :: MonadQuery m => m ()

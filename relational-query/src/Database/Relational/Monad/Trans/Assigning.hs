@@ -65,6 +65,7 @@ targetRecord :: AssignTarget r v ->  Table r -> Record Flat v
 targetRecord pi' tbl = Record.wpi (recordWidth tbl) (Record.unsafeFromTable tbl) pi'
 
 -- | Add an assignment.
+-- igrep TODO: May need to save placeholders
 assignTo :: Monad m => Record Flat v ->  AssignTarget r v -> Assignings r m ()
 assignTo vp target = Assignings . tell
                      $ \t -> mconcat $ zipWith (curry pure) (leftsR t) rights  where

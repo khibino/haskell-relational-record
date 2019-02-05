@@ -42,7 +42,7 @@ import Database.Relational.Monad.Trans.JoinState
   (JoinContext, primeJoinContext, updateProduct, joinProduct)
 import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable (PlaceHolders, unsafeAddPlaceHolders)
-import Database.Relational.Monad.BaseType (ConfigureQuery, qualifyQuery, Relation, untypeRelation)
+import Database.Relational.Monad.BaseType (ConfigureQuery, qualifyQuery, Relation, untypeRelationNoPlaceholders)
 import Database.Relational.Monad.Class (MonadQualify (..), MonadQuery (..))
 
 
@@ -85,9 +85,9 @@ unsafeSubQueryWithAttr :: Monad q
                        => NodeAttr                 -- ^ Attribute maybe or just
                        -> Qualified SubQuery       -- ^ 'SubQuery' to join
                        -> QueryJoin q (Record c r) -- ^ Result joined context and record of 'SubQuery' result.
-unsafeSubQueryWithAttr attr qsub = do
-  updateContext (updateProduct (`growProduct` (attr, qsub)))
-  return $ Record.unsafeFromQualifiedSubQuery qsub
+unsafeSubQueryWithAttr attr qps = do
+  updateContext (updateProduct (`growProduct` (attr, qps)))
+  return $ Record.unsafeFromQualifiedSubQuery mempty qps
 
 -- | Basic monadic join operation using 'MonadQuery'.
 queryWithAttr :: NodeAttr
@@ -96,7 +96,7 @@ queryWithAttr :: NodeAttr
 queryWithAttr attr = unsafeAddPlaceHolders . run where
   run rel = do
     q <- liftQualify $ do
-      sq <- untypeRelation rel
+      sq <- untypeRelationNoPlaceholders rel
       qualifyQuery sq
     unsafeSubQueryWithAttr attr q
 

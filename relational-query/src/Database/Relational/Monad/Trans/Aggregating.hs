@@ -46,7 +46,13 @@ import Database.Relational.SqlSyntax
 
 import qualified Database.Relational.Record as Record
 import Database.Relational.Monad.Class
-  (MonadQualify (..), MonadRestrict(..), MonadQuery(..), MonadAggregate(..), MonadPartition(..))
+  ( MonadQualify (..),
+    MonadRestrict(..),
+    MonadQuery(..),
+    MonadAggregate(..),
+    MonadPartition(..),
+    MonadReferPlaceholders(..),
+  )
 
 
 -- | Type to accumulate aggregating context.

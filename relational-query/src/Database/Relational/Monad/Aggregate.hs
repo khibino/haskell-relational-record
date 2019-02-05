@@ -36,7 +36,7 @@ import Database.Relational.Internal.ContextType (Flat, Aggregated, OverWindow)
 import Database.Relational.SqlSyntax
   (Duplication, Record, SubQuery, Predicate, JoinProduct,
    OrderingTerm, composeOrderBy, aggregatedSubQuery,
-   AggregateColumnRef, AggregateElem, composePartitionBy, )
+   AggregateColumnRef, AggregateElem, composePartitionBy, placeholderOffsets, )
 import qualified Database.Relational.SqlSyntax as Syntax
 
 import qualified Database.Relational.Record as Record
@@ -96,6 +96,7 @@ over :: SqlContext c
      -> Record c a
 wp `over` win =
   Record.unsafeFromSqlTerms
+  (placeholderOffsets wp)
   [ c <> OVER <> SQL.paren (composePartitionBy pt <> composeOrderBy ot)
   | c <- Record.columns wp
   ]  where (((), ot), pt) = extractWindow win

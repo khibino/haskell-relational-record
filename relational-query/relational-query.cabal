@@ -56,6 +56,7 @@ library
                        Database.Relational.Monad.Trans.Join
                        Database.Relational.Monad.Trans.Config
                        Database.Relational.Monad.Trans.Assigning
+                       Database.Relational.Monad.Trans.ReferredPlaceholders
                        Database.Relational.Monad.Type
                        Database.Relational.Monad.Simple
                        Database.Relational.Monad.Aggregate

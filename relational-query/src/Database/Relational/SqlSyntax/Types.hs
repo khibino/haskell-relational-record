@@ -39,17 +39,28 @@ module Database.Relational.SqlSyntax.Types (
 
   -- * Column, Tuple, Record and Projection
   Column (..), Tuple, tupleWidth,
-  Record, untypeRecord, record, PI,
+  Record,
+  placeholderOffsets,
+  untypeRecord,
+  record,
+  PI,
   recordWidth,
   typeFromRawColumns,
   typeFromScalarSubQuery,
+
+  -- * Manipulate records representing placeholders
+  toPlaceholdersRecord,
+  isPlaceholders,
+  appendPlaceholderOffsetsOf,
 
   -- * Predicate to restrict Query result
   Predicate,
   )  where
 
 import Prelude hiding (and, product)
+import Data.DList (DList, fromList)
 import Data.Foldable (Foldable)
+import Data.Monoid ((<>))
 import Data.Traversable (Traversable)
 
 import Database.Relational.Internal.Config (Config)
@@ -182,9 +193,13 @@ tupleWidth :: Tuple -> Int
 tupleWidth = length
 
 -- | Phantom typed record. Projected into Haskell record type 't'.
-newtype Record c t =
+data Record c t =
   Record
-  { untypeRecord :: Tuple {- ^ Discard record type -} }  deriving Show
+  { placeholderOffsets :: !(DList Int)
+  -- ^ If the record contains some placeholders,
+  -- offsets of the values of the parameters are saved in this field.
+  , untypeRecord :: !Tuple {- ^ Discard record type -}
+  } deriving Show
 
 -- | Type for predicate to restrict of query result.
 type Predicate c = Record c (Maybe Bool)
@@ -193,7 +208,7 @@ type Predicate c = Record c (Maybe Bool)
 type PI c a b = Record c a -> Record c b
 
 -- | Unsafely type 'Tuple' value to 'Record' type.
-record :: Tuple -> Record c t
+record :: DList Int -> Tuple -> Record c t
 record = Record
 
 -- | Width of 'Record'.
@@ -201,10 +216,23 @@ recordWidth :: Record c r -> Int
 recordWidth = length . untypeRecord
 
 -- | Unsafely generate 'Record' from SQL string list.
-typeFromRawColumns :: [StringSQL] -- ^ SQL string list specifies columns
+typeFromRawColumns :: DList Int
+                   -> [StringSQL] -- ^ SQL string list specifies columns
                    -> Record c r  -- ^ Result 'Record'
-typeFromRawColumns =  record . map RawColumn
+typeFromRawColumns phs =  record phs . map RawColumn
+
+toPlaceholdersRecord :: Record c r -> Record c r
+toPlaceholdersRecord r = setPlaceholdersOffsets [0 .. tupleWidth (untypeRecord r) - 1] r
+
+isPlaceholders :: Record c r -> Bool
+isPlaceholders = (/= mempty) . placeholderOffsets
+
+setPlaceholdersOffsets :: [Int] ->  Record c r -> Record c r
+setPlaceholdersOffsets os r = r { placeholderOffsets = fromList os }
+
+appendPlaceholderOffsetsOf :: Record c1 a -> Record c2 b -> DList Int
+appendPlaceholderOffsetsOf src1 src2 = placeholderOffsets src1 <> placeholderOffsets src2
 
 -- | Unsafely generate 'Record' from scalar sub-query.
-typeFromScalarSubQuery :: SubQuery -> Record c t
-typeFromScalarSubQuery = record . (:[]) . Scalar
+typeFromScalarSubQuery :: DList Int -> SubQuery -> Record c t
+typeFromScalarSubQuery phs = record phs . (:[]) . Scalar
