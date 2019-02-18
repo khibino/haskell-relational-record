@@ -51,6 +51,7 @@ module Database.Relational.SqlSyntax.Types (
   -- * Manipulate records representing placeholders
   toPlaceholdersRecord,
   isPlaceholders,
+  emptyPlaceholderOffsets,
   appendPlaceholderOffsetsOf,
 
   -- * Predicate to restrict Query result
@@ -222,13 +223,13 @@ typeFromRawColumns :: DList Int
 typeFromRawColumns phs =  record phs . map RawColumn
 
 toPlaceholdersRecord :: Record c r -> Record c r
-toPlaceholdersRecord r = setPlaceholdersOffsets [0 .. tupleWidth (untypeRecord r) - 1] r
+toPlaceholdersRecord r = r { placeholderOffsets = fromList [0 .. tupleWidth (untypeRecord r) - 1] }
 
 isPlaceholders :: Record c r -> Bool
 isPlaceholders = (/= mempty) . placeholderOffsets
 
-setPlaceholdersOffsets :: [Int] ->  Record c r -> Record c r
-setPlaceholdersOffsets os r = r { placeholderOffsets = fromList os }
+emptyPlaceholderOffsets :: Record c r -> Record c r
+emptyPlaceholderOffsets r = r { placeholderOffsets = mempty }
 
 appendPlaceholderOffsetsOf :: Record c1 a -> Record c2 b -> DList Int
 appendPlaceholderOffsetsOf src1 src2 = placeholderOffsets src1 <> placeholderOffsets src2

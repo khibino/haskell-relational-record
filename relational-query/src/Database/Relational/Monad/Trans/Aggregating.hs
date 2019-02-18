@@ -51,7 +51,6 @@ import Database.Relational.Monad.Class
     MonadQuery(..),
     MonadAggregate(..),
     MonadPartition(..),
-    MonadReferPlaceholders(..),
   )
 
 

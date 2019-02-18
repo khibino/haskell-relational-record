@@ -401,7 +401,6 @@ caseMaybe :: (OperatorContext c {- (Record c) is always ProjectableMaybe -}, Per
 caseMaybe v cs = case' v cs nothing
 
 -- | Binary operator corresponding SQL /IN/ .
--- | igrep TODO: append placeholderOffsets
 in' :: OperatorContext c
     => Record c t -> RecordList (Record c) t -> Record c (Maybe Bool)
 in' a lp =

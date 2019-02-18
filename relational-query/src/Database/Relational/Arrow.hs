@@ -226,40 +226,40 @@ queryListU' :: MonadQualify ConfigureQuery m
            -> QueryA m () (PlaceHolders p, RecordList (Record c) r)
 queryListU' r = unsafeQueryList' $ \() -> r
 
-unsafeQueryScalar :: (MonadQualify ConfigureQuery m, ScalarDegree r)
+unsafeQueryScalar :: (MonadQualify ConfigureQuery m, Monadic.MonadReferPlaceholders m, ScalarDegree r)
                   => (a -> UniqueRelation () c r)
                   -> QueryA m a (Record c (Maybe r))
 unsafeQueryScalar rf = queryA $ Monadic.queryScalar . rf
 
-unsafeQueryScalar' :: (MonadQualify ConfigureQuery m, ScalarDegree r)
+unsafeQueryScalar' :: (MonadQualify ConfigureQuery m, Monadic.MonadReferPlaceholders m, ScalarDegree r)
                    => (a -> UniqueRelation p c r)
                    -> QueryA m a (PlaceHolders p, Record c (Maybe r))
 unsafeQueryScalar' rf = queryA $ Monadic.queryScalar' . rf
 
 -- | Same as 'Monadic.queryScalar'. Arrow version.
 --   The result arrow is designed to be injected by any local projected record.
-queryScalar :: (MonadQualify ConfigureQuery m, ScalarDegree r)
+queryScalar :: (MonadQualify ConfigureQuery m, Monadic.MonadReferPlaceholders m, ScalarDegree r)
             => (Record c a -> UniqueRelation () c r)
             -> QueryA m (Record c a) (Record c (Maybe r))
 queryScalar = unsafeQueryScalar
 
 -- | Same as 'Monadic.queryScalar''. Arrow version.
 --   The result arrow is designed to be injected by any local projected record.
-queryScalar' :: (MonadQualify ConfigureQuery m, ScalarDegree r)
+queryScalar' :: (MonadQualify ConfigureQuery m, Monadic.MonadReferPlaceholders m, ScalarDegree r)
              => (Record c a -> UniqueRelation p c r)
              -> QueryA m (Record c a) (PlaceHolders p, Record c (Maybe r))
 queryScalar' = unsafeQueryScalar'
 
 -- | Same as 'Monadic.queryScalar'. Arrow version.
 --   Useful for no reference cases to local projected records.
-queryScalarU :: (MonadQualify ConfigureQuery m, ScalarDegree r)
+queryScalarU :: (MonadQualify ConfigureQuery m, Monadic.MonadReferPlaceholders m, ScalarDegree r)
             => UniqueRelation () c r
             -> QueryA m () (Record c (Maybe r))
 queryScalarU r = unsafeQueryScalar $ \() -> r
 
 -- | Same as 'Monadic.queryScalar''. Arrow version.
 --   Useful for no reference cases to local projected records.
-queryScalarU' :: (MonadQualify ConfigureQuery m, ScalarDegree r)
+queryScalarU' :: (MonadQualify ConfigureQuery m, Monadic.MonadReferPlaceholders m, ScalarDegree r)
              => UniqueRelation p c r
              -> QueryA m () (PlaceHolders p, Record c (Maybe r))
 queryScalarU' r = unsafeQueryScalar' $ \() -> r

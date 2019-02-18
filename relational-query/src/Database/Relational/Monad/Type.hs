@@ -11,18 +11,15 @@
 module Database.Relational.Monad.Type
        ( -- * Core query monad
          QueryCore, extractCore,
-         OrderedQuery,
        ) where
 
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax
-  (Duplication, Record, JoinProduct, Predicate, )
+  (Duplication, JoinProduct, Predicate, )
 
-import Database.Relational.Projectable (PlaceHolders)
 import Database.Relational.Monad.BaseType (ConfigureQuery)
 import Database.Relational.Monad.Trans.Join (QueryJoin, extractProduct)
 import Database.Relational.Monad.Trans.Restricting (Restrictings, extractRestrict)
-import Database.Relational.Monad.Trans.Ordering (Orderings)
 
 
 -- | Core query monad type used from flat(not-aggregated) query and aggregated query.
@@ -32,6 +29,3 @@ type QueryCore = Restrictings Flat (QueryJoin ConfigureQuery)
 extractCore :: QueryCore a
             -> ConfigureQuery (((a, [Predicate Flat]), JoinProduct), Duplication)
 extractCore =  extractProduct . extractRestrict
-
--- | OrderedQuery monad type with placeholder type 'p'. Record must be the same as 'Orderings' context type parameter 'c'.
-type OrderedQuery c m p r = Orderings c m (PlaceHolders p, Record c r)

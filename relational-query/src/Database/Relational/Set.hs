@@ -24,6 +24,7 @@ module Database.Relational.Set (
   ) where
 
 import Data.Functor.ProductIsomorphic ((|$|), (|*|))
+import Data.Monoid ((<>))
 
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax
@@ -143,9 +144,9 @@ unsafeLiftAppend :: (SubQuery -> SubQuery -> SubQuery)
            -> Relation q a
            -> Relation r a
 unsafeLiftAppend op a0 a1 = unsafeTypeRelation $ do
-  s0 <- untypeRelation a0
-  s1 <- untypeRelation a1
-  return $ s0 `op` s1
+  (phs0, s0) <- untypeRelation a0
+  (phs1, s1) <- untypeRelation a1
+  return (phs0 <> phs1, s0 `op` s1)
 
 liftAppend :: (SubQuery -> SubQuery -> SubQuery)
            -> Relation () a

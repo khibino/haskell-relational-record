@@ -6,7 +6,8 @@ module Database.Relational.Monad.Trans.ReferredPlaceholders where
 
 
 import Database.Relational.Monad.Class
-import Database.Relational.SqlSyntax (Record, placeholderOffsets, aggregateKeyRecord)
+import Database.Relational.SqlSyntax
+  (Record, placeholderOffsets, aggregateKeyRecord, emptyPlaceholderOffsets)
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Writer (WriterT, runWriterT, tell)
 import Data.DList (DList)
@@ -37,11 +38,13 @@ instance MonadQualify q m => MonadQualify q (ReferredPlaceholders m) where
 
 instance MonadAggregate m => MonadAggregate (ReferredPlaceholders m) where
   groupBy r = do
-    ReferredPlaceholders . tell . placeholderOffsets $ r
-    referredPlaceholders $ groupBy r
-  groupBy' r = do
-    ReferredPlaceholders . tell . placeholderOffsets $ aggregateKeyRecord r
-    referredPlaceholders $ groupBy' r
+    ReferredPlaceholders . tell $ placeholderOffsets r
+    referredPlaceholders . groupBy $ emptyPlaceholderOffsets r
+    -- NOTE: ^ The returned record should not have any placeholderOffsets.
+    --         Because its placeholderOffsets have already been recorded the above line.
+  groupBy' k = do
+    ReferredPlaceholders . tell . placeholderOffsets $ aggregateKeyRecord k
+    referredPlaceholders (emptyPlaceholderOffsets <$> groupBy' k)
 
 instance MonadPartition c m => MonadPartition c (ReferredPlaceholders m) where
   partitionBy r = do
@@ -54,3 +57,7 @@ instance MonadReferPlaceholders m => MonadReferPlaceholders (ReferredPlaceholder
 
 appendPlaceholdersOfRecord :: (Monad m, MonadReferPlaceholders m) => Record c a -> m ()
 appendPlaceholdersOfRecord = appendPlaceholderOffsets . placeholderOffsets
+
+
+extractReferredPlaceholders :: Functor m => ReferredPlaceholders m a -> m (a, DList Int)
+extractReferredPlaceholders (ReferredPlaceholders act) = runWriterT act

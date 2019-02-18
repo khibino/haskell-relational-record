@@ -60,7 +60,6 @@ unsafeTypeRelation :: ConfigureQuery (DList Int, SubQuery) -> Relation p r
 unsafeTypeRelation = SubQuery
 
 -- | Sub-query Qualify monad from relation.
--- igrep TODO: Maybe should rename!
 untypeRelation :: Relation p r -> ConfigureQuery (DList Int, SubQuery)
 untypeRelation (SubQuery qps) = qps
 
