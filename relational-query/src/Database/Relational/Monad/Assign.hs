@@ -19,6 +19,8 @@ module Database.Relational.Monad.Assign (
   extract,
   ) where
 
+import Data.DList (DList)
+
 import Database.Relational.Internal.Config (Config)
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax
@@ -28,10 +30,11 @@ import Database.Relational.Table (Table)
 import Database.Relational.Monad.Restrict (Restrict)
 import qualified Database.Relational.Monad.Restrict as Restrict
 import Database.Relational.Monad.Trans.Assigning (Assignings, extractAssignments)
+import Database.Relational.Monad.Trans.ReferredPlaceholders (ReferredPlaceholders, extractReferredPlaceholders)
 
 
 -- | Target update monad type used from update statement and merge statement.
-type Assign r = Assignings r Restrict
+type Assign r = ReferredPlaceholders (Assignings r Restrict)
 
 -- | AssignStatement type synonym.
 --   Specifying assignments and restrictions like update statement.
@@ -44,5 +47,5 @@ type AssignStatement r a = Record Flat r -> Assign r a
 -- updateStatement =  assignings . restrictings . Identity
 
 -- | Run 'Assign'.
-extract :: Assign r a -> Config -> ((a, Table r -> [Assignment]), [Predicate Flat])
-extract =  Restrict.extract . extractAssignments
+extract :: Assign r a -> Config -> (((a, DList Int), Table r -> [Assignment]), [Predicate Flat])
+extract =  Restrict.extract . extractAssignments . extractReferredPlaceholders

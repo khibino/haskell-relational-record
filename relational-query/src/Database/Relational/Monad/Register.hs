@@ -15,17 +15,20 @@ module Database.Relational.Monad.Register (
   extract,
   ) where
 
+import Data.DList (DList)
+
 import Database.Relational.Internal.Config (Config)
 import Database.Relational.SqlSyntax (Assignment)
 
 import Database.Relational.Table (Table)
 import Database.Relational.Monad.BaseType (ConfigureQuery, configureQuery)
 import Database.Relational.Monad.Trans.Assigning (Assignings, extractAssignments)
+import Database.Relational.Monad.Trans.ReferredPlaceholders (ReferredPlaceholders, extractReferredPlaceholders)
 
 
 -- | Target register monad type used from insert statement.
-type Register r = Assignings r ConfigureQuery
+type Register r = ReferredPlaceholders (Assignings r ConfigureQuery)
 
 -- | Run 'InsertStatement'.
-extract :: Assignings r ConfigureQuery a -> Config -> (a, Table r -> [Assignment])
-extract = configureQuery . extractAssignments
+extract :: Register r a -> Config -> ((a, DList Int), Table r -> [Assignment])
+extract = configureQuery . extractAssignments . extractReferredPlaceholders
