@@ -19,12 +19,10 @@ module Database.Relational.Monad.Assign (
   extract,
   ) where
 
-import Data.DList (DList)
-
 import Database.Relational.Internal.Config (Config)
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax
-  (Predicate, Record, Assignment)
+  (Predicate, Record, PlaceholderOffsets, Assignment)
 
 import Database.Relational.Table (Table)
 import Database.Relational.Monad.Restrict (RestrictNoPh)
@@ -43,5 +41,5 @@ type Assign r = ReferredPlaceholders (Assignings r RestrictNoPh)
 type AssignStatement r a = Record Flat r -> Assign r a
 
 -- | Run 'Assign'.
-extract :: Assign r a -> Config -> (((a, DList Int), Table r -> [Assignment]), [Predicate Flat])
+extract :: Assign r a -> Config -> (((a, PlaceholderOffsets), Table r -> [Assignment]), [Predicate Flat])
 extract =  Restrict.extractNoPh . extractAssignments . extractReferredPlaceholders

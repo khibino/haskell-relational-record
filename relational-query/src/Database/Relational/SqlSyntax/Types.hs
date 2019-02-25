@@ -40,6 +40,7 @@ module Database.Relational.SqlSyntax.Types (
   -- * Column, Tuple, Record and Projection
   Column (..), Tuple, tupleWidth,
   Record,
+  PlaceholderOffsets,
   placeholderOffsets,
   untypeRecord,
   record,
@@ -193,12 +194,14 @@ type Tuple = [Column]
 tupleWidth :: Tuple -> Int
 tupleWidth = length
 
+type PlaceholderOffsets = DList Int
+
 -- | Phantom typed record. Projected into Haskell record type 't'.
 data Record c t =
   Record
-  { placeholderOffsets :: !(DList Int)
+  { placeholderOffsets :: !PlaceholderOffsets
   -- ^ If the record contains some placeholders,
-  -- offsets of the values of the parameters are saved in this field.
+  --   offsets of the values of the parameters are saved in this field.
   , untypeRecord :: !Tuple {- ^ Discard record type -}
   } deriving Show
 
@@ -209,7 +212,7 @@ type Predicate c = Record c (Maybe Bool)
 type PI c a b = Record c a -> Record c b
 
 -- | Unsafely type 'Tuple' value to 'Record' type.
-record :: DList Int -> Tuple -> Record c t
+record :: PlaceholderOffsets -> Tuple -> Record c t
 record = Record
 
 -- | Width of 'Record'.
@@ -217,7 +220,7 @@ recordWidth :: Record c r -> Int
 recordWidth = length . untypeRecord
 
 -- | Unsafely generate 'Record' from SQL string list.
-typeFromRawColumns :: DList Int
+typeFromRawColumns :: PlaceholderOffsets
                    -> [StringSQL] -- ^ SQL string list specifies columns
                    -> Record c r  -- ^ Result 'Record'
 typeFromRawColumns phs =  record phs . map RawColumn
@@ -231,9 +234,9 @@ isPlaceholders = (/= mempty) . placeholderOffsets
 emptyPlaceholderOffsets :: Record c r -> Record c r
 emptyPlaceholderOffsets r = r { placeholderOffsets = mempty }
 
-appendPlaceholderOffsetsOf :: Record c1 a -> Record c2 b -> DList Int
+appendPlaceholderOffsetsOf :: Record c1 a -> Record c2 b -> PlaceholderOffsets
 appendPlaceholderOffsetsOf src1 src2 = placeholderOffsets src1 <> placeholderOffsets src2
 
 -- | Unsafely generate 'Record' from scalar sub-query.
-typeFromScalarSubQuery :: DList Int -> SubQuery -> Record c t
+typeFromScalarSubQuery :: PlaceholderOffsets -> SubQuery -> Record c t
 typeFromScalarSubQuery phs = record phs . (:[]) . Scalar

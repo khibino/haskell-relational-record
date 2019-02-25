@@ -22,7 +22,6 @@ module Database.Relational.Monad.BaseType
          rightPh, leftPh,
        ) where
 
-import Data.DList (DList)
 import Data.Functor.Identity (Identity, runIdentity)
 import Control.Applicative ((<$>))
 
@@ -30,7 +29,7 @@ import Database.Record.Persistable (PersistableRecordWidth, unsafePersistableRec
 
 import Database.Relational.Internal.String (StringSQL, showStringSQL)
 import Database.Relational.Internal.Config (Config, defaultConfig)
-import Database.Relational.SqlSyntax (Qualified, SubQuery, showSQL, width)
+import Database.Relational.SqlSyntax (Qualified, SubQuery, PlaceholderOffsets, showSQL, width)
 
 import qualified Database.Relational.Monad.Trans.Qualify as Qualify
 import Database.Relational.Monad.Trans.Qualify (Qualify, qualify, evalQualifyPrime)
@@ -53,14 +52,14 @@ askConfig =  qualify askQueryConfig
 
 
 -- | Relation type with place-holder parameter 'p' and query result type 'r'.
-newtype Relation p r = SubQuery (ConfigureQuery (DList Int, SubQuery))
+newtype Relation p r = SubQuery (ConfigureQuery (PlaceholderOffsets, SubQuery))
 
 -- | Unsafely type qualified subquery into record typed relation type.
-unsafeTypeRelation :: ConfigureQuery (DList Int, SubQuery) -> Relation p r
+unsafeTypeRelation :: ConfigureQuery (PlaceholderOffsets, SubQuery) -> Relation p r
 unsafeTypeRelation = SubQuery
 
 -- | Sub-query Qualify monad from relation.
-untypeRelation :: Relation p r -> ConfigureQuery (DList Int, SubQuery)
+untypeRelation :: Relation p r -> ConfigureQuery (PlaceholderOffsets, SubQuery)
 untypeRelation (SubQuery qps) = qps
 
 untypeRelationNoPlaceholders :: Relation p r -> ConfigureQuery SubQuery

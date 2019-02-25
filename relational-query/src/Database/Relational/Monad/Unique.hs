@@ -20,11 +20,10 @@ module Database.Relational.Monad.Unique
        ) where
 
 import Control.Applicative (Applicative)
-import Data.DList (DList)
 
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax
-  (Duplication, Record, JoinProduct, NodeAttr,
+  (Duplication, Record, PlaceholderOffsets, JoinProduct, NodeAttr,
    SubQuery, Predicate, Qualified, flatSubQuery)
 
 import qualified Database.Relational.Record as Record
@@ -53,12 +52,12 @@ liftToQueryUnique :: ReferredPlaceholders QueryCore a -> QueryUnique a
 liftToQueryUnique = QueryUnique
 
 extract :: QueryUnique a
-        -> ConfigureQuery ((((a, DList Int), [Predicate Flat]), JoinProduct), Duplication)
+        -> ConfigureQuery ((((a, PlaceholderOffsets), [Predicate Flat]), JoinProduct), Duplication)
 extract (QueryUnique c) = extractCore $ extractReferredPlaceholders c
 
 -- | Run 'SimpleQuery' to get 'SubQuery' with 'Qualify' computation.
 toSubQuery :: QueryUnique (PlaceHolders p, Record c r) -- ^ 'QueryUnique' to run
-           -> ConfigureQuery (DList Int, SubQuery)     -- ^ Result 'SubQuery' with 'Qualify' computation
+           -> ConfigureQuery (PlaceholderOffsets, SubQuery)     -- ^ Result 'SubQuery' with 'Qualify' computation
 toSubQuery q = do
   (((((_ph, pj), phs), rs), pd), da) <- extract q
   c <- askConfig

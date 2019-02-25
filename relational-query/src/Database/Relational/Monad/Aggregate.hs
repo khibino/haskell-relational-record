@@ -26,7 +26,6 @@ module Database.Relational.Monad.Aggregate (
   Window, over
   ) where
 
-import Data.DList (DList)
 import Data.Functor.Identity (Identity (runIdentity))
 import Data.Monoid ((<>))
 
@@ -37,7 +36,8 @@ import Database.Relational.Internal.ContextType (Flat, Aggregated, OverWindow)
 import Database.Relational.SqlSyntax
   (Duplication, Record, SubQuery, Predicate, JoinProduct,
    OrderingTerm, composeOrderBy, aggregatedSubQuery,
-   AggregateColumnRef, AggregateElem, composePartitionBy, placeholderOffsets, )
+   AggregateColumnRef, AggregateElem, composePartitionBy,
+   PlaceholderOffsets, placeholderOffsets, )
 import qualified Database.Relational.SqlSyntax as Syntax
 
 import qualified Database.Relational.Record as Record
@@ -69,7 +69,7 @@ instance MonadRestrict Flat q => MonadRestrict Flat (Restrictings Aggregated q) 
 
 extract :: AggregatedQuery p r
         -> ConfigureQuery ((((((((PlaceHolders p, Record Aggregated r),
-                                 DList Int),
+                                 PlaceholderOffsets),
                                 [OrderingTerm]),
                                [Predicate Aggregated]),
                               [AggregateElem]),
@@ -84,13 +84,13 @@ toSQL =  fmap (Syntax.toSQL . snd) . toSubQuery
 
 -- | Run 'AggregatedQuery' to get 'SubQuery' with 'ConfigureQuery' computation.
 toSubQuery :: AggregatedQuery p r                  -- ^ 'AggregatedQuery' to run
-           -> ConfigureQuery (DList Int, SubQuery) -- ^ Result 'SubQuery' with 'ConfigureQuery' computation
+           -> ConfigureQuery (PlaceholderOffsets, SubQuery) -- ^ Result 'SubQuery' with 'ConfigureQuery' computation
 toSubQuery q = do
   ((((((((_ph, pj), phs), ot), grs), ag), rs), pd), da) <- extract q
   c <- askConfig
   return (phs, aggregatedSubQuery c (Record.untype pj) da pd rs ag grs ot)
 
-extractWindow :: Window c a -> (((a, DList Int), [OrderingTerm]), [AggregateColumnRef])
+extractWindow :: Window c a -> (((a, PlaceholderOffsets), [OrderingTerm]), [AggregateColumnRef])
 extractWindow =  runIdentity . extractAggregateTerms . extractOrderingTerms . extractReferredPlaceholders
 
 -- | Operator to make record of window function result using built 'Window' monad.

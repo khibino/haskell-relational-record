@@ -21,11 +21,9 @@ module Database.Relational.Monad.Restrict (
   extractNoPh
   ) where
 
-import Data.DList (DList)
-
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.Internal.Config (Config)
-import Database.Relational.SqlSyntax (Predicate, Record)
+import Database.Relational.SqlSyntax (Predicate, Record, PlaceholderOffsets)
 
 import Database.Relational.Monad.BaseType (ConfigureQuery, configureQuery)
 import Database.Relational.Monad.Trans.Restricting
@@ -44,7 +42,7 @@ type RestrictNoPh = Restrictings Flat ConfigureQuery
 type RestrictedStatement r a = Record Flat r -> Restrict a
 
 -- | Run 'Restrict' to get 'QueryRestriction'.
-extract :: Restrict a -> Config -> ((a, DList Int), [Predicate Flat])
+extract :: Restrict a -> Config -> ((a, PlaceholderOffsets), [Predicate Flat])
 extract =  configureQuery . extractRestrict . extractReferredPlaceholders
 
 -- | Run 'Restrict' to get 'QueryRestriction'.

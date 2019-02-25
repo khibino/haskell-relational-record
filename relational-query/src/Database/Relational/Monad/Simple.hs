@@ -22,11 +22,10 @@ module Database.Relational.Monad.Simple (
   toSubQuery,
   ) where
 
-import Data.DList (DList)
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax
   (Duplication, OrderingTerm, JoinProduct, Predicate,  Record,
-   SubQuery, flatSubQuery, )
+   PlaceholderOffsets, SubQuery, flatSubQuery, )
 import qualified Database.Relational.SqlSyntax as Syntax
 
 import qualified Database.Relational.Record as Record
@@ -52,7 +51,7 @@ simple :: ConfigureQuery a -> QuerySimple a
 simple =  referredPlaceholders . orderings . restrictings . join'
 
 extract :: SimpleQuery p r
-        -> ConfigureQuery ((((((PlaceHolders p, Record Flat r), DList Int), [OrderingTerm]), [Predicate Flat]),
+        -> ConfigureQuery ((((((PlaceHolders p, Record Flat r), PlaceholderOffsets), [OrderingTerm]), [Predicate Flat]),
                            JoinProduct), Duplication)
 extract =  extractCore . extractOrderingTerms . extractReferredPlaceholders
 
@@ -63,7 +62,7 @@ toSQL =  fmap (Syntax.toSQL . snd) . toSubQuery
 
 -- | Run 'SimpleQuery' to get 'SubQuery' with 'Qualify' computation.
 toSubQuery :: SimpleQuery p r                      -- ^ 'SimpleQuery'' to run
-           -> ConfigureQuery (DList Int, SubQuery) -- ^ Result 'SubQuery' with 'Qualify' computation
+           -> ConfigureQuery (PlaceholderOffsets, SubQuery) -- ^ Result 'SubQuery' with 'Qualify' computation
 toSubQuery q = do
    ((((((_ph, pj), phs), ot), rs), pd), da) <- extract q
    c <- askConfig

@@ -15,10 +15,8 @@ module Database.Relational.Monad.Register (
   extract,
   ) where
 
-import Data.DList (DList)
-
 import Database.Relational.Internal.Config (Config)
-import Database.Relational.SqlSyntax (Assignment)
+import Database.Relational.SqlSyntax (Assignment, PlaceholderOffsets)
 
 import Database.Relational.Table (Table)
 import Database.Relational.Monad.BaseType (ConfigureQuery, configureQuery)
@@ -30,5 +28,5 @@ import Database.Relational.Monad.Trans.ReferredPlaceholders (ReferredPlaceholder
 type Register r = ReferredPlaceholders (Assignings r ConfigureQuery)
 
 -- | Run 'InsertStatement'.
-extract :: Register r a -> Config -> ((a, DList Int), Table r -> [Assignment])
+extract :: Register r a -> Config -> ((a, PlaceholderOffsets), Table r -> [Assignment])
 extract = configureQuery . extractAssignments . extractReferredPlaceholders

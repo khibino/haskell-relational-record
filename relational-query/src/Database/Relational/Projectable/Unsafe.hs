@@ -14,15 +14,14 @@ module Database.Relational.Projectable.Unsafe (
   ) where
 
 import Database.Relational.Internal.String (StringSQL)
-import Database.Relational.SqlSyntax (Record)
-import Data.DList (DList)
+import Database.Relational.SqlSyntax (Record, PlaceholderOffsets)
 import Data.Monoid (mempty)
 
 -- | Interface to project SQL terms unsafely.
 class SqlContext c where
   -- | Unsafely project from SQL expression terms.
   unsafeProjectSqlTermsWithPlaceholders
-    :: DList Int -> [StringSQL] -> Record c t
+    :: PlaceholderOffsets -> [StringSQL] -> Record c t
 
 -- | Constraint to restrict context of full SQL expressions.
 --   For example, the expression at the left of OVER clause

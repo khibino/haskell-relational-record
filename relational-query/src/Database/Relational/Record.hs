@@ -57,7 +57,7 @@ import qualified Database.Record.KeyConstraint as KeyConstraint
 import Database.Relational.Internal.ContextType (Aggregated, Flat)
 import Database.Relational.Internal.String (StringSQL, listStringSQL, rowStringSQL)
 import Database.Relational.SqlSyntax
-  (SubQuery, Qualified, Tuple, Record,
+  (SubQuery, Qualified, Tuple, Record, PlaceholderOffsets,
    recordRawColumns, tupleFromJoinedSubQuery,)
 import qualified Database.Relational.SqlSyntax as Syntax
 
@@ -86,11 +86,11 @@ untype = Syntax.untypeRecord
 
 
 -- | Unsafely generate  'Record' from qualified (joined) sub-query.
-unsafeFromQualifiedSubQuery :: DList Int ->  Qualified SubQuery -> Record c t
+unsafeFromQualifiedSubQuery :: PlaceholderOffsets ->  Qualified SubQuery -> Record c t
 unsafeFromQualifiedSubQuery phs = Syntax.record phs . tupleFromJoinedSubQuery
 
 -- | Unsafely generate 'Record' from scalar sub-query.
-unsafeFromScalarSubQuery :: DList Int ->  SubQuery -> Record c t
+unsafeFromScalarSubQuery :: PlaceholderOffsets ->  SubQuery -> Record c t
 unsafeFromScalarSubQuery = Syntax.typeFromScalarSubQuery
 
 -- | Unsafely generate unqualified 'Record' from 'Table'.
@@ -99,7 +99,7 @@ unsafeFromTable :: Table r
 unsafeFromTable = Syntax.typeFromRawColumns mempty . Table.columns
 
 -- | Unsafely generate 'Record' from SQL expression strings.
-unsafeFromSqlTerms :: DList Int ->  [StringSQL] -> Record c t
+unsafeFromSqlTerms :: PlaceholderOffsets ->  [StringSQL] -> Record c t
 unsafeFromSqlTerms = Syntax.typeFromRawColumns
 
 
@@ -198,14 +198,14 @@ instance ProductIsoEmpty (Record c) () where
 
 -- | Projected record list type for row list.
 data RecordList p t = List [p t]
-                    | Sub (DList Int) SubQuery
+                    | Sub (PlaceholderOffsets) SubQuery
 
 -- | Make projected record list from 'Record' list.
 list :: [p t] -> RecordList p t
 list =  List
 
 -- | Make projected record list from 'SubQuery'.
-unsafeListFromSubQuery :: DList Int -> SubQuery -> RecordList p t
+unsafeListFromSubQuery :: PlaceholderOffsets -> SubQuery -> RecordList p t
 unsafeListFromSubQuery =  Sub
 
 -- | Map record show operatoions and concatinate to single SQL expression.
@@ -214,6 +214,6 @@ unsafeStringSqlList sf = d  where
   d (List ps) = listStringSQL $ map sf ps
   d (Sub _ sub) = SQL.paren $ Syntax.showSQL sub
 
-collectPlaceholders :: RecordList (Record c) t -> DList Int
+collectPlaceholders :: RecordList (Record c) t -> PlaceholderOffsets
 collectPlaceholders (List rs) = foldMap Syntax.placeholderOffsets rs
 collectPlaceholders (Sub phs _subq) = phs

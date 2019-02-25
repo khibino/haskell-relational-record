@@ -80,7 +80,6 @@ module Database.Relational.Projectable (
 import Prelude hiding (pi)
 
 import Data.String (IsString)
-import Data.DList (DList)
 import Data.Monoid ((<>))
 import Data.Functor.ProductIsomorphic
   ((|$|), ProductIsoApplicative, pureP, (|*|), )
@@ -95,7 +94,7 @@ import Database.Record.Persistable (runPersistableRecordWidth)
 
 import Database.Relational.Internal.ContextType (Flat, Exists, OverWindow)
 import Database.Relational.Internal.String (StringSQL, stringSQL, showStringSQL)
-import Database.Relational.SqlSyntax (Record, Predicate)
+import Database.Relational.SqlSyntax (Record, Predicate, PlaceholderOffsets)
 import qualified Database.Relational.SqlSyntax as Syntax
 
 import Database.Relational.Pure ()
@@ -120,11 +119,11 @@ unsafeProjectSql :: SqlContext c => String -> Record c t
 unsafeProjectSql = unsafeProjectSqlWithPlaceholders mempty
 
 -- | Unsafely Project single SQL term.
-unsafeProjectSqlWithPlaceholders' :: SqlContext c => DList Int -> StringSQL -> Record c t
+unsafeProjectSqlWithPlaceholders' :: SqlContext c => PlaceholderOffsets -> StringSQL -> Record c t
 unsafeProjectSqlWithPlaceholders' phs = unsafeProjectSqlTermsWithPlaceholders phs . (:[])
 
 -- | Unsafely Project single SQL string. String interface of 'unsafeProjectSql'''.
-unsafeProjectSqlWithPlaceholders :: SqlContext c => DList Int -> String -> Record c t
+unsafeProjectSqlWithPlaceholders :: SqlContext c => PlaceholderOffsets -> String -> Record c t
 unsafeProjectSqlWithPlaceholders phs = unsafeProjectSqlWithPlaceholders' phs . stringSQL
 
 -- | Record with polymorphic phantom type of SQL null value. Semantics of comparing is unsafe.
