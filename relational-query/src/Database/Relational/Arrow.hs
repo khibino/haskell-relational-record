@@ -91,6 +91,7 @@ import qualified Database.Relational as Monadic
 import qualified Database.Relational.Monad.Trans.Aggregating as Monadic
 import qualified Database.Relational.Monad.Trans.Ordering as Monadic
 import qualified Database.Relational.Monad.Trans.Assigning as Monadic
+import qualified Database.Relational.Monad.Restrict as Monadic
 
 
 -- | Arrow to build queries.
@@ -124,16 +125,16 @@ type AggregatingSetList = QueryA Monadic.AggregatingSetList
 type AggregatingPowerSet = QueryA Monadic.AggregatingPowerSet
 
 -- | Arrow type corresponding to 'Monadic.Orderings'
-type Orderings c m = QueryA (Monadic.Orderings c m)
+type Orderings c m = QueryA (ReferredPlaceholders (Monadic.Orderings c m))
 
 -- | Arrow type corresponding to 'Monadic.Window'
 type Window c = QueryA (Monadic.Window c)
 
 -- | Arrow type corresponding to 'Monadic.Assignings'
-type Assignings r m = QueryA (Monadic.Assignings r m)
+type Assignings r m = QueryA (ReferredPlaceholders (Monadic.Assignings r m))
 
 -- | Arrow type corresponding to 'Monadic.AssignStatement'
-type AssignStatement r a = Assignings r Restrict (Record Flat r) a
+type AssignStatement r a = Assignings r Monadic.RestrictNoPh (Record Flat r) a
 
 -- | Arrow type corresponding to 'Monadic.Register'
 type Register r a = QueryA (Monadic.Register r) () a
@@ -153,25 +154,25 @@ distinct = queryA $ \() -> Monadic.distinct
 -- | Same as 'Monadic.query'. Arrow version.
 --   The result arrow is not injected by local projected records.
 query :: (MonadQualify ConfigureQuery m, MonadQuery m)
-      => Relation () r -> QueryA m () (Record Flat r)
+      => Relation () r -> QueryA (ReferredPlaceholders m) () (Record Flat r)
 query r = queryA $ \() -> Monadic.query r
 
 -- | Same as 'Monadic.queryMaybe'. Arrow version.
 --   The result arrow is not injected by any local projected records.
 queryMaybe :: (MonadQualify ConfigureQuery m, MonadQuery m)
-           => Relation () r -> QueryA m () (Record Flat (Maybe r))
+           => Relation () r -> QueryA (ReferredPlaceholders m) () (Record Flat (Maybe r))
 queryMaybe r = queryA $ \() -> Monadic.queryMaybe r
 
 -- | Same as 'Monadic.query''. Arrow version.
 --   The result arrow is not injected by any local projected records.
 query' :: (MonadQualify ConfigureQuery m, MonadQuery m)
-       => Relation p r -> QueryA m () (PlaceHolders p, Record Flat r)
+       => Relation p r -> QueryA (ReferredPlaceholders m) () (PlaceHolders p, Record Flat r)
 query' r = queryA $ \() -> Monadic.query' r
 
 -- | Same as 'Monadic.queryMaybe''. Arrow version.
 --   The result arrow is not injected by any local projected records.
 queryMaybe' :: (MonadQualify ConfigureQuery m, MonadQuery m)
-            => Relation p r -> QueryA m () (PlaceHolders p, Record Flat (Maybe r))
+            => Relation p r -> QueryA (ReferredPlaceholders m) () (PlaceHolders p, Record Flat (Maybe r))
 queryMaybe' r = queryA $ \() -> Monadic.queryMaybe' r
 
 unsafeQueryList :: MonadQualify ConfigureQuery m
@@ -226,42 +227,42 @@ queryListU' :: MonadQualify ConfigureQuery m
            -> QueryA m () (PlaceHolders p, RecordList (Record c) r)
 queryListU' r = unsafeQueryList' $ \() -> r
 
-unsafeQueryScalar :: (MonadQualify ConfigureQuery m, Monadic.MonadReferPlaceholders m, ScalarDegree r)
+unsafeQueryScalar :: (MonadQualify ConfigureQuery m, ScalarDegree r)
                   => (a -> UniqueRelation () c r)
-                  -> QueryA m a (Record c (Maybe r))
+                  -> QueryA (Monadic.ReferredPlaceholders m) a (Record c (Maybe r))
 unsafeQueryScalar rf = queryA $ Monadic.queryScalar . rf
 
-unsafeQueryScalar' :: (MonadQualify ConfigureQuery m, Monadic.MonadReferPlaceholders m, ScalarDegree r)
+unsafeQueryScalar' :: (MonadQualify ConfigureQuery m, ScalarDegree r)
                    => (a -> UniqueRelation p c r)
-                   -> QueryA m a (PlaceHolders p, Record c (Maybe r))
+                   -> QueryA (Monadic.ReferredPlaceholders m) a (PlaceHolders p, Record c (Maybe r))
 unsafeQueryScalar' rf = queryA $ Monadic.queryScalar' . rf
 
 -- | Same as 'Monadic.queryScalar'. Arrow version.
 --   The result arrow is designed to be injected by any local projected record.
-queryScalar :: (MonadQualify ConfigureQuery m, Monadic.MonadReferPlaceholders m, ScalarDegree r)
+queryScalar :: (MonadQualify ConfigureQuery m, ScalarDegree r)
             => (Record c a -> UniqueRelation () c r)
-            -> QueryA m (Record c a) (Record c (Maybe r))
+            -> QueryA (Monadic.ReferredPlaceholders m) (Record c a) (Record c (Maybe r))
 queryScalar = unsafeQueryScalar
 
 -- | Same as 'Monadic.queryScalar''. Arrow version.
 --   The result arrow is designed to be injected by any local projected record.
-queryScalar' :: (MonadQualify ConfigureQuery m, Monadic.MonadReferPlaceholders m, ScalarDegree r)
+queryScalar' :: (MonadQualify ConfigureQuery m, ScalarDegree r)
              => (Record c a -> UniqueRelation p c r)
-             -> QueryA m (Record c a) (PlaceHolders p, Record c (Maybe r))
+             -> QueryA (Monadic.ReferredPlaceholders m) (Record c a) (PlaceHolders p, Record c (Maybe r))
 queryScalar' = unsafeQueryScalar'
 
 -- | Same as 'Monadic.queryScalar'. Arrow version.
 --   Useful for no reference cases to local projected records.
-queryScalarU :: (MonadQualify ConfigureQuery m, Monadic.MonadReferPlaceholders m, ScalarDegree r)
+queryScalarU :: (MonadQualify ConfigureQuery m, ScalarDegree r)
             => UniqueRelation () c r
-            -> QueryA m () (Record c (Maybe r))
+            -> QueryA (Monadic.ReferredPlaceholders m) () (Record c (Maybe r))
 queryScalarU r = unsafeQueryScalar $ \() -> r
 
 -- | Same as 'Monadic.queryScalar''. Arrow version.
 --   Useful for no reference cases to local projected records.
-queryScalarU' :: (MonadQualify ConfigureQuery m, Monadic.MonadReferPlaceholders m, ScalarDegree r)
+queryScalarU' :: (MonadQualify ConfigureQuery m, ScalarDegree r)
              => UniqueRelation p c r
-             -> QueryA m () (PlaceHolders p, Record c (Maybe r))
+             -> QueryA (Monadic.ReferredPlaceholders m) () (PlaceHolders p, Record c (Maybe r))
 queryScalarU' r = unsafeQueryScalar' $ \() -> r
 
 -- | Same as 'Monadic.uniqueQuery''. Arrow version.
@@ -279,25 +280,25 @@ uniqueQueryMaybe' r = queryA $ \() -> Monadic.uniqueQueryMaybe' r
 -- | Same as 'Monadic.on'. Arrow version.
 --   The result arrow is designed to be injected by local conditional flat-records.
 on :: MonadQuery m
-   => QueryA m (Predicate Flat) ()
+   => QueryA (Monadic.ReferredPlaceholders m) (Predicate Flat) ()
 on = queryA Monadic.on
 
 -- | Same as 'Monadic.wheres'. Arrow version.
 --   The result arrow is designed to be injected by local conditional flat-records.
 wheres :: MonadRestrict Flat m
-       => QueryA m (Predicate Flat) ()
+       => QueryA (Monadic.ReferredPlaceholders m) (Predicate Flat) ()
 wheres = queryA Monadic.wheres
 
 -- | Same as 'Monadic.having'. Arrow version.
 --   The result arrow is designed to be injected by local conditional aggregated-records.
 having :: MonadRestrict Aggregated m
-       => QueryA m (Predicate Aggregated) ()
+       => QueryA (Monadic.ReferredPlaceholders m) (Predicate Aggregated) ()
 having = queryA Monadic.having
 
 -- | Same as 'Monadic.groupBy'. Arrow version.
 --   The result arrow is designed to be injected by local flat-records.
 groupBy :: MonadAggregate m
-        => QueryA m (Record Flat r) (Record Aggregated r)
+        => QueryA (Monadic.ReferredPlaceholders m) (Record Flat r) (Record Aggregated r)
 groupBy = queryA Monadic.groupBy
 
 -- | Same as 'Monadic.placeholder'. Arrow version.
@@ -338,7 +339,7 @@ uniqueRelation' = runAofM Monadic.uniqueRelation'
 
 -- | Same as 'Monadic.groupBy''.
 --   This arrow is designed to be injected by local 'AggregateKey'.
-groupBy' :: MonadAggregate m => QueryA m (AggregateKey (Record Aggregated r)) (Record Aggregated r)
+groupBy' :: MonadAggregate m => QueryA (ReferredPlaceholders m) (AggregateKey (Record Aggregated r)) (Record Aggregated r)
 groupBy' = queryA Monadic.groupBy'
 
 -- | Same as 'Monadic.key'.
@@ -420,7 +421,7 @@ infix 8 `over`
 --   injected by assignees of local projected record.
 assign :: Monad m
        => Monadic.AssignTarget r v
-       -> Assignings r m (Record Flat v) ()
+       -> Assignings r (Monadic.ReferredPlaceholders m) (Record Flat v) ()
 assign t = queryA (`Monadic.assignTo` t)
 
 -- | Same as 'Monadic.update''.

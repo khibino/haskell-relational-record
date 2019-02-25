@@ -74,9 +74,9 @@ instance MonadQualify q m => MonadQualify q (QueryJoin m) where
 -- | Joinable query instance.
 instance MonadQuery (QueryJoin ConfigureQuery) where
   setDuplication     = QueryJoin . lift . tell . Last . Just
-  restrictJoin       = updateJoinRestriction
-  query'             = queryWithAttr Just'
-  queryMaybe' pr     = do
+  restrictJoinNoPh   = updateJoinRestriction
+  queryNoPh'         = queryWithAttr Just'
+  queryMaybeNoPh' pr = do
     (ph, pj) <- queryWithAttr Maybe pr
     return (ph, Record.just pj)
 

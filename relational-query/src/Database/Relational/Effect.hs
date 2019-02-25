@@ -49,7 +49,10 @@ import qualified Database.Relational.Record as Record
 import Database.Relational.ProjectableClass (LiteralSQL)
 import Database.Relational.Projectable
   (PlaceHolders, unitPH, pwPlaceholder, placeholder, (><), value, )
-import Database.Relational.Monad.Trans.Assigning (assignings, (<-#))
+import Database.Relational.Monad.Trans.Assigning (assignings)
+import Database.Relational.Monad.Trans.ReferredPlaceholders
+  (appendPlaceholderOffsets, extractReferredPlaceholders, referredPlaceholders)
+import Database.Relational.Monad.ReferPlaceholders ((<-#))
 import Database.Relational.Monad.Restrict (RestrictedStatement)
 import qualified Database.Relational.Monad.Restrict as Restrict
 import Database.Relational.Monad.Assign (AssignStatement)
@@ -100,8 +103,10 @@ updateAllColumn :: PersistableWidth r
                 => Restriction p r
                 -> AssignStatement r (PlaceHolders (r, p))
 updateAllColumn rs proj = do
-  (ph0, ()) <- placeholder (\ph -> id' <-# ph)
-  ph1       <- assignings $ runRestriction rs proj
+  (ph0, ())  <- placeholder (\ph -> id' <-# ph)
+  -- igrep TODO: more clean way?
+  (ph1, phs) <- referredPlaceholders . assignings . extractReferredPlaceholders $ runRestriction rs proj
+  appendPlaceholderOffsets phs
   return $ ph0 >< ph1
 
 -- | Lift 'Restriction' to 'UpdateTarget'. Update target columns are all.
@@ -205,7 +210,8 @@ sqlChunksFromRecordList config tbl pi' xs =
       composeValuesListWithColumns
       [ tf tbl
       | r <- rs
-      , let ((), tf) = Register.extract (pi' <-# value r) config
+      -- igrep TODO: how to use the placeholders returned here?
+      , let (((), _phs), tf) = Register.extract (pi' <-# value r) config
       ]
     | rs <- unfoldr step xs
     ]

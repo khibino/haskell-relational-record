@@ -40,8 +40,8 @@ import Database.Relational.Table (Table, TableDerivable)
 import Database.Relational.Pi.Unsafe (Pi, unsafeExpandIndexes)
 import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable (placeholder, (.=.), (!))
-import Database.Relational.Monad.Class (wheres)
 import Database.Relational.Monad.BaseType (Relation, relationWidth)
+import Database.Relational.Monad.ReferPlaceholders (wheres)
 import Database.Relational.Relation
   (derivedRelation, relation, relation', query, UniqueRelation, unsafeUnique)
 import Database.Relational.Constraint

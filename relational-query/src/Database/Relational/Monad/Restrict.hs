@@ -14,33 +14,39 @@
 -- This module contains definitions about simple restrict context monad type.
 module Database.Relational.Monad.Restrict (
   -- * Monad to restrict target records.
-  Restrict, RestrictedStatement,
+  Restrict, RestrictNoPh, RestrictedStatement,
 
   -- restricted,
-  extract
+  extract,
+  extractNoPh
   ) where
+
+import Data.DList (DList)
 
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.Internal.Config (Config)
 import Database.Relational.SqlSyntax (Predicate, Record)
 
+import Database.Relational.Monad.BaseType (ConfigureQuery, configureQuery)
 import Database.Relational.Monad.Trans.Restricting
   (Restrictings, extractRestrict)
-import Database.Relational.Monad.BaseType (ConfigureQuery, configureQuery)
+import Database.Relational.Monad.Trans.ReferredPlaceholders (ReferredPlaceholders, extractReferredPlaceholders)
 
 
 -- | Restrict only monad type used from update statement and delete statement.
-type Restrict = Restrictings Flat ConfigureQuery
+type Restrict = ReferredPlaceholders RestrictNoPh
+
+type RestrictNoPh = Restrictings Flat ConfigureQuery
 
 -- | RestrictedStatement type synonym.
 --   Record type 'r' must be
 --   the same as 'Restrictings' type parameter 'r'.
 type RestrictedStatement r a = Record Flat r -> Restrict a
 
--- -- | 'return' of 'Restrict'
--- restricted :: a -> Restrict a
--- restricted =  restrict . Identity
+-- | Run 'Restrict' to get 'QueryRestriction'.
+extract :: Restrict a -> Config -> ((a, DList Int), [Predicate Flat])
+extract =  configureQuery . extractRestrict . extractReferredPlaceholders
 
 -- | Run 'Restrict' to get 'QueryRestriction'.
-extract :: Restrict a -> Config -> (a, [Predicate Flat])
-extract =  configureQuery . extractRestrict
+extractNoPh :: RestrictNoPh a -> Config -> (a, [Predicate Flat])
+extractNoPh =  configureQuery . extractRestrict

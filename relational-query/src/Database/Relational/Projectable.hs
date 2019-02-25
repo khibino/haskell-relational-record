@@ -15,8 +15,9 @@
 -- This module defines operators on various projected records.
 module Database.Relational.Projectable (
   -- * Projectable from SQL strings
-  SqlContext (unsafeProjectSqlTerms), unsafeProjectSql',
-  unsafeProjectSql,
+  SqlContext, unsafeProjectSqlTerms,
+  unsafeProjectSql', unsafeProjectSql,
+  unsafeProjectSqlWithPlaceholders', unsafeProjectSqlWithPlaceholders,
 
   -- * Records of values
   value,
@@ -105,17 +106,26 @@ import Database.Relational.ProjectableClass
 import Database.Relational.Record (RecordList)
 import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable.Unsafe
-  (SqlContext (..), OperatorContext, AggregatedContext, PlaceHolders (..))
+  (SqlContext (unsafeProjectSqlTermsWithPlaceholders), unsafeProjectSqlTerms,
+   OperatorContext, AggregatedContext, PlaceHolders (..), )
 import Database.Relational.Projectable.Instances ()
 
 
 -- | Unsafely Project single SQL term.
-unsafeProjectSql' :: SqlContext c => DList Int -> StringSQL -> Record c t
-unsafeProjectSql' phs = unsafeProjectSqlTerms phs . (:[])
+unsafeProjectSql' :: SqlContext c => StringSQL -> Record c t
+unsafeProjectSql' = unsafeProjectSqlWithPlaceholders' mempty
 
 -- | Unsafely Project single SQL string. String interface of 'unsafeProjectSql'''.
-unsafeProjectSql :: SqlContext c => DList Int -> String -> Record c t
-unsafeProjectSql phs = unsafeProjectSql' phs . stringSQL
+unsafeProjectSql :: SqlContext c => String -> Record c t
+unsafeProjectSql = unsafeProjectSqlWithPlaceholders mempty
+
+-- | Unsafely Project single SQL term.
+unsafeProjectSqlWithPlaceholders' :: SqlContext c => DList Int -> StringSQL -> Record c t
+unsafeProjectSqlWithPlaceholders' phs = unsafeProjectSqlTermsWithPlaceholders phs . (:[])
+
+-- | Unsafely Project single SQL string. String interface of 'unsafeProjectSql'''.
+unsafeProjectSqlWithPlaceholders :: SqlContext c => DList Int -> String -> Record c t
+unsafeProjectSqlWithPlaceholders phs = unsafeProjectSqlWithPlaceholders' phs . stringSQL
 
 -- | Record with polymorphic phantom type of SQL null value. Semantics of comparing is unsafe.
 nothing :: (OperatorContext c, SqlContext c, PersistableWidth a)
@@ -123,11 +133,11 @@ nothing :: (OperatorContext c, SqlContext c, PersistableWidth a)
 nothing = proxyWidth persistableWidth
   where
     proxyWidth :: SqlContext c => PersistableRecordWidth a -> Record c (Maybe a)
-    proxyWidth w = unsafeProjectSqlTerms mempty $ replicate (runPersistableRecordWidth w) SQL.NULL
+    proxyWidth w = unsafeProjectSqlTerms $ replicate (runPersistableRecordWidth w) SQL.NULL
 
 -- | Generate record with polymorphic type of SQL constant values from Haskell value.
 value :: (LiteralSQL t, OperatorContext c) => t -> Record c t
-value = unsafeProjectSqlTerms mempty . showLiteral
+value = unsafeProjectSqlTerms . showLiteral
 
 -- | Record with polymorphic type of SQL true value.
 valueTrue  :: OperatorContext c => Record c (Maybe Bool)
@@ -160,7 +170,7 @@ type SqlBinOp = Keyword -> Keyword -> Keyword
 unsafeUniOp :: SqlContext c2
             => (Keyword -> Keyword) -> Record c1 a -> Record c2 b
 unsafeUniOp u r =
-  unsafeProjectSql' (Syntax.placeholderOffsets r) . u . unsafeShowSql' $ r
+  unsafeProjectSqlWithPlaceholders' (Syntax.placeholderOffsets r) . u . unsafeShowSql' $ r
 
 unsafeFlatUniOp :: SqlContext c
                 => Keyword -> Record c a -> Record c b
@@ -171,7 +181,7 @@ unsafeBinOp :: SqlContext k
             => SqlBinOp
             -> Record k a -> Record k b -> Record k c
 unsafeBinOp op a b =
-    unsafeProjectSql' (Syntax.placeholderOffsets a <> Syntax.placeholderOffsets b)
+    unsafeProjectSqlWithPlaceholders' (Syntax.placeholderOffsets a <> Syntax.placeholderOffsets b)
   . SQL.paren
   $ op (unsafeShowSql' a) (unsafeShowSql' b)
 
@@ -237,7 +247,7 @@ not' =  unsafeFlatUniOp SQL.NOT
 exists :: OperatorContext c
        => RecordList (Record Exists) r -> Record c (Maybe Bool)
 exists rlist =
-  unsafeProjectSql' (Record.collectPlaceholders rlist)
+  unsafeProjectSqlWithPlaceholders' (Record.collectPlaceholders rlist)
     . SQL.paren
     . SQL.defineUniOp SQL.EXISTS
     $ Record.unsafeStringSqlList unsafeShowSql' rlist
@@ -309,7 +319,7 @@ negate' =  unsafeFlatUniOp $ SQL.word "-"
 unsafeCastProjectable :: SqlContext c
                       => Record c a -> Record c b
 unsafeCastProjectable r =
-  unsafeProjectSql' (Syntax.placeholderOffsets r) . unsafeShowSql' $ r
+  unsafeProjectSqlWithPlaceholders' (Syntax.placeholderOffsets r) . unsafeShowSql' $ r
 
 -- | Number fromIntegral uni-operator.
 fromIntegral' :: (SqlContext c, Integral a, Num b)
@@ -404,7 +414,7 @@ caseMaybe v cs = case' v cs nothing
 in' :: OperatorContext c
     => Record c t -> RecordList (Record c) t -> Record c (Maybe Bool)
 in' a lp =
-  unsafeProjectSql' (Syntax.placeholderOffsets a <> Record.collectPlaceholders lp)
+  unsafeProjectSqlWithPlaceholders' (Syntax.placeholderOffsets a <> Record.collectPlaceholders lp)
     . SQL.paren
     $ SQL.in' (unsafeShowSql' a) (Record.unsafeStringSqlList unsafeShowSql' lp)
 
@@ -412,7 +422,7 @@ in' a lp =
 isNothing :: (OperatorContext c, HasColumnConstraint NotNull r)
           => Record c (Maybe r) -> Predicate c
 isNothing mr =
-      unsafeProjectSql' (Syntax.placeholderOffsets mr)
+      unsafeProjectSqlWithPlaceholders' (Syntax.placeholderOffsets mr)
     . SQL.paren
     $ SQL.defineBinOp SQL.IS (Record.unsafeStringSqlNotNullMaybe mr) SQL.NULL
 
@@ -427,7 +437,7 @@ fromMaybe :: (OperatorContext c, HasColumnConstraint NotNull r)
 fromMaybe d p = [ (isNothing p, d) ] `casesOrElse` unsafeCastProjectable p
 
 unsafeUniTermFunction :: SqlContext c => Keyword -> Record c t
-unsafeUniTermFunction =  unsafeProjectSql' mempty . (SQL.<++> stringSQL "()")
+unsafeUniTermFunction =  unsafeProjectSql' . (SQL.<++> stringSQL "()")
 
 -- | /RANK()/ term.
 rank :: Integral a => Record OverWindow a
@@ -481,7 +491,7 @@ pwPlaceholder pw f = (PlaceHolders, f $ projectPlaceHolder pw)
                        -> Record c a
     projectPlaceHolder =
       Syntax.toPlaceholdersRecord
-      . unsafeProjectSqlTerms mempty
+      . unsafeProjectSqlTerms
       . (`replicate` "?")
       . runPersistableRecordWidth
 

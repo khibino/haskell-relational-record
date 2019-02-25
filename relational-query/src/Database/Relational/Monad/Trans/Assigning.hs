@@ -18,7 +18,7 @@ module Database.Relational.Monad.Trans.Assigning (
   Assignings, assignings,
 
   -- * API of context with assignments
-  assignTo, (<-#), AssignTarget,
+  assignToNoPh, AssignTarget,
 
   -- * Result SQL set clause
   extractAssignments
@@ -52,7 +52,7 @@ assignings =  lift
 
 -- | 'MonadRestrict' with assigning.
 instance MonadRestrict c m => MonadRestrict c (Assignings r m) where
-  restrict = assignings . restrict
+  restrictNoPh = assignings . restrictNoPh
 
 -- | 'MonadQualify' with assigning.
 instance MonadQualify q m => MonadQualify q (Assignings r m) where
@@ -64,19 +64,11 @@ type AssignTarget r v = Pi r v
 targetRecord :: AssignTarget r v ->  Table r -> Record Flat v
 targetRecord pi' tbl = Record.wpi (recordWidth tbl) (Record.unsafeFromTable tbl) pi'
 
--- | Add an assignment.
--- igrep TODO: May need to save placeholders
-assignTo :: Monad m => Record Flat v ->  AssignTarget r v -> Assignings r m ()
-assignTo vp target = Assignings . tell
+assignToNoPh :: Monad m => Record Flat v ->  AssignTarget r v -> Assignings r m ()
+assignToNoPh vp target = Assignings . tell
                      $ \t -> mconcat $ zipWith (curry pure) (leftsR t) rights  where
   leftsR = Record.columns . targetRecord target
   rights = Record.columns vp
-
--- | Add and assginment.
-(<-#) :: Monad m => AssignTarget r v -> Record Flat v -> Assignings r m ()
-(<-#) =  flip assignTo
-
-infix 4 <-#
 
 -- | Run 'Assignings' to get 'Assignments'
 extractAssignments :: (Monad m, Functor m)

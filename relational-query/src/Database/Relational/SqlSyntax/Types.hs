@@ -108,7 +108,7 @@ data AggregateElem = ColumnRef AggregateColumnRef
                    deriving Show
 
 -- | Typeful aggregate element.
-newtype AggregateKey a = AggregateKey (a, AggregateElem)
+newtype AggregateKey a = AggregateKey (a, AggregateElem) deriving Functor
 
 -- | Sub-query type
 data SubQuery = Table Untyped

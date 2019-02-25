@@ -31,19 +31,21 @@ import Control.Applicative ((<$>))
 import Data.Monoid (mempty)
 
 import Database.Relational.Internal.ContextType (Flat, Aggregated)
-import Database.Relational.SqlSyntax (NodeAttr(Just', Maybe), Record)
+import Database.Relational.SqlSyntax (NodeAttr(Just', Maybe), Record, emptyPlaceholderOffsets)
 
 import Database.Relational.Monad.BaseType
   (ConfigureQuery, qualifyQuery,
    Relation, unsafeTypeRelation, untypeRelation, relationWidth)
 import Database.Relational.Monad.Class
-  (MonadQualify (liftQualify), MonadQuery (query', queryMaybe'), MonadReferPlaceholders (appendPlaceholderOffsets))
+  (MonadQualify (liftQualify), MonadQuery)
+import Database.Relational.Monad.ReferPlaceholders (query', queryMaybe')
 import Database.Relational.Monad.Simple (QuerySimple, SimpleQuery)
 import qualified Database.Relational.Monad.Simple as Simple
 import Database.Relational.Monad.Aggregate (QueryAggregate, AggregatedQuery)
 import qualified Database.Relational.Monad.Aggregate as Aggregate
-import Database.Relational.Monad.Unique (QueryUnique, unsafeUniqueSubQuery)
+import Database.Relational.Monad.Unique (QueryUnique, unsafeUniqueSubQuery, liftToQueryUnique)
 import qualified Database.Relational.Monad.Unique as Unique
+import Database.Relational.Monad.Trans.ReferredPlaceholders (ReferredPlaceholders, appendPlaceholderOffsets)
 import Database.Relational.Table (Table, TableDerivable, derivedTable)
 import qualified Database.Relational.Table as Table
 import Database.Relational.Scalar (ScalarDegree)
@@ -72,7 +74,7 @@ placeHoldersFromRelation =  const unsafePlaceHolders
 -- | Join sub-query. Query result is not 'Maybe'.
 query :: (MonadQualify ConfigureQuery m, MonadQuery m)
       => Relation () r
-      -> m (Record Flat r)
+      -> ReferredPlaceholders m (Record Flat r)
 query =  fmap snd . query'
 
 -- | Join sub-query. Query result is 'Maybe'.
@@ -89,7 +91,7 @@ query =  fmap snd . query'
 -- @
 queryMaybe :: (MonadQualify ConfigureQuery m, MonadQuery m)
            => Relation () r
-           -> m (Record Flat (Maybe r))
+           -> ReferredPlaceholders m (Record Flat (Maybe r))
 queryMaybe =  fmap snd . queryMaybe'
 
 queryList0 :: MonadQualify ConfigureQuery m => Relation p r -> m (RecordList (Record c) r)
@@ -146,12 +148,13 @@ uniqueQueryWithAttr :: NodeAttr
                     -> QueryUnique (PlaceHolders p, Record c r)
 uniqueQueryWithAttr attr = unsafeAddPlaceHolders . run where
   run rel = do
-    (_phs, q) <- liftQualify $ do
-    -- ^ igrep TODO: appendPlaceholderOffsets here
+    (phs, q) <- liftQualify $ do
       (_phs', csq) <- untypeRelation (unUnique rel)
       q' <- qualifyQuery csq
       return (_phs', q')
-    Record.unsafeChangeContext
+    liftToQueryUnique $ appendPlaceholderOffsets phs
+    emptyPlaceholderOffsets
+      .   Record.unsafeChangeContext
       <$> unsafeUniqueSubQuery attr q
 
 -- | Join unique sub-query with place-holder parameter 'p'.
@@ -180,9 +183,9 @@ aggregatedUnique rel k ag = unsafeUnique . aggregateRelation' $ do
   return (ph, ag $ Record.wpi (relationWidth rel) a k)
 
 -- | Scalar sub-query with place-holder parameter 'p'.
-queryScalar' :: (MonadQualify ConfigureQuery m, MonadReferPlaceholders m, ScalarDegree r)
+queryScalar' :: (MonadQualify ConfigureQuery m, ScalarDegree r)
              => UniqueRelation p c r
-             -> m (PlaceHolders p, Record c (Maybe r))
+             -> ReferredPlaceholders m (PlaceHolders p, Record c (Maybe r))
 queryScalar' ur =
   unsafeAddPlaceHolders $ do
     (phs, subq) <- liftQualify $ untypeRelation (unUnique ur)
@@ -190,7 +193,7 @@ queryScalar' ur =
     return $ Record.unsafeFromScalarSubQuery mempty subq
 
 -- | Scalar sub-query.
-queryScalar :: (MonadQualify ConfigureQuery m, MonadReferPlaceholders m, ScalarDegree r)
+queryScalar :: (MonadQualify ConfigureQuery m, ScalarDegree r)
             => UniqueRelation () c r
-            -> m (Record c (Maybe r))
+            -> ReferredPlaceholders m (Record c (Maybe r))
 queryScalar =  fmap snd . queryScalar'

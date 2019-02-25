@@ -65,7 +65,7 @@ type Window           c = ReferredPlaceholders (Orderings c (PartitioningSet c))
 
 -- | Restricted 'MonadRestrict' instance.
 instance MonadRestrict Flat q => MonadRestrict Flat (Restrictings Aggregated q) where
-  restrict = restrictings . restrict
+  restrictNoPh = restrictings . restrictNoPh
 
 extract :: AggregatedQuery p r
         -> ConfigureQuery ((((((((PlaceHolders p, Record Aggregated r),

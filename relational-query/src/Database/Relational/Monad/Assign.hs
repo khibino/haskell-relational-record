@@ -27,14 +27,14 @@ import Database.Relational.SqlSyntax
   (Predicate, Record, Assignment)
 
 import Database.Relational.Table (Table)
-import Database.Relational.Monad.Restrict (Restrict)
+import Database.Relational.Monad.Restrict (RestrictNoPh)
 import qualified Database.Relational.Monad.Restrict as Restrict
 import Database.Relational.Monad.Trans.Assigning (Assignings, extractAssignments)
 import Database.Relational.Monad.Trans.ReferredPlaceholders (ReferredPlaceholders, extractReferredPlaceholders)
 
 
 -- | Target update monad type used from update statement and merge statement.
-type Assign r = ReferredPlaceholders (Assignings r Restrict)
+type Assign r = ReferredPlaceholders (Assignings r RestrictNoPh)
 
 -- | AssignStatement type synonym.
 --   Specifying assignments and restrictions like update statement.
@@ -42,10 +42,6 @@ type Assign r = ReferredPlaceholders (Assignings r Restrict)
 --   the same as 'Target' type parameter 'r'.
 type AssignStatement r a = Record Flat r -> Assign r a
 
--- -- | 'return' of 'Update'
--- updateStatement :: a -> Assignings r (Restrictings Identity) a
--- updateStatement =  assignings . restrictings . Identity
-
 -- | Run 'Assign'.
 extract :: Assign r a -> Config -> (((a, DList Int), Table r -> [Assignment]), [Predicate Flat])
-extract =  Restrict.extract . extractAssignments . extractReferredPlaceholders
+extract =  Restrict.extractNoPh . extractAssignments . extractReferredPlaceholders

@@ -61,9 +61,12 @@ library
                        Database.Relational.Monad.Simple
                        Database.Relational.Monad.Aggregate
                        Database.Relational.Monad.Unique
+                       Database.Relational.Monad.ReferPlaceholders
                        Database.Relational.Monad.Restrict
                        Database.Relational.Monad.Assign
                        Database.Relational.Monad.Register
+                       Database.Relational.Monad.Trans.JoinState
+                       Database.Relational.Monad.Trans.Qualify
                        Database.Relational.Relation
                        Database.Relational.Set
                        Database.Relational.Sequence
@@ -89,8 +92,6 @@ library
                        Database.Relational.SqlSyntax.Query
                        Database.Relational.SqlSyntax.Fold
                        Database.Relational.SqlSyntax.Updates
-                       Database.Relational.Monad.Trans.JoinState
-                       Database.Relational.Monad.Trans.Qualify
                        Database.Relational.InternalTH.Base
 
                        -- for GHC version equal or more than 8.0

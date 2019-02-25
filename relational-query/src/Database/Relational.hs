@@ -22,12 +22,12 @@ module Database.Relational (
   module Database.Relational.TupleInstances,
   module Database.Relational.Monad.BaseType,
   module Database.Relational.Monad.Class,
-  module Database.Relational.Monad.Trans.Ordering,
   module Database.Relational.Monad.Trans.Aggregating,
-  module Database.Relational.Monad.Trans.Assigning,
+  module Database.Relational.Monad.Trans.ReferredPlaceholders,
   module Database.Relational.Monad.Type,
   module Database.Relational.Monad.Simple,
   module Database.Relational.Monad.Aggregate,
+  module Database.Relational.Monad.ReferPlaceholders,
   module Database.Relational.Monad.Restrict,
   module Database.Relational.Monad.Unique,
   module Database.Relational.Monad.Assign,
@@ -63,17 +63,21 @@ import Database.Relational.TupleInstances
 import Database.Relational.Monad.BaseType
 import Database.Relational.Monad.Class
   (MonadQualify,
-   MonadRestrict, wheres, having, restrict,
-   MonadAggregate, groupBy, groupBy',
-   MonadQuery, query', queryMaybe',
-   MonadPartition, partitionBy,
-   MonadReferPlaceholders,
-   distinct, all', on)
-import Database.Relational.Monad.Trans.Ordering
-  (Orderings, orderBy', orderBy, asc, desc)
+   MonadRestrict,
+   MonadAggregate,
+   MonadQuery,
+   MonadPartition,
+   distinct, all',)
 import Database.Relational.Monad.Trans.Aggregating
   (key, key', set, bkey, rollup, cube, groupingSets)
-import Database.Relational.Monad.Trans.Assigning (assignTo, (<-#))
+import Database.Relational.Monad.Trans.ReferredPlaceholders
+import Database.Relational.Monad.ReferPlaceholders
+  (wheres, having,
+   groupBy, groupBy',
+   partitionBy, on,
+   query', queryMaybe',
+   orderBy', orderBy, asc, desc,
+   assignTo, (<-#),)
 import Database.Relational.Monad.Type
 import Database.Relational.Monad.Simple (QuerySimple, SimpleQuery)
 import Database.Relational.Monad.Aggregate

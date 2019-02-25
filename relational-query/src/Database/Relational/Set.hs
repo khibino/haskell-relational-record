@@ -33,7 +33,7 @@ import qualified Database.Relational.SqlSyntax as Syntax
 
 import Database.Relational.Monad.BaseType
   (Relation, unsafeTypeRelation, untypeRelation, )
-import Database.Relational.Monad.Class (MonadQuery (query', queryMaybe'), on)
+import Database.Relational.Monad.ReferPlaceholders (query', queryMaybe', on)
 import Database.Relational.Monad.Simple (QuerySimple)
 import Database.Relational.Projectable (PlaceHolders)
 import Database.Relational.Relation (relation', relation, query, queryMaybe, )

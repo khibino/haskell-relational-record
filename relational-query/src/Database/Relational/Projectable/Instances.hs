@@ -27,15 +27,15 @@ import Database.Relational.Projectable.Unsafe
 
 -- | Unsafely make 'Record' from SQL terms.
 instance SqlContext Flat where
-  unsafeProjectSqlTerms = Record.unsafeFromSqlTerms
+  unsafeProjectSqlTermsWithPlaceholders = Record.unsafeFromSqlTerms
 
 -- | Unsafely make 'Record' from SQL terms.
 instance SqlContext Aggregated where
-  unsafeProjectSqlTerms = Record.unsafeFromSqlTerms
+  unsafeProjectSqlTermsWithPlaceholders = Record.unsafeFromSqlTerms
 
 -- | Unsafely make 'Record' from SQL terms.
 instance SqlContext OverWindow where
-  unsafeProjectSqlTerms = Record.unsafeFromSqlTerms
+  unsafeProjectSqlTermsWithPlaceholders = Record.unsafeFromSqlTerms
 
 -- | full SQL expression is availabe in Flat context
 instance OperatorContext Flat

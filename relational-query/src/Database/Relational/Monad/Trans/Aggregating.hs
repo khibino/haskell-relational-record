@@ -80,7 +80,7 @@ type PartitioningSetT c   = Aggregatings c         AggregateColumnRef
 
 -- | Aggregated 'MonadRestrict'.
 instance MonadRestrict c m => MonadRestrict c (AggregatingSetT m) where
-  restrict =  aggregatings . restrict
+  restrictNoPh =  aggregatings . restrictNoPh
 
 -- | Aggregated 'MonadQualify'.
 instance MonadQualify q m => MonadQualify q (AggregatingSetT m) where
@@ -88,10 +88,10 @@ instance MonadQualify q m => MonadQualify q (AggregatingSetT m) where
 
 -- | Aggregated 'MonadQuery'.
 instance MonadQuery m => MonadQuery (AggregatingSetT m) where
-  setDuplication     = aggregatings . setDuplication
-  restrictJoin       = aggregatings . restrictJoin
-  query'             = aggregatings . query'
-  queryMaybe'        = aggregatings . queryMaybe'
+  setDuplication   = aggregatings . setDuplication
+  restrictJoinNoPh = aggregatings . restrictJoinNoPh
+  queryNoPh'       = aggregatings . queryNoPh'
+  queryMaybeNoPh'  = aggregatings . queryMaybeNoPh'
 
 unsafeAggregateWithTerm :: Monad m => at -> Aggregatings ac at m ()
 unsafeAggregateWithTerm =  Aggregatings . tell . pure
@@ -103,14 +103,14 @@ aggregateKey k = do
 
 -- | Aggregated query instance.
 instance MonadQuery m => MonadAggregate (AggregatingSetT m) where
-  groupBy p = do
+  groupByNoPh p = do
     mapM_ unsafeAggregateWithTerm [ aggregateColumnRef col | col <- untypeRecord p]
     return $ Record.unsafeToAggregated p
-  groupBy'  = aggregateKey
+  groupByNoPh'  = aggregateKey
 
 -- | Partition clause instance
 instance Monad m => MonadPartition c (PartitioningSetT c m) where
-  partitionBy =  mapM_ unsafeAggregateWithTerm . untypeRecord
+  partitionByNoPh =  mapM_ unsafeAggregateWithTerm . untypeRecord
 
 -- | Run 'Aggregatings' to get terms list.
 extractAggregateTerms :: (Monad m, Functor m) => Aggregatings ac at m a -> m (a, [at])

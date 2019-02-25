@@ -9,19 +9,20 @@
 --
 -- This module provides unsafe interfaces between projected terms and SQL terms.
 module Database.Relational.Projectable.Unsafe (
-  SqlContext (..), OperatorContext, AggregatedContext, PlaceHolders (..)
+  SqlContext (..), OperatorContext, AggregatedContext, PlaceHolders (..),
+  unsafeProjectSqlTerms,
   ) where
 
 import Database.Relational.Internal.String (StringSQL)
 import Database.Relational.SqlSyntax (Record)
 import Data.DList (DList)
+import Data.Monoid (mempty)
 
 -- | Interface to project SQL terms unsafely.
 class SqlContext c where
   -- | Unsafely project from SQL expression terms.
-  unsafeProjectSqlTerms :: DList Int
-                        -> [StringSQL]
-                        -> Record c t
+  unsafeProjectSqlTermsWithPlaceholders
+    :: DList Int -> [StringSQL] -> Record c t
 
 -- | Constraint to restrict context of full SQL expressions.
 --   For example, the expression at the left of OVER clause
@@ -34,3 +35,6 @@ class AggregatedContext ac
 
 -- | Placeholder parameter type which has real parameter type arguemnt 'p'.
 data PlaceHolders p = PlaceHolders
+
+unsafeProjectSqlTerms :: SqlContext c => [StringSQL] -> Record c t
+unsafeProjectSqlTerms = unsafeProjectSqlTermsWithPlaceholders mempty

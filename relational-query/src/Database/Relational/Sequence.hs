@@ -30,13 +30,10 @@ module Database.Relational.Sequence (
   updateNumber', updateNumber,
   ) where
 
-import Prelude hiding (seq)
-
 import Database.Record (PersistableWidth)
 import Database.Relational.Internal.Config (Config, defaultConfig)
-import Database.Relational.Monad.Class (wheres)
 import Database.Relational.Monad.BaseType (Relation)
-import Database.Relational.Monad.Trans.Assigning ((<-#))
+import Database.Relational.Monad.ReferPlaceholders (wheres, (<-#))
 import Database.Relational.Table (TableDerivable, derivedTable, Table)
 import Database.Relational.Pi (Pi)
 import Database.Relational.Constraint

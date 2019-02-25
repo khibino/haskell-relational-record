@@ -15,7 +15,7 @@
 -- This module contains definitions about unique query type
 -- to support scalar queries.
 module Database.Relational.Monad.Unique
-       ( QueryUnique, unsafeUniqueSubQuery,
+       ( QueryUnique, unsafeUniqueSubQuery, liftToQueryUnique,
          toSubQuery,
        ) where
 
@@ -47,6 +47,10 @@ unsafeUniqueSubQuery :: NodeAttr                 -- ^ Attribute maybe or just
                      -> Qualified SubQuery       -- ^ 'SubQuery' to join
                      -> QueryUnique (Record c r) -- ^ Result joined context and record of 'SubQuery' result.
 unsafeUniqueSubQuery a  = QueryUnique . referredPlaceholders . restrictings . unsafeSubQueryWithAttr a
+
+-- igrep TODO: prefix by "unsafe"?
+liftToQueryUnique :: ReferredPlaceholders QueryCore a -> QueryUnique a
+liftToQueryUnique = QueryUnique
 
 extract :: QueryUnique a
         -> ConfigureQuery ((((a, DList Int), [Predicate Flat]), JoinProduct), Duplication)

@@ -49,7 +49,7 @@ updateRestriction =  Restrictings . tell . pure
 
 -- | 'MonadRestrict' instance.
 instance (Monad q, Functor q) => MonadRestrict c (Restrictings c q) where
-  restrict = updateRestriction
+  restrictNoPh = updateRestriction
 
 -- | Restricted 'MonadQualify' instance.
 instance MonadQualify q m => MonadQualify q (Restrictings c m) where
@@ -57,15 +57,15 @@ instance MonadQualify q m => MonadQualify q (Restrictings c m) where
 
 -- | Restricted 'MonadQuery' instance.
 instance MonadQuery q => MonadQuery (Restrictings c q) where
-  setDuplication     = restrictings . setDuplication
-  restrictJoin       = restrictings . restrictJoin
-  query'             = restrictings . query'
-  queryMaybe'        = restrictings . queryMaybe'
+  setDuplication   = restrictings . setDuplication
+  restrictJoinNoPh = restrictings . restrictJoinNoPh
+  queryNoPh'       = restrictings . queryNoPh'
+  queryMaybeNoPh'  = restrictings . queryMaybeNoPh'
 
 -- | Resticted 'MonadAggregate' instance.
 instance MonadAggregate m => MonadAggregate (Restrictings c m) where
-  groupBy  = restrictings . groupBy
-  groupBy' = restrictings . groupBy'
+  groupByNoPh  = restrictings . groupByNoPh
+  groupByNoPh' = restrictings . groupByNoPh'
 
 -- | Run 'Restrictings' to get 'QueryRestriction'
 extractRestrict :: (Monad m, Functor m) => Restrictings c m a -> m (a, [Predicate c])
