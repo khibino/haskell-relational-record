@@ -157,9 +157,11 @@ toSQLs =  d  where
   d (Flat cf up da pd rs od)   = (SQL.paren q, q)  where
     q = selectPrefixSQL up da <> showsJoinProduct (productUnitSupport cf) pd <> composeWhere rs
         <> composeOrderBy od
+        -- ^ igrep TODO: Reorder PlaceholderOffsets here
   d (Aggregated cf up da pd rs ag grs od) = (SQL.paren q, q)  where
     q = selectPrefixSQL up da <> showsJoinProduct (productUnitSupport cf) pd <> composeWhere rs
         <> composeGroupBy ag <> composeHaving grs <> composeOrderBy od
+        -- ^ igrep TODO: Reorder PlaceholderOffsets here
 
 showUnitSQL :: SubQuery -> StringSQL
 showUnitSQL =  fst . toSQLs

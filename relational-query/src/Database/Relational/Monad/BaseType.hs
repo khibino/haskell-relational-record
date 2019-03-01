@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveFunctor #-}
+
 -- |
 -- Module      : Database.Relational.Monad.BaseType
 -- Copyright   : 2015-2017 Kei Hibino
@@ -16,6 +18,12 @@ module Database.Relational.Monad.BaseType
          -- * Relation type
          Relation, unsafeTypeRelation, untypeRelation, untypeRelationNoPlaceholders, relationWidth,
 
+         -- * Object to represent the SQL built by the monads.
+         WithPlaceholderOffsets (..),
+         SQLWithPlaceholderOffsets,
+         SQLWithPlaceholderOffsets',
+         attachEmptyPlaceholderOffsets,
+
          dump,
          sqlFromRelationWith, sqlFromRelation,
 
@@ -24,6 +32,7 @@ module Database.Relational.Monad.BaseType
 
 import Data.Functor.Identity (Identity, runIdentity)
 import Control.Applicative ((<$>))
+import Control.Arrow
 
 import Database.Record.Persistable (PersistableRecordWidth, unsafePersistableRecordWidth)
 
@@ -34,6 +43,18 @@ import Database.Relational.SqlSyntax (Qualified, SubQuery, PlaceholderOffsets, s
 import qualified Database.Relational.Monad.Trans.Qualify as Qualify
 import Database.Relational.Monad.Trans.Qualify (Qualify, qualify, evalQualifyPrime)
 import Database.Relational.Monad.Trans.Config (QueryConfig, runQueryConfig, askQueryConfig)
+
+data WithPlaceholderOffsets a = WithPlaceholderOffsets
+  { placeholderOffsets :: PlaceholderOffsets
+  , detachPlaceholderOffsets :: a
+  } deriving (Show, Functor)
+
+type SQLWithPlaceholderOffsets' = WithPlaceholderOffsets StringSQL
+
+type SQLWithPlaceholderOffsets = WithPlaceholderOffsets String
+
+attachEmptyPlaceholderOffsets :: a -> WithPlaceholderOffsets a
+attachEmptyPlaceholderOffsets = WithPlaceholderOffsets mempty
 
 -- | Thin monad type for untyped structure.
 type ConfigureQuery = Qualify (QueryConfig Identity)
@@ -83,11 +104,12 @@ leftPh :: Relation (p, ()) r -> Relation p r
 leftPh =  unsafeCastPlaceHolder
 
 -- | Generate SQL string from 'Relation' with configuration.
-sqlFromRelationWith :: Relation p r -> Config -> StringSQL
-sqlFromRelationWith =  configureQuery . (showSQL <$>) . untypeRelationNoPlaceholders
+sqlFromRelationWith :: Relation p r -> Config -> SQLWithPlaceholderOffsets'
+sqlFromRelationWith rel cfg =
+  uncurry WithPlaceholderOffsets . (`configureQuery` cfg) . (second showSQL <$>) $ untypeRelation rel
 
 -- | SQL string from 'Relation'.
-sqlFromRelation :: Relation p r -> StringSQL
+sqlFromRelation :: Relation p r -> SQLWithPlaceholderOffsets'
 sqlFromRelation =  (`sqlFromRelationWith` defaultConfig)
 
 -- | Dump internal structure tree.
@@ -95,4 +117,4 @@ dump :: Relation p r -> String
 dump =  show . (`configureQuery` defaultConfig) . untypeRelationNoPlaceholders
 
 instance Show (Relation p r) where
-  show = showStringSQL . sqlFromRelation
+  show = showStringSQL . detachPlaceholderOffsets . sqlFromRelation

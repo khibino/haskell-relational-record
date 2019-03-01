@@ -43,7 +43,7 @@ import Database.Record (ToSql, FromSql)
 import Database.Record.TH (recordTemplate, defineSqlPersistableInstances)
 import Database.Relational
   (Config, nameConfig, recordConfig, enableWarning, verboseAsCompilerWarning,
-   defaultConfig, Relation, relationalQuerySQL, QuerySuffix)
+   defaultConfig, Relation, relationalQuerySQL, detachPlaceholderOffsets, QuerySuffix)
 import qualified Database.Relational.TH as Relational
 
 import Database.HDBC.Session (withConnectionIO)
@@ -174,14 +174,14 @@ defineTableFromDB connect driver tbl scm = tableAlongWithSchema connect driver t
 inlineVerifiedQuery :: IConnection conn
                     => IO conn      -- ^ Connect action to system catalog database
                     -> Name         -- ^ Top-level variable name which has 'Relation' type
-                    -> Relation p r -- ^ Object which has 'Relation' type
+                    -> Relation p r -- ^ Object which has 'Relation' type igrep TODO: disable placeholders?
                     -> Config       -- ^ Configuration to generate SQL
                     -> QuerySuffix  -- ^ suffix SQL words
                     -> String       -- ^ Variable name to define as inlined query
                     -> Q [Dec]      -- ^ Result declarations
 inlineVerifiedQuery connect relVar rel config sufs qns = do
   (p, r) <- Relational.reifyRelation relVar
-  let sql = relationalQuerySQL config rel sufs
+  let sql = detachPlaceholderOffsets $ relationalQuerySQL config rel sufs
   when (verboseAsCompilerWarning config) . reportWarning $ "Verify with prepare: " ++ sql
   void . runIO $ withConnectionIO connect (\conn -> prepare conn sql)
   Relational.unsafeInlineQuery (return p) (return r) sql (varCamelcaseName qns)

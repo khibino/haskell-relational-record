@@ -55,7 +55,7 @@ import Database.Relational.Context
 import Database.Relational.Config
 import Database.Relational.SqlSyntax
   (Order (..), Nulls (..), AggregateKey, Record, Predicate, PI,
-   SubQuery, unitSQL, queryWidth, )
+   SubQuery, PlaceholderOffsets, sortByPlaceholderOffsets, unitSQL, queryWidth, )
 import Database.Relational.Record (RecordList, list)
 import Database.Relational.ProjectableClass
 import Database.Relational.Projectable

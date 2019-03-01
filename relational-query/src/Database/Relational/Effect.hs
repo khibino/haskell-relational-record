@@ -49,6 +49,8 @@ import qualified Database.Relational.Record as Record
 import Database.Relational.ProjectableClass (LiteralSQL)
 import Database.Relational.Projectable
   (PlaceHolders, unitPH, pwPlaceholder, placeholder, (><), value, )
+import Database.Relational.Monad.BaseType
+  (WithPlaceholderOffsets (WithPlaceholderOffsets), detachPlaceholderOffsets, SQLWithPlaceholderOffsets')
 import Database.Relational.Monad.Trans.Assigning (assignings)
 import Database.Relational.Monad.Trans.ReferredPlaceholders
   (appendPlaceholderOffsets, extractReferredPlaceholders, referredPlaceholders)
@@ -59,7 +61,6 @@ import Database.Relational.Monad.Assign (AssignStatement)
 import qualified Database.Relational.Monad.Assign as Assign
 import Database.Relational.Monad.Register (Register)
 import qualified Database.Relational.Monad.Register as Register
-
 
 -- | Restriction type with place-holder parameter 'p' and projected record type 'r'.
 newtype Restriction p r = Restriction (RestrictedStatement r (PlaceHolders p))
@@ -77,13 +78,13 @@ runRestriction :: Restriction p r
 runRestriction (Restriction qf) = qf
 
 -- | SQL WHERE clause 'StringSQL' string from 'Restriction'.
-sqlWhereFromRestriction :: Config -> Table r -> Restriction p r -> StringSQL
-sqlWhereFromRestriction config tbl (Restriction q) = composeWhere rs
-  where (_ph, rs) = Restrict.extract (q $ Record.unsafeFromTable tbl) config
+sqlWhereFromRestriction :: Config -> Table r -> Restriction p r -> SQLWithPlaceholderOffsets'
+sqlWhereFromRestriction config tbl (Restriction q) = WithPlaceholderOffsets phs $ composeWhere rs
+  where ((_ph, phs), rs) = Restrict.extract (q $ Record.unsafeFromTable tbl) config
 
 -- | Show where clause.
 instance TableDerivable r => Show (Restriction p r) where
-  show = showStringSQL . sqlWhereFromRestriction defaultConfig derivedTable
+  show = showStringSQL . detachPlaceholderOffsets . sqlWhereFromRestriction defaultConfig derivedTable
 
 
 -- | UpdateTarget type with place-holder parameter 'p' and projected record type 'r'.
@@ -135,12 +136,12 @@ updateTargetAllColumn' = liftTargetAllColumn' . restriction'
 
 
 -- | SQL SET clause and WHERE clause 'StringSQL' string from 'UpdateTarget'
-sqlFromUpdateTarget :: Config -> Table r -> UpdateTarget p r -> StringSQL
-sqlFromUpdateTarget config tbl (UpdateTarget q) = composeSets (asR tbl) <> composeWhere rs
-  where ((_ph, asR), rs) = Assign.extract (q (Record.unsafeFromTable tbl)) config
+sqlFromUpdateTarget :: Config -> Table r -> UpdateTarget p r -> SQLWithPlaceholderOffsets'
+sqlFromUpdateTarget config tbl (UpdateTarget q) = WithPlaceholderOffsets phs $ composeSets (asR tbl) <> composeWhere rs
+  where (((_ph, phs), asR), rs) = Assign.extract (q (Record.unsafeFromTable tbl)) config
 
 instance TableDerivable r => Show (UpdateTarget p r) where
-  show = showStringSQL . sqlFromUpdateTarget defaultConfig derivedTable
+  show = showStringSQL . detachPlaceholderOffsets . sqlFromUpdateTarget defaultConfig derivedTable
 
 
 -- | InsertTarget type with place-holder parameter 'p' and projected record type 'r'.
@@ -169,11 +170,11 @@ sqlChunkFromInsertTarget' :: Config
                           -> Int
                           -> Table r
                           -> InsertTarget p r
-                          -> StringSQL
+                          -> SQLWithPlaceholderOffsets'
 sqlChunkFromInsertTarget' config sz tbl (InsertTarget q) =
-    INSERT <> INTO <> stringSQL (Table.name tbl) <> composeChunkValuesWithColumns sz (asR tbl)
+    WithPlaceholderOffsets phs $ INSERT <> INTO <> stringSQL (Table.name tbl) <> composeChunkValuesWithColumns sz (asR tbl)
   where
-    (_ph, asR) = Register.extract q config
+    ((_ph, phs), asR) = Register.extract q config
 
 countChunks :: Config
             -> Table r
@@ -188,14 +189,14 @@ countChunks config tbl =
 sqlChunkFromInsertTarget :: Config
                          -> Table r
                          -> InsertTarget p r
-                         -> (StringSQL, Int)
+                         -> (SQLWithPlaceholderOffsets', Int)
 sqlChunkFromInsertTarget config tbl it =
     (sqlChunkFromInsertTarget' config n tbl it, n)
   where
     n = countChunks config tbl
 
 -- | Make 'StringSQL' string of SQL INSERT statement from 'InsertTarget'
-sqlFromInsertTarget :: Config -> Table r -> InsertTarget p r -> StringSQL
+sqlFromInsertTarget :: Config -> Table r -> InsertTarget p r -> SQLWithPlaceholderOffsets'
 sqlFromInsertTarget config = sqlChunkFromInsertTarget' config 1
 
 -- | Make 'StringSQL' strings of SQL INSERT strings from records list

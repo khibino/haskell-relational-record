@@ -54,13 +54,15 @@ module Database.Relational.SqlSyntax.Types (
   isPlaceholders,
   emptyPlaceholderOffsets,
   appendPlaceholderOffsetsOf,
+  sortByPlaceholderOffsets,
 
   -- * Predicate to restrict Query result
   Predicate,
   )  where
 
 import Prelude hiding (and, product)
-import Data.DList (DList, fromList)
+import Data.Array (listArray, (!))
+import Data.DList (DList, fromList, toList)
 import Data.Foldable (Foldable)
 import Data.Monoid ((<>))
 import Data.Traversable (Traversable)
@@ -113,12 +115,14 @@ newtype AggregateKey a = AggregateKey (a, AggregateElem) deriving Functor
 
 -- | Sub-query type
 data SubQuery = Table Untyped
-              | Flat Config
-                Tuple Duplication JoinProduct [Predicate Flat]
-                [OrderingTerm]
-              | Aggregated Config
-                Tuple Duplication JoinProduct [Predicate Flat]
-                [AggregateElem] [Predicate Aggregated] [OrderingTerm]
+              | Flat
+                  Config
+                  Tuple Duplication JoinProduct [Predicate Flat]
+                  [OrderingTerm]
+              | Aggregated
+                  Config
+                  Tuple Duplication JoinProduct [Predicate Flat]
+                  [AggregateElem] [Predicate Aggregated] [OrderingTerm]
               | Bin BinOp SubQuery SubQuery
               deriving Show
 
@@ -236,6 +240,10 @@ emptyPlaceholderOffsets r = r { placeholderOffsets = mempty }
 
 appendPlaceholderOffsetsOf :: Record c1 a -> Record c2 b -> PlaceholderOffsets
 appendPlaceholderOffsetsOf src1 src2 = placeholderOffsets src1 <> placeholderOffsets src2
+
+sortByPlaceholderOffsets :: PlaceholderOffsets -> [a] -> [a]
+sortByPlaceholderOffsets phos xs = map (ary !) $ toList phos
+ where ary = listArray (0, length xs) xs
 
 -- | Unsafely generate 'Record' from scalar sub-query.
 typeFromScalarSubQuery :: PlaceholderOffsets -> SubQuery -> Record c t

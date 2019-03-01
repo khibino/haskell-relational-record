@@ -43,7 +43,7 @@ module Database.Relational.Record (
   ) where
 
 import Prelude hiding (pi)
-import Data.DList (DList, fromList)
+import Data.DList (fromList)
 import Data.Functor.ProductIsomorphic
   (ProductIsoFunctor, (|$|), ProductIsoApplicative, pureP, (|*|),
    ProductIsoEmpty, pureE, peRight, peLeft, )

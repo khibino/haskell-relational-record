@@ -28,7 +28,9 @@ import Control.Monad (unless)
 import System.IO.Unsafe (unsafeInterleaveIO)
 import Database.HDBC (IConnection, SqlValue)
 
-import Database.Relational (Insert (..), untypeChunkInsert, chunkSizeOfInsert)
+import Database.Relational
+  (Insert (..), untypeChunkInsert, chunkSizeOfInsert,
+   detachPlaceholderOffsets, placeholderOffsets, sortByPlaceholderOffsets)
 import Database.Record (ToSql, fromRecord)
 
 import Database.HDBC.Record.Statement
@@ -80,7 +82,11 @@ mapInsert = mapNoFetch
 
 -- | Unsafely bind chunk of records.
 chunkBind :: ToSql SqlValue p => PreparedStatement [p] () -> [p] -> BoundStatement ()
-chunkBind q ps = BoundStatement { bound = untypePrepared q, params =  ps >>= fromRecord }
+chunkBind q ps = BoundStatement { bound = st, params = concatMap (sortByPlaceholderOffsets phs . fromRecord) ps }
+ where
+  stphs = untypePrepared q
+  st = detachPlaceholderOffsets stphs
+  phs = placeholderOffsets stphs
 
 withPrepareChunksInsert :: (IConnection conn, ToSql SqlValue a)
                         => conn
