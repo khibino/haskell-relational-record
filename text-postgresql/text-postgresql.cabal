@@ -3,6 +3,7 @@ version:             0.0.3.1
 synopsis:            Parser and Printer of PostgreSQL extended types
 description:         This package involves parser and printer for
                      text expressions of PostgreSQL extended types.
+                     .
                      - inet type, cidr type
 homepage:            http://khibino.github.io/haskell-relational-record/
 license:             BSD3

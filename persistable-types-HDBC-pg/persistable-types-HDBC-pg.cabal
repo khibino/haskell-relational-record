@@ -2,7 +2,8 @@ name:                persistable-types-HDBC-pg
 version:             0.0.3.5
 synopsis:            HDBC and Relational-Record instances of PostgreSQL extended types
 description:         This package contains HDBC Convertible instances and
-                     Relational-Record persistable instances of PostgreSQL extended types
+                     Relational-Record persistable instances of PostgreSQL extended types.
+                     .
                      Supported extended types: inet, cidr
 homepage:            http://khibino.github.io/haskell-relational-record/
 license:             BSD3
