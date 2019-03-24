@@ -45,11 +45,11 @@ HRR:
 account_3_7_1 :: Relation () Account2
 account_3_7_1 = relation $ do
   a <- query account
-  desc $ a ! Account.availBalance'
-  return $ Account2 |$| a ! Account.accountId'
-                    |*| a ! Account.productCd'
-                    |*| a ! Account.openDate'
-                    |*| a ! Account.availBalance'
+  desc $ #availBalance a
+  return $ Account2 |$| #accountId a
+                    |*| #productCd a
+                    |*| #openDate a
+                    |*| #availBalance a
 
 data Account2 = Account2
   { a2AccountId :: Int
@@ -85,11 +85,11 @@ ORDER BY open_emp_id, product_cd;
 HRR:
 
 {% highlight haskell %}
-account_3_7 :: Relation () (Maybe Int64, String)
+account_3_7 :: Relation () (Maybe Int, String)
 account_3_7 = relation $ do
   a <- query account
-  let proj = (,) |$| a ! Account.openEmpId'
-                 |*| a ! Account.productCd'
+  let proj = (,) |$| #openEmpId a
+                 |*| #productCd a
   asc proj
   return proj
 {% endhighlight %}
@@ -121,21 +121,21 @@ HRR: constructing new records in Applicative-like style.
 employee_3_7_3 :: Relation () Employee1
 employee_3_7_3 = relation $ do
   e <- query employee
-  asc $ e ! Employee.title'
-  asc $ e ! Employee.lname'
-  return $ Employee1 |$| e ! Employee.empId'
-                     |*| e ! Employee.title'
-                     |*| e ! Employee.startDate'
-                     |*| e ! Employee.fname'
-                     |*| e ! Employee.lname'
+  asc $ #title e
+  asc $ #lname e
+  return $ Employee1 |$| #empId e
+                     |*| #title e
+                     |*| #startDate e
+                     |*| #fname e
+                     |*| #lname e
 
 data Employee1 = Employee1
-  { e1EmpId :: Int64
+  { e1EmpId :: Int
   , e1Title :: Maybe String
   , e1StartDate :: Day
   , e1Fname :: String
   , e1Lname' :: String
-  } deriving (Show)
+  } deriving (Show, Generic)
 
 $(makeRelationalRecord ''Employee1)
 {% endhighlight %}
@@ -170,13 +170,13 @@ HRR:
 employee_4_1_2 :: Relation () Employee
 employee_4_1_2 = relation $ do
   e <- query employee
-  wheres $ isNothing (e ! Employee.endDate')
-  wheres $ e ! Employee.title' .=. just (value "Teller")
-     `or'` e ! Employee.startDate' .<. unsafeSQLiteDayValue "2003-01-01"
+  wheres $ isNothing (#endDate e)
+  wheres $ #title e .=. just (value "Teller")
+     `or'` #startDate e .<. unsafeSQLiteDayValue "2003-01-01"
   return e
 
-unsafeSQLiteDayValue :: SqlProjectable p => String -> p Day
-unsafeSQLiteDayValue = unsafeProjectSqlTerms . showConstantTermsSQL
+unsafeSQLiteDayValue :: SqlContext c => String -> Record c Day
+unsafeSQLiteDayValue = unsafeProjectSqlTerms . showLiteral
 {% endhighlight %}
 
 Generated SQL:
@@ -201,9 +201,9 @@ Another way, use a placeholder instead of a date literal. There is no need to de
 employee_4_1_2P :: Relation Day Employee
 employee_4_1_2P = relation' . placeholder $ \ph -> do
   e <- query employee
-  wheres $ isNothing (e ! Employee.endDate')
-  wheres $ e ! Employee.title' .=. just (value "Teller")
-     `or'` e ! Employee.startDate' .<. ph
+  wheres $ isNothing (#endDate e)
+  wheres $ #title e .=. just (value "Teller")
+     `or'` #startDate e .<. ph
   return e
 {% endhighlight %}
 
@@ -241,19 +241,19 @@ HRR:
 employee_4_3_2 :: Relation () Employee2
 employee_4_3_2 = relation $ do
   e <- query employee
-  wheres $ e ! Employee.startDate' .>=. unsafeSQLiteDayValue "2001-01-01"
-  wheres $ e ! Employee.startDate' .<=. unsafeSQLiteDayValue "2003-01-01"
-  return $ Employee2 |$| e ! Employee.empId'
-                     |*| e ! Employee.fname'
-                     |*| e ! Employee.lname'
-                     |*| e ! Employee.startDate'
+  wheres $ #startDate e .>=. unsafeSQLiteDayValue "2001-01-01"
+  wheres $ #startDate e .<=. unsafeSQLiteDayValue "2003-01-01"
+  return $ Employee2 |$| #empId e
+                     |*| #fname e
+                     |*| #lname e
+                     |*| #startDate e
 
 data Employee2 = Employee2
-  { e2EmpId :: Int64
+  { e2EmpId :: Int
   , e2Fname :: String
   , e2Lname :: String
   , e2StartDate :: Day
-  } deriving (Show)
+  } deriving (Show, Generic)
 
 $(makeRelationalRecord ''Employee2)
 {% endhighlight %}
@@ -275,12 +275,12 @@ HRR with structured placeholder:
 employee_4_3_2P :: Relation (Day,Day) Employee2
 employee_4_3_2P = relation' . placeholder $ \ph -> do
   e <- query employee
-  let date = e ! Employee.startDate'
-  wheres $ date .>=. ph ! fst'
-  wheres $ date .<=. ph ! snd'
-  return $ Employee2 |$| e ! Employee.empId'
-                     |*| e ! Employee.fname'
-                     |*| e ! Employee.lname'
+  let date = #startDate e
+  wheres $ date .>=. (! #fst) ph
+  wheres $ date .<=. (! #snd) ph
+  return $ Employee2 |$| #empId e
+                     |*| #fname e
+                     |*| #lname e
                      |*| date
 {% endhighlight %}
 
@@ -312,9 +312,18 @@ HRR: returning raw rows.
 {% highlight haskell %}
 account_4_3_3a :: Relation () Account
 account_4_3_3a = relation $ do
-  a <- query account
-  wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
+  a  <- query account
+  wheres $ #productCd a `in'` values ["CHK", "SAV", "CD", "MM"]
   return a
+
+data Account1 = Account1
+  { a1AccountId :: Int
+  , a1ProductCd :: String
+  , a1CustId :: Int
+  , a1AvailBalance :: Maybe Double
+  } deriving (Show, Generic)
+
+$(makeRelationalRecord ''Account1)
 {% endhighlight %}
 
 Generated SQL:
@@ -338,23 +347,14 @@ WHERE (T0.product_cd IN ('CHK', 'SAV', 'CD', 'MM'))
 HRR: constructing new records in Applicative-like style.
 
 {% highlight haskell %}
-data Account1 = Account1
-  { a1AccountId :: Int64
-  , a1ProductCd :: String
-  , a1CustId :: Int64
-  , a1AvailBalance :: Maybe Double
-  } deriving (Show)
-
-$(makeRelationalRecord ''Account1)
-
 account_4_3_3aR :: Relation () Account1
 account_4_3_3aR = relation $ do
   a  <- query account
-  wheres $ a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"]
-  return $ Account1 |$| a ! Account.accountId'
-                    |*| a ! Account.productCd'
-                    |*| a ! Account.custId'
-                    |*| a ! Account.availBalance'
+  wheres $ #productCd a `in'` values ["CHK", "SAV", "CD", "MM"]
+  return $ Account1 |$| #accountId a
+                    |*| #productCd a
+                    |*| #custId a
+                    |*| #availBalance a
 {% endhighlight %}
 
 Generated SQL:
@@ -384,12 +384,12 @@ HRR:
 account_9_1 :: Relation () Account1
 account_9_1 = relation $ do
   a  <- query account
-  ma <- queryScalar $ aggregatedUnique account Account.accountId' max'
-  wheres $ just (a ! Account.accountId') .=. flattenMaybe ma
-  return $ Account1 |$| a ! Account.accountId'
-                    |*| a ! Account.productCd'
-                    |*| a ! Account.custId'
-                    |*| a ! Account.availBalance'
+  ma <- queryScalar $ aggregatedUnique account #accountId max'
+  wheres $ just (#accountId a) .=. flattenMaybe ma
+  return $ Account1 |$| #accountId a
+                    |*| #productCd a
+                    |*| #custId a
+                    |*| #availBalance a
 {% endhighlight %}
 
 Generated SQL:
@@ -422,25 +422,25 @@ HRR:
 product_4_3_3b :: Relation String String
 product_4_3_3b = relation' . placeholder $ \ph -> do
   p <- query product
-  wheres $ p ! Product.productTypeCd' .=. ph
-  return $ p ! Product.productCd'
+  wheres $ #productTypeCd p .=. ph
+  return $ #productCd p
 
 account_4_3_3b :: Relation String Account
 account_4_3_3b = relation' $ do
   a <- query account
   (phProductCd,p) <- queryList' product_4_3_3b
-  wheres $ a ! Account.productCd' `in'` p
+  wheres $ #productCd a `in'` p
   return (phProductCd, a)
 
 account_4_3_3bR :: Relation String Account1
 account_4_3_3bR = relation' $ do
   a <- query account
   (phProductCd,p) <- queryList' product_4_3_3b
-  wheres $ a ! Account.productCd' `in'` p
-  let ar = Account1 |$| a ! Account.accountId'
-                    |*| a ! Account.productCd'
-                    |*| a ! Account.custId'
-                    |*| a ! Account.availBalance'
+  wheres $ #productCd a `in'` p
+  let ar = Account1 |$| #accountId a
+                    |*| #productCd a
+                    |*| #custId a
+                    |*| #availBalance a
   return (phProductCd, ar)
 {% endhighlight %}
 
@@ -456,14 +456,7 @@ Generated SQL:
 SELECT ALL T0.account_id AS f0,
            T0.product_cd AS f1,
            T0.cust_id AS f2,
-           T0.open_date AS f3,
-           T0.close_date AS f4,
-           T0.last_activity_date AS f5,
-           T0.status AS f6,
-           T0.open_branch_id AS f7,
-           T0.open_emp_id AS f8,
-           T0.avail_balance AS f9,
-           T0.pending_balance AS f10
+           T0.avail_balance AS f3
 FROM MAIN.account T0
 WHERE (T0.product_cd IN (SELECT ALL T1.product_cd AS f0
                          FROM MAIN.product T1
@@ -486,7 +479,7 @@ HRR:
 account_4_3_3c :: Relation () Account
 account_4_3_3c = relation $ do
   a  <- query account
-  wheres $ not' (a ! Account.productCd' `in'` values ["CHK", "SAV", "CD", "MM"])
+  wheres $ not' (#productCd a `in'` values ["CHK", "SAV", "CD", "MM"])
   return a
 {% endhighlight %}
 
@@ -525,12 +518,12 @@ USING (dept_id);
 HRR:
 
 {% highlight haskell %}
-join_5_1_2aT :: Relation () ((String, String), String)
+join_5_1_2aT :: Relation () (String, String, String)
 join_5_1_2aT = relation $ do
-  e <- query employee
-  d <- query department
-  on $ e ! Employee.deptId' .=. just (d ! Department.deptId')
-  return $ e ! Employee.fname' >< e ! Employee.lname' >< d ! Department.name'
+  e  <- query employee
+  d  <- query department
+  on $ #deptId e .=. just (#deptId d)
+  return $ (,,) |$| #fname e |*| #lname e |*| #name d
 {% endhighlight %}
 
 Generated SQL:
@@ -560,18 +553,18 @@ account_LeftOuterJoin :: Relation () Account4
 account_LeftOuterJoin = relation $ do
   a <- query account
   i <- queryMaybe individual
-  on $ just (a ! Account.custId') .=. i ?! Individual.custId'
-  return $ Account4 |$| a ! Account.accountId'
-                    |*| a ! Account.custId'
-                    |*| i ?! Individual.fname'
-                    |*| i ?! Individual.lname'
+  on $ just (#custId a) .=. (? #custId) i
+  return $ Account4 |$| #accountId a
+                    |*| #custId a
+                    |*| (? #fname) i
+                    |*| (? #lname) i
 
 data Account4 = Account4
-  { a4AccountId :: Int64
-  , a4CustId :: Int64
+  { a4AccountId :: Int
+  , a4CustId :: Int
   , a4Fname :: Maybe String
   , a4Lname :: Maybe String
-  } deriving (Show)
+  } deriving (Show, Generic)
 
 $(makeRelationalRecord ''Account4)
 {% endhighlight %}
@@ -600,12 +593,12 @@ SELECT c.cust_id, b.name
 HRR:
 
 {% highlight haskell %}
-business_RightOuterJoin :: Relation () (Maybe Int64, String)
+business_RightOuterJoin :: Relation () (Maybe Int, String)
 business_RightOuterJoin = relation $ do
   c <- queryMaybe customer
   b <- query business
-  on $ c ?! Customer.custId' .=. just (b ! Business.custId')
-  return (c ?! Customer.custId' >< b ! Business.name')
+  on $ (? #custId) c .=. just (#custId b)
+  return ((? #custId) c >< #name b)
 {% endhighlight %}
 
 Generated SQL:
@@ -640,27 +633,27 @@ join_5_1_3 :: Relation () Account3
 join_5_1_3 = relation $ do
   a <- query account
   e <- query employee
-  on $ a ! Account.openEmpId' .=. just (e ! Employee.empId')
+  on $ #openEmpId a .=. just (#empId e)
 
   b <- query branch
-  on $ e ! Employee.assignedBranchId' .=. just (b ! Branch.branchId')
+  on $ #assignedBranchId e .=. just (#branchId b)
 
-  wheres $ e ! Employee.startDate' .<=. unsafeSQLiteDayValue "2004-01-01"
-  wheres $ e ! Employee.title' .=. just (value "Teller")
-     `or'` e ! Employee.title' .=. just (value "Head Teller")
-  wheres $ b ! Branch.name' .=. value "Woburn Branch"
+  wheres $ #startDate e .<=. unsafeSQLiteDayValue "2004-01-01"
+  wheres $ #title e .=. just (value "Teller")
+     `or'` #title e .=. just (value "Head Teller")
+  wheres $ #name b .=. value "Woburn Branch"
 
-  return $ Account3 |$| a ! Account.accountId'
-                    |*| a ! Account.custId'
-                    |*| a ! Account.openDate'
-                    |*| a ! Account.productCd'
+  return $ Account3 |$| #accountId a
+                    |*| #custId a
+                    |*| #openDate a
+                    |*| #productCd a
 
 data Account3 = Account3
-  { accountId :: Int64
-  , custId :: Int64
-  , openDate :: Day
-  , productCd :: String
-  } deriving (Show)
+  { a3AccountId :: Int
+  , a3CustId :: Int
+  , a3OpenDate :: Day
+  , a3ProductCd :: String
+  } deriving (Show, Generic)
 
 $(makeRelationalRecord ''Account3)
 {% endhighlight %}
@@ -694,11 +687,11 @@ HRR:
 {% highlight haskell %}
 selfJoin_5_3aT :: Relation () ((String, String), (String, String))
 selfJoin_5_3aT = relation $ do
-  e <- query employee
-  m <- query employee
-  on $ e ! Employee.superiorEmpId' .=. just (m ! Employee.empId')
-  let emp = e ! Employee.fname' >< e ! Employee.lname'
-  let mgr = m ! Employee.fname' >< m ! Employee.lname'
+  e  <- query employee
+  m  <- query employee
+  on $ #superiorEmpId e .=. just (#empId m)
+  let emp = #fname e >< #lname e
+  let mgr = #fname m >< #lname m
   return $ emp >< mgr
 {% endhighlight %}
 
@@ -731,22 +724,22 @@ ORDER BY emp_id;
 HRR:
 
 {% highlight haskell %}
-employee_6_4_1a :: Relation () (Maybe Int64, Maybe Int64)
+employee_6_4_1a :: Relation () (Maybe Int, Maybe Int)
 employee_6_4_1a = relation $ do
-  e <- query employee
-  wheres $ e ! Employee.title' .=. just (value "Teller")
-  return $ just (e ! Employee.empId') >< e ! Employee.assignedBranchId'
+  e  <- query employee
+  wheres $ #title e .=. just (value "Teller")
+  return $ just (#empId e) >< #assignedBranchId e
 
-account_6_4_1a :: Relation () (Maybe Int64, Maybe Int64)
+account_6_4_1a :: Relation () (Maybe Int, Maybe Int)
 account_6_4_1a = relation $ do
-  a <- query account
-  wheres $ a ! Account.productCd' .=. value "SAV"
-  return $ a ! Account.openEmpId' >< a ! Account.openBranchId'
+  a  <- query account
+  wheres $ #productCd a .=. value "SAV"
+  return $ #openEmpId a >< #openBranchId a
 
-union_6_4_1a_Nest :: Relation () (Maybe Int64, Maybe Int64)
+union_6_4_1a_Nest :: Relation () (Maybe Int, Maybe Int)
 union_6_4_1a_Nest = relation $ do
   ea <- query $ employee_6_4_1a `union` account_6_4_1a
-  asc $ ea ! fst'
+  asc $ #fst ea
   return ea
 {% endhighlight %}
 
@@ -770,15 +763,16 @@ ORDER BY T2.f0 ASC
 HRR:
 
 {% highlight haskell %}
-union_6_4_1a_Flat :: Relation () (Maybe Int64, Maybe Int64)
+union_6_4_1a_Flat :: Relation () (Maybe Int, Maybe Int)
 union_6_4_1a_Flat = relation (do
-    e <- query employee
-    wheres $ e ! Employee.title' .=. just (value "Teller")
-    return $ just (e ! Employee.empId') >< e ! Employee.assignedBranchId'
+    e  <- query employee
+    wheres $ #title e .=. just (value "Teller")
+    return $ just (#empId e) >< #assignedBranchId e
   ) `union` relation (do
-    a <- query account
-    wheres $ a ! Account.productCd' .=. value "SAV"
-    return $ a ! Account.openEmpId' >< a ! Account.openBranchId'
+    a  <- query account
+    wheres $ #productCd a .=. value "SAV"
+    -- asc $ #openEmpId a
+    return $ #openEmpId a >< #openBranchId a
   )
 {% endhighlight %}
 
@@ -810,12 +804,12 @@ ORDER BY open_emp_id;
 HRR:
 
 {% highlight haskell %}
-group_8_1a :: Relation () (Maybe Int64, Int64)
+group_8_1a :: Relation () (Maybe Int, Int64)
 group_8_1a = aggregateRelation $ do
-  a <- query account
-  g <- groupBy $ a ! Account.openEmpId'
-  asc $ g ! id'
-  return $ g >< count (a ! Account.accountId')
+  a  <- query account
+  g  <- groupBy $ #openEmpId a
+  asc $ g
+  return $ g >< count (#accountId a)
 {% endhighlight %}
 
 Generated SQL:
@@ -847,23 +841,23 @@ customer_9_4 = relation $ do
   c  <- query customer
   ca <- queryScalar $ aggregatedUnique (relation $ do
     a <- query account
-    wheres $ a ! Account.custId' .=. c ! Customer.custId'
-    return (a ! Account.accountId')
+    wheres $ #custId a .=. #custId c
+    return (#accountId a)
     ) id' count
   wheres $ just (value (2 :: Int64)) .=. ca
   return (customer1 c)
 
 data Customer1 = Customer1
-  { c1Custid :: Int64
+  { c1Custid :: Int
   , c1CustTypeCd :: String
   , c1City :: Maybe String
-  } deriving (Show)
+  } deriving (Show, Generic)
 
-customer1 :: (SqlProjectable (Projection c), ProjectableShowSql (Projection c))
-          => Projection c Customer -> Projection c Customer1
-customer1 c = Customer1 |$| c ! Customer.custId'
-                        |*| c ! Customer.custTypeCd'
-                        |*| c ! Customer.city'
+customer1 :: SqlContext c
+          => Record c Customer -> Record c Customer1
+customer1 c = Customer1 |$| #custId c
+                        |*| #custTypeCd c
+                        |*| #city c
 
 $(makeRelationalRecord ''Customer1)
 {% endhighlight %}
@@ -896,13 +890,12 @@ HRR:
 
 {% highlight haskell %}
 insertBranch_s1 :: Insert ()
-insertBranch_s1 = derivedInsertValue $ do
-  Branch.name'     <-#  value "Headquarters"
-  Branch.address'  <-#  value (Just "3882 Main St.")
-  Branch.city'     <-#  value (Just "Waltham")
-  Branch.state'    <-#  value (Just "MA")
-  Branch.zip'      <-#  value (Just "02451")
-  return unitPlaceHolder
+insertBranch_s1 = insertValueNoPH $ do
+  Branch.name'  <-#  value "Headquarters"  -- specifying target record type
+  #address  <-#  value (Just "3882 Main St.")
+  #city     <-#  value (Just "Waltham")
+  #state    <-#  value (Just "MA")
+  #zip      <-#  value (Just "02451")
 {% endhighlight %}
 
 Generated SQL:
@@ -919,14 +912,14 @@ HRR using placeholder:
 
 {% highlight haskell %}
 insertBranch_s1P :: Insert Branch1
-insertBranch_s1P = derivedInsert piBranch1
+insertBranch_s1P = insert piBranch1
 
 piBranch1 :: Pi Branch Branch1
-piBranch1 = Branch1 |$| Branch.name'
-                    |*| Branch.address'
-                    |*| Branch.city'
-                    |*| Branch.state'
-                    |*| Branch.zip'
+piBranch1 = Branch1 |$| #name
+                    |*| #address
+                    |*| #city
+                    |*| #state
+                    |*| #zip
 
 data Branch1 = Branch1
   { b1Name :: String
@@ -950,7 +943,7 @@ Thanks to generic-programing, it is possible to specify record value directly as
 
 {% highlight haskell %}
 insertBranch_s1R :: Insert ()
-insertBranch_s1R = derivedInsertValue $ do
+insertBranch_s1R = insertValueNoPH $ do
   piBranch1   <-#  value Branch1
                          { b1Name = "Headquarters"
                          , b1Address = Just "3882 Main St."
@@ -958,7 +951,6 @@ insertBranch_s1R = derivedInsertValue $ do
                          , b1State = Just "MA"
                          , b1Zip = Just "02451"
                          }
-  return unitPlaceHolder
 {% endhighlight %}
 
 {% highlight sql %}
@@ -970,15 +962,15 @@ Thanks to generic-programing, it is possible to specify tuple type as Pi destina
 
 {% highlight haskell %}
 insertBranch_s1PT :: Insert (String, Maybe String, Maybe String, Maybe String, Maybe String)
-insertBranch_s1PT = derivedInsert piBranchTuple
+insertBranch_s1PT = insert piBranchTuple
 
 piBranchTuple :: Pi Branch (String, Maybe String, Maybe String, Maybe String, Maybe String)
 piBranchTuple = (,,,,)
-                |$| Branch.name'
-                |*| Branch.address'
-                |*| Branch.city'
-                |*| Branch.state'
-                |*| Branch.zip'
+                |$| #name
+                |*| #address
+                |*| #city
+                |*| #state
+                |*| #zip
 {% endhighlight %}
 
 {% highlight sql %}
@@ -1004,36 +996,37 @@ HRR:
 -- Note: Since the name column of department table is not set with
 -- an unique constraint, it is not possible to use queryScalar.
 -- The name column of branch table is the same.
+--
 insertEmployee_s2 :: InsertQuery ()
-insertEmployee_s2 = derivedInsertQuery piEmployee3 . relation $ do
+insertEmployee_s2 = insertQuery piEmployee3 . relation $ do
   d <- query department
   b <- query branch
-  wheres $ d ! Department.name' .=. value "Administration"
-  wheres $ b ! Branch.name' .=. value "Headquarters"
+  wheres $ #name d .=. value "Administration"
+  wheres $ #name b .=. value "Headquarters"
   return $ Employee3 |$| value "Michael"
                      |*| value "Smith"
                      |*| unsafeSQLiteDayValue "2001-06-22"
-                     |*| just (d ! Department.deptId')
+                     |*| just (#deptId d)
                      |*| value (Just "President")
-                     |*| just (b ! Branch.branchId')
+                     |*| just (#branchId b)
 
 -- this is equal to `defineDirectPi [1,2,3,6,7,8]'
 piEmployee3 :: Pi Employee Employee3
-piEmployee3 = Employee3 |$| Employee.fname'
-                        |*| Employee.lname'
-                        |*| Employee.startDate'
-                        |*| Employee.deptId'
-                        |*| Employee.title'
-                        |*| Employee.assignedBranchId'
+piEmployee3 = Employee3 |$| #fname
+                        |*| #lname
+                        |*| #startDate
+                        |*| #deptId
+                        |*| #title
+                        |*| #assignedBranchId
 
 data Employee3 = Employee3
   { e3Fname :: String
   , e3Lname :: String
   , e3StartDate :: Day
-  , e3DeptId :: Maybe Int64
+  , e3DeptId :: Maybe Int
   , e3Title :: Maybe String
-  , e3AssignedBranchId :: Maybe Int64
-  }
+  , e3AssignedBranchId :: Maybe Int
+  } deriving (Generic)
 
 $(makeRelationalRecord ''Employee3)
 {% endhighlight %}
@@ -1058,16 +1051,17 @@ Unsafe HRR:
 -- In the following code we simulate to use queryScalar with using
 -- unsafeUnique. By that means we throw away the safety given by HRR
 -- and the type system.
+--
 insertEmployee_s2U :: InsertQuery ()
-insertEmployee_s2U = derivedInsertQuery piEmployee3 . relation $ do
+insertEmployee_s2U = insertQuery piEmployee3 . relation $ do
   d <- queryScalar . unsafeUnique . relation $ do
     d' <- query department
-    wheres $ d' ! Department.name' .=. value "Administration"
-    return $ d' ! Department.deptId'
+    wheres $ #name d' .=. value "Administration"
+    return $ #deptId d'
   b <- queryScalar . unsafeUnique . relation $ do
     b' <- query branch
-    wheres $ b' ! Branch.name' .=. value "Headquarters"
-    return $ b' ! Branch.branchId'
+    wheres $ #name b' .=. value "Headquarters"
+    return $ #branchId b'
   return $ Employee3 |$| value "Michael"
                      |*| value "Smith"
                      |*| unsafeSQLiteDayValue "2001-06-22"
@@ -1102,23 +1096,23 @@ data Employee4 = Employee4
   , e4Lname :: String
   , e4StartDate :: Day
   , e4Title :: Maybe String
-  }
+  } deriving (Generic)
 
 $(makeRelationalRecord ''Employee4)
 
 insertEmployee_s2P :: InsertQuery Employee4
-insertEmployee_s2P = derivedInsertQuery piEmployee3 . relation' $ do
+insertEmployee_s2P = insertQuery piEmployee3 . relation' $ do
   d <- query department
   b <- query branch
-  wheres $ d ! Department.name' .=. value "Administration"
-  wheres $ b ! Branch.name' .=. value "Headquarters"
+  wheres $ #name d .=. value "Administration"
+  wheres $ #name b .=. value "Headquarters"
   placeholder $ \ph ->
-    return $ Employee3 |$| ph ! e4Fname'
-                       |*| ph ! e4Lname'
-                       |*| ph ! e4StartDate'
-                       |*| just (d ! Department.deptId')
-                       |*| ph ! e4Title'
-                       |*| just (b ! Branch.branchId')
+    return $ Employee3 |$| (! #e4Fname) ph
+                       |*| #e4Lname ph
+                       |*| #e4StartDate ph
+                       |*| just (#deptId d)
+                       |*| #e4Title ph
+                       |*| just (#branchId b)
 
 employee4 :: Employee4
 employee4 = Employee4
@@ -1160,11 +1154,10 @@ HRR:
 
 {% highlight haskell %}
 updateEmployee_o3 :: Update ()
-updateEmployee_o3 = derivedUpdate $ \proj -> do
-  Employee.lname' <-# value "Bush"
-  Employee.deptId' <-# just (value 3)
-  wheres $ proj ! Employee.empId' .=. value 10
-  return unitPlaceHolder
+updateEmployee_o3 = updateNoPH $ \proj -> do
+  #lname  <-# value "Bush"
+  #deptId <-# just (value 3)
+  wheres $ #empId (proj :: Record Flat Employee) .=. value 10
 {% endhighlight %}
 
 Generated SQL:
@@ -1194,21 +1187,20 @@ HRR:
 
 {% highlight haskell %}
 updateAccount_9_4_2 :: Update ()
-updateAccount_9_4_2 = derivedUpdate $ \proj -> do
+updateAccount_9_4_2 = updateNoPH $ \proj -> do
   ts <- queryScalar $ aggregatedUnique (relation $ do
-    t <- query transaction
-    wheres $ t ! Transaction.accountId' .=. proj ! Account.accountId'
-    return (t ! Transaction.txnDate')
+    t <- query Transaction.transaction
+    wheres $ #accountId t .=. #accountId proj
+    return (#txnDate t)
     ) id' max'
   tl <- queryList $ relation $ do
-    t <- query transaction
-    wheres $ t ! Transaction.accountId' .=. proj ! Account.accountId'
+    t <- query Transaction.transaction
+    wheres $ #accountId t .=. #accountId proj
     return (value (1 :: Int64))
   Account.lastActivityDate' <-# (toDay $ flattenMaybe ts)
   wheres $ exists $ tl
-  return unitPlaceHolder
 
-toDay :: (SqlProjectable p, ProjectableShowSql p) => p (Maybe LocalTime) -> p (Maybe Day)
+toDay :: SqlContext c => Record c (Maybe LocalTime) -> Record c (Maybe Day)
 toDay dt = unsafeProjectSql $ "date(" ++ unsafeShowSql dt ++ ")"
 {% endhighlight %}
 
@@ -1241,9 +1233,8 @@ HRR:
 
 {% highlight haskell %}
 deleteAccount_o1 :: Delete ()
-deleteAccount_o1 = derivedDelete $ \proj -> do
+deleteAccount_o1 = deleteNoPH $ \proj -> do
   wheres $ proj ! Account.accountId' .=. value 2
-  return unitPlaceHolder
 {% endhighlight %}
 
 Generated SQL:
@@ -1266,10 +1257,10 @@ HRR:
 
 {% highlight haskell %}
 deleteAccount_o2 :: Delete ()
-deleteAccount_o2 = derivedDelete $ \proj -> do
-  wheres $ proj ! Account.accountId' .>=. value 10
-  wheres $ proj ! Account.accountId' .<=. value 20
-  return unitPlaceHolder
+deleteAccount_o2 = deleteNoPH $ \proj' -> do
+  let proj = proj' :: Record Flat Account
+  wheres $ #accountId proj .>=. value 10
+  wheres $ #accountId proj .<=. value 20
 {% endhighlight %}
 
 Generated SQL:
@@ -1294,13 +1285,12 @@ HRR:
 
 {% highlight haskell %}
 deleteEmployee_9_4_2 :: Delete ()
-deleteEmployee_9_4_2 = derivedDelete $ \proj -> do
+deleteEmployee_9_4_2 = deleteNoPH $ \proj -> do
   el <- queryList $ relation $ do
     e <- query employee
-    wheres $ e ! Employee.deptId' .=. just (proj ! Department.deptId')
+    wheres $ #deptId e .=. just (#deptId (proj :: Record Flat Department))
     return (value (1 :: Int64))
   wheres $ not' . exists $ el
-  return unitPlaceHolder
 {% endhighlight %}
 
 Generated SQL:
