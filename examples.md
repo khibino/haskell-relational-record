@@ -29,7 +29,9 @@ HRR code examples are found in "src/examples.hs".
 
 ### SELECT
 
-If you want to look at [JOIN examples](#joins)([INNER](#inner-join), [LEFT](#left-join), [RIGHT](#right-join)), please follow these links.
+Note: If you are impatient and want to see examples of
+[JOIN queries](#joins)([INNER JOIN](#inner-join), [LEFT JOIN](#left-join), [RIGHT JOIN](#right-join)),
+please follow the links from here.
 
 #### Descending sort order
 
