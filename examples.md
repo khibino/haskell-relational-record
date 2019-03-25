@@ -1305,3 +1305,9 @@ WHERE (NOT (EXISTS (SELECT ALL 1 AS f0
                    FROM MAIN.employee T0
                    WHERE (T0.dept_id = dept_id))))
 {% endhighlight %}
+
+<!---
+ Local Variables:
+ indent-tabs-mode: nil
+ End:
+ -->
