@@ -4,7 +4,9 @@ synopsis:            Typeful, Modular, Relational, algebraic query engine
 description:         This package contiains typeful relation structure and
                      relational-algebraic query building DSL which can
                      translate into SQL query.
+                     .
                      Supported query features are below:
+                     .
                      - Type safe query building
                      - Restriction, Join, Aggregation
                      - Modularized relations

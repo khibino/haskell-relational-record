@@ -3,6 +3,7 @@ version:             0.7.1.1
 synopsis:            HDBC instance of relational-query and typed query interface for HDBC
 description:         This package contains the HDBC instance of relational-query and
                      the typed query interface for HDBC.
+                     .
                      Generating Database table definitions and functions for
                      relational-query by reading table and index definitions
                      from Database system catalogs.
