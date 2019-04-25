@@ -21,8 +21,8 @@ module Database.Relational.InternalTH.Overloaded (
 
 #if __GLASGOW_HASKELL__ >= 800
 import Language.Haskell.TH
-  (Name, mkName, Q, TypeQ, Dec, instanceD, funD, classP,
-   appT, tupleT, varT, litT, strTyLit, clause, normalB, listE)
+  (Name, mkName, Q, TypeQ, Dec, instanceD, funD,
+   appT, conT, tupleT, varT, litT, strTyLit, clause, normalB, listE)
 import Language.Haskell.TH.Lib.Extra (integralE)
 import Language.Haskell.TH.Name.CamelCase
   (ConName, conName, toVarExp, toTypeCon)
@@ -71,7 +71,7 @@ polymorphicProjections recType avs sels cts =
   where
     template colStr colType pcts =
       instanceD
-      (mapM (classP ''PersistableWidth . (:[]) . varT) avs)
+      (mapM (appT (conT ''PersistableWidth) . varT) avs)
       [t| HasProjection $(litT $ strTyLit colStr) $recType $colType |]
       [projectionDec pcts]
 
