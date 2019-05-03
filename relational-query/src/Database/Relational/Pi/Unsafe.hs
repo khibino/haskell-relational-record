@@ -25,6 +25,9 @@ module Database.Relational.Pi.Unsafe (
 
   definePi, defineDirectPi', defineDirectPi,
 
+  expandIndexes', expandIndexes,
+
+  -- * Deprecated
   unsafeExpandIndexes',
   unsafeExpandIndexes
   ) where
@@ -68,16 +71,24 @@ unsafePiAppend wbf wcf (Pi f) (Pi g) = Pi $ \wa ->
       (pbc, wc) = g $ wbf wb
   in (pab `unsafePiAppend'` pbc, wcf wc)
 
--- | Unsafely expand indexes from key.
-unsafeExpandIndexes' :: PersistableRecordWidth a -> Pi a b -> [Int]
-unsafeExpandIndexes' wa (Pi f) = d $ f wa where
+-- | Expand indexes from key.
+expandIndexes' :: PersistableRecordWidth a -> Pi a b -> [Int]
+expandIndexes' wa (Pi f) = d $ f wa where
   d (Map is, _)    = is
   d (Leftest i, w) = [ i .. i + w' - 1 ]  where
     w' = runPersistableRecordWidth w
 
--- | Unsafely expand indexes from key. Infered width version.
+unsafeExpandIndexes' :: PersistableRecordWidth a -> Pi a b -> [Int]
+unsafeExpandIndexes' = expandIndexes'
+{-# DEPRECATED unsafeExpandIndexes' "Use expandIndexes' instead of this." #-}
+
+-- | Expand indexes from key. Infered width version.
+expandIndexes :: PersistableWidth a => Pi a b -> [Int]
+expandIndexes = expandIndexes' persistableWidth
+
 unsafeExpandIndexes :: PersistableWidth a => Pi a b -> [Int]
-unsafeExpandIndexes = unsafeExpandIndexes' persistableWidth
+unsafeExpandIndexes = expandIndexes
+{-# DEPRECATED unsafeExpandIndexes "use expandIndexes instead of this." #-}
 
 -- | Unsafely cast width proof object of record. Result record must be same width.
 unsafeCastRecordWidth :: PersistableRecordWidth a -> PersistableRecordWidth a'

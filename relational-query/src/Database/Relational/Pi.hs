@@ -14,11 +14,15 @@ module Database.Relational.Pi (
   Pi, (<.>), (<?.>), (<?.?>),
 
   id',
+
+  -- * Low-level API
+  expandIndexes', expandIndexes,
   ) where
 
 import qualified Control.Category as Category
 
-import Database.Relational.Pi.Unsafe (Pi, (<.>), (<?.>), (<?.?>))
+import Database.Relational.Pi.Unsafe
+  (Pi, (<.>), (<?.>), (<?.?>), expandIndexes', expandIndexes)
 
 
 -- | Identity projection path.
