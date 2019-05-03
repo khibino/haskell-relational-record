@@ -147,8 +147,8 @@ $(makeRelationalRecord ''Employee1)
 
 -- | sql/4.1.2
 --
--- HRR supports date literal of the SQL standard, such like Date '2003-01-01'.
--- However, SQLite has its own date literal without Date keyword,
+-- HRR supports date literal of the SQL standard, such like DATE '2003-01-01'.
+-- However, SQLite has its own date literal without DATE keyword,
 -- like this: '2003-01-01'. So, you have to define a function to support
 -- SQLite's date literal. Here we define 'unsafeSQLiteDayValue' function
 -- for that.
