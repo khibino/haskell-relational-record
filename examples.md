@@ -158,7 +158,7 @@ ORDER BY T0.title ASC, T0.lname ASC
 
 #### Using the is null operator and the date literal
 
-HRR supports date literal of the SQL standard, such like Date '2003-01-01'. However, SQLite has its own date literal without Date keyword, like this: '2003-01-01'. So, you have to define a function to support SQLite's date literal. Here we define `unsafeSQLiteDayValue` function for that.
+HRR supports date literal of the SQL standard, such like DATE '2003-01-01'. However, SQLite has its own date literal without Date keyword, like this: '2003-01-01'. So, you have to define a function to support SQLite's date literal. Here we define `unsafeSQLiteDayValue` function for that.
 
 SQL:
 
