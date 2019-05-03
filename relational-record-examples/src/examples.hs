@@ -261,7 +261,7 @@ data Employee2 = Employee2
 
 $(makeRelationalRecord ''Employee2)
 
--- | sql/4.3.3a.sh
+-- | sql/4.3.3a
 --
 -- Handwritten SQL:
 --
@@ -361,7 +361,7 @@ account_9_1 = relation $ do
                     |*| #custId a
                     |*| #availBalance a
 
--- | sql/4.3.3b.sh
+-- | sql/4.3.3b
 --
 -- Handwritten SQL:
 --
@@ -435,7 +435,7 @@ product_4_3_3b = relation' . placeholder $ \ph -> do
   wheres $ #productTypeCd p .=. ph
   return $ #productCd p
 
--- | sql/4.3.3c.sh
+-- | sql/4.3.3c
 --
 -- Handwritten SQL:
 --
@@ -461,7 +461,7 @@ account_4_3_3c = relation $ do
   wheres $ not' (#productCd a `in'` values ["CHK", "SAV", "CD", "MM"])
   return a
 
--- | sql/5.1.2a.sh
+-- | sql/5.1.2a
 --
 -- Handwritten SQL:
 --
@@ -569,7 +569,7 @@ business_RightOuterJoin = relation $ do
   on $ (? #custId) c .=. just (#custId b)
   return ((? #custId) c >< #name b)
 
--- | sql/5.1.3.sh
+-- | sql/5.1.3
 --
 -- Handwritten SQL:
 --
@@ -621,7 +621,7 @@ data Account3 = Account3
 
 $(makeRelationalRecord ''Account3)
 
--- | sql/5.3a.sh
+-- | sql/5.3a
 --
 -- Handwritten SQL:
 --
@@ -668,7 +668,7 @@ selfJoin_5_3aT = relation $ do
   let mgr = #fname m >< #lname m
   return $ emp >< mgr
 
--- | sql/6.4.1a.sh
+-- | sql/6.4.1a
 --
 -- The standard SQL allows the syntax of UNION that has an order clause
 -- at the last of query. Unfortunately, HRR dows not support. In addition,
@@ -743,7 +743,7 @@ union_6_4_1a_Flat = relation (do
     return $ #openEmpId a >< #openBranchId a
   )
 
--- | sql/8.1a.sh
+-- | sql/8.1a
 --
 -- Handwritten SQL:
 --
