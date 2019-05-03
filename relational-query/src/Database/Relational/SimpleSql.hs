@@ -35,8 +35,7 @@ import Database.Record.ToSql (untypedUpdateValuesIndex)
 import Database.Relational.Internal.String
   (StringSQL, stringSQL, showStringSQL, rowConsStringSQL, )
 
-import Database.Relational.Pi (Pi)
-import qualified Database.Relational.Pi.Unsafe as UnsafePi
+import Database.Relational.Pi (Pi, expandIndexes')
 import Database.Relational.Table (Table, name, columns, recordWidth)
 import qualified Database.Relational.Record as Record
 
@@ -88,7 +87,7 @@ updateOtherThanKeySQL :: Table r -- ^ Table metadata
           -> Pi r p  -- ^ Key columns
           -> String  -- ^ Result SQL
 updateOtherThanKeySQL tbl key =
-  updateOtherThanKeySQL' (name tbl) (columns tbl) (UnsafePi.unsafeExpandIndexes' (recordWidth tbl) key)
+  updateOtherThanKeySQL' (name tbl) (columns tbl) (expandIndexes' (recordWidth tbl) key)
 
 -- | Generate prefix string of insert SQL.
 insertPrefixSQL :: Pi r r' -> Table r -> StringSQL

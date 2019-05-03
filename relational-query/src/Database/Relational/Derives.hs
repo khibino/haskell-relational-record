@@ -37,7 +37,7 @@ import Database.Record.ToSql (unsafeUpdateValuesWithIndexes)
 import Database.Relational.SqlSyntax (Record)
 
 import Database.Relational.Table (Table, TableDerivable)
-import Database.Relational.Pi.Unsafe (Pi, unsafeExpandIndexes)
+import Database.Relational.Pi (Pi, expandIndexes)
 import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable (placeholder, (.=.), (!))
 import Database.Relational.Monad.Class (wheres)
@@ -106,7 +106,7 @@ updateValuesWithKey :: ToSql q r
                     => Pi r p
                     -> r
                     -> [q]
-updateValuesWithKey =  unsafeUpdateValuesWithIndexes . unsafeExpandIndexes
+updateValuesWithKey =  unsafeUpdateValuesWithIndexes . expandIndexes
 
 -- | Typed 'KeyUpdate' using specified constraint key.
 updateByConstraintKey :: Table r       -- ^ 'Table' to update
