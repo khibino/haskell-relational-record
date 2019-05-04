@@ -16,7 +16,7 @@ import Control.Applicative ((<$>), pure, (<*>))
 import Data.Int (Int64)
 import Database.Record
 import Database.Relational
-import Database.Relational.Pi.Unsafe (unsafeExpandIndexes)
+import Database.Relational.Pi (expandIndexes)
 
 import Test.Relational.QuickCheck.Model
 
@@ -31,7 +31,7 @@ data Selector r =
   }
 
 instance PersistableWidth r => Show (Selector r) where
-  show s = unwords ["Selector", show . unsafeExpandIndexes $ sql s]
+  show s = unwords ["Selector", show . expandIndexes $ sql s]
 
 genSelector :: [(r -> Int64, Pi r Int64)] -> Gen (Selector r)
 genSelector = elements . map (uncurry Selector)
