@@ -112,6 +112,7 @@ data Config =
 --     , chunksInsertSize              =  256
 --     , schemaNameMode                =  'SchemaQualified'
 --     , normalizedTableName           =  True
+--     , enableWarning                 =  True
 --     , verboseAsCompilerWarning      =  False
 --     , disableOverloadedProjection   =  False
 --     , disableSpecializedProjection  =  False
