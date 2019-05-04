@@ -34,16 +34,18 @@ library
                        Database.HDBC.PostgreSQL.Persistable
 
   other-extensions:    MultiParamTypeClasses
-  build-depends:       base <5
-                     , bytestring
-                     , dlist
-                     , text-postgresql
-                     , convertible
-                     , HDBC
-                     , persistable-record >= 0.4
-                     , relational-query >= 0.12
-                     , relational-query-HDBC
+  build-depends:         base <5
+                       , bytestring
+                       , dlist
+                       , text-postgresql
+                       , convertible
+                       , HDBC
+                       , persistable-record >= 0.4
+                       , relational-query >= 0.12
+                       , relational-query-HDBC
   hs-source-dirs:      src
+  ghc-options:         -Wall
+
   default-language:    Haskell2010
 
 test-suite test

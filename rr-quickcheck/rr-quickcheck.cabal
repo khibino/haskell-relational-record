@@ -35,8 +35,9 @@ library
                        , relational-query-HDBC
 
   if impl(ghc == 7.4.*)
-    build-depends:        ghc-prim == 0.2.*
+    build-depends:       ghc-prim == 0.2.*
 
   hs-source-dirs:      src
   ghc-options:         -Wall
+
   default-language:    Haskell2010

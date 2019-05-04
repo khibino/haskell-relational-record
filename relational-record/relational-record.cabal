@@ -22,17 +22,17 @@ tested-with:           GHC == 8.6.1, GHC == 8.6.2, GHC == 8.6.3, GHC == 8.6.4, G
 
 library
   exposed-modules:
-                     Database.Relational.Documentation
+                       Database.Relational.Documentation
 
-  build-depends:       base <5
-                     , product-isomorphic >= 0.0.3
-                     , persistable-record >= 0.6
-                     , relational-query >=0.11
-                     , relational-query-HDBC >= 0.6.6
-                     , persistable-types-HDBC-pg
+  build-depends:         base <5
+                       , product-isomorphic >= 0.0.3
+                       , persistable-record >= 0.6
+                       , relational-query >=0.11
+                       , relational-query-HDBC >= 0.6.6
+                       , persistable-types-HDBC-pg
 
-  hs-source-dirs:    src
-  ghc-options:       -Wall
+  hs-source-dirs:      src
+  ghc-options:         -Wall
 
   default-language:    Haskell2010
 

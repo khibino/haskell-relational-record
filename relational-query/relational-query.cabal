@@ -114,12 +114,12 @@ library
                        , names-th
                        , persistable-record >= 0.6
   if impl(ghc == 7.4.*)
-    build-depends:        ghc-prim == 0.2.*
+    build-depends:       ghc-prim == 0.2.*
 
   hs-source-dirs:      src
   ghc-options:         -Wall -fsimpl-tick-factor=200
 
-  default-language:     Haskell2010
+  default-language:    Haskell2010
 
 test-suite sqls
   build-depends:         base <5
@@ -140,7 +140,7 @@ test-suite sqls
   hs-source-dirs:      test
   ghc-options:         -Wall -fsimpl-tick-factor=200
 
-  default-language:     Haskell2010
+  default-language:    Haskell2010
 
 test-suite sqlsArrow
   build-depends:         base <5
@@ -161,7 +161,7 @@ test-suite sqlsArrow
   hs-source-dirs:      test
   ghc-options:         -Wall
 
-  default-language:     Haskell2010
+  default-language:    Haskell2010
 
 
 source-repository head
