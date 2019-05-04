@@ -8,7 +8,7 @@ module Test.Relational.QuickCheck.Tests (
   ) where
 
 import Test.QuickCheck (Property)
-import Test.QuickCheck.Property (morallyDubiousIOProperty)
+import Test.QuickCheck.CompatIO (ioProperty)
 import Test.QuickCheck.Simple (Test, qcTest)
 import Control.Monad (unless)
 import Data.List (sort)
@@ -38,7 +38,7 @@ propQueryResult :: (Eq a, Show a, FromSql SqlValue a, IConnection conn)
                 -> [a]
                 -> Property
 propQueryResult connect initialize select expect =
-  morallyDubiousIOProperty . withConnectionIO connect $ \conn -> do
+  ioProperty . withConnectionIO connect $ \conn -> do
     initialize conn
     qresult  <-  runQuery' conn select ()
     let judge = qresult == expect
