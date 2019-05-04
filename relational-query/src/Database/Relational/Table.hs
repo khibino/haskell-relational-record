@@ -24,13 +24,19 @@ import Database.Record.Persistable
   (PersistableWidth, PersistableRecordWidth, unsafePersistableRecordWidth)
 
 import Database.Relational.Internal.UntypedTable (Untyped (Untyped), name', width', columns', (!))
-import Database.Relational.Internal.String (StringSQL, stringSQL, )
+import Database.Relational.Internal.String (StringSQL, stringSQL, showStringSQL)
 import Database.Relational.SqlSyntax (SubQuery)
 import qualified Database.Relational.SqlSyntax as Syntax
 
 
 -- | Phantom typed table type
 newtype Table r = Table Untyped
+
+instance Show (Table r) where
+  show t =
+    unwords
+    ["Table",  show $ name t,
+     show . map showStringSQL $ columns t]
 
 -- | Untype table.
 untype :: Table t -> Untyped
