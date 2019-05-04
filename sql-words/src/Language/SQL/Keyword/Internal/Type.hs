@@ -55,7 +55,7 @@ instance Semigroup DString where
 
 instance Monoid DString where
   mempty  = DString id
-  mappend = dappend
+  mappend = (<>)
 
 -- | Type represent SQL keywords.
 data Keyword = SELECT | ALL | DISTINCT | ON
@@ -150,7 +150,7 @@ instance Semigroup Keyword where
 -- | 'Keyword' default concatination separate by space.
 instance Monoid Keyword where
   mempty  = fromDString mempty
-  mappend = kappend
+  mappend = (<>)
 
 
 -- | Show 'Keyword'
