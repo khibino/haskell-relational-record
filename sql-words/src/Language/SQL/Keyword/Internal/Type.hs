@@ -1,6 +1,6 @@
 -- |
 -- Module      : Language.SQL.Keyword.Internal.Type
--- Copyright   : 2013-2018 Kei Hibino
+-- Copyright   : 2013-2019 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
