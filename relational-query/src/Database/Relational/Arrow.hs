@@ -89,7 +89,6 @@ import Database.Relational hiding
    QuerySimple, QueryAggregate, QueryUnique, Orderings, Window, Register)
 import qualified Database.Relational as Monadic
 import qualified Database.Relational.Monad.Trans.Aggregating as Monadic
-import qualified Database.Relational.Monad.Trans.Ordering as Monadic
 import qualified Database.Relational.Monad.Trans.Assigning as Monadic
 
 
