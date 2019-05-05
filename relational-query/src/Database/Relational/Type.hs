@@ -229,8 +229,8 @@ derivedUpdateAllColumn' = updateAllColumn'
 -- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement'.
 --   Update target is all column.
 updateAllColumn :: (PersistableWidth r, TableDerivable r)
-                       => RestrictedStatement r (PlaceHolders p)
-                       -> Update (r, p)
+                => RestrictedStatement r (PlaceHolders p)
+                -> Update (r, p)
 updateAllColumn = updateAllColumn' defaultConfig
 
 -- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement'
