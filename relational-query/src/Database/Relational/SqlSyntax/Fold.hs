@@ -15,7 +15,7 @@ module Database.Relational.SqlSyntax.Fold (
   showSQL, toSQL, unitSQL, width,
 
   -- * Qualified Sub-query
-  queryWidth,
+  queryWidth, qualSubQueryTerm,
 
   -- * Sub-query columns
   column,
@@ -177,6 +177,12 @@ showSQL = snd . toSQLs
 toSQL :: SubQuery -> String
 toSQL =  showStringSQL . showSQL
 
+-- | Term of qualified table or qualified subquery,
+--   used in join-clause of SELECT, correlated UPDATE and DELETE statements.
+--   When SubQuery is table, expression will be like <TABLE> [AS] T<n>
+qualSubQueryTerm :: Qualified SubQuery -> StringSQL
+qualSubQueryTerm = qualifiedSQLas . fmap showUnitSQL
+
 -- | Get column SQL string of 'Qualified' 'SubQuery'.
 column :: Qualified SubQuery -> Int -> StringSQL
 column qs =  d (Syntax.unQualify qs)  where
@@ -245,7 +251,7 @@ showsQueryProduct =  rec  where
   urec n = case Syntax.nodeTree n of
     p@(Leaf _)     -> rec p
     p@(Join {})    -> SQL.paren (rec p)
-  rec (Leaf q)               = qualifiedSQLas $ fmap showUnitSQL q
+  rec (Leaf q)               = qualSubQueryTerm q
   rec (Join left' right' rs) =
     mconcat
     [urec left',
