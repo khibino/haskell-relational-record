@@ -96,13 +96,14 @@ import Database.Relational.Effect
 
   InsertTarget, insertTarget, insertTarget', piRegister,
 
-  sqlWhereFromRestriction,
-  sqlFromUpdateTarget,
   sqlChunkFromInsertTarget,
   sqlFromInsertTarget,
   sqlChunksFromRecordList,
 
-  updateTarget, updateTargetAllColumn, updateTargetAllColumn',)
+  updateTarget, updateTargetAllColumn, updateTargetAllColumn',
+  sqlWhereFromRestriction,
+  sqlFromUpdateTarget,
+  )
 import Database.Relational.Derives
 
 import Database.Record.Instances ()
