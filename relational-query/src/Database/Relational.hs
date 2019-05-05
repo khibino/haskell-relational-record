@@ -89,6 +89,20 @@ import Database.Relational.Type hiding
   (unsafeTypedKeyUpdate, unsafeTypedDelete,
    unsafeTypedInsert, unsafeTypedInsertQuery, )
 import Database.Relational.Effect
+  (Restriction, restriction, restriction',
+
+  UpdateTarget, updateTarget',
+  liftTargetAllColumn, liftTargetAllColumn',
+
+  InsertTarget, insertTarget, insertTarget', piRegister,
+
+  sqlWhereFromRestriction,
+  sqlFromUpdateTarget,
+  sqlChunkFromInsertTarget,
+  sqlFromInsertTarget,
+  sqlChunksFromRecordList,
+
+  updateTarget, updateTargetAllColumn, updateTargetAllColumn',)
 import Database.Relational.Derives
 
 import Database.Record.Instances ()
