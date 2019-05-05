@@ -10,8 +10,8 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- This module defines interfaces between haskell pure values
--- and query internal record values.
+-- This module defines instances which lift from haskell pure values
+-- to query internal record values.
 module Database.Relational.Pure () where
 
 import Control.Applicative (pure)
