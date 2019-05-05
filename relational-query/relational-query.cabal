@@ -38,6 +38,7 @@ library
                        Database.Relational.Table
                        Database.Relational.SimpleSql
                        Database.Relational.Pure
+                       Database.Relational.PureUTF8
                        Database.Relational.NonStandard.PureTimestampTZ
                        Database.Relational.Pi
                        Database.Relational.Pi.Unsafe

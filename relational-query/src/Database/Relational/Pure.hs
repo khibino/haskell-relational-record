@@ -17,13 +17,9 @@ module Database.Relational.Pure () where
 import Control.Applicative (pure)
 import Data.Int (Int8, Int16, Int32, Int64)
 import Data.Word (Word8, Word16, Word32, Word64, Word)
-import Data.ByteString (ByteString)
-import qualified Data.ByteString.Lazy as LB
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy as LT
-import qualified Data.Text.Lazy.Encoding as LT
 import Text.Printf (PrintfArg, printf)
 import Data.Time (Day, TimeOfDay, LocalTime)
 import Data.DList (DList, fromList)
@@ -91,14 +87,6 @@ instance LiteralSQL Integer where
 -- | Constant SQL terms of 'String'.
 instance LiteralSQL String where
   showLiteral' = pure . Lit.stringExpr
-
--- | Constant SQL terms of 'ByteString'.
-instance LiteralSQL ByteString where
-  showLiteral' = pure . Lit.stringExpr . T.unpack . T.decodeUtf8
-
--- | Constant SQL terms of 'LB.ByteString'.
-instance LiteralSQL LB.ByteString where
-  showLiteral' = pure . Lit.stringExpr . LT.unpack . LT.decodeUtf8
 
 -- | Constant SQL terms of 'Text'.
 instance LiteralSQL Text where
