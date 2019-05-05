@@ -85,7 +85,6 @@ library
                        Database.Relational.Internal.String
                        Database.Relational.Internal.UntypedTable
                        Database.Relational.Internal.Literal
-                       Database.Relational.Pure.Internal
                        Database.Relational.SqlSyntax.Types
                        Database.Relational.SqlSyntax.Join
                        Database.Relational.SqlSyntax.Aggregate
