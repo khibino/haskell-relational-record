@@ -14,6 +14,7 @@ module Database.Relational.Internal.Literal (
   bool, integral, timestamp,
   ) where
 
+import Data.Monoid ((<>))
 import Data.Time (FormatTime, formatTime)
 import Data.Time.Locale.Compat (defaultTimeLocale)
 
