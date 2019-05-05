@@ -1,5 +1,3 @@
-{-# LANGUAGE FlexibleInstances #-}
-
 -- |
 -- Module      : Database.Relational.Internal.String
 -- Copyright   : 2014-2019 Kei Hibino
