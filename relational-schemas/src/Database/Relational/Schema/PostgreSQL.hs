@@ -39,8 +39,6 @@ import Database.Relational
    wheres, (.=.), (.>.), in', values, (!), fst', snd',
    placeholder, asc, value, unsafeProjectSql, (><))
 
-import Database.Relational.Pure.NonStandard.TIMESTAMPTZ ()
-
 import Database.Relational.Schema.PgCatalog.PgNamespace (pgNamespace)
 import qualified Database.Relational.Schema.PgCatalog.PgNamespace as Namespace
 import Database.Relational.Schema.PgCatalog.PgClass (pgClass)
