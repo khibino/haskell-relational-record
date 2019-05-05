@@ -14,9 +14,8 @@ module Database.Relational.Effect (
   Restriction, restriction, restriction',
 
   -- * Object to express update target columns and restriction.
-  UpdateTarget, updateTarget, updateTarget',
+  UpdateTarget, updateTarget',
   liftTargetAllColumn, liftTargetAllColumn',
-  updateTargetAllColumn, updateTargetAllColumn',
 
   -- * Object to express insert terget.
   InsertTarget, insertTarget, insertTarget', piRegister,
@@ -27,6 +26,9 @@ module Database.Relational.Effect (
   sqlChunkFromInsertTarget,
   sqlFromInsertTarget,
   sqlChunksFromRecordList,
+
+  -- * Deprecated
+  updateTarget, updateTargetAllColumn, updateTargetAllColumn',
   ) where
 
 import Data.Monoid ((<>))
