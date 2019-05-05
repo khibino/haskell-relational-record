@@ -48,7 +48,8 @@ import Database.Relational.Internal.Config
 import Database.Relational.Internal.UntypedTable ((!))
 import qualified Database.Relational.Internal.UntypedTable as UntypedTable
 import Database.Relational.Internal.String
-  (StringSQL, stringSQL, rowStringSQL, showStringSQL, boolSQL, )
+  (StringSQL, stringSQL, rowStringSQL, showStringSQL, )
+import qualified Database.Relational.Internal.Literal as Lit
 import Database.Relational.SqlSyntax.Types
   (SubQuery (..), Record, Tuple, Predicate,
    Column (..), CaseClause(..), WhenClauses (..),
@@ -250,7 +251,7 @@ showsQueryProduct =  rec  where
     [urec left',
      joinType (Syntax.nodeAttr left') (Syntax.nodeAttr right'), JOIN,
      urec right',
-     ON, foldr1 SQL.and $ ps ++ concat [ pure $ boolSQL True | null ps ] ]
+     ON, foldr1 SQL.and $ ps ++ concat [ pure $ Lit.bool True | null ps ] ]
     where ps = [ rowStringSQL $ recordRawColumns p | p <- rs ]
 
 -- | Shows join product of query.

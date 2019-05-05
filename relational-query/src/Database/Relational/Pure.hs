@@ -34,8 +34,7 @@ import Database.Record
 import Database.Record.Persistable
   (runPersistableRecordWidth)
 
-import Database.Relational.Internal.String
-  (StringSQL, stringSQL, boolSQL)
+import Database.Relational.Internal.String (StringSQL, stringSQL)
 import qualified Database.Relational.Internal.Literal as Lit
 
 import Database.Relational.ProjectableClass (LiteralSQL (..))
@@ -115,7 +114,7 @@ instance LiteralSQL Char where
 
 -- | Constant SQL terms of 'Bool'.
 instance LiteralSQL Bool where
-  showLiteral' = pure . boolSQL
+  showLiteral' = pure . Lit.bool
 
 floatTerms :: (PrintfArg a, Ord a, Num a)=> a -> DList StringSQL
 floatTerms f = pure . stringSQL $ printf fmt f  where

@@ -11,8 +11,7 @@
 -- into SQL expressions.
 module Database.Relational.Internal.Literal (
   stringExpr,
-  integral,
-  timestamp,
+  bool, integral, timestamp,
   ) where
 
 import Data.Time (FormatTime, formatTime)
@@ -33,6 +32,14 @@ escapeStringToSqlExpr = rec where
 -- | From 'String' into constant SQL string expression.
 stringExpr :: String -> StringSQL
 stringExpr = stringSQL . ('\'' :) . (++ "'") . escapeStringToSqlExpr
+
+-- | SQL expressions for Bool type.
+bool :: Bool -> StringSQL
+bool =
+    stringSQL . d
+  where
+    d True  = "(0=0)"
+    d False = "(0=1)"
 
 -- | Constant integral SQL term.
 integral :: (Show a, Integral a) => a -> StringSQL
