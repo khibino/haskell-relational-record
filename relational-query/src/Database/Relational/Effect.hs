@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 -- |
 -- Module      : Database.Relational.Effect
 -- Copyright   : 2013-2019 Kei Hibino
@@ -21,16 +23,19 @@ module Database.Relational.Effect (
   InsertTarget, insertTarget, insertTarget', piRegister,
 
   -- * Generate SQL from restriction.
-  sqlWhereFromRestriction,
-  sqlFromUpdateTarget,
+  deleteFromRestriction,
+  updateFromUpdateTarget,
   sqlChunkFromInsertTarget,
   sqlFromInsertTarget,
   sqlChunksFromRecordList,
 
   -- * Deprecated
   updateTarget, updateTargetAllColumn, updateTargetAllColumn',
+  sqlWhereFromRestriction,
+  sqlFromUpdateTarget,
   ) where
 
+import Control.Monad (void)
 import Data.Monoid ((<>))
 import Data.List (unfoldr)
 import Data.Functor.ProductIsomorphic (peRight)
@@ -41,7 +46,9 @@ import Database.Record.Persistable (PersistableWidth)
 import Database.Relational.Internal.Config (Config (chunksInsertSize), defaultConfig)
 import Database.Relational.Internal.String (StringSQL, stringSQL, showStringSQL)
 import Database.Relational.SqlSyntax
-  (composeWhere, composeSets, composeChunkValuesWithColumns, composeValuesListWithColumns)
+  (Record, composeWhere, composeSets,
+   composeChunkValuesWithColumns, composeValuesListWithColumns,
+   Qualified, SubQuery, qualSubQueryTerm)
 
 import Database.Relational.Pi (Pi, id')
 import qualified Database.Relational.Pi.Unsafe as Pi
@@ -51,6 +58,8 @@ import qualified Database.Relational.Record as Record
 import Database.Relational.ProjectableClass (LiteralSQL)
 import Database.Relational.Projectable
   (PlaceHolders, unitPH, pwPlaceholder, placeholder, (><), value, )
+import Database.Relational.Monad.BaseType (ConfigureQuery, qualifyQuery)
+import Database.Relational.Monad.Class (MonadQualify (..))
 import Database.Relational.Monad.Trans.Assigning (assignings, (<-#))
 import Database.Relational.Monad.Restrict (RestrictedStatement)
 import qualified Database.Relational.Monad.Restrict as Restrict
@@ -59,6 +68,17 @@ import qualified Database.Relational.Monad.Assign as Assign
 import Database.Relational.Monad.Register (Register)
 import qualified Database.Relational.Monad.Register as Register
 
+
+-- helper function for UPDATE and DELETE
+withQualified :: MonadQualify ConfigureQuery m => Table r -> (Record c r -> m a) -> m StringSQL
+withQualified tbl q = do
+  let qualTandR :: MonadQualify ConfigureQuery m => Table r -> m (Qualified SubQuery, Record c r)
+      qualTandR tbl_ = liftQualify $ do
+        qq <- qualifyQuery $ Table.toSubQuery tbl_
+        return (qq, Record.unsafeFromQualifiedSubQuery qq {- qualified record expression -})
+  (qq, r) <- qualTandR tbl
+  void $ q r -- placeholder info is not used
+  return $ qualSubQueryTerm qq {- qualified table -}
 
 -- | Restriction type with place-holder parameter 'p' and projected record type 'r'.
 newtype Restriction p r = Restriction (RestrictedStatement r (PlaceHolders p))
@@ -75,14 +95,23 @@ runRestriction :: Restriction p r
                -> RestrictedStatement r (PlaceHolders p)
 runRestriction (Restriction qf) = qf
 
+fromRestriction :: Config -> Table r -> Restriction p r -> (StringSQL, StringSQL)
+fromRestriction config tbl (Restriction q) = (qt, composeWhere rs)
+  where (qt, rs) = Restrict.extract (withQualified tbl q) config
+
 -- | SQL WHERE clause 'StringSQL' string from 'Restriction'.
 sqlWhereFromRestriction :: Config -> Table r -> Restriction p r -> StringSQL
-sqlWhereFromRestriction config tbl (Restriction q) = composeWhere rs
-  where (_ph, rs) = Restrict.extract (q $ Record.unsafeFromTable tbl) config
+sqlWhereFromRestriction config tbl = snd . fromRestriction config tbl
+{-# DEPRECATED sqlWhereFromRestriction "low-level API, this API will be expired." #-}
 
--- | Show where clause.
+-- | DELETE statement with WHERE clause 'StringSQL' string from 'Restriction'.
+deleteFromRestriction :: Config -> Table r -> Restriction p r -> StringSQL
+deleteFromRestriction config tbl r =
+  DELETE <> FROM <> uncurry (<>) (fromRestriction config tbl r)
+
+-- | Show WHERE clause.
 instance TableDerivable r => Show (Restriction p r) where
-  show = showStringSQL . sqlWhereFromRestriction defaultConfig derivedTable
+  show = showStringSQL . snd . fromRestriction defaultConfig derivedTable
 
 
 -- | UpdateTarget type with place-holder parameter 'p' and projected record type 'r'.
@@ -134,13 +163,23 @@ updateTargetAllColumn' = liftTargetAllColumn' . restriction'
 {-# DEPRECATED updateTargetAllColumn' "Use Database.Relational.updateAllColumn instead of this." #-}
 
 
+fromUpdateTarget :: Config -> Table r -> UpdateTarget p r -> (StringSQL, StringSQL)
+fromUpdateTarget config tbl (UpdateTarget q) = (qt, composeSets (asR tbl) <> composeWhere rs)
+  where ((qt, asR), rs) = Assign.extract (withQualified tbl q) config
+
 -- | SQL SET clause and WHERE clause 'StringSQL' string from 'UpdateTarget'
 sqlFromUpdateTarget :: Config -> Table r -> UpdateTarget p r -> StringSQL
-sqlFromUpdateTarget config tbl (UpdateTarget q) = composeSets (asR tbl) <> composeWhere rs
-  where ((_ph, asR), rs) = Assign.extract (q (Record.unsafeFromTable tbl)) config
+sqlFromUpdateTarget config tbl = snd . fromUpdateTarget config tbl
+{-# DEPRECATED sqlFromUpdateTarget "low-level API, this API will be expired." #-}
 
+-- | UPDATE statement with SET clause and WHERE clause 'StringSQL' string from 'UpdateTarget'
+updateFromUpdateTarget :: Config -> Table r -> UpdateTarget p r -> StringSQL
+updateFromUpdateTarget config tbl ut =
+  UPDATE <> uncurry (<>) (fromUpdateTarget config tbl ut)
+
+-- | Show Set clause and WHERE clause.
 instance TableDerivable r => Show (UpdateTarget p r) where
-  show = showStringSQL . sqlFromUpdateTarget defaultConfig derivedTable
+  show = showStringSQL . snd . fromUpdateTarget defaultConfig derivedTable
 
 
 -- | InsertTarget type with place-holder parameter 'p' and projected record type 'r'.
