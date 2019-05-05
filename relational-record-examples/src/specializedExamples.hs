@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
+{-# OPTIONS_GHC -fno-warn-unused-binds #-}
 {-# LANGUAGE MonadComprehensions #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell #-}
