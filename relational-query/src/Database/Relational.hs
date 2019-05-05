@@ -91,18 +91,19 @@ import Database.Relational.Type hiding
 import Database.Relational.Effect
   (Restriction, restriction, restriction',
 
-  UpdateTarget, updateTarget',
-  liftTargetAllColumn, liftTargetAllColumn',
+   UpdateTarget, updateTarget',
+   liftTargetAllColumn, liftTargetAllColumn',
 
-  InsertTarget, insertTarget, insertTarget', piRegister,
+   InsertTarget, insertTarget, insertTarget', piRegister,
 
-  sqlChunkFromInsertTarget,
-  sqlFromInsertTarget,
-  sqlChunksFromRecordList,
+   sqlChunkFromInsertTarget,
+   sqlFromInsertTarget,
+   sqlChunksFromRecordList,
 
-  updateTarget, updateTargetAllColumn, updateTargetAllColumn',
-  sqlWhereFromRestriction,
-  sqlFromUpdateTarget,
+   insertTarget, updateTarget,
+   updateTargetAllColumn, updateTargetAllColumn',
+   sqlWhereFromRestriction,
+   sqlFromUpdateTarget,
   )
 import Database.Relational.Derives
 
