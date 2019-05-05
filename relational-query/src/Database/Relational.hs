@@ -94,7 +94,7 @@ import Database.Relational.Effect
    UpdateTarget, updateTarget',
    liftTargetAllColumn, liftTargetAllColumn',
 
-   InsertTarget, insertTarget, insertTarget', piRegister,
+   InsertTarget, insertTarget', piRegister,
 
    sqlChunkFromInsertTarget,
    sqlFromInsertTarget,
