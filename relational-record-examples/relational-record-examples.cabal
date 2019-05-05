@@ -30,7 +30,7 @@ extra-source-files:    sql/3.7.1.sh
 
 flag binary
   description:         building binary, too
-  default:             False
+  default:             True
   manual:              True
 
 library
