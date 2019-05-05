@@ -2,7 +2,7 @@
 
 -- |
 -- Module      : Database.Relational.Monad.Trans.Qualify
--- Copyright   : 2013-2017 Kei Hibino
+-- Copyright   : 2013-2019 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
@@ -48,7 +48,7 @@ qualify =  Qualify . lift
 
 -- | Get qualifyed table form query.
 qualifyQuery :: Monad m
-             => query                                -- ^ Query to qualify
+             => query                              -- ^ Query to qualify
              -> Qualify m (Syntax.Qualified query) -- ^ Result with updated state
 qualifyQuery query =
   Syntax.qualify `liftM` newAlias `ap` return query
