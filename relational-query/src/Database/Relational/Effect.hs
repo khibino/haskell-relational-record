@@ -20,7 +20,7 @@ module Database.Relational.Effect (
   liftTargetAllColumn, liftTargetAllColumn',
 
   -- * Object to express insert terget.
-  InsertTarget, insertTarget, insertTarget', piRegister,
+  InsertTarget, insertTarget', piRegister,
 
   -- * Generate SQL from restriction.
   deleteFromRestriction,
@@ -31,6 +31,7 @@ module Database.Relational.Effect (
 
   -- * Deprecated
   updateTarget, updateTargetAllColumn, updateTargetAllColumn',
+  insertTarget,
   sqlWhereFromRestriction,
   sqlFromUpdateTarget,
   ) where
@@ -121,7 +122,7 @@ newtype UpdateTarget p r = UpdateTarget (AssignStatement r (PlaceHolders p))
 updateTarget :: AssignStatement r ()
              -> UpdateTarget () r
 updateTarget =  UpdateTarget . ((>> return unitPH) .)
-{-# DEPRECATED updateTarget "old-style complex API. Use new-style Database.Relational.update." #-}
+{-# DEPRECATED updateTarget "old-style API. Use new-style Database.Relational.updateNoPH." #-}
 
 -- | Finalize 'Target' monad and generate 'UpdateTarget' with place-holder parameter 'p'.
 updateTarget' :: AssignStatement r (PlaceHolders p)
@@ -189,6 +190,7 @@ newtype InsertTarget p r = InsertTarget (Register r (PlaceHolders p))
 insertTarget :: Register r ()
              -> InsertTarget () r
 insertTarget =  InsertTarget . (>> return unitPH)
+{-# DEPRECATED insertTarget "old-style API. Use new-style Database.Relational.insertValueNoPH ." #-}
 
 -- | Finalize 'Target' monad and generate 'UpdateTarget' with place-holder parameter 'p'.
 insertTarget' :: Register r (PlaceHolders p)
