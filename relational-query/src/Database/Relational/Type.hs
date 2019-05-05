@@ -73,15 +73,14 @@ import Database.Relational.Effect
   (Restriction, restriction, restriction', UpdateTarget, updateTarget',
    liftTargetAllColumn, liftTargetAllColumn',
    InsertTarget, insertTarget',
-   sqlWhereFromRestriction, sqlFromUpdateTarget, piRegister,
+   deleteFromRestriction, updateFromUpdateTarget, piRegister,
    sqlChunkFromInsertTarget, sqlFromInsertTarget, sqlChunksFromRecordList)
 import Database.Relational.Pi (Pi)
 import Database.Relational.Table (Table, TableDerivable, derivedTable)
 import Database.Relational.ProjectableClass (LiteralSQL)
 import Database.Relational.Projectable (PlaceHolders, unitPH)
 import Database.Relational.SimpleSql
-  (QuerySuffix, showsQuerySuffix, insertPrefixSQL,
-   updateOtherThanKeySQL, updatePrefixSQL, deletePrefixSQL)
+  (QuerySuffix, showsQuerySuffix, insertPrefixSQL, updateOtherThanKeySQL, )
 
 
 -- | Query type with place-holder parameter 'p' and query result type 'a'.
@@ -154,7 +153,7 @@ unsafeTypedUpdate =  Update
 
 -- | Make untyped update SQL string from 'Table' and 'UpdateTarget'.
 updateSQL :: Config -> Table r -> UpdateTarget p r -> String
-updateSQL config tbl ut = showStringSQL $ updatePrefixSQL tbl <> sqlFromUpdateTarget config tbl ut
+updateSQL config tbl ut = showStringSQL $ updateFromUpdateTarget config tbl ut
 
 -- | Make typed 'Update' from 'Config', 'Table' and 'UpdateTarget'.
 typedUpdate' :: Config -> Table r -> UpdateTarget p r -> Update p
@@ -400,7 +399,7 @@ unsafeTypedDelete =  Delete
 
 -- | Make untyped delete SQL string from 'Table' and 'Restriction'.
 deleteSQL :: Config -> Table r -> Restriction p r -> String
-deleteSQL config tbl r = showStringSQL $ deletePrefixSQL tbl <> sqlWhereFromRestriction config tbl r
+deleteSQL config tbl r = showStringSQL $ deleteFromRestriction config tbl r
 
 -- | Make typed 'Delete' from 'Config', 'Table' and 'Restriction'.
 typedDelete' :: Config -> Table r -> Restriction p r -> Delete p

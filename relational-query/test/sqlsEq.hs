@@ -129,7 +129,7 @@ monadic =
   , eqProp "all'"       all'X
     "SELECT ALL T0.int_a0 AS f0 FROM TEST.set_a T0"
   , eqProp "update"      assignX
-    "UPDATE TEST.set_a SET int_a0 = 0"
+    "UPDATE TEST.set_a T0 SET int_a0 = 0"
   , eqProp "insert"      registerX
     "INSERT INTO TEST.set_c (int_c0, str_c1, int_c2, may_str_c3) VALUES (1, ?, 2, ?)"
   , eqChunkedInsert "insert chunked" registerX
@@ -656,9 +656,9 @@ effs =
   , eqProp "updateKey" updateKeyX
     "UPDATE TEST.set_a SET str_a1 = ?, str_a2 = ? WHERE int_a0 = ?"
   , eqProp "update" updateX
-    "UPDATE TEST.set_a SET str_a2 = 'X' WHERE (str_a1 = 'A')"
+    "UPDATE TEST.set_a T0 SET str_a2 = 'X' WHERE (T0.str_a1 = 'A')"
   , eqProp "delete" deleteX
-    "DELETE FROM TEST.set_a WHERE (str_a1 = 'A')"
+    "DELETE FROM TEST.set_a T0 WHERE (T0.str_a1 = 'A')"
   ]
 
 updateExistsX :: Update ()
@@ -698,28 +698,28 @@ deleteScalarX = deleteNoPH $ \proj -> do
 correlated :: [Test]
 correlated =
   [ eqProp "update-exists" updateExistsX
-    "UPDATE TEST.set_a SET str_a2 = 'X' \
-    \ WHERE (EXISTS (SELECT ALL T0.int_b0 AS f0, T0.may_str_b1 AS f1, T0.str_b2 AS f2 \
-    \                      FROM TEST.set_b T0 \
-    \                     WHERE (T0.int_b0 = int_a0)))"
+    "UPDATE TEST.set_a T0 SET str_a2 = 'X' \
+    \ WHERE (EXISTS (SELECT ALL T1.int_b0 AS f0, T1.may_str_b1 AS f1, T1.str_b2 AS f2 \
+    \                      FROM TEST.set_b T1 \
+    \                     WHERE (T1.int_b0 = T0.int_a0)))"
 
   , eqProp "update-scalar" updateScalarX
-    "UPDATE TEST.set_a SET str_a2 = 'X' \
-    \ WHERE (int_a0 = (SELECT ALL T0.int_b0 AS f0 \
-    \                        FROM TEST.set_b T0 \
-    \                       WHERE (T0.int_b0 = 0)))"
+    "UPDATE TEST.set_a T0 SET str_a2 = 'X' \
+    \ WHERE (T0.int_a0 = (SELECT ALL T1.int_b0 AS f0 \
+    \                           FROM TEST.set_b T1 \
+    \                          WHERE (T1.int_b0 = 0)))"
 
   , eqProp "delete-exists" deleteExistsX
-   "DELETE FROM TEST.set_a \
-   \ WHERE (EXISTS (SELECT ALL T0.int_b0 AS f0, T0.may_str_b1 AS f1, T0.str_b2 AS f2 \
-   \                      FROM TEST.set_b T0 \
-   \                     WHERE (T0.int_b0 = int_a0)))"
+   "DELETE FROM TEST.set_a T0 \
+   \ WHERE (EXISTS (SELECT ALL T1.int_b0 AS f0, T1.may_str_b1 AS f1, T1.str_b2 AS f2 \
+   \                      FROM TEST.set_b T1 \
+   \                     WHERE (T1.int_b0 = T0.int_a0)))"
 
   , eqProp "delete-scalar" deleteScalarX
-    "DELETE FROM TEST.set_a \
-    \ WHERE (int_a0 = (SELECT ALL T0.int_b0 AS f0 \
-    \                        FROM TEST.set_b T0 \
-    \                       WHERE (T0.int_b0 = 0)))"
+    "DELETE FROM TEST.set_a T0 \
+    \ WHERE (T0.int_a0 = (SELECT ALL T1.int_b0 AS f0 \
+    \                        FROM TEST.set_b T1 \
+    \                       WHERE (T1.int_b0 = 0)))"
   ]
 
 tests :: [Test]

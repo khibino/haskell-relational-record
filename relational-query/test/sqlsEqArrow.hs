@@ -129,7 +129,7 @@ monadic =
   , eqProp "all'"       all'X
     "SELECT ALL T0.int_a0 AS f0 FROM TEST.set_a T0"
   , eqProp "update"      assignX
-    "UPDATE TEST.set_a SET int_a0 = 0"
+    "UPDATE TEST.set_a T0 SET int_a0 = 0"
   , eqProp "insert"      registerX
     "INSERT INTO TEST.set_c (int_c0, str_c1, int_c2, may_str_c3) VALUES (1, ?, 2, ?)"
   , eqChunkedInsert "insert chunked" registerX
@@ -563,9 +563,9 @@ effs =
   , eqProp "updateKey" updateKeyX
     "UPDATE TEST.set_a SET str_a1 = ?, str_a2 = ? WHERE int_a0 = ?"
   , eqProp "update" updateX
-    "UPDATE TEST.set_a SET str_a2 = 'X' WHERE (str_a1 = 'A')"
+    "UPDATE TEST.set_a T0 SET str_a2 = 'X' WHERE (T0.str_a1 = 'A')"
   , eqProp "delete" deleteX
-    "DELETE FROM TEST.set_a WHERE (str_a1 = 'A')"
+    "DELETE FROM TEST.set_a T0 WHERE (T0.str_a1 = 'A')"
   ]
 
 tests :: [Test]
