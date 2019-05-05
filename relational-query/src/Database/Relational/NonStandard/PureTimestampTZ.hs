@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module Database.Relational.Pure.NonStandard.TIMESTAMPTZ () where
+module Database.Relational.NonStandard.PureTimestampTZ () where
 
 import Control.Applicative (pure)
 import Data.Time (UTCTime, ZonedTime)

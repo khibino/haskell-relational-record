@@ -38,7 +38,7 @@ library
                        Database.Relational.Table
                        Database.Relational.SimpleSql
                        Database.Relational.Pure
-                       Database.Relational.Pure.NonStandard.TIMESTAMPTZ
+                       Database.Relational.NonStandard.PureTimestampTZ
                        Database.Relational.Pi
                        Database.Relational.Pi.Unsafe
                        Database.Relational.Constraint
