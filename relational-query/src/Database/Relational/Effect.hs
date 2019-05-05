@@ -90,6 +90,7 @@ newtype UpdateTarget p r = UpdateTarget (AssignStatement r (PlaceHolders p))
 updateTarget :: AssignStatement r ()
              -> UpdateTarget () r
 updateTarget =  UpdateTarget . ((>> return unitPH) .)
+{-# DEPRECATED updateTarget "old-style complex API. Use new-style Database.Relational.update." #-}
 
 -- | Finalize 'Target' monad and generate 'UpdateTarget' with place-holder parameter 'p'.
 updateTarget' :: AssignStatement r (PlaceHolders p)
@@ -121,12 +122,14 @@ updateTargetAllColumn :: PersistableWidth r
                       => RestrictedStatement r ()
                       -> UpdateTarget r r
 updateTargetAllColumn = liftTargetAllColumn . restriction
+{-# DEPRECATED updateTargetAllColumn "Use Database.Relational.updateAllColumnNoPH instead of this." #-}
 
 -- | Finalize 'Restrict' monad and generate 'UpdateTarget'. Update target columns are all. With placefolder type 'p'.
 updateTargetAllColumn' :: PersistableWidth r
                        => RestrictedStatement r (PlaceHolders p)
                        -> UpdateTarget (r, p) r
 updateTargetAllColumn' = liftTargetAllColumn' . restriction'
+{-# DEPRECATED updateTargetAllColumn' "Use Database.Relational.updateAllColumn instead of this." #-}
 
 
 -- | SQL SET clause and WHERE clause 'StringSQL' string from 'UpdateTarget'
