@@ -44,7 +44,8 @@ import Data.Functor.ProductIsomorphic (peRight)
 import Language.SQL.Keyword (Keyword(..))
 import Database.Record.Persistable (PersistableWidth)
 
-import Database.Relational.Internal.Config (Config (chunksInsertSize), defaultConfig)
+import Database.Relational.Internal.Config
+  (Config (chunksInsertSize, addModifyTableAliasAS), defaultConfig)
 import Database.Relational.Internal.String (StringSQL, stringSQL, showStringSQL)
 import Database.Relational.SqlSyntax
   (Record, composeWhere, composeSets,
@@ -59,7 +60,7 @@ import qualified Database.Relational.Record as Record
 import Database.Relational.ProjectableClass (LiteralSQL)
 import Database.Relational.Projectable
   (PlaceHolders, unitPH, pwPlaceholder, placeholder, (><), value, )
-import Database.Relational.Monad.BaseType (ConfigureQuery, qualifyQuery)
+import Database.Relational.Monad.BaseType (ConfigureQuery, qualifyQuery, askConfig)
 import Database.Relational.Monad.Class (MonadQualify (..))
 import Database.Relational.Monad.Trans.Assigning (assignings, (<-#))
 import Database.Relational.Monad.Restrict (RestrictedStatement)
@@ -79,7 +80,8 @@ withQualified tbl q = do
         return (qq, Record.unsafeFromQualifiedSubQuery qq {- qualified record expression -})
   (qq, r) <- qualTandR tbl
   void $ q r -- placeholder info is not used
-  return $ corrSubQueryTerm False qq {- qualified table -}
+  addAS <- addModifyTableAliasAS <$> liftQualify askConfig
+  return $ corrSubQueryTerm addAS qq {- qualified table -}
 
 -- | Restriction type with place-holder parameter 'p' and projected record type 'r'.
 newtype Restriction p r = Restriction (RestrictedStatement r (PlaceHolders p))

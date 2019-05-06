@@ -20,6 +20,7 @@ module Database.Relational.Internal.Config (
   chunksInsertSize,
   schemaNameMode,
   normalizedTableName,
+  addModifyTableAliasAS,
   enableWarning,
   verboseAsCompilerWarning,
   disableOverloadedProjection,
@@ -88,6 +89,8 @@ data Config =
   -- ^ 'SchemaNameMode' configuration
   , normalizedTableName          ::  !Bool
   -- ^ If True, schema names become uppercase, and table names become lowercase.
+  , addModifyTableAliasAS        ::  !Bool
+  -- ^ If True, AS keyword is not skipped but added in target-table-alias of UPDATE and DELETE statement.
   , enableWarning                ::  !Bool
   -- ^ If True, print warning messages in macros of relational-record.
   , verboseAsCompilerWarning     ::  !Bool
@@ -112,6 +115,7 @@ data Config =
 --     , chunksInsertSize              =  256
 --     , schemaNameMode                =  'SchemaQualified'
 --     , normalizedTableName           =  True
+--     , addModifyTableAliasAS         =  False
 --     , enableWarning                 =  True
 --     , verboseAsCompilerWarning      =  False
 --     , disableOverloadedProjection   =  False
@@ -131,6 +135,7 @@ defaultConfig =
          , chunksInsertSize              =  256
          , schemaNameMode                =  SchemaQualified
          , normalizedTableName           =  True
+         , addModifyTableAliasAS         =  False
          , enableWarning                 =  True
          , verboseAsCompilerWarning      =  False
          , disableOverloadedProjection   =  False
