@@ -90,7 +90,7 @@ import Database.Relational
    NameConfig (..), SchemaNameMode (..), IdentifierQuotation (..), defaultConfig,
    Config (normalizedTableName, disableOverloadedProjection, disableSpecializedProjection,
            schemaNameMode, nameConfig, identifierQuotation),
-   relationalQuerySQL, Query, relationalQuery, KeyUpdate,
+   Query, untypeQuery, relationalQuery_, relationalQuery, KeyUpdate,
    Insert, insert, InsertQuery, insertQuery,
    HasConstraintKey(constraintKey), Primary, NotNull, primarySelect, primaryUpdate)
 
@@ -455,7 +455,7 @@ inlineQuery :: Name         -- ^ Top-level variable name which has 'Relation' ty
 inlineQuery relVar rel config sufs qns = do
   (p, r) <- reifyRelation relVar
   unsafeInlineQuery (return p) (return r)
-    (relationalQuerySQL config rel sufs)
+    (untypeQuery $ relationalQuery_ config rel sufs)
     (varCamelcaseName qns)
 
 -- | Generate all templates against defined record like type constructor

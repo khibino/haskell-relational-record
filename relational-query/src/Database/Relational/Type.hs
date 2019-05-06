@@ -12,9 +12,8 @@ module Database.Relational.Type (
   -- * Typed query statement
   Query (..), unsafeTypedQuery,
 
+  relationalQuery_,
   relationalQuery', relationalQuery,
-
-  relationalQuerySQL,
 
   -- * Typed update statement
   KeyUpdate (..), unsafeTypedKeyUpdate, typedKeyUpdate, typedKeyUpdateTable, keyUpdate,
@@ -41,6 +40,8 @@ module Database.Relational.Type (
   UntypeableNoFetch (..),
 
   -- * Deprecated
+  relationalQuerySQL,
+
   typedUpdate,
   typedInsert, typedInsertValue, typedInsertQuery,
   typedDelete,
@@ -95,9 +96,16 @@ unsafeTypedQuery =  Query
 instance Show (Query p a) where
   show = untypeQuery
 
+-- | From 'Relation' into typed 'Query' with suffix SQL words.
+relationalQuery_ :: Config -> Relation p r -> QuerySuffix -> Query p r
+relationalQuery_ config rel qsuf =
+  unsafeTypedQuery . showStringSQL $
+  sqlFromRelationWith rel config <> showsQuerySuffix qsuf
+
+{-# DEPRECATED relationalQuerySQL "Use untypeQuery (relationalQuery_ config rel qsuf) instead of this." #-}
 -- | From 'Relation' into untyped SQL query string.
 relationalQuerySQL :: Config -> Relation p r -> QuerySuffix -> String
-relationalQuerySQL config rel qsuf = showStringSQL $ sqlFromRelationWith rel config <> showsQuerySuffix qsuf
+relationalQuerySQL config rel = untypeQuery . relationalQuery_ config rel
 
 -- | From 'Relation' into typed 'Query' with suffix SQL words.
 relationalQuery' :: Relation p r -> QuerySuffix -> Query p r
