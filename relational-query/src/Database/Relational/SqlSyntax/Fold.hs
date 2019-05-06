@@ -251,7 +251,7 @@ showsQueryProduct =  rec  where
   urec n = case Syntax.nodeTree n of
     p@(Leaf _)     -> rec p
     p@(Join {})    -> SQL.paren (rec p)
-  rec (Leaf q)               = corrSubQueryTerm False q
+  rec (Leaf q)               = uncurry corrSubQueryTerm q
   rec (Join left' right' rs) =
     mconcat
     [urec left',

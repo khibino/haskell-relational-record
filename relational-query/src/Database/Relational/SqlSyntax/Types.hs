@@ -133,11 +133,9 @@ qualify = Qualified
 -- | node attribute for product.
 data NodeAttr = Just' | Maybe deriving Show
 
-type QS = Qualified SubQuery
-
 -- | Product tree type. Product tree is constructed by left node and right node.
 data ProductTree rs
-  = Leaf QS
+  = Leaf (Bool, Qualified SubQuery)
   | Join !(Node rs) !(Node rs) !rs
   deriving (Show, Functor)
 

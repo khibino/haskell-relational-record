@@ -34,15 +34,17 @@ import Data.Maybe (fromMaybe)
 import Data.Monoid (Last (Last, getLast))
 
 import Database.Relational.Internal.ContextType (Flat)
+import Database.Relational.Internal.Config (addQueryTableAliasAS)
 import Database.Relational.SqlSyntax
   (Duplication (All), NodeAttr (Just', Maybe), Predicate, Record,
    SubQuery, Qualified, JoinProduct, restrictProduct, growProduct, )
 
+import Database.Relational.Monad.Class (liftQualify)
 import Database.Relational.Monad.Trans.JoinState
   (JoinContext, primeJoinContext, updateProduct, joinProduct)
 import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable (PlaceHolders, unsafeAddPlaceHolders)
-import Database.Relational.Monad.BaseType (ConfigureQuery, qualifyQuery, Relation, untypeRelation)
+import Database.Relational.Monad.BaseType (ConfigureQuery, askConfig, qualifyQuery, Relation, untypeRelation)
 import Database.Relational.Monad.Class (MonadQualify (..), MonadQuery (..))
 
 
@@ -81,12 +83,13 @@ instance MonadQuery (QueryJoin ConfigureQuery) where
     return (ph, Record.just pj)
 
 -- | Unsafely join sub-query with this query.
-unsafeSubQueryWithAttr :: Monad q
+unsafeSubQueryWithAttr :: MonadQualify ConfigureQuery q
                        => NodeAttr                 -- ^ Attribute maybe or just
                        -> Qualified SubQuery       -- ^ 'SubQuery' to join
                        -> QueryJoin q (Record c r) -- ^ Result joined context and record of 'SubQuery' result.
 unsafeSubQueryWithAttr attr qsub = do
-  updateContext (updateProduct (`growProduct` (attr, qsub)))
+  addAS <- addQueryTableAliasAS <$> liftQualify askConfig
+  updateContext (updateProduct (`growProduct` (attr, (addAS, qsub))))
   return $ Record.unsafeFromQualifiedSubQuery qsub
 
 -- | Basic monadic join operation using 'MonadQuery'.

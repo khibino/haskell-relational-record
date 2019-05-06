@@ -33,9 +33,9 @@ growRight = d  where
   d (Just l) (naR, q) = Node Just' $ Join l (Node naR q) mempty
 
 -- | Push new leaf node into product right term.
-growProduct :: Maybe (Node (DList (Predicate Flat))) -- ^ Current tree
-            -> (NodeAttr, Qualified SubQuery)       -- ^ New leaf to push into right
-            -> Node (DList (Predicate Flat))         -- ^ Result node
+growProduct :: Maybe (Node (DList (Predicate Flat)))  -- ^ Current tree
+            -> (NodeAttr, (Bool, Qualified SubQuery)) -- ^ New leaf to push into right
+            -> Node (DList (Predicate Flat))          -- ^ Result node
 growProduct =  match  where
   match t (na, q) =  growRight t (na, Leaf q)
 
