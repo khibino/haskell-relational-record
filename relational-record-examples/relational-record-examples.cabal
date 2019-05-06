@@ -78,7 +78,7 @@ executable examples
     buildable:         True
   else
     buildable:         False
-  hs-source-dirs:      src
+  hs-source-dirs:      mains
   main-is:             examples.hs
   build-depends:       base < 5
                      , product-isomorphic >= 0.0.3
@@ -100,7 +100,7 @@ executable specialized-examples
     buildable:         True
   else
     buildable:         False
-  hs-source-dirs:      src
+  hs-source-dirs:      mains
   main-is:             specializedExamples.hs
   build-depends:       base < 5
                      , product-isomorphic >= 0.0.3
