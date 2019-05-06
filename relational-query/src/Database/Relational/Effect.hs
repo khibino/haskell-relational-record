@@ -49,7 +49,7 @@ import Database.Relational.Internal.String (StringSQL, stringSQL, showStringSQL)
 import Database.Relational.SqlSyntax
   (Record, composeWhere, composeSets,
    composeChunkValuesWithColumns, composeValuesListWithColumns,
-   Qualified, SubQuery, qualSubQueryTerm)
+   Qualified, SubQuery, corrSubQueryTerm)
 
 import Database.Relational.Pi (Pi, id')
 import qualified Database.Relational.Pi.Unsafe as Pi
@@ -79,7 +79,7 @@ withQualified tbl q = do
         return (qq, Record.unsafeFromQualifiedSubQuery qq {- qualified record expression -})
   (qq, r) <- qualTandR tbl
   void $ q r -- placeholder info is not used
-  return $ qualSubQueryTerm qq {- qualified table -}
+  return $ corrSubQueryTerm False qq {- qualified table -}
 
 -- | Restriction type with place-holder parameter 'p' and projected record type 'r'.
 newtype Restriction p r = Restriction (RestrictedStatement r (PlaceHolders p))

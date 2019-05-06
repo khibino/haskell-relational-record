@@ -15,7 +15,7 @@ module Database.Relational.SqlSyntax.Fold (
   showSQL, toSQL, unitSQL, width,
 
   -- * Qualified Sub-query
-  queryWidth, qualSubQueryTerm,
+  queryWidth, corrSubQueryTerm,
 
   -- * Sub-query columns
   column,
@@ -94,11 +94,6 @@ c `asColumnN` n =c `SQL.as` columnN n
 -- | Qualified expression from qualifier and projection index.
 columnFromId :: Qualifier -> Int -> StringSQL
 columnFromId qi i = qi <.> columnN i
-
--- | From 'Qualified' SQL string into qualified formed 'String'
---  like (SELECT ...) AS T<n>
-qualifiedSQLas :: Qualified StringSQL -> StringSQL
-qualifiedSQLas q = Syntax.unQualify q <> showQualifier (Syntax.qualifier q)
 
 -- | Width of 'SubQuery'.
 width :: SubQuery -> Int
@@ -180,8 +175,13 @@ toSQL =  showStringSQL . showSQL
 -- | Term of qualified table or qualified subquery,
 --   used in join-clause of SELECT, correlated UPDATE and DELETE statements.
 --   When SubQuery is table, expression will be like <TABLE> [AS] T<n>
-qualSubQueryTerm :: Qualified SubQuery -> StringSQL
-qualSubQueryTerm = qualifiedSQLas . fmap showUnitSQL
+corrSubQueryTerm :: Bool                -- ^ if True, add AS keyword. SQLite causes syntax error on UPDATE or DELETE statement.
+                 -> Qualified SubQuery  -- ^ subquery structure with qualifier
+                 -> StringSQL           -- ^ result SQL string
+corrSubQueryTerm addAS qq =
+    showUnitSQL (Syntax.unQualify qq) `asOP` showQualifier (Syntax.qualifier qq)
+  where
+    asOP = if addAS then SQL.as else (<>)
 
 -- | Get column SQL string of 'Qualified' 'SubQuery'.
 column :: Qualified SubQuery -> Int -> StringSQL
@@ -251,7 +251,7 @@ showsQueryProduct =  rec  where
   urec n = case Syntax.nodeTree n of
     p@(Leaf _)     -> rec p
     p@(Join {})    -> SQL.paren (rec p)
-  rec (Leaf q)               = qualSubQueryTerm q
+  rec (Leaf q)               = corrSubQueryTerm False q
   rec (Join left' right' rs) =
     mconcat
     [urec left',
