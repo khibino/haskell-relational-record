@@ -84,7 +84,7 @@ library
                        , time
                        , bytestring
 
-                       , relational-query >= 0.12.2
+                       , relational-query >= 0.11
 
   if impl(ghc == 7.4.*)
     build-depends:       ghc-prim == 0.2.*
