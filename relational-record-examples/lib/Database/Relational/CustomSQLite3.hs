@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 
-module Database.Relational.Query.SQLite3 (
+module Database.Relational.CustomSQLite3 (
     module Database.HDBC
   , module Database.HDBC.Query.TH
   , module Database.HDBC.Record

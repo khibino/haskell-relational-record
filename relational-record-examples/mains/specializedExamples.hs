@@ -7,7 +7,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DataKinds #-}
 
-import Database.Relational.Query.SQLite3
+import Database.Relational.CustomSQLite3
 
 import GHC.Generics (Generic)
 import Prelude hiding (product)

@@ -8,7 +8,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedLabels #-}
 
-import Database.Relational.Query.SQLite3
+import Database.Relational.CustomSQLite3
 import Database.Relational.OverloadedInstances ()
 
 import GHC.Generics (Generic)

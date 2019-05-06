@@ -36,7 +36,7 @@ flag binary
 library
   hs-source-dirs:      lib
   exposed-modules:
-                       Database.Relational.Query.SQLite3
+                       Database.Relational.CustomSQLite3
                        Database.Record.TH.SQLite3
 
   hs-source-dirs:      entity
