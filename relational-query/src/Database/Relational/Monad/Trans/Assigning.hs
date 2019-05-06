@@ -77,7 +77,7 @@ assignTo vp target = Assignings . tell
 
 infix 4 <-#
 
--- | Run 'Assignings' to get 'Assignments'
+-- | Run 'Assignings' to get ['Assignment']
 extractAssignments :: (Monad m, Functor m)
                    => Assignings r m a
                    -> m (a, Table r -> [Assignment])
