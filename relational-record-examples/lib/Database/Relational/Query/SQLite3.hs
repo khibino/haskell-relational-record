@@ -23,8 +23,8 @@ import Database.Record hiding (unique)
 import Database.Relational hiding (unique)
 
 runRelation :: (ToSql SqlValue p,
-               IConnection conn,
-               FromSql SqlValue a) =>
+                IConnection conn,
+                FromSql SqlValue a) =>
                conn -> Relation p a -> p -> IO [a]
 runRelation conn q p = runQuery conn (relationalQuery q) p
 
