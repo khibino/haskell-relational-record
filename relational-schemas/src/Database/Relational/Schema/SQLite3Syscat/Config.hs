@@ -8,9 +8,9 @@
 -- Portability : unknown
 module Database.Relational.Schema.SQLite3Syscat.Config (config) where
 
-import Database.Relational (Config, defaultConfig)
+import Database.Relational (Config (addModifyTableAliasAS), defaultConfig)
 
 
 -- | Configuration parameter against SQLite3.
 config :: Config
-config =  defaultConfig
+config = defaultConfig { addModifyTableAliasAS = True }
