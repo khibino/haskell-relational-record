@@ -15,7 +15,6 @@
 module Database.Relational.Monad.Assign (
   -- * Monad to restrict target records with assignment.
   Assign, AssignStatement,
-  -- updateStatement,
   extract,
   ) where
 
@@ -38,10 +37,6 @@ type Assign r = Assignings r Restrict
 --   Record type must be
 --   the same as 'Target' type parameter 'r'.
 type AssignStatement r a = Record Flat r -> Assign r a
-
--- -- | 'return' of 'Update'
--- updateStatement :: a -> Assignings r (Restrictings Identity) a
--- updateStatement =  assignings . restrictings . Identity
 
 -- | Run 'Assign'.
 extract :: Assign r a -> Config -> ((a, Table r -> [Assignment]), [Predicate Flat])

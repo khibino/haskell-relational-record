@@ -15,8 +15,6 @@
 module Database.Relational.Monad.Restrict (
   -- * Monad to restrict target records.
   Restrict, RestrictedStatement,
-
-  -- restricted,
   extract
   ) where
 
@@ -36,10 +34,6 @@ type Restrict = Restrictings Flat ConfigureQuery
 --   Record type 'r' must be
 --   the same as 'Restrictings' type parameter 'r'.
 type RestrictedStatement r a = Record Flat r -> Restrict a
-
--- -- | 'return' of 'Restrict'
--- restricted :: a -> Restrict a
--- restricted =  restrict . Identity
 
 -- | Run 'Restrict' to get 'QueryRestriction'.
 extract :: Restrict a -> Config -> (a, [Predicate Flat])
