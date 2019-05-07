@@ -36,6 +36,7 @@ module Database.Relational.Effect (
   sqlFromUpdateTarget,
   ) where
 
+import Control.Applicative ((<$>))
 import Control.Monad (void)
 import Data.Monoid ((<>))
 import Data.List (unfoldr)
