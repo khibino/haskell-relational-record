@@ -5,7 +5,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 
 -- |
--- Module      : Database.Relational.Schema.DB2Syscat.Tabconst
+-- Module      : Database.Relational.Schema.DB2Syscat.Keycoluse
 -- Copyright   : 2013-2017 Kei Hibino
 -- License     : BSD3
 --
@@ -13,24 +13,22 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- Generate template of SYSCAT.tabconst system catalog table.
+-- Generate template of SYSCAT.keycoluse system catalog table.
 -- Not all columns are mapped to Haskell record.
 -- Minimum implementation required to generate table constraints.
-module Database.Relational.Schema.DB2Syscat.Tabconst where
+module Database.Relational.Schema.IBMDB2.Keycoluse where
 
 import GHC.Generics (Generic)
+import Data.Int (Int16)
 import Database.Relational.TH (defineTableTypesAndRecord)
 
-import Database.Relational.Schema.DB2Syscat.Config (config)
+import Database.Relational.Schema.IBMDB2.Config (config)
 
 
 -- Not all column is mapped. Minimum implementation.
 $(defineTableTypesAndRecord config
-  "SYSCAT" "tabconst"
+  "SYSCAT" "keycoluse"
   [("constname", [t| String |]),
-   ("tabschema", [t| String |]),
-   ("tabname"  , [t| String |]),
-   --
-   ("type"     , [t| String |]),
-   ("enforced" , [t| String |])]
+   ("colname"  , [t| String |]),
+   ("colseq"   , [t| Int16 |])]
   [''Show, ''Generic])

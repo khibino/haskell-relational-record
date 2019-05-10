@@ -13,6 +13,8 @@
 -- table schema and table constraint informations
 -- from system catalog of IBM DB2.
 module Database.Relational.Schema.IBMDB2 (
+  module Database.Relational.Schema.IBMDB2.Config,
+
   normalizeColumn, notNull, getType,
 
   columnsQuerySQL, primaryKeyQuerySQL
@@ -32,12 +34,13 @@ import Database.Relational
 
 import Control.Applicative ((<|>))
 
-import Database.Relational.Schema.DB2Syscat.Columns (Columns, columns)
-import qualified Database.Relational.Schema.DB2Syscat.Columns as Columns
-import Database.Relational.Schema.DB2Syscat.Tabconst (tabconst)
-import qualified Database.Relational.Schema.DB2Syscat.Tabconst as Tabconst
-import Database.Relational.Schema.DB2Syscat.Keycoluse (keycoluse)
-import qualified Database.Relational.Schema.DB2Syscat.Keycoluse as Keycoluse
+import Database.Relational.Schema.IBMDB2.Config
+import Database.Relational.Schema.IBMDB2.Columns (Columns, columns)
+import qualified Database.Relational.Schema.IBMDB2.Columns as Columns
+import Database.Relational.Schema.IBMDB2.Tabconst (tabconst)
+import qualified Database.Relational.Schema.IBMDB2.Tabconst as Tabconst
+import Database.Relational.Schema.IBMDB2.Keycoluse (keycoluse)
+import qualified Database.Relational.Schema.IBMDB2.Keycoluse as Keycoluse
 
 
 -- | Mapping between type in DB2 and Haskell type.

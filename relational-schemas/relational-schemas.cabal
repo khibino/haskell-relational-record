@@ -33,6 +33,7 @@ extra-source-files:  ChangeLog.md
 library
   exposed-modules:
                        Database.Relational.Schema.DB2Syscat.Columns
+                       Database.Relational.Schema.IBMDB2.Columns
                        Database.Relational.Schema.IBMDB2
 
                        Database.Relational.Schema.PgCatalog.PgAttribute
@@ -62,8 +63,9 @@ library
                        Database.Relational.Schema.MySQLInfo.Config
 
   other-modules:
-                       Database.Relational.Schema.DB2Syscat.Tabconst
-                       Database.Relational.Schema.DB2Syscat.Keycoluse
+                       Database.Relational.Schema.IBMDB2.Config
+                       Database.Relational.Schema.IBMDB2.Tabconst
+                       Database.Relational.Schema.IBMDB2.Keycoluse
 
                        Database.Relational.Schema.PgCatalog.PgConstraint
                        Database.Relational.Schema.PgCatalog.PgNamespace
