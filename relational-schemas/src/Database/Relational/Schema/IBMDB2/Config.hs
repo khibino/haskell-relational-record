@@ -1,6 +1,6 @@
 -- |
 -- Module      : Database.Relational.Schema.IBMDB2.Config
--- Copyright   : 2014 Kei Hibino
+-- Copyright   : 2014-2019 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
@@ -13,4 +13,4 @@ import Database.Relational (Config (..), ProductUnitSupport (..), defaultConfig)
 
 -- | Configuration parameter against IBM DB2.
 config :: Config
-config =  defaultConfig { productUnitSupport = PUNotSupported }
+config = defaultConfig { productUnitSupport = PUNotSupported }
