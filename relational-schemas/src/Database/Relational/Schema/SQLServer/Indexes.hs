@@ -4,13 +4,13 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module Database.Relational.Schema.SQLServerSyscat.Indexes where
+module Database.Relational.Schema.SQLServer.Indexes where
 
 import GHC.Generics (Generic)
 import Data.Int (Int32)
 import Database.Relational.TH (defineTableTypesAndRecord)
 
-import Database.Relational.Schema.SQLServerSyscat.Config (config)
+import Database.Relational.Schema.SQLServer.Config (config)
 
 
 $(defineTableTypesAndRecord config

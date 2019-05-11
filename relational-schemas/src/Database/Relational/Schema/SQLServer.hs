@@ -1,15 +1,17 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module Database.Relational.Schema.SQLServer (
+  module Database.Relational.Schema.SQLServer.Config,
+
   getType, normalizeColumn, notNull,
   columnTypeQuerySQL, primaryKeyQuerySQL
   ) where
 
 import qualified Data.Map as Map
-import qualified Database.Relational.Schema.SQLServerSyscat.Columns as Columns
-import qualified Database.Relational.Schema.SQLServerSyscat.Indexes as Indexes
-import qualified Database.Relational.Schema.SQLServerSyscat.IndexColumns as IndexColumns
-import qualified Database.Relational.Schema.SQLServerSyscat.Types as Types
+import qualified Database.Relational.Schema.SQLServer.Columns as Columns
+import qualified Database.Relational.Schema.SQLServer.Indexes as Indexes
+import qualified Database.Relational.Schema.SQLServer.IndexColumns as IndexColumns
+import qualified Database.Relational.Schema.SQLServer.Types as Types
 
 import Control.Applicative ((<|>))
 import Data.ByteString (ByteString)
@@ -21,10 +23,12 @@ import Database.Relational (Query, Relation, PlaceHolders, Record, Flat,
                             (!), (.=.), (><), asc, relationalQuery, just, placeholder',
                             query, relation', unsafeShowSql,
                             unsafeProjectSql, wheres)
-import Database.Relational.Schema.SQLServerSyscat.Columns
-import Database.Relational.Schema.SQLServerSyscat.Indexes
-import Database.Relational.Schema.SQLServerSyscat.IndexColumns
-import Database.Relational.Schema.SQLServerSyscat.Types
+
+import Database.Relational.Schema.SQLServer.Config
+import Database.Relational.Schema.SQLServer.Columns
+import Database.Relational.Schema.SQLServer.Indexes
+import Database.Relational.Schema.SQLServer.IndexColumns
+import Database.Relational.Schema.SQLServer.Types
 import Language.Haskell.TH (TypeQ)
 
 --{-# ANN module "HLint: ignore Redundant $" #-}

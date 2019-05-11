@@ -44,6 +44,8 @@ library
 
                        Database.Relational.Schema.SQLServerSyscat.Columns
                        Database.Relational.Schema.SQLServerSyscat.Types
+                       Database.Relational.Schema.SQLServer.Columns
+                       Database.Relational.Schema.SQLServer.Types
                        Database.Relational.Schema.SQLServer
 
                        Database.Relational.Schema.SQLite3Syscat.IndexInfo
@@ -74,8 +76,9 @@ library
                        Database.Relational.Schema.PostgreSQL.PgNamespace
                        Database.Relational.Schema.PostgreSQL.PgClass
 
-                       Database.Relational.Schema.SQLServerSyscat.IndexColumns
-                       Database.Relational.Schema.SQLServerSyscat.Indexes
+                       Database.Relational.Schema.SQLServer.Config
+                       Database.Relational.Schema.SQLServer.IndexColumns
+                       Database.Relational.Schema.SQLServer.Indexes
 
                        Database.Relational.Schema.OracleDataDictionary.ConsColumns
                        Database.Relational.Schema.OracleDataDictionary.Constraints
