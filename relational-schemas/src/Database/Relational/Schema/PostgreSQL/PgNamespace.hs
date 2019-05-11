@@ -5,20 +5,20 @@
 {-# LANGUAGE DeriveGeneric #-}
 
 -- |
--- Module      : Database.Relational.Schema.PgCatalog.PgNamespace
+-- Module      : Database.Relational.Schema.PostgreSQL.PgNamespace
 -- Copyright   : 2013-2017 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
 -- Stability   : experimental
 -- Portability : unknown
-module Database.Relational.Schema.PgCatalog.PgNamespace where
+module Database.Relational.Schema.PostgreSQL.PgNamespace where
 
 import GHC.Generics (Generic)
 import Data.Int (Int32)
 import Database.Relational.TH (defineTableTypesAndRecord)
 
-import Database.Relational.Schema.PgCatalog.Config (config)
+import Database.Relational.Schema.PostgreSQL.Config (config)
 
 
 $(defineTableTypesAndRecord config

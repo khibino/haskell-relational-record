@@ -13,6 +13,8 @@
 -- table schema and table constraint informations
 -- from system catalog of PostgreSQL.
 module Database.Relational.Schema.PostgreSQL (
+  module Database.Relational.Schema.PostgreSQL.Config,
+
   Column,
 
   normalizeColumn, notNull, getType,
@@ -39,17 +41,18 @@ import Database.Relational
    wheres, (.=.), (.>.), in', values, (!), fst', snd',
    placeholder, asc, value, unsafeProjectSql, (><))
 
-import Database.Relational.Schema.PgCatalog.PgNamespace (pgNamespace)
-import qualified Database.Relational.Schema.PgCatalog.PgNamespace as Namespace
-import Database.Relational.Schema.PgCatalog.PgClass (pgClass)
-import qualified Database.Relational.Schema.PgCatalog.PgClass as Class
-import Database.Relational.Schema.PgCatalog.PgConstraint (PgConstraint, pgConstraint)
-import qualified Database.Relational.Schema.PgCatalog.PgConstraint as Constraint
+import Database.Relational.Schema.PostgreSQL.Config
+import Database.Relational.Schema.PostgreSQL.PgNamespace (pgNamespace)
+import qualified Database.Relational.Schema.PostgreSQL.PgNamespace as Namespace
+import Database.Relational.Schema.PostgreSQL.PgClass (pgClass)
+import qualified Database.Relational.Schema.PostgreSQL.PgClass as Class
+import Database.Relational.Schema.PostgreSQL.PgConstraint (PgConstraint, pgConstraint)
+import qualified Database.Relational.Schema.PostgreSQL.PgConstraint as Constraint
 
-import Database.Relational.Schema.PgCatalog.PgAttribute (PgAttribute, pgAttribute)
-import qualified Database.Relational.Schema.PgCatalog.PgAttribute as Attr
-import Database.Relational.Schema.PgCatalog.PgType (PgType(..), pgType)
-import qualified Database.Relational.Schema.PgCatalog.PgType as Type
+import Database.Relational.Schema.PostgreSQL.PgAttribute (PgAttribute, pgAttribute)
+import qualified Database.Relational.Schema.PostgreSQL.PgAttribute as Attr
+import Database.Relational.Schema.PostgreSQL.PgType (PgType(..), pgType)
+import qualified Database.Relational.Schema.PostgreSQL.PgType as Type
 
 import Control.Applicative ((<|>))
 

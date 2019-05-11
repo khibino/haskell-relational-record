@@ -38,6 +38,8 @@ library
 
                        Database.Relational.Schema.PgCatalog.PgAttribute
                        Database.Relational.Schema.PgCatalog.PgType
+                       Database.Relational.Schema.PostgreSQL.PgAttribute
+                       Database.Relational.Schema.PostgreSQL.PgType
                        Database.Relational.Schema.PostgreSQL
 
                        Database.Relational.Schema.SQLServerSyscat.Columns
@@ -67,9 +69,10 @@ library
                        Database.Relational.Schema.IBMDB2.Tabconst
                        Database.Relational.Schema.IBMDB2.Keycoluse
 
-                       Database.Relational.Schema.PgCatalog.PgConstraint
-                       Database.Relational.Schema.PgCatalog.PgNamespace
-                       Database.Relational.Schema.PgCatalog.PgClass
+                       Database.Relational.Schema.PostgreSQL.Config
+                       Database.Relational.Schema.PostgreSQL.PgConstraint
+                       Database.Relational.Schema.PostgreSQL.PgNamespace
+                       Database.Relational.Schema.PostgreSQL.PgClass
 
                        Database.Relational.Schema.SQLServerSyscat.IndexColumns
                        Database.Relational.Schema.SQLServerSyscat.Indexes
