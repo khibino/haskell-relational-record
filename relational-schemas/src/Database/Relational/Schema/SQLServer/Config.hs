@@ -1,6 +1,6 @@
 -- |
 -- Module      : Database.Relational.Schema.PgCatalog.Config
--- Copyright   : 2014 Kei Hibino
+-- Copyright   : 2014-2019 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
