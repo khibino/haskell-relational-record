@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module Database.Record.TH.SQLite3 (
-    defineTable
+  defineTable,
   ) where
 
 import GHC.Generics (Generic)

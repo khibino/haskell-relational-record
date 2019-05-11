@@ -1,15 +1,16 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 module Database.Relational.CustomSQLite3 (
-    module Database.HDBC
-  , module Database.HDBC.Query.TH
-  , module Database.HDBC.Record
-  , module Database.HDBC.Session
-  , module Database.HDBC.Sqlite3
-  , module Database.Record
-  , module Database.Relational
-  , runRelation
-  , makeRelationalRecord
+  module Database.HDBC,
+  module Database.HDBC.Query.TH,
+  module Database.HDBC.Record,
+  module Database.HDBC.Session,
+  module Database.HDBC.Sqlite3,
+  module Database.Record,
+  module Database.Relational,
+
+  runRelation,
+  makeRelationalRecord,
   ) where
 
 import Language.Haskell.TH (Name, Q, Dec)
