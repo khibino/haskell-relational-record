@@ -1,13 +1,16 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module Database.Relational.Schema.SQLite3 (
+  module Database.Relational.Schema.SQLite3.Config,
+
   getType, normalizeColumn, normalizeType, notNull,
   tableInfoQuerySQL, indexListQuerySQL, indexInfoQuerySQL
   ) where
 
 import qualified Data.Map as Map
-import qualified Database.Relational.Schema.SQLite3Syscat.TableInfo as TableInfo
+import qualified Database.Relational.Schema.SQLite3.TableInfo as TableInfo
 
+import Language.Haskell.TH (TypeQ)
 import Control.Arrow (first)
 import Control.Applicative ((<|>))
 import Data.ByteString (ByteString)
@@ -16,10 +19,11 @@ import Data.Int (Int8, Int16, Int32, Int64)
 import Data.Map (Map)
 import Data.Time (Day, LocalTime)
 import Database.Relational (Query, unsafeTypedQuery)
-import Database.Relational.Schema.SQLite3Syscat.IndexInfo
-import Database.Relational.Schema.SQLite3Syscat.IndexList
-import Database.Relational.Schema.SQLite3Syscat.TableInfo
-import Language.Haskell.TH (TypeQ)
+
+import Database.Relational.Schema.SQLite3.Config
+import Database.Relational.Schema.SQLite3.IndexInfo
+import Database.Relational.Schema.SQLite3.IndexList
+import Database.Relational.Schema.SQLite3.TableInfo
 
 --{-# ANN module "HLint: ignore Redundant $" #-}
 

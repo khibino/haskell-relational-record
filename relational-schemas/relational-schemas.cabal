@@ -51,6 +51,9 @@ library
                        Database.Relational.Schema.SQLite3Syscat.IndexInfo
                        Database.Relational.Schema.SQLite3Syscat.IndexList
                        Database.Relational.Schema.SQLite3Syscat.TableInfo
+                       Database.Relational.Schema.SQLite3.IndexInfo
+                       Database.Relational.Schema.SQLite3.IndexList
+                       Database.Relational.Schema.SQLite3.TableInfo
                        Database.Relational.Schema.SQLite3
 
                        Database.Relational.Schema.OracleDataDictionary.TabColumns
@@ -79,6 +82,8 @@ library
                        Database.Relational.Schema.SQLServer.Config
                        Database.Relational.Schema.SQLServer.IndexColumns
                        Database.Relational.Schema.SQLServer.Indexes
+
+                       Database.Relational.Schema.SQLite3.Config
 
                        Database.Relational.Schema.OracleDataDictionary.ConsColumns
                        Database.Relational.Schema.OracleDataDictionary.Constraints
