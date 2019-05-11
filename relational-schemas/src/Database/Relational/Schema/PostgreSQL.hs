@@ -2,7 +2,7 @@
 
 -- |
 -- Module      : Database.Relational.Schema.PostgreSQL
--- Copyright   : 2013 Kei Hibino
+-- Copyright   : 2013-2019 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
