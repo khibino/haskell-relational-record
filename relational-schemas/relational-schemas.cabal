@@ -61,6 +61,7 @@ library
                        Database.Relational.Schema.Oracle
 
                        Database.Relational.Schema.MySQLInfo.Columns
+                       Database.Relational.Schema.MySQL.Columns
                        Database.Relational.Schema.MySQL
 
                        Database.Relational.Schema.DB2Syscat.Config
@@ -90,8 +91,9 @@ library
                        Database.Relational.Schema.Oracle.ConsColumns
                        Database.Relational.Schema.Oracle.Constraints
 
-                       Database.Relational.Schema.MySQLInfo.KeyColumnUsage
-                       Database.Relational.Schema.MySQLInfo.TableConstraints
+                       Database.Relational.Schema.MySQL.Config
+                       Database.Relational.Schema.MySQL.KeyColumnUsage
+                       Database.Relational.Schema.MySQL.TableConstraints
 
   build-depends:         base <5
                        , template-haskell

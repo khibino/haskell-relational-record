@@ -4,13 +4,13 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module Database.Relational.Schema.MySQLInfo.KeyColumnUsage where
+module Database.Relational.Schema.MySQL.KeyColumnUsage where
 
 import GHC.Generics (Generic)
 import Data.Int                     (Int16)
 import Database.Relational.TH (defineTableTypesAndRecord)
 
-import Database.Relational.Schema.MySQLInfo.Config (config)
+import Database.Relational.Schema.MySQL.Config (config)
 
 
 $(defineTableTypesAndRecord config

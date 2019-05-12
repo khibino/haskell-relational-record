@@ -1,6 +1,8 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Database.Relational.Schema.MySQL
-    ( normalizeColumn
+    ( module Database.Relational.Schema.MySQL.Config
+
+    , normalizeColumn
     , notNull
     , getType
     , columnsQuerySQL
@@ -31,12 +33,13 @@ import Database.Relational              ( Query
                                         , value
                                         )
 
-import           Database.Relational.Schema.MySQLInfo.Columns           (Columns, columns)
-import qualified Database.Relational.Schema.MySQLInfo.Columns           as Columns
-import           Database.Relational.Schema.MySQLInfo.TableConstraints  (tableConstraints)
-import qualified Database.Relational.Schema.MySQLInfo.TableConstraints  as Tabconst
-import           Database.Relational.Schema.MySQLInfo.KeyColumnUsage    (keyColumnUsage)
-import qualified Database.Relational.Schema.MySQLInfo.KeyColumnUsage    as Keycoluse
+import           Database.Relational.Schema.MySQL.Config
+import           Database.Relational.Schema.MySQL.Columns           (Columns, columns)
+import qualified Database.Relational.Schema.MySQL.Columns           as Columns
+import           Database.Relational.Schema.MySQL.TableConstraints  (tableConstraints)
+import qualified Database.Relational.Schema.MySQL.TableConstraints  as Tabconst
+import           Database.Relational.Schema.MySQL.KeyColumnUsage    (keyColumnUsage)
+import qualified Database.Relational.Schema.MySQL.KeyColumnUsage    as Keycoluse
 
 -- TODO: Need to check unsigned int types to avoid wrong mapping
 
