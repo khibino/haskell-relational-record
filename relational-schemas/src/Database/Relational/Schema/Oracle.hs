@@ -1,7 +1,9 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module Database.Relational.Schema.Oracle
-    ( normalizeColumn, notNull, getType
+    ( module Database.Relational.Schema.Oracle.Config
+
+    , normalizeColumn, notNull, getType
     , columnsQuerySQL, primaryKeyQuerySQL
     ) where
 
@@ -16,12 +18,13 @@ import Language.Haskell.TH (TypeQ)
 
 import Database.Relational
 
-import Database.Relational.Schema.OracleDataDictionary.ConsColumns (dbaConsColumns)
-import qualified Database.Relational.Schema.OracleDataDictionary.ConsColumns as ConsCols
-import Database.Relational.Schema.OracleDataDictionary.Constraints (dbaConstraints)
-import qualified Database.Relational.Schema.OracleDataDictionary.Constraints as Cons
-import Database.Relational.Schema.OracleDataDictionary.TabColumns (DbaTabColumns, dbaTabColumns)
-import qualified Database.Relational.Schema.OracleDataDictionary.TabColumns as Cols
+import Database.Relational.Schema.Oracle.Config
+import Database.Relational.Schema.Oracle.ConsColumns (dbaConsColumns)
+import qualified Database.Relational.Schema.Oracle.ConsColumns as ConsCols
+import Database.Relational.Schema.Oracle.Constraints (dbaConstraints)
+import qualified Database.Relational.Schema.Oracle.Constraints as Cons
+import Database.Relational.Schema.Oracle.TabColumns (DbaTabColumns, dbaTabColumns)
+import qualified Database.Relational.Schema.Oracle.TabColumns as Cols
 
 -- NOT COMPLETED
 -- (ref: http://docs.oracle.com/cd/B28359_01/server.111/b28318/datatype.htm)

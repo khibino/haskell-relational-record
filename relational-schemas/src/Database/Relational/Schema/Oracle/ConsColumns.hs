@@ -4,13 +4,13 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module Database.Relational.Schema.OracleDataDictionary.ConsColumns where
+module Database.Relational.Schema.Oracle.ConsColumns where
 
 import GHC.Generics (Generic)
 import Data.Int (Int32)
 import Database.Relational.TH (defineTableTypesAndRecord)
 
-import Database.Relational.Schema.OracleDataDictionary.Config (config)
+import Database.Relational.Schema.Oracle.Config (config)
 
 
 $(defineTableTypesAndRecord config

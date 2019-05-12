@@ -1,16 +1,6 @@
--- |
--- Module      : Database.Relational.Schema.OracleDataDictionary.Config
--- Copyright   : 2014 Kei Hibino
--- License     : BSD3
---
--- Maintainer  : ex8k.hibino@gmail.com
--- Stability   : experimental
--- Portability : unknown
-module Database.Relational.Schema.OracleDataDictionary.Config (config) where
+module Database.Relational.Schema.OracleDataDictionary.Config
+  {-# DEPRECATED "import config from Database.Relational.Schema.Oracle instead of this module." #-} (
+  config,
+  ) where
 
-import Database.Relational (Config, defaultConfig)
-
-
--- | Configuration parameter against Oracle.
-config :: Config
-config =  defaultConfig
+import Database.Relational.Schema.Oracle.Config (config)

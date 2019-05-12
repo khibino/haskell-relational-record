@@ -4,12 +4,12 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module Database.Relational.Schema.OracleDataDictionary.Constraints where
+module Database.Relational.Schema.Oracle.Constraints where
 
 import GHC.Generics (Generic)
 import Database.Relational.TH (defineTableTypesAndRecord)
 
-import Database.Relational.Schema.OracleDataDictionary.Config (config)
+import Database.Relational.Schema.Oracle.Config (config)
 
 
 $(defineTableTypesAndRecord config
