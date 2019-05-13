@@ -102,10 +102,6 @@ restriction' :: (Record Flat r -> Restrict (PlaceHolders p)) -> Restriction p r
 restriction' = id
 {-# DEPRECATED restriction' "same as id" #-}
 
-runRestriction :: Restriction p r
-               -> (Record Flat r -> Restrict (PlaceHolders p))
-runRestriction = id
-
 fromRestriction :: Config -> Table r -> (Record Flat r -> Restrict (PlaceHolders p)) -> (StringSQL, StringSQL)
 fromRestriction config tbl q = (qt, composeWhere rs)
   where (qt, rs) = Restrict.extract (withQualified tbl q) config
@@ -142,10 +138,10 @@ updateTarget' = id
 
 updateAllColumn :: PersistableWidth r
                 => (Record Flat r -> Restrict (PlaceHolders p))
-                -> Record Flat r -> Assign r (PlaceHolders (r, p))
+                -> (Record Flat r -> Assign r (PlaceHolders (r, p)))
 updateAllColumn rs proj = do
   (ph0, ()) <- placeholder (\ph -> id' <-# ph)
-  ph1       <- assignings $ runRestriction rs proj
+  ph1       <- assignings $ rs proj
   return $ ph0 >< ph1
 
 -- | Lift 'Restrict' computation to 'Assign' computation. Assign target columns are all.
@@ -171,7 +167,7 @@ updateTargetAllColumn = liftTargetAllColumn . restriction
 updateTargetAllColumn' :: PersistableWidth r
                        => (Record Flat r -> Restrict (PlaceHolders p))
                        -> (Record Flat r -> Assign r (PlaceHolders (r, p)))
-updateTargetAllColumn' = liftTargetAllColumn' . restriction'
+updateTargetAllColumn' = liftTargetAllColumn'
 {-# DEPRECATED updateTargetAllColumn' "Use Database.Relational.updateAllColumn instead of this." #-}
 
 
