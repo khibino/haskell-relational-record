@@ -71,6 +71,13 @@ library
                        Database.Relational.Schema.OracleDataDictionary.Config
                        Database.Relational.Schema.MySQLInfo.Config
 
+                       Database.Custom.IBMDB2
+                       Database.Custom.PostgreSQL
+                       Database.Custom.SQLServer
+                       Database.Custom.SQLite3
+                       Database.Custom.Oracle
+                       Database.Custom.MySQL
+
   other-modules:
                        Database.Relational.Schema.IBMDB2.Config
                        Database.Relational.Schema.IBMDB2.Tabconst
