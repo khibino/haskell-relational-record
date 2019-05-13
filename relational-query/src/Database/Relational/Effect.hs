@@ -15,10 +15,10 @@
 -- like update and delete.
 module Database.Relational.Effect (
   -- * Object to express simple restriction.
-  Restriction, restriction, restriction',
+  Restriction,
 
   -- * Object to express update target columns and restriction.
-  UpdateTarget, updateTarget',
+  UpdateTarget,
   liftTargetAllColumn, liftTargetAllColumn',
 
   -- * Object to express insert terget.
@@ -32,7 +32,9 @@ module Database.Relational.Effect (
   sqlChunksFromRecordList,
 
   -- * Deprecated
-  updateTarget, updateTargetAllColumn, updateTargetAllColumn',
+  restriction, restriction',
+  updateTarget, updateTarget',
+  updateTargetAllColumn, updateTargetAllColumn',
   insertTarget,
   sqlWhereFromRestriction,
   sqlFromUpdateTarget,
@@ -90,13 +92,15 @@ withQualified tbl q = do
 -- | Restriction type with place-holder parameter 'p' and projected record type 'r'.
 type Restriction p r = Record Flat r -> Restrict (PlaceHolders p)
 
--- | Finalize 'Restrict' monad and generate 'Restriction'.
+-- | Deprecated.
 restriction :: (Record Flat r -> Restrict ()) -> Restriction () r
 restriction = ((>> return unitPH) .)
+{-# DEPRECATED restriction "same as ((>> return unitPH) .)" #-}
 
--- | Finalize 'Restrict' monad and generate 'Restriction' with place-holder parameter 'p'
+-- | Deprecated.
 restriction' :: (Record Flat r -> Restrict (PlaceHolders p)) -> Restriction p r
 restriction' = id
+{-# DEPRECATED restriction' "same as id" #-}
 
 runRestriction :: Restriction p r
                -> (Record Flat r -> Restrict (PlaceHolders p))
@@ -106,12 +110,12 @@ fromRestriction :: Config -> Table r -> (Record Flat r -> Restrict (PlaceHolders
 fromRestriction config tbl q = (qt, composeWhere rs)
   where (qt, rs) = Restrict.extract (withQualified tbl q) config
 
--- | SQL WHERE clause 'StringSQL' string from 'Restriction'.
+-- | SQL WHERE clause 'StringSQL' string from 'Restrict' computation.
 sqlWhereFromRestriction :: Config -> Table r -> (Record Flat r -> Restrict (PlaceHolders p)) -> StringSQL
 sqlWhereFromRestriction config tbl = snd . fromRestriction config tbl
 {-# DEPRECATED sqlWhereFromRestriction "low-level API, this API will be expired." #-}
 
--- | DELETE statement with WHERE clause 'StringSQL' string from 'Restriction'.
+-- | DELETE statement with WHERE clause 'StringSQL' string from 'Restrict' computation.
 deleteFromRestriction :: Config -> Table r -> (Record Flat r -> Restrict (PlaceHolders p)) -> StringSQL
 deleteFromRestriction config tbl r =
   DELETE <> FROM <> uncurry (<>) (fromRestriction config tbl r)
@@ -124,16 +128,17 @@ instance TableDerivable r => Show (Record Flat r -> Restrict (PlaceHolders p)) w
 -- | UpdateTarget type with place-holder parameter 'p' and projected record type 'r'.
 type UpdateTarget p r = Record Flat r -> Assign r (PlaceHolders p)
 
--- | Finalize 'Target' monad and generate 'UpdateTarget'.
+-- | Deprecated.
 updateTarget :: (Record Flat r -> Assign r ())
              -> UpdateTarget () r
 updateTarget =  ((>> return unitPH) .)
 {-# DEPRECATED updateTarget "old-style API. Use new-style Database.Relational.updateNoPH." #-}
 
--- | Finalize 'Target' monad and generate 'UpdateTarget' with place-holder parameter 'p'.
+-- | Deprecated.
 updateTarget' :: (Record Flat r -> Assign r (PlaceHolders p))
               -> UpdateTarget p r
 updateTarget' = id
+{-# DEPRECATED updateTarget' "same as id" #-}
 
 updateAllColumn :: PersistableWidth r
                 => (Record Flat r -> Restrict (PlaceHolders p))
@@ -143,26 +148,26 @@ updateAllColumn rs proj = do
   ph1       <- assignings $ runRestriction rs proj
   return $ ph0 >< ph1
 
--- | Lift 'Restriction' to 'UpdateTarget'. Update target columns are all.
+-- | Lift 'Restrict' computation to 'Assign' computation. Assign target columns are all.
 liftTargetAllColumn :: PersistableWidth r
                      => (Record Flat r -> Restrict (PlaceHolders ()))
                      -> (Record Flat r -> Assign r (PlaceHolders r))
 liftTargetAllColumn rs = \proj -> fmap peRight $ updateAllColumn rs proj
 
--- | Lift 'Restriction' to 'UpdateTarget'. Update target columns are all. With placefolder type 'p'.
+-- | Lift 'Restrict' computation to 'Assign' computation. Assign target columns are all. With placefolder type 'p'.
 liftTargetAllColumn' :: PersistableWidth r
                      => (Record Flat r -> Restrict (PlaceHolders p))
                      -> (Record Flat r -> Assign r (PlaceHolders (r, p)))
 liftTargetAllColumn' rs = updateAllColumn rs
 
--- | Finalize 'Restrict' monad and generate 'UpdateTarget'. Update target columns are all.
+-- | Deprecated.
 updateTargetAllColumn :: PersistableWidth r
                       => (Record Flat r -> Restrict ())
                       -> (Record Flat r -> Assign r (PlaceHolders r))
 updateTargetAllColumn = liftTargetAllColumn . restriction
 {-# DEPRECATED updateTargetAllColumn "Use Database.Relational.updateAllColumnNoPH instead of this." #-}
 
--- | Finalize 'Restrict' monad and generate 'UpdateTarget'. Update target columns are all. With placefolder type 'p'.
+-- | Deprecated.
 updateTargetAllColumn' :: PersistableWidth r
                        => (Record Flat r -> Restrict (PlaceHolders p))
                        -> (Record Flat r -> Assign r (PlaceHolders (r, p)))
@@ -174,12 +179,12 @@ fromUpdateTarget :: Config -> Table r -> (Record Flat r -> Assign r (PlaceHolder
 fromUpdateTarget config tbl q = (qt, composeSets (asR tbl) <> composeWhere rs)
   where ((qt, asR), rs) = Assign.extract (withQualified tbl q) config
 
--- | SQL SET clause and WHERE clause 'StringSQL' string from 'UpdateTarget'
+-- | SQL SET clause and WHERE clause 'StringSQL' string from 'Assign' computation.
 sqlFromUpdateTarget :: Config -> Table r -> (Record Flat r -> Assign r (PlaceHolders p)) -> StringSQL
 sqlFromUpdateTarget config tbl = snd . fromUpdateTarget config tbl
 {-# DEPRECATED sqlFromUpdateTarget "low-level API, this API will be expired." #-}
 
--- | UPDATE statement with SET clause and WHERE clause 'StringSQL' string from 'UpdateTarget'
+-- | UPDATE statement with SET clause and WHERE clause 'StringSQL' string from 'Assign' computation.
 updateFromUpdateTarget :: Config -> Table r -> (Record Flat r -> Assign r (PlaceHolders p)) -> StringSQL
 updateFromUpdateTarget config tbl ut =
   UPDATE <> uncurry (<>) (fromUpdateTarget config tbl ut)
@@ -198,7 +203,7 @@ insertTarget :: Register r ()
 insertTarget =  InsertTarget . (>> return unitPH)
 {-# DEPRECATED insertTarget "old-style API. Use new-style Database.Relational.insertValueNoPH ." #-}
 
--- | Finalize 'Target' monad and generate 'UpdateTarget' with place-holder parameter 'p'.
+-- | Finalize 'Register' monad and generate 'InsertTarget' with place-holder parameter 'p'.
 insertTarget' :: Register r (PlaceHolders p)
               -> InsertTarget p r
 insertTarget' = InsertTarget
