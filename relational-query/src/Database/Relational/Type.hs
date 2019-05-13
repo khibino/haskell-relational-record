@@ -178,26 +178,26 @@ typedUpdate =  typedUpdate' defaultConfig
 targetTable :: TableDerivable r => UpdateTarget p r -> Table r
 targetTable =  const derivedTable
 
--- | Make typed 'Update' from 'Config', derived table and 'AssignStatement'
+-- | Make typed 'Update' from 'Config', derived table and 'Assign' computation.
 update' :: TableDerivable r => Config -> (Record Flat r -> Assign r (PlaceHolders p)) -> Update p
 update' config utc =  typedUpdate' config (targetTable ut) ut  where
   ut = updateTarget' utc
 
 {-# DEPRECATED derivedUpdate' "use `update'` instead of this." #-}
--- | Make typed 'Update' from 'Config', derived table and 'AssignStatement'
+-- | Make typed 'Update' from 'Config', derived table and 'Assign' computation.
 derivedUpdate' :: TableDerivable r => Config -> (Record Flat r -> Assign r (PlaceHolders p)) -> Update p
 derivedUpdate' = update'
 
--- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement'
+-- | Make typed 'Update' from 'defaultConfig', derived table and 'Assign' computation.
 update :: TableDerivable r => (Record Flat r -> Assign r (PlaceHolders p)) -> Update p
 update = update' defaultConfig
 
--- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement' with no(unit) placeholder.
+-- | Make typed 'Update' from 'defaultConfig', derived table and 'Assign' computation with no(unit) placeholder.
 updateNoPH :: TableDerivable r => (Record Flat r -> Assign r ()) -> Update ()
 updateNoPH af = update $ (return unitPH <*) . af
 
 {-# DEPRECATED derivedUpdate "use `update` instead of this." #-}
--- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement'
+-- | Make typed 'Update' from 'defaultConfig', derived table and 'Assign' computation.
 derivedUpdate :: TableDerivable r => (Record Flat r -> Assign r (PlaceHolders p)) -> Update p
 derivedUpdate = update
 
@@ -219,7 +219,7 @@ typedUpdateAllColumn :: PersistableWidth r
                      -> Update (r, p)
 typedUpdateAllColumn = typedUpdateAllColumn' defaultConfig
 
--- | Make typed 'Update' from 'Config', derived table and 'AssignStatement'.
+-- | Make typed 'Update' from 'Config', derived table and 'Restrict' computation.
 --   Update target is all column.
 updateAllColumn' :: (PersistableWidth r, TableDerivable r)
                  => Config
@@ -228,22 +228,21 @@ updateAllColumn' :: (PersistableWidth r, TableDerivable r)
 updateAllColumn' config = typedUpdateAllColumn' config derivedTable .restriction'
 
 {-# DEPRECATED derivedUpdateAllColumn' "use `updateAllColumn'` instead of this." #-}
--- | Make typed 'Update' from 'Config', derived table and 'AssignStatement'.
---   Update target is all column.
+-- | Deprecated. use 'updateAllColumn''.
 derivedUpdateAllColumn' :: (PersistableWidth r, TableDerivable r)
                         => Config
                         -> (Record Flat r -> Restrict (PlaceHolders p))
                         -> Update (r, p)
 derivedUpdateAllColumn' = updateAllColumn'
 
--- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement'.
+-- | Make typed 'Update' from 'defaultConfig', derived table and 'Restrict' computation.
 --   Update target is all column.
 updateAllColumn :: (PersistableWidth r, TableDerivable r)
                 => (Record Flat r -> Restrict (PlaceHolders p))
                 -> Update (r, p)
 updateAllColumn = updateAllColumn' defaultConfig
 
--- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement'
+-- | Make typed 'Update' from 'defaultConfig', derived table and 'Restrict' computation
 --   without placeholder other than target table columns.
 --   Update target is all column.
 updateAllColumnNoPH :: (PersistableWidth r, TableDerivable r)
@@ -253,8 +252,7 @@ updateAllColumnNoPH =
   typedUpdate' defaultConfig derivedTable . liftTargetAllColumn . restriction
 
 {-# DEPRECATED derivedUpdateAllColumn "use `updateAllColumn` instead of this." #-}
--- | Make typed 'Update' from 'defaultConfig', derived table and 'AssignStatement'.
---   Update target is all column.
+-- | Deprecated. use 'updateAllColumn'.
 derivedUpdateAllColumn :: (PersistableWidth r, TableDerivable r)
                        => (Record Flat r -> Restrict (PlaceHolders p))
                        -> Update (r, p)
