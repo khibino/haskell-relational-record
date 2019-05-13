@@ -19,7 +19,7 @@ module Database.Relational.Effect (
 
   -- * Object to express update target columns and restriction.
   UpdateTarget,
-  liftTargetAllColumn, liftTargetAllColumn',
+  liftTargetAllColumn',
 
   -- * Object to express insert terget.
   InsertTarget, insertTarget', piRegister,
@@ -34,6 +34,7 @@ module Database.Relational.Effect (
   -- * Deprecated
   restriction, restriction',
   updateTarget, updateTarget',
+  liftTargetAllColumn,
   updateTargetAllColumn, updateTargetAllColumn',
   insertTarget,
   sqlWhereFromRestriction,
@@ -149,6 +150,7 @@ liftTargetAllColumn :: PersistableWidth r
                      => (Record Flat r -> Restrict (PlaceHolders ()))
                      -> (Record Flat r -> Assign r (PlaceHolders r))
 liftTargetAllColumn rs = \proj -> fmap peRight $ updateAllColumn rs proj
+{-# DEPRECATED liftTargetAllColumn "old-style API. use Database.Relational.updateAllColumnNoPH instead of this." #-}
 
 -- | Lift 'Restrict' computation to 'Assign' computation. Assign target columns are all. With placefolder type 'p'.
 liftTargetAllColumn' :: PersistableWidth r

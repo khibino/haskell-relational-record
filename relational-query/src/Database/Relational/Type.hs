@@ -61,6 +61,7 @@ module Database.Relational.Type (
 
 import Control.Applicative ((<*))
 import Data.Monoid ((<>))
+import Data.Functor.ProductIsomorphic (peRight)
 
 import Database.Record (PersistableWidth)
 
@@ -75,8 +76,7 @@ import Database.Relational.Monad.Assign (Assign)
 import Database.Relational.Monad.Register (Register)
 import Database.Relational.Relation (tableOf)
 import Database.Relational.Effect
-  (Restriction, UpdateTarget,
-   liftTargetAllColumn, liftTargetAllColumn',
+  (Restriction, UpdateTarget, liftTargetAllColumn',
    InsertTarget, insertTarget',
    deleteFromRestriction, updateFromUpdateTarget, piRegister,
    sqlChunkFromInsertTarget, sqlFromInsertTarget, sqlChunksFromRecordList)
@@ -248,7 +248,7 @@ updateAllColumnNoPH :: (PersistableWidth r, TableDerivable r)
                     => (Record Flat r -> Restrict ())
                     -> Update r
 updateAllColumnNoPH =
-  typedUpdate' defaultConfig derivedTable . liftTargetAllColumn . ((return unitPH <*) .)
+  typedUpdate' defaultConfig derivedTable . (fmap peRight .) . liftTargetAllColumn' . ((return unitPH <*) .)
 
 {-# DEPRECATED derivedUpdateAllColumn "use `updateAllColumn` instead of this." #-}
 -- | Deprecated. use 'updateAllColumn'.
