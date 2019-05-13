@@ -1,4 +1,6 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 -- |
 -- Module      : Database.Relational.Effect
@@ -86,55 +88,55 @@ withQualified tbl q = do
   return $ corrSubQueryTerm addAS qq {- qualified table -}
 
 -- | Restriction type with place-holder parameter 'p' and projected record type 'r'.
-newtype Restriction p r = Restriction (Record Flat r -> Restrict (PlaceHolders p))
+type Restriction p r = Record Flat r -> Restrict (PlaceHolders p)
 
 -- | Finalize 'Restrict' monad and generate 'Restriction'.
 restriction :: (Record Flat r -> Restrict ()) -> Restriction () r
-restriction = Restriction . ((>> return unitPH) .)
+restriction = ((>> return unitPH) .)
 
 -- | Finalize 'Restrict' monad and generate 'Restriction' with place-holder parameter 'p'
 restriction' :: (Record Flat r -> Restrict (PlaceHolders p)) -> Restriction p r
-restriction' = Restriction
+restriction' = id
 
 runRestriction :: Restriction p r
                -> (Record Flat r -> Restrict (PlaceHolders p))
-runRestriction (Restriction qf) = qf
+runRestriction = id
 
-fromRestriction :: Config -> Table r -> Restriction p r -> (StringSQL, StringSQL)
-fromRestriction config tbl (Restriction q) = (qt, composeWhere rs)
+fromRestriction :: Config -> Table r -> (Record Flat r -> Restrict (PlaceHolders p)) -> (StringSQL, StringSQL)
+fromRestriction config tbl q = (qt, composeWhere rs)
   where (qt, rs) = Restrict.extract (withQualified tbl q) config
 
 -- | SQL WHERE clause 'StringSQL' string from 'Restriction'.
-sqlWhereFromRestriction :: Config -> Table r -> Restriction p r -> StringSQL
+sqlWhereFromRestriction :: Config -> Table r -> (Record Flat r -> Restrict (PlaceHolders p)) -> StringSQL
 sqlWhereFromRestriction config tbl = snd . fromRestriction config tbl
 {-# DEPRECATED sqlWhereFromRestriction "low-level API, this API will be expired." #-}
 
 -- | DELETE statement with WHERE clause 'StringSQL' string from 'Restriction'.
-deleteFromRestriction :: Config -> Table r -> Restriction p r -> StringSQL
+deleteFromRestriction :: Config -> Table r -> (Record Flat r -> Restrict (PlaceHolders p)) -> StringSQL
 deleteFromRestriction config tbl r =
   DELETE <> FROM <> uncurry (<>) (fromRestriction config tbl r)
 
 -- | Show WHERE clause.
-instance TableDerivable r => Show (Restriction p r) where
+instance TableDerivable r => Show (Record Flat r -> Restrict (PlaceHolders p)) where
   show = showStringSQL . snd . fromRestriction defaultConfig derivedTable
 
 
 -- | UpdateTarget type with place-holder parameter 'p' and projected record type 'r'.
-newtype UpdateTarget p r = UpdateTarget (Record Flat r -> Assign r (PlaceHolders p))
+type UpdateTarget p r = Record Flat r -> Assign r (PlaceHolders p)
 
 -- | Finalize 'Target' monad and generate 'UpdateTarget'.
 updateTarget :: (Record Flat r -> Assign r ())
              -> UpdateTarget () r
-updateTarget =  UpdateTarget . ((>> return unitPH) .)
+updateTarget =  ((>> return unitPH) .)
 {-# DEPRECATED updateTarget "old-style API. Use new-style Database.Relational.updateNoPH." #-}
 
 -- | Finalize 'Target' monad and generate 'UpdateTarget' with place-holder parameter 'p'.
 updateTarget' :: (Record Flat r -> Assign r (PlaceHolders p))
               -> UpdateTarget p r
-updateTarget' = UpdateTarget
+updateTarget' = id
 
 updateAllColumn :: PersistableWidth r
-                => Restriction p r
+                => (Record Flat r -> Restrict (PlaceHolders p))
                 -> Record Flat r -> Assign r (PlaceHolders (r, p))
 updateAllColumn rs proj = do
   (ph0, ()) <- placeholder (\ph -> id' <-# ph)
@@ -143,47 +145,47 @@ updateAllColumn rs proj = do
 
 -- | Lift 'Restriction' to 'UpdateTarget'. Update target columns are all.
 liftTargetAllColumn :: PersistableWidth r
-                     => Restriction () r
-                     -> UpdateTarget r r
-liftTargetAllColumn rs = updateTarget' $ \proj -> fmap peRight $ updateAllColumn rs proj
+                     => (Record Flat r -> Restrict (PlaceHolders ()))
+                     -> (Record Flat r -> Assign r (PlaceHolders r))
+liftTargetAllColumn rs = \proj -> fmap peRight $ updateAllColumn rs proj
 
 -- | Lift 'Restriction' to 'UpdateTarget'. Update target columns are all. With placefolder type 'p'.
 liftTargetAllColumn' :: PersistableWidth r
-                     => Restriction p r
-                     -> UpdateTarget (r, p) r
-liftTargetAllColumn' rs = updateTarget' $ updateAllColumn rs
+                     => (Record Flat r -> Restrict (PlaceHolders p))
+                     -> (Record Flat r -> Assign r (PlaceHolders (r, p)))
+liftTargetAllColumn' rs = updateAllColumn rs
 
 -- | Finalize 'Restrict' monad and generate 'UpdateTarget'. Update target columns are all.
 updateTargetAllColumn :: PersistableWidth r
                       => (Record Flat r -> Restrict ())
-                      -> UpdateTarget r r
+                      -> (Record Flat r -> Assign r (PlaceHolders r))
 updateTargetAllColumn = liftTargetAllColumn . restriction
 {-# DEPRECATED updateTargetAllColumn "Use Database.Relational.updateAllColumnNoPH instead of this." #-}
 
 -- | Finalize 'Restrict' monad and generate 'UpdateTarget'. Update target columns are all. With placefolder type 'p'.
 updateTargetAllColumn' :: PersistableWidth r
                        => (Record Flat r -> Restrict (PlaceHolders p))
-                       -> UpdateTarget (r, p) r
+                       -> (Record Flat r -> Assign r (PlaceHolders (r, p)))
 updateTargetAllColumn' = liftTargetAllColumn' . restriction'
 {-# DEPRECATED updateTargetAllColumn' "Use Database.Relational.updateAllColumn instead of this." #-}
 
 
-fromUpdateTarget :: Config -> Table r -> UpdateTarget p r -> (StringSQL, StringSQL)
-fromUpdateTarget config tbl (UpdateTarget q) = (qt, composeSets (asR tbl) <> composeWhere rs)
+fromUpdateTarget :: Config -> Table r -> (Record Flat r -> Assign r (PlaceHolders p)) -> (StringSQL, StringSQL)
+fromUpdateTarget config tbl q = (qt, composeSets (asR tbl) <> composeWhere rs)
   where ((qt, asR), rs) = Assign.extract (withQualified tbl q) config
 
 -- | SQL SET clause and WHERE clause 'StringSQL' string from 'UpdateTarget'
-sqlFromUpdateTarget :: Config -> Table r -> UpdateTarget p r -> StringSQL
+sqlFromUpdateTarget :: Config -> Table r -> (Record Flat r -> Assign r (PlaceHolders p)) -> StringSQL
 sqlFromUpdateTarget config tbl = snd . fromUpdateTarget config tbl
 {-# DEPRECATED sqlFromUpdateTarget "low-level API, this API will be expired." #-}
 
 -- | UPDATE statement with SET clause and WHERE clause 'StringSQL' string from 'UpdateTarget'
-updateFromUpdateTarget :: Config -> Table r -> UpdateTarget p r -> StringSQL
+updateFromUpdateTarget :: Config -> Table r -> (Record Flat r -> Assign r (PlaceHolders p)) -> StringSQL
 updateFromUpdateTarget config tbl ut =
   UPDATE <> uncurry (<>) (fromUpdateTarget config tbl ut)
 
 -- | Show Set clause and WHERE clause.
-instance TableDerivable r => Show (UpdateTarget p r) where
+instance TableDerivable r => Show (Record Flat r -> Assign r (PlaceHolders p)) where
   show = showStringSQL . snd . fromUpdateTarget defaultConfig derivedTable
 
 
