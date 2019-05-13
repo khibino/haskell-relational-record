@@ -75,7 +75,7 @@ import Database.Relational.Monad.Assign (Assign)
 import Database.Relational.Monad.Register (Register)
 import Database.Relational.Relation (tableOf)
 import Database.Relational.Effect
-  (Restriction, restriction, restriction', UpdateTarget, updateTarget',
+  (Restriction, UpdateTarget,
    liftTargetAllColumn, liftTargetAllColumn',
    InsertTarget, insertTarget',
    deleteFromRestriction, updateFromUpdateTarget, piRegister,
@@ -180,8 +180,7 @@ targetTable =  const derivedTable
 
 -- | Make typed 'Update' from 'Config', derived table and 'Assign' computation.
 update' :: TableDerivable r => Config -> (Record Flat r -> Assign r (PlaceHolders p)) -> Update p
-update' config utc =  typedUpdate' config (targetTable ut) ut  where
-  ut = updateTarget' utc
+update' config ac =  typedUpdate' config (targetTable ac) ac
 
 {-# DEPRECATED derivedUpdate' "use `update'` instead of this." #-}
 -- | Make typed 'Update' from 'Config', derived table and 'Assign' computation.
@@ -225,7 +224,7 @@ updateAllColumn' :: (PersistableWidth r, TableDerivable r)
                  => Config
                  -> (Record Flat r -> Restrict (PlaceHolders p))
                  -> Update (r, p)
-updateAllColumn' config = typedUpdateAllColumn' config derivedTable .restriction'
+updateAllColumn' config = typedUpdateAllColumn' config derivedTable
 
 {-# DEPRECATED derivedUpdateAllColumn' "use `updateAllColumn'` instead of this." #-}
 -- | Deprecated. use 'updateAllColumn''.
@@ -249,7 +248,7 @@ updateAllColumnNoPH :: (PersistableWidth r, TableDerivable r)
                     => (Record Flat r -> Restrict ())
                     -> Update r
 updateAllColumnNoPH =
-  typedUpdate' defaultConfig derivedTable . liftTargetAllColumn . restriction
+  typedUpdate' defaultConfig derivedTable . liftTargetAllColumn . ((return unitPH <*) .)
 
 {-# DEPRECATED derivedUpdateAllColumn "use `updateAllColumn` instead of this." #-}
 -- | Deprecated. use 'updateAllColumn'.
@@ -428,8 +427,7 @@ restrictedTable =  const derivedTable
 
 -- | Make typed 'Delete' from 'Config', derived table and 'RestrictContext'
 delete' :: TableDerivable r => Config -> (Record Flat r -> Restrict (PlaceHolders p)) -> Delete p
-delete' config rc = typedDelete' config (restrictedTable rs) rs  where
-  rs = restriction' rc
+delete' config rc = typedDelete' config (restrictedTable rc) rc
 
 {-# DEPRECATED derivedDelete' "use `delete'` instead of this." #-}
 -- | Make typed 'Delete' from 'Config', derived table and 'RestrictContext'
