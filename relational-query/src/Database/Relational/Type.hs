@@ -161,16 +161,16 @@ newtype Update p = Update { untypeUpdate :: String }
 unsafeTypedUpdate :: String -> Update p
 unsafeTypedUpdate =  Update
 
--- | Make untyped update SQL string from 'Table' and 'UpdateTarget'.
+-- | Make untyped update SQL string from 'Table' and 'Assign' computation.
 updateSQL :: Config -> Table r -> (Record Flat r -> Assign r (PlaceHolders p)) -> String
 updateSQL config tbl ut = showStringSQL $ updateFromUpdateTarget config tbl ut
 
--- | Make typed 'Update' from 'Config', 'Table' and 'UpdateTarget'.
+-- | Make typed 'Update' from 'Config', 'Table' and 'Assign' computation.
 typedUpdate' :: Config -> Table r -> (Record Flat r -> Assign r (PlaceHolders p)) -> Update p
 typedUpdate' config tbl ut = unsafeTypedUpdate $ updateSQL config tbl ut
 
 {-# DEPRECATED typedUpdate "use `typedUpdate' defaultConfig` instead of this." #-}
--- | Make typed 'Update' using 'defaultConfig', 'Table' and 'UpdateTarget'.
+-- | Make typed 'Update' using 'defaultConfig', 'Table' and 'Assign' computation.
 typedUpdate :: Table r -> (Record Flat r -> Assign r (PlaceHolders p)) -> Update p
 typedUpdate =  typedUpdate' defaultConfig
 
@@ -200,7 +200,7 @@ derivedUpdate :: TableDerivable r => (Record Flat r -> Assign r (PlaceHolders p)
 derivedUpdate = update
 
 
--- | Make typed 'Update' from 'Config', 'Table' and 'Restriction'.
+-- | Make typed 'Update' from 'Config', 'Table' and 'Restrict' computation.
 --   Update target is all column.
 typedUpdateAllColumn' :: PersistableWidth r
                       => Config
@@ -209,7 +209,7 @@ typedUpdateAllColumn' :: PersistableWidth r
                       -> Update (r, p)
 typedUpdateAllColumn' config tbl r = typedUpdate' config tbl $ liftTargetAllColumn' r
 
--- | Make typed 'Update' from 'Table' and 'Restriction'.
+-- | Make typed 'Update' from 'Table' and 'Restrict' computation.
 --   Update target is all column.
 typedUpdateAllColumn :: PersistableWidth r
                      => Table r
@@ -408,41 +408,41 @@ newtype Delete p = Delete { untypeDelete :: String }
 unsafeTypedDelete :: String -> Delete p
 unsafeTypedDelete =  Delete
 
--- | Make untyped delete SQL string from 'Table' and 'Restriction'.
+-- | Make untyped delete SQL string from 'Table' and 'Restrict' computation.
 deleteSQL :: Config -> Table r -> (Record Flat r -> Restrict (PlaceHolders p)) -> String
 deleteSQL config tbl r = showStringSQL $ deleteFromRestriction config tbl r
 
--- | Make typed 'Delete' from 'Config', 'Table' and 'Restriction'.
+-- | Make typed 'Delete' from 'Config', 'Table' and 'Restrict' computation.
 typedDelete' :: Config -> Table r -> (Record Flat r -> Restrict (PlaceHolders p)) -> Delete p
 typedDelete' config tbl r = unsafeTypedDelete $ deleteSQL config tbl r
 
 {-# DEPRECATED typedDelete "use `typedDelete' defaultConfig` instead of this." #-}
--- | Make typed 'Delete' from 'Table' and 'Restriction'.
+-- | Make typed 'Delete' from 'Table' and 'Restrict' computation.
 typedDelete :: Table r -> (Record Flat r -> Restrict (PlaceHolders p)) -> Delete p
 typedDelete =  typedDelete' defaultConfig
 
 restrictedTable :: TableDerivable r => (Record Flat r -> Restrict (PlaceHolders p)) -> Table r
 restrictedTable =  const derivedTable
 
--- | Make typed 'Delete' from 'Config', derived table and 'RestrictContext'
+-- | Make typed 'Delete' from 'Config', derived table and 'Restrict' computation.
 delete' :: TableDerivable r => Config -> (Record Flat r -> Restrict (PlaceHolders p)) -> Delete p
 delete' config rc = typedDelete' config (restrictedTable rc) rc
 
 {-# DEPRECATED derivedDelete' "use `delete'` instead of this." #-}
--- | Make typed 'Delete' from 'Config', derived table and 'RestrictContext'
+-- | Make typed 'Delete' from 'Config', derived table and 'Restrict' computation.
 derivedDelete' :: TableDerivable r => Config -> (Record Flat r -> Restrict (PlaceHolders p)) -> Delete p
 derivedDelete' = delete'
 
--- | Make typed 'Delete' from 'defaultConfig', derived table and 'RestrictContext'
+-- | Make typed 'Delete' from 'defaultConfig', derived table and 'Restrict' computation.
 delete :: TableDerivable r => (Record Flat r -> Restrict (PlaceHolders p)) -> Delete p
 delete = delete' defaultConfig
 
--- | Make typed 'Delete' from 'defaultConfig', derived table and 'RestrictContext' with no(unit) placeholder.
+-- | Make typed 'Delete' from 'defaultConfig', derived table and 'Restrict' computation with no(unit) placeholder.
 deleteNoPH :: TableDerivable r => (Record Flat r -> Restrict ()) -> Delete ()
 deleteNoPH rf = delete $ (return unitPH <*) . rf
 
 {-# DEPRECATED derivedDelete "use `delete` instead of this." #-}
--- | Make typed 'Delete' from 'defaultConfig', derived table and 'RestrictContext'
+-- | Make typed 'Delete' from 'defaultConfig', derived table and 'Restrict' computation.
 derivedDelete :: TableDerivable r => (Record Flat r -> Restrict (PlaceHolders p)) -> Delete p
 derivedDelete = delete
 
