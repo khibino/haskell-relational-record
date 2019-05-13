@@ -76,8 +76,7 @@ import Database.Relational.Monad.Assign (Assign)
 import Database.Relational.Monad.Register (Register)
 import Database.Relational.Relation (tableOf)
 import Database.Relational.Effect
-  (Restriction, UpdateTarget, liftTargetAllColumn',
-   InsertTarget, insertTarget',
+  (liftTargetAllColumn', InsertTarget, insertTarget',
    deleteFromRestriction, updateFromUpdateTarget, piRegister,
    sqlChunkFromInsertTarget, sqlFromInsertTarget, sqlChunksFromRecordList)
 import Database.Relational.Pi (Pi)
@@ -163,19 +162,19 @@ unsafeTypedUpdate :: String -> Update p
 unsafeTypedUpdate =  Update
 
 -- | Make untyped update SQL string from 'Table' and 'UpdateTarget'.
-updateSQL :: Config -> Table r -> UpdateTarget p r -> String
+updateSQL :: Config -> Table r -> (Record Flat r -> Assign r (PlaceHolders p)) -> String
 updateSQL config tbl ut = showStringSQL $ updateFromUpdateTarget config tbl ut
 
 -- | Make typed 'Update' from 'Config', 'Table' and 'UpdateTarget'.
-typedUpdate' :: Config -> Table r -> UpdateTarget p r -> Update p
+typedUpdate' :: Config -> Table r -> (Record Flat r -> Assign r (PlaceHolders p)) -> Update p
 typedUpdate' config tbl ut = unsafeTypedUpdate $ updateSQL config tbl ut
 
 {-# DEPRECATED typedUpdate "use `typedUpdate' defaultConfig` instead of this." #-}
 -- | Make typed 'Update' using 'defaultConfig', 'Table' and 'UpdateTarget'.
-typedUpdate :: Table r -> UpdateTarget p r -> Update p
+typedUpdate :: Table r -> (Record Flat r -> Assign r (PlaceHolders p)) -> Update p
 typedUpdate =  typedUpdate' defaultConfig
 
-targetTable :: TableDerivable r => UpdateTarget p r -> Table r
+targetTable :: TableDerivable r => (Record Flat r -> Assign r (PlaceHolders p)) -> Table r
 targetTable =  const derivedTable
 
 -- | Make typed 'Update' from 'Config', derived table and 'Assign' computation.
@@ -206,7 +205,7 @@ derivedUpdate = update
 typedUpdateAllColumn' :: PersistableWidth r
                       => Config
                       -> Table r
-                      -> Restriction p r
+                      -> (Record Flat r -> Restrict (PlaceHolders p))
                       -> Update (r, p)
 typedUpdateAllColumn' config tbl r = typedUpdate' config tbl $ liftTargetAllColumn' r
 
@@ -214,7 +213,7 @@ typedUpdateAllColumn' config tbl r = typedUpdate' config tbl $ liftTargetAllColu
 --   Update target is all column.
 typedUpdateAllColumn :: PersistableWidth r
                      => Table r
-                     -> Restriction p r
+                     -> (Record Flat r -> Restrict (PlaceHolders p))
                      -> Update (r, p)
 typedUpdateAllColumn = typedUpdateAllColumn' defaultConfig
 
@@ -410,19 +409,19 @@ unsafeTypedDelete :: String -> Delete p
 unsafeTypedDelete =  Delete
 
 -- | Make untyped delete SQL string from 'Table' and 'Restriction'.
-deleteSQL :: Config -> Table r -> Restriction p r -> String
+deleteSQL :: Config -> Table r -> (Record Flat r -> Restrict (PlaceHolders p)) -> String
 deleteSQL config tbl r = showStringSQL $ deleteFromRestriction config tbl r
 
 -- | Make typed 'Delete' from 'Config', 'Table' and 'Restriction'.
-typedDelete' :: Config -> Table r -> Restriction p r -> Delete p
+typedDelete' :: Config -> Table r -> (Record Flat r -> Restrict (PlaceHolders p)) -> Delete p
 typedDelete' config tbl r = unsafeTypedDelete $ deleteSQL config tbl r
 
 {-# DEPRECATED typedDelete "use `typedDelete' defaultConfig` instead of this." #-}
 -- | Make typed 'Delete' from 'Table' and 'Restriction'.
-typedDelete :: Table r -> Restriction p r -> Delete p
+typedDelete :: Table r -> (Record Flat r -> Restrict (PlaceHolders p)) -> Delete p
 typedDelete =  typedDelete' defaultConfig
 
-restrictedTable :: TableDerivable r => Restriction p r -> Table r
+restrictedTable :: TableDerivable r => (Record Flat r -> Restrict (PlaceHolders p)) -> Table r
 restrictedTable =  const derivedTable
 
 -- | Make typed 'Delete' from 'Config', derived table and 'RestrictContext'
