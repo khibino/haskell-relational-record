@@ -21,7 +21,7 @@ module Database.Custom.SQLServer (
 
 import Database.Relational.Schema.SQLServer.Config (config)
 import Database.Relational hiding
-  (unique, relationalQuery,
+  (relationalQuery,
    insertValue, insertValueNoPH, insertQuery,
    update, updateNoPH,
    delete, deleteNoPH, )

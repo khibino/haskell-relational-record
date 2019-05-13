@@ -21,7 +21,7 @@ module Database.Custom.IBMDB2 (
 
 import Database.Relational.Schema.IBMDB2.Config (config)
 import Database.Relational hiding
-  (unique, relationalQuery,
+  (relationalQuery,
    insertValue, insertValueNoPH, insertQuery,
    update, updateNoPH,
    delete, deleteNoPH, )

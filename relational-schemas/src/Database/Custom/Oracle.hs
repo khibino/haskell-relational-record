@@ -21,7 +21,7 @@ module Database.Custom.Oracle (
 
 import Database.Relational.Schema.Oracle.Config (config)
 import Database.Relational hiding
-  (unique, relationalQuery,
+  (relationalQuery,
    insertValue, insertValueNoPH, insertQuery,
    update, updateNoPH,
    delete, deleteNoPH, )

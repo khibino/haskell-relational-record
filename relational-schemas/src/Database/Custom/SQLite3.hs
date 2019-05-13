@@ -21,7 +21,7 @@ module Database.Custom.SQLite3 (
 
 import Database.Relational.Schema.SQLite3.Config (config)
 import Database.Relational hiding
-  (unique, relationalQuery,
+  (relationalQuery,
    insertValue, insertValueNoPH, insertQuery,
    update, updateNoPH,
    delete, deleteNoPH, )

@@ -21,7 +21,7 @@ module Database.Custom.MySQL (
 
 import Database.Relational.Schema.MySQL.Config (config)
 import Database.Relational hiding
-  (unique, relationalQuery,
+  (relationalQuery,
    insertValue, insertValueNoPH, insertQuery,
    update, updateNoPH,
    delete, deleteNoPH, )

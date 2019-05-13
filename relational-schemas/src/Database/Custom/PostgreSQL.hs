@@ -21,7 +21,7 @@ module Database.Custom.PostgreSQL (
 
 import Database.Relational.Schema.PostgreSQL.Config (config)
 import Database.Relational hiding
-  (unique, relationalQuery,
+  (relationalQuery,
    insertValue, insertValueNoPH, insertQuery,
    update, updateNoPH,
    delete, deleteNoPH, )
