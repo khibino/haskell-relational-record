@@ -47,6 +47,7 @@ import Database.Record.Persistable (PersistableWidth)
 
 import Database.Relational.Internal.Config
   (Config (chunksInsertSize, addModifyTableAliasAS), defaultConfig)
+import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.Internal.String (StringSQL, stringSQL, showStringSQL)
 import Database.Relational.SqlSyntax
   (Record, composeWhere, composeSets,
@@ -64,9 +65,9 @@ import Database.Relational.Projectable
 import Database.Relational.Monad.BaseType (ConfigureQuery, qualifyQuery, askConfig)
 import Database.Relational.Monad.Class (MonadQualify (..))
 import Database.Relational.Monad.Trans.Assigning (assignings, (<-#))
-import Database.Relational.Monad.Restrict (RestrictedStatement)
+import Database.Relational.Monad.Restrict (Restrict)
 import qualified Database.Relational.Monad.Restrict as Restrict
-import Database.Relational.Monad.Assign (AssignStatement)
+import Database.Relational.Monad.Assign (Assign)
 import qualified Database.Relational.Monad.Assign as Assign
 import Database.Relational.Monad.Register (Register)
 import qualified Database.Relational.Monad.Register as Register
@@ -85,18 +86,18 @@ withQualified tbl q = do
   return $ corrSubQueryTerm addAS qq {- qualified table -}
 
 -- | Restriction type with place-holder parameter 'p' and projected record type 'r'.
-newtype Restriction p r = Restriction (RestrictedStatement r (PlaceHolders p))
+newtype Restriction p r = Restriction (Record Flat r -> Restrict (PlaceHolders p))
 
 -- | Finalize 'Restrict' monad and generate 'Restriction'.
-restriction :: RestrictedStatement r () -> Restriction () r
+restriction :: (Record Flat r -> Restrict ()) -> Restriction () r
 restriction = Restriction . ((>> return unitPH) .)
 
 -- | Finalize 'Restrict' monad and generate 'Restriction' with place-holder parameter 'p'
-restriction' :: RestrictedStatement r (PlaceHolders p) -> Restriction p r
+restriction' :: (Record Flat r -> Restrict (PlaceHolders p)) -> Restriction p r
 restriction' = Restriction
 
 runRestriction :: Restriction p r
-               -> RestrictedStatement r (PlaceHolders p)
+               -> (Record Flat r -> Restrict (PlaceHolders p))
 runRestriction (Restriction qf) = qf
 
 fromRestriction :: Config -> Table r -> Restriction p r -> (StringSQL, StringSQL)
@@ -119,22 +120,22 @@ instance TableDerivable r => Show (Restriction p r) where
 
 
 -- | UpdateTarget type with place-holder parameter 'p' and projected record type 'r'.
-newtype UpdateTarget p r = UpdateTarget (AssignStatement r (PlaceHolders p))
+newtype UpdateTarget p r = UpdateTarget (Record Flat r -> Assign r (PlaceHolders p))
 
 -- | Finalize 'Target' monad and generate 'UpdateTarget'.
-updateTarget :: AssignStatement r ()
+updateTarget :: (Record Flat r -> Assign r ())
              -> UpdateTarget () r
 updateTarget =  UpdateTarget . ((>> return unitPH) .)
 {-# DEPRECATED updateTarget "old-style API. Use new-style Database.Relational.updateNoPH." #-}
 
 -- | Finalize 'Target' monad and generate 'UpdateTarget' with place-holder parameter 'p'.
-updateTarget' :: AssignStatement r (PlaceHolders p)
+updateTarget' :: (Record Flat r -> Assign r (PlaceHolders p))
               -> UpdateTarget p r
 updateTarget' = UpdateTarget
 
 updateAllColumn :: PersistableWidth r
                 => Restriction p r
-                -> AssignStatement r (PlaceHolders (r, p))
+                -> Record Flat r -> Assign r (PlaceHolders (r, p))
 updateAllColumn rs proj = do
   (ph0, ()) <- placeholder (\ph -> id' <-# ph)
   ph1       <- assignings $ runRestriction rs proj
@@ -154,14 +155,14 @@ liftTargetAllColumn' rs = updateTarget' $ updateAllColumn rs
 
 -- | Finalize 'Restrict' monad and generate 'UpdateTarget'. Update target columns are all.
 updateTargetAllColumn :: PersistableWidth r
-                      => RestrictedStatement r ()
+                      => (Record Flat r -> Restrict ())
                       -> UpdateTarget r r
 updateTargetAllColumn = liftTargetAllColumn . restriction
 {-# DEPRECATED updateTargetAllColumn "Use Database.Relational.updateAllColumnNoPH instead of this." #-}
 
 -- | Finalize 'Restrict' monad and generate 'UpdateTarget'. Update target columns are all. With placefolder type 'p'.
 updateTargetAllColumn' :: PersistableWidth r
-                       => RestrictedStatement r (PlaceHolders p)
+                       => (Record Flat r -> Restrict (PlaceHolders p))
                        -> UpdateTarget (r, p) r
 updateTargetAllColumn' = liftTargetAllColumn' . restriction'
 {-# DEPRECATED updateTargetAllColumn' "Use Database.Relational.updateAllColumn instead of this." #-}
