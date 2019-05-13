@@ -30,7 +30,7 @@ module Database.Relational.Type (
   typedInsertValue', insertValue', insertValue, insertValueNoPH,
   insertValueList', insertValueList,
   InsertQuery (..), unsafeTypedInsertQuery,
-  typedInsertQuery', insertQuery_, insertQuery,
+  typedInsertQuery', insertQuery', insertQuery,
 
   insertQuerySQL,
 
@@ -386,12 +386,12 @@ typedInsertQuery :: Table r -> Pi r r' -> Relation p r' -> InsertQuery p
 typedInsertQuery =  typedInsertQuery' defaultConfig
 
 -- | Table type inferred 'InsertQuery'.
-insertQuery_ :: TableDerivable r => Config -> Pi r r' -> Relation p r' -> InsertQuery p
-insertQuery_ config = typedInsertQuery' config derivedTable
+insertQuery' :: TableDerivable r => Config -> Pi r r' -> Relation p r' -> InsertQuery p
+insertQuery' config = typedInsertQuery' config derivedTable
 
 -- | Table type inferred 'InsertQuery' with 'defaultConfig'.
 insertQuery :: TableDerivable r => Pi r r' -> Relation p r' -> InsertQuery p
-insertQuery = insertQuery_ defaultConfig
+insertQuery = insertQuery' defaultConfig
 
 {-# DEPRECATED derivedInsertQuery "use `insertQuery` instead of this." #-}
 -- | Table type inferred 'InsertQuery'.
