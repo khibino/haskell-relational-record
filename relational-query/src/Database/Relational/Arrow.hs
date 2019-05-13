@@ -3,7 +3,7 @@
 
 -- |
 -- Module      : Database.Relational.Arrow
--- Copyright   : 2015-2018 Kei Hibino
+-- Copyright   : 2015-2019 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
