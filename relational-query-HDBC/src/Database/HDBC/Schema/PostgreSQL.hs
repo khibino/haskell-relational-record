@@ -36,10 +36,10 @@ import Database.Record (FromSql, ToSql)
 import Database.Relational.Schema.PostgreSQL
   (normalizeColumn, notNull, getType, columnQuerySQL,
    primaryKeyLengthQuerySQL, primaryKeyQuerySQL)
-import Database.Relational.Schema.PgCatalog.PgAttribute (PgAttribute)
-import Database.Relational.Schema.PgCatalog.PgType (PgType)
-import qualified Database.Relational.Schema.PgCatalog.PgType as Type
-import Database.Relational.Schema.PgCatalog.Config (config)
+import Database.Relational.Schema.PostgreSQL.PgAttribute (PgAttribute)
+import Database.Relational.Schema.PostgreSQL.PgType (PgType)
+import qualified Database.Relational.Schema.PostgreSQL.PgType as Type
+import Database.Relational.Schema.PostgreSQL (config)
 
 import Database.HDBC.Schema.Driver
   (TypeMap, LogChan, putVerbose, failWith, maybeIO, hoistMaybe,

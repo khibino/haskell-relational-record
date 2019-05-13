@@ -14,9 +14,9 @@ module Database.HDBC.Schema.SQLite3 (
   driverSQLite3
   ) where
 
-import qualified Database.Relational.Schema.SQLite3Syscat.IndexInfo as IndexInfo
-import qualified Database.Relational.Schema.SQLite3Syscat.IndexList as IndexList
-import qualified Database.Relational.Schema.SQLite3Syscat.TableInfo as TableInfo
+import qualified Database.Relational.Schema.SQLite3.IndexInfo as IndexInfo
+import qualified Database.Relational.Schema.SQLite3.IndexList as IndexList
+import qualified Database.Relational.Schema.SQLite3.TableInfo as TableInfo
 
 import Control.Applicative ((<|>))
 import Control.Monad (guard)
@@ -33,10 +33,10 @@ import Database.HDBC.Schema.Driver
 import Database.Record (FromSql, ToSql)
 import Database.Relational.Schema.SQLite3 (getType, indexInfoQuerySQL, indexListQuerySQL, normalizeColumn,
                                            normalizeType, notNull, tableInfoQuerySQL)
-import Database.Relational.Schema.SQLite3Syscat.IndexInfo (IndexInfo)
-import Database.Relational.Schema.SQLite3Syscat.IndexList (IndexList)
-import Database.Relational.Schema.SQLite3Syscat.TableInfo (TableInfo)
-import Database.Relational.Schema.SQLite3Syscat.Config (config)
+import Database.Relational.Schema.SQLite3.IndexInfo (IndexInfo)
+import Database.Relational.Schema.SQLite3.IndexList (IndexList)
+import Database.Relational.Schema.SQLite3.TableInfo (TableInfo)
+import Database.Relational.Schema.SQLite3 (config)
 import Language.Haskell.TH (TypeQ)
 
 

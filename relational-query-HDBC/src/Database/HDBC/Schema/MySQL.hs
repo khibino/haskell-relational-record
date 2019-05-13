@@ -48,9 +48,9 @@ import           Database.Relational.Schema.MySQL   ( normalizeColumn
                                                     , primaryKeyQuerySQL
                                                     )
 
-import           Database.Relational.Schema.MySQLInfo.Columns (Columns)
-import qualified Database.Relational.Schema.MySQLInfo.Columns as Columns
-import           Database.Relational.Schema.MySQLInfo.Config (config)
+import           Database.Relational.Schema.MySQL.Columns (Columns)
+import qualified Database.Relational.Schema.MySQL.Columns as Columns
+import           Database.Relational.Schema.MySQL (config)
 
 
 instance FromSql SqlValue Columns

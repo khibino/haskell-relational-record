@@ -38,9 +38,9 @@ import Database.Record (FromSql, ToSql)
 
 import Database.Relational.Schema.IBMDB2
   (normalizeColumn, notNull, getType, columnsQuerySQL, primaryKeyQuerySQL)
-import Database.Relational.Schema.DB2Syscat.Columns (Columns)
-import qualified Database.Relational.Schema.DB2Syscat.Columns as Columns
-import Database.Relational.Schema.DB2Syscat.Config (config)
+import Database.Relational.Schema.IBMDB2.Columns (Columns)
+import qualified Database.Relational.Schema.IBMDB2.Columns as Columns
+import Database.Relational.Schema.IBMDB2 (config)
 
 import Database.HDBC.Schema.Driver
   (TypeMap, LogChan, putVerbose, failWith, maybeIO, hoistMaybe,

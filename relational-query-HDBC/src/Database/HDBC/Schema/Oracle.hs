@@ -36,9 +36,9 @@ import Database.Relational.Schema.Oracle
     ( normalizeColumn, notNull, getType
     , columnsQuerySQL, primaryKeyQuerySQL
     )
-import Database.Relational.Schema.OracleDataDictionary.TabColumns (DbaTabColumns)
-import qualified Database.Relational.Schema.OracleDataDictionary.TabColumns as Cols
-import Database.Relational.Schema.OracleDataDictionary.Config (config)
+import Database.Relational.Schema.Oracle.TabColumns (DbaTabColumns)
+import qualified Database.Relational.Schema.Oracle.TabColumns as Cols
+import Database.Relational.Schema.Oracle (config)
 
 
 instance FromSql SqlValue DbaTabColumns

@@ -14,8 +14,8 @@ module Database.HDBC.Schema.SQLServer (
   driverSQLServer,
   ) where
 
-import qualified Database.Relational.Schema.SQLServerSyscat.Columns as Columns
-import qualified Database.Relational.Schema.SQLServerSyscat.Types as Types
+import qualified Database.Relational.Schema.SQLServer.Columns as Columns
+import qualified Database.Relational.Schema.SQLServer.Types as Types
 
 import Control.Applicative ((<$>), (<|>))
 import Control.Monad (guard)
@@ -32,9 +32,9 @@ import Database.HDBC.Schema.Driver
 import Database.Record (FromSql, ToSql)
 import Database.Relational.Schema.SQLServer (columnTypeQuerySQL, getType, normalizeColumn,
                                             notNull, primaryKeyQuerySQL)
-import Database.Relational.Schema.SQLServerSyscat.Columns (Columns)
-import Database.Relational.Schema.SQLServerSyscat.Types (Types)
-import Database.Relational.Schema.SQLServerSyscat.Config (config)
+import Database.Relational.Schema.SQLServer.Columns (Columns)
+import Database.Relational.Schema.SQLServer.Types (Types)
+import Database.Relational.Schema.SQLServer (config)
 import Language.Haskell.TH (TypeQ)
 
 
