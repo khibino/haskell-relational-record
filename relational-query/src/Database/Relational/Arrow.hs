@@ -132,7 +132,7 @@ type Window c = QueryA (Monadic.Window c)
 type Assignings r m = QueryA (Monadic.Assignings r m)
 
 -- | Arrow type corresponding to 'Monadic.AssignStatement'
-type AssignStatement r a = Assignings r Restrict (Record Flat r) a
+type AssignStatement r a = QueryA (Monadic.Assignings r Restrict) (Record Flat r) a
 
 -- | Arrow type corresponding to 'Monadic.Register'
 type Register r a = QueryA (Monadic.Register r) () a
@@ -424,38 +424,38 @@ assign t = queryA (`Monadic.assignTo` t)
 
 -- | Same as 'Monadic.update''.
 --   Make 'Update' from assigning statement arrow using configuration.
-update' :: TableDerivable r => Config -> AssignStatement r (PlaceHolders p) -> Update p
+update' :: TableDerivable r => Config -> QueryA (Monadic.Assignings r Restrict) (Record Flat r) (PlaceHolders p) -> Update p
 update' config = Monadic.update' config . runQueryA
 
 -- | Same as 'Monadic.update'.
 --   Make 'Update' from assigning statement arrow.
-update :: TableDerivable r => AssignStatement r (PlaceHolders p) -> Update p
+update :: TableDerivable r => QueryA (Monadic.Assignings r Restrict) (Record Flat r) (PlaceHolders p) -> Update p
 update = Monadic.update . runQueryA
 
 -- | Same as 'Monadic.updateNoPH'.
 --   Make 'Update' from assigning statement arrow.
-updateNoPH :: TableDerivable r => AssignStatement r () -> Update ()
+updateNoPH :: TableDerivable r => QueryA (Monadic.Assignings r Restrict) (Record Flat r) () -> Update ()
 updateNoPH = Monadic.updateNoPH . runQueryA
 
 -- | Same as 'Monadic.updateAllColumn''.
 --   Make 'Update' from restrected statement arrow.
 updateAllColumn' :: (PersistableWidth r, TableDerivable r)
                  => Config
-                 -> RestrictedStatement r (PlaceHolders p)
+                 -> QueryA Monadic.Restrict (Record Flat r) (PlaceHolders p)
                  -> Update (r, p)
 updateAllColumn' config = Monadic.updateAllColumn' config . runQueryA
 
 -- | Same as 'Monadic.updateAllColumn'.
 --   Make 'Update' from restrected statement arrow.
 updateAllColumn :: (PersistableWidth r, TableDerivable r)
-                => RestrictedStatement r (PlaceHolders p)
+                => QueryA Monadic.Restrict (Record Flat r) (PlaceHolders p)
                 -> Update (r, p)
 updateAllColumn = Monadic.updateAllColumn . runQueryA
 
 -- | Same as 'Monadic.updateAllColumnNoPH'.
 --   Make 'Update' from restrected statement arrow.
 updateAllColumnNoPH :: (PersistableWidth r, TableDerivable r)
-                    => RestrictedStatement r ()
+                    => QueryA Monadic.Restrict (Record Flat r) ()
                     -> Update r
 updateAllColumnNoPH = Monadic.updateAllColumnNoPH . runQueryA
 
@@ -477,28 +477,28 @@ insertValueNoPH = Monadic.insertValueNoPH . ($ ()) . runQueryA
 
 -- | Same as 'Monadic.delete''.
 --   Make 'Update' from restrict statement arrow using configuration.
-delete' :: TableDerivable r => Config -> RestrictedStatement r (PlaceHolders p) -> Delete p
+delete' :: TableDerivable r => Config -> QueryA Monadic.Restrict (Record Flat r) (PlaceHolders p) -> Delete p
 delete' config = Monadic.delete' config . runQueryA
 
 -- | Same as 'Monadic.delete'.
 --   Make 'Update' from restrict statement arrow.
-delete :: TableDerivable r => RestrictedStatement r (PlaceHolders p) -> Delete p
+delete :: TableDerivable r => QueryA Monadic.Restrict (Record Flat r) (PlaceHolders p) -> Delete p
 delete = Monadic.delete . runQueryA
 
 -- | Same as 'Monadic.deleteNoPH'.
 --   Make 'Update' from restrict statement arrow.
-deleteNoPH :: TableDerivable r => RestrictedStatement r () -> Delete ()
+deleteNoPH :: TableDerivable r => QueryA Monadic.Restrict (Record Flat r) () -> Delete ()
 deleteNoPH = Monadic.deleteNoPH . runQueryA
 
 {-# DEPRECATED derivedUpdate' "use `update'` instead of this." #-}
 -- | Same as 'Monadic.update''.
 --   Make 'Update' from assigning statement arrow using configuration.
-derivedUpdate' :: TableDerivable r => Config -> AssignStatement r (PlaceHolders p) -> Update p
+derivedUpdate' :: TableDerivable r => Config -> QueryA (Monadic.Assignings r Restrict) (Record Flat r) (PlaceHolders p) -> Update p
 derivedUpdate' = update'
 
 {-# DEPRECATED derivedUpdate "use `update` instead of this." #-}
 -- | Deprecated.
-derivedUpdate :: TableDerivable r => AssignStatement r (PlaceHolders p) -> Update p
+derivedUpdate :: TableDerivable r => QueryA (Monadic.Assignings r Restrict) (Record Flat r) (PlaceHolders p) -> Update p
 derivedUpdate = update
 
 {-# DEPRECATED derivedInsertValue' "use `insertValue'` instead of this." #-}
@@ -513,10 +513,10 @@ derivedInsertValue = insertValue
 
 {-# DEPRECATED derivedDelete' "use `derivedDelete'` instead of this." #-}
 -- | Deprecated.
-derivedDelete' :: TableDerivable r => Config -> RestrictedStatement r (PlaceHolders p) -> Delete p
+derivedDelete' :: TableDerivable r => Config -> QueryA Monadic.Restrict (Record Flat r) (PlaceHolders p) -> Delete p
 derivedDelete' = delete'
 
 {-# DEPRECATED derivedDelete "use `derivedDelete` instead of this." #-}
 -- | Deprecated.
-derivedDelete :: TableDerivable r => RestrictedStatement r (PlaceHolders p) -> Delete p
+derivedDelete :: TableDerivable r => QueryA Monadic.Restrict (Record Flat r) (PlaceHolders p) -> Delete p
 derivedDelete = delete
