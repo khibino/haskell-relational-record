@@ -1,5 +1,12 @@
 <!-- -*- Markdown -*- -->
 
+## 0.12.2.0
+
+- add configuration flags to fix problem of correlation.
+- not import LiteralSQL instance for UTF-8 encoded ByteString by default.
+- not import LiteralSQL instance for ZonedTime and UTCTime corresponding TIMESTAMPTZ by default.
+- deprecations of some old APIs.
+
 ## 0.12.1.0
 
 - add LiteralSQL instances of word and integer types.
