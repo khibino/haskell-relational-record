@@ -64,8 +64,8 @@ library
                        , names-th
                        , sql-words
                        , persistable-record >= 0.6
-                       , relational-query >= 0.12
-                       , relational-schemas
+                       , relational-query >= 0.12.2
+                       , relational-schemas >= 0.1.7
                        , HDBC >=2
                        , HDBC-session
 
