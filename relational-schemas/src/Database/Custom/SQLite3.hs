@@ -19,7 +19,6 @@ module Database.Custom.SQLite3 (
   delete, deleteNoPH,
   ) where
 
-import Control.Applicative ((<*), (*>))
 import Database.Relational.Schema.SQLite3.Config (config)
 import Database.Relational hiding
   (relationalQuery,
@@ -41,7 +40,7 @@ insertValue = insertValue' config
 insertValueNoPH :: TableDerivable r
                 => Register r ()
                 -> Insert ()
-insertValueNoPH body = insertValue $ body *> return unitPH
+insertValueNoPH body = insertValue $ body >> return unitPH
 
 -- | Make 'InsertQuery' from derived table, 'Pi' and 'Relation'.
 insertQuery :: TableDerivable r => Pi r r' -> Relation p r' -> InsertQuery p
@@ -57,7 +56,7 @@ update = update' config
 updateNoPH :: TableDerivable r
            => (Record Flat r -> Assign r ())
            -> Update ()
-updateNoPH body = update $ (return unitPH <*) . body
+updateNoPH body = update $ (>> return unitPH) . body
 
 -- | Make 'Delete' from derived table and 'Restrict' computation.
 delete :: TableDerivable r
@@ -69,4 +68,4 @@ delete = delete' config
 deleteNoPH :: TableDerivable r
            => (Record Flat r -> Restrict ())
            -> Delete ()
-deleteNoPH body = delete $ (return unitPH <*) . body
+deleteNoPH body = delete $ (>> return unitPH) . body
