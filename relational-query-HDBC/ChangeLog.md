@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.7.2.0
+
+- apply new module names of relational-schema.
+
 ## 0.7.1.1
 
 - fix build for old GHCs.
