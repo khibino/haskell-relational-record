@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.12.2.1
+
+- fix changelog.
+
 ## 0.12.2.0
 
 - add configuration flags to fix problem of correlation. -- Thanks for Yoshikuni Jujo
