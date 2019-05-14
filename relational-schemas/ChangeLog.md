@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.1.6.2
+
+- update tested-with.
+
 ## 0.1.6.1
 
 - update version constraint. ( along with re-versioned relational-query. )
