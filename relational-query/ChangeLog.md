@@ -2,7 +2,7 @@
 
 ## 0.12.2.0
 
-- add configuration flags to fix problem of correlation.
+- add configuration flags to fix problem of correlation. -- Thanks for Yoshikuni Jujo
 - not import LiteralSQL instance for UTF-8 encoded ByteString by default.
 - not import LiteralSQL instance for ZonedTime and UTCTime corresponding TIMESTAMPTZ by default.
 - deprecations of some old APIs.
