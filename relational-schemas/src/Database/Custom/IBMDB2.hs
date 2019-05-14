@@ -19,6 +19,7 @@ module Database.Custom.IBMDB2 (
   delete, deleteNoPH,
   ) where
 
+import Control.Applicative ((<*), (*>))
 import Database.Relational.Schema.IBMDB2.Config (config)
 import Database.Relational hiding
   (relationalQuery,

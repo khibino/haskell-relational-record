@@ -19,6 +19,7 @@ module Database.Custom.Oracle (
   delete, deleteNoPH,
   ) where
 
+import Control.Applicative ((<*), (*>))
 import Database.Relational.Schema.Oracle.Config (config)
 import Database.Relational hiding
   (relationalQuery,

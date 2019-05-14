@@ -19,6 +19,7 @@ module Database.Custom.SQLServer (
   delete, deleteNoPH,
   ) where
 
+import Control.Applicative ((<*), (*>))
 import Database.Relational.Schema.SQLServer.Config (config)
 import Database.Relational hiding
   (relationalQuery,

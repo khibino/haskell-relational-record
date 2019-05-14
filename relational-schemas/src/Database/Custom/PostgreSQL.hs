@@ -19,6 +19,7 @@ module Database.Custom.PostgreSQL (
   delete, deleteNoPH,
   ) where
 
+import Control.Applicative ((<*), (*>))
 import Database.Relational.Schema.PostgreSQL.Config (config)
 import Database.Relational hiding
   (relationalQuery,

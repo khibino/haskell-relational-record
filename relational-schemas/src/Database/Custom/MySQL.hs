@@ -19,6 +19,7 @@ module Database.Custom.MySQL (
   delete, deleteNoPH,
   ) where
 
+import Control.Applicative ((<*), (*>))
 import Database.Relational.Schema.MySQL.Config (config)
 import Database.Relational hiding
   (relationalQuery,

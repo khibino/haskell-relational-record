@@ -19,6 +19,7 @@ module Database.Custom.SQLite3 (
   delete, deleteNoPH,
   ) where
 
+import Control.Applicative ((<*), (*>))
 import Database.Relational.Schema.SQLite3.Config (config)
 import Database.Relational hiding
   (relationalQuery,
