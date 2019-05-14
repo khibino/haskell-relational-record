@@ -59,7 +59,6 @@ module Database.Relational.Type (
   derivedDelete', derivedDelete,
   ) where
 
-import Control.Applicative ((<*))
 import Data.Monoid ((<>))
 import Data.Functor.ProductIsomorphic (peRight)
 
@@ -192,7 +191,7 @@ update = update' defaultConfig
 
 -- | Make typed 'Update' from 'defaultConfig', derived table and 'Assign' computation with no(unit) placeholder.
 updateNoPH :: TableDerivable r => (Record Flat r -> Assign r ()) -> Update ()
-updateNoPH af = update $ (return unitPH <*) . af
+updateNoPH af = update $ (>> return unitPH) . af
 
 {-# DEPRECATED derivedUpdate "use `update` instead of this." #-}
 -- | Make typed 'Update' from 'defaultConfig', derived table and 'Assign' computation.
@@ -247,7 +246,7 @@ updateAllColumnNoPH :: (PersistableWidth r, TableDerivable r)
                     => (Record Flat r -> Restrict ())
                     -> Update r
 updateAllColumnNoPH =
-  typedUpdate' defaultConfig derivedTable . (fmap peRight .) . liftTargetAllColumn' . ((return unitPH <*) .)
+  typedUpdate' defaultConfig derivedTable . (fmap peRight .) . liftTargetAllColumn' . ((>> return unitPH) .)
 
 {-# DEPRECATED derivedUpdateAllColumn "use `updateAllColumn` instead of this." #-}
 -- | Deprecated. use 'updateAllColumn'.
@@ -335,7 +334,7 @@ insertValue = insertValue' defaultConfig
 
 -- | Make typed 'Insert' from 'defaultConfig', derived table and monadic builded 'Register' object with no(unit) placeholder.
 insertValueNoPH :: TableDerivable r => Register r () -> Insert ()
-insertValueNoPH = insertValue . (return unitPH <*)
+insertValueNoPH = insertValue . (>> return unitPH)
 
 {-# DEPRECATED derivedInsertValue "use `insertValue` instead of this." #-}
 -- | Make typed 'Insert' from 'defaultConfig', derived table and monadic builded 'Register' object.
@@ -439,7 +438,7 @@ delete = delete' defaultConfig
 
 -- | Make typed 'Delete' from 'defaultConfig', derived table and 'Restrict' computation with no(unit) placeholder.
 deleteNoPH :: TableDerivable r => (Record Flat r -> Restrict ()) -> Delete ()
-deleteNoPH rf = delete $ (return unitPH <*) . rf
+deleteNoPH rf = delete $ (>> return unitPH) . rf
 
 {-# DEPRECATED derivedDelete "use `delete` instead of this." #-}
 -- | Make typed 'Delete' from 'defaultConfig', derived table and 'Restrict' computation.
