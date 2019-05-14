@@ -1,5 +1,11 @@
 <!-- -*- Markdown -*- -->
 
+## 0.1.7.0
+
+- adjust sub-directory modules of each DBMS to top module name.
+- enable addModifyTableAliasAS flag of SQLite3 configuration.
+- add custom API modules for each DBMS with appropriate configuration.
+
 ## 0.1.6.2
 
 - update tested-with.
