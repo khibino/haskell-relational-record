@@ -61,8 +61,7 @@ library
                      , relational-query >= 0.11.2
                      , relational-query-HDBC >= 0.6.5
                      , template-haskell
-                     -- not link directly but query type map
-                     , relational-schemas >= 0.1.5
+                     , relational-schemas >= 0.1.7
   if impl(ghc == 7.4.*)
     build-depends:        ghc-prim == 0.2.*
 
