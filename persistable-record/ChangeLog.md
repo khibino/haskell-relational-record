@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.6.0.4
+
+- update documentation.
+
 ## 0.6.0.3
 
 - fix example of NameConfig customization.
