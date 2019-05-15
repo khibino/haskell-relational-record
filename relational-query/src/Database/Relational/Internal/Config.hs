@@ -128,7 +128,7 @@ data Config =
 --     , nameConfig                    =
 --        defaultNameConfig
 --        { recordConfig     =  'RecordTH.defaultNameConfig'
---        , relationVarName  =  \\schema table -> 'varCamelcaseName' $ table ++ "_" ++ scheme
+--        , relationVarName  =  \\schema table -> 'varCamelcaseName' $ table ++ "_" ++ schema
 --        -- ^ append the table name after the schema name. e.g. "schemaTable"
 --        }
 --     }
