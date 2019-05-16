@@ -1,11 +1,10 @@
-{-# LANGUAGE OverloadedLabels #-}
-
 import Test.QuickCheck.Simple (Test, defaultMain)
 import qualified Test.QuickCheck.Simple as QSimple
 
 import Lex (eqProp, eqProp')
 import Model
 import Conflict (conflictB)
+import qualified Conflict as B
 
 import Control.Applicative ((<$>), (<*>))
 import Data.Functor.ProductIsomorphic ((|$|), (|*|))
@@ -683,12 +682,12 @@ updateScalarX = updateNoPH $ \proj -> do
 
 updateExistsConflict :: Update ()
 updateExistsConflict = updateNoPH $ \a -> do
-  #bar <-# value 3
+  bar' <-# value 3
   wheres . exists
     =<< (queryList . relation $ do
             b <- query conflictB
-            wheres $ #foo b .=. #bar (a :: Record Flat ConflictA)
-            wheres $ #baz b .=. #baz  a
+            wheres $ (! B.foo') b .=. (! bar') a
+            wheres $ (! B.baz') b .=. (! baz') a
             return b)
 
 deleteExistsX :: Delete ()
@@ -712,8 +711,8 @@ deleteExistsConflict = deleteNoPH $ \a -> do
   wheres . exists
     =<< (queryList . relation $ do
             b <- query conflictB
-            wheres $ #foo b .=. #bar (a :: Record Flat ConflictA)
-            wheres $ #baz b .=. #baz  a
+            wheres $ (! B.foo') b .=. (! bar') a
+            wheres $ (! B.baz') b .=. (! baz') a
             return b)
 
 correlated :: [Test]
