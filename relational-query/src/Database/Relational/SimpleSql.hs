@@ -15,14 +15,10 @@ module Database.Relational.SimpleSql (
   QuerySuffix, showsQuerySuffix,
 
   -- * Update SQL
-  updatePrefixSQL,
   updateOtherThanKeySQL,
 
   -- * Insert SQL
   insertPrefixSQL,
-
-  -- * Delete SQL
-  deletePrefixSQL
   ) where
 
 import Data.Array (listArray, (!))
@@ -46,10 +42,6 @@ type QuerySuffix = [Keyword]
 -- | Expand query suffix words
 showsQuerySuffix :: QuerySuffix -> StringSQL
 showsQuerySuffix =  mconcat
-
--- | Generate prefix string of update SQL.
-updatePrefixSQL :: Table r -> StringSQL
-updatePrefixSQL table = UPDATE <> stringSQL (name table)
 
 -- | Generate update SQL by specified key and table.
 --   Columns name list of table are also required.
@@ -94,8 +86,3 @@ insertPrefixSQL :: Pi r r' -> Table r -> StringSQL
 insertPrefixSQL pi' table =
   INSERT <> INTO <> stringSQL (name table) <> rowConsStringSQL cols  where
     cols = Record.columns . Record.wpi (recordWidth table) (Record.unsafeFromTable table) $ pi'
-
--- | Generate all column delete SQL by specified table.
-deletePrefixSQL :: Table r   -- ^ Table metadata
-                -> StringSQL -- ^ Result SQL
-deletePrefixSQL table = DELETE <> FROM <> stringSQL (name table)
