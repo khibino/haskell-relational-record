@@ -177,7 +177,7 @@ inlineVerifiedQuery :: IConnection conn
                     -> Name         -- ^ Top-level variable name which has 'Relation' type
                     -> Relation p r -- ^ Object which has 'Relation' type
                     -> Config       -- ^ Configuration to generate SQL
-                    -> [Keyword]    -- ^ suffix SQL words
+                    -> [Keyword]    -- ^ suffix SQL words. for example, `[FOR, UPDATE]`, `[FETCH, FIRST, "3", ROWS, ONLY]` ...
                     -> String       -- ^ Variable name to define as inlined query
                     -> Q [Dec]      -- ^ Result declarations
 inlineVerifiedQuery connect relVar rel config sufs qns = do
