@@ -39,11 +39,12 @@ import Language.Haskell.TH (Q, runIO, Name, TypeQ, Type (AppT, ConT), Dec)
 import Language.Haskell.TH.Name.CamelCase (varCamelcaseName)
 import Language.Haskell.TH.Lib.Extra (reportWarning, reportError)
 
+import Language.SQL.Keyword (Keyword)
 import Database.Record (ToSql, FromSql)
 import Database.Record.TH (recordTemplate, defineSqlPersistableInstances)
 import Database.Relational
   (Config, nameConfig, recordConfig, enableWarning, verboseAsCompilerWarning,
-   defaultConfig, Relation, untypeQuery, relationalQuery_, QuerySuffix)
+   defaultConfig, Relation, untypeQuery, relationalQuery_)
 import qualified Database.Relational.TH as Relational
 
 import Database.HDBC.Session (withConnectionIO)
@@ -176,7 +177,7 @@ inlineVerifiedQuery :: IConnection conn
                     -> Name         -- ^ Top-level variable name which has 'Relation' type
                     -> Relation p r -- ^ Object which has 'Relation' type
                     -> Config       -- ^ Configuration to generate SQL
-                    -> QuerySuffix  -- ^ suffix SQL words
+                    -> [Keyword]    -- ^ suffix SQL words
                     -> String       -- ^ Variable name to define as inlined query
                     -> Q [Dec]      -- ^ Result declarations
 inlineVerifiedQuery connect relVar rel config sufs qns = do
