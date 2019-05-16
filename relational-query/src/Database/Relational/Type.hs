@@ -59,9 +59,10 @@ module Database.Relational.Type (
   derivedDelete', derivedDelete,
   ) where
 
-import Data.Monoid ((<>))
+import Data.Monoid ((<>), mconcat)
 import Data.Functor.ProductIsomorphic (peRight)
 
+import Language.SQL.Keyword (Keyword)
 import Database.Record (PersistableWidth)
 
 import Database.Relational.Internal.Config (Config, defaultConfig)
@@ -83,7 +84,7 @@ import Database.Relational.Table (Table, TableDerivable, derivedTable)
 import Database.Relational.ProjectableClass (LiteralSQL)
 import Database.Relational.Projectable (PlaceHolders, unitPH)
 import Database.Relational.SimpleSql
-  (QuerySuffix, showsQuerySuffix, insertPrefixSQL, updateOtherThanKeySQL, )
+  (insertPrefixSQL, updateOtherThanKeySQL, )
 
 
 -- | Query type with place-holder parameter 'p' and query result type 'a'.
@@ -99,21 +100,27 @@ instance Show (Query p a) where
   show = untypeQuery
 
 -- | From 'Relation' into untyped SQL query string.
-relationalQuerySQL :: Config -> Relation p r -> QuerySuffix -> String
+relationalQuerySQL :: Config -> Relation p r -> [Keyword] -> String
 relationalQuerySQL config rel qsuf =
-  showStringSQL $ sqlFromRelationWith rel config <> showsQuerySuffix qsuf
+  showStringSQL $ sqlFromRelationWith rel config <> mconcat qsuf
 
 -- | From 'Relation' into typed 'Query' with suffix SQL words.
-relationalQuery_ :: Config -> Relation p r -> QuerySuffix -> Query p r
+relationalQuery_ :: Config
+                 -> Relation p r  -- ^ relation to finalize building
+                 -> [Keyword]     -- ^ suffix SQL words, like `[FOR, UPDATE]`, `[FETCH, FIRST, "3", ROWS, ONLY]` ...
+                 -> Query p r     -- ^ finalized query
 relationalQuery_ config rel qsuf =
   unsafeTypedQuery $ relationalQuerySQL config rel qsuf
 
 -- | From 'Relation' into typed 'Query' with suffix SQL words.
-relationalQuery' :: Relation p r -> QuerySuffix -> Query p r
+relationalQuery' :: Relation p r  -- ^ relation to finalize building
+                 -> [Keyword]     -- ^ suffix SQL words, like `[FOR, UPDATE]`, `[FETCH, FIRST, "3", ROWS, ONLY]` ...
+                 -> Query p r     -- ^ finalized query
 relationalQuery' = relationalQuery_ defaultConfig
 
 -- | From 'Relation' into typed 'Query'.
-relationalQuery :: Relation p r -> Query p r
+relationalQuery :: Relation p r  -- ^ relation to finalize building
+                -> Query p r     -- ^ finalized query
 relationalQuery =  (`relationalQuery'` [])
 
 
