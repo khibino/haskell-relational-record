@@ -11,7 +11,8 @@
 -- Portability : unknown
 --
 -- This module provides DB-record templates depends on HDBC.
-module Database.HDBC.Record.TH (
+module Database.HDBC.Record.TH
+  {-# DEPRECATED "internal interface, will be dropped in the future releasess." #-} (
   derivePersistableInstanceFromConvertible,
   ) where
 
