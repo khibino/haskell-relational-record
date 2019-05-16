@@ -36,7 +36,6 @@ import Data.Functor.ProductIsomorphic.TH (reifyRecordType)
 import Database.HDBC (IConnection, SqlValue, prepare)
 
 import Language.Haskell.TH (Q, runIO, Name, TypeQ, Type (AppT, ConT), Dec)
-import Language.Haskell.TH.Name.CamelCase (varCamelcaseName)
 import Language.Haskell.TH.Lib.Extra (reportWarning, reportError)
 
 import Language.SQL.Keyword (Keyword)
@@ -44,7 +43,7 @@ import Database.Record (ToSql, FromSql)
 import Database.Record.TH (recordTemplate, defineSqlPersistableInstances)
 import Database.Relational
   (Config, nameConfig, recordConfig, enableWarning, verboseAsCompilerWarning,
-   defaultConfig, Relation, untypeQuery, relationalQuery_)
+   defaultConfig, Relation)
 import qualified Database.Relational.TH as Relational
 
 import Database.HDBC.Session (withConnectionIO)
@@ -180,9 +179,9 @@ inlineVerifiedQuery :: IConnection conn
                     -> [Keyword]    -- ^ suffix SQL words. for example, `[FOR, UPDATE]`, `[FETCH, FIRST, "3", ROWS, ONLY]` ...
                     -> String       -- ^ Variable name to define as inlined query
                     -> Q [Dec]      -- ^ Result declarations
-inlineVerifiedQuery connect relVar rel config sufs qns = do
-  (p, r) <- Relational.reifyRelation relVar
-  let sql = untypeQuery $ relationalQuery_ config rel sufs
-  when (verboseAsCompilerWarning config) . reportWarning $ "Verify with prepare: " ++ sql
-  void . runIO $ withConnectionIO connect (\conn -> prepare conn sql)
-  Relational.unsafeInlineQuery (return p) (return r) sql (varCamelcaseName qns)
+inlineVerifiedQuery connect relVar rel config sufs declName =
+    Relational.inlineQuery_ check relVar rel config sufs declName
+  where
+    check sql = do
+      when (verboseAsCompilerWarning config) . reportWarning $ "Verify with prepare: " ++ sql
+      void . runIO $ withConnectionIO connect (\conn -> prepare conn sql)
