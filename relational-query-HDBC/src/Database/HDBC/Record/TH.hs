@@ -25,4 +25,4 @@ derivePersistableInstanceFromConvertible :: Q Type  -- ^ Type to implement insta
                                          -> Q [Dec] -- ^ Result declarations
 derivePersistableInstanceFromConvertible =
   Internal.derivePersistableInstanceFromConvertible
-{-# DEPRECATED derivePersistableInstanceFromConvertible "internal API, will be dropped in the future releases." #-}
+{-# DEPRECATED derivePersistableInstanceFromConvertible "instantiate using `recordFromSql = valueRecordFromSql convert` and `recordToSql = valueRecordToSql convert`" #-}
