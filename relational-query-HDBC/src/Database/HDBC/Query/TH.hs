@@ -55,7 +55,7 @@ import Database.HDBC.Schema.Driver
 
 
 defineInstancesForSqlValue :: TypeQ   -- ^ Record type constructor.
-                          -> Q [Dec] -- ^ Instance declarations.
+                           -> Q [Dec] -- ^ Instance declarations.
 defineInstancesForSqlValue typeCon = do
   [d| instance FromSql SqlValue $typeCon
       instance ToSql SqlValue $typeCon
