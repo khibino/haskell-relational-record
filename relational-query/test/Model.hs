@@ -20,13 +20,11 @@ $(defineTable defaultConfig "TEST" "set_a"
   , ("str_a2" ,    [t| String |]) ]
   [''Generic] [0] $ Just 0)
 
-
 $(defineTable defaultConfig "TEST" "set_b"
   [ ("int_b0" ,    [t| Int32  |])
   , ("may_str_b1" ,    [t| Maybe String |])
   , ("str_b2" ,    [t| String |]) ]
   [''Generic] [0] $ Just 0)
-
 
 $(defineTable defaultConfig "TEST" "set_c"
   [ ("int_c0" ,    [t| Int32  |])
@@ -34,7 +32,6 @@ $(defineTable defaultConfig "TEST" "set_c"
   , ("int_c2" ,    [t| Int64  |])
   , ("may_str_c3" ,    [t| Maybe String |]) ]
   [''Generic] [0] $ Just 0)
-
 
 -- column name conflict with Confict.conflictB
 $(defineTable defaultConfig "TEST" "conflict_a"
