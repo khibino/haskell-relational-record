@@ -13,7 +13,8 @@
 -- This module provides internal definitions used from DB-record templates.
 module Database.HDBC.Record.InternalTH (
   -- * Persistable instances along with 'Convertible' instances
-  derivePersistableInstancesFromConvertibleSqlValues
+  derivePersistableInstanceFromConvertible,
+  derivePersistableInstancesFromConvertibleSqlValues,
   ) where
 
 import Data.Maybe (catMaybes)
@@ -24,15 +25,15 @@ import Language.Haskell.TH
   (Q, Dec, Type(AppT, ConT),
    Info (ClassI), reify)
 import Language.Haskell.TH.Compat.Data (unInstanceD)
-import Data.Convertible (Convertible)
+import Data.Convertible (Convertible, convert)
 import Database.HDBC (SqlValue)
 import Database.HDBC.SqlValueExtra ()
-import Database.Record (PersistableWidth)
+import Database.Record
+  (PersistableWidth, FromSql (..), ToSql (..),
+   valueRecordFromSql, valueRecordToSql)
 import Database.Record.TH (deriveNotNullType)
 import Database.Record.Instances ()
 import Database.Relational.TH (defineScalarDegree)
-
-import Database.HDBC.Record.TH (derivePersistableInstanceFromConvertible)
 
 
 -- | Wrapper type which represents type constructor.
@@ -106,6 +107,17 @@ mapInstanceD :: (Q Type -> Q [Dec]) -- ^ Template to declare instances from a ty
              -> [Type]              -- ^ Types
              -> Q [Dec]             -- ^ Result declaration template.
 mapInstanceD fD = fmap concat . mapM (fD . return)
+
+-- | Template to declare HDBC instances of DB-record against single value type.
+derivePersistableInstanceFromConvertible :: Q Type  -- ^ Type to implement instances
+                                         -> Q [Dec] -- ^ Result declarations
+derivePersistableInstanceFromConvertible typ =
+  [d| instance FromSql SqlValue $(typ)  where
+        recordFromSql = valueRecordFromSql convert
+
+      instance ToSql SqlValue $(typ)  where
+        recordToSql = valueRecordToSql convert
+    |]
 
 -- | Template to declare HDBC instances of DB-record along with 'Convertible' instances.
 derivePersistableInstancesFromConvertibleSqlValues :: Q [Dec]
