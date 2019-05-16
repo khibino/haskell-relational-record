@@ -95,11 +95,7 @@ insertPrefixSQL pi' table =
   INSERT <> INTO <> stringSQL (name table) <> rowConsStringSQL cols  where
     cols = Record.columns . Record.wpi (recordWidth table) (Record.unsafeFromTable table) $ pi'
 
--- | Generate all column delete SQL by specified table. Untyped table version.
-deletePrefixSQL' :: String -> StringSQL
-deletePrefixSQL' table = DELETE <> FROM <> stringSQL table
-
 -- | Generate all column delete SQL by specified table.
 deletePrefixSQL :: Table r   -- ^ Table metadata
                 -> StringSQL -- ^ Result SQL
-deletePrefixSQL = deletePrefixSQL' . name
+deletePrefixSQL table = DELETE <> FROM <> stringSQL (name table)
