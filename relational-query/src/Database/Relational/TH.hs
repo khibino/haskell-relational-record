@@ -23,8 +23,7 @@ module Database.Relational.TH (
   defineTable,
 
   -- * Inlining typed 'Query'
-  unsafeInlineQuery,
-  inlineQuery,
+  inlineQuery_, inlineQuery,
 
   -- * Column projections and basic 'Relation' for Haskell record
   defineTableTypesAndRecord,
@@ -62,6 +61,9 @@ module Database.Relational.TH (
   makeRelationalRecordDefault,
   makeRelationalRecordDefault',
   reifyRelation,
+
+  -- * Deprecated
+  unsafeInlineQuery,
   ) where
 
 import Data.Char (toUpper, toLower)
@@ -433,6 +435,7 @@ unsafeInlineQuery p r sql qVar' =
   simpleValD (varName qVar')
     [t| Query $p $r |]
     [|  unsafeTypedQuery $(stringE sql) |]
+{-# DEPRECATED unsafeInlineQuery "will be dropped in future releases." #-}
 
 -- | Extract param type and result type from defined Relation
 reifyRelation :: Name           -- ^ Variable name which has Relation type
@@ -445,6 +448,22 @@ reifyRelation relVar = do
     _                        ->
       fail $ "expandRelation: Variable must have Relation type: " ++ show relVar
 
+inlineQuery_ :: (String -> Q ()) -- ^ action to check SQL string
+             -> Name             -- ^ Top-level variable name which has 'Relation' type
+             -> Relation p r     -- ^ Object which has 'Relation' type
+             -> Config           -- ^ Configuration to generate SQL
+             -> [Keyword]        -- ^ suffix SQL words. for example, `[FOR, UPDATE]`, `[FETCH, FIRST, "3", ROWS, ONLY]` ...
+             -> String           -- ^ Variable name to define as inlined query
+             -> Q [Dec]          -- ^ Result declarations
+inlineQuery_ check relVar rel config sufs declName = do
+  let sql = untypeQuery $ relationalQuery_ config rel sufs
+  check sql
+  (p, r) <- reifyRelation relVar
+  simpleValD (varName $ varCamelcaseName declName)
+    [t| Query $(return p) $(return r) |]
+    [|  unsafeTypedQuery
+        $(stringE sql) |]
+
 -- | Inlining composed 'Query' in compile type.
 inlineQuery :: Name         -- ^ Top-level variable name which has 'Relation' type
             -> Relation p r -- ^ Object which has 'Relation' type
@@ -452,11 +471,7 @@ inlineQuery :: Name         -- ^ Top-level variable name which has 'Relation' ty
             -> [Keyword]    -- ^ suffix SQL words. for example, `[FOR, UPDATE]`, `[FETCH, FIRST, "3", ROWS, ONLY]` ...
             -> String       -- ^ Variable name to define as inlined query
             -> Q [Dec]      -- ^ Result declarations
-inlineQuery relVar rel config sufs qns = do
-  (p, r) <- reifyRelation relVar
-  unsafeInlineQuery (return p) (return r)
-    (untypeQuery $ relationalQuery_ config rel sufs)
-    (varCamelcaseName qns)
+inlineQuery = inlineQuery_ (const $ return ())
 
 -- | Generate all templates against defined record like type constructor
 --   other than depending on sql-value type.
