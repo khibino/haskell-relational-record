@@ -11,14 +11,14 @@
 --
 -- This module defines functions to generate simple SQL strings.
 module Database.Relational.SimpleSql (
-  -- * Query suffix
-  QuerySuffix, showsQuerySuffix,
-
   -- * Update SQL
   updateOtherThanKeySQL,
 
   -- * Insert SQL
   insertPrefixSQL,
+
+  -- * Deprecated
+  QuerySuffix,
   ) where
 
 import Data.Array (listArray, (!))
@@ -38,10 +38,7 @@ import qualified Database.Relational.Record as Record
 
 -- | Type for query suffix words
 type QuerySuffix = [Keyword]
-
--- | Expand query suffix words
-showsQuerySuffix :: QuerySuffix -> StringSQL
-showsQuerySuffix =  mconcat
+{-# DEPRECATED QuerySuffix "Use '[Keyword]' instead of this." #-}
 
 -- | Generate update SQL by specified key and table.
 --   Columns name list of table are also required.
