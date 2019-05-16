@@ -80,6 +80,7 @@ import Language.Haskell.TH.Name.CamelCase
    varCamelcaseName, toVarExp, toTypeCon)
 import Language.Haskell.TH.Lib.Extra (simpleValD, maybeD, integralE)
 
+import Language.SQL.Keyword (Keyword)
 import Database.Record.TH
   (columnOffsetsVarNameDefault, recordTypeName, recordTemplate,
    defineRecordTypeWithConfig, defineHasColumnConstraintInstance)
@@ -100,7 +101,6 @@ import Database.Relational.Constraint (unsafeDefineConstraintKey)
 import Database.Relational.Table (TableDerivable (..))
 import qualified Database.Relational.Table as Table
 import Database.Relational.Relation (derivedRelation)
-import Database.Relational.SimpleSql (QuerySuffix)
 import Database.Relational.Type (unsafeTypedQuery)
 import qualified Database.Relational.Pi.Unsafe as UnsafePi
 
@@ -449,7 +449,7 @@ reifyRelation relVar = do
 inlineQuery :: Name         -- ^ Top-level variable name which has 'Relation' type
             -> Relation p r -- ^ Object which has 'Relation' type
             -> Config       -- ^ Configuration to generate SQL
-            -> QuerySuffix  -- ^ suffix SQL words
+            -> [Keyword]    -- ^ suffix SQL words
             -> String       -- ^ Variable name to define as inlined query
             -> Q [Dec]      -- ^ Result declarations
 inlineQuery relVar rel config sufs qns = do
