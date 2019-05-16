@@ -1,9 +1,11 @@
+{-# LANGUAGE OverloadedLabels #-}
 
 import Test.QuickCheck.Simple (Test, defaultMain)
 import qualified Test.QuickCheck.Simple as QSimple
 
 import Lex (eqProp, eqProp')
 import Model
+import Conflict (conflictB)
 
 import Control.Applicative ((<$>), (<*>))
 import Data.Functor.ProductIsomorphic ((|$|), (|*|))
@@ -679,6 +681,16 @@ updateScalarX = updateNoPH $ \proj -> do
     return $ b ! intB0'
   wheres $ just (proj ! intA0') .=. sb
 
+updateExistsConflict :: Update ()
+updateExistsConflict = updateNoPH $ \a -> do
+  #bar <-# value 3
+  wheres . exists
+    =<< (queryList . relation $ do
+            b <- query conflictB
+            wheres $ #foo b .=. #bar (a :: Record Flat ConflictA)
+            wheres $ #baz b .=. #baz  a
+            return b)
+
 deleteExistsX :: Delete ()
 deleteExistsX =  deleteNoPH $ \proj ->
   wheres . exists
@@ -695,6 +707,15 @@ deleteScalarX = deleteNoPH $ \proj -> do
     return $ b ! intB0'
   wheres $ just (proj ! intA0') .=. sb
 
+deleteExistsConflict :: Delete ()
+deleteExistsConflict = deleteNoPH $ \a -> do
+  wheres . exists
+    =<< (queryList . relation $ do
+            b <- query conflictB
+            wheres $ #foo b .=. #bar (a :: Record Flat ConflictA)
+            wheres $ #baz b .=. #baz  a
+            return b)
+
 correlated :: [Test]
 correlated =
   [ eqProp "update-exists" updateExistsX
@@ -709,6 +730,12 @@ correlated =
     \                           FROM TEST.set_b T1 \
     \                          WHERE (T1.int_b0 = 0)))"
 
+  , eqProp "update-exists-conflict" updateExistsConflict
+    "UPDATE TEST.conflict_a T0 SET bar = 3 \
+    \ WHERE (EXISTS (SELECT ALL T1.foo AS f0, T1.bar AS f1, T1.baz AS f2 \
+    \                      FROM TEST.conflict_b T1 \
+    \                     WHERE (T1.foo = T0.bar) AND (T1.baz = T0.baz)))"
+
   , eqProp "delete-exists" deleteExistsX
    "DELETE FROM TEST.set_a T0 \
    \ WHERE (EXISTS (SELECT ALL T1.int_b0 AS f0, T1.may_str_b1 AS f1, T1.str_b2 AS f2 \
@@ -720,6 +747,12 @@ correlated =
     \ WHERE (T0.int_a0 = (SELECT ALL T1.int_b0 AS f0 \
     \                        FROM TEST.set_b T1 \
     \                       WHERE (T1.int_b0 = 0)))"
+
+  , eqProp "delete-exists-conflict" deleteExistsConflict
+    "DELETE FROM TEST.conflict_a T0 \
+    \ WHERE (EXISTS (SELECT ALL T1.foo AS f0, T1.bar AS f1, T1.baz AS f2 \
+    \                      FROM TEST.conflict_b T1 \
+    \                     WHERE (T1.foo = T0.bar) AND (T1.baz = T0.baz)))"
   ]
 
 tests :: [Test]

@@ -139,6 +139,7 @@ test-suite sqls
   other-modules:
                        Lex
                        Model
+                       Conflict
 
   hs-source-dirs:      test
   ghc-options:         -Wall -fsimpl-tick-factor=200

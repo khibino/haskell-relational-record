@@ -36,6 +36,13 @@ $(defineTable defaultConfig "TEST" "set_c"
   [''Generic] [0] $ Just 0)
 
 
+-- column name conflict with Confict.conflictB
+$(defineTable defaultConfig "TEST" "conflict_a"
+ [ ("foo" ,    [t| String |])
+ , ("bar" ,    [t| Int32 |])
+ , ("baz" ,    [t| Int32 |]) ]
+ [''Generic] [0] $ Just 0)
+
 $(defineTable defaultConfig "TEST" "set_i"
   [ ("int_i0" ,    [t| Int32 |])  ]
   [''Generic] [0] $ Just 0)
