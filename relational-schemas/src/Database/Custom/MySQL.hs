@@ -29,7 +29,7 @@ import Database.Relational hiding
 
 -- | From 'Relation' into typed 'Query' with suffix SQL words.
 relationalQuery :: Relation p r  -- ^ relation to finalize building
-                -> [Keyword]     -- ^ suffix SQL words, like `[FOR, UPDATE]`, `[FETCH, FIRST, "3", ROWS, ONLY]` ...
+                -> [Keyword]     -- ^ suffix SQL words. for example, `[FOR, UPDATE]`, `[FETCH, FIRST, "3", ROWS, ONLY]` ...
                 -> Query p r     -- ^ finalized query
 relationalQuery = relationalQuery_ config
 
