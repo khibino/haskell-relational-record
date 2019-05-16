@@ -19,6 +19,7 @@ module Database.Custom.IBMDB2 (
   delete, deleteNoPH,
   ) where
 
+import Language.SQL.Keyword (Keyword)
 import Database.Relational.Schema.IBMDB2.Config (config)
 import Database.Relational hiding
   (relationalQuery,
@@ -27,7 +28,9 @@ import Database.Relational hiding
    delete, deleteNoPH, )
 
 -- | From 'Relation' into typed 'Query' with suffix SQL words.
-relationalQuery :: Relation p r -> QuerySuffix -> Query p r
+relationalQuery :: Relation p r  -- ^ relation to finalize building
+                -> [Keyword]     -- ^ suffix SQL words, like `[FOR, UPDATE]`, `[FETCH, FIRST, "3", ROWS, ONLY]` ...
+                -> Query p r     -- ^ finalized query
 relationalQuery = relationalQuery_ config
 
 -- | Make 'Insert' from derived table and monadic builded 'Register' object.

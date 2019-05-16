@@ -108,6 +108,7 @@ library
                        , time
                        , bytestring
 
+                       , sql-words
                        , relational-query >= 0.12.2
 
   if impl(ghc == 7.4.*)
