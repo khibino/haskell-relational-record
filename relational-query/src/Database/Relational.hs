@@ -24,7 +24,6 @@ module Database.Relational (
   module Database.Relational.Monad.Class,
   module Database.Relational.Monad.Trans.Ordering,
   module Database.Relational.Monad.Trans.Aggregating,
-  module Database.Relational.Monad.Trans.Assigning,
   module Database.Relational.Monad.Type,
   module Database.Relational.Monad.Simple,
   module Database.Relational.Monad.Aggregate,
@@ -32,13 +31,14 @@ module Database.Relational (
   module Database.Relational.Monad.Unique,
   module Database.Relational.Monad.Assign,
   module Database.Relational.Monad.Register,
+  module Database.Relational.Monad.Trans.ReadPlaceholders,
   module Database.Relational.Relation,
   module Database.Relational.Set,
   module Database.Relational.Sequence,
   module Database.Relational.Scalar,
   module Database.Relational.Type,
   module Database.Relational.Effect,
-  module Database.Relational.Derives
+  module Database.Relational.Derives,
   ) where
 
 import Database.Relational.Table (Table, TableDerivable (..))
@@ -55,8 +55,10 @@ import Database.Relational.Context
 import Database.Relational.Config
 import Database.Relational.SqlSyntax
   (Order (..), Nulls (..), AggregateKey, Record, Predicate, PI,
-   SubQuery, unitSQL, queryWidth, )
-import Database.Relational.Record (RecordList, list)
+   WithPlaceholderOffsets, SQLWithPlaceholderOffsets, SQLWithPlaceholderOffsets',
+   SubQuery, unitSQL, queryWidth,
+   withPlaceholderOffsets, attachEmptyPlaceholderOffsets, detachPlaceholderOffsets, sortByPlaceholderOffsets, placeholderOffsets, )
+import Database.Relational.Record (RecordList, list, pempty, toFlat, toAggregated)
 import Database.Relational.ProjectableClass
 import Database.Relational.Projectable
 import Database.Relational.TupleInstances
@@ -72,14 +74,14 @@ import Database.Relational.Monad.Trans.Ordering
   (Orderings, orderBy', orderBy, asc, desc)
 import Database.Relational.Monad.Trans.Aggregating
   (key, key', set, bkey, rollup, cube, groupingSets)
-import Database.Relational.Monad.Trans.Assigning (assignTo, (<-#))
+import Database.Relational.Monad.Trans.ReadPlaceholders
 import Database.Relational.Monad.Type
 import Database.Relational.Monad.Simple (QuerySimple, SimpleQuery)
 import Database.Relational.Monad.Aggregate
   (QueryAggregate, AggregatedQuery, Window, over)
 import Database.Relational.Monad.Restrict (Restrict)
 import Database.Relational.Monad.Unique (QueryUnique)
-import Database.Relational.Monad.Assign (Assign)
+import Database.Relational.Monad.Assign (Assign, assignTo, (<-#))
 import Database.Relational.Monad.Register (Register)
 import Database.Relational.Relation
 import Database.Relational.Set

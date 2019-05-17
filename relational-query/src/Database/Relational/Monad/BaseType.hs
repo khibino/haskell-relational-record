@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 -- |
 -- Module      : Database.Relational.Monad.BaseType
 -- Copyright   : 2015-2017 Kei Hibino
@@ -16,22 +18,32 @@ module Database.Relational.Monad.BaseType
          -- * Relation type
          Relation, unsafeTypeRelation, untypeRelation, relationWidth,
 
+         -- * Generate a record representing placeholders
+         defaultPlaceholders, pwPlaceholders,
+
          dump,
          sqlFromRelationWith, sqlFromRelation,
-
-         rightPh, leftPh,
        ) where
 
 import Data.Functor.Identity (Identity, runIdentity)
-import Control.Applicative ((<$>))
+import Data.DList (fromList)
+import Control.Arrow ((&&&))
 
-import Database.Record.Persistable (PersistableRecordWidth, unsafePersistableRecordWidth)
+import Database.Record.Persistable
+  (PersistableRecordWidth, PersistableWidth, persistableWidth, unsafePersistableRecordWidth, runPersistableRecordWidth)
+import Database.Relational.Projectable.Unsafe (unsafeProjectSqlTermsWithPlaceholders)
+import Database.Relational.Projectable.Instances ()
 
-import Database.Relational.Internal.String (StringSQL, showStringSQL)
+import Database.Relational.Internal.String (showStringSQL)
 import Database.Relational.Internal.Config (Config, defaultConfig)
-import Database.Relational.SqlSyntax (Qualified, SubQuery, showSQL, width)
+import Database.Relational.Internal.ContextType (PureOperand)
+import Database.Relational.SqlSyntax
+  (Qualified, SubQuery, Record, SQLWithPlaceholderOffsets',
+   showSQL, width, collectPlaceholderOffsets, detachPlaceholderOffsets, withPlaceholderOffsets)
 
 import qualified Database.Relational.Monad.Trans.Qualify as Qualify
+import Database.Relational.Monad.Trans.ReadPlaceholders.Type
+  (ReadPlaceholders, runReadPlaceholders)
 import Database.Relational.Monad.Trans.Qualify (Qualify, qualify, evalQualifyPrime)
 import Database.Relational.Monad.Trans.Config (QueryConfig, runQueryConfig, askQueryConfig)
 
@@ -52,44 +64,50 @@ askConfig =  qualify askQueryConfig
 
 
 -- | Relation type with place-holder parameter 'p' and query result type 'r'.
-newtype Relation p r = SubQuery (ConfigureQuery SubQuery)
+newtype Relation p r = SubQuery (ReadPlaceholders p ConfigureQuery SubQuery)
 
 -- | Unsafely type qualified subquery into record typed relation type.
-unsafeTypeRelation :: ConfigureQuery SubQuery -> Relation p r
+unsafeTypeRelation :: ReadPlaceholders p ConfigureQuery SubQuery -> Relation p r
 unsafeTypeRelation = SubQuery
 
 -- | Sub-query Qualify monad from relation.
-untypeRelation :: Relation p r -> ConfigureQuery SubQuery
-untypeRelation (SubQuery qsub) = qsub
+untypeRelation :: Relation p r -> Record PureOperand p -> ConfigureQuery SubQuery
+untypeRelation (SubQuery qsub) = runReadPlaceholders qsub
 
 -- | 'PersistableRecordWidth' of 'Relation' type.
-relationWidth :: Relation p r ->  PersistableRecordWidth r
-relationWidth rel =
-  unsafePersistableRecordWidth . width $ configureQuery (untypeRelation rel) defaultConfig
-  ---                               Assume that width is independent from Config structure
-
-unsafeCastPlaceHolder :: Relation a r -> Relation b r
-unsafeCastPlaceHolder (SubQuery qsub) = SubQuery qsub
-
--- | Simplify placeholder type applying left identity element.
-rightPh :: Relation ((), p) r -> Relation p r
-rightPh =  unsafeCastPlaceHolder
-
--- | Simplify placeholder type applying right identity element.
-leftPh :: Relation (p, ()) r -> Relation p r
-leftPh =  unsafeCastPlaceHolder
+relationWidth :: Relation p r -> Record PureOperand p -> PersistableRecordWidth r
+relationWidth rel phs =
+  unsafePersistableRecordWidth
+    . width
+    . (`configureQuery` defaultConfig) --- Assume that width is independent from Config structure
+    $ (untypeRelation rel phs)
 
 -- | Generate SQL string from 'Relation' with configuration.
-sqlFromRelationWith :: Relation p r -> Config -> StringSQL
-sqlFromRelationWith =  configureQuery . (showSQL <$>) . untypeRelation
+sqlFromRelationWith :: Relation p r -> Record PureOperand p -> Config -> SQLWithPlaceholderOffsets'
+sqlFromRelationWith r p c =
+  uncurry withPlaceholderOffsets
+    . (collectPlaceholderOffsets &&& showSQL)
+    . (`configureQuery` c)
+    $ untypeRelation r p
 
 -- | SQL string from 'Relation'.
-sqlFromRelation :: Relation p r -> StringSQL
-sqlFromRelation =  (`sqlFromRelationWith` defaultConfig)
+sqlFromRelation :: Relation p r -> Record PureOperand p -> SQLWithPlaceholderOffsets'
+sqlFromRelation r p =  sqlFromRelationWith r p defaultConfig
 
 -- | Dump internal structure tree.
-dump :: Relation p r -> String
-dump =  show . (`configureQuery` defaultConfig) . untypeRelation
+dump :: PersistableWidth p => Relation p r -> String
+dump =  show . (`configureQuery` defaultConfig) . (`untypeRelation` defaultPlaceholders)
 
-instance Show (Relation p r) where
-  show = showStringSQL . sqlFromRelation
+instance PersistableWidth p => Show (Relation p r) where
+  show = showStringSQL . detachPlaceholderOffsets . (`sqlFromRelation` defaultPlaceholders)
+
+defaultPlaceholders :: PersistableWidth t => Record PureOperand t
+defaultPlaceholders = pwPlaceholders persistableWidth
+
+pwPlaceholders :: PersistableRecordWidth a
+               -> Record PureOperand a
+pwPlaceholders pw =
+  unsafeProjectSqlTermsWithPlaceholders . withPlaceholderOffsets phs $ replicate w "?"
+ where
+  w = runPersistableRecordWidth pw
+  phs = fromList [0 .. (w - 1)]

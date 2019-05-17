@@ -7,6 +7,7 @@ import Conflict (conflictB)
 import qualified Conflict as B
 
 import Control.Applicative ((<$>), (<*>))
+import Control.Arrow (first)
 import Data.Functor.ProductIsomorphic ((|$|), (|*|))
 import Data.Int (Int32, Int64)
 
@@ -47,7 +48,7 @@ wheresX :: Relation () (SetA, SetB)
 wheresX = relation $ do
   a <- query      setA
   b <- query      setB
-  wheres $ b ! intB0' .>=. value 3
+  wheres $ b ! intB0' .>=. toFlat (value 3)
   return $ (,) |$| a |*| b
 
 groupByX :: Relation () (Int32, Integer)
@@ -60,7 +61,7 @@ havingX :: Relation () Int
 havingX = aggregateRelation $ do
   a <- query      setA
   let c = count (a ! intA0')
-  having $ c .>. value 1
+  having $ c .>. toAggregated (value 1)
   return c
 
 distinctX :: Relation () Int32
@@ -81,11 +82,11 @@ assignX = updateNoPH $ \_proj ->
 
 registerX :: Insert (String, Maybe String)
 registerX = insertValue $ do
-  intC0' <-# value 1
-  (ph1, ()) <- placeholder (\ph' -> strC1' <-# ph')
-  intC2' <-# value 2
-  (ph2, ()) <- placeholder (\ph' -> mayStrC3' <-# ph')
-  return $ ph1 >< ph2
+  ph <- askPlaceholders
+  intC0' <-# toFlat (value 1)
+  strC1' <-# toFlat (ph ! fst')
+  intC2' <-# toFlat (value 2)
+  mayStrC3' <-# toFlat (ph ! snd')
 
 eqChunkedInsert :: String
                 -> Insert a
@@ -101,6 +102,7 @@ eqChunkedInsert name ins prefix row =
             $ prefix
             : replicate (n - 1) (row ++ ",") ++ [row]
       in eqProp' name id sql estimate)
+    . fmap (first detachPlaceholderOffsets)
     $ chunkedInsert ins
   where
     success = QSimple.Bool Nothing True
@@ -240,21 +242,21 @@ nestedPiRec :: Relation () SetA
 nestedPiRec = relation $ do
   ar <- query . relation $ do
     a <- query setA
-    return $ value "Hello" >< a
+    return $ toFlat (value "Hello") >< a
   return $ ar ! snd'
 
 nestedPiCol :: Relation () String
 nestedPiCol = relation $ do
   ar <- query . relation $ do
     a <- query setA
-    return $ a >< value "Hello"
+    return $ a >< toFlat (value "Hello")
   return $ ar ! snd'
 
 nestedPi :: Relation () String
 nestedPi = relation $ do
   ar <- query . relation $ do
     a <- query setA
-    return $ (value "Hello" >< a) >< value "World"
+    return $ (toFlat (value "Hello") >< a) >< toFlat (value "World")
   return $ ar ! snd'
 
 nested :: [Test]
@@ -286,24 +288,24 @@ _p_nested =  mapM_ print [show nestedPiRec, show nestedPiCol, show nestedPi]
 -- Record Operators
 
 bin53 :: (Record Flat Int32 -> Record Flat Int32 -> Record Flat r) -> Relation () r
-bin53 op = relation $ do
-  return $ value 5 `op` value 3
+bin53 op = relation $
+  return (toFlat (value 5) `op` toFlat (value 3))
 
 strIn :: Relation () (Maybe Bool)
 strIn = relation $
-  return $ value "foo" `in'` values ["foo", "bar"]
+  return . toFlat $ value "foo" `in'` values ["foo", "bar"]
 
 boolTF :: (Record Flat (Maybe Bool) -> Record Flat (Maybe Bool) -> Record Flat r) -> Relation () r
-boolTF op = relation $ do
-  return $ valueTrue `op` valueFalse
+boolTF op = relation $
+  return $ toFlat valueTrue `op` toFlat valueFalse
 
 strConcat :: Relation () String
 strConcat = relation $ do
-  return $ value "Hello, " .||. value "World!"
+  return . toFlat $ value "Hello, " .||. value "World!"
 
 strLike :: Relation () (Maybe Bool)
 strLike = relation $ do
-  return $ value "Hoge" `like` "H%"
+  return . toFlat $ value "Hoge" `like` "H%"
 
 _p_bin53 :: (Record Flat Int32 -> Record Flat Int32 -> Record Flat r) -> IO ()
 _p_bin53 = print . bin53
@@ -333,7 +335,7 @@ bin =
 
 caseSearchX :: Relation () String
 caseSearchX = relation $ do
-  return $
+  return . toFlat $
     caseSearch
     [ (value 2 .=. value (1  :: Int32)            , value "foo")
     , (value 5 .=. value 3 .+. value (2 :: Int32) , value "bar")
@@ -342,7 +344,7 @@ caseSearchX = relation $ do
 
 caseX :: Relation () String
 caseX = relation $ do
-  return $
+  return . toFlat $
     case'
     (value (5 :: Int32))
     [ (value 1             , value "foo")
@@ -352,7 +354,7 @@ caseX = relation $ do
 
 caseRecordX :: Relation () Int32
 caseRecordX = relation $ do
-  return $
+  return . toFlat $
     case'
     (value (5 :: Int32))
     [ (value 1             , (,) |$| value 1 |*| value "foo")
@@ -365,7 +367,7 @@ caseRecordX = relation $ do
 
 caseRecordMaybeX :: Relation () (Maybe (Int32, String))
 caseRecordMaybeX = relation $ do
-  return $
+  return . toFlat $
     caseMaybe
     (value (5 :: Int32))
     [ (value (1 :: Int32)  , just $ (,) |$| value (1 :: Int32) |*| value "foo")
@@ -393,7 +395,7 @@ nothingX =  relation $ do
   a <- query setA
   b <- queryMaybe setB
 
-  wheres $ isNothing b `or'` a ! intA0' .=. value 1
+  wheres $ isNothing b `or'` a ! intA0' .=. toFlat (value 1)
 
   return $ a >< b
 
@@ -402,7 +404,7 @@ justX =  relation $ do
   a <- query setA
   b <- queryMaybe setB
 
-  wheres $ isJust b `or'` a ! intA0' .=. value 1
+  wheres $ isJust b `or'` a ! intA0' .=. toFlat (value 1)
 
   return $ a >< b
 
@@ -413,11 +415,11 @@ maybeX =  relation $ do
 
   wheres $ a ?! strA2' .=. b ! mayStrB1'
 
-  return $ fromMaybe (value 1) (a ?! intA0') >< b
+  return $ fromMaybe (toFlat $ value 1) (a ?! intA0') >< b
 
 notX :: Relation () (Maybe Bool)
 notX = relation $
-  return $ not' valueFalse
+  return $ not' (toFlat valueFalse)
 
 existsX :: Relation () (Maybe Bool)
 existsX = relation $
@@ -636,11 +638,11 @@ updateKeyX =  primaryUpdate tableOfSetA
 updateX :: Update ()
 updateX =  updateNoPH $ \proj -> do
   strA2' <-# value "X"
-  wheres $ proj ! strA1' .=. value "A"
+  wheres $ proj ! strA1' .=. toFlat (value "A")
 
 deleteX :: Delete ()
 deleteX =  deleteNoPH $ \proj ->
-  wheres $ proj ! strA1' .=. value "A"
+  wheres $ proj ! strA1' .=. toFlat (value "A")
 
 effs :: [Test]
 effs =
@@ -676,7 +678,7 @@ updateScalarX = updateNoPH $ \proj -> do
   strA2' <-# value "X"
   sb <- queryScalar . unsafeUnique . relation $ do
     b <- query setB
-    wheres $ b ! intB0' .=. value 0
+    wheres $ b ! intB0' .=. toFlat (value 0)
     return $ b ! intB0'
   wheres $ just (proj ! intA0') .=. sb
 
@@ -702,7 +704,7 @@ deleteScalarX :: Delete ()
 deleteScalarX = deleteNoPH $ \proj -> do
   sb <- queryScalar . unsafeUnique . relation $ do
     b <- query setB
-    wheres $ b ! intB0' .=. value 0
+    wheres $ b ! intB0' .=. toFlat (value 0)
     return $ b ! intB0'
   wheres $ just (proj ! intA0') .=. sb
 

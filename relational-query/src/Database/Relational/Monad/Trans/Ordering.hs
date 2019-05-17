@@ -27,12 +27,12 @@ module Database.Relational.Monad.Trans.Ordering (
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Writer (WriterT, runWriterT, tell)
-import Control.Applicative (Applicative, pure, (<$>))
+import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second)
-import Data.DList (DList, toList)
+import Data.DList (DList, toList, fromList)
 
 import Database.Relational.SqlSyntax
-  (Order (..), Nulls (..), OrderingTerm, Record, untypeRecord)
+  (Order (..), Nulls (..), OrderingTerm, Record, WithPlaceholderOffsets, untypeRecordWithPlaceholderOffsets)
 
 import Database.Relational.Monad.Class
   (MonadQualify (..), MonadRestrict(..), MonadQuery(..), MonadAggregate(..), MonadPartition(..))
@@ -41,7 +41,7 @@ import Database.Relational.Monad.Class
 -- | Type to accumulate ordering context.
 --   Type 'c' is ordering term record context type.
 newtype Orderings c m a =
-  Orderings (WriterT (DList OrderingTerm) m a)
+  Orderings (WriterT (WithPlaceholderOffsets (DList OrderingTerm)) m a)
   deriving (MonadTrans, Monad, Functor, Applicative)
 
 -- | Lift to 'Orderings'.
@@ -60,8 +60,8 @@ instance MonadQualify q m => MonadQualify q (Orderings c m) where
 instance MonadQuery m => MonadQuery (Orderings c m) where
   setDuplication     = orderings . setDuplication
   restrictJoin       = orderings . restrictJoin
-  query'             = orderings . query'
-  queryMaybe'        = orderings . queryMaybe'
+  query' ph          = orderings . query' ph
+  queryMaybe' ph     = orderings . queryMaybe' ph
 
 -- | 'MonadAggregate' with ordering.
 instance MonadAggregate m => MonadAggregate (Orderings c m) where
@@ -75,14 +75,15 @@ instance MonadPartition c m => MonadPartition c (Orderings c m) where
 -- | Add ordering terms.
 updateOrderBys :: Monad m
                => (Order, Maybe Nulls) -- ^ Order direction
-               -> Record c t       -- ^ Ordering terms to add
+               -> Record c t           -- ^ Ordering terms to add
                -> Orderings c m ()     -- ^ Result context with ordering
-updateOrderBys opair p = Orderings . mapM_ tell $ terms  where
-  terms = curry pure opair `map` untypeRecord p
+updateOrderBys opair p = Orderings . tell $ terms  where
+  terms :: WithPlaceholderOffsets (DList OrderingTerm)
+  terms = fromList . map ((,) opair) <$> untypeRecordWithPlaceholderOffsets p
 
 -- | Add ordering terms with null ordering.
 orderBy' :: Monad m
-         => Record c t   -- ^ Ordering terms to add
+         => Record c t       -- ^ Ordering terms to add
          -> Order            -- ^ Order direction
          -> Nulls            -- ^ Order of null
          -> Orderings c m () -- ^ Result context with ordering
@@ -90,23 +91,23 @@ orderBy' p o n = updateOrderBys (o, Just n) p
 
 -- | Add ordering terms.
 orderBy :: Monad m
-        => Record c t   -- ^ Ordering terms to add
-        -> Order        -- ^ Order direction
+        => Record c t       -- ^ Ordering terms to add
+        -> Order            -- ^ Order direction
         -> Orderings c m () -- ^ Result context with ordering
 orderBy p o = updateOrderBys (o, Nothing) p
 
 -- | Add ascendant ordering term.
 asc :: Monad m
-    => Record c t   -- ^ Ordering terms to add
+    => Record c t       -- ^ Ordering terms to add
     -> Orderings c m () -- ^ Result context with ordering
 asc  =  updateOrderBys (Asc, Nothing)
 
 -- | Add descendant ordering term.
 desc :: Monad m
-     => Record c t   -- ^ Ordering terms to add
+     => Record c t       -- ^ Ordering terms to add
      -> Orderings c m () -- ^ Result context with ordering
 desc =  updateOrderBys (Desc, Nothing)
 
 -- | Run 'Orderings' to get 'OrderingTerms'
-extractOrderingTerms :: (Monad m, Functor m) => Orderings c m a -> m (a, [OrderingTerm])
-extractOrderingTerms (Orderings oc) = second toList <$> runWriterT oc
+extractOrderingTerms :: (Monad m, Functor m) => Orderings c m a -> m (a, WithPlaceholderOffsets [OrderingTerm])
+extractOrderingTerms (Orderings oc) = second (fmap toList) <$> runWriterT oc

@@ -12,7 +12,7 @@ import Database.HDBC.Query.TH (makeRelationalRecord)
 import Data.PostgreSQL.NetworkAddress
   (Inet (..), Cidr (..), NetAddress (..),
    V4HostAddress (..), V6HostAddress (..))
-import Database.Relational (Relation, relation, value)
+import Database.Relational (Relation, relation, value, toFlat)
 
 import Database.HDBC.PostgreSQL.Persistable ()
 
@@ -30,25 +30,25 @@ $(makeRelationalRecord ''Foo)
 -- 192.168.0.1/24
 inet4 :: Relation () Inet
 inet4 =
-  relation . return . value . Inet $
+  relation . return . toFlat . value . Inet $
   NetAddress4 (V4HostAddress 192 168 0 1) 24
 
 -- 224.0.0.0/4
 cidr4 :: Relation () Cidr
 cidr4 =
-  relation . return . value . Cidr $
+  relation . return . toFlat . value . Cidr $
   NetAddress4 (V4HostAddress 224 0 0 0) 4
 
 -- fd00::1/8
 inet6 :: Relation () Inet
 inet6 =
-  relation . return . value . Inet $
+  relation . return . toFlat . value . Inet $
   NetAddress6 (V6HostAddress 0xfd00 0 0 0 0 0 0 1) 8
 
 -- ff00::/8
 cidr6 :: Relation () Cidr
 cidr6 =
-  relation . return . value . Cidr $
+  relation . return . toFlat . value . Cidr $
   NetAddress6 (V6HostAddress 0xff00 0 0 0 0 0 0 0) 8
 
 testSet :: [(String, String, [String])]

@@ -22,6 +22,7 @@ import Data.Monoid ((<>))
 
 import Language.SQL.Keyword (Keyword(..), (|*|), (.=.))
 import qualified Language.SQL.Keyword as SQL
+import Database.Relational.SqlSyntax.Types (WithPlaceholderOffsets, SQLWithPlaceholderOffsets')
 
 import Database.Relational.Internal.String (StringSQL, rowConsStringSQL)
 
@@ -36,13 +37,13 @@ type AssignTerm   = StringSQL
 type Assignment = (AssignColumn, AssignTerm)
 
 -- | Compose SET clause from ['Assignment'].
-composeSets :: [Assignment] -> StringSQL
-composeSets as = assigns  where
+composeSets :: WithPlaceholderOffsets [Assignment] -> SQLWithPlaceholderOffsets'
+composeSets as = assigns <$> assignList where
   assignList = foldr (\ (col, term) r ->
                        (col .=. term) : r)
-               [] as
-  assigns | null assignList = error "Update assignment list is null!"
-          | otherwise       = SET <> SQL.fold (|*|) assignList
+               [] <$> as
+  assigns asl | null asl  = error "Update assignment list is null!"
+              | otherwise = SET <> SQL.fold (|*|) asl
 
 -- | Compose VALUES clause from a row of value expressions.
 composeChunkValues :: Int          -- ^ record count per chunk
@@ -57,20 +58,23 @@ composeChunkValues n0 vs =
 
 -- | Compose columns row and VALUES clause from a row of value expressions.
 composeChunkValuesWithColumns :: Int          -- ^ record count per chunk
-                              -> [Assignment] -- ^
-                              -> StringSQL
-composeChunkValuesWithColumns sz as =
-    rowConsStringSQL cs <> composeChunkValues sz vs
+                              -> WithPlaceholderOffsets [Assignment] -- ^
+                              -> SQLWithPlaceholderOffsets'
+composeChunkValuesWithColumns sz asPhs = f <$> asPhs
   where
-    (cs, vs) = unzip as
+    f as = rowConsStringSQL cs <> composeChunkValues sz vs
+      where
+        (cs, vs) = unzip as
 
 -- | Compose columns row and VALUES clause from rows list of value expressions.
-composeValuesListWithColumns :: [[Assignment]]
-                             -> StringSQL
-composeValuesListWithColumns pss =
-    rowConsStringSQL cs <> VALUES <> SQL.fold (|*|) (map rowConsStringSQL vss)
+composeValuesListWithColumns :: [WithPlaceholderOffsets [Assignment]]
+                             -> SQLWithPlaceholderOffsets'
+composeValuesListWithColumns pss = f <$> csPhs <*> vssPhs
   where
-    cs = case pss of
+    f cs vss = rowConsStringSQL cs <> VALUES <> SQL.fold (|*|) (map rowConsStringSQL vss)
+    csPhs :: WithPlaceholderOffsets [AssignColumn]
+    csPhs = case pss of
            []    ->  error "insertValueList: no assignment chunks"
-           ps:_  ->  fst $ unzip ps
-    vss = map (snd . unzip) pss
+           ps:_  ->  fst . unzip <$> ps
+    vssPhs :: WithPlaceholderOffsets [[AssignTerm]]
+    vssPhs = traverse (fmap (snd . unzip)) pss

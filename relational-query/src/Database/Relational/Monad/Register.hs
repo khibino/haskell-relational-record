@@ -16,7 +16,7 @@ module Database.Relational.Monad.Register (
   ) where
 
 import Database.Relational.Internal.Config (Config)
-import Database.Relational.SqlSyntax (Assignment)
+import Database.Relational.SqlSyntax (Assignment, WithPlaceholderOffsets)
 
 import Database.Relational.Table (Table)
 import Database.Relational.Monad.BaseType (ConfigureQuery, configureQuery)
@@ -27,5 +27,5 @@ import Database.Relational.Monad.Trans.Assigning (Assignings, extractAssignments
 type Register r = Assignings r ConfigureQuery
 
 -- | Run 'InsertStatement'.
-extract :: Assignings r ConfigureQuery a -> Config -> (a, Table r -> [Assignment])
+extract :: Assignings r ConfigureQuery a -> Config -> (a, Table r -> WithPlaceholderOffsets [Assignment])
 extract = configureQuery . extractAssignments

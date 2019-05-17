@@ -110,6 +110,7 @@ library
 
                        , sql-words
                        , relational-query >= 0.12.2
+                       , persistable-record >= 0.6
 
   if impl(ghc == 7.4.*)
     build-depends:       ghc-prim == 0.2.*

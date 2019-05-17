@@ -6,7 +6,7 @@ import qualified Test.QuickCheck.Simple as QSimple
 import Lex (eqProp, eqProp')
 import Model
 
-import Control.Arrow (returnA, arr, (<<<), (***))
+import Control.Arrow (first, returnA, arr, (<<<), (***))
 import Data.Int (Int32, Int64)
 import Data.Functor.ProductIsomorphic ((|$|), (|*|))
 
@@ -46,7 +46,7 @@ wheresX :: Relation () (SetA, SetB)
 wheresX = relation $ proc () -> do
   a <- query      setA -< ()
   b <- query      setB -< ()
-  wheres -< b ! intB0' .>=. value 3
+  wheres -< b ! intB0' .>=. toFlat (value 3)
   returnA -< (,) |$| a |*| b
 
 groupByX :: Relation () (Int32, Integer)
@@ -59,7 +59,7 @@ havingX :: Relation () Int
 havingX = aggregateRelation $ proc () -> do
   a <- query      setA -< ()
   let c = count (a ! intA0')
-  having -< c .>. value 1
+  having -< c .>. toAggregated (value 1)
   returnA -< c
 
 distinctX :: Relation () Int32
@@ -76,15 +76,16 @@ all'X = relation $ proc () -> do
 
 assignX :: Update ()
 assignX = updateNoPH $ proc _proj ->
-  assign intA0' -< value (0 :: Int32)
+  assign intA0' -< toFlat (value (0 :: Int32))
 
 registerX :: Insert (String, Maybe String)
 registerX = insertValue $ proc () -> do
-  assign intC0' -< value 1
-  (ph1, ()) <- placeholder -< proc ph' -> do assign strC1' -< ph'
-  assign intC2' -< value 2
-  (ph2, ()) <- placeholder -< proc ph' -> do assign mayStrC3' -< ph'
-  returnA -< ph1 >< ph2
+  ph <- askPlaceholders -< ()
+  assign intC0' -< toFlat (value 1)
+  assign strC1' -< toFlat (ph ! fst')
+  assign intC2' -< toFlat (value 2)
+  assign mayStrC3' -< toFlat (ph ! snd')
+  returnA -< ()
 
 eqChunkedInsert :: String
                 -> Insert a
@@ -100,6 +101,7 @@ eqChunkedInsert name ins prefix row =
             $ prefix
             : replicate (n - 1) (row ++ ",") ++ [row]
       in eqProp' name id sql estimate)
+    . fmap (first detachPlaceholderOffsets)
     $ chunkedInsert ins
   where
     success = QSimple.Bool Nothing True
@@ -236,21 +238,21 @@ nestedPiRec :: Relation () SetA
 nestedPiRec = relation $ proc () -> do
   ar <- (query . relation $ proc () -> do
             a <- query setA -< ()
-            returnA -< value "Hello" >< a) -< ()
+            returnA -< toFlat (value "Hello") >< a) -< ()
   returnA -< ar ! snd'
 
 nestedPiCol :: Relation () String
 nestedPiCol = relation $ proc () -> do
   ar <- (query . relation $ proc () -> do
             a <- query setA -< ()
-            returnA -< a >< value "Hello") -< ()
+            returnA -< a >< toFlat (value "Hello")) -< ()
   returnA -< ar ! snd'
 
 nestedPi :: Relation () String
 nestedPi = relation $ proc () -> do
   ar <- (query . relation $ proc () -> do
             a <- query setA -< ()
-            returnA -< (value "Hello" >< a) >< value "World") -< ()
+            returnA -< (toFlat (value "Hello") >< a) >< toFlat (value "World")) -< ()
   returnA -< ar ! snd'
 
 nested :: [Test]
@@ -283,23 +285,23 @@ _p_nested =  mapM_ print [show nestedPiRec, show nestedPiCol, show nestedPi]
 
 bin53 :: (Record Flat Int32 -> Record Flat Int32 -> Record Flat r) -> Relation () r
 bin53 op = relation $ proc () -> do
-  returnA -< value 5 `op` value 3
+  returnA -< toFlat (value 5) `op` toFlat (value 3)
 
 strIn :: Relation () (Maybe Bool)
 strIn = relation $ proc () -> do
-  returnA -< value "foo" `in'` values ["foo", "bar"]
+  returnA -< toFlat (value "foo") `in'` values ["foo", "bar"]
 
 boolTF :: (Record Flat (Maybe Bool) -> Record Flat (Maybe Bool) -> Record Flat r) -> Relation () r
 boolTF op = relation $ proc () -> do
-  returnA -< valueTrue `op` valueFalse
+  returnA -< toFlat valueTrue `op` toFlat valueFalse
 
 strConcat :: Relation () String
 strConcat = relation $ proc () -> do
-  returnA -< value "Hello, " .||. value "World!"
+  returnA -< toFlat (value "Hello, ") .||. toFlat (value "World!")
 
 strLike :: Relation () (Maybe Bool)
 strLike = relation $ proc () -> do
-  returnA -< value "Hoge" `like` "H%"
+  returnA -< toFlat (value "Hoge") `like` "H%"
 
 _p_bin53 :: (Record Flat Int32 -> Record Flat Int32 -> Record Flat r) -> IO ()
 _p_bin53 = print . bin53
@@ -332,7 +334,7 @@ justX =  relation $ proc () -> do
   a <- query setA -< ()
   b <- queryMaybe setB -< ()
 
-  wheres -< isJust b `or'` a ! intA0' .=. value 1
+  wheres -< isJust b `or'` a ! intA0' .=. toFlat (value 1)
 
   returnA -< a >< b
 
@@ -343,7 +345,7 @@ maybeX =  relation $ proc () -> do
 
   wheres -< a ?! strA2' .=. b ! mayStrB1'
 
-  returnA -< fromMaybe (value 1) (a ?! intA0') >< b
+  returnA -< fromMaybe (toFlat (value 1)) (a ?! intA0') >< b
 
 maybes :: [Test]
 maybes =
@@ -545,12 +547,12 @@ updateKeyX =  primaryUpdate tableOfSetA
 
 updateX :: Update ()
 updateX =  updateNoPH $ proc proj -> do
-  assign strA2' -< value "X"
-  wheres -< proj ! strA1' .=. value "A"
+  assign strA2' -< toFlat (value "X")
+  wheres -< proj ! strA1' .=. toFlat (value "A")
 
 deleteX :: Delete ()
 deleteX =  deleteNoPH $ proc proj -> do
-  wheres -< proj ! strA1' .=. value "A"
+  wheres -< proj ! strA1' .=. toFlat (value "A")
 
 effs :: [Test]
 effs =

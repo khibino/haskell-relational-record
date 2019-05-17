@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeFamilies #-}
+
 -- |
 -- Module      : Database.Relational.Projectable.Unsafe
 -- Copyright   : 2017 Kei Hibino
@@ -10,17 +12,18 @@
 -- This module provides unsafe interfaces between projected terms and SQL terms.
 module Database.Relational.Projectable.Unsafe (
   SqlContext (..), OperatorContext, AggregatedContext,
-  PlaceHolders (..)
+  ResultContext,
+  unsafeProjectSqlTerms,
   ) where
 
 import Database.Relational.Internal.String (StringSQL)
-import Database.Relational.SqlSyntax (Record)
+import Database.Relational.SqlSyntax (Record, WithPlaceholderOffsets, attachEmptyPlaceholderOffsets)
 
 -- | Interface to project SQL terms unsafely.
 class SqlContext c where
   -- | Unsafely project from SQL expression terms.
-  unsafeProjectSqlTerms :: [StringSQL]
-                        -> Record c t
+  unsafeProjectSqlTermsWithPlaceholders
+    :: WithPlaceholderOffsets [StringSQL] -> Record c t
 
 -- | Constraint to restrict context of full SQL expressions.
 --   For example, the expression at the left of OVER clause
@@ -30,6 +33,7 @@ class SqlContext c => OperatorContext c
 -- | Constraint to restrict context of aggregated SQL context.
 class AggregatedContext ac
 
+type family ResultContext c1 c2
 
--- | Placeholder parameter type which has real parameter type arguemnt 'p'.
-data PlaceHolders p = PlaceHolders
+unsafeProjectSqlTerms :: SqlContext c => [StringSQL] -> Record c t
+unsafeProjectSqlTerms = unsafeProjectSqlTermsWithPlaceholders . attachEmptyPlaceholderOffsets

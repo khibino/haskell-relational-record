@@ -22,11 +22,11 @@ module Database.Relational.Monad.Trans.Restricting (
 
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Writer (WriterT, runWriterT, tell)
-import Control.Applicative (Applicative, pure, (<$>))
+import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second)
-import Data.DList (DList, toList)
+import Data.DList (DList, toList, singleton)
 
-import Database.Relational.SqlSyntax (Predicate)
+import Database.Relational.SqlSyntax (Predicate, Tuple, WithPlaceholderOffsets, untypeRecordWithPlaceholderOffsets)
 
 import Database.Relational.Monad.Class
   (MonadQualify (..), MonadRestrict(..), MonadQuery (..), MonadAggregate(..))
@@ -36,8 +36,11 @@ import Database.Relational.Monad.Class
 --   Type 'c' is context tag of restriction building like
 --   Flat (where) or Aggregated (having).
 newtype Restrictings c m a =
-  Restrictings (WriterT (DList (Predicate c)) m a)
-  deriving (MonadTrans, Monad, Functor, Applicative)
+  Restrictings (WriterT (DList (WithPlaceholderOffsets Tuple)) m a)
+  deriving (Monad, Functor, Applicative)
+
+instance MonadTrans (Restrictings c) where
+  lift = Restrictings . lift
 
 -- | Lift to 'Restrictings'
 restrictings :: Monad m => m a -> Restrictings c m a
@@ -45,7 +48,7 @@ restrictings =  lift
 
 -- | Add whole query restriction.
 updateRestriction :: Monad m => Predicate c -> Restrictings c m ()
-updateRestriction =  Restrictings . tell . pure
+updateRestriction = Restrictings . tell . singleton . untypeRecordWithPlaceholderOffsets
 
 -- | 'MonadRestrict' instance.
 instance (Monad q, Functor q) => MonadRestrict c (Restrictings c q) where
@@ -59,8 +62,8 @@ instance MonadQualify q m => MonadQualify q (Restrictings c m) where
 instance MonadQuery q => MonadQuery (Restrictings c q) where
   setDuplication     = restrictings . setDuplication
   restrictJoin       = restrictings . restrictJoin
-  query'             = restrictings . query'
-  queryMaybe'        = restrictings . queryMaybe'
+  query' ph          = restrictings . query' ph
+  queryMaybe' ph     = restrictings . queryMaybe' ph
 
 -- | Resticted 'MonadAggregate' instance.
 instance MonadAggregate m => MonadAggregate (Restrictings c m) where
@@ -68,5 +71,5 @@ instance MonadAggregate m => MonadAggregate (Restrictings c m) where
   groupBy' = restrictings . groupBy'
 
 -- | Run 'Restrictings' to get 'QueryRestriction'
-extractRestrict :: (Monad m, Functor m) => Restrictings c m a -> m (a, [Predicate c])
+extractRestrict :: (Monad m, Functor m) => Restrictings c m a -> m (a, [WithPlaceholderOffsets Tuple])
 extractRestrict (Restrictings rc) = second toList <$> runWriterT rc

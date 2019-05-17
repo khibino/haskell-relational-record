@@ -59,6 +59,7 @@ library
                        Database.Relational.Monad.Trans.Restricting
                        Database.Relational.Monad.Trans.Join
                        Database.Relational.Monad.Trans.Config
+                       Database.Relational.Monad.Trans.ReadPlaceholders
                        Database.Relational.Monad.Trans.Assigning
                        Database.Relational.Monad.Type
                        Database.Relational.Monad.Simple
@@ -92,8 +93,10 @@ library
                        Database.Relational.SqlSyntax.Query
                        Database.Relational.SqlSyntax.Fold
                        Database.Relational.SqlSyntax.Updates
+                       Database.Relational.SqlSyntax.Placeholders
                        Database.Relational.Monad.Trans.JoinState
                        Database.Relational.Monad.Trans.Qualify
+                       Database.Relational.Monad.Trans.ReadPlaceholders.Type
                        Database.Relational.InternalTH.Base
 
                        -- for GHC version equal or more than 8.0

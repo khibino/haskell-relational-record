@@ -18,7 +18,9 @@ module Database.Relational.Record (
 
   width,
   columns,
+  columnsWithPlaceholders,
   untype,
+  pempty,
 
   unsafeFromSqlTerms,
   unsafeFromQualifiedSubQuery,
@@ -26,6 +28,7 @@ module Database.Relational.Record (
   unsafeFromTable,
 
   unsafeStringSql,
+  unsafeStringSqlWithPlaceholders,
 
   -- * Projections
   pi, piMaybe, piMaybe',
@@ -34,6 +37,7 @@ module Database.Relational.Record (
   flattenMaybe, just,
 
   unsafeToAggregated, unsafeToFlat, unsafeChangeContext,
+  toAggregated, toFlat, toSomeOperatorContext,
   unsafeStringSqlNotNullMaybe,
 
   -- * List of Record
@@ -42,6 +46,7 @@ module Database.Relational.Record (
   ) where
 
 import Prelude hiding (pi)
+import qualified Data.DList as DList
 import Data.Functor.ProductIsomorphic
   (ProductIsoFunctor, (|$|), ProductIsoApplicative, pureP, (|*|),
    ProductIsoEmpty, pureE, peRight, peLeft, )
@@ -52,27 +57,37 @@ import Database.Record (HasColumnConstraint, NotNull, NotNullColumnConstraint, P
 import Database.Record.Persistable (PersistableRecordWidth)
 import qualified Database.Record.KeyConstraint as KeyConstraint
 
-import Database.Relational.Internal.ContextType (Aggregated, Flat)
+import Database.Relational.Internal.ContextType (Aggregated, Flat, PureOperand)
 import Database.Relational.Internal.String (StringSQL, listStringSQL, rowStringSQL)
 import Database.Relational.SqlSyntax
   (SubQuery, Qualified, Tuple, Record,
-   recordRawColumns, tupleFromJoinedSubQuery,)
+   typedTupleRawColumns, tupleFromJoinedSubQuery,)
 import qualified Database.Relational.SqlSyntax as Syntax
 
 import Database.Relational.Table (Table)
 import qualified Database.Relational.Table as Table
 import Database.Relational.Pi (Pi)
 import qualified Database.Relational.Pi.Unsafe as UnsafePi
+import Database.Relational.Projectable.Unsafe (OperatorContext)
 
 
 -- | Unsafely get SQL term from 'Record'.
 unsafeStringSql :: Record c r -> StringSQL
-unsafeStringSql = rowStringSQL . recordRawColumns
+unsafeStringSql =
+  rowStringSQL . typedTupleRawColumns . Syntax.detachPlaceholderOffsets . Syntax.toTypedTuple
+
+unsafeStringSqlWithPlaceholders :: Record c r -> Syntax.SQLWithPlaceholderOffsets'
+unsafeStringSqlWithPlaceholders =
+  fmap (rowStringSQL . typedTupleRawColumns) . Syntax.toTypedTuple
 
 -- | Get column SQL string list of record.
 columns :: Record c r  -- ^ Source 'Record'
         -> [StringSQL] -- ^ Result SQL string list
-columns = recordRawColumns
+columns =
+  Syntax.typedTupleRawColumns . Syntax.detachPlaceholderOffsets . Syntax.toTypedTuple
+
+columnsWithPlaceholders :: Record c r -> Syntax.WithPlaceholderOffsets [StringSQL]
+columnsWithPlaceholders = fmap Syntax.typedTupleRawColumns . Syntax.toTypedTuple
 
 -- | Width of 'Record'.
 width :: Record c r -> Int
@@ -82,31 +97,35 @@ width = Syntax.recordWidth
 untype :: Record c r -> Tuple
 untype = Syntax.untypeRecord
 
-
 -- | Unsafely generate  'Record' from qualified (joined) sub-query.
 unsafeFromQualifiedSubQuery :: Qualified SubQuery -> Record c t
-unsafeFromQualifiedSubQuery = Syntax.record . tupleFromJoinedSubQuery
+unsafeFromQualifiedSubQuery =
+  Syntax.unsafeRecordFromTupleWithPlaceholderOffsets . tupleFromJoinedSubQuery
 
 -- | Unsafely generate 'Record' from scalar sub-query.
 unsafeFromScalarSubQuery :: SubQuery -> Record c t
-unsafeFromScalarSubQuery = Syntax.typeFromScalarSubQuery
+unsafeFromScalarSubQuery sq =
+  Syntax.record (Syntax.collectPlaceholderOffsets sq) . (:[]) $ Syntax.Scalar sq
 
 -- | Unsafely generate unqualified 'Record' from 'Table'.
 unsafeFromTable :: Table r
                 -> Record c r
-unsafeFromTable = Syntax.typeFromRawColumns . Table.columns
+unsafeFromTable = Syntax.typeFromRawColumns mempty . Table.columns
 
 -- | Unsafely generate 'Record' from SQL expression strings.
-unsafeFromSqlTerms :: [StringSQL] -> Record c t
-unsafeFromSqlTerms = Syntax.typeFromRawColumns
-
+unsafeFromSqlTerms :: Syntax.WithPlaceholderOffsets [StringSQL] -> Record c t
+unsafeFromSqlTerms = uncurry (flip Syntax.typeFromRawColumns) . Syntax.tupleFromPlaceholderOffsets
 
 -- | Unsafely trace projection path.
 unsafeProject :: PersistableRecordWidth a -> Record c a' -> Pi a b -> Record c b'
 unsafeProject w p pi' =
-  Syntax.typeFromRawColumns
-  . (UnsafePi.pi w pi')
-  . columns $ p
+  Syntax.typeFromRawColumns phs
+    . (UnsafePi.pi w pi')
+    $ columns p
+ where
+  phs = if Syntax.isPlaceholdersRecord p
+          then DList.fromList $ UnsafePi.unsafeExpandIndexes' w pi'
+          else mempty
 
 -- | Trace projection path to get narrower 'Record'.
 wpi :: PersistableRecordWidth a
@@ -138,7 +157,7 @@ piMaybe' :: PersistableWidth a
 piMaybe' = unsafeProject persistableWidth
 
 unsafeCast :: Record c r -> Record c r'
-unsafeCast = Syntax.record . Syntax.untypeRecord
+unsafeCast = Syntax.mapTypedTuple (Syntax.forciblyTypeTuple . Syntax.untypeTuple)
 
 -- | Composite nested 'Maybe' on record phantom type.
 flattenMaybe :: Record c (Maybe (Maybe a)) -> Record c (Maybe a)
@@ -150,7 +169,7 @@ just =  unsafeCast
 
 -- | Unsafely cast context type tag.
 unsafeChangeContext :: Record c r -> Record c' r
-unsafeChangeContext = Syntax.record . Syntax.untypeRecord
+unsafeChangeContext = Syntax.mapTypedTuple (Syntax.forciblyTypeTuple . Syntax.untypeTuple)
 
 -- | Unsafely lift to aggregated context.
 unsafeToAggregated :: Record Flat r -> Record Aggregated r
@@ -160,6 +179,18 @@ unsafeToAggregated =  unsafeChangeContext
 unsafeToFlat :: Record Aggregated r -> Record Flat r
 unsafeToFlat =  unsafeChangeContext
 
+-- | Convert pure operand context into aggregated context.
+toAggregated :: Record PureOperand r -> Record Aggregated r
+toAggregated =  unsafeChangeContext
+
+-- | Convert pure operand context into flat context.
+toFlat :: Record PureOperand r -> Record Flat r
+toFlat =  unsafeChangeContext
+
+-- | Convert pure operand context into some operator context.
+toSomeOperatorContext :: OperatorContext c => Record PureOperand r -> Record c r
+toSomeOperatorContext =  unsafeChangeContext
+
 notNullMaybeConstraint :: HasColumnConstraint NotNull r => Record c (Maybe r) -> NotNullColumnConstraint r
 notNullMaybeConstraint =  const KeyConstraint.columnConstraint
 
@@ -168,7 +199,7 @@ unsafeStringSqlNotNullMaybe :: HasColumnConstraint NotNull r => Record c (Maybe 
 unsafeStringSqlNotNullMaybe p = (!!  KeyConstraint.index (notNullMaybeConstraint p)) . columns $ p
 
 pempty :: Record c ()
-pempty = Syntax.record []
+pempty = Syntax.record mempty []
 
 -- | Map 'Record' which result type is record.
 instance ProductIsoFunctor (Record c) where
@@ -177,7 +208,9 @@ instance ProductIsoFunctor (Record c) where
 -- | Compose 'Record' using applicative style.
 instance ProductIsoApplicative (Record c) where
   pureP _ = unsafeCast pempty
-  pf |*| pa = Syntax.record $ Syntax.untypeRecord pf ++ Syntax.untypeRecord pa
+  pff |*| pfa = Syntax.Record (Syntax.forciblyTypeTuple <$> csphs)
+   where
+    csphs = (++) <$> Syntax.untypeRecordWithPlaceholderOffsets pff <*> Syntax.untypeRecordWithPlaceholderOffsets pfa
 
 instance ProductIsoEmpty (Record c) () where
   pureE   = pureP ()
@@ -197,7 +230,7 @@ unsafeListFromSubQuery :: SubQuery -> RecordList p t
 unsafeListFromSubQuery =  Sub
 
 -- | Map record show operatoions and concatinate to single SQL expression.
-unsafeStringSqlList :: (p t -> StringSQL) -> RecordList p t -> StringSQL
+unsafeStringSqlList :: (p t -> Syntax.SQLWithPlaceholderOffsets') -> RecordList p t -> Syntax.SQLWithPlaceholderOffsets'
 unsafeStringSqlList sf = d  where
-  d (List ps) = listStringSQL $ map sf ps
-  d (Sub sub) = SQL.paren $ Syntax.showSQL sub
+  d (List ps) = listStringSQL <$> traverse sf ps
+  d (Sub sub) = Syntax.withPlaceholderOffsets (Syntax.collectPlaceholderOffsets sub) . SQL.paren $ Syntax.showSQL sub

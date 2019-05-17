@@ -19,15 +19,14 @@ module Database.Relational.Monad.Trans.JoinState (
 import Prelude hiding (product)
 import Data.DList (DList, toList)
 
-import Database.Relational.Internal.ContextType (Flat)
-import Database.Relational.SqlSyntax (JoinProduct, Node, Predicate)
+import Database.Relational.SqlSyntax (JoinProduct, Node, Tuple)
 import qualified Database.Relational.SqlSyntax as Product
 
 
 -- | JoinContext type for QueryJoin.
 newtype JoinContext =
   JoinContext
-  { product  :: Maybe (Node (DList (Predicate Flat)))
+  { product  :: Maybe (Node (DList Tuple))
   }
 
 -- | Initial 'JoinContext'.
@@ -35,7 +34,7 @@ primeJoinContext :: JoinContext
 primeJoinContext =  JoinContext Nothing
 
 -- | Update product of 'JoinContext'.
-updateProduct :: (Maybe (Node (DList (Predicate Flat))) -> Node (DList (Predicate Flat)))
+updateProduct :: (Maybe (Node (DList Tuple)) -> Node (DList Tuple))
               -> JoinContext
               -> JoinContext
 updateProduct uf ctx = ctx { product = Just . uf . product $ ctx }

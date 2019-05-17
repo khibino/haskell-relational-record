@@ -19,6 +19,7 @@ import Data.Int (Int8, Int16, Int32, Int64)
 import Data.Map (Map)
 import Data.Time (Day, LocalTime)
 import Database.Relational (Query, unsafeTypedQuery)
+import Database.Relational (Query, unsafeTypedQuery, attachEmptyPlaceholderOffsets)
 
 import Database.Relational.Schema.SQLite3.Config
 import Database.Relational.Schema.SQLite3.IndexInfo
@@ -85,10 +86,10 @@ getType mapFromSql info = do
                     else [t|Maybe $(typ)|]
 
 tableInfoQuerySQL :: String -> String -> Query () TableInfo
-tableInfoQuerySQL db tbl = unsafeTypedQuery $ "pragma " ++ db ++ ".table_info(" ++ tbl ++ ");"
+tableInfoQuerySQL db tbl = unsafeTypedQuery $ attachEmptyPlaceholderOffsets $ "pragma " ++ db ++ ".table_info(" ++ tbl ++ ");"
 
 indexListQuerySQL :: String -> String -> Query () IndexList
-indexListQuerySQL db tbl = unsafeTypedQuery $ "pragma " ++ db ++ ".index_list(" ++ tbl ++ ");"
+indexListQuerySQL db tbl = unsafeTypedQuery $ attachEmptyPlaceholderOffsets $ "pragma " ++ db ++ ".index_list(" ++ tbl ++ ");"
 
 indexInfoQuerySQL :: String -> String -> Query () IndexInfo
-indexInfoQuerySQL db idx = unsafeTypedQuery $ "pragma " ++ db ++ ".index_info(" ++ idx ++ ");"
+indexInfoQuerySQL db idx = unsafeTypedQuery $ attachEmptyPlaceholderOffsets $ "pragma " ++ db ++ ".index_info(" ++ idx ++ ");"

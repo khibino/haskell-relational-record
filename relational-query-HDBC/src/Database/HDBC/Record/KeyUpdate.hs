@@ -22,11 +22,13 @@ module Database.HDBC.Record.KeyUpdate (
   ) where
 
 import Control.Exception (bracket)
+import Data.Traversable (traverse)
 import Database.HDBC (IConnection, SqlValue, Statement)
 import qualified Database.HDBC as HDBC
 
 import Database.Relational
-  (KeyUpdate, untypeKeyUpdate, updateValuesWithKey, Pi)
+  (KeyUpdate, untypeKeyUpdate, updateValuesWithKey, Pi,
+   WithPlaceholderOffsets, placeholderOffsets, detachPlaceholderOffsets, sortByPlaceholderOffsets, )
 import qualified Database.Relational as DSL
 import Database.Record (ToSql)
 
@@ -41,7 +43,7 @@ data PreparedKeyUpdate p a =
     -- | Key to specify update target records.
     updateKey         :: Pi a p
     -- | Untyped prepared statement before executed.
-  , preparedKeyUpdate :: Statement
+  , preparedKeyUpdate :: WithPlaceholderOffsets Statement
   }
 
 -- | Typed prepare key-update operation.
@@ -49,7 +51,7 @@ prepare :: IConnection conn
         => conn
         -> KeyUpdate p a
         -> IO (PreparedKeyUpdate p a)
-prepare conn ku = fmap (PreparedKeyUpdate key) . HDBC.prepare conn $ sql  where
+prepare conn ku = fmap (PreparedKeyUpdate key) . traverse (HDBC.prepare conn) $ sql where
   sql = untypeKeyUpdate ku
   key = DSL.updateKey ku
 
@@ -67,7 +69,7 @@ withPrepareKeyUpdate :: IConnection conn
                      -> (PreparedKeyUpdate p a -> IO b)
                      -> IO b
 withPrepareKeyUpdate conn ku body =
-    bracket (HDBC.prepare conn sql) HDBC.finish
+    bracket (traverse (HDBC.prepare conn) sql) (HDBC.finish . detachPlaceholderOffsets)
     $ body . PreparedKeyUpdate key
   where
     sql = untypeKeyUpdate ku
@@ -79,8 +81,13 @@ bindKeyUpdate :: ToSql SqlValue a
               -> a
               -> BoundStatement ()
 bindKeyUpdate pre a =
-  BoundStatement { bound = preparedKeyUpdate pre, params = updateValuesWithKey key a }
-  where key = updateKey pre
+  BoundStatement { bound = st, params = ps }
+  where
+    key = updateKey pre
+    stphs = preparedKeyUpdate pre 
+    st = detachPlaceholderOffsets stphs
+    phs = placeholderOffsets stphs
+    ps  = sortByPlaceholderOffsets phs $ updateValuesWithKey key a
 
 -- | Bind parameters, execute statement and get execution result.
 runPreparedKeyUpdate :: ToSql SqlValue a

@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies #-}
 
 -- |
 -- Module      : Database.Relational.Projectable.Instances
@@ -13,53 +14,46 @@
 -- This module provides instances between projected terms and SQL terms.
 module Database.Relational.Projectable.Instances () where
 
-import Data.Functor.ProductIsomorphic
-  (ProductIsoFunctor, (|$|), ProductIsoApplicative, pureP, (|*|),
-   ProductIsoEmpty, pureE, peRight, peLeft, )
-
 import Database.Relational.Internal.ContextType
-  (Flat, Aggregated, OverWindow)
+  (Flat, Aggregated, OverWindow, PureOperand)
 import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable.Unsafe
-  (SqlContext (..), OperatorContext, AggregatedContext, PlaceHolders (..))
+  (SqlContext (..), OperatorContext, AggregatedContext, ResultContext,)
 
 -- context
 
 -- | Unsafely make 'Record' from SQL terms.
 instance SqlContext Flat where
-  unsafeProjectSqlTerms = Record.unsafeFromSqlTerms
+  unsafeProjectSqlTermsWithPlaceholders = Record.unsafeFromSqlTerms
 
 -- | Unsafely make 'Record' from SQL terms.
 instance SqlContext Aggregated where
-  unsafeProjectSqlTerms = Record.unsafeFromSqlTerms
+  unsafeProjectSqlTermsWithPlaceholders = Record.unsafeFromSqlTerms
 
 -- | Unsafely make 'Record' from SQL terms.
 instance SqlContext OverWindow where
-  unsafeProjectSqlTerms = Record.unsafeFromSqlTerms
+  unsafeProjectSqlTermsWithPlaceholders = Record.unsafeFromSqlTerms
+
+-- | Unsafely make 'Record' from SQL terms.
+instance SqlContext PureOperand where
+  unsafeProjectSqlTermsWithPlaceholders = Record.unsafeFromSqlTerms
 
 -- | full SQL expression is availabe in Flat context
 instance OperatorContext Flat
 -- | full SQL expression is availabe in Aggregated context
 instance OperatorContext Aggregated
+-- | full SQL expression is availabe in PureOperand context
+instance OperatorContext PureOperand
 
 -- | 'Aggregated' context is aggregated context
 instance AggregatedContext Aggregated
 -- | 'OverWindow' context is aggregated context
 instance AggregatedContext OverWindow
 
--- placeholders
+type instance ResultContext Flat Flat = Flat
+type instance ResultContext Flat PureOperand = Flat
+type instance ResultContext PureOperand Flat = Flat
 
--- | Zipping except for identity element laws against placeholder parameter type.
-instance ProductIsoEmpty PlaceHolders () where
-  pureE     = PlaceHolders
-  peRight _ = PlaceHolders
-  peLeft  _ = PlaceHolders
-
--- | Compose seed of record type 'PlaceHolders'.
-instance ProductIsoFunctor PlaceHolders where
-  _ |$| PlaceHolders = PlaceHolders
-
--- | Compose record type 'PlaceHolders' using applicative style.
-instance ProductIsoApplicative PlaceHolders where
-  pureP _     = PlaceHolders
-  _pf |*| _pa = PlaceHolders
+type instance ResultContext Aggregated Aggregated = Aggregated
+type instance ResultContext Aggregated PureOperand = Aggregated
+type instance ResultContext PureOperand Aggregated = Aggregated

@@ -23,7 +23,9 @@ module Database.Relational.SqlSyntax.Fold (
   -- * Tuple and Record
   tupleFromJoinedSubQuery,
 
-  recordRawColumns,
+  typedTupleRawColumns,
+
+  collectPlaceholderOffsets,
 
   -- * Query restriction
   composeWhere, composeHaving,
@@ -42,7 +44,6 @@ import Data.Traversable (traverse)
 import Language.SQL.Keyword (Keyword(..), (|*|))
 import qualified Language.SQL.Keyword as SQL
 
-import Database.Relational.Internal.ContextType (Flat, Aggregated)
 import Database.Relational.Internal.Config
   (Config (productUnitSupport), ProductUnitSupport (PUSupported, PUNotSupported), )
 import Database.Relational.Internal.UntypedTable ((!))
@@ -51,13 +52,14 @@ import Database.Relational.Internal.String
   (StringSQL, stringSQL, rowStringSQL, showStringSQL, )
 import qualified Database.Relational.Internal.Literal as Lit
 import Database.Relational.SqlSyntax.Types
-  (SubQuery (..), Record, Tuple, Predicate,
+  (SubQuery (..), TypedTuple, Tuple, 
    Column (..), CaseClause(..), WhenClauses (..),
    NodeAttr (Just', Maybe), ProductTree (Leaf, Join), JoinProduct,
    Duplication (..), SetOp (..), BinOp (..), Qualifier (..), Qualified (..),
    AggregateBitKey (..), AggregateSet (..),  AggregateElem (..), AggregateColumnRef,
    Order (..), Nulls (..), OrderingTerm, )
 import qualified Database.Relational.SqlSyntax.Types as Syntax
+import Database.Relational.SqlSyntax.Placeholders (detachPlaceholderOffsets, placeholderOffsets)
 
 
 -- | Compose duplication attribute string.
@@ -100,8 +102,8 @@ width :: SubQuery -> Int
 width =  d  where
   d (Table u)                     = UntypedTable.width' u
   d (Bin _ l _)                   = width l
-  d (Flat _ up _ _ _ _)           = Syntax.tupleWidth up
-  d (Aggregated _ up _ _ _ _ _ _) = Syntax.tupleWidth up
+  d (Flat _ up _ _ _ _)           = Syntax.tupleWidth $ detachPlaceholderOffsets up
+  d (Aggregated _ up _ _ _ _ _ _) = Syntax.tupleWidth $ detachPlaceholderOffsets up
 
 -- | Width of 'Qualified' 'SubQUery'.
 queryWidth :: Qualified SubQuery -> Int
@@ -151,11 +153,17 @@ toSQLs =  d  where
   d (Bin (BinOp (op, da)) l r) = (SQL.paren q, q)  where
     q = mconcat [normalizedSQL l, showsSetOp op da, normalizedSQL r]
   d (Flat cf up da pd rs od)   = (SQL.paren q, q)  where
-    q = selectPrefixSQL up da <> showsJoinProduct (productUnitSupport cf) pd <> composeWhere rs
-        <> composeOrderBy od
+    q = selectPrefixSQL (detachPlaceholderOffsets up) da
+        <> showsJoinProduct (productUnitSupport cf) (detachPlaceholderOffsets pd)
+        <> composeWhere (map detachPlaceholderOffsets rs)
+        <> composeOrderBy (detachPlaceholderOffsets od)
   d (Aggregated cf up da pd rs ag grs od) = (SQL.paren q, q)  where
-    q = selectPrefixSQL up da <> showsJoinProduct (productUnitSupport cf) pd <> composeWhere rs
-        <> composeGroupBy ag <> composeHaving grs <> composeOrderBy od
+    q = selectPrefixSQL (detachPlaceholderOffsets up) da
+        <> showsJoinProduct (productUnitSupport cf) (detachPlaceholderOffsets pd)
+        <> composeWhere (map detachPlaceholderOffsets rs)
+        <> composeGroupBy (detachPlaceholderOffsets ag)
+        <> composeHaving (map detachPlaceholderOffsets grs)
+        <> composeOrderBy (detachPlaceholderOffsets od)
 
 showUnitSQL :: SubQuery -> StringSQL
 showUnitSQL =  fst . toSQLs
@@ -189,18 +197,36 @@ column qs =  d (Syntax.unQualify qs)  where
   q = Syntax.qualifier qs
   d (Table u)           i           = q <.> (u ! i)
   d (Bin {})            i           = q `columnFromId` i
-  d (Flat _ up _ _ _ _) i           = showTupleIndex up i
-  d (Aggregated _ up _ _ _ _ _ _) i = showTupleIndex up i
+  d (Flat _ up _ _ _ _) i           = showTupleIndex (detachPlaceholderOffsets up) i
+  d (Aggregated _ up _ _ _ _ _ _) i = showTupleIndex (detachPlaceholderOffsets up) i
+
 
 -- | Make untyped tuple (qualified column list) from joined sub-query ('Qualified' 'SubQuery').
-tupleFromJoinedSubQuery :: Qualified SubQuery -> Tuple
-tupleFromJoinedSubQuery qs = d $ Syntax.unQualify qs  where
+tupleFromJoinedSubQuery :: Qualified SubQuery -> Syntax.WithPlaceholderOffsets Tuple
+tupleFromJoinedSubQuery qs = Syntax.withPlaceholderOffsets (collectPlaceholderOffsets s) $ d s  where
   normalized = SubQueryRef <$> traverse (\q -> [0 .. width q - 1]) qs
-  d (Table _)               =  map RawColumn . map (column qs)
-                               $ take (queryWidth qs) [0..]
+  s = Syntax.unQualify qs
+  d (Table _)               =  map RawColumn . map (column qs) $ take (queryWidth qs) [0..]
   d (Bin {})                =  normalized
   d (Flat {})               =  normalized
   d (Aggregated {})         =  normalized
+
+collectPlaceholderOffsets :: SubQuery -> Syntax.PlaceholderOffsets
+collectPlaceholderOffsets =  d where
+  d (Table _)                                       = mempty
+  d (Flat _cfg tup _dup jp pds ots)                 =
+    placeholderOffsets tup
+      <> placeholderOffsets jp
+      <> foldMap placeholderOffsets pds
+      <> placeholderOffsets ots
+  d (Aggregated _cfg tup _dup jp pdfs aes pdas ots) =
+    placeholderOffsets tup
+      <> placeholderOffsets jp
+      <> foldMap placeholderOffsets pdfs
+      <> placeholderOffsets aes
+      <> foldMap placeholderOffsets pdas
+      <> placeholderOffsets ots
+  d (Bin _op sqx sqy)                               = collectPlaceholderOffsets sqx <> collectPlaceholderOffsets sqy
 
 -- | index result of each when clause and else clause.
 indexWhensClause :: WhenClauses -> Int -> StringSQL
@@ -236,13 +262,13 @@ showTupleIndex up i
     error $ "showTupleIndex: index out of bounds: " ++ show i
 
 -- | Get column SQL string list of record.
-recordRawColumns :: Record c r  -- ^ Source 'Record'
-                 -> [StringSQL] -- ^ Result SQL string list
-recordRawColumns = map showColumn . Syntax.untypeRecord
+typedTupleRawColumns :: TypedTuple c r  -- ^ Source 'Record'
+                     -> [StringSQL] -- ^ Result SQL string list
+typedTupleRawColumns = map showColumn . Syntax.untypeTuple
 
 
 -- | Show product tree of query into SQL. StringSQL result.
-showsQueryProduct :: ProductTree [Predicate Flat] -> StringSQL
+showsQueryProduct :: ProductTree [Tuple] -> StringSQL
 showsQueryProduct =  rec  where
   joinType Just' Just' = INNER
   joinType Just' Maybe = LEFT
@@ -258,7 +284,7 @@ showsQueryProduct =  rec  where
      joinType (Syntax.nodeAttr left') (Syntax.nodeAttr right'), JOIN,
      urec right',
      ON, foldr1 SQL.and $ ps ++ concat [ pure $ Lit.bool True | null ps ] ]
-    where ps = [ rowStringSQL $ recordRawColumns p | p <- rs ]
+    where ps = [ rowStringSQL $ map showColumn p | p <- rs ]
 
 -- | Shows join product of query.
 showsJoinProduct :: ProductUnitSupport -> JoinProduct -> StringSQL
@@ -269,17 +295,17 @@ showsJoinProduct ups =  maybe (up ups) from  where
 
 
 -- | Compose SQL String from 'QueryRestriction'.
-composeRestrict :: Keyword -> [Predicate c] -> StringSQL
+composeRestrict :: Keyword -> [Tuple] -> StringSQL
 composeRestrict k = d  where
   d     []    =  mempty
-  d ps@(_:_)  =  k <> foldr1 SQL.and [ rowStringSQL $ recordRawColumns p | p <- ps ]
+  d ps@(_:_)  =  k <> foldr1 SQL.and [ rowStringSQL $ map showColumn p | p <- ps ]
 
 -- | Compose WHERE clause from 'QueryRestriction'.
-composeWhere :: [Predicate Flat] -> StringSQL
+composeWhere :: [Tuple] -> StringSQL
 composeWhere =  composeRestrict WHERE
 
 -- | Compose HAVING clause from 'QueryRestriction'.
-composeHaving :: [Predicate Aggregated] -> StringSQL
+composeHaving :: [Tuple] -> StringSQL
 composeHaving =  composeRestrict HAVING
 
 -----
