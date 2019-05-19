@@ -38,7 +38,7 @@ module Database.Relational.SqlSyntax.Types (
   CaseClause (..), WhenClauses(..),
 
   -- * Column, Tuple, Record and Projection
-  Column (..), Tuple, tupleWidth,
+  Column (..), Tuple, tupleWidth, Guard,
   Record, untypeRecord, record, PI,
   recordWidth,
   typeFromRawColumns,
@@ -174,6 +174,8 @@ data Column
 
 -- | Untyped projected tuple. Forgot record type.
 type Tuple = [Column]
+
+type Guard = [Column]
 
 -- | Width of 'Tuple'.
 tupleWidth :: Tuple -> Int
