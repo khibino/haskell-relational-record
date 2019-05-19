@@ -56,4 +56,4 @@ toSubQuery :: QueryUnique (PlaceHolders p, Record c r) -- ^ 'QueryUnique' to run
 toSubQuery q = do
   ((((_ph, pj), rs), pd), da) <- extract q
   c <- askConfig
-  return $ flatSubQuery c (Record.untype pj) da pd rs []
+  return $ flatSubQuery c (Record.untype pj) da pd (map Record.untype rs) []

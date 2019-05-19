@@ -64,4 +64,4 @@ toSubQuery :: SimpleQuery p r        -- ^ 'SimpleQuery'' to run
 toSubQuery q = do
    (((((_ph, pj), ot), rs), pd), da) <- extract q
    c <- askConfig
-   return $ flatSubQuery c (Record.untype pj) da pd rs ot
+   return $ flatSubQuery c (Record.untype pj) da pd (map Record.untype rs) ot

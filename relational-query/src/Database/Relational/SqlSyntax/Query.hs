@@ -15,12 +15,11 @@ module Database.Relational.SqlSyntax.Query (
   ) where
 
 import Database.Relational.Internal.Config (Config)
-import Database.Relational.Internal.ContextType (Flat, Aggregated)
 import Database.Relational.SqlSyntax.Types
   (Duplication (..), SetOp (..), BinOp (..),
    OrderingTerm, AggregateElem,
    JoinProduct, Predicate, WhenClauses (..), CaseClause (..), SubQuery (..),
-   Column (..), Tuple, Record, record, untypeRecord, recordWidth, )
+   Column (..), Tuple, Guard, Record, record, untypeRecord, recordWidth, )
 
 
 -- | Unsafely generate flat 'SubQuery' from untyped components.
@@ -28,7 +27,7 @@ flatSubQuery :: Config
              -> Tuple
              -> Duplication
              -> JoinProduct
-             -> [Predicate Flat]
+             -> [Guard]
              -> [OrderingTerm]
              -> SubQuery
 flatSubQuery = Flat
@@ -38,9 +37,9 @@ aggregatedSubQuery :: Config
                    -> Tuple
                    -> Duplication
                    -> JoinProduct
-                   -> [Predicate Flat]
+                   -> [Guard]
                    -> [AggregateElem]
-                   -> [Predicate Aggregated]
+                   -> [Guard]
                    -> [OrderingTerm]
                    -> SubQuery
 aggregatedSubQuery = Aggregated

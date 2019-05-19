@@ -84,7 +84,7 @@ toSubQuery :: AggregatedQuery p r       -- ^ 'AggregatedQuery' to run
 toSubQuery q = do
   (((((((_ph, pj), ot), grs), ag), rs), pd), da) <- extract q
   c <- askConfig
-  return $ aggregatedSubQuery c (Record.untype pj) da pd rs ag grs ot
+  return $ aggregatedSubQuery c (Record.untype pj) da pd (map Record.untype rs) ag (map Record.untype grs) ot
 
 extractWindow :: Window c a -> ((a, [OrderingTerm]), [AggregateColumnRef])
 extractWindow =  runIdentity . extractAggregateTerms . extractOrderingTerms

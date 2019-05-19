@@ -42,7 +42,6 @@ import Data.Traversable (traverse)
 import Language.SQL.Keyword (Keyword(..), (|*|))
 import qualified Language.SQL.Keyword as SQL
 
-import Database.Relational.Internal.ContextType (Flat, Aggregated)
 import Database.Relational.Internal.Config
   (Config (productUnitSupport), ProductUnitSupport (PUSupported, PUNotSupported), )
 import Database.Relational.Internal.UntypedTable ((!))
@@ -51,7 +50,7 @@ import Database.Relational.Internal.String
   (StringSQL, stringSQL, rowStringSQL, showStringSQL, )
 import qualified Database.Relational.Internal.Literal as Lit
 import Database.Relational.SqlSyntax.Types
-  (SubQuery (..), Record, Tuple, Predicate, Guard,
+  (SubQuery (..), Record, Tuple, Guard,
    Column (..), CaseClause(..), WhenClauses (..),
    NodeAttr (Just', Maybe), ProductTree (Leaf, Join), JoinProduct,
    Duplication (..), SetOp (..), BinOp (..), Qualifier (..), Qualified (..),
@@ -269,17 +268,17 @@ showsJoinProduct ups =  maybe (up ups) from  where
 
 
 -- | Compose SQL String from 'QueryRestriction'.
-composeRestrict :: Keyword -> [Predicate c] -> StringSQL
+composeRestrict :: Keyword -> [Guard] -> StringSQL
 composeRestrict k = d  where
   d     []    =  mempty
-  d ps@(_:_)  =  k <> foldr1 SQL.and [ rowStringSQL $ recordRawColumns p | p <- ps ]
+  d ps@(_:_)  =  k <> foldr1 SQL.and [ rowStringSQL $ map showColumn gs | gs <- ps ]
 
 -- | Compose WHERE clause from 'QueryRestriction'.
-composeWhere :: [Predicate Flat] -> StringSQL
+composeWhere :: [Guard] -> StringSQL
 composeWhere =  composeRestrict WHERE
 
 -- | Compose HAVING clause from 'QueryRestriction'.
-composeHaving :: [Predicate Aggregated] -> StringSQL
+composeHaving :: [Guard] -> StringSQL
 composeHaving =  composeRestrict HAVING
 
 -----

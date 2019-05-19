@@ -104,7 +104,7 @@ restriction' = id
 {-# DEPRECATED restriction' "same as id" #-}
 
 fromRestriction :: Config -> Table r -> (Record Flat r -> Restrict (PlaceHolders p)) -> (StringSQL, StringSQL)
-fromRestriction config tbl q = (qt, composeWhere rs)
+fromRestriction config tbl q = (qt, composeWhere $ map Record.untype rs)
   where (qt, rs) = Restrict.extract (withQualified tbl q) config
 
 -- | SQL WHERE clause 'StringSQL' string from 'Restrict' computation.
@@ -174,7 +174,7 @@ updateTargetAllColumn' = liftTargetAllColumn'
 
 
 fromUpdateTarget :: Config -> Table r -> (Record Flat r -> Assign r (PlaceHolders p)) -> (StringSQL, StringSQL)
-fromUpdateTarget config tbl q = (qt, composeSets (asR tbl) <> composeWhere rs)
+fromUpdateTarget config tbl q = (qt, composeSets (asR tbl) <> (composeWhere $ map Record.untype rs))
   where ((qt, asR), rs) = Assign.extract (withQualified tbl q) config
 
 -- | SQL SET clause and WHERE clause 'StringSQL' string from 'Assign' computation.

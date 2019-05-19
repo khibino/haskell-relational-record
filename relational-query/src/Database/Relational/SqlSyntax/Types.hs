@@ -53,7 +53,6 @@ import Data.Foldable (Foldable)
 import Data.Traversable (Traversable)
 
 import Database.Relational.Internal.Config (Config)
-import Database.Relational.Internal.ContextType (Flat, Aggregated)
 import Database.Relational.Internal.String (StringSQL)
 import Database.Relational.Internal.UntypedTable (Untyped)
 
@@ -101,11 +100,11 @@ newtype AggregateKey a = AggregateKey (a, AggregateElem)
 -- | Sub-query type
 data SubQuery = Table Untyped
               | Flat Config
-                Tuple Duplication JoinProduct [Predicate Flat]
+                Tuple Duplication JoinProduct [Guard]
                 [OrderingTerm]
               | Aggregated Config
-                Tuple Duplication JoinProduct [Predicate Flat]
-                [AggregateElem] [Predicate Aggregated] [OrderingTerm]
+                Tuple Duplication JoinProduct [Guard]
+                [AggregateElem] [Guard] [OrderingTerm]
               | Bin BinOp SubQuery SubQuery
               deriving Show
 
