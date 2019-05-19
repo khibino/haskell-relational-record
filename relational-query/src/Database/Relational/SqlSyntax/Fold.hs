@@ -51,7 +51,7 @@ import Database.Relational.Internal.String
   (StringSQL, stringSQL, rowStringSQL, showStringSQL, )
 import qualified Database.Relational.Internal.Literal as Lit
 import Database.Relational.SqlSyntax.Types
-  (SubQuery (..), Record, Tuple, Predicate,
+  (SubQuery (..), Record, Tuple, Predicate, Guard,
    Column (..), CaseClause(..), WhenClauses (..),
    NodeAttr (Just', Maybe), ProductTree (Leaf, Join), JoinProduct,
    Duplication (..), SetOp (..), BinOp (..), Qualifier (..), Qualified (..),
@@ -242,7 +242,7 @@ recordRawColumns = map showColumn . Syntax.untypeRecord
 
 
 -- | Show product tree of query into SQL. StringSQL result.
-showsQueryProduct :: ProductTree [Predicate Flat] -> StringSQL
+showsQueryProduct :: ProductTree [Guard] -> StringSQL
 showsQueryProduct =  rec  where
   joinType Just' Just' = INNER
   joinType Just' Maybe = LEFT
@@ -258,7 +258,7 @@ showsQueryProduct =  rec  where
      joinType (Syntax.nodeAttr left') (Syntax.nodeAttr right'), JOIN,
      urec right',
      ON, foldr1 SQL.and $ ps ++ concat [ pure $ Lit.bool True | null ps ] ]
-    where ps = [ rowStringSQL $ recordRawColumns p | p <- rs ]
+    where ps = [ rowStringSQL $ map showColumn gs | gs <- rs ]
 
 -- | Shows join product of query.
 showsJoinProduct :: ProductUnitSupport -> JoinProduct -> StringSQL

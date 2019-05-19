@@ -20,7 +20,8 @@ import Prelude hiding (product)
 import Data.DList (DList, toList)
 
 import Database.Relational.Internal.ContextType (Flat)
-import Database.Relational.SqlSyntax (JoinProduct, Node, Predicate)
+import Database.Relational.SqlSyntax
+  (JoinProduct, Node, Predicate, untypeRecord)
 import qualified Database.Relational.SqlSyntax as Product
 
 
@@ -42,4 +43,4 @@ updateProduct uf ctx = ctx { product = Just . uf . product $ ctx }
 
 -- |  Finalize context to extract accumulated query product.
 joinProduct :: JoinContext -> JoinProduct
-joinProduct =  fmap (fmap toList . Product.nodeTree) . product
+joinProduct =  fmap (fmap (map untypeRecord . toList) . Product.nodeTree) . product

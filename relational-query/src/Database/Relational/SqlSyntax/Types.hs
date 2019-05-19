@@ -151,7 +151,7 @@ nodeTree :: Node rs -> ProductTree rs
 nodeTree (Node _ t) = t
 
 -- | Type for join product of query.
-type JoinProduct = Maybe (ProductTree [Predicate Flat])
+type JoinProduct = Maybe (ProductTree [Guard])
 
 -- | when clauses
 data WhenClauses =
