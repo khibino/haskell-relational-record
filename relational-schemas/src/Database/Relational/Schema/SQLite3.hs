@@ -18,7 +18,6 @@ import Data.Char (toLower, toUpper)
 import Data.Int (Int8, Int16, Int32, Int64)
 import Data.Map (Map)
 import Data.Time (Day, LocalTime)
-import Database.Relational (Query, unsafeTypedQuery)
 import Database.Relational (Query, unsafeTypedQuery, attachEmptyPlaceholderOffsets)
 
 import Database.Relational.Schema.SQLite3.Config

@@ -42,8 +42,7 @@ import Language.SQL.Keyword (Keyword)
 import Database.Record (ToSql, FromSql, PersistableWidth)
 import Database.Record.TH (recordTemplate, defineSqlPersistableInstances)
 import Database.Relational
-  (Config, nameConfig, recordConfig, enableWarning, verboseAsCompilerWarning,
-   defaultConfig, Relation, relationalQuerySQL, QuerySuffix, detachPlaceholderOffsets, )
+  (Config, nameConfig, recordConfig, enableWarning, verboseAsCompilerWarning, defaultConfig, Relation, )
 import qualified Database.Relational.TH as Relational
 
 import Database.HDBC.Session (withConnectionIO)

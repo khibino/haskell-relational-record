@@ -124,7 +124,7 @@ unsafeProject w p pi' =
     $ columns p
  where
   phs = if Syntax.isPlaceholdersRecord p
-          then DList.fromList $ UnsafePi.unsafeExpandIndexes' w pi'
+          then DList.fromList $ UnsafePi.expandIndexes' w pi'
           else mempty
 
 -- | Trace projection path to get narrower 'Record'.

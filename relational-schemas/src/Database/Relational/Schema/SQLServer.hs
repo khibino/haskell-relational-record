@@ -8,9 +8,11 @@ module Database.Relational.Schema.SQLServer (
   ) where
 
 import qualified Data.Map as Map
+import           Database.Relational.Schema.SQLServer.Columns (Columns, columns)
 import qualified Database.Relational.Schema.SQLServer.Columns as Columns
 import qualified Database.Relational.Schema.SQLServer.Indexes as Indexes
 import qualified Database.Relational.Schema.SQLServer.IndexColumns as IndexColumns
+import           Database.Relational.Schema.SQLServer.Types (Types, types)
 import qualified Database.Relational.Schema.SQLServer.Types as Types
 
 import Control.Applicative ((<|>))
@@ -25,8 +27,6 @@ import Database.Relational (Query, Relation, Record, Flat, PureOperand,
                             unsafeProjectSql, wheres, toFlat,)
 
 import Database.Relational.Schema.SQLServer.Config
-import Database.Relational.Schema.SQLServerSyscat.Columns
-import Database.Relational.Schema.SQLServerSyscat.Types
 import Language.Haskell.TH (TypeQ)
 
 --{-# ANN module "HLint: ignore Redundant $" #-}
@@ -56,13 +56,13 @@ mapFromSqlDefault =
 normalizeColumn :: String -> String
 normalizeColumn = map toLower
 
-notNull :: ((Columns,Types),String) -> Bool
+notNull :: ((Columns, Types.Types), String) -> Bool
 notNull ((cols,_),_) = isTrue . Columns.isNullable $ cols
   where
     isTrue (Just b) = not b
     isTrue _        = True
 
-getType :: Map String TypeQ -> ((Columns,Types),String) -> Maybe (String, TypeQ)
+getType :: Map String TypeQ -> ((Columns, Types.Types), String) -> Maybe (String, TypeQ)
 getType mapFromSql rec@((cols,typs),typScms) = do
     colName <- Columns.name cols
     typ <- Map.lookup key mapFromSql
