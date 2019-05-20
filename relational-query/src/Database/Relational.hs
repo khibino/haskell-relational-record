@@ -55,7 +55,7 @@ import Database.Relational.Context
 import Database.Relational.Config
 import Database.Relational.SqlSyntax
   (Order (..), Nulls (..), AggregateKey, Record, Predicate, PI,
-   WithPlaceholderOffsets, SQLWithPlaceholderOffsets, SQLWithPlaceholderOffsets',
+   PlaceholderOffsets, WithPlaceholderOffsets, SQLWithPlaceholderOffsets, SQLWithPlaceholderOffsets',
    SubQuery, unitSQL, queryWidth,
    withPlaceholderOffsets, attachEmptyPlaceholderOffsets, detachPlaceholderOffsets, sortByPlaceholderOffsets, placeholderOffsets, )
 import Database.Relational.Record (RecordList, list, pempty, toFlat, toAggregated)
