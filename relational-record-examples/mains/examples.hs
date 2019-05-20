@@ -10,7 +10,7 @@
 
 import Database.Relational.CustomSQLite3
 import Database.Relational.OverloadedInstances ()
-import Database.Relational.TupleInstances
+import Database.Relational.TupleInstances ()
 
 import GHC.Generics (Generic)
 import Prelude hiding (product)
