@@ -137,14 +137,14 @@ selectPrefixSQL up da = SELECT <> showsDuplication da <>
 --   SQL with no ordering term is not paren-ed.
 normalizedSQL :: SubQuery -> StringSQL
 normalizedSQL =  d  where
-  d (Table t)                 =  fromTableToNormalizedSQL t
-  d sub@(Bin {})              =  showUnitSQL sub
+  d (Table t)                             =  fromTableToNormalizedSQL t
+  d sub@(Bin {})                          =  showUnitSQL sub
   d sub@(Flat _ _ _ _ _ ots)
-    | null ots                =  showSQL sub
-    | otherwise               =  showUnitSQL sub
+    | null $ detachPlaceholderOffsets ots =  showSQL sub
+    | otherwise                           =  showUnitSQL sub
   d sub@(Aggregated _ _ _ _ _ _ _ ots)
-    | null ots                =  showSQL sub
-    | otherwise               =  showUnitSQL sub
+    | null $ detachPlaceholderOffsets ots =  showSQL sub
+    | otherwise                           =  showUnitSQL sub
 
 -- | SQL string for nested-query and toplevel-SQL.
 toSQLs :: SubQuery
