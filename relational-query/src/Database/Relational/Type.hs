@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 -- |
@@ -61,7 +62,12 @@ module Database.Relational.Type (
   derivedDelete', derivedDelete,
   ) where
 
+import Control.Applicative ((<$>))
+#if MIN_VERSION_base(4, 7, 0)
 import Data.Coerce (coerce)
+#else
+import Unsafe.Coerce (unsafeCoerce)
+#endif
 import Data.DList (fromList)
 import Data.Monoid ((<>), mconcat)
 
@@ -263,6 +269,11 @@ updateAllColumnNoPH :: (PersistableWidth r, TableDerivable r)
                     -> Update r
 updateAllColumnNoPH =
   coerce . typedUpdate' defaultConfig derivedTable . liftTargetAllColumn'
+#if !(MIN_VERSION_base(4, 7, 0))
+ where
+   coerce :: a -> b
+   coerce = unsafeCoerce
+#endif
 
 {-# DEPRECATED derivedUpdateAllColumn "use `updateAllColumn` instead of this." #-}
 -- | Deprecated. use 'updateAllColumn'.

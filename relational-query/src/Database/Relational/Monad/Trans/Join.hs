@@ -31,7 +31,7 @@ import Control.Monad.Trans.State (modify, StateT, runStateT)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second, (***))
 import Data.Maybe (fromMaybe)
-import Data.Monoid (Last (Last, getLast))
+import Data.Monoid (Last (Last, getLast), (<>))
 
 import Database.Relational.Internal.ContextType (Flat, PureOperand)
 import Database.Relational.Internal.Config (addQueryTableAliasAS)

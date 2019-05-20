@@ -38,6 +38,7 @@ module Database.Relational.SqlSyntax.Fold (
 ) where
 
 import Control.Applicative ((<$>), pure)
+import Data.Foldable (foldMap)
 import Data.Monoid (mempty, (<>), mconcat)
 import Data.Traversable (traverse)
 

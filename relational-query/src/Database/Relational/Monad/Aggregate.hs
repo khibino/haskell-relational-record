@@ -26,6 +26,7 @@ module Database.Relational.Monad.Aggregate (
   Window, over
   ) where
 
+import Control.Applicative ((<$>), (<*>))
 import Data.Functor.Identity (Identity (runIdentity))
 import Data.Monoid ((<>))
 

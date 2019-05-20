@@ -14,6 +14,8 @@ module Database.Relational.SqlSyntax.Query (
   caseSearch, case',
   ) where
 
+import Data.Foldable (foldMap)
+import Data.Monoid ((<>))
 import Database.Relational.Internal.Config (Config)
 import Database.Relational.SqlSyntax.Types
   (Duplication (..), SetOp (..), BinOp (..),

@@ -18,7 +18,9 @@ module Database.Relational.SqlSyntax.Updates (
   composeValuesListWithColumns,
   ) where
 
+import Control.Applicative ((<$>), (<*>))
 import Data.Monoid ((<>))
+import Data.Traversable (traverse)
 
 import Language.SQL.Keyword (Keyword(..), (|*|), (.=.))
 import qualified Language.SQL.Keyword as SQL

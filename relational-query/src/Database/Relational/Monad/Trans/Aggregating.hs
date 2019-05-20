@@ -33,6 +33,7 @@ import Control.Monad.Trans.Writer (WriterT, runWriterT, tell)
 import Control.Applicative (Applicative, (<$>))
 import Control.Arrow (second)
 import Data.DList (DList, fromList, toList, singleton)
+import Data.Monoid (mempty)
 
 import Data.Functor.Identity (Identity (runIdentity))
 

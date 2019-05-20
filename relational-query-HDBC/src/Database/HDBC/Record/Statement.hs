@@ -31,6 +31,7 @@ module Database.HDBC.Record.Statement (
   ) where
 
 import Control.Exception (bracket)
+import Data.Traversable (traverse)
 import Database.Relational
   (UntypeableNoFetch (untypeNoFetch),
    sortByPlaceholderOffsets,

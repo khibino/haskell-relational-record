@@ -47,9 +47,12 @@ module Database.Relational.Record (
 
 import Prelude hiding (pi)
 import qualified Data.DList as DList
+import Control.Applicative ((<$>), (<*>))
+import Data.Monoid (mempty)
 import Data.Functor.ProductIsomorphic
   (ProductIsoFunctor, (|$|), ProductIsoApplicative, pureP, (|*|),
    ProductIsoEmpty, pureE, peRight, peLeft, )
+import Data.Traversable (traverse)
 
 import qualified Language.SQL.Keyword as SQL
 

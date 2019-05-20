@@ -60,12 +60,13 @@ module Database.Relational.SqlSyntax.Types (
   )  where
 
 import Prelude hiding (and, product)
+import Control.Applicative (Applicative, (<$>), (<*>))
 import Control.Monad.Trans.Class (MonadTrans)
 import Control.Monad.Trans.Writer (WriterT, runWriterT, writer, tell)
 import Data.DList (DList)
 import Data.Foldable (Foldable)
 import Data.Functor.Identity (Identity)
-import Data.Monoid (Monoid, mempty)
+import Data.Monoid (Monoid, mappend, mempty)
 import Data.Semigroup (Semigroup, (<>))
 import Data.Traversable (Traversable)
 
@@ -234,6 +235,7 @@ instance Semigroup a => Semigroup (WithPlaceholderOffsets a) where
 
 instance Monoid a => Monoid (WithPlaceholderOffsets a) where
   mempty = withPlaceholderOffsets mempty mempty
+  mappend ma mb = mappend <$> ma <*> mb
 
 withPlaceholderOffsets :: PlaceholderOffsets -> a -> WithPlaceholderOffsets a
 withPlaceholderOffsets phs x = WithPlaceholderOffsetsT $ writer (x, phs)

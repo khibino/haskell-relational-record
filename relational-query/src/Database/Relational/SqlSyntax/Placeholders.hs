@@ -26,6 +26,7 @@ module Database.Relational.SqlSyntax.Placeholders
 import Control.Monad.Trans.Writer (writer, execWriter, runWriter, mapWriter)
 import Data.Array (listArray, (!))
 import Data.DList (toList)
+import Data.Monoid (mempty)
 
 import Database.Relational.Internal.String (StringSQL)
 import Database.Relational.SqlSyntax.Types

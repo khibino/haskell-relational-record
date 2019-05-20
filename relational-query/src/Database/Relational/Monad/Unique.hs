@@ -20,6 +20,7 @@ module Database.Relational.Monad.Unique
        ) where
 
 import Control.Applicative (Applicative)
+import Data.Monoid (mempty)
 
 import Database.Relational.SqlSyntax
   (Duplication, Record, JoinProduct, NodeAttr,

@@ -75,9 +75,11 @@ module Database.Relational.Projectable (
 
 import Prelude hiding (pi)
 
+import Control.Applicative ((<$>), (<*>))
 import Data.String (IsString)
 import Data.Functor.ProductIsomorphic
   ((|$|), ProductIsoApplicative, (|*|), )
+import Data.Monoid (mempty)
 
 import Language.SQL.Keyword (Keyword)
 import qualified Language.SQL.Keyword as SQL

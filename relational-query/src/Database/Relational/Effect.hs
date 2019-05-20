@@ -41,10 +41,11 @@ module Database.Relational.Effect (
   sqlFromUpdateTarget,
   ) where
 
-import Control.Applicative ((<$>))
+import Control.Applicative ((<$>), (<*>))
 import Control.Monad (void)
 import Data.Monoid ((<>))
 import Data.List (unfoldr)
+import Data.Traversable (sequenceA)
 
 import Language.SQL.Keyword (Keyword(..))
 import Database.Record.Persistable (PersistableWidth)
