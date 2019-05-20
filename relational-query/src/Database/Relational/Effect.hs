@@ -118,7 +118,7 @@ sqlWhereFromRestriction config tbl = snd . fromRestriction config tbl
 
 -- | DELETE statement with WHERE clause 'StringSQL' string from 'Restrict' computation.
 deleteFromRestriction :: PersistableWidth p => Config -> Table r -> (Record Flat r -> ReadPlaceholders p Restrict ()) -> SQLWithPlaceholderOffsets'
-deleteFromRestriction config tbl rs = (\t r ->  DELETE <> t <> r) <$> twp <*> rwp
+deleteFromRestriction config tbl rs = (\t r ->  DELETE <> FROM <> t <> r) <$> twp <*> rwp
   where (twp, rwp) = fromRestriction config tbl rs
 
 -- | Show WHERE clause.
