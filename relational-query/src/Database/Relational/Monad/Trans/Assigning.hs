@@ -1,6 +1,8 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
 
 -- |
 -- Module      : Database.Relational.Monad.Trans.Assigning
@@ -32,7 +34,10 @@ import Data.Monoid (mconcat)
 import Data.DList (DList, toList)
 
 import Database.Relational.Internal.ContextType (Flat)
-import Database.Relational.SqlSyntax (Record, Assignment)
+import Database.Relational.Internal.String (StringSQL)
+import Database.Relational.SqlSyntax (Record, Assignment, WithPlaceholderOffsets)
+import Database.Relational.Projectable.Unsafe (ResultContext)
+import Database.Relational.Projectable.Instances ()
 
 import Database.Relational.Pi (Pi)
 import Database.Relational.Table (Table, recordWidth)
@@ -43,7 +48,7 @@ import Database.Relational.Monad.Class (MonadQualify (..), MonadRestrict(..))
 -- | Type to accumulate assigning context.
 --   Type 'r' is table record type.
 newtype Assignings r m a =
-  Assignings (WriterT (Table r -> DList Assignment) m a)
+  Assignings (WriterT (Table r -> WithPlaceholderOffsets (DList Assignment)) m a)
   deriving (MonadTrans, Monad, Functor, Applicative)
 
 -- | Lift to 'Assignings'
@@ -65,14 +70,19 @@ targetRecord :: AssignTarget r v ->  Table r -> Record Flat v
 targetRecord pi' tbl = Record.wpi (recordWidth tbl) (Record.unsafeFromTable tbl) pi'
 
 -- | Add an assignment.
-assignTo :: Monad m => Record Flat v ->  AssignTarget r v -> Assignings r m ()
+assignTo :: forall c v m r. (Monad m, ResultContext c Flat ~ Flat) => Record c v ->  AssignTarget r v -> Assignings r m ()
 assignTo vp target = Assignings . tell
-                     $ \t -> mconcat $ zipWith (curry pure) (leftsR t) rights  where
+                     $ \t -> mconcat . zipWith (curry pure) (leftsR t) <$> rights  where
+
+  -- NOTE: While 'rights' should be 'WithPlaceholders' [StringSQL], 'leftsR' doesn't have to be so.
+  --       Because Record created from AssignTarget doesn't refer any placeholders.
+  leftsR :: Table r -> [StringSQL]
   leftsR = Record.columns . targetRecord target
-  rights = Record.columns vp
+  rights :: WithPlaceholderOffsets [StringSQL]
+  rights = Record.columnsWithPlaceholders vp
 
 -- | Add and assginment.
-(<-#) :: Monad m => AssignTarget r v -> Record Flat v -> Assignings r m ()
+(<-#) :: (Monad m, ResultContext c Flat ~ Flat) => AssignTarget r v -> Record c v -> Assignings r m ()
 (<-#) =  flip assignTo
 
 infix 4 <-#
@@ -80,5 +90,5 @@ infix 4 <-#
 -- | Run 'Assignings' to get ['Assignment']
 extractAssignments :: (Monad m, Functor m)
                    => Assignings r m a
-                   -> m (a, Table r -> [Assignment])
-extractAssignments (Assignings ac) = second (toList .) <$> runWriterT ac
+                   -> m (a, Table r -> WithPlaceholderOffsets [Assignment])
+extractAssignments (Assignings ac) = second (fmap toList .) <$> runWriterT ac

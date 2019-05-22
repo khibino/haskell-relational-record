@@ -18,10 +18,8 @@ import Control.Applicative (pure)
 import Data.Monoid ((<>), mempty)
 import Data.DList (DList)
 
-import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax.Types
-  (NodeAttr (..), ProductTree (..), Node (..), Qualified, SubQuery,
-   Predicate)
+  (NodeAttr (..), ProductTree (..), Node (..), Qualified, SubQuery,)
 
 
 -- | Push new tree into product right term.

@@ -25,7 +25,8 @@ module Database.Relational.Set (
 
 import Data.Functor.ProductIsomorphic ((|$|), (|*|))
 
-import Database.Relational.Internal.ContextType (Flat)
+import Database.Record.Persistable (PersistableWidth)
+import Database.Relational.Internal.ContextType (Flat, PureOperand)
 import Database.Relational.SqlSyntax
   (Duplication (Distinct, All), SubQuery, Predicate, Record, )
 import qualified Database.Relational.SqlSyntax as Syntax
@@ -34,8 +35,11 @@ import Database.Relational.Monad.BaseType
   (Relation, unsafeTypeRelation, untypeRelation, )
 import Database.Relational.Monad.Class (MonadQuery (query', queryMaybe'), on)
 import Database.Relational.Monad.Simple (QuerySimple)
-import Database.Relational.Projectable (PlaceHolders)
+import Database.Relational.Monad.Trans.ReadPlaceholders (askPlaceholders, readPlaceholders)
+import Database.Relational.Record (pempty)
 import Database.Relational.Relation (relation', relation, query, queryMaybe, )
+import Database.Relational.Projectable ((!))
+import Database.Relational.TupleInstances (fst', snd')
 
 
 -- | Restriction predicate function type for direct style join operator,
@@ -46,44 +50,50 @@ import Database.Relational.Relation (relation', relation, query, queryMaybe, )
 --            relX `inner` relY `on'` [ \x y -> ... ] -- this lambda form has JoinRestriction type
 --      ...
 -- @
-type JoinRestriction a b = Record Flat a -> Record Flat b -> Predicate Flat
+type JoinRestriction a b =
+  Record Flat a -> Record Flat b -> Predicate Flat
 
 -- | Basic direct join operation with place-holder parameters.
-join' :: (qa -> QuerySimple (PlaceHolders pa, Record Flat a))
-      -> (qb -> QuerySimple (PlaceHolders pb, Record Flat b))
+join' :: (PersistableWidth pa, PersistableWidth pb)
+      => (Record PureOperand pa -> qa -> QuerySimple (Record Flat a))
+      -> (Record PureOperand pb -> qb -> QuerySimple (Record Flat b))
       -> qa
       -> qb
       -> [JoinRestriction a b]
       -> Relation (pa, pb) (a, b)
-join' qL qR r0 r1 rs = relation' $ do
-  (ph0, pj0) <- qL r0
-  (ph1, pj1) <- qR r1
+join' qL qR r0 r1 rs = relation' $ \ph -> do
+  pj0 <- qL (ph ! fst') r0
+  pj1 <- qR (ph ! snd') r1
   sequence_ [ on $ f pj0 pj1 | f <- rs ]
-  return ((,) |$| ph0 |*| ph1, (,) |$| pj0 |*| pj1)
+  return ((,) |$| pj0 |*| pj1)
 
 -- | Direct inner join with place-holder parameters.
-inner' :: Relation pa a            -- ^ Left query to join
+inner' :: (PersistableWidth pa, PersistableWidth pb)
+       => Relation pa a            -- ^ Left query to join
        -> Relation pb b            -- ^ Right query to join
        -> [JoinRestriction a b]    -- ^ Join restrictions
        -> Relation (pa, pb) (a, b) -- ^ Result joined relation
 inner' =  join' query' query'
 
 -- | Direct left outer join with place-holder parameters.
-left' :: Relation pa a                  -- ^ Left query to join
+left' :: (PersistableWidth pa, PersistableWidth pb)
+      => Relation pa a                  -- ^ Left query to join
       -> Relation pb b                  -- ^ Right query to join
       -> [JoinRestriction a (Maybe b)]  -- ^ Join restrictions
       -> Relation (pa, pb) (a, Maybe b) -- ^ Result joined relation
 left'  =  join' query' queryMaybe'
 
 -- | Direct right outer join with place-holder parameters.
-right' :: Relation pa a                 -- ^ Left query to join
+right' :: (PersistableWidth pa, PersistableWidth pb)
+       => Relation pa a                 -- ^ Left query to join
        -> Relation pb b                 -- ^ Right query to join
        -> [JoinRestriction (Maybe a) b] -- ^ Join restrictions
        -> Relation (pa, pb)(Maybe a, b) -- ^ Result joined relation
 right' =  join' queryMaybe' query'
 
 -- | Direct full outer join with place-holder parameters.
-full' :: Relation pa a                         -- ^ Left query to join
+full' :: (PersistableWidth pa, PersistableWidth pb)
+      => Relation pa a                         -- ^ Left query to join
       -> Relation pb b                         -- ^ Right query to join
       -> [JoinRestriction (Maybe a) (Maybe b)] -- ^ Join restrictions
       -> Relation (pa, pb) (Maybe a, Maybe b)  -- ^ Result joined relation
@@ -138,20 +148,25 @@ on' =  ($)
 
 infixl 8 `inner'`, `left'`, `right'`, `full'`, `inner`, `left`, `right`, `full`, `on'`
 
-unsafeLiftAppend :: (SubQuery -> SubQuery -> SubQuery)
-           -> Relation p a
-           -> Relation q a
-           -> Relation r a
-unsafeLiftAppend op a0 a1 = unsafeTypeRelation $ do
-  s0 <- untypeRelation a0
-  s1 <- untypeRelation a1
+liftAppend' :: (PersistableWidth p, PersistableWidth q)
+            => (SubQuery -> SubQuery -> SubQuery)
+            -> Relation p a
+            -> Relation q a
+            -> Relation (p, q) a
+liftAppend' op a0 a1 = unsafeTypeRelation $ do
+  pq <- askPlaceholders
+  s0 <- readPlaceholders $ untypeRelation a0 (pq ! fst')
+  s1 <- readPlaceholders $ untypeRelation a1 (pq ! snd')
   return $ s0 `op` s1
 
 liftAppend :: (SubQuery -> SubQuery -> SubQuery)
            -> Relation () a
            -> Relation () a
            -> Relation () a
-liftAppend = unsafeLiftAppend
+liftAppend op a0 a1 = unsafeTypeRelation $ do
+  s0 <- readPlaceholders $ untypeRelation a0 pempty
+  s1 <- readPlaceholders $ untypeRelation a1 pempty
+  return $ s0 `op` s1
 
 -- | Union of two relations.
 union     :: Relation () a -> Relation () a -> Relation () a
@@ -177,34 +192,28 @@ intersect =  liftAppend $ Syntax.intersect Distinct
 intersectAll :: Relation () a -> Relation () a -> Relation () a
 intersectAll =  liftAppend $ Syntax.intersect All
 
-liftAppend' :: (SubQuery -> SubQuery -> SubQuery)
-            -> Relation p a
-            -> Relation q a
-            -> Relation (p, q) a
-liftAppend' = unsafeLiftAppend
-
 -- | Union of two relations with place-holder parameters.
-union'     :: Relation p a -> Relation q a -> Relation (p, q) a
+union'     :: (PersistableWidth p, PersistableWidth q) => Relation p a -> Relation q a -> Relation (p, q) a
 union'     =  liftAppend' $ Syntax.union Distinct
 
 -- | Union of two relations with place-holder parameters. Not distinct.
-unionAll' :: Relation p a -> Relation q a -> Relation (p, q) a
+unionAll' :: (PersistableWidth p, PersistableWidth q) => Relation p a -> Relation q a -> Relation (p, q) a
 unionAll'  =  liftAppend' $ Syntax.union All
 
 -- | Subtraction of two relations with place-holder parameters.
-except'    :: Relation p a -> Relation q a -> Relation (p, q) a
+except'    :: (PersistableWidth p, PersistableWidth q) => Relation p a -> Relation q a -> Relation (p, q) a
 except'    =  liftAppend' $ Syntax.except Distinct
 
 -- | Subtraction of two relations with place-holder parameters. Not distinct.
-exceptAll' :: Relation p a -> Relation q a -> Relation (p, q) a
+exceptAll' :: (PersistableWidth p, PersistableWidth q) => Relation p a -> Relation q a -> Relation (p, q) a
 exceptAll' =  liftAppend' $ Syntax.except All
 
 -- | Intersection of two relations with place-holder parameters.
-intersect' :: Relation p a -> Relation q a -> Relation (p, q) a
+intersect' :: (PersistableWidth p, PersistableWidth q) => Relation p a -> Relation q a -> Relation (p, q) a
 intersect' =  liftAppend' $ Syntax.intersect Distinct
 
 -- | Intersection of two relations with place-holder parameters. Not distinct.
-intersectAll' :: Relation p a -> Relation q a -> Relation (p, q) a
+intersectAll' :: (PersistableWidth p, PersistableWidth q) => Relation p a -> Relation q a -> Relation (p, q) a
 intersectAll' =  liftAppend' $ Syntax.intersect All
 
 infixl 7 `union`, `except`, `unionAll`, `exceptAll`

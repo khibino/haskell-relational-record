@@ -14,34 +14,37 @@ module Database.Relational.SqlSyntax.Query (
   caseSearch, case',
   ) where
 
+import Data.Foldable (foldMap)
+import Data.Monoid ((<>))
 import Database.Relational.Internal.Config (Config)
-import Database.Relational.Internal.ContextType (Flat, Aggregated)
 import Database.Relational.SqlSyntax.Types
   (Duplication (..), SetOp (..), BinOp (..),
    OrderingTerm, AggregateElem,
    JoinProduct, Predicate, WhenClauses (..), CaseClause (..), SubQuery (..),
-   Column (..), Tuple, Record, record, untypeRecord, recordWidth, )
+   Column (..), WithPlaceholderOffsets, Tuple, Record,)
+import Database.Relational.SqlSyntax.Placeholders
+   (record, untypeRecord, recordWidth, placeholderOffsetsOfRecord,)
 
 
 -- | Unsafely generate flat 'SubQuery' from untyped components.
 flatSubQuery :: Config
-             -> Tuple
+             -> WithPlaceholderOffsets Tuple
              -> Duplication
-             -> JoinProduct
-             -> [Predicate Flat]
-             -> [OrderingTerm]
+             -> WithPlaceholderOffsets JoinProduct
+             -> [WithPlaceholderOffsets Tuple]
+             -> WithPlaceholderOffsets [OrderingTerm]
              -> SubQuery
 flatSubQuery = Flat
 
 -- | Unsafely generate aggregated 'SubQuery' from untyped components.
 aggregatedSubQuery :: Config
-                   -> Tuple
+                   -> WithPlaceholderOffsets Tuple
                    -> Duplication
-                   -> JoinProduct
-                   -> [Predicate Flat]
-                   -> [AggregateElem]
-                   -> [Predicate Aggregated]
-                   -> [OrderingTerm]
+                   -> WithPlaceholderOffsets JoinProduct
+                   -> [WithPlaceholderOffsets Tuple]
+                   -> WithPlaceholderOffsets [AggregateElem]
+                   -> [WithPlaceholderOffsets Tuple]
+                   -> WithPlaceholderOffsets [OrderingTerm]
                    -> SubQuery
 aggregatedSubQuery = Aggregated
 
@@ -78,9 +81,12 @@ caseSearch :: [(Predicate c, Record c a)] -- ^ Each when clauses
            -> Record c a                  -- ^ Else result record
            -> Record c a                  -- ^ Result record
 caseSearch ws e =
-    record [ Case c i | i <- [0 .. recordWidth e - 1] ]
+    record
+      (ws' <> placeholderOffsetsOfRecord e)
+      [ Case c i | i <- [0 .. recordWidth e - 1] ]
   where
     c = CaseSearch $ whenClauses "caseSearch" ws e
+    ws' = foldMap (\(wa, wb) -> placeholderOffsetsOfRecord wa <> placeholderOffsetsOfRecord wb) ws
 
 -- | Simple case operator correnponding SQL simple /CASE/.
 --   Like, /CASE x WHEN v THEN a WHEN w THEN b ... ELSE c END/
@@ -89,6 +95,9 @@ case' :: Record c a                 -- ^ Record value to match
       -> Record c b                 -- ^ Else result record
       -> Record c b                 -- ^ Result record
 case' v ws e =
-    record [ Case c i | i <- [0 .. recordWidth e - 1] ]
+    record
+      (placeholderOffsetsOfRecord v <> ws' <> placeholderOffsetsOfRecord e)
+      [ Case c i | i <- [0 .. recordWidth e - 1] ]
   where
     c = CaseSimple (untypeRecord v) $ whenClauses "case'" ws e
+    ws' = foldMap (\(wa, wb) -> placeholderOffsetsOfRecord wa <> placeholderOffsetsOfRecord wb) ws

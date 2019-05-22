@@ -87,6 +87,7 @@ import Database.Record.TH
   (columnOffsetsVarNameDefault, recordTypeName, recordTemplate,
    defineRecordTypeWithConfig, defineHasColumnConstraintInstance)
 import qualified Database.Record.TH as Record
+import Database.Record.Persistable (PersistableWidth)
 
 import Database.Relational
   (Table, Pi, id', Relation, LiteralSQL,
@@ -95,8 +96,9 @@ import Database.Relational
            schemaNameMode, nameConfig, identifierQuotation),
    Query, untypeQuery, relationalQuery_, relationalQuery, KeyUpdate,
    Insert, insert, InsertQuery, insertQuery,
-   HasConstraintKey(constraintKey), Primary, NotNull, primarySelect, primaryUpdate)
+   HasConstraintKey(constraintKey), Primary, NotNull, primarySelect, primaryUpdate,)
 
+import Database.Relational.SqlSyntax (attachEmptyPlaceholderOffsets, detachPlaceholderOffsets,)
 import Database.Relational.InternalTH.Base (defineTuplePi, defineRecordProjections)
 import Database.Relational.Scalar (defineScalarDegree)
 import Database.Relational.Constraint (unsafeDefineConstraintKey)
@@ -224,7 +226,7 @@ defineTableDerivations tableVar' relVar' insVar' insQVar' recordType' = do
   insDs   <- simpleValD insVar   [t| Insert $recordType' |]
              [| insert id' |]
   let insQVar  = varName insQVar'
-  insQDs  <- simpleValD insQVar  [t| forall p . Relation p $recordType' -> InsertQuery p |]
+  insQDs  <- simpleValD insQVar  [t| forall p. PersistableWidth p => Relation p $recordType' -> InsertQuery p |]
              [| insertQuery id' |]
   return $ concat [tableDs, relDs, insDs, insQDs]
 
@@ -434,7 +436,7 @@ unsafeInlineQuery :: TypeQ   -- ^ Query parameter type
 unsafeInlineQuery p r sql qVar' =
   simpleValD (varName qVar')
     [t| Query $p $r |]
-    [|  unsafeTypedQuery $(stringE sql) |]
+    [|  unsafeTypedQuery $ attachEmptyPlaceholderOffsets $(stringE sql) |]
 {-# DEPRECATED unsafeInlineQuery "will be dropped in future releases." #-}
 
 -- | Extract param type and result type from defined Relation
@@ -448,7 +450,8 @@ reifyRelation relVar = do
     _                        ->
       fail $ "expandRelation: Variable must have Relation type: " ++ show relVar
 
-inlineQuery_ :: (String -> Q ()) -- ^ action to check SQL string
+inlineQuery_ :: PersistableWidth p
+             => (String -> Q ()) -- ^ action to check SQL string
              -> Name             -- ^ Top-level variable name which has 'Relation' type
              -> Relation p r     -- ^ Object which has 'Relation' type
              -> Config           -- ^ Configuration to generate SQL
@@ -456,16 +459,18 @@ inlineQuery_ :: (String -> Q ()) -- ^ action to check SQL string
              -> String           -- ^ Variable name to define as inlined query
              -> Q [Dec]          -- ^ Result declarations
 inlineQuery_ check relVar rel config sufs declName = do
-  let sql = untypeQuery $ relationalQuery_ config rel sufs
+  let sql = detachPlaceholderOffsets . untypeQuery $ relationalQuery_ config rel sufs
   check sql
   (p, r) <- reifyRelation relVar
   simpleValD (varName $ varCamelcaseName declName)
     [t| Query $(return p) $(return r) |]
     [|  unsafeTypedQuery
+        $ attachEmptyPlaceholderOffsets 
         $(stringE sql) |]
 
 -- | Inlining composed 'Query' in compile type.
-inlineQuery :: Name         -- ^ Top-level variable name which has 'Relation' type
+inlineQuery :: PersistableWidth p
+            => Name         -- ^ Top-level variable name which has 'Relation' type
             -> Relation p r -- ^ Object which has 'Relation' type
             -> Config       -- ^ Configuration to generate SQL
             -> [Keyword]    -- ^ suffix SQL words. for example, `[FOR, UPDATE]`, `[FETCH, FIRST, "3", ROWS, ONLY]` ...

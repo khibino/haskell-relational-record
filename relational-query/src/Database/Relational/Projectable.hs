@@ -15,18 +15,15 @@
 -- This module defines operators on various projected records.
 module Database.Relational.Projectable (
   -- * Projectable from SQL strings
-  SqlContext (unsafeProjectSqlTerms), unsafeProjectSql',
-  unsafeProjectSql,
+  SqlContext, unsafeProjectSqlTerms,
+  unsafeProjectSql', unsafeProjectSql,
+  unsafeProjectSqlWithPlaceholders', unsafeProjectSqlWithPlaceholders,
 
   -- * Records of values
   value,
   valueTrue, valueFalse,
   values,
   nothing,
-
-  -- * Placeholders
-  PlaceHolders, unsafeAddPlaceHolders, unsafePlaceHolders,
-  pwPlaceholder, placeholder', placeholder, unitPlaceHolder, unitPH,
 
   -- * Projectable into SQL strings
   unsafeShowSql', unsafeShowSql,
@@ -78,9 +75,11 @@ module Database.Relational.Projectable (
 
 import Prelude hiding (pi)
 
+import Control.Applicative ((<$>), (<*>))
 import Data.String (IsString)
 import Data.Functor.ProductIsomorphic
-  ((|$|), ProductIsoApplicative, pureP, (|*|), )
+  ((|$|), ProductIsoApplicative, (|*|), )
+import Data.Monoid (mempty)
 
 import Language.SQL.Keyword (Keyword)
 import qualified Language.SQL.Keyword as SQL
@@ -90,7 +89,7 @@ import Database.Record
    HasColumnConstraint, NotNull)
 import Database.Record.Persistable (runPersistableRecordWidth)
 
-import Database.Relational.Internal.ContextType (Flat, Exists, OverWindow)
+import Database.Relational.Internal.ContextType (Flat, PureOperand, Exists, OverWindow)
 import Database.Relational.Internal.String (StringSQL, stringSQL, showStringSQL)
 import Database.Relational.SqlSyntax (Record, Predicate)
 import qualified Database.Relational.SqlSyntax as Syntax
@@ -103,46 +102,54 @@ import Database.Relational.ProjectableClass
 import Database.Relational.Record (RecordList)
 import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable.Unsafe
-  (SqlContext (..), OperatorContext, AggregatedContext, PlaceHolders (..))
+  (SqlContext (..), OperatorContext, AggregatedContext, unsafeProjectSqlTerms,)
 import Database.Relational.Projectable.Instances ()
 
 
 -- | Unsafely Project single SQL term.
 unsafeProjectSql' :: SqlContext c => StringSQL -> Record c t
-unsafeProjectSql' = unsafeProjectSqlTerms . (:[])
+unsafeProjectSql' = unsafeProjectSqlWithPlaceholders' . Syntax.withPlaceholderOffsets mempty
 
 -- | Unsafely Project single SQL string. String interface of 'unsafeProjectSql'''.
 unsafeProjectSql :: SqlContext c => String -> Record c t
-unsafeProjectSql = unsafeProjectSql' . stringSQL
+unsafeProjectSql = unsafeProjectSqlWithPlaceholders . Syntax.withPlaceholderOffsets mempty
+
+unsafeProjectSqlWithPlaceholders' :: SqlContext c => Syntax.SQLWithPlaceholderOffsets' -> Record c t
+unsafeProjectSqlWithPlaceholders' = unsafeProjectSqlTermsWithPlaceholders . fmap (:[])
+
+unsafeProjectSqlWithPlaceholders :: SqlContext c => Syntax.SQLWithPlaceholderOffsets -> Record c t
+unsafeProjectSqlWithPlaceholders = unsafeProjectSqlWithPlaceholders' . fmap stringSQL
 
 -- | Record with polymorphic phantom type of SQL null value. Semantics of comparing is unsafe.
-nothing :: (OperatorContext c, SqlContext c, PersistableWidth a)
-        => Record c (Maybe a)
+nothing :: PersistableWidth a => Record PureOperand (Maybe a)
 nothing = proxyWidth persistableWidth
   where
-    proxyWidth :: SqlContext c => PersistableRecordWidth a -> Record c (Maybe a)
+    proxyWidth :: PersistableRecordWidth a -> Record PureOperand (Maybe a)
     proxyWidth w = unsafeProjectSqlTerms $ replicate (runPersistableRecordWidth w) SQL.NULL
 
 -- | Generate record with polymorphic type of SQL constant values from Haskell value.
-value :: (LiteralSQL t, OperatorContext c) => t -> Record c t
+value :: LiteralSQL t => t -> Record PureOperand t
 value = unsafeProjectSqlTerms . showLiteral
 
 -- | Record with polymorphic type of SQL true value.
-valueTrue  :: OperatorContext c => Record c (Maybe Bool)
+valueTrue  :: Record PureOperand (Maybe Bool)
 valueTrue  =  just $ value True
 
 -- | Record with polymorphic type of SQL false value.
-valueFalse :: OperatorContext c => Record c (Maybe Bool)
+valueFalse :: Record PureOperand (Maybe Bool)
 valueFalse =  just $ value False
 
 -- | RecordList with polymorphic type of SQL set value from Haskell list.
 values :: (LiteralSQL t, OperatorContext c) => [t] -> RecordList (Record c) t
-values =  Record.list . map value
-
+values = Record.list . map (unsafeProjectSqlTerms . showLiteral)
 
 -- | Unsafely generate SQL expression term from record object.
 unsafeShowSql' :: Record c a -> StringSQL
 unsafeShowSql' = Record.unsafeStringSql
+
+-- | Unsafely generate SQL expression term from record object.
+unsafeShowSqlWithPlaceholders' :: Record c a -> Syntax.SQLWithPlaceholderOffsets'
+unsafeShowSqlWithPlaceholders' = Record.unsafeStringSqlWithPlaceholders
 
 -- | Unsafely generate SQL expression string from record object.
 --   String interface of 'unsafeShowSql''.
@@ -157,7 +164,8 @@ type SqlBinOp = Keyword -> Keyword -> Keyword
 -- | Unsafely make unary operator for records from SQL keyword.
 unsafeUniOp :: SqlContext c2
             => (Keyword -> Keyword) -> Record c1 a -> Record c2 b
-unsafeUniOp u = unsafeProjectSql' . u . unsafeShowSql'
+unsafeUniOp u =
+  unsafeProjectSqlWithPlaceholders' . fmap u . unsafeShowSqlWithPlaceholders'
 
 unsafeFlatUniOp :: SqlContext c
                 => Keyword -> Record c a -> Record c b
@@ -167,8 +175,8 @@ unsafeFlatUniOp kw = unsafeUniOp (SQL.paren . SQL.defineUniOp kw)
 unsafeBinOp :: SqlContext k
             => SqlBinOp
             -> Record k a -> Record k b -> Record k c
-unsafeBinOp op a b = unsafeProjectSql' . SQL.paren $
-                     op (unsafeShowSql' a) (unsafeShowSql' b)
+unsafeBinOp op a b =
+  unsafeProjectSqlWithPlaceholders' (SQL.paren <$> (op <$> unsafeShowSqlWithPlaceholders' a <*> unsafeShowSqlWithPlaceholders' b))
 
 -- | Unsafely make binary operator to compare records from string binary operator.
 compareBinOp :: SqlContext c
@@ -231,8 +239,8 @@ not' =  unsafeFlatUniOp SQL.NOT
 -- | Logical operator corresponding SQL /EXISTS/ .
 exists :: OperatorContext c
        => RecordList (Record Exists) r -> Record c (Maybe Bool)
-exists =  unsafeProjectSql' . SQL.paren . SQL.defineUniOp SQL.EXISTS
-          . Record.unsafeStringSqlList unsafeShowSql'
+exists rl =
+  unsafeProjectSqlWithPlaceholders' (SQL.paren . SQL.defineUniOp SQL.EXISTS <$> Record.unsafeStringSqlList unsafeShowSqlWithPlaceholders' rl)
 
 -- | Concatinate operator corresponding SQL /||/ .
 (.||.) :: OperatorContext c
@@ -261,12 +269,12 @@ x `likeMaybe'` y = x `unsafeLike` y
 -- | String-compare operator corresponding SQL /LIKE/ .
 like :: (OperatorContext c, IsString a, LiteralSQL a)
        => Record c a -> a -> Record c (Maybe Bool)
-x `like` a = x `like'` value a
+x `like` a = x `like'` Record.toSomeOperatorContext (value a)
 
 -- | String-compare operator corresponding SQL /LIKE/ . Maybe type version.
 likeMaybe :: (OperatorContext c, IsString a, LiteralSQL a)
           => Record c (Maybe a) -> a -> Record c (Maybe Bool)
-x `likeMaybe` a = x `unsafeLike` value a
+x `likeMaybe` a = x `unsafeLike` Record.toSomeOperatorContext (value a)
 
 -- | Unsafely make number binary operator for records from SQL operator string.
 monoBinOp' :: SqlContext c
@@ -300,7 +308,7 @@ negate' =  unsafeFlatUniOp $ SQL.word "-"
 
 unsafeCastProjectable :: SqlContext c
                       => Record c a -> Record c b
-unsafeCastProjectable = unsafeProjectSql' . unsafeShowSql'
+unsafeCastProjectable = unsafeProjectSqlWithPlaceholders' . unsafeShowSqlWithPlaceholders'
 
 -- | Number fromIntegral uni-operator.
 fromIntegral' :: (SqlContext c, Integral a, Num b)
@@ -366,7 +374,7 @@ casesOrElse = caseSearch
 caseSearchMaybe :: (OperatorContext c {- (Record c) is always ProjectableMaybe -}, PersistableWidth a)
                 => [(Predicate c, Record c (Maybe a))] -- ^ Each when clauses
                 -> Record c (Maybe a)                            -- ^ Result record
-caseSearchMaybe cs = caseSearch cs nothing
+caseSearchMaybe cs = caseSearch cs (Record.toSomeOperatorContext nothing)
 
 -- | Simple case operator correnponding SQL simple /CASE/.
 --   Like, /CASE x WHEN v THEN a WHEN w THEN b ... ELSE c END/
@@ -389,13 +397,13 @@ caseMaybe :: (OperatorContext c {- (Record c) is always ProjectableMaybe -}, Per
           => Record c a                         -- ^ Record value to match
           -> [(Record c a, Record c (Maybe b))] -- ^ Each when clauses
           -> Record c (Maybe b)                 -- ^ Result record
-caseMaybe v cs = case' v cs nothing
+caseMaybe v cs = case' v cs (Record.toSomeOperatorContext nothing)
 
 -- | Binary operator corresponding SQL /IN/ .
 in' :: OperatorContext c
     => Record c t -> RecordList (Record c) t -> Record c (Maybe Bool)
-in' a lp = unsafeProjectSql' . SQL.paren
-           $ SQL.in' (unsafeShowSql' a) (Record.unsafeStringSqlList unsafeShowSql' lp)
+in' a lp = unsafeProjectSqlWithPlaceholders'
+  $ fmap SQL.paren (SQL.in' <$> (unsafeShowSqlWithPlaceholders' a) <*> (Record.unsafeStringSqlList unsafeShowSqlWithPlaceholders' lp))
 
 -- | Operator corresponding SQL /IS NULL/ , and extended against record types.
 isNothing :: (OperatorContext c, HasColumnConstraint NotNull r)
@@ -437,50 +445,6 @@ percentRank =  unsafeUniTermFunction SQL.PERCENT_RANK
 cumeDist :: Record OverWindow Double
 cumeDist =  unsafeUniTermFunction SQL.CUME_DIST
 
--- | Unsafely add placeholder parameter to queries.
-unsafeAddPlaceHolders :: Functor f => f a -> f (PlaceHolders p, a)
-unsafeAddPlaceHolders =  fmap ((,) PlaceHolders)
-
--- | Unsafely get placeholder parameter
-unsafePlaceHolders :: PlaceHolders p
-unsafePlaceHolders =  PlaceHolders
-
--- | No placeholder semantics
-unitPlaceHolder :: PlaceHolders ()
-unitPlaceHolder = pureP ()
-
--- | No placeholder semantics. Same as `unitPlaceHolder`
-unitPH :: PlaceHolders ()
-unitPH = pureP ()
-
--- | Unsafely cast placeholder parameter type.
-unsafeCastPlaceHolders :: PlaceHolders a -> PlaceHolders b
-unsafeCastPlaceHolders PlaceHolders = PlaceHolders
-
--- | Provide scoped placeholder from width and return its parameter object.
-pwPlaceholder :: SqlContext c
-              => PersistableRecordWidth a
-              -> (Record c a -> b)
-              -> (PlaceHolders a, b)
-pwPlaceholder pw f = (PlaceHolders, f $ projectPlaceHolder pw)
-  where
-    projectPlaceHolder :: SqlContext c
-                       => PersistableRecordWidth a
-                       -> Record c a
-    projectPlaceHolder = unsafeProjectSqlTerms . (`replicate` "?") . runPersistableRecordWidth
-
--- | Provide scoped placeholder and return its parameter object.
-placeholder' :: (PersistableWidth t, SqlContext c) => (Record c t -> a) ->  (PlaceHolders t, a)
-placeholder' = pwPlaceholder persistableWidth
-
--- | Provide scoped placeholder and return its parameter object. Monadic version.
-placeholder :: (PersistableWidth t, SqlContext c, Monad m) => (Record c t -> m a) -> m (PlaceHolders t, a)
-placeholder f = do
-  let (ph, ma) = placeholder' f
-  a <- ma
-  return (ph, a)
-
-
 -- | Zipping projections.
 projectZip :: ProductIsoApplicative p => p a -> p b -> p (a, b)
 projectZip pa pb = (,) |$| pa |*| pb
@@ -495,11 +459,6 @@ class ProjectableMaybe p where
   just :: p a -> p (Maybe a)
   -- | Compose nested 'Maybe' phantom type on record.
   flattenMaybe :: p (Maybe (Maybe a)) -> p (Maybe a)
-
--- | Control phantom 'Maybe' type in placeholder parameters.
-instance ProjectableMaybe PlaceHolders where
-  just         = unsafeCastPlaceHolders
-  flattenMaybe = unsafeCastPlaceHolders
 
 -- | Control phantom 'Maybe' type in record type 'Record'.
 instance ProjectableMaybe (Record c) where

@@ -39,7 +39,7 @@ import Database.Relational.SqlSyntax (Record)
 import Database.Relational.Table (Table, TableDerivable)
 import Database.Relational.Pi (Pi, expandIndexes)
 import qualified Database.Relational.Record as Record
-import Database.Relational.Projectable (placeholder, (.=.), (!))
+import Database.Relational.Projectable ((.=.), (!))
 import Database.Relational.Monad.Class (wheres)
 import Database.Relational.Monad.BaseType (Relation, relationWidth)
 import Database.Relational.Relation
@@ -56,10 +56,10 @@ specifiedKey :: PersistableWidth p
              => Pi a p        -- ^ Projection path
              -> Relation () a -- ^ 'Relation' to add restriction.
              -> Relation p a  -- ^ Result restricted 'Relation'
-specifiedKey key rel = relation' $ do
+specifiedKey key rel = relation' $ \ph -> do
   q <- query rel
-  (param, ()) <- placeholder (\ph -> wheres $ Record.wpi (relationWidth rel) q key .=. ph)
-  return (param, q)
+  wheres $ Record.wpi (relationWidth rel Record.pempty) q key .=. Record.toFlat ph
+  return q
 
 -- | Query restricted with specified unique key.
 uniqueSelect :: PersistableWidth p
@@ -109,7 +109,8 @@ updateValuesWithKey :: ToSql q r
 updateValuesWithKey =  unsafeUpdateValuesWithIndexes . expandIndexes
 
 -- | Typed 'KeyUpdate' using specified constraint key.
-updateByConstraintKey :: Table r       -- ^ 'Table' to update
+updateByConstraintKey :: PersistableWidth p
+                      => Table r       -- ^ 'Table' to update
                       -> Key c r p     -- ^ Key with constraint 'c', record type 'r' and columns type 'p'
                       -> KeyUpdate p r -- ^ Result typed 'Update'
 updateByConstraintKey table' = typedKeyUpdate table' . Constraint.projectionKey

@@ -20,20 +20,18 @@ module Database.Relational.Monad.Unique
        ) where
 
 import Control.Applicative (Applicative)
+import Data.Monoid (mempty)
 
-import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax
   (Duplication, Record, JoinProduct, NodeAttr,
-   SubQuery, Predicate, Qualified, )
+   SubQuery, Tuple, Qualified, )
 
-import qualified Database.Relational.Record as Record
-import Database.Relational.Projectable (PlaceHolders)
 import Database.Relational.Monad.Class (MonadQualify, MonadQuery)
 import Database.Relational.Monad.Trans.Join (unsafeSubQueryWithAttr)
 import Database.Relational.Monad.Trans.Restricting (restrictings)
 import Database.Relational.Monad.BaseType (ConfigureQuery, askConfig)
 import Database.Relational.Monad.Type (QueryCore, extractCore)
-import Database.Relational.SqlSyntax (flatSubQuery)
+import Database.Relational.SqlSyntax (flatSubQuery, WithPlaceholderOffsets, untypeRecordWithPlaceholderOffsets, )
 
 
 -- | Unique query monad type.
@@ -47,13 +45,13 @@ unsafeUniqueSubQuery :: NodeAttr                 -- ^ Attribute maybe or just
 unsafeUniqueSubQuery a  = QueryUnique . restrictings . unsafeSubQueryWithAttr a
 
 extract :: QueryUnique a
-        -> ConfigureQuery (((a, [Predicate Flat]), JoinProduct), Duplication)
+        -> ConfigureQuery (((a, [WithPlaceholderOffsets Tuple]), WithPlaceholderOffsets JoinProduct), Duplication)
 extract (QueryUnique c) = extractCore c
 
 -- | Run 'SimpleQuery' to get 'SubQuery' with 'Qualify' computation.
-toSubQuery :: QueryUnique (PlaceHolders p, Record c r) -- ^ 'QueryUnique' to run
-           -> ConfigureQuery SubQuery                  -- ^ Result 'SubQuery' with 'Qualify' computation
+toSubQuery :: QueryUnique (Record c r) -- ^ 'QueryUnique' to run
+           -> ConfigureQuery SubQuery  -- ^ Result 'SubQuery' with 'Qualify' computation
 toSubQuery q = do
-  ((((_ph, pj), rs), pd), da) <- extract q
+  (((pj, rs), pd), da) <- extract q
   c <- askConfig
-  return $ flatSubQuery c (Record.untype pj) da pd rs []
+  return $ flatSubQuery c (untypeRecordWithPlaceholderOffsets pj) da pd rs mempty

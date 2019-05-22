@@ -20,6 +20,7 @@ module Database.Custom.MySQL (
   ) where
 
 import Language.SQL.Keyword (Keyword)
+import Database.Record (PersistableWidth)
 import Database.Relational.Schema.MySQL.Config (config)
 import Database.Relational hiding
   (relationalQuery,
@@ -28,47 +29,48 @@ import Database.Relational hiding
    delete, deleteNoPH, )
 
 -- | From 'Relation' into typed 'Query' with suffix SQL words.
-relationalQuery :: Relation p r  -- ^ relation to finalize building
+relationalQuery :: PersistableWidth p
+                => Relation p r  -- ^ relation to finalize building
                 -> [Keyword]     -- ^ suffix SQL words. for example, `[FOR, UPDATE]`, `[FETCH, FIRST, "3", ROWS, ONLY]` ...
                 -> Query p r     -- ^ finalized query
 relationalQuery = relationalQuery_ config
 
 -- | Make 'Insert' from derived table and monadic builded 'Register' object.
-insertValue :: TableDerivable r
-            => Register r (PlaceHolders p)
+insertValue :: (PersistableWidth r, TableDerivable r, PersistableWidth p)
+            => ReadPlaceholders p (Register r) ()
             -> Insert p
 insertValue = insertValue' config
 
 -- | Make 'Insert' from derived table and monadic builded 'Register' object with no(unit) placeholder.
 insertValueNoPH :: TableDerivable r
-                => Register r ()
+                => ReadPlaceholders () (Register r) ()
                 -> Insert ()
-insertValueNoPH body = insertValue $ body >> return unitPH
+insertValueNoPH = insertValue
 
 -- | Make 'InsertQuery' from derived table, 'Pi' and 'Relation'.
-insertQuery :: TableDerivable r => Pi r r' -> Relation p r' -> InsertQuery p
+insertQuery :: (PersistableWidth p, TableDerivable r) => Pi r r' -> Relation p r' -> InsertQuery p
 insertQuery = insertQuery' config
 
 -- | Make 'Update' from derived table and 'Assign' computation.
-update :: TableDerivable r
-       => (Record Flat r -> Assign r (PlaceHolders p))
+update :: (PersistableWidth p, TableDerivable r)
+       => (Record Flat r -> ReadPlaceholders p (Assign r) ())
        -> Update p
 update = update' config
 
 -- | Make 'Update' from derived table and 'Assign' computation with no(unit) placeholder.
 updateNoPH :: TableDerivable r
-           => (Record Flat r -> Assign r ())
+           => (Record Flat r -> ReadPlaceholders () (Assign r) ())
            -> Update ()
-updateNoPH body = update $ (>> return unitPH) . body
+updateNoPH = update
 
 -- | Make 'Delete' from derived table and 'Restrict' computation.
-delete :: TableDerivable r
-       => (Record Flat r -> Restrict (PlaceHolders p))
+delete :: (PersistableWidth p, TableDerivable r)
+       => (Record Flat r -> ReadPlaceholders p Restrict ())
        -> Delete p
 delete = delete' config
 
 -- | Make 'Delete' from 'defaultConfig', derived table and 'Restrict' computation with no(unit) placeholder.
 deleteNoPH :: TableDerivable r
-           => (Record Flat r -> Restrict ())
+           => (Record Flat r -> ReadPlaceholders () Restrict ())
            -> Delete ()
-deleteNoPH body = delete $ (>> return unitPH) . body
+deleteNoPH = delete

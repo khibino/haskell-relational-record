@@ -10,6 +10,7 @@
 
 import Database.Relational.CustomSQLite3
 import Database.Relational.OverloadedInstances ()
+import Database.Relational.TupleInstances ()
 
 import GHC.Generics (Generic)
 import Prelude hiding (product)
@@ -170,7 +171,7 @@ employee_4_1_2 :: Relation () Employee
 employee_4_1_2 = relation $ do
   e <- query employee
   wheres $ isNothing (#endDate e)
-  wheres $ #title e .=. just (value "Teller")
+  wheres $ #title e .=. just (toFlat $ value "Teller")
      `or'` #startDate e .<. unsafeSQLiteDayValue "2003-01-01"
   return e
 
@@ -192,11 +193,11 @@ unsafeSQLiteDayValue = unsafeProjectSqlTerms . showLiteral
 -- @
 --
 employee_4_1_2P :: Relation Day Employee
-employee_4_1_2P = relation' . placeholder $ \ph -> do
+employee_4_1_2P = relation' $ \ph -> do
   e <- query employee
   wheres $ isNothing (#endDate e)
-  wheres $ #title e .=. just (value "Teller")
-     `or'` #startDate e .<. ph
+  wheres $ #title e .=. just (toFlat $ value "Teller")
+     `or'` #startDate e .<. toFlat ph
   return e
 
 -- | sql/4.3.2
@@ -242,11 +243,11 @@ employee_4_3_2 = relation $ do
 -- values in order that they appear on the generated SQL.
 --
 employee_4_3_2P :: Relation (Day,Day) Employee2
-employee_4_3_2P = relation' . placeholder $ \ph -> do
+employee_4_3_2P = relation' $ \ph -> do
   e <- query employee
   let date = #startDate e
-  wheres $ date .>=. (! #fst) ph
-  wheres $ date .<=. (! #snd) ph
+  wheres $ date .>=. (toFlat $ (! #fst) ph)
+  wheres $ date .<=. (toFlat $ (! #snd) ph)
   return $ Employee2 |$| #empId e
                      |*| #fname e
                      |*| #lname e
@@ -384,11 +385,11 @@ account_9_1 = relation $ do
 -- @
 --
 account_4_3_3b :: Relation String Account
-account_4_3_3b = relation' $ do
+account_4_3_3b = relation' $ \ph -> do
   a <- query account
-  (phProductCd,p) <- queryList' product_4_3_3b
+  p <- queryList' ph product_4_3_3b
   wheres $ #productCd a `in'` p
-  return (phProductCd, a)
+  return a
 
 -- |
 -- Tuple version of Generated SQL:
@@ -401,12 +402,12 @@ account_4_3_3b = relation' $ do
 -- @
 --
 account_4_3_3bT :: Relation String (Int, String, Int, Maybe Double)
-account_4_3_3bT = relation' $ do
+account_4_3_3bT = relation' $ \ph -> do
   a <- query account
-  (phProductCd,p) <- queryList' product_4_3_3b
+  p <- queryList' ph product_4_3_3b
   wheres $ #productCd a `in'` p
   let at = (,,,) |$| #accountId a |*| #productCd a |*| #custId a |*| #availBalance a
-  return (phProductCd, at)
+  return at
 
 -- |
 -- Adhoc record version of Generated SQL:
@@ -419,20 +420,20 @@ account_4_3_3bT = relation' $ do
 -- @
 --
 account_4_3_3bR :: Relation String Account1
-account_4_3_3bR = relation' $ do
+account_4_3_3bR = relation' $ \ph -> do
   a <- query account
-  (phProductCd,p) <- queryList' product_4_3_3b
+  p <- queryList' ph product_4_3_3b
   wheres $ #productCd a `in'` p
   let ar = Account1 |$| #accountId a
                     |*| #productCd a
                     |*| #custId a
                     |*| #availBalance a
-  return (phProductCd, ar)
+  return ar
 
 product_4_3_3b :: Relation String String
-product_4_3_3b = relation' . placeholder $ \ph -> do
+product_4_3_3b = relation' $ \ph -> do
   p <- query product
-  wheres $ #productTypeCd p .=. ph
+  wheres $ #productTypeCd p .=. toFlat ph
   return $ #productCd p
 
 -- | sql/4.3.3c
@@ -603,9 +604,9 @@ join_5_1_3 = relation $ do
   on $ #assignedBranchId e .=. just (#branchId b)
 
   wheres $ #startDate e .<=. unsafeSQLiteDayValue "2004-01-01"
-  wheres $ #title e .=. just (value "Teller")
-     `or'` #title e .=. just (value "Head Teller")
-  wheres $ #name b .=. value "Woburn Branch"
+  wheres $ #title e .=. just (toFlat $ value "Teller")
+     `or'` #title e .=. just (toFlat $ value "Head Teller")
+  wheres $ #name b .=. toFlat (value "Woburn Branch")
 
   return $ Account3 |$| #accountId a
                     |*| #custId a
@@ -702,13 +703,13 @@ selfJoin_5_3aT = relation $ do
 employee_6_4_1a :: Relation () (Maybe Int, Maybe Int)
 employee_6_4_1a = relation $ do
   e  <- query employee
-  wheres $ #title e .=. just (value "Teller")
+  wheres $ #title e .=. just (toFlat $ value "Teller")
   return $ just (#empId e) >< #assignedBranchId e
 
 account_6_4_1a :: Relation () (Maybe Int, Maybe Int)
 account_6_4_1a = relation $ do
   a  <- query account
-  wheres $ #productCd a .=. value "SAV"
+  wheres $ #productCd a .=. toFlat (value "SAV")
   return $ #openEmpId a >< #openBranchId a
 
 union_6_4_1a_Nest :: Relation () (Maybe Int, Maybe Int)
@@ -734,11 +735,11 @@ union_6_4_1a_Nest = relation $ do
 union_6_4_1a_Flat :: Relation () (Maybe Int, Maybe Int)
 union_6_4_1a_Flat = relation (do
     e  <- query employee
-    wheres $ #title e .=. just (value "Teller")
+    wheres $ #title e .=. just (toFlat $ value "Teller")
     return $ just (#empId e) >< #assignedBranchId e
   ) `union` relation (do
     a  <- query account
-    wheres $ #productCd a .=. value "SAV"
+    wheres $ #productCd a .=. toFlat (value "SAV")
     -- asc $ #openEmpId a
     return $ #openEmpId a >< #openBranchId a
   )
@@ -798,7 +799,7 @@ customer_9_4 = relation $ do
     wheres $ #custId a .=. #custId c
     return (#accountId a)
     ) id' count
-  wheres $ just (value (2 :: Int64)) .=. ca
+  wheres $ toFlat (just (value (2 :: Int64))) .=. ca
   return (customer1 c)
 
 data Customer1 = Customer1
@@ -960,13 +961,13 @@ insertEmployee_s2 :: InsertQuery ()
 insertEmployee_s2 = insertQuery piEmployee3 . relation $ do
   d <- query department
   b <- query branch
-  wheres $ #name d .=. value "Administration"
-  wheres $ #name b .=. value "Headquarters"
-  return $ Employee3 |$| value "Michael"
-                     |*| value "Smith"
+  wheres $ #name d .=. toFlat (value "Administration")
+  wheres $ #name b .=. toFlat (value "Headquarters")
+  return $ Employee3 |$| toFlat (value "Michael")
+                     |*| toFlat (value "Smith")
                      |*| unsafeSQLiteDayValue "2001-06-22"
                      |*| just (#deptId d)
-                     |*| value (Just "President")
+                     |*| toFlat (value (Just "President"))
                      |*| just (#branchId b)
 
 -- this is equal to `defineDirectPi [1,2,3,6,7,8]'
@@ -1009,17 +1010,17 @@ insertEmployee_s2U :: InsertQuery ()
 insertEmployee_s2U = insertQuery piEmployee3 . relation $ do
   d <- queryScalar . unsafeUnique . relation $ do
     d' <- query department
-    wheres $ #name d' .=. value "Administration"
+    wheres $ #name d' .=. toFlat (value "Administration")
     return $ #deptId d'
   b <- queryScalar . unsafeUnique . relation $ do
     b' <- query branch
-    wheres $ #name b' .=. value "Headquarters"
+    wheres $ #name b' .=. toFlat (value "Headquarters")
     return $ #branchId b'
-  return $ Employee3 |$| value "Michael"
-                     |*| value "Smith"
+  return $ Employee3 |$| toFlat (value "Michael")
+                     |*| toFlat (value "Smith")
                      |*| unsafeSQLiteDayValue "2001-06-22"
                      |*| d
-                     |*| value (Just "President")
+                     |*| toFlat (value (Just "President"))
                      |*| b
 
 -- place the definition of Employee4 that contains template-haskell, before
@@ -1045,18 +1046,17 @@ $(makeRelationalRecord ''Employee4)
 -- @
 --
 insertEmployee_s2P :: InsertQuery Employee4
-insertEmployee_s2P = insertQuery piEmployee3 . relation' $ do
+insertEmployee_s2P = insertQuery piEmployee3 . relation' $ \ph -> do
   d <- query department
   b <- query branch
-  wheres $ #name d .=. value "Administration"
-  wheres $ #name b .=. value "Headquarters"
-  placeholder $ \ph ->
-    return $ Employee3 |$| (! #e4Fname) ph
-                       |*| #e4Lname ph
-                       |*| #e4StartDate ph
-                       |*| just (#deptId d)
-                       |*| #e4Title ph
-                       |*| just (#branchId b)
+  wheres $ #name d .=. toFlat (value "Administration")
+  wheres $ #name b .=. toFlat (value "Headquarters")
+  return $ Employee3 |$| toFlat ((! #e4Fname) ph)
+                     |*| toFlat (#e4Lname ph)
+                     |*| toFlat (#e4StartDate ph)
+                     |*| just (#deptId d)
+                     |*| toFlat (#e4Title ph)
+                     |*| just (#branchId b)
 
 employee4 :: Employee4
 employee4 = Employee4
@@ -1087,9 +1087,9 @@ employee4 = Employee4
 --
 updateEmployee_o3 :: Update ()
 updateEmployee_o3 = updateNoPH $ \proj -> do
-  #lname  <-# value "Bush"
-  #deptId <-# just (value 3)
-  wheres $ #empId (proj :: Record Flat Employee) .=. value 10
+  #lname  <-# toFlat (value "Bush")
+  #deptId <-# just (toFlat $ value 3)
+  wheres $ #empId (proj :: Record Flat Employee) .=. toFlat (value 10)
 
 -- |
 -- Placeholder version of Generated SQL:
@@ -1111,10 +1111,11 @@ updateEmployee_o3 = updateNoPH $ \proj -> do
 --
 updateEmployee_o3P :: Update (String, Int, Int)
 updateEmployee_o3P = update $ \proj -> do
-  (phLname,()) <- placeholder (\ph -> #lname <-# ph)
-  (phDeptId,()) <- placeholder (\ph -> #deptId <-# just ph)
-  (phEmpId,()) <- placeholder (\ph -> wheres $ #empId (proj :: Record Flat Employee) .=. ph)
-  return $ (,,) |$| phLname |*| phDeptId |*| phEmpId
+  ph <- askPlaceholders
+  #lname <-# toFlat (ph ! tuplePi3_0')
+  #deptId <-# toFlat (just (ph ! tuplePi3_1'))
+  wheres $ #empId (proj :: Record Flat Employee) .=. toFlat (ph ! tuplePi3_2')
+  return ()
 
 -- |
 -- 9.4.2 Data Manipulation Using Correlated Subqueries
@@ -1152,7 +1153,7 @@ updateAccount_9_4_2 = updateNoPH $ \proj -> do
   tl <- queryList $ relation $ do
     t <- query Transaction.transaction
     wheres $ #accountId t .=. #accountId proj
-    return (value (1 :: Int64))
+    return $ toFlat (value (1 :: Int64))
   Account.lastActivityDate' <-# (toDay $ flattenMaybe ts)
   wheres $ exists $ tl
 
@@ -1176,8 +1177,8 @@ toDay dt = unsafeProjectSql $ "date(" ++ unsafeShowSql dt ++ ")"
 -- @
 --
 deleteAccount_o1 :: Delete ()
-deleteAccount_o1 = deleteNoPH $ \proj -> do
-  wheres $ proj ! Account.accountId' .=. value 2
+deleteAccount_o1 = deleteNoPH $ \proj ->
+  wheres $ proj ! Account.accountId' .=. toFlat (value 2)
 
 -- |
 -- Placeholder version of Generated SQL:
@@ -1196,7 +1197,8 @@ deleteAccount_o1 = deleteNoPH $ \proj -> do
 --
 deleteAccount_o1P :: Delete Int
 deleteAccount_o1P = delete $ \proj -> do
-  fmap fst $ placeholder (\ph -> wheres $ proj ! Account.accountId' .=. ph)
+  ph <- askPlaceholders
+  wheres $ proj ! Account.accountId' .=. toFlat ph
 
 -- |
 -- (original) Data modification using equality conditions
@@ -1218,8 +1220,8 @@ deleteAccount_o1P = delete $ \proj -> do
 deleteAccount_o2 :: Delete ()
 deleteAccount_o2 = deleteNoPH $ \proj' -> do
   let proj = proj' :: Record Flat Account
-  wheres $ #accountId proj .>=. value 10
-  wheres $ #accountId proj .<=. value 20
+  wheres $ #accountId proj .>=. toFlat (value 10)
+  wheres $ #accountId proj .<=. toFlat (value 20)
 
 -- |
 -- Placeholder version of Generated SQL:
@@ -1231,10 +1233,11 @@ deleteAccount_o2 = deleteNoPH $ \proj' -> do
 --
 deleteAccount_o2P :: Delete (Int, Int)
 deleteAccount_o2P = delete $ \proj' -> do
+  ph <- askPlaceholders
   let proj = proj' :: Record Flat Account
-  (phMin,()) <- placeholder (\ph -> wheres $ #accountId proj .>=. ph)
-  (phMax,()) <- placeholder (\ph -> wheres $ #accountId proj .<=. ph)
-  return (phMin >< phMax)
+  wheres $ #accountId proj .>=. toFlat (ph ! fst')
+  wheres $ #accountId proj .<=. toFlat (ph ! snd')
+  return ()
 
 -- |
 -- 9.4.2 Data manipulation using correlated subqueries
@@ -1260,7 +1263,7 @@ deleteEmployee_9_4_2 = deleteNoPH $ \proj -> do
   el <- queryList $ relation $ do
     e <- query employee
     wheres $ #deptId e .=. just (#deptId (proj :: Record Flat Department))
-    return (value (1 :: Int64))
+    return $ toFlat (value (1 :: Int64))
   wheres $ not' . exists $ el
 
 --

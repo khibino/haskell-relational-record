@@ -20,10 +20,11 @@ module Database.Relational.Monad.Restrict (
 
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.Internal.Config (Config)
-import Database.Relational.SqlSyntax (Predicate, Record)
+import Database.Relational.SqlSyntax (Tuple, Record, WithPlaceholderOffsets)
 
 import Database.Relational.Monad.Trans.Restricting
   (Restrictings, extractRestrict)
+import Database.Relational.Monad.Trans.ReadPlaceholders (ReadPlaceholders,)
 import Database.Relational.Monad.BaseType (ConfigureQuery, configureQuery)
 
 
@@ -33,8 +34,8 @@ type Restrict = Restrictings Flat ConfigureQuery
 -- | RestrictedStatement type synonym.
 --   Record type 'r' must be
 --   the same as 'Restrictings' type parameter 'r'.
-type RestrictedStatement r a = Record Flat r -> Restrict a
+type RestrictedStatement p r a = Record Flat r -> ReadPlaceholders p Restrict a
 
 -- | Run 'Restrict' to get 'QueryRestriction'.
-extract :: Restrict a -> Config -> (a, [Predicate Flat])
+extract :: Restrict a -> Config -> (a, [WithPlaceholderOffsets Tuple])
 extract =  configureQuery . extractRestrict

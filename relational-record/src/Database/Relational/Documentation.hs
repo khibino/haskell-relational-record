@@ -118,10 +118,6 @@ module Database.Relational.Documentation (
   negateMaybe,
   sumMaybe,
 
-  -- ** Placeholders
-  -- $placeholders
-  placeholder,
-
   query',
   left',
   relation',

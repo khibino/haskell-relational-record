@@ -11,7 +11,7 @@
 --
 -- This module defines query context tag types.
 module Database.Relational.Internal.ContextType (
-  Flat, Aggregated, Exists, OverWindow,
+  Flat, Aggregated, Exists, OverWindow, PureOperand,
 
   Set, SetList, Power,
   ) where
@@ -27,6 +27,9 @@ data Exists
 
 -- | Type tag for window function building
 data OverWindow
+
+-- | Type tag for records all of whom values are placeholders (denoted as "?" in the generated SQL) or literal value.
+data PureOperand
 
 
 -- | Type tag for normal aggregatings set

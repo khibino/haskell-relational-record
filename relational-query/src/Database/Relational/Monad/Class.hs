@@ -21,11 +21,10 @@ module Database.Relational.Monad.Class
          on, wheres, having,
        ) where
 
-import Database.Relational.Internal.ContextType (Flat, Aggregated)
+import Database.Relational.Internal.ContextType (Flat, Aggregated, PureOperand)
 import Database.Relational.SqlSyntax
-  (Duplication (..), Predicate, Record, AggregateKey)
+  ( Duplication (..) , Predicate, Record, AggregateKey, )
 
-import Database.Relational.Projectable (PlaceHolders)
 import Database.Relational.Monad.BaseType (ConfigureQuery, Relation)
 
 
@@ -44,11 +43,13 @@ class (Functor m, Monad m, MonadQualify ConfigureQuery m) => MonadQuery m where
                -> m ()           -- ^ Restricted query context
   {- Haddock BUG? -}
   -- | Join sub-query with place-holder parameter 'p'. query result is not 'Maybe'.
-  query' :: Relation p r
-         -> m (PlaceHolders p, Record Flat r)
+  query' :: Record PureOperand p
+         -> Relation p r
+         -> m (Record Flat r)
   -- | Join sub-query with place-holder parameter 'p'. Query result is 'Maybe'.
-  queryMaybe' :: Relation p r
-              -> m (PlaceHolders p, Record Flat (Maybe r))
+  queryMaybe' :: Record PureOperand p
+              -> Relation p r
+              -> m (Record Flat (Maybe r))
 
 -- | Lift interface from base qualify monad.
 class (Functor q, Monad q, Functor m, Monad m) => MonadQualify q m where
@@ -65,8 +66,8 @@ class MonadQuery m => MonadAggregate m where
   groupBy :: Record Flat r           -- ^ Record to add into group by
           -> m (Record Aggregated r) -- ^ Result context and aggregated record
   -- | Add /GROUP BY/ term into context and get aggregated record. Non-traditional group-by version.
-  groupBy' :: AggregateKey (Record Aggregated r)  -- ^ Key to aggretate for non-traditional group-by interface
-           -> m (Record Aggregated r)             -- ^ Result context and aggregated record
+  groupBy' :: AggregateKey (Record Aggregated r) -- ^ Key to aggretate for non-traditional group-by interface
+           -> m (Record Aggregated r)            -- ^ Result context and aggregated record
 
 -- | Window specification building interface.
 class Monad m => MonadPartition c m where

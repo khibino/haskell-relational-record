@@ -31,7 +31,11 @@ module Database.HDBC.Record.Statement (
   ) where
 
 import Control.Exception (bracket)
-import Database.Relational (UntypeableNoFetch (untypeNoFetch))
+import Data.Traversable (traverse)
+import Database.Relational
+  (UntypeableNoFetch (untypeNoFetch),
+   sortByPlaceholderOffsets,
+   WithPlaceholderOffsets, SQLWithPlaceholderOffsets, detachPlaceholderOffsets, placeholderOffsets)
 import Database.HDBC (IConnection, Statement, SqlValue)
 import qualified Database.HDBC as HDBC
 
@@ -41,8 +45,8 @@ import Database.Record (ToSql, fromRecord)
 newtype PreparedStatement p a =
   PreparedStatement {
     -- | Untyped prepared statement before executed.
-    prepared :: Statement
-    }
+    prepared :: WithPlaceholderOffsets Statement
+  }
 
 -- | Typed prepared statement which has bound placeholder parameters.
 data BoundStatement a =
@@ -64,15 +68,15 @@ data ExecutedStatement a =
   }
 
 -- | Unsafely untype prepared statement.
-untypePrepared :: PreparedStatement p a -> Statement
+untypePrepared :: PreparedStatement p a -> WithPlaceholderOffsets Statement
 untypePrepared =  prepared
 
 -- | Run prepare and unsafely make Typed prepared statement.
 unsafePrepare :: IConnection conn
               => conn                       -- ^ Database connection
-              -> String                     -- ^ Raw SQL String
+              -> SQLWithPlaceholderOffsets  -- ^ Raw SQL String
               -> IO (PreparedStatement p a) -- ^ Result typed prepared query with parameter type 'p' and result type 'a'
-unsafePrepare conn = fmap PreparedStatement . HDBC.prepare conn
+unsafePrepare conn = fmap PreparedStatement . traverse (HDBC.prepare conn)
 
 -- | Generalized prepare inferred from 'UntypeableNoFetch' instance.
 prepareNoFetch :: (UntypeableNoFetch s, IConnection conn)
@@ -85,15 +89,15 @@ prepareNoFetch conn = unsafePrepare conn . untypeNoFetch
 --   PreparedStatement is released on closing connection,
 --   so connection pooling cases often cause resource leaks.
 finish :: PreparedStatement p a -> IO ()
-finish = HDBC.finish . prepared
+finish = HDBC.finish . detachPlaceholderOffsets . prepared
 
 -- | Bracketed prepare operation.
 --   Unsafely make Typed prepared statement.
 --   PreparedStatement is released on closing connection,
 --   so connection pooling cases often cause resource leaks.
 withUnsafePrepare :: IConnection conn
-                  => conn   -- ^ Database connection
-                  -> String -- ^ Raw SQL String
+                  => conn                      -- ^ Database connection
+                  -> SQLWithPlaceholderOffsets -- ^ Raw SQL String
                   -> (PreparedStatement p a -> IO b)
                   -> IO b
 withUnsafePrepare conn qs =
@@ -114,7 +118,11 @@ bind :: ToSql SqlValue p
      => PreparedStatement p a -- ^ Prepared query to bind to
      -> p                     -- ^ Parameter to bind
      -> BoundStatement a      -- ^ Result parameter bound statement
-bind q p = BoundStatement { bound = prepared q, params = fromRecord p }
+bind q p = BoundStatement { bound = st, params = sortByPlaceholderOffsets phs $ fromRecord p }
+ where
+  stphs = untypePrepared q
+  st = detachPlaceholderOffsets stphs
+  phs = placeholderOffsets stphs
 
 -- | Same as 'bind' except for argument is flipped.
 bindTo :: ToSql SqlValue p => p -> PreparedStatement p a -> BoundStatement a
