@@ -11,11 +11,10 @@
 module Database.Relational.SqlSyntax.Record (
   -- * Record
   Record, untypeRecord, record, PI,
-  recordWidth,
-  typeFromRawColumns,
-  typeFromScalarSubQuery,
+  recordWidth, recordColumns,
 
-  recordRawColumns,
+  unsafeRecordFromColumns,
+  unsafeRecordFromScalarQuery,
 
   -- * Predicate to restrict Query result
   Predicate,
@@ -50,19 +49,19 @@ record = Record
 recordWidth :: Record c r -> Int
 recordWidth = length . untypeRecord
 
+-- | Get column SQL string list of record.
+recordColumns :: Record c r  -- ^ Source 'Record'
+              -> [StringSQL] -- ^ Result SQL string list
+recordColumns = map showColumn . untypeRecord
+
 -- | Unsafely generate 'Record' from SQL string list.
-typeFromRawColumns :: [StringSQL] -- ^ SQL string list specifies columns
-                   -> Record c r  -- ^ Result 'Record'
-typeFromRawColumns =  record . map RawColumn
+unsafeRecordFromColumns :: [StringSQL] -- ^ SQL string list specifies columns
+                        -> Record c r  -- ^ Result 'Record'
+unsafeRecordFromColumns =  record . map RawColumn
 
 -- | Unsafely generate 'Record' from scalar sub-query.
-typeFromScalarSubQuery :: SubQuery -> Record c t
-typeFromScalarSubQuery = record . (:[]) . Scalar
-
--- | Get column SQL string list of record.
-recordRawColumns :: Record c r  -- ^ Source 'Record'
-                 -> [StringSQL] -- ^ Result SQL string list
-recordRawColumns = map showColumn . untypeRecord
+unsafeRecordFromScalarQuery :: SubQuery -> Record c t
+unsafeRecordFromScalarQuery = record . (:[]) . Scalar
 
 -----
 

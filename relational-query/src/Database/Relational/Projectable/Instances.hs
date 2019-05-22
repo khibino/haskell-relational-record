@@ -19,7 +19,7 @@ import Data.Functor.ProductIsomorphic
 
 import Database.Relational.Internal.ContextType
   (Flat, Aggregated, OverWindow)
-import qualified Database.Relational.Record as Record
+import Database.Relational.SqlSyntax (unsafeRecordFromColumns)
 import Database.Relational.Projectable.Unsafe
   (SqlContext (..), OperatorContext, AggregatedContext, PlaceHolders (..))
 
@@ -27,15 +27,15 @@ import Database.Relational.Projectable.Unsafe
 
 -- | Unsafely make 'Record' from SQL terms.
 instance SqlContext Flat where
-  unsafeProjectSqlTerms = Record.unsafeFromSqlTerms
+  unsafeProjectSqlTerms = unsafeRecordFromColumns
 
 -- | Unsafely make 'Record' from SQL terms.
 instance SqlContext Aggregated where
-  unsafeProjectSqlTerms = Record.unsafeFromSqlTerms
+  unsafeProjectSqlTerms = unsafeRecordFromColumns
 
 -- | Unsafely make 'Record' from SQL terms.
 instance SqlContext OverWindow where
-  unsafeProjectSqlTerms = Record.unsafeFromSqlTerms
+  unsafeProjectSqlTerms = unsafeRecordFromColumns
 
 -- | full SQL expression is availabe in Flat context
 instance OperatorContext Flat

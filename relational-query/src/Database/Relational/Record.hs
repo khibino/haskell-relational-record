@@ -14,11 +14,7 @@
 -- This module defines interfaces of projected record type.
 module Database.Relational.Record (
   -- * Record data structure and interface
-  columns,
-
-  unsafeFromSqlTerms,
   unsafeFromQualifiedSubQuery,
-  unsafeFromScalarSubQuery,
   unsafeFromTable,
 
   unsafeStringSql,
@@ -51,8 +47,8 @@ import qualified Database.Record.KeyConstraint as KeyConstraint
 import Database.Relational.Internal.ContextType (Aggregated, Flat)
 import Database.Relational.Internal.String (StringSQL, listStringSQL, rowStringSQL)
 import Database.Relational.SqlSyntax
-  (SubQuery, Qualified, Record,
-   recordRawColumns, tupleFromJoinedSubQuery,)
+  (SubQuery, Qualified, Record, recordColumns,
+   unsafeRecordFromColumns, tupleFromJoinedSubQuery,)
 import qualified Database.Relational.SqlSyntax as Syntax
 
 import Database.Relational.Table (Table)
@@ -63,38 +59,23 @@ import qualified Database.Relational.Pi.Unsafe as UnsafePi
 
 -- | Unsafely get SQL term from 'Record'.
 unsafeStringSql :: Record c r -> StringSQL
-unsafeStringSql = rowStringSQL . recordRawColumns
-
--- | Get column SQL string list of record.
-columns :: Record c r  -- ^ Source 'Record'
-        -> [StringSQL] -- ^ Result SQL string list
-columns = recordRawColumns
-
+unsafeStringSql = rowStringSQL . recordColumns
 
 -- | Unsafely generate  'Record' from qualified (joined) sub-query.
 unsafeFromQualifiedSubQuery :: Qualified SubQuery -> Record c t
 unsafeFromQualifiedSubQuery = Syntax.record . tupleFromJoinedSubQuery
 
--- | Unsafely generate 'Record' from scalar sub-query.
-unsafeFromScalarSubQuery :: SubQuery -> Record c t
-unsafeFromScalarSubQuery = Syntax.typeFromScalarSubQuery
-
 -- | Unsafely generate unqualified 'Record' from 'Table'.
 unsafeFromTable :: Table r
                 -> Record c r
-unsafeFromTable = Syntax.typeFromRawColumns . Table.columns
-
--- | Unsafely generate 'Record' from SQL expression strings.
-unsafeFromSqlTerms :: [StringSQL] -> Record c t
-unsafeFromSqlTerms = Syntax.typeFromRawColumns
-
+unsafeFromTable = unsafeRecordFromColumns . Table.columns
 
 -- | Unsafely trace projection path.
 unsafeProject :: PersistableRecordWidth a -> Record c a' -> Pi a b -> Record c b'
 unsafeProject w p pi' =
-  Syntax.typeFromRawColumns
+  unsafeRecordFromColumns
   . (UnsafePi.pi w pi')
-  . columns $ p
+  . recordColumns $ p
 
 -- | Trace projection path to get narrower 'Record'.
 wpi :: PersistableRecordWidth a
@@ -153,7 +134,7 @@ notNullMaybeConstraint =  const KeyConstraint.columnConstraint
 
 -- | Unsafely get SQL string expression of not null key record.
 unsafeStringSqlNotNullMaybe :: HasColumnConstraint NotNull r => Record c (Maybe r) -> StringSQL
-unsafeStringSqlNotNullMaybe p = (!!  KeyConstraint.index (notNullMaybeConstraint p)) . columns $ p
+unsafeStringSqlNotNullMaybe p = (!!  KeyConstraint.index (notNullMaybeConstraint p)) . recordColumns $ p
 
 pempty :: Record c ()
 pempty = Syntax.record []

@@ -30,7 +30,8 @@ module Database.Relational.Relation (
 import Control.Applicative ((<$>))
 
 import Database.Relational.Internal.ContextType (Flat, Aggregated)
-import Database.Relational.SqlSyntax (NodeAttr(Just', Maybe), Record, )
+import Database.Relational.SqlSyntax
+  (NodeAttr(Just', Maybe), Record, unsafeRecordFromScalarQuery)
 
 import Database.Relational.Monad.BaseType
   (ConfigureQuery, qualifyQuery,
@@ -183,7 +184,7 @@ queryScalar' :: (MonadQualify ConfigureQuery m, ScalarDegree r)
              -> m (PlaceHolders p, Record c (Maybe r))
 queryScalar' ur =
   unsafeAddPlaceHolders . liftQualify $
-  Record.unsafeFromScalarSubQuery <$> untypeRelation (unUnique ur)
+  unsafeRecordFromScalarQuery <$> untypeRelation (unUnique ur)
 
 -- | Scalar sub-query.
 queryScalar :: (MonadQualify ConfigureQuery m, ScalarDegree r)

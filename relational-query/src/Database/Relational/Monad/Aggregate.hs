@@ -37,10 +37,9 @@ import Database.Relational.SqlSyntax
   (Duplication, SubQuery, JoinProduct,
    OrderingTerm, composeOrderBy, aggregatedSubQuery,
    AggregateColumnRef, AggregateElem, composePartitionBy,
-   Record, Predicate, untypeRecord, )
+   Record, Predicate, untypeRecord, recordColumns, unsafeRecordFromColumns, )
 import qualified Database.Relational.SqlSyntax as Syntax
 
-import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable (PlaceHolders, SqlContext)
 import Database.Relational.Monad.Class (MonadRestrict(..))
 import Database.Relational.Monad.Trans.Restricting
@@ -96,9 +95,9 @@ over :: SqlContext c
      -> Window c ()
      -> Record c a
 wp `over` win =
-  Record.unsafeFromSqlTerms
+  unsafeRecordFromColumns
   [ c <> OVER <> SQL.paren (composePartitionBy pt <> composeOrderBy ot)
-  | c <- Record.columns wp
+  | c <- recordColumns wp
   ]  where (((), ot), pt) = extractWindow win
 
 infix 8 `over`

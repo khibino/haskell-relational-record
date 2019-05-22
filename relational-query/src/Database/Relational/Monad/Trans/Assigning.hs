@@ -32,7 +32,7 @@ import Data.Monoid (mconcat)
 import Data.DList (DList, toList)
 
 import Database.Relational.Internal.ContextType (Flat)
-import Database.Relational.SqlSyntax (Record, Assignment)
+import Database.Relational.SqlSyntax (Record, recordColumns, Assignment)
 
 import Database.Relational.Pi (Pi)
 import Database.Relational.Table (Table, recordWidth)
@@ -68,8 +68,8 @@ targetRecord pi' tbl = Record.wpi (recordWidth tbl) (Record.unsafeFromTable tbl)
 assignTo :: Monad m => Record Flat v ->  AssignTarget r v -> Assignings r m ()
 assignTo vp target = Assignings . tell
                      $ \t -> mconcat $ zipWith (curry pure) (leftsR t) rights  where
-  leftsR = Record.columns . targetRecord target
-  rights = Record.columns vp
+  leftsR = recordColumns . targetRecord target
+  rights = recordColumns vp
 
 -- | Add and assginment.
 (<-#) :: Monad m => AssignTarget r v -> Record Flat v -> Assignings r m ()
