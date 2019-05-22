@@ -18,8 +18,10 @@ import Database.Relational.Internal.Config (Config)
 import Database.Relational.SqlSyntax.Types
   (Duplication (..), SetOp (..), BinOp (..),
    OrderingTerm, AggregateElem,
-   JoinProduct, Predicate, WhenClauses (..), CaseClause (..), SubQuery (..),
-   Column (..), Tuple, Guard, Record, record, untypeRecord, recordWidth, )
+   JoinProduct, WhenClauses (..), CaseClause (..), SubQuery (..),
+   Column (..), Tuple, Guard, )
+import Database.Relational.SqlSyntax.Record
+  (Predicate, Record, record, untypeRecord, recordWidth, )
 
 
 -- | Unsafely generate flat 'SubQuery' from untyped components.

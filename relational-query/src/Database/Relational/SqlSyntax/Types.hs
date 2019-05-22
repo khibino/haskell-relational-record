@@ -37,15 +37,8 @@ module Database.Relational.SqlSyntax.Types (
   -- * Case
   CaseClause (..), WhenClauses(..),
 
-  -- * Column, Tuple, Record and Projection
+  -- * Column and Tuple
   Column (..), Tuple, tupleWidth, Guard,
-  Record, untypeRecord, record, PI,
-  recordWidth,
-  typeFromRawColumns,
-  typeFromScalarSubQuery,
-
-  -- * Predicate to restrict Query result
-  Predicate,
   )  where
 
 import Prelude hiding (and, product)
@@ -179,31 +172,3 @@ type Guard = [Column]
 -- | Width of 'Tuple'.
 tupleWidth :: Tuple -> Int
 tupleWidth = length
-
--- | Phantom typed record. Projected into Haskell record type 't'.
-newtype Record c t =
-  Record
-  { untypeRecord :: Tuple {- ^ Discard record type -} }  deriving Show
-
--- | Type for predicate to restrict of query result.
-type Predicate c = Record c (Maybe Bool)
-
--- | Type for projection function.
-type PI c a b = Record c a -> Record c b
-
--- | Unsafely type 'Tuple' value to 'Record' type.
-record :: Tuple -> Record c t
-record = Record
-
--- | Width of 'Record'.
-recordWidth :: Record c r -> Int
-recordWidth = length . untypeRecord
-
--- | Unsafely generate 'Record' from SQL string list.
-typeFromRawColumns :: [StringSQL] -- ^ SQL string list specifies columns
-                   -> Record c r  -- ^ Result 'Record'
-typeFromRawColumns =  record . map RawColumn
-
--- | Unsafely generate 'Record' from scalar sub-query.
-typeFromScalarSubQuery :: SubQuery -> Record c t
-typeFromScalarSubQuery = record . (:[]) . Scalar
