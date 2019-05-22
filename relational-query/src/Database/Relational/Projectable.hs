@@ -29,7 +29,7 @@ module Database.Relational.Projectable (
   pwPlaceholder, placeholder', placeholder, unitPlaceHolder, unitPH,
 
   -- * Projectable into SQL strings
-  unsafeShowSql', unsafeShowSql,
+  showRecordSql,
 
   -- * Operators
   (.=.), (.<.), (.<=.), (.>.), (.>=.), (.<>.),
@@ -74,11 +74,14 @@ module Database.Relational.Projectable (
   sum', sumMaybe, avg, avgMaybe,
   max', maxMaybe, min', minMaybe,
   every, any', some',
+
+  -- * Deprecated
+  unsafeShowSql', unsafeShowSql,
   ) where
 
 import Prelude hiding (pi)
 
-import Data.String (IsString)
+import Data.String (IsString (..))
 import Data.Functor.ProductIsomorphic
   ((|$|), ProductIsoApplicative, pureP, (|*|), )
 
@@ -141,15 +144,23 @@ values :: (LiteralSQL t, OperatorContext c) => [t] -> RecordList (Record c) t
 values =  Record.list . map value
 
 
+-- | Unsafely generate SQL expression string from record object.
+--   String interface of 'unsafeShowSql''.
+showRecordSql :: Record c a    -- ^ Source record object
+              -> String -- ^ Result SQL expression string.
+showRecordSql =  showStringSQL . rowStringSQL . recordColumns
+
 -- | Unsafely generate SQL expression term from record object.
 unsafeShowSql' :: Record c a -> StringSQL
-unsafeShowSql' = rowStringSQL . recordColumns
+unsafeShowSql' = fromString . showRecordSql
+{-# DEPRECATED unsafeShowSql' "use `fromString . showRecordSql` instead of this." #-}
 
 -- | Unsafely generate SQL expression string from record object.
 --   String interface of 'unsafeShowSql''.
 unsafeShowSql :: Record c a    -- ^ Source record object
               -> String -- ^ Result SQL expression string.
-unsafeShowSql =  showStringSQL . unsafeShowSql'
+unsafeShowSql = showRecordSql
+{-# DEPRECATED unsafeShowSql "use showRecordSql instead of this." #-}
 
 
 -- | Binary operator type for SQL String.
