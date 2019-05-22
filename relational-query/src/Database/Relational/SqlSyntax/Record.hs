@@ -15,11 +15,14 @@ module Database.Relational.SqlSyntax.Record (
   typeFromRawColumns,
   typeFromScalarSubQuery,
 
+  recordRawColumns,
+
   -- * Predicate to restrict Query result
   Predicate,
 ) where
 
 import Database.Relational.Internal.String (StringSQL)
+import Database.Relational.SqlSyntax.Fold (showColumn)
 import Database.Relational.SqlSyntax.Types (SubQuery, Tuple, Column (..))
 
 
@@ -50,3 +53,8 @@ typeFromRawColumns =  record . map RawColumn
 -- | Unsafely generate 'Record' from scalar sub-query.
 typeFromScalarSubQuery :: SubQuery -> Record c t
 typeFromScalarSubQuery = record . (:[]) . Scalar
+
+-- | Get column SQL string list of record.
+recordRawColumns :: Record c r  -- ^ Source 'Record'
+                 -> [StringSQL] -- ^ Result SQL string list
+recordRawColumns = map showColumn . untypeRecord

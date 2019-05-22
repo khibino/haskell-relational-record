@@ -20,10 +20,9 @@ module Database.Relational.SqlSyntax.Fold (
   -- * Sub-query columns
   column,
 
-  -- * Tuple and Record
+  -- * Tuple and Column
   tupleFromJoinedSubQuery,
-
-  recordRawColumns,
+  showColumn,
 
   -- * Query restriction
   composeWhere, composeHaving,
@@ -57,7 +56,6 @@ import Database.Relational.SqlSyntax.Types
    AggregateBitKey (..), AggregateSet (..),  AggregateElem (..), AggregateColumnRef,
    Order (..), Nulls (..), OrderingTerm, )
 import qualified Database.Relational.SqlSyntax.Types as Syntax
-import Database.Relational.SqlSyntax.Record (Record, untypeRecord)
 
 
 -- | Compose duplication attribute string.
@@ -234,11 +232,6 @@ showTupleIndex up i
     showColumn $ up !! i
   | otherwise                                         =
     error $ "showTupleIndex: index out of bounds: " ++ show i
-
--- | Get column SQL string list of record.
-recordRawColumns :: Record c r  -- ^ Source 'Record'
-                 -> [StringSQL] -- ^ Result SQL string list
-recordRawColumns = map showColumn . untypeRecord
 
 
 -- | Show product tree of query into SQL. StringSQL result.
