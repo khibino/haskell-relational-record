@@ -36,8 +36,9 @@ import Data.Monoid (Last (Last, getLast))
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.Internal.Config (addQueryTableAliasAS)
 import Database.Relational.SqlSyntax
-  (Duplication (All), NodeAttr (Just', Maybe), Predicate, Record,
-   SubQuery, Qualified, JoinProduct, restrictProduct, growProduct, )
+  (Duplication (All), NodeAttr (Just', Maybe),
+   SubQuery, Qualified, JoinProduct, restrictProduct, growProduct,
+   Predicate, Record, unsafeRecordFromQualifiedQuery)
 
 import Database.Relational.Monad.Class (liftQualify)
 import Database.Relational.Monad.Trans.JoinState
@@ -90,7 +91,7 @@ unsafeSubQueryWithAttr :: MonadQualify ConfigureQuery q
 unsafeSubQueryWithAttr attr qsub = do
   addAS <- addQueryTableAliasAS <$> liftQualify askConfig
   updateContext (updateProduct (`growProduct` (attr, (addAS, qsub))))
-  return $ Record.unsafeFromQualifiedSubQuery qsub
+  return $ unsafeRecordFromQualifiedQuery qsub
 
 -- | Basic monadic join operation using 'MonadQuery'.
 queryWithAttr :: NodeAttr

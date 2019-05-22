@@ -55,15 +55,14 @@ import Database.Relational.Internal.Config
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.Internal.String (StringSQL, stringSQL, showStringSQL)
 import Database.Relational.SqlSyntax
-  (Record, untypeRecord, composeWhere, composeSets,
-   composeChunkValuesWithColumns, composeValuesListWithColumns,
-   Qualified, SubQuery, corrSubQueryTerm)
+  (Record, untypeRecord, unsafeRecordFromQualifiedQuery,
+   Qualified, SubQuery, corrSubQueryTerm, composeWhere, composeSets,
+   composeChunkValuesWithColumns, composeValuesListWithColumns)
 
 import Database.Relational.Pi (Pi, id')
 import qualified Database.Relational.Pi.Unsafe as Pi
 import Database.Relational.Table (Table, TableDerivable, derivedTable)
 import qualified Database.Relational.Table as Table
-import qualified Database.Relational.Record as Record
 import Database.Relational.ProjectableClass (LiteralSQL)
 import Database.Relational.Projectable
   (PlaceHolders, unitPH, pwPlaceholder, placeholder, (><), value, )
@@ -84,7 +83,7 @@ withQualified tbl q = do
   let qualTandR :: MonadQualify ConfigureQuery m => Table r -> m (Qualified SubQuery, Record c r)
       qualTandR tbl_ = liftQualify $ do
         qq <- qualifyQuery $ Table.toSubQuery tbl_
-        return (qq, Record.unsafeFromQualifiedSubQuery qq {- qualified record expression -})
+        return (qq, unsafeRecordFromQualifiedQuery qq {- qualified record expression -})
   (qq, r) <- qualTandR tbl
   void $ q r -- placeholder info is not used
   addAS <- addModifyTableAliasAS <$> liftQualify askConfig

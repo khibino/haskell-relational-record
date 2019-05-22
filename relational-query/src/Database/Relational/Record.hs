@@ -13,11 +13,8 @@
 --
 -- This module defines interfaces of projected record type.
 module Database.Relational.Record (
-  -- * Record data structure and interface
-  unsafeFromQualifiedSubQuery,
+  -- * Record and Table
   unsafeFromTable,
-
-  unsafeStringSql,
 
   -- * Projections
   pi, piMaybe, piMaybe',
@@ -45,10 +42,9 @@ import Database.Record.Persistable (PersistableRecordWidth)
 import qualified Database.Record.KeyConstraint as KeyConstraint
 
 import Database.Relational.Internal.ContextType (Aggregated, Flat)
-import Database.Relational.Internal.String (StringSQL, listStringSQL, rowStringSQL)
+import Database.Relational.Internal.String (StringSQL, listStringSQL)
 import Database.Relational.SqlSyntax
-  (SubQuery, Qualified, Record, recordColumns,
-   unsafeRecordFromColumns, tupleFromJoinedSubQuery,)
+  (SubQuery, Record, recordColumns, unsafeRecordFromColumns,)
 import qualified Database.Relational.SqlSyntax as Syntax
 
 import Database.Relational.Table (Table)
@@ -56,14 +52,6 @@ import qualified Database.Relational.Table as Table
 import Database.Relational.Pi (Pi)
 import qualified Database.Relational.Pi.Unsafe as UnsafePi
 
-
--- | Unsafely get SQL term from 'Record'.
-unsafeStringSql :: Record c r -> StringSQL
-unsafeStringSql = rowStringSQL . recordColumns
-
--- | Unsafely generate  'Record' from qualified (joined) sub-query.
-unsafeFromQualifiedSubQuery :: Qualified SubQuery -> Record c t
-unsafeFromQualifiedSubQuery = Syntax.record . tupleFromJoinedSubQuery
 
 -- | Unsafely generate unqualified 'Record' from 'Table'.
 unsafeFromTable :: Table r

@@ -91,8 +91,9 @@ import Database.Record
 import Database.Record.Persistable (runPersistableRecordWidth)
 
 import Database.Relational.Internal.ContextType (Flat, Exists, OverWindow)
-import Database.Relational.Internal.String (StringSQL, stringSQL, showStringSQL)
-import Database.Relational.SqlSyntax (Record, Predicate)
+import Database.Relational.Internal.String
+  (StringSQL, stringSQL, showStringSQL, rowStringSQL)
+import Database.Relational.SqlSyntax (Record, Predicate, recordColumns)
 import qualified Database.Relational.SqlSyntax as Syntax
 
 import Database.Relational.Pure ()
@@ -142,7 +143,7 @@ values =  Record.list . map value
 
 -- | Unsafely generate SQL expression term from record object.
 unsafeShowSql' :: Record c a -> StringSQL
-unsafeShowSql' = Record.unsafeStringSql
+unsafeShowSql' = rowStringSQL . recordColumns
 
 -- | Unsafely generate SQL expression string from record object.
 --   String interface of 'unsafeShowSql''.

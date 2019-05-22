@@ -1,6 +1,6 @@
 -- |
 -- Module      : Database.Relational.SqlSyntax.Record
--- Copyright   : 2019 Kei Hibino
+-- Copyright   : 2013-2019 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
@@ -15,6 +15,7 @@ module Database.Relational.SqlSyntax.Record (
 
   unsafeRecordFromColumns,
   unsafeRecordFromScalarQuery,
+  unsafeRecordFromQualifiedQuery,
 
   -- * Predicate to restrict Query result
   Predicate,
@@ -24,9 +25,9 @@ module Database.Relational.SqlSyntax.Record (
 ) where
 
 import Database.Relational.Internal.String (StringSQL)
-import Database.Relational.SqlSyntax.Fold (showColumn)
+import Database.Relational.SqlSyntax.Fold (showColumn, tupleFromJoinedSubQuery)
 import Database.Relational.SqlSyntax.Types
-  (SubQuery, Tuple, Column (..),
+  (Qualified, SubQuery, Tuple, Column (..),
    WhenClauses (..), CaseClause (..),)
 
 
@@ -62,6 +63,10 @@ unsafeRecordFromColumns =  record . map RawColumn
 -- | Unsafely generate 'Record' from scalar sub-query.
 unsafeRecordFromScalarQuery :: SubQuery -> Record c t
 unsafeRecordFromScalarQuery = record . (:[]) . Scalar
+
+-- | Unsafely generate  'Record' from qualified (joined) sub-query.
+unsafeRecordFromQualifiedQuery :: Qualified SubQuery -> Record c t
+unsafeRecordFromQualifiedQuery = record . tupleFromJoinedSubQuery
 
 -----
 
