@@ -24,11 +24,10 @@ module Database.Relational.Monad.Simple (
 
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax
-  (Duplication, OrderingTerm, JoinProduct, Predicate,  Record,
-   SubQuery, flatSubQuery, )
+  (Duplication, OrderingTerm, JoinProduct,
+   SubQuery, flatSubQuery, Predicate,  Record, untypeRecord)
 import qualified Database.Relational.SqlSyntax as Syntax
 
-import qualified Database.Relational.Record as Record
 import Database.Relational.Monad.Trans.Join (join')
 import Database.Relational.Monad.Trans.Restricting (restrictings)
 import Database.Relational.Monad.Trans.Ordering
@@ -64,4 +63,4 @@ toSubQuery :: SimpleQuery p r        -- ^ 'SimpleQuery'' to run
 toSubQuery q = do
    (((((_ph, pj), ot), rs), pd), da) <- extract q
    c <- askConfig
-   return $ flatSubQuery c (Record.untype pj) da pd (map Record.untype rs) ot
+   return $ flatSubQuery c (untypeRecord pj) da pd (map untypeRecord rs) ot

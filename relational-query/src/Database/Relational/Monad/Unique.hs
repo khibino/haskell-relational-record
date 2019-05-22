@@ -24,16 +24,15 @@ import Control.Applicative (Applicative)
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax
   (Duplication, Record, JoinProduct, NodeAttr,
-   SubQuery, Predicate, Qualified, )
+   SubQuery, Predicate, Qualified,
+   flatSubQuery, untypeRecord, )
 
-import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable (PlaceHolders)
 import Database.Relational.Monad.Class (MonadQualify, MonadQuery)
 import Database.Relational.Monad.Trans.Join (unsafeSubQueryWithAttr)
 import Database.Relational.Monad.Trans.Restricting (restrictings)
 import Database.Relational.Monad.BaseType (ConfigureQuery, askConfig)
 import Database.Relational.Monad.Type (QueryCore, extractCore)
-import Database.Relational.SqlSyntax (flatSubQuery)
 
 
 -- | Unique query monad type.
@@ -56,4 +55,4 @@ toSubQuery :: QueryUnique (PlaceHolders p, Record c r) -- ^ 'QueryUnique' to run
 toSubQuery q = do
   ((((_ph, pj), rs), pd), da) <- extract q
   c <- askConfig
-  return $ flatSubQuery c (Record.untype pj) da pd (map Record.untype rs) []
+  return $ flatSubQuery c (untypeRecord pj) da pd (map untypeRecord rs) []

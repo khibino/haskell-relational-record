@@ -34,9 +34,10 @@ import qualified Language.SQL.Keyword as SQL
 
 import Database.Relational.Internal.ContextType (Flat, Aggregated, OverWindow)
 import Database.Relational.SqlSyntax
-  (Duplication, Record, SubQuery, Predicate, JoinProduct,
+  (Duplication, SubQuery, JoinProduct,
    OrderingTerm, composeOrderBy, aggregatedSubQuery,
-   AggregateColumnRef, AggregateElem, composePartitionBy, )
+   AggregateColumnRef, AggregateElem, composePartitionBy,
+   Record, Predicate, untypeRecord, )
 import qualified Database.Relational.SqlSyntax as Syntax
 
 import qualified Database.Relational.Record as Record
@@ -84,7 +85,7 @@ toSubQuery :: AggregatedQuery p r       -- ^ 'AggregatedQuery' to run
 toSubQuery q = do
   (((((((_ph, pj), ot), grs), ag), rs), pd), da) <- extract q
   c <- askConfig
-  return $ aggregatedSubQuery c (Record.untype pj) da pd (map Record.untype rs) ag (map Record.untype grs) ot
+  return $ aggregatedSubQuery c (untypeRecord pj) da pd (map untypeRecord rs) ag (map untypeRecord grs) ot
 
 extractWindow :: Window c a -> ((a, [OrderingTerm]), [AggregateColumnRef])
 extractWindow =  runIdentity . extractAggregateTerms . extractOrderingTerms

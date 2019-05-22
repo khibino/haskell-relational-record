@@ -14,11 +14,7 @@
 -- This module defines interfaces of projected record type.
 module Database.Relational.Record (
   -- * Record data structure and interface
-  Record,
-
-  width,
   columns,
-  untype,
 
   unsafeFromSqlTerms,
   unsafeFromQualifiedSubQuery,
@@ -55,7 +51,7 @@ import qualified Database.Record.KeyConstraint as KeyConstraint
 import Database.Relational.Internal.ContextType (Aggregated, Flat)
 import Database.Relational.Internal.String (StringSQL, listStringSQL, rowStringSQL)
 import Database.Relational.SqlSyntax
-  (SubQuery, Qualified, Tuple, Record,
+  (SubQuery, Qualified, Record,
    recordRawColumns, tupleFromJoinedSubQuery,)
 import qualified Database.Relational.SqlSyntax as Syntax
 
@@ -73,14 +69,6 @@ unsafeStringSql = rowStringSQL . recordRawColumns
 columns :: Record c r  -- ^ Source 'Record'
         -> [StringSQL] -- ^ Result SQL string list
 columns = recordRawColumns
-
--- | Width of 'Record'.
-width :: Record c r -> Int
-width = Syntax.recordWidth
-
--- | Get untyped tuple.
-untype :: Record c r -> Tuple
-untype = Syntax.untypeRecord
 
 
 -- | Unsafely generate  'Record' from qualified (joined) sub-query.
