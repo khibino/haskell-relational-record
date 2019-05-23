@@ -1,5 +1,5 @@
 -- |
--- Module      : Database.Relational.SqlSyntax.Record
+-- Module      : Database.Relational.Typed.Record
 -- Copyright   : 2013-2019 Kei Hibino
 -- License     : BSD3
 --
@@ -7,8 +7,8 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- This module defines typed record structure.
-module Database.Relational.SqlSyntax.Record (
+-- This module defines typed record structure and interfaces.
+module Database.Relational.Typed.Record (
   -- * Record
   Record, untypeRecord, record, PI,
   recordWidth, recordColumns,

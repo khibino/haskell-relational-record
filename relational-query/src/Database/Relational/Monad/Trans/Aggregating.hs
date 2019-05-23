@@ -39,10 +39,10 @@ import Data.Functor.Identity (Identity (runIdentity))
 import Database.Relational.Internal.ContextType
   (Flat, Aggregated, Set, Power, SetList)
 import Database.Relational.SqlSyntax
-  (Record, untypeRecord,
-   AggregateColumnRef, AggregateElem, aggregateColumnRef, AggregateSet, aggregateGroupingSet,
+  (AggregateColumnRef, AggregateElem, aggregateColumnRef, AggregateSet, aggregateGroupingSet,
    AggregateBitKey, aggregatePowerKey, aggregateRollup, aggregateCube, aggregateSets,
    AggregateKey, aggregateKeyRecord, aggregateKeyElement, unsafeAggregateKey)
+import Database.Relational.Typed.Record (Record, untypeRecord)
 
 import qualified Database.Relational.Record as Record
 import Database.Relational.Monad.Class

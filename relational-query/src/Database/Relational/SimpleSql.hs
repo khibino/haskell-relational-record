@@ -30,7 +30,7 @@ import Database.Record.ToSql (untypedUpdateValuesIndex)
 
 import Database.Relational.Internal.String
   (StringSQL, stringSQL, showStringSQL, rowConsStringSQL, )
-import Database.Relational.SqlSyntax (recordColumns)
+import Database.Relational.Typed.Record (recordColumns)
 
 import Database.Relational.Pi (Pi, expandIndexes')
 import Database.Relational.Table (Table, name, columns, recordWidth)

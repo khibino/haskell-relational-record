@@ -37,8 +37,9 @@ import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.Internal.Config (addQueryTableAliasAS)
 import Database.Relational.SqlSyntax
   (Duplication (All), NodeAttr (Just', Maybe),
-   SubQuery, Qualified, JoinProduct, restrictProduct, growProduct,
-   Predicate, Record, unsafeRecordFromQualifiedQuery)
+   SubQuery, Qualified, JoinProduct, restrictProduct, growProduct, )
+import Database.Relational.Typed.Record
+  (Predicate, Record, unsafeRecordFromQualifiedQuery)
 
 import Database.Relational.Monad.Class (liftQualify)
 import Database.Relational.Monad.Trans.JoinState

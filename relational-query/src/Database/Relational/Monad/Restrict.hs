@@ -20,7 +20,7 @@ module Database.Relational.Monad.Restrict (
 
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.Internal.Config (Config)
-import Database.Relational.SqlSyntax (Predicate, Record)
+import Database.Relational.Typed.Record (Predicate, Record)
 
 import Database.Relational.Monad.Trans.Restricting
   (Restrictings, extractRestrict)

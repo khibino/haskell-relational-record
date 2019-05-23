@@ -36,9 +36,10 @@ import Database.Relational.Internal.ContextType (Flat, Aggregated, OverWindow)
 import Database.Relational.SqlSyntax
   (Duplication, SubQuery, JoinProduct,
    OrderingTerm, composeOrderBy, aggregatedSubQuery,
-   AggregateColumnRef, AggregateElem, composePartitionBy,
-   Record, Predicate, untypeRecord, recordColumns, unsafeRecordFromColumns, )
+   AggregateColumnRef, AggregateElem, composePartitionBy, )
 import qualified Database.Relational.SqlSyntax as Syntax
+import Database.Relational.Typed.Record
+  (Record, Predicate, untypeRecord, recordColumns, unsafeRecordFromColumns)
 
 import Database.Relational.Projectable (PlaceHolders, SqlContext)
 import Database.Relational.Monad.Class (MonadRestrict(..))

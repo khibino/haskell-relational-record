@@ -27,7 +27,8 @@ import GHC.OverloadedLabels (IsLabel(..))
 import GHC.TypeLits (Symbol)
 
 import Database.Record (PersistableWidth)
-import Database.Relational.SqlSyntax (PI)
+import Database.Relational.Typed.Record (PI)
+
 import Database.Relational.Pi (Pi)
 import Database.Relational.Projectable ((!))
 

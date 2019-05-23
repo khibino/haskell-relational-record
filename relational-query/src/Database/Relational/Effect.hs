@@ -55,9 +55,10 @@ import Database.Relational.Internal.Config
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.Internal.String (StringSQL, stringSQL, showStringSQL)
 import Database.Relational.SqlSyntax
-  (Record, untypeRecord, unsafeRecordFromQualifiedQuery,
-   Qualified, SubQuery, corrSubQueryTerm, composeWhere, composeSets,
+  (Qualified, SubQuery, corrSubQueryTerm, composeWhere, composeSets,
    composeChunkValuesWithColumns, composeValuesListWithColumns)
+import Database.Relational.Typed.Record
+  (Record, untypeRecord, unsafeRecordFromQualifiedQuery)
 
 import Database.Relational.Pi (Pi, id')
 import qualified Database.Relational.Pi.Unsafe as Pi

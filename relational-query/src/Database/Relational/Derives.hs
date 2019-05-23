@@ -34,7 +34,7 @@ module Database.Relational.Derives (
 import Database.Record (PersistableWidth, ToSql)
 import Database.Record.ToSql (unsafeUpdateValuesWithIndexes)
 
-import Database.Relational.SqlSyntax (Record)
+import Database.Relational.Typed.Record (Record)
 
 import Database.Relational.Table (Table, TableDerivable)
 import Database.Relational.Pi (Pi, expandIndexes)

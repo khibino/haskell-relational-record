@@ -87,12 +87,12 @@ library
                        Database.Relational.Internal.UntypedTable
                        Database.Relational.Internal.Literal
                        Database.Relational.SqlSyntax.Types
-                       Database.Relational.SqlSyntax.Record
                        Database.Relational.SqlSyntax.Join
                        Database.Relational.SqlSyntax.Aggregate
                        Database.Relational.SqlSyntax.Query
                        Database.Relational.SqlSyntax.Fold
                        Database.Relational.SqlSyntax.Updates
+                       Database.Relational.Typed.Record
                        Database.Relational.Monad.Trans.JoinState
                        Database.Relational.Monad.Trans.Qualify
                        Database.Relational.InternalTH.Base

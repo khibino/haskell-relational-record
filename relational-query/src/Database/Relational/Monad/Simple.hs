@@ -25,8 +25,9 @@ module Database.Relational.Monad.Simple (
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax
   (Duplication, OrderingTerm, JoinProduct,
-   SubQuery, flatSubQuery, Predicate,  Record, untypeRecord)
+   SubQuery, flatSubQuery)
 import qualified Database.Relational.SqlSyntax as Syntax
+import Database.Relational.Typed.Record (Predicate,  Record, untypeRecord)
 
 import Database.Relational.Monad.Trans.Join (join')
 import Database.Relational.Monad.Trans.Restricting (restrictings)

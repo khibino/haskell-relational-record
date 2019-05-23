@@ -23,9 +23,9 @@ import Control.Applicative (Applicative)
 
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax
-  (Duplication, Record, JoinProduct, NodeAttr,
-   SubQuery, Predicate, Qualified,
-   flatSubQuery, untypeRecord, )
+  (Duplication, JoinProduct, NodeAttr,
+   SubQuery, Qualified, flatSubQuery, )
+import Database.Relational.Typed.Record (Record, untypeRecord, Predicate)
 
 import Database.Relational.Projectable (PlaceHolders)
 import Database.Relational.Monad.Class (MonadQualify, MonadQuery)

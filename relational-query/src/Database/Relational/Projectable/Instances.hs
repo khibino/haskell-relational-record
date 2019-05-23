@@ -19,7 +19,8 @@ import Data.Functor.ProductIsomorphic
 
 import Database.Relational.Internal.ContextType
   (Flat, Aggregated, OverWindow)
-import Database.Relational.SqlSyntax (unsafeRecordFromColumns)
+import Database.Relational.Typed.Record (unsafeRecordFromColumns)
+
 import Database.Relational.Projectable.Unsafe
   (SqlContext (..), OperatorContext, AggregatedContext, PlaceHolders (..))
 

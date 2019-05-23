@@ -22,8 +22,8 @@ module Database.Relational.Monad.Class
        ) where
 
 import Database.Relational.Internal.ContextType (Flat, Aggregated)
-import Database.Relational.SqlSyntax
-  (Duplication (..), Predicate, Record, AggregateKey)
+import Database.Relational.SqlSyntax (Duplication (..), AggregateKey)
+import Database.Relational.Typed.Record (Predicate, Record)
 
 import Database.Relational.Projectable (PlaceHolders)
 import Database.Relational.Monad.BaseType (ConfigureQuery, Relation)

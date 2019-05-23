@@ -30,8 +30,8 @@ module Database.Relational.Relation (
 import Control.Applicative ((<$>))
 
 import Database.Relational.Internal.ContextType (Flat, Aggregated)
-import Database.Relational.SqlSyntax
-  (NodeAttr(Just', Maybe), Record, unsafeRecordFromScalarQuery)
+import Database.Relational.SqlSyntax (NodeAttr(Just', Maybe))
+import Database.Relational.Typed.Record (Record, unsafeRecordFromScalarQuery)
 
 import Database.Relational.Monad.BaseType
   (ConfigureQuery, qualifyQuery,

@@ -14,7 +14,7 @@ module Database.Relational.Projectable.Unsafe (
   ) where
 
 import Database.Relational.Internal.String (StringSQL)
-import Database.Relational.SqlSyntax (Record)
+import Database.Relational.Typed.Record (Record)
 
 -- | Interface to project SQL terms unsafely.
 class SqlContext c where

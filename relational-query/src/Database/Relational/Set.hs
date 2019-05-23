@@ -26,9 +26,9 @@ module Database.Relational.Set (
 import Data.Functor.ProductIsomorphic ((|$|), (|*|))
 
 import Database.Relational.Internal.ContextType (Flat)
-import Database.Relational.SqlSyntax
-  (Duplication (Distinct, All), SubQuery, Predicate, Record, )
+import Database.Relational.SqlSyntax (Duplication (Distinct, All), SubQuery)
 import qualified Database.Relational.SqlSyntax as Syntax
+import Database.Relational.Typed.Record (Predicate, Record)
 
 import Database.Relational.Monad.BaseType
   (Relation, unsafeTypeRelation, untypeRelation, )

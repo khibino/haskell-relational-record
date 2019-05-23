@@ -32,7 +32,8 @@ import Data.Monoid (mconcat)
 import Data.DList (DList, toList)
 
 import Database.Relational.Internal.ContextType (Flat)
-import Database.Relational.SqlSyntax (Record, recordColumns, Assignment)
+import Database.Relational.SqlSyntax (Assignment)
+import Database.Relational.Typed.Record (Record, recordColumns)
 
 import Database.Relational.Pi (Pi)
 import Database.Relational.Table (Table, recordWidth)

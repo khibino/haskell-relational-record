@@ -15,8 +15,8 @@ module Database.Relational.Monad.Type
        ) where
 
 import Database.Relational.Internal.ContextType (Flat)
-import Database.Relational.SqlSyntax
-  (Duplication, Record, JoinProduct, Predicate, )
+import Database.Relational.SqlSyntax (Duplication, JoinProduct)
+import Database.Relational.Typed.Record (Record, Predicate)
 
 import Database.Relational.Projectable (PlaceHolders)
 import Database.Relational.Monad.BaseType (ConfigureQuery)

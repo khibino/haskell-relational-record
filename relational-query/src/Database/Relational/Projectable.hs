@@ -96,8 +96,8 @@ import Database.Record.Persistable (runPersistableRecordWidth)
 import Database.Relational.Internal.ContextType (Flat, Exists, OverWindow)
 import Database.Relational.Internal.String
   (StringSQL, stringSQL, showStringSQL, rowStringSQL)
-import Database.Relational.SqlSyntax (Record, Predicate, recordColumns)
-import qualified Database.Relational.SqlSyntax as Syntax
+import Database.Relational.Typed.Record (Record, Predicate, recordColumns)
+import qualified Database.Relational.Typed.Record as Record
 
 import Database.Relational.Pure ()
 import Database.Relational.TupleInstances ()
@@ -365,7 +365,7 @@ caseSearch :: OperatorContext c
            => [(Predicate c, Record c a)] -- ^ Each when clauses
            -> Record c a                            -- ^ Else result record
            -> Record c a                            -- ^ Result record
-caseSearch = Syntax.caseSearch
+caseSearch = Record.caseSearch
 
 -- | Same as 'caseSearch', but you can write like <when list> `casesOrElse` <else clause>.
 casesOrElse :: OperatorContext c
@@ -387,7 +387,7 @@ case' :: OperatorContext c
       -> [(Record c a, Record c b)] -- ^ Each when clauses
       -> Record c b                 -- ^ Else result record
       -> Record c b                 -- ^ Result record
-case' = Syntax.case'
+case' = Record.case'
 
 -- | Uncurry version of 'case'', and you can write like ... `casesOrElse'` <else clause>.
 casesOrElse' :: OperatorContext c
