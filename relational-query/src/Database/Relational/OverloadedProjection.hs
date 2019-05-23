@@ -11,7 +11,7 @@
 #if __GLASGOW_HASKELL__ >= 800
 -- |
 -- Module      : Database.Relational.OverloadedProjection
--- Copyright   : 2017 Kei Hibino
+-- Copyright   : 2017-2019 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
