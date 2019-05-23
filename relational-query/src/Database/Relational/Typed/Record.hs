@@ -36,10 +36,9 @@ import Data.Functor.ProductIsomorphic
 
 import Database.Relational.Internal.ContextType (Aggregated, Flat)
 import Database.Relational.Internal.String (StringSQL)
-import Database.Relational.SqlSyntax.Fold (showColumn, tupleFromJoinedSubQuery)
-import Database.Relational.SqlSyntax.Types
-  (Qualified, SubQuery, Tuple, Column (..),
-   WhenClauses (..), CaseClause (..),)
+import Database.Relational.SqlSyntax
+  (Qualified, SubQuery, Tuple, Column (..), WhenClauses (..), CaseClause (..),
+   showColumn, tupleFromJoinedSubQuery, )
 
 
 -- | Phantom typed record. Projected into Haskell record type 't'.
