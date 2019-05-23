@@ -145,7 +145,6 @@ values =  Record.list . map value
 
 
 -- | Unsafely generate SQL expression string from record object.
---   String interface of 'unsafeShowSql''.
 showRecordSql :: Record c a    -- ^ Source record object
               -> String -- ^ Result SQL expression string.
 showRecordSql =  showStringSQL . rowStringSQL . recordColumns
@@ -157,8 +156,8 @@ unsafeShowSql' = fromString . showRecordSql
 
 -- | Unsafely generate SQL expression string from record object.
 --   String interface of 'unsafeShowSql''.
-unsafeShowSql :: Record c a    -- ^ Source record object
-              -> String -- ^ Result SQL expression string.
+unsafeShowSql :: Record c a -- ^ Source record object
+              -> String     -- ^ Result SQL expression string.
 unsafeShowSql = showRecordSql
 {-# DEPRECATED unsafeShowSql "use showRecordSql instead of this." #-}
 
@@ -169,7 +168,7 @@ type SqlBinOp = Keyword -> Keyword -> Keyword
 -- | Unsafely make unary operator for records from SQL keyword.
 unsafeUniOp :: SqlContext c2
             => (Keyword -> Keyword) -> Record c1 a -> Record c2 b
-unsafeUniOp u = unsafeProjectSql' . u . unsafeShowSql'
+unsafeUniOp u = unsafeProjectSql' . u . rowStringSQL . recordColumns
 
 unsafeFlatUniOp :: SqlContext c
                 => Keyword -> Record c a -> Record c b
@@ -179,8 +178,9 @@ unsafeFlatUniOp kw = unsafeUniOp (SQL.paren . SQL.defineUniOp kw)
 unsafeBinOp :: SqlContext k
             => SqlBinOp
             -> Record k a -> Record k b -> Record k c
-unsafeBinOp op a b = unsafeProjectSql' . SQL.paren $
-                     op (unsafeShowSql' a) (unsafeShowSql' b)
+unsafeBinOp op a b =
+  unsafeProjectSql' . SQL.paren $
+  op (rowStringSQL $ recordColumns a) (rowStringSQL $ recordColumns b)
 
 -- | Unsafely make binary operator to compare records from string binary operator.
 compareBinOp :: SqlContext c
@@ -244,7 +244,7 @@ not' =  unsafeFlatUniOp SQL.NOT
 exists :: OperatorContext c
        => RecordList (Record Exists) r -> Record c (Maybe Bool)
 exists =  unsafeProjectSql' . SQL.paren . SQL.defineUniOp SQL.EXISTS
-          . Record.unsafeStringSqlList unsafeShowSql'
+          . Record.unsafeStringSqlList (rowStringSQL . recordColumns)
 
 -- | Concatinate operator corresponding SQL /||/ .
 (.||.) :: OperatorContext c
@@ -312,7 +312,7 @@ negate' =  unsafeFlatUniOp $ SQL.word "-"
 
 unsafeCastProjectable :: SqlContext c
                       => Record c a -> Record c b
-unsafeCastProjectable = unsafeProjectSql' . unsafeShowSql'
+unsafeCastProjectable = unsafeProjectSql' . rowStringSQL . recordColumns
 
 -- | Number fromIntegral uni-operator.
 fromIntegral' :: (SqlContext c, Integral a, Num b)
@@ -406,8 +406,9 @@ caseMaybe v cs = case' v cs nothing
 -- | Binary operator corresponding SQL /IN/ .
 in' :: OperatorContext c
     => Record c t -> RecordList (Record c) t -> Record c (Maybe Bool)
-in' a lp = unsafeProjectSql' . SQL.paren
-           $ SQL.in' (unsafeShowSql' a) (Record.unsafeStringSqlList unsafeShowSql' lp)
+in' a lp =
+  unsafeProjectSql' . SQL.paren $
+  SQL.in' (rowStringSQL $ recordColumns a) (Record.unsafeStringSqlList (rowStringSQL . recordColumns) lp)
 
 -- | Operator corresponding SQL /IS NULL/ , and extended against record types.
 isNothing :: (OperatorContext c, HasColumnConstraint NotNull r)
