@@ -40,11 +40,11 @@ import Database.Relational.SqlSyntax
    SubQuery, Qualified, JoinProduct, restrictProduct, growProduct, )
 import Database.Relational.Typed.Record
   (Predicate, Record, unsafeRecordFromQualifiedQuery)
+import qualified Database.Relational.Typed.Record as Record
 
 import Database.Relational.Monad.Class (liftQualify)
 import Database.Relational.Monad.Trans.JoinState
   (JoinContext, primeJoinContext, updateProduct, joinProduct)
-import qualified Database.Relational.Record as Record
 import Database.Relational.Projectable (PlaceHolders, unsafeAddPlaceHolders)
 import Database.Relational.Monad.BaseType (ConfigureQuery, askConfig, qualifyQuery, Relation, untypeRelation)
 import Database.Relational.Monad.Class (MonadQualify (..), MonadQuery (..))

@@ -43,8 +43,8 @@ import Database.Relational.SqlSyntax
    AggregateBitKey, aggregatePowerKey, aggregateRollup, aggregateCube, aggregateSets,
    AggregateKey, aggregateKeyRecord, aggregateKeyElement, unsafeAggregateKey)
 import Database.Relational.Typed.Record (Record, untypeRecord)
+import qualified Database.Relational.Typed.Record as Record
 
-import qualified Database.Relational.Record as Record
 import Database.Relational.Monad.Class
   (MonadQualify (..), MonadRestrict(..), MonadQuery(..), MonadAggregate(..), MonadPartition(..))
 

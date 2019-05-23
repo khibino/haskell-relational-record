@@ -1,6 +1,4 @@
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 
 -- |
 -- Module      : Database.Relational.Record
@@ -23,9 +21,6 @@ module Database.Relational.Record (
   pi, piMaybe, piMaybe',
   wpi,
 
-  flattenMaybe, just,
-
-  unsafeToAggregated, unsafeToFlat, unsafeChangeContext,
   unsafeStringSqlNotNullMaybe,
 
   -- * List of Record
@@ -34,9 +29,6 @@ module Database.Relational.Record (
   ) where
 
 import Prelude hiding (pi)
-import Data.Functor.ProductIsomorphic
-  (ProductIsoFunctor, (|$|), ProductIsoApplicative, pureP, (|*|),
-   ProductIsoEmpty, pureE, peRight, peLeft, )
 
 import qualified Language.SQL.Keyword as SQL
 
@@ -44,12 +36,10 @@ import Database.Record (HasColumnConstraint, NotNull, NotNullColumnConstraint, P
 import Database.Record.Persistable (PersistableRecordWidth)
 import qualified Database.Record.KeyConstraint as KeyConstraint
 
-import Database.Relational.Internal.ContextType (Aggregated, Flat)
 import Database.Relational.Internal.String (StringSQL, listStringSQL)
 import Database.Relational.SqlSyntax (SubQuery, showSQL)
 import Database.Relational.Typed.Record
-  (Record, record, untypeRecord, recordColumns, unsafeRecordFromColumns,
-   Predicate, PI)
+  (Record, recordColumns, unsafeRecordFromColumns, Predicate, PI, )
 
 import Database.Relational.Table (Table)
 import qualified Database.Relational.Table as Table
@@ -98,28 +88,6 @@ piMaybe' :: PersistableWidth a
          -> Record c (Maybe b) -- ^ Narrower 'Record'. 'Maybe' type result
 piMaybe' = unsafeProject persistableWidth
 
-unsafeCast :: Record c r -> Record c r'
-unsafeCast = record . untypeRecord
-
--- | Composite nested 'Maybe' on record phantom type.
-flattenMaybe :: Record c (Maybe (Maybe a)) -> Record c (Maybe a)
-flattenMaybe =  unsafeCast
-
--- | Cast into 'Maybe' on record phantom type.
-just :: Record c r -> Record c (Maybe r)
-just =  unsafeCast
-
--- | Unsafely cast context type tag.
-unsafeChangeContext :: Record c r -> Record c' r
-unsafeChangeContext = record . untypeRecord
-
--- | Unsafely lift to aggregated context.
-unsafeToAggregated :: Record Flat r -> Record Aggregated r
-unsafeToAggregated =  unsafeChangeContext
-
--- | Unsafely down to flat context.
-unsafeToFlat :: Record Aggregated r -> Record Flat r
-unsafeToFlat =  unsafeChangeContext
 
 notNullMaybeConstraint :: HasColumnConstraint NotNull r => Record c (Maybe r) -> NotNullColumnConstraint r
 notNullMaybeConstraint =  const KeyConstraint.columnConstraint
@@ -127,23 +95,6 @@ notNullMaybeConstraint =  const KeyConstraint.columnConstraint
 -- | Unsafely get SQL string expression of not null key record.
 unsafeStringSqlNotNullMaybe :: HasColumnConstraint NotNull r => Record c (Maybe r) -> StringSQL
 unsafeStringSqlNotNullMaybe p = (!!  KeyConstraint.index (notNullMaybeConstraint p)) . recordColumns $ p
-
-pempty :: Record c ()
-pempty = record []
-
--- | Map 'Record' which result type is record.
-instance ProductIsoFunctor (Record c) where
-  _ |$| p = unsafeCast p
-
--- | Compose 'Record' using applicative style.
-instance ProductIsoApplicative (Record c) where
-  pureP _ = unsafeCast pempty
-  pf |*| pa = record $ untypeRecord pf ++ untypeRecord pa
-
-instance ProductIsoEmpty (Record c) () where
-  pureE   = pureP ()
-  peRight = unsafeCast
-  peLeft  = unsafeCast
 
 -- | Projected record list type for row list.
 data RecordList p t = List [p t]

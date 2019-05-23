@@ -1,3 +1,5 @@
+{-# LANGUAGE MultiParamTypeClasses #-}
+
 -- |
 -- Module      : Database.Relational.Typed.Record
 -- Copyright   : 2013-2019 Kei Hibino
@@ -17,6 +19,10 @@ module Database.Relational.Typed.Record (
   unsafeRecordFromScalarQuery,
   unsafeRecordFromQualifiedQuery,
 
+  -- * Cast phantom types
+  flattenMaybe, just,
+  unsafeToAggregated, unsafeToFlat, unsafeChangeContext,
+
   -- * Predicate to restrict Query result
   Predicate,
 
@@ -24,6 +30,11 @@ module Database.Relational.Typed.Record (
   caseSearch, case',
 ) where
 
+import Data.Functor.ProductIsomorphic
+  (ProductIsoFunctor, (|$|), ProductIsoApplicative, pureP, (|*|),
+   ProductIsoEmpty, pureE, peRight, peLeft, )
+
+import Database.Relational.Internal.ContextType (Aggregated, Flat)
 import Database.Relational.Internal.String (StringSQL)
 import Database.Relational.SqlSyntax.Fold (showColumn, tupleFromJoinedSubQuery)
 import Database.Relational.SqlSyntax.Types
@@ -67,6 +78,44 @@ unsafeRecordFromScalarQuery = record . (:[]) . Scalar
 -- | Unsafely generate  'Record' from qualified (joined) sub-query.
 unsafeRecordFromQualifiedQuery :: Qualified SubQuery -> Record c t
 unsafeRecordFromQualifiedQuery = record . tupleFromJoinedSubQuery
+
+-----
+
+-- | Composite nested 'Maybe' on record phantom type.
+flattenMaybe :: Record c (Maybe (Maybe a)) -> Record c (Maybe a)
+flattenMaybe = record . untypeRecord
+
+-- | Cast into 'Maybe' on record phantom type.
+just :: Record c r -> Record c (Maybe r)
+just = record . untypeRecord
+
+-- | Unsafely cast context type tag.
+unsafeChangeContext :: Record c r -> Record c' r
+unsafeChangeContext = record . untypeRecord
+
+-- | Unsafely lift to aggregated context.
+unsafeToAggregated :: Record Flat r -> Record Aggregated r
+unsafeToAggregated = record . untypeRecord
+
+-- | Unsafely down to flat context.
+unsafeToFlat :: Record Aggregated r -> Record Flat r
+unsafeToFlat = record . untypeRecord
+
+-----
+
+-- | Map 'Record' which result type is record.
+instance ProductIsoFunctor (Record c) where
+  _ |$| p = record $ untypeRecord p
+
+-- | Compose 'Record' using applicative style.
+instance ProductIsoApplicative (Record c) where
+  pureP _ = record []
+  pf |*| pa = record $ untypeRecord pf ++ untypeRecord pa
+
+instance ProductIsoEmpty (Record c) () where
+  pureE   = pureP ()
+  peRight = record . untypeRecord
+  peLeft  = record . untypeRecord
 
 -----
 

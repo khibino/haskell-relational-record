@@ -106,6 +106,7 @@ import Database.Relational.ProjectableClass
   (LiteralSQL, showLiteral, )
 import Database.Relational.Record (RecordList)
 import qualified Database.Relational.Record as Record
+  (list, unsafeStringSqlList, unsafeStringSqlNotNullMaybe, pi, piMaybe, piMaybe')
 import Database.Relational.Projectable.Unsafe
   (SqlContext (..), OperatorContext, AggregatedContext, PlaceHolders (..))
 import Database.Relational.Projectable.Instances ()
