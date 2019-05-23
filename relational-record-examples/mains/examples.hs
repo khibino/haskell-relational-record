@@ -1157,7 +1157,7 @@ updateAccount_9_4_2 = updateNoPH $ \proj -> do
   wheres $ exists $ tl
 
 toDay :: SqlContext c => Record c (Maybe LocalTime) -> Record c (Maybe Day)
-toDay dt = unsafeProjectSql $ "date(" ++ unsafeShowSql dt ++ ")"
+toDay dt = unsafeProjectSql $ "date(" ++ showRecordSql dt ++ ")"
 
 -- |
 -- (original) Deleting data
