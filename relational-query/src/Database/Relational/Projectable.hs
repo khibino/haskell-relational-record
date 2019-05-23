@@ -96,7 +96,8 @@ import Database.Record.Persistable (runPersistableRecordWidth)
 import Database.Relational.Internal.ContextType (Flat, Exists, OverWindow)
 import Database.Relational.Internal.String
   (StringSQL, stringSQL, showStringSQL, rowStringSQL)
-import Database.Relational.Typed.Record (Record, Predicate, recordColumns)
+import Database.Relational.Typed.Record
+  (Record, Predicate, recordColumns, RecordList)
 import qualified Database.Relational.Typed.Record as Record
 
 import Database.Relational.Pure ()
@@ -104,9 +105,8 @@ import Database.Relational.TupleInstances ()
 import Database.Relational.Pi (Pi)
 import Database.Relational.ProjectableClass
   (LiteralSQL, showLiteral, )
-import Database.Relational.Record (RecordList)
 import qualified Database.Relational.Record as Record
-  (list, unsafeStringSqlList, unsafeStringSqlNotNullMaybe, pi, piMaybe, piMaybe')
+  (unsafeStringSqlNotNullMaybe, pi, piMaybe, piMaybe')
 import Database.Relational.Projectable.Unsafe
   (SqlContext (..), OperatorContext, AggregatedContext, PlaceHolders (..))
 import Database.Relational.Projectable.Instances ()

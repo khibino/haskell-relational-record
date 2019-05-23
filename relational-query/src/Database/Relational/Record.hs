@@ -24,22 +24,19 @@ module Database.Relational.Record (
   unsafeStringSqlNotNullMaybe,
 
   -- * List of Record
-  RecordList, list, unsafeListFromSubQuery,
-  unsafeStringSqlList
+  RecordList, list,
   ) where
 
 import Prelude hiding (pi)
-
-import qualified Language.SQL.Keyword as SQL
 
 import Database.Record (HasColumnConstraint, NotNull, NotNullColumnConstraint, PersistableWidth, persistableWidth)
 import Database.Record.Persistable (PersistableRecordWidth)
 import qualified Database.Record.KeyConstraint as KeyConstraint
 
-import Database.Relational.Internal.String (StringSQL, listStringSQL)
-import Database.Relational.SqlSyntax (SubQuery, showSQL)
+import Database.Relational.Internal.String (StringSQL)
 import Database.Relational.Typed.Record
-  (Record, recordColumns, unsafeRecordFromColumns, Predicate, PI, )
+  (Record, recordColumns, unsafeRecordFromColumns, Predicate, PI,
+   RecordList, list)
 
 import Database.Relational.Table (Table)
 import qualified Database.Relational.Table as Table
@@ -95,21 +92,3 @@ notNullMaybeConstraint =  const KeyConstraint.columnConstraint
 -- | Unsafely get SQL string expression of not null key record.
 unsafeStringSqlNotNullMaybe :: HasColumnConstraint NotNull r => Record c (Maybe r) -> StringSQL
 unsafeStringSqlNotNullMaybe p = (!!  KeyConstraint.index (notNullMaybeConstraint p)) . recordColumns $ p
-
--- | Projected record list type for row list.
-data RecordList p t = List [p t]
-                    | Sub SubQuery
-
--- | Make projected record list from 'Record' list.
-list :: [p t] -> RecordList p t
-list =  List
-
--- | Make projected record list from 'SubQuery'.
-unsafeListFromSubQuery :: SubQuery -> RecordList p t
-unsafeListFromSubQuery =  Sub
-
--- | Map record show operatoions and concatinate to single SQL expression.
-unsafeStringSqlList :: (p t -> StringSQL) -> RecordList p t -> StringSQL
-unsafeStringSqlList sf = d  where
-  d (List ps) = listStringSQL $ map sf ps
-  d (Sub sub) = SQL.paren $ showSQL sub

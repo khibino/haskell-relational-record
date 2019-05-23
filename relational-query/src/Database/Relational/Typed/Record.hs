@@ -28,17 +28,22 @@ module Database.Relational.Typed.Record (
 
   -- * case records
   caseSearch, case',
+
+  -- * List of Record
+  RecordList, list, unsafeListFromSubQuery,
+  unsafeStringSqlList
 ) where
 
 import Data.Functor.ProductIsomorphic
   (ProductIsoFunctor, (|$|), ProductIsoApplicative, pureP, (|*|),
    ProductIsoEmpty, pureE, peRight, peLeft, )
+import qualified Language.SQL.Keyword as SQL
 
 import Database.Relational.Internal.ContextType (Aggregated, Flat)
-import Database.Relational.Internal.String (StringSQL)
+import Database.Relational.Internal.String (StringSQL, listStringSQL)
 import Database.Relational.SqlSyntax
   (Qualified, SubQuery, Tuple, Column (..), WhenClauses (..), CaseClause (..),
-   showColumn, tupleFromJoinedSubQuery, )
+   showColumn, tupleFromJoinedSubQuery, showSQL, )
 
 
 -- | Phantom typed record. Projected into Haskell record type 't'.
@@ -149,3 +154,23 @@ case' v ws e =
     record [ Case c i | i <- [0 .. recordWidth e - 1] ]
   where
     c = CaseSimple (untypeRecord v) $ whenClauses "case'" ws e
+
+-----
+
+-- | Projected record list type for row list.
+data RecordList p t = List [p t]
+                    | Sub SubQuery
+
+-- | Make projected record list from 'Record' list.
+list :: [p t] -> RecordList p t
+list =  List
+
+-- | Make projected record list from 'SubQuery'.
+unsafeListFromSubQuery :: SubQuery -> RecordList p t
+unsafeListFromSubQuery =  Sub
+
+-- | Map record show operatoions and concatinate to single SQL expression.
+unsafeStringSqlList :: (p t -> StringSQL) -> RecordList p t -> StringSQL
+unsafeStringSqlList sf = d  where
+  d (List ps) = listStringSQL $ map sf ps
+  d (Sub sub) = SQL.paren $ showSQL sub
