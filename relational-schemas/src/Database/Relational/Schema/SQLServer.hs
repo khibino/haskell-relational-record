@@ -21,7 +21,7 @@ import Data.Map (Map)
 import Data.Time (LocalTime, Day, TimeOfDay)
 import Database.Relational (Query, Relation, PlaceHolders, Record, Flat,
                             (!), (.=.), (><), asc, relationalQuery, just, placeholder',
-                            query, relation', unsafeShowSql,
+                            query, relation', showRecordSql,
                             unsafeProjectSql, wheres)
 
 import Database.Relational.Schema.SQLServer.Config
@@ -84,7 +84,7 @@ sqlsrvTrue =  unsafeProjectSql "1"
 
 sqlsrvObjectId :: Record Flat String -> Record Flat String -> Record Flat Int32
 sqlsrvObjectId s t = unsafeProjectSql $
-    "OBJECT_ID(" ++ unsafeShowSql s ++ " + '.' + " ++ unsafeShowSql t ++ ")"
+    "OBJECT_ID(" ++ showRecordSql s ++ " + '.' + " ++ showRecordSql t ++ ")"
 
 sqlsrvOidPlaceHolder :: (PlaceHolders (String, String), Record Flat Int32)
 sqlsrvOidPlaceHolder =  (nsParam >< relParam, oid)
@@ -106,7 +106,7 @@ columnTypeRelation = relation' $ do
   where
     (params, oid) = sqlsrvOidPlaceHolder
     sqlsrvSchemaName i = unsafeProjectSql $
-        "SCHEMA_NAME(" ++ unsafeShowSql i ++ ")"
+        "SCHEMA_NAME(" ++ showRecordSql i ++ ")"
 
 columnTypeQuerySQL :: Query (String, String) ((Columns, Types), String)
 columnTypeQuerySQL =  relationalQuery columnTypeRelation
