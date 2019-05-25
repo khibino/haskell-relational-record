@@ -21,9 +21,9 @@ module Database.Relational.Monad.Assign (
 import Database.Relational.Internal.Config (Config)
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax (Assignment)
+import Database.Relational.Typed.Table (Table)
 import Database.Relational.Typed.Record (Predicate, Record)
 
-import Database.Relational.Table (Table)
 import Database.Relational.Monad.Restrict (Restrict)
 import qualified Database.Relational.Monad.Restrict as Restrict
 import Database.Relational.Monad.Trans.Assigning (Assignings, extractAssignments)

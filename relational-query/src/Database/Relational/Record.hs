@@ -34,12 +34,12 @@ import Database.Record.Persistable (PersistableRecordWidth)
 import qualified Database.Record.KeyConstraint as KeyConstraint
 
 import Database.Relational.Internal.String (StringSQL)
+import Database.Relational.Typed.Table (Table)
+import qualified Database.Relational.Typed.Table as Table
 import Database.Relational.Typed.Record
   (Record, recordColumns, unsafeRecordFromColumns, Predicate, PI,
    RecordList, list)
 
-import Database.Relational.Table (Table)
-import qualified Database.Relational.Table as Table
 import Database.Relational.Pi (Pi)
 import qualified Database.Relational.Pi.Unsafe as UnsafePi
 

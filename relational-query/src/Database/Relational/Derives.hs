@@ -35,9 +35,9 @@ import Database.Record (PersistableWidth, ToSql)
 import Database.Record.ToSql (unsafeUpdateValuesWithIndexes)
 
 import Database.Relational.Typed.Record (Record)
+import Database.Relational.Typed.Table (Table, TableDerivable)
 import qualified Database.Relational.Typed.Record as Record
 
-import Database.Relational.Table (Table, TableDerivable)
 import Database.Relational.Pi (Pi, expandIndexes)
 import qualified Database.Relational.Record as Record (wpi)
 import Database.Relational.Projectable (placeholder, (.=.), (!))

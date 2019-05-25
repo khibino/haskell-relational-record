@@ -34,10 +34,11 @@ import Prelude hiding (seq)
 
 import Database.Record (PersistableWidth)
 import Database.Relational.Internal.Config (Config, defaultConfig)
+import Database.Relational.Typed.Table (TableDerivable, derivedTable, Table)
+
 import Database.Relational.Monad.Class (wheres)
 import Database.Relational.Monad.BaseType (Relation)
 import Database.Relational.Monad.Trans.Assigning ((<-#))
-import Database.Relational.Table (TableDerivable, derivedTable, Table)
 import Database.Relational.Pi (Pi)
 import Database.Relational.Constraint
   (HasConstraintKey (..), Key, Primary, projectionKey)

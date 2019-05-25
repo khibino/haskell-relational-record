@@ -89,7 +89,7 @@ import Database.Record.TH
 import qualified Database.Record.TH as Record
 
 import Database.Relational
-  (Table, Pi, id', Relation, LiteralSQL,
+  (Table, TableDerivable (..), Pi, id', Relation, LiteralSQL,
    NameConfig (..), SchemaNameMode (..), IdentifierQuotation (..), defaultConfig,
    Config (normalizedTableName, disableOverloadedProjection, disableSpecializedProjection,
            schemaNameMode, nameConfig, identifierQuotation),
@@ -100,7 +100,6 @@ import Database.Relational
 import Database.Relational.InternalTH.Base (defineTuplePi, defineRecordProjections)
 import Database.Relational.Scalar (defineScalarDegree)
 import Database.Relational.Constraint (unsafeDefineConstraintKey)
-import Database.Relational.Table (TableDerivable (..))
 import qualified Database.Relational.Table as Table
 import Database.Relational.Relation (derivedRelation)
 import Database.Relational.Type (unsafeTypedQuery)

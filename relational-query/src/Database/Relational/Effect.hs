@@ -57,13 +57,13 @@ import Database.Relational.Internal.String (StringSQL, stringSQL, showStringSQL)
 import Database.Relational.SqlSyntax
   (Qualified, SubQuery, corrSubQueryTerm, composeWhere, composeSets,
    composeChunkValuesWithColumns, composeValuesListWithColumns)
+import Database.Relational.Typed.Table (Table, TableDerivable, derivedTable)
+import qualified Database.Relational.Typed.Table as Table
 import Database.Relational.Typed.Record
   (Record, untypeRecord, unsafeRecordFromQualifiedQuery)
 
 import Database.Relational.Pi (Pi, id')
 import qualified Database.Relational.Pi.Unsafe as Pi
-import Database.Relational.Table (Table, TableDerivable, derivedTable)
-import qualified Database.Relational.Table as Table
 import Database.Relational.ProjectableClass (LiteralSQL)
 import Database.Relational.Projectable
   (PlaceHolders, unitPH, pwPlaceholder, placeholder, (><), value, )

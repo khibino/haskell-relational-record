@@ -31,6 +31,8 @@ import Control.Applicative ((<$>))
 
 import Database.Relational.Internal.ContextType (Flat, Aggregated)
 import Database.Relational.SqlSyntax (NodeAttr(Just', Maybe))
+import Database.Relational.Typed.Table (Table, TableDerivable, derivedTable)
+import qualified Database.Relational.Typed.Table as Table
 import Database.Relational.Typed.Record
   (Record, unsafeRecordFromScalarQuery, RecordList)
 import qualified Database.Relational.Typed.Record as Record
@@ -46,8 +48,6 @@ import Database.Relational.Monad.Aggregate (QueryAggregate, AggregatedQuery)
 import qualified Database.Relational.Monad.Aggregate as Aggregate
 import Database.Relational.Monad.Unique (QueryUnique, unsafeUniqueSubQuery)
 import qualified Database.Relational.Monad.Unique as Unique
-import Database.Relational.Table (Table, TableDerivable, derivedTable)
-import qualified Database.Relational.Table as Table
 import Database.Relational.Scalar (ScalarDegree)
 import Database.Relational.Pi (Pi)
 import qualified Database.Relational.Record as Record (wpi)

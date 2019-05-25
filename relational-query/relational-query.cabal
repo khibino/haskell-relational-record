@@ -92,6 +92,7 @@ library
                        Database.Relational.SqlSyntax.Query
                        Database.Relational.SqlSyntax.Fold
                        Database.Relational.SqlSyntax.Updates
+                       Database.Relational.Typed.Table
                        Database.Relational.Typed.Record
                        Database.Relational.Monad.Trans.JoinState
                        Database.Relational.Monad.Trans.Qualify

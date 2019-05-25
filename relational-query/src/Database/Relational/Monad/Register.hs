@@ -17,8 +17,8 @@ module Database.Relational.Monad.Register (
 
 import Database.Relational.Internal.Config (Config)
 import Database.Relational.SqlSyntax (Assignment)
+import Database.Relational.Typed.Table (Table)
 
-import Database.Relational.Table (Table)
 import Database.Relational.Monad.BaseType (ConfigureQuery, configureQuery)
 import Database.Relational.Monad.Trans.Assigning (Assignings, extractAssignments)
 

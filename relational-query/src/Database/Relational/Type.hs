@@ -68,6 +68,7 @@ import Database.Record (PersistableWidth)
 import Database.Relational.Internal.Config (Config, defaultConfig)
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.Internal.String (showStringSQL)
+import Database.Relational.Typed.Table (Table, TableDerivable, derivedTable)
 import Database.Relational.Typed.Record (Record)
 
 import Database.Relational.Monad.BaseType (Relation, sqlFromRelationWith)
@@ -80,7 +81,6 @@ import Database.Relational.Effect
    deleteFromRestriction, updateFromUpdateTarget, piRegister,
    sqlChunkFromInsertTarget, sqlFromInsertTarget, sqlChunksFromRecordList)
 import Database.Relational.Pi (Pi)
-import Database.Relational.Table (Table, TableDerivable, derivedTable)
 import Database.Relational.ProjectableClass (LiteralSQL)
 import Database.Relational.Projectable (PlaceHolders, unitPH)
 import Database.Relational.SimpleSql
