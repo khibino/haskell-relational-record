@@ -117,7 +117,7 @@ instance ProductIsoApplicative (Pi a) where
     Pi $ \wr ->
            let (_, wab) = runPi pab wr
                (_, wb)  = runPi pb  wr in
-             (Map $ unsafeExpandIndexes' wr pab ++ unsafeExpandIndexes' wr pb,
+             (Map $ expandIndexes' wr pab ++ expandIndexes' wr pb,
               wab |*| wb)
 
 instance ProductIsoEmpty (Pi a) () where
