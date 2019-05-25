@@ -61,7 +61,7 @@ unsafePiAppend' = d  where
 newtype Pi r0 r1 = Pi { runPi :: PersistableRecordWidth r0 -> (Pi' r0 r1, PersistableRecordWidth r1) }
 
 instance PersistableWidth r0 => Show (Pi r0 r1) where
-  show p = unwords ["Pi", show $ unsafeExpandIndexes p]
+  show p = unwords ["Pi", show $ expandIndexes p]
 
 unsafePiAppend :: (PersistableRecordWidth b' -> PersistableRecordWidth b)
                -> (PersistableRecordWidth c' -> PersistableRecordWidth c)
