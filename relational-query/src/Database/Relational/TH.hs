@@ -3,7 +3,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ExplicitForAll #-}
 {-# LANGUAGE ParallelListComp #-}
-{-# LANGUAGE CPP #-}
 
 -- |
 -- Module      : Database.Relational.TH
