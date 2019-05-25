@@ -14,9 +14,6 @@ module Database.Relational.Record (
   -- * Record types
   Record, Predicate, PI,
 
-  -- * Record and Table
-  unsafeFromTable,
-
   -- * Projections
   pi, piMaybe, piMaybe',
   wpi,
@@ -34,8 +31,6 @@ import Database.Record.Persistable (PersistableRecordWidth)
 import qualified Database.Record.KeyConstraint as KeyConstraint
 
 import Database.Relational.Internal.String (StringSQL)
-import Database.Relational.Typed.Table (Table)
-import qualified Database.Relational.Typed.Table as Table
 import Database.Relational.Typed.Record
   (Record, recordColumns, unsafeRecordFromColumns, Predicate, PI,
    RecordList, list)
@@ -43,11 +38,6 @@ import Database.Relational.Typed.Record
 import Database.Relational.Pi (Pi)
 import qualified Database.Relational.Pi.Unsafe as UnsafePi
 
-
--- | Unsafely generate unqualified 'Record' from 'Table'.
-unsafeFromTable :: Table r
-                -> Record c r
-unsafeFromTable = unsafeRecordFromColumns . Table.columns
 
 -- | Unsafely trace projection path.
 unsafeProject :: PersistableRecordWidth a -> Record c a' -> Pi a b -> Record c b'
