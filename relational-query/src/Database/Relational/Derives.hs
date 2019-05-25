@@ -49,7 +49,7 @@ import Database.Relational.Constraint
    (Key, Primary, Unique, projectionKey, uniqueKey,
     HasConstraintKey(constraintKey))
 import qualified Database.Relational.Constraint as Constraint
-import Database.Relational.Type (KeyUpdate, typedKeyUpdate)
+import Database.Relational.SQL (KeyUpdate, typedKeyUpdate)
 
 
 -- | Query restricted with specified key.

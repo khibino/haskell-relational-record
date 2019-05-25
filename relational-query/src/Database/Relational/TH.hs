@@ -102,7 +102,7 @@ import Database.Relational.Scalar (defineScalarDegree)
 import Database.Relational.Constraint (unsafeDefineConstraintKey)
 import qualified Database.Relational.Table as Table
 import Database.Relational.Relation (derivedRelation)
-import Database.Relational.Type (unsafeTypedQuery)
+import Database.Relational.SQL (unsafeTypedQuery)
 import qualified Database.Relational.Pi.Unsafe as UnsafePi
 
 import qualified Database.Relational.InternalTH.Overloaded as Overloaded

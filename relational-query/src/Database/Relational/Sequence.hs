@@ -46,7 +46,7 @@ import Database.Relational.Projectable ((.<=.), value, unitPH, (!))
 import Database.Relational.ProjectableClass (LiteralSQL)
 import Database.Relational.Relation (tableOf)
 import qualified Database.Relational.Relation as Relation
-import Database.Relational.Type (Update, typedUpdate')
+import Database.Relational.SQL (Update, typedUpdate')
 
 
 -- | Basic record to express sequence-table.

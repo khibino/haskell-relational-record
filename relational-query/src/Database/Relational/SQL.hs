@@ -1,5 +1,5 @@
 -- |
--- Module      : Database.Relational.Type
+-- Module      : Database.Relational.SQL
 -- Copyright   : 2013-2019 Kei Hibino
 -- License     : BSD3
 --
@@ -7,8 +7,8 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- This module defines typed SQL.
-module Database.Relational.Type (
+-- This module defines finalized SQL definitions which convert from relational queries.
+module Database.Relational.SQL (
   -- * Typed query statement
   Query (..), unsafeTypedQuery,
 

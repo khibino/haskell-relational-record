@@ -36,7 +36,7 @@ module Database.Relational (
   module Database.Relational.Set,
   module Database.Relational.Sequence,
   module Database.Relational.Scalar,
-  module Database.Relational.Type,
+  module Database.Relational.SQL,
   module Database.Relational.Effect,
   module Database.Relational.Derives
   ) where
@@ -84,7 +84,7 @@ import Database.Relational.Relation
 import Database.Relational.Set
 import Database.Relational.Sequence
 import Database.Relational.Scalar (ScalarDegree)
-import Database.Relational.Type hiding
+import Database.Relational.SQL hiding
   (unsafeTypedKeyUpdate, unsafeTypedDelete,
    unsafeTypedInsert, unsafeTypedInsertQuery, )
 import Database.Relational.Effect

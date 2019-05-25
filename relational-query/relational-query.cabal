@@ -72,7 +72,7 @@ library
                        Database.Relational.Sequence
                        Database.Relational.Effect
                        Database.Relational.Scalar
-                       Database.Relational.Type
+                       Database.Relational.SQL
                        Database.Relational.Derives
                        Database.Relational.TH
 
