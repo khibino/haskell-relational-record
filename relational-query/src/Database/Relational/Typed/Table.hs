@@ -10,7 +10,7 @@
 -- This module defines table type which has table metadatas.
 module Database.Relational.Typed.Table (
   -- * Phantom typed table type
-  Table, untype, name, shortName, width, columns, index, table, toMaybe, recordWidth,
+  Table, untype, name, shortName, width, columns, index, table, recordWidth,
 
   toSubQuery,
 
@@ -63,10 +63,6 @@ index :: Table r
       -> Int       -- ^ Column index
       -> StringSQL -- ^ Column name String in SQL
 index = (!) . untype
-
--- | Cast phantom type into 'Maybe' type.
-toMaybe :: Table r -> Table (Maybe r)
-toMaybe (Table t) = Table t
 
 -- | Unsafely generate phantom typed table type.
 table :: String -> [String] -> Table r
