@@ -10,10 +10,13 @@
 -- This module defines interfaces about table metadata type.
 module Database.Relational.Table (
   -- * Phantom typed table type
-  Table, untype, name, shortName, width, columns, index, table,
+  Table, untype, tableName, shortName, width, tableColumns, index, table,
 
   -- * Table existence inference
-  TableDerivable (..)
+  TableDerivable (..),
+
+  -- * Deprecated
+  name, columns,
   ) where
 
 import Database.Relational.Typed.Table

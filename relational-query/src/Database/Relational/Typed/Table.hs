@@ -10,12 +10,15 @@
 -- This module defines table type which has table metadatas.
 module Database.Relational.Typed.Table (
   -- * Phantom typed table type
-  Table, untype, name, shortName, width, columns, index, table, recordWidth,
+  Table, untype, tableName, shortName, width, tableColumns, index, table, recordWidth,
 
   toSubQuery,
 
   -- * Table existence inference
-  TableDerivable (..)
+  TableDerivable (..),
+
+  -- * Deprecated
+  name, columns,
   ) where
 
 import Data.Array (listArray)
@@ -43,8 +46,13 @@ untype :: Table t -> UTable
 untype (Table u) = u
 
 -- | Name string of table in SQL
+tableName :: Table r -> String
+tableName = name' . untype
+
+-- | Name string of table in SQL
 name :: Table r -> String
-name = name' . untype
+name = tableName
+{-# DEPRECATED name "use tableName instead of this." #-}
 
 -- | Not qualified name string of table in SQL
 shortName :: Table r -> String
@@ -55,8 +63,13 @@ width :: Table r -> Int
 width = width' . untype
 
 -- | Column name strings in SQL
+tableColumns :: Table r -> [StringSQL]
+tableColumns = columns' . untype
+
+-- | Column name strings in SQL
 columns :: Table r -> [StringSQL]
-columns = columns' . untype
+columns = tableColumns
+{-# DEPRECATED columns "use tableColumns instead of this." #-}
 
 -- | Column name string in SQL specified by index
 index :: Table r

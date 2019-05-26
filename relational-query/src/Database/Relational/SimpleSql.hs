@@ -30,7 +30,7 @@ import Database.Record.ToSql (untypedUpdateValuesIndex)
 
 import Database.Relational.Internal.String
   (StringSQL, stringSQL, showStringSQL, rowConsStringSQL, )
-import Database.Relational.Typed.Table (Table, name, columns, recordWidth)
+import Database.Relational.Typed.Table (Table, tableName, tableColumns, recordWidth)
 import Database.Relational.Typed.Record (recordColumns, unsafeRecordFromColumns)
 
 import Database.Relational.Pi (Pi, expandIndexes')
@@ -77,10 +77,10 @@ updateOtherThanKeySQL :: Table r -- ^ Table metadata
           -> Pi r p  -- ^ Key columns
           -> String  -- ^ Result SQL
 updateOtherThanKeySQL tbl key =
-  updateOtherThanKeySQL' (name tbl) (columns tbl) (expandIndexes' (recordWidth tbl) key)
+  updateOtherThanKeySQL' (tableName tbl) (tableColumns tbl) (expandIndexes' (recordWidth tbl) key)
 
 -- | Generate prefix string of insert SQL.
 insertPrefixSQL :: Pi r r' -> Table r -> StringSQL
 insertPrefixSQL pi' table =
-  INSERT <> INTO <> stringSQL (name table) <> rowConsStringSQL cols  where
-    cols = recordColumns . Record.wpi (recordWidth table) (unsafeRecordFromColumns $ columns table) $ pi'
+  INSERT <> INTO <> stringSQL (tableName table) <> rowConsStringSQL cols  where
+    cols = recordColumns . Record.wpi (recordWidth table) (unsafeRecordFromColumns $ tableColumns table) $ pi'

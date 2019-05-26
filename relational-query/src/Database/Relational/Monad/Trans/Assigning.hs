@@ -33,7 +33,7 @@ import Data.DList (DList, toList)
 
 import Database.Relational.Internal.ContextType (Flat)
 import Database.Relational.SqlSyntax (Assignment)
-import Database.Relational.Typed.Table (Table)
+import Database.Relational.Typed.Table (Table, tableColumns)
 import qualified Database.Relational.Typed.Table as Table
 import Database.Relational.Typed.Record (Record, recordColumns, unsafeRecordFromColumns)
 
@@ -64,7 +64,7 @@ instance MonadQualify q m => MonadQualify q (Assignings r m) where
 type AssignTarget r v = Pi r v
 
 targetRecord :: AssignTarget r v ->  Table r -> Record Flat v
-targetRecord pi' tbl = Record.wpi (Table.recordWidth tbl) (unsafeRecordFromColumns $ Table.columns tbl) pi'
+targetRecord pi' tbl = Record.wpi (Table.recordWidth tbl) (unsafeRecordFromColumns $ tableColumns tbl) pi'
 
 -- | Add an assignment.
 assignTo :: Monad m => Record Flat v ->  AssignTarget r v -> Assignings r m ()

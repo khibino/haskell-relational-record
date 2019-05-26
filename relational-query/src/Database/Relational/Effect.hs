@@ -57,7 +57,7 @@ import Database.Relational.Internal.String (StringSQL, stringSQL, showStringSQL)
 import Database.Relational.SqlSyntax
   (Qualified, SubQuery, corrSubQueryTerm, composeWhere, composeSets,
    composeChunkValuesWithColumns, composeValuesListWithColumns)
-import Database.Relational.Typed.Table (Table, TableDerivable, derivedTable)
+import Database.Relational.Typed.Table (Table, TableDerivable, derivedTable, tableName)
 import qualified Database.Relational.Typed.Table as Table
 import Database.Relational.Typed.Record
   (Record, untypeRecord, unsafeRecordFromQualifiedQuery)
@@ -221,7 +221,7 @@ sqlChunkFromInsertTarget' :: Config
                           -> InsertTarget p r
                           -> StringSQL
 sqlChunkFromInsertTarget' config sz tbl (InsertTarget q) =
-    INSERT <> INTO <> stringSQL (Table.name tbl) <> composeChunkValuesWithColumns sz (asR tbl)
+    INSERT <> INTO <> stringSQL (tableName tbl) <> composeChunkValuesWithColumns sz (asR tbl)
   where
     (_ph, asR) = Register.extract q config
 
@@ -256,7 +256,7 @@ sqlChunksFromRecordList :: LiteralSQL r'
                         -> [r']
                         -> [StringSQL]
 sqlChunksFromRecordList config tbl pi' xs =
-    [ INSERT <> INTO <> stringSQL (Table.name tbl) <>
+    [ INSERT <> INTO <> stringSQL (tableName tbl) <>
       composeValuesListWithColumns
       [ tf tbl
       | r <- rs

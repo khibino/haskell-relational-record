@@ -41,7 +41,7 @@ module Database.Relational (
   module Database.Relational.Derives
   ) where
 
-import Database.Relational.Table (Table, TableDerivable (..))
+import Database.Relational.Table (Table, TableDerivable (..), tableName, tableColumns)
 import Database.Relational.SimpleSql (QuerySuffix, updateOtherThanKeySQL)
 import Database.Relational.Pure ()
 import Database.Relational.Pi
