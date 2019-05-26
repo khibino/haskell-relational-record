@@ -23,14 +23,14 @@ import Data.Array (listArray)
 import Database.Record.Persistable
   (PersistableWidth, PersistableRecordWidth, unsafePersistableRecordWidth)
 
-import Database.Relational.Internal.UntypedTable (Untyped (Untyped), name', width', columns', (!))
+import Database.Relational.Internal.UntypedTable (UTable (UTable), name', width', columns', (!))
 import Database.Relational.Internal.String (StringSQL, stringSQL, showStringSQL)
 import Database.Relational.SqlSyntax (SubQuery)
 import qualified Database.Relational.SqlSyntax as Syntax
 
 
 -- | Phantom typed table type
-newtype Table r = Table Untyped
+newtype Table r = Table UTable
 
 instance Show (Table r) where
   show t =
@@ -39,7 +39,7 @@ instance Show (Table r) where
      show . map showStringSQL $ columns t]
 
 -- | Untype table.
-untype :: Table t -> Untyped
+untype :: Table t -> UTable
 untype (Table u) = u
 
 -- | Name string of table in SQL
@@ -66,7 +66,7 @@ index = (!) . untype
 
 -- | Unsafely generate phantom typed table type.
 table :: String -> [String] -> Table r
-table n f = Table $ Untyped n w fa  where
+table n f = Table $ UTable n w fa  where
   w  = length f
   fa = listArray (0, w - 1) $ map stringSQL f
 

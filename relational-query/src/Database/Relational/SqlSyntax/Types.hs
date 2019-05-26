@@ -47,7 +47,7 @@ import Data.Traversable (Traversable)
 
 import Database.Relational.Internal.Config (Config)
 import Database.Relational.Internal.String (StringSQL)
-import Database.Relational.Internal.UntypedTable (Untyped)
+import Database.Relational.Internal.UntypedTable (UTable)
 
 
 -- | Result record duplication attribute
@@ -91,7 +91,7 @@ data AggregateElem = ColumnRef AggregateColumnRef
 newtype AggregateKey a = AggregateKey (a, AggregateElem)
 
 -- | Sub-query type
-data SubQuery = Table Untyped
+data SubQuery = Table UTable
               | Flat Config
                 Tuple Duplication JoinProduct [Guard]
                 [OrderingTerm]
@@ -164,7 +164,7 @@ data Column
   | Case CaseClause Int            -- ^ <n>th column of case clause
   deriving Show
 
--- | Untyped projected tuple. Forgot record type.
+-- | Un-record-typed projected tuple. Forgot record type.
 type Tuple = [Column]
 
 type Guard = [Column]

@@ -9,7 +9,8 @@
 --
 -- This module defines no-phantom table type which has table metadatas.
 module Database.Relational.Internal.UntypedTable (
-  Untyped (Untyped), name', width', columns', (!),
+  Untyped,
+  UTable (UTable), name', width', columns', (!),
   ) where
 
 import Data.Array (Array, elems)
@@ -18,27 +19,30 @@ import qualified Data.Array as Array
 import Database.Relational.Internal.String (StringSQL)
 
 
--- | Untyped typed table type
-data Untyped = Untyped String Int (Array Int StringSQL)  deriving Show
+type Untyped = UTable
+{-# DEPRECATED Untyped "use UTable" #-}
+
+-- | UTable - un-record-typed table type
+data UTable = UTable String Int (Array Int StringSQL)  deriving Show
 
 -- | Name string of table in SQL
-name' :: Untyped -> String
-name'       (Untyped n _ _) = n
+name' :: UTable -> String
+name'       (UTable n _ _) = n
 
 -- | Width of table
-width' :: Untyped -> Int
-width'      (Untyped _ w _) = w
+width' :: UTable -> Int
+width'      (UTable _ w _) = w
 
 -- | Column name strings in SQL
-columnArray :: Untyped -> Array Int StringSQL
-columnArray (Untyped _ _ c) = c
+columnArray :: UTable -> Array Int StringSQL
+columnArray (UTable _ _ c) = c
 
 -- | Column name strings in SQL
-columns' :: Untyped -> [StringSQL]
+columns' :: UTable -> [StringSQL]
 columns' =  elems . columnArray
 
 -- | Column name string in SQL specified by index
-(!) :: Untyped
+(!) :: UTable
     -> Int       -- ^ Column index
     -> StringSQL -- ^ Column name String in SQL
 t ! i = columnArray t Array.! i

@@ -43,8 +43,8 @@ import qualified Language.SQL.Keyword as SQL
 
 import Database.Relational.Internal.Config
   (Config (productUnitSupport), ProductUnitSupport (PUSupported, PUNotSupported), )
-import Database.Relational.Internal.UntypedTable ((!))
-import qualified Database.Relational.Internal.UntypedTable as UntypedTable
+import Database.Relational.Internal.UntypedTable (UTable, (!))
+import qualified Database.Relational.Internal.UntypedTable as UTable
 import Database.Relational.Internal.String
   (StringSQL, stringSQL, rowStringSQL, showStringSQL, )
 import qualified Database.Relational.Internal.Literal as Lit
@@ -96,7 +96,7 @@ columnFromId qi i = qi <.> columnN i
 -- | Width of 'SubQuery'.
 width :: SubQuery -> Int
 width =  d  where
-  d (Table u)                     = UntypedTable.width' u
+  d (Table u)                     = UTable.width' u
   d (Bin _ l _)                   = width l
   d (Flat _ up _ _ _ _)           = Syntax.tupleWidth up
   d (Aggregated _ up _ _ _ _ _ _) = Syntax.tupleWidth up
@@ -106,17 +106,17 @@ queryWidth :: Qualified SubQuery -> Int
 queryWidth =  width . Syntax.unQualify
 
 -- | Generate SQL from table for top-level.
-fromTableToSQL :: UntypedTable.Untyped -> StringSQL
+fromTableToSQL :: UTable -> StringSQL
 fromTableToSQL t =
-  SELECT <> SQL.fold (|*|) (UntypedTable.columns' t) <>
-  FROM <> stringSQL (UntypedTable.name' t)
+  SELECT <> SQL.fold (|*|) (UTable.columns' t) <>
+  FROM <> stringSQL (UTable.name' t)
 
 -- | Generate normalized column SQL from table.
-fromTableToNormalizedSQL :: UntypedTable.Untyped -> StringSQL
+fromTableToNormalizedSQL :: UTable -> StringSQL
 fromTableToNormalizedSQL t = SELECT <> SQL.fold (|*|) columns' <>
-                             FROM <> stringSQL (UntypedTable.name' t)  where
+                             FROM <> stringSQL (UTable.name' t)  where
   columns' = zipWith asColumnN
-             (UntypedTable.columns' t)
+             (UTable.columns' t)
              [(0 :: Int)..]
 
 -- | Generate normalized column SQL from joined tuple.
@@ -145,7 +145,7 @@ normalizedSQL =  d  where
 toSQLs :: SubQuery
        -> (StringSQL, StringSQL) -- ^ sub-query SQL and top-level SQL
 toSQLs =  d  where
-  d (Table u)               = (stringSQL $ UntypedTable.name' u, fromTableToSQL u)
+  d (Table u)               = (stringSQL $ UTable.name' u, fromTableToSQL u)
   d (Bin (BinOp (op, da)) l r) = (SQL.paren q, q)  where
     q = mconcat [normalizedSQL l, showsSetOp op da, normalizedSQL r]
   d (Flat cf up da pd rs od)   = (SQL.paren q, q)  where
@@ -190,7 +190,7 @@ column qs =  d (Syntax.unQualify qs)  where
   d (Flat _ up _ _ _ _) i           = showTupleIndex up i
   d (Aggregated _ up _ _ _ _ _ _) i = showTupleIndex up i
 
--- | Make untyped tuple (qualified column list) from joined sub-query ('Qualified' 'SubQuery').
+-- | Make un-record-typed tuple (qualified column list) from joined sub-query ('Qualified' 'SubQuery').
 tupleFromJoinedSubQuery :: Qualified SubQuery -> Tuple
 tupleFromJoinedSubQuery qs = d $ Syntax.unQualify qs  where
   normalized = SubQueryRef <$> traverse (\q -> [0 .. width q - 1]) qs
