@@ -17,6 +17,30 @@ module Database.Relational.Table (
 
   -- * Deprecated
   name, columns,
+  recordWidth, toSubQuery, toMaybe,
   ) where
 
+
 import Database.Relational.Typed.Table
+  (Table, untype, tableName, shortName, width, tableColumns, index, table,
+   TableDerivable (..),)
+
+-- required from deprecated definitions
+import Database.Record.Persistable (PersistableRecordWidth)
+import Database.Relational.Internal.String (showStringSQL)
+import Database.Relational.SqlSyntax (SubQuery)
+import Database.Relational.Typed.Table
+  (name, columns,)
+import qualified Database.Relational.Typed.Table as Typed
+
+{-# DEPRECATED
+    recordWidth, toSubQuery, toMaybe
+    "low-level API, will be dropped in the future." #-}
+recordWidth :: Table r -> PersistableRecordWidth r
+recordWidth = Typed.recordWidth
+
+toSubQuery :: Table r -> SubQuery
+toSubQuery = Typed.toSubQuery
+
+toMaybe :: Table r -> Table (Maybe r)
+toMaybe t = table (tableName t) (map showStringSQL $ tableColumns t)
