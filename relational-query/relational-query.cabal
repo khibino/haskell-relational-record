@@ -80,6 +80,9 @@ library
                        Database.Relational.OverloadedProjection
                        Database.Relational.OverloadedInstances
 
+                       -- deprecated
+                       Database.Relational.Type
+
   other-modules:
                        Database.Relational.Internal.ContextType
                        Database.Relational.Internal.Config
