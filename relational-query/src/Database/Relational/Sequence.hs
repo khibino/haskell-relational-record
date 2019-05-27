@@ -22,12 +22,15 @@ module Database.Relational.Sequence (
 
   SequenceDerivable (..),
 
-  Binding (..), fromRelation,
+  Binding (..), seqFromRelation,
 
   Number, unsafeSpecifyNumber, extractNumber,
   ($$!), ($$),
 
   updateNumber', updateNumber,
+
+  -- * Deprecated
+  fromRelation,
   ) where
 
 import Prelude hiding (seq)
@@ -104,10 +107,17 @@ fromTable :: Binding r s i => Table r -> Sequence s i
 fromTable = const derivedSequence
 
 -- | Derive 'Sequence' from corresponding 'Relation'
+seqFromRelation :: Binding r s i
+             => Relation () r
+             -> Sequence s i
+seqFromRelation = fromTable . tableFromRelation
+
+-- | Derive 'Sequence' from corresponding 'Relation'
 fromRelation :: Binding r s i
              => Relation () r
              -> Sequence s i
-fromRelation = fromTable . tableFromRelation
+fromRelation = seqFromRelation
+{-# DEPRECATED fromRelation "use seqFromRelation instead of this." #-}
 
 -- | Sequence number type for record type 'r'
 newtype Number r i = Number i deriving (Eq, Ord, Show)
