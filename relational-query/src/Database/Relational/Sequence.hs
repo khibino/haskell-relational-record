@@ -24,13 +24,13 @@ module Database.Relational.Sequence (
 
   Binding (..), seqFromRelation,
 
-  Number, unsafeSpecifyNumber, extractNumber,
-  ($$!), ($$),
-
   updateNumber', updateNumber,
 
   -- * Deprecated
   fromRelation,
+
+  Number, unsafeSpecifyNumber, extractNumber,
+  ($$!), ($$),
   ) where
 
 import Prelude hiding (seq)
@@ -119,6 +119,28 @@ fromRelation :: Binding r s i
 fromRelation = seqFromRelation
 {-# DEPRECATED fromRelation "use seqFromRelation instead of this." #-}
 
+-- | Update statement for sequence table
+updateNumber' :: (PersistableWidth s, Integral i, LiteralSQL i)
+              => Config
+              -> i            -- ^ sequence number to set. expect not SQL injectable.
+              -> Sequence s i -- ^ sequence table
+              -> Update ()
+updateNumber' config i seqt = typedUpdate' config (seqTable seqt) $ \ proj -> do
+  let iv = value i
+  seqKey seqt <-# iv
+  wheres $ proj ! seqKey seqt .<=. iv -- fool proof
+  return unitPH
+
+-- | Update statement for sequence table
+updateNumber :: (PersistableWidth s, Integral i, LiteralSQL i)
+             => i            -- ^ sequence number to set. expect not SQL injectable.
+             -> Sequence s i -- ^ sequence table
+             -> Update ()
+updateNumber = updateNumber' defaultConfig
+
+{-# DEPRECATED
+    Number, unsafeSpecifyNumber, extractNumber, ($$!), ($$)
+    "deprecated Number type interfaces. use raw integral types." #-}
 -- | Sequence number type for record type 'r'
 newtype Number r i = Number i deriving (Eq, Ord, Show)
 
@@ -142,22 +164,3 @@ extractNumber (Number i) = i
      -> Number r i
      -> r
 ($$) = ($$!)
-
--- | Update statement for sequence table
-updateNumber' :: (PersistableWidth s, Integral i, LiteralSQL i)
-              => Config
-              -> i            -- ^ sequence number to set. expect not SQL injectable.
-              -> Sequence s i -- ^ sequence table
-              -> Update ()
-updateNumber' config i seqt = typedUpdate' config (seqTable seqt) $ \ proj -> do
-  let iv = value i
-  seqKey seqt <-# iv
-  wheres $ proj ! seqKey seqt .<=. iv -- fool proof
-  return unitPH
-
--- | Update statement for sequence table
-updateNumber :: (PersistableWidth s, Integral i, LiteralSQL i)
-             => i            -- ^ sequence number to set. expect not SQL injectable.
-             -> Sequence s i -- ^ sequence table
-             -> Update ()
-updateNumber = updateNumber' defaultConfig
