@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
 {-# LANGUAGE FlexibleContexts #-}
 
 -- |
@@ -11,13 +12,18 @@
 --
 -- This module provides operations for sequence tables of relational-query with HDBC.
 module Database.HDBC.Record.Sequence (
-  pool, autoPool,
+  -- * Get pool of sequence numbers
+  getPool, getSeq, getAutoPool,
+  poolFromSeq, autoPoolFromSeq,
 
+  -- * Deprecated
+  pool, autoPool,
   unsafePool, unsafeAutoPool,
   ) where
 
 import Control.Applicative ((<$>))
 import Control.Monad (when, void)
+import Data.Maybe (listToMaybe)
 import System.IO.Unsafe (unsafeInterleaveIO)
 import Database.HDBC (IConnection, SqlValue, commit)
 import Database.HDBC.Session (withConnectionIO)
@@ -25,19 +31,109 @@ import Database.HDBC.Session (withConnectionIO)
 import Language.SQL.Keyword (Keyword (FOR, UPDATE))
 import Database.Record (FromSql, ToSql, PersistableWidth)
 import Database.Relational
-  (relationalQuery', LiteralSQL, Relation, )
-import qualified Database.Relational as Relation
-import qualified Database.Relational.Table as Table
+  (relationalQuery', LiteralSQL, Relation, relationFromTable,
+   seqFromRelation, seqTable, tableName, updateNumber)
 import Database.HDBC.Record.Persistable ()
 import Database.HDBC.Record.Statement (bind, executeBound)
 import Database.HDBC.Record.Query (prepareQuery, fetch)
 import Database.HDBC.Record.Update (runUpdate)
 
-import Database.Relational (Sequence (..), Binding, Number, )
-import qualified Database.Relational as Relational
+import Database.Relational (Sequence (..), Binding, Number, unsafeSpecifyNumber)
 
 
--- | Unsafely get a raw sequence number pool of specified size
+-- | Get a sized pool of sequence number from sequence table corresponding proper Table 'r'
+getPool :: (FromSql SqlValue s, ToSql SqlValue i,
+            PersistableWidth i, LiteralSQL i,
+            Bounded i, Integral i, Show i, IConnection conn,
+            Binding r s i)
+        => IO conn       -- ^ action to connect to DBMS
+        -> i             -- ^ pool size
+        -> Relation () r -- ^ table relation corresponding sequence table
+        -> IO [i]        -- ^ action to get pool
+getPool connAct sz = seqPool connAct sz . seqFromRelation
+
+getSeq :: (FromSql SqlValue s, ToSql SqlValue i,
+            PersistableWidth i, LiteralSQL i,
+            Bounded i, Integral i, Show i, IConnection conn,
+            Binding r s i)
+       => IO conn       -- ^ action to connect to DBMS
+       -> Relation () r -- ^ table relation corresponding sequence table
+       -> IO i          -- ^ action to get pool
+getSeq connAct rel =
+    maybe (fail $ "Sequence.getSeq: fail to get seq from seq-table: " ++ n) return . listToMaybe =<<
+    getPool connAct 1 rel
+  where
+    n = tableName . seqTable $ seqFromRelation rel
+
+-- | Get a lazy-IO pool of sequence number from sequence table corresponding proper Table 'r'
+getAutoPool :: (FromSql SqlValue s,
+                ToSql SqlValue i, LiteralSQL i,
+                Bounded i, Integral i, Show i, IConnection conn,
+                Binding r s i)
+            => IO conn       -- ^ action to connect to DBMS
+            -> i             -- ^ buffer size
+            -> Relation () r -- ^ table relation corresponding sequence table
+            -> IO [i]        -- ^ action to get lazy-IO pool
+getAutoPool connAct sz = unsafeAutoPool connAct sz . seqFromRelation
+
+
+-- | 'Number' result version of 'getPool'.
+pool :: (FromSql SqlValue s, ToSql SqlValue i,
+         PersistableWidth i, LiteralSQL i,
+         Bounded i, Integral i, Show i, IConnection conn,
+         Binding r s i)
+     => IO conn
+     -> i
+     -> Relation () r
+     -> IO [Number r i]
+pool connAct sz =
+  (map unsafeSpecifyNumber <$>)
+  . seqPool connAct sz
+  . seqFromRelation
+{-# WARNING pool "Number will be dropped in the future. use getPool instead of this." #-}
+
+-- | 'Number' result version of 'getAutoPool'.
+autoPool :: (FromSql SqlValue s,
+             ToSql SqlValue i, LiteralSQL i,
+             Bounded i, Integral i, Show i, IConnection conn,
+             Binding r s i)
+         => IO conn
+         -> i
+         -> Relation () r
+         -> IO [Number r i]
+autoPool connAct sz =
+  (map unsafeSpecifyNumber <$>)
+  . unsafeAutoPool connAct sz
+  . seqFromRelation
+{-# WARNING autoPool "Number will be dropped in the future. use getAutoPool instead of this." #-}
+
+-----
+
+-- | Get a sized pool of sequence number from sequence table directly.
+poolFromSeq :: (FromSql SqlValue s, PersistableWidth s,
+                ToSql SqlValue i, LiteralSQL i,
+                Bounded i, Integral i, Show i, IConnection conn)
+            => IO conn      -- ^ action to connect to DBMS
+            -> i            -- ^ pool size
+            -> Sequence s i -- ^ sequence table to get pool from
+            -> IO [i]       -- ^ action to get pool
+poolFromSeq = seqPool
+
+-- | Get a lazy-IO pool of sequence number from sequence table directly.
+autoPoolFromSeq :: (FromSql SqlValue s, PersistableWidth s,
+                   ToSql SqlValue i, LiteralSQL i,
+                   Bounded i, Integral i, Show i, IConnection conn)
+                => IO conn      -- ^ action to connect to DBMS
+                -> i            -- ^ buffer size
+                -> Sequence s i -- ^ sequence table to get pool from
+                -> IO [i]       -- ^ action to get lazy-IO pool
+autoPoolFromSeq connAct sz seqt = loop  where
+  loop = unsafeInterleaveIO $ do
+    hd <- seqPool connAct sz seqt
+    (hd ++) <$> loop
+
+
+-- | Depredated. use poolFromSeq instead of this.
 unsafePool :: (FromSql SqlValue s, PersistableWidth s,
                ToSql SqlValue i, LiteralSQL i,
                Bounded i, Integral i, Show i, IConnection conn)
@@ -45,10 +141,31 @@ unsafePool :: (FromSql SqlValue s, PersistableWidth s,
            -> i
            -> Sequence s i
            -> IO [i]
-unsafePool connAct sz seqt = withConnectionIO connAct $ \conn -> do
+unsafePool = seqPool
+{-# DEPRECATED unsafePool "use poolFromSeq instead of this." #-}
+
+-- | Deprecated. use autoPoolFromSeq instead of this.
+unsafeAutoPool :: (FromSql SqlValue s, PersistableWidth s,
+                   ToSql SqlValue i, LiteralSQL i,
+                   Bounded i, Integral i, Show i, IConnection conn)
+               => IO conn
+               -> i
+               -> Sequence s i
+               -> IO [i]
+unsafeAutoPool = autoPoolFromSeq
+{-# DEPRECATED unsafeAutoPool "use autoPoolFromSeq instead of this." #-}
+
+seqPool :: (FromSql SqlValue s, PersistableWidth s,
+            ToSql SqlValue i, LiteralSQL i,
+            Bounded i, Integral i, Show i, IConnection conn)
+        => IO conn
+        -> i
+        -> Sequence s i
+        -> IO [i]
+seqPool connAct sz seqt = withConnectionIO connAct $ \conn -> do
   let t      = seqTable seqt
-      name   = Table.name t
-  pq    <- prepareQuery conn $ relationalQuery' (Relation.table t) [FOR, UPDATE]
+      name   = tableName t
+  pq    <- prepareQuery conn $ relationalQuery' (relationFromTable t) [FOR, UPDATE]
 
   es    <- executeBound $ pq `bind` ()
   seq0  <- maybe
@@ -60,50 +177,8 @@ unsafePool connAct sz seqt = withConnectionIO connAct $ \conn -> do
     ++ name ++ ": " ++ show (maxBound - seq0) ++ " < " ++ show sz
 
   let seq1 = seq0 + sz
-  void $ runUpdate conn (Relational.updateNumber seq1 seqt) ()
+  void $ runUpdate conn (updateNumber seq1 seqt) ()
   maybe (return ()) (const . fail $ "More than two record found in seq table: " ++ name) =<< fetch es
 
   commit conn
   return [seq0 + 1 .. seq1]
-
--- | Unsafely get a raw lazy pool of sequence number
-unsafeAutoPool :: (FromSql SqlValue s, PersistableWidth s,
-                   ToSql SqlValue i, LiteralSQL i,
-                   Bounded i, Integral i, Show i, IConnection conn)
-               => IO conn
-               -> i
-               -> Sequence s i
-               -> IO [i]
-unsafeAutoPool connAct sz seqt = loop  where
-  loop = unsafeInterleaveIO $ do
-    hd <- unsafePool connAct sz seqt
-    (hd ++) <$> loop
-
-
--- | Get a sized sequence number pool corresponding proper table 'r'
-pool :: (FromSql SqlValue s, ToSql SqlValue i,
-         PersistableWidth i, LiteralSQL i,
-         Bounded i, Integral i, Show i, IConnection conn,
-         Binding r s i)
-     => IO conn
-     -> i
-     -> Relation () r
-     -> IO [Number r i]
-pool connAct sz =
-  (map Relational.unsafeSpecifyNumber <$>)
-  . unsafePool connAct sz
-  . Relational.fromRelation
-
--- | Get a lazy pool corresponding proper table 'r'
-autoPool :: (FromSql SqlValue s,
-             ToSql SqlValue i, LiteralSQL i,
-             Bounded i, Integral i, Show i, IConnection conn,
-             Binding r s i)
-         => IO conn
-         -> i
-         -> Relation () r
-         -> IO [Number r i]
-autoPool connAct sz =
-  (map Relational.unsafeSpecifyNumber <$>)
-  . unsafeAutoPool connAct sz
-  . Relational.fromRelation
