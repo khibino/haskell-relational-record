@@ -13,7 +13,7 @@
 -- with re-usable Relation type.
 module Database.Relational.Relation (
   -- * Relation type
-  table, derivedRelation, tableOf,
+  relationFromTable, derivedRelation, tableFromRelation,
   relation, relation',
   aggregateRelation, aggregateRelation',
 
@@ -25,6 +25,9 @@ module Database.Relational.Relation (
   -- * Query using relation
   query, queryMaybe, queryList, queryList', queryScalar, queryScalar',
   uniqueQuery', uniqueQueryMaybe',
+
+  -- * Deprecated
+  table, tableOf,
   ) where
 
 import Control.Applicative ((<$>))
@@ -56,16 +59,26 @@ import Database.Relational.Projectable
 
 
 -- | Simple 'Relation' from 'Table'.
+relationFromTable :: Table r -> Relation () r
+relationFromTable = unsafeTypeRelation . return . Table.toSubQuery
+
+-- | Simple 'Relation' from 'Table'.
 table :: Table r -> Relation () r
-table = unsafeTypeRelation . return . Table.toSubQuery
+table = relationFromTable
+{-# DEPRECATED table "use relationFromTable instead of this." #-}
 
 -- | Inferred 'Relation'.
 derivedRelation :: TableDerivable r => Relation () r
-derivedRelation =  table derivedTable
+derivedRelation =  relationFromTable derivedTable
+
+-- | Interface to derive 'Table' type object.
+tableFromRelation :: TableDerivable r => Relation () r -> Table r
+tableFromRelation = const derivedTable
 
 -- | Interface to derive 'Table' type object.
 tableOf :: TableDerivable r => Relation () r -> Table r
-tableOf =  const derivedTable
+tableOf = tableFromRelation
+{-# DEPRECATED tableOf "use tableFromRelation instead of this." #-}
 
 placeHoldersFromRelation :: Relation p r -> PlaceHolders p
 placeHoldersFromRelation =  const unsafePlaceHolders

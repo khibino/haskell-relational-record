@@ -44,8 +44,7 @@ import Database.Relational.Constraint
   (HasConstraintKey (..), Key, Primary, projectionKey)
 import Database.Relational.Projectable ((.<=.), value, unitPH, (!))
 import Database.Relational.ProjectableClass (LiteralSQL)
-import Database.Relational.Relation (tableOf)
-import qualified Database.Relational.Relation as Relation
+import Database.Relational.Relation (relationFromTable, tableFromRelation)
 import Database.Relational.SQL (Update, typedUpdate')
 
 
@@ -65,7 +64,7 @@ unsafeSpecifySequence = Sequence derivedTable
 
 -- | Infer 'Relation' of sequence table
 seqRelation :: TableDerivable s => Sequence s i -> Relation () s
-seqRelation = Relation.table . seqTable
+seqRelation = relationFromTable . seqTable
 
 -- | 'Sequence' derivation rule
 class TableDerivable s => SequenceDerivable s i | s -> i where
@@ -108,7 +107,7 @@ fromTable = const derivedSequence
 fromRelation :: Binding r s i
              => Relation () r
              -> Sequence s i
-fromRelation = fromTable . tableOf
+fromRelation = fromTable . tableFromRelation
 
 -- | Sequence number type for record type 'r'
 newtype Number r i = Number i deriving (Eq, Ord, Show)

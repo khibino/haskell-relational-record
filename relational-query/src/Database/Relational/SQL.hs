@@ -75,7 +75,7 @@ import Database.Relational.Monad.BaseType (Relation, sqlFromRelationWith)
 import Database.Relational.Monad.Restrict (Restrict)
 import Database.Relational.Monad.Assign (Assign)
 import Database.Relational.Monad.Register (Register)
-import Database.Relational.Relation (tableOf)
+import Database.Relational.Relation (tableFromRelation)
 import Database.Relational.Effect
   (liftTargetAllColumn', InsertTarget, insertTarget',
    deleteFromRestriction, updateFromUpdateTarget, piRegister,
@@ -141,7 +141,7 @@ typedKeyUpdate tbl key = unsafeTypedKeyUpdate key $ updateOtherThanKeySQL tbl ke
 
 -- | Make typed 'KeyUpdate' object using derived info specified by 'Relation' type.
 typedKeyUpdateTable :: TableDerivable r => Relation () r -> Pi r p -> KeyUpdate p r
-typedKeyUpdateTable =  typedKeyUpdate . tableOf
+typedKeyUpdateTable =  typedKeyUpdate . tableFromRelation
 
 -- keyUpdate'
 -- Config parameter is not yet required for KeyUpdate.
