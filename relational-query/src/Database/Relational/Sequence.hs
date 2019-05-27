@@ -14,9 +14,11 @@
 --
 -- This module provides structures about sequence tables.
 module Database.Relational.Sequence (
+  -- * Sequence table
   Sequence, seqTable, seqExtract, seqKey, seqRelation,
   unsafeSpecifySequence,
 
+  -- * Sequence and Relation binding
   SeqBinding, boundTable, boundKey, boundSequence,
   unsafeSpecifyBinding, primaryBinding,
 
@@ -24,6 +26,7 @@ module Database.Relational.Sequence (
 
   Binding (..), seqFromRelation,
 
+  -- * Update statement for sequence table
   updateNumber', updateNumber,
 
   -- * Deprecated
