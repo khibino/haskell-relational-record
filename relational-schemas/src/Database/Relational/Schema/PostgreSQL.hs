@@ -38,7 +38,7 @@ import Data.Time
 
 import Database.Relational
   (Query, relationalQuery, Relation, query, query', relation', relation, union,
-   wheres, (.=.), (.>.), in', values, (!), fst', snd',
+   wheres, (.=.), (.>.), not', in', values, (!), fst', snd',
    placeholder, asc, value, unsafeProjectSql, (><))
 
 import Database.Relational.Schema.PostgreSQL.Config
@@ -148,13 +148,12 @@ columnRelation = relation' $ do
   wheres $ att ! Attr.atttypid'    .=. typ ! Type.oid'
   wheres $ typ ! Type.typtype'     .=. value 'b'  -- 'b': base type only
 
-  wheres $ typ ! Type.typcategory' `in'` values [ 'B' -- Boolean types
-                                                , 'D' -- Date/time types
-                                                , 'I' -- Network Address types
-                                                , 'N' -- Numeric types
-                                                , 'S' -- String types
-                                                , 'T' -- typespan types
-                                                ]
+  wheres $ not' $ typ ! Type.typcategory' `in'`
+                  values
+                  [ 'C' -- Composite types
+                  , 'P' -- Pseudo-types
+                  , 'X' -- unknown type
+                  ]
 
   asc $ att ! Attr.attnum'
 
