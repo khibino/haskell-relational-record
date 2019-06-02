@@ -78,6 +78,7 @@ mapFromSqlDefault =
             -- ("money",        [t| Decimal |]),
             ("bpchar",       [t| String |]),
             ("varchar",      [t| String |]),
+            ("uuid",         [t| String |]),
             ("date",         [t| Day |]),
             ("time",         [t| TimeOfDay |]),
             ("timestamp",    [t| LocalTime |]),
