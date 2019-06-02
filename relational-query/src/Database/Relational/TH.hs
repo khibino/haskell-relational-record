@@ -74,8 +74,9 @@ import Data.Functor.ProductIsomorphic.Unsafe (ProductConstructor (..))
 
 import Language.Haskell.TH
   (Name, nameBase, Q, reify, Dec, instanceD, ExpQ, stringE, listE,
-   TypeQ, Type (AppT, ConT), varT, tupleT, appT, arrowT, classP)
+   TypeQ, Type (AppT, ConT), varT, tupleT, appT, arrowT)
 import Language.Haskell.TH.Compat.Reify (unVarI)
+import Language.Haskell.TH.Compat.Constraint (classP)
 import Language.Haskell.TH.Name.CamelCase
   (VarName, varName, ConName (ConName), conName,
    varCamelcaseName, toVarExp, toTypeCon)

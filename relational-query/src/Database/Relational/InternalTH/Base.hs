@@ -22,10 +22,11 @@ module Database.Relational.InternalTH.Base (
 import Control.Applicative ((<$>))
 import Data.List (foldl', inits)
 import Language.Haskell.TH
-  (Q, Name, mkName, normalB, classP, varP,
+  (Q, Name, mkName, normalB, varP,
    TypeQ, forallT, varT, tupleT, appT,
    Dec, sigD, valD, instanceD,
    TyVarBndr (PlainTV), )
+import Language.Haskell.TH.Compat.Constraint (classP)
 import Database.Record.Persistable
   (PersistableWidth, persistableWidth,
    PersistableRecordWidth, runPersistableRecordWidth)

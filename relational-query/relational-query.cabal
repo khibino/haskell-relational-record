@@ -115,6 +115,7 @@ library
                        , dlist
                        , template-haskell
                        , th-reify-compat
+                       , th-constraint-compat
                        , product-isomorphic >= 0.0.3
                        , sql-words >=0.1.5
                        , names-th
