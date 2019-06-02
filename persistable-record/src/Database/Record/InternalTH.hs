@@ -12,7 +12,8 @@ import Control.Applicative ((<$>))
 import Data.Int (Int32, Int64)
 import Language.Haskell.TH
   (Q, mkName, Name, tupleTypeName,
-   TypeQ, varT, classP, Dec, instanceD, )
+   TypeQ, varT, Dec, instanceD, )
+import Language.Haskell.TH.Compat.Constraint (classP)
 import Data.Functor.ProductIsomorphic.TH (reifyRecordType)
 
 import Database.Record.Persistable (PersistableWidth)
