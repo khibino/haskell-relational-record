@@ -55,9 +55,11 @@ import Language.Haskell.TH.Name.CamelCase
    toTypeCon, toDataCon, )
 import Language.Haskell.TH.Lib.Extra (integralE, simpleValD, reportWarning)
 import Language.Haskell.TH.Compat.Data (dataD')
+import Language.Haskell.TH.Compat.Bang
+  (varBangType, bangType, bang,
+   noSourceUnpackedness, sourceStrict)
 import Language.Haskell.TH
-  (Q, nameBase, Name, Dec, TypeQ, conT, ExpQ, listE, sigE,
-   recC, cxt, varStrictType, strictType, isStrict)
+  (Q, nameBase, Name, Dec, TypeQ, conT, ExpQ, listE, sigE, recC, cxt)
 
 import Control.Arrow ((&&&))
 
@@ -184,7 +186,7 @@ defineRecordType :: ConName            -- ^ Name of the data type of table recor
                  -> Q [Dec]            -- ^ The data type record definition
 defineRecordType typeName' columns derives = do
   let typeName = conName typeName'
-      fld (n, tq) = varStrictType (varName n) (strictType isStrict tq)
+      fld (n, tq) = varBangType (varName n) (bangType (bang noSourceUnpackedness sourceStrict) tq)
   derives1 <- if (''Generic `notElem` derives)
               then do reportWarning "HRR needs Generic instance, please add ''Generic manually."
                       return $ ''Generic : derives
