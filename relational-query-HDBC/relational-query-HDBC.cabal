@@ -28,6 +28,19 @@ extra-source-files:  ChangeLog.md
 
 library
   exposed-modules:
+                       Database.Relational.HDBC.SqlValueExtra
+                       Database.Relational.HDBC.Persistable
+                       Database.Relational.HDBC.Sequence
+                       Database.Relational.HDBC.Statement
+                       Database.Relational.HDBC.Query
+                       Database.Relational.HDBC.Update
+                       Database.Relational.HDBC.Insert
+                       Database.Relational.HDBC.InsertQuery
+                       Database.Relational.HDBC.Delete
+                       Database.Relational.HDBC.KeyUpdate
+                       Database.Relational.HDBC
+                       Database.Relational.HDBC.TH
+
                        Database.HDBC.Record.Persistable
                        Database.HDBC.Record.TH
                        Database.HDBC.Record.Sequence
@@ -50,7 +63,7 @@ library
                        Database.HDBC.Schema.MySQL
 
   other-modules:
-                       Database.HDBC.Record.InternalTH
+                       Database.Relational.HDBC.InternalTH
 
   build-depends:         base <5
                        , containers

@@ -18,7 +18,7 @@ module Database.HDBC.Record.TH
 
 import Language.Haskell.TH (Q, Dec, Type, )
 
-import qualified Database.HDBC.Record.InternalTH as Internal
+import qualified Database.Relational.HDBC.InternalTH as Internal
   (derivePersistableInstanceFromConvertible)
 
 

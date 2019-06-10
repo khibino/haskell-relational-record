@@ -9,7 +9,7 @@ import Database.HDBC (SqlValue (SqlInteger))
 import Test.QuickCheck (Arbitrary (..), resize)
 import Test.QuickCheck.Simple (qcTest, defaultMain)
 
-import Database.HDBC.Record.Persistable ()
+import Database.Relational.HDBC.Persistable ()
 
 
 

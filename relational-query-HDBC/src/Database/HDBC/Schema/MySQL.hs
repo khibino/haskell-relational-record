@@ -27,8 +27,8 @@ import           Data.Map                           (fromList)
 
 import           Database.HDBC                      (IConnection, SqlValue)
 import           Database.Record                    (FromSql, ToSql)
-import           Database.HDBC.Record.Query         (runQuery')
-import           Database.HDBC.Record.Persistable   ()
+import           Database.Relational.HDBC.Query     (runQuery')
+import           Database.Relational.HDBC.Persistable ()
 import           Database.HDBC.Schema.Driver        ( TypeMap
                                                     , LogChan
                                                     , putVerbose

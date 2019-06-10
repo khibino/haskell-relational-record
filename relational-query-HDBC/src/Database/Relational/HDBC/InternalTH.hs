@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
 
 -- |
--- Module      : Database.HDBC.Record.InternalTH
+-- Module      : Database.Relational.HDBC.InternalTH
 -- Copyright   : 2013-2019 Kei Hibino
 -- License     : BSD3
 --
@@ -11,7 +11,7 @@
 -- Portability : unknown
 --
 -- This module provides internal definitions used from DB-record templates.
-module Database.HDBC.Record.InternalTH (
+module Database.Relational.HDBC.InternalTH (
   -- * Persistable instances along with 'Convertible' instances
   derivePersistableInstanceFromConvertible,
   derivePersistableInstancesFromConvertibleSqlValues,
@@ -27,7 +27,7 @@ import Language.Haskell.TH
 import Language.Haskell.TH.Compat.Data (unInstanceD)
 import Data.Convertible (Convertible, convert)
 import Database.HDBC (SqlValue)
-import Database.HDBC.SqlValueExtra ()
+import Database.Relational.HDBC.SqlValueExtra ()
 import Database.Record
   (PersistableWidth, FromSql (..), ToSql (..),
    valueRecordFromSql, valueRecordToSql)
