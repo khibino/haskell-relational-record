@@ -8,7 +8,7 @@ module SinglePKey where
 
 import GHC.Generics (Generic)
 import DS
-import Database.HDBC.PostgreSQL.Persistable ()
+import Database.Relational.HDBC.PostgreSQL ()
 
 $(definePgTable
   "EXAMPLE" "inet_example"
