@@ -23,7 +23,7 @@ import Data.ByteString.Char8 (unpack)
 import Data.Convertible (Convertible (..), ConvertResult, ConvertError (..))
 import Data.PostgreSQL.NetworkAddress (NetAddress, Inet (..), Cidr (..))
 import Database.HDBC (SqlValue (..))
-import Database.HDBC.Record.Persistable ()
+import Database.Relational.HDBC.Persistable ()
 import Database.Relational (LiteralSQL (..))
 import Database.PostgreSQL.Parser (evalParser)
 import qualified Database.PostgreSQL.Parser as Parser

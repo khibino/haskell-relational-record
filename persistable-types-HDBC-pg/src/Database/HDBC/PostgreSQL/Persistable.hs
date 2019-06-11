@@ -17,7 +17,7 @@ module Database.HDBC.PostgreSQL.Persistable () where
 import Data.Convertible (convert)
 import Data.PostgreSQL.NetworkAddress (Inet, Cidr)
 import Database.HDBC (SqlValue)
-import Database.HDBC.Record.Persistable ()
+import Database.Relational.HDBC.Persistable ()
 import Database.Record.FromSql (FromSql (..), valueRecordFromSql)
 import Database.Record.ToSql (ToSql (..), valueRecordToSql)
 import Database.Record.TH (deriveNotNullType)

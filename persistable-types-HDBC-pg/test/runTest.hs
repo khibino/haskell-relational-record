@@ -8,7 +8,7 @@
 import GHC.Generics (Generic)
 import Control.Applicative ((<$>), (*>))
 import Control.Monad (unless)
-import Database.HDBC.Query.TH (makeRelationalRecord)
+import Database.Relational.HDBC.TH (makeRelationalRecord)
 import Data.PostgreSQL.NetworkAddress
   (Inet (..), Cidr (..), NetAddress (..),
    V4HostAddress (..), V6HostAddress (..))
