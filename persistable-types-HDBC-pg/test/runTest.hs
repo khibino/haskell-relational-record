@@ -14,7 +14,7 @@ import Data.PostgreSQL.NetworkAddress
    V4HostAddress (..), V6HostAddress (..))
 import Database.Relational (Relation, relation, value)
 
-import Database.HDBC.PostgreSQL.Persistable ()
+import Database.Relational.HDBC.PostgreSQL ()
 
 
 data Foo =

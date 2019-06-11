@@ -30,8 +30,14 @@ extra-source-files:
 
 library
   exposed-modules:
+                       Database.Relational.HDBC.PostgreSQL
+
                        Database.HDBC.PostgreSQL.Instances
                        Database.HDBC.PostgreSQL.Persistable
+
+  other-modules:
+                       Database.Relational.HDBC.PostgreSQL.Instances
+                       Database.Relational.HDBC.PostgreSQL.Persistable
 
   -- other-extensions:
   build-depends:         base <5
