@@ -49,7 +49,7 @@ import qualified Database.Relational.TH as Relational
 import Database.HDBC.Session (withConnectionIO)
 import Database.Relational.HDBC.Persistable ()
 
-import Database.HDBC.Schema.Driver
+import Database.Schema.HDBC.Driver
   (foldLog, emptyLogChan, takeLogs, Driver, driverConfig, getFields, getPrimaryKey)
 
 

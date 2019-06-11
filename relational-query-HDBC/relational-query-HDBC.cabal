@@ -40,6 +40,13 @@ library
                        Database.Relational.HDBC.KeyUpdate
                        Database.Relational.HDBC
                        Database.Relational.HDBC.TH
+                       Database.Schema.HDBC.Driver
+                       Database.Schema.HDBC.IBMDB2
+                       Database.Schema.HDBC.PostgreSQL
+                       Database.Schema.HDBC.SQLServer
+                       Database.Schema.HDBC.SQLite3
+                       Database.Schema.HDBC.Oracle
+                       Database.Schema.HDBC.MySQL
 
                        Database.HDBC.Record.Persistable
                        Database.HDBC.Record.TH
