@@ -33,7 +33,7 @@ library
                        Database.HDBC.PostgreSQL.Instances
                        Database.HDBC.PostgreSQL.Persistable
 
-  other-extensions:    MultiParamTypeClasses
+  -- other-extensions:
   build-depends:         base <5
                        , bytestring
                        , dlist
