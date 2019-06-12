@@ -2,8 +2,8 @@
 
 module Database.Relational.CustomSQLite3 (
   module Database.HDBC,
-  module Database.HDBC.Query.TH,
-  module Database.HDBC.Record,
+  module Database.Relational.HDBC.TH,
+  module Database.Relational.HDBC,
   module Database.HDBC.Session,
   module Database.HDBC.Sqlite3,
   module Database.Record,
@@ -16,8 +16,8 @@ module Database.Relational.CustomSQLite3 (
 import Language.Haskell.TH (Name, Q, Dec)
 
 import Database.HDBC hiding (execute, finish, run)
-import Database.HDBC.Query.TH hiding (makeRelationalRecord)
-import Database.HDBC.Record hiding (execute, finish)
+import Database.Relational.HDBC.TH hiding (makeRelationalRecord)
+import Database.Relational.HDBC hiding (execute, finish)
 import Database.HDBC.Session
 import Database.HDBC.Sqlite3
 import Database.Record hiding (unique)
