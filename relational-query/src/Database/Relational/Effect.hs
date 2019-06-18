@@ -109,7 +109,8 @@ fromRestriction config tbl q = (qt, composeWhere $ map untypeRecord rs)
 
 -- | SQL WHERE clause 'StringSQL' string from 'Restrict' computation.
 sqlWhereFromRestriction :: Config -> Table r -> (Record Flat r -> Restrict (PlaceHolders p)) -> StringSQL
-sqlWhereFromRestriction config tbl = snd . fromRestriction config tbl
+sqlWhereFromRestriction config tbl q =
+  composeWhere . map untypeRecord . snd $ Restrict.extract (withQualified tbl q) config
 {-# DEPRECATED sqlWhereFromRestriction "low-level API, this API will be expired." #-}
 
 -- | DELETE statement with WHERE clause 'StringSQL' string from 'Restrict' computation.
@@ -179,7 +180,8 @@ fromUpdateTarget config tbl q = (qt, composeSets (asR tbl) <> (composeWhere $ ma
 
 -- | SQL SET clause and WHERE clause 'StringSQL' string from 'Assign' computation.
 sqlFromUpdateTarget :: Config -> Table r -> (Record Flat r -> Assign r (PlaceHolders p)) -> StringSQL
-sqlFromUpdateTarget config tbl = snd . fromUpdateTarget config tbl
+sqlFromUpdateTarget config tbl q = composeSets (asR tbl) <> (composeWhere $ map untypeRecord rs)
+  where ((_, asR), rs) = Assign.extract (withQualified tbl q) config
 {-# DEPRECATED sqlFromUpdateTarget "low-level API, this API will be expired." #-}
 
 -- | UPDATE statement with SET clause and WHERE clause 'StringSQL' string from 'Assign' computation.
