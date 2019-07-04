@@ -22,7 +22,7 @@ module Database.Relational.Effect (
   liftTargetAllColumn',
 
   -- * Object to express insert terget.
-  InsertTarget, insertTarget', piRegister,
+  InsertTarget, piRegister,
 
   -- * Generate SQL from restriction.
   deleteFromRestriction,
@@ -36,7 +36,7 @@ module Database.Relational.Effect (
   updateTarget, updateTarget',
   liftTargetAllColumn,
   updateTargetAllColumn, updateTargetAllColumn',
-  insertTarget,
+  insertTarget', insertTarget,
   sqlWhereFromRestriction,
   sqlFromUpdateTarget,
   ) where
@@ -195,18 +195,19 @@ instance TableDerivable r => Show (Record Flat r -> Assign r (PlaceHolders p)) w
 
 
 -- | InsertTarget type with place-holder parameter 'p' and projected record type 'r'.
-newtype InsertTarget p r = InsertTarget (Register r (PlaceHolders p))
+type InsertTarget p r = Register r (PlaceHolders p)
 
 -- | Finalize 'Register' monad and generate 'InsertTarget'.
 insertTarget :: Register r ()
              -> InsertTarget () r
-insertTarget =  InsertTarget . (>> return unitPH)
+insertTarget =  (>> return unitPH)
 {-# DEPRECATED insertTarget "old-style API. Use new-style Database.Relational.insertValueNoPH ." #-}
 
 -- | Finalize 'Register' monad and generate 'InsertTarget' with place-holder parameter 'p'.
 insertTarget' :: Register r (PlaceHolders p)
               -> InsertTarget p r
-insertTarget' = InsertTarget
+insertTarget' = id
+{-# DEPRECATED insertTarget' "same as id" #-}
 
 -- | parametalized 'Register' monad from 'Pi'
 piRegister :: PersistableWidth r
@@ -222,7 +223,7 @@ sqlChunkFromInsertTarget' :: Config
                           -> Table r
                           -> InsertTarget p r
                           -> StringSQL
-sqlChunkFromInsertTarget' config sz tbl (InsertTarget q) =
+sqlChunkFromInsertTarget' config sz tbl q =
     INSERT <> INTO <> stringSQL (tableName tbl) <> composeChunkValuesWithColumns sz (asR tbl)
   where
     (_ph, asR) = Register.extract q config

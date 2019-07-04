@@ -77,7 +77,7 @@ import Database.Relational.Monad.Assign (Assign)
 import Database.Relational.Monad.Register (Register)
 import Database.Relational.Relation (tableFromRelation)
 import Database.Relational.Effect
-  (liftTargetAllColumn', InsertTarget, insertTarget',
+  (liftTargetAllColumn',
    deleteFromRestriction, updateFromUpdateTarget, piRegister,
    sqlChunkFromInsertTarget, sqlFromInsertTarget, sqlChunksFromRecordList)
 import Database.Relational.Pi (Pi)
@@ -293,7 +293,7 @@ unsafeTypedInsert s = Insert s Nothing
 -- | Make typed 'Insert' from 'Table' and columns selector 'Pi' with configuration parameter.
 typedInsert' :: PersistableWidth r => Config -> Table r -> Pi r r' -> Insert r'
 typedInsert' config tbl =
-  typedInsertValue' config tbl . insertTarget' . piRegister
+  typedInsertValue' config tbl . piRegister
 
 {-# DEPRECATED typedInsert "use `typedInsert' defaultConfig` instead of this." #-}
 -- | Make typed 'Insert' from 'Table' and columns selector 'Pi'.
@@ -309,8 +309,8 @@ insert = typedInsert' defaultConfig derivedTable
 derivedInsert :: (PersistableWidth r, TableDerivable r) => Pi r r' -> Insert r'
 derivedInsert = insert
 
--- | Make typed 'Insert' from 'Config', 'Table' and monadic builded 'InsertTarget' object.
-typedInsertValue' :: Config -> Table r -> InsertTarget p r -> Insert p
+-- | Make typed 'Insert' from 'Config', 'Table' and monadic builded 'Register' object.
+typedInsertValue' :: Config -> Table r -> Register r (PlaceHolders p) -> Insert p
 typedInsertValue' config tbl it =
     unsafeTypedInsert'
     (showStringSQL $ sqlFromInsertTarget config tbl it)
@@ -319,13 +319,13 @@ typedInsertValue' config tbl it =
     (ci, n) = sqlChunkFromInsertTarget config tbl it
 
 {-# DEPRECATED typedInsertValue "use `typedInsertValue' defaultConfig` instead of this." #-}
--- | Make typed 'Insert' from 'Table' and monadic builded 'InsertTarget' object.
-typedInsertValue :: Table r -> InsertTarget p r -> Insert p
+-- | Make typed 'Insert' from 'Table' and monadic builded 'Register' object.
+typedInsertValue :: Table r -> Register r (PlaceHolders p) -> Insert p
 typedInsertValue = typedInsertValue' defaultConfig
 
 -- | Make typed 'Insert' from 'Config', derived table and monadic builded 'Register' object.
 insertValue' :: TableDerivable r => Config -> Register r (PlaceHolders p) -> Insert p
-insertValue' config rs = typedInsertValue' config (rt rs) $ insertTarget' rs
+insertValue' config rs = typedInsertValue' config (rt rs) rs
   where
     rt :: TableDerivable r => Register r (PlaceHolders p) -> Table r
     rt =  const derivedTable
