@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.11.4.1
+
+- backport fix of fromMaybe record width.
+
 ## 0.11.4.0
 
 - add xxxNoPH effect APIs of arrow-interface.
