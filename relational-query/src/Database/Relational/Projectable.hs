@@ -97,7 +97,7 @@ import Database.Relational.Internal.ContextType (Flat, Exists, OverWindow)
 import Database.Relational.Internal.String
   (StringSQL, stringSQL, showStringSQL, rowStringSQL)
 import Database.Relational.Typed.Record
-  (Record, Predicate, recordColumns, RecordList)
+  (Record, Predicate, recordColumns, RecordList, untypeRecord)
 import qualified Database.Relational.Typed.Record as Record
 
 import Database.Relational.Pure ()
@@ -313,7 +313,7 @@ negate' =  unsafeFlatUniOp $ SQL.word "-"
 
 unsafeCastProjectable :: SqlContext c
                       => Record c a -> Record c b
-unsafeCastProjectable = unsafeProjectSql' . rowStringSQL . recordColumns
+unsafeCastProjectable = Record.record . untypeRecord
 
 -- | Number fromIntegral uni-operator.
 fromIntegral' :: (SqlContext c, Integral a, Num b)
