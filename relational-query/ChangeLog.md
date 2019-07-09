@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.10.0.1
+
+- backport fix of fromMaybe record width.
+
 ## 0.10.0.0
 
 - switch namespace to Database.Relational
