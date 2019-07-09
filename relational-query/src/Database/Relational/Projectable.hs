@@ -300,7 +300,7 @@ negate' =  unsafeFlatUniOp $ SQL.word "-"
 
 unsafeCastProjectable :: SqlContext c
                       => Record c a -> Record c b
-unsafeCastProjectable = unsafeProjectSql' . unsafeShowSql'
+unsafeCastProjectable = Syntax.record . Syntax.untypeRecord
 
 -- | Number fromIntegral uni-operator.
 fromIntegral' :: (SqlContext c, Integral a, Num b)

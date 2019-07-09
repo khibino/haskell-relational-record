@@ -414,6 +414,15 @@ maybeX =  relation $ do
 
   return $ fromMaybe (value 1) (a ?! intA0') >< b
 
+maybeY :: Relation () (SetA, SetB)
+maybeY =  relation $ do
+  a <- queryMaybe setA
+  b <- query setB
+
+  wheres $ a ?! strA2' .=. b ! mayStrB1'
+
+  return $ fromMaybe (SetA |$| value 1 |*| value "foo" |*| value "var") a >< b
+
 notX :: Relation () (Maybe Bool)
 notX = relation $
   return $ not' valueFalse
@@ -437,6 +446,12 @@ uni =
   , eqProp "fromMaybe" maybeX
     "SELECT ALL CASE WHEN (T0.int_a0 IS NULL) THEN 1 ELSE T0.int_a0 END AS f0, \
     \           T1.int_b0 AS f1, T1.may_str_b1 AS f2, T1.str_b2 AS f3 \
+    \  FROM TEST.set_a T0 RIGHT JOIN TEST.set_b T1 ON (0=0) WHERE (T0.str_a2 = T1.may_str_b1)"
+  , eqProp "fromMaybe record" maybeY
+    "SELECT ALL CASE WHEN (T0.int_a0 IS NULL) THEN 1 ELSE T0.int_a0 END AS f0, \
+    \           CASE WHEN (T0.int_a0 IS NULL) THEN 'foo' ELSE T0.str_a1 END AS f1, \
+    \           CASE WHEN (T0.int_a0 IS NULL) THEN 'var' ELSE T0.str_a2 END AS f2, \
+    \           T1.int_b0 AS f3, T1.may_str_b1 AS f4, T1.str_b2 AS f5 \
     \  FROM TEST.set_a T0 RIGHT JOIN TEST.set_b T1 ON (0=0) WHERE (T0.str_a2 = T1.may_str_b1)"
   , eqProp "not" notX
     "SELECT ALL (NOT (0=1)) AS f0"
