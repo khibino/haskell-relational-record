@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.12.2.2
+
+- bugfix. fix record width of fromMaybe.
+
 ## 0.12.2.1
 
 - fix changelog.
