@@ -627,6 +627,16 @@ insertX =  insert id'
 insertI :: Insert SetI
 insertI =  insert id'
 
+insertL :: [Insert ()]
+insertL =
+  insertValueList' defaultConfig { chunksInsertSize = 9 }
+  id'
+  [ SetA 1 "alpha" "one",
+    SetA 2 "beta"  "two",
+    SetA 3 "gamma" "three",
+    SetA 4 "delta" "four",
+    SetA 5 "eta"   "five" ]
+
 insertQueryX :: InsertQuery ()
 insertQueryX =  insertQuery setAFromB setA
 
@@ -650,6 +660,10 @@ effs =
     "INSERT INTO TEST.set_a (int_a0, str_a1, str_a2) VALUES" "(?, ?, ?)"
   , eqProp "insert1" insertI
     "INSERT INTO TEST.set_i (int_i0) VALUES (?)"
+  , eqProp "insertL 0" (insertL !! 0)
+    "INSERT INTO TEST.set_a (int_a0, str_a1, str_a2) VALUES (1, 'alpha', 'one'), (2, 'beta', 'two'), (3, 'gamma', 'three')"
+  , eqProp "insertL 1" (insertL !! 1)
+    "INSERT INTO TEST.set_a (int_a0, str_a1, str_a2) VALUES (4, 'delta', 'four'), (5, 'eta', 'five')"
   , eqChunkedInsert "insert1 chunked" insertI
     "INSERT INTO TEST.set_i (int_i0) VALUES" "(?)"
   , eqProp "insertQuery" insertQueryX
