@@ -25,11 +25,11 @@ module Database.Relational.Effect (
   InsertTarget, piRegister,
 
   -- * Generate SQL from restriction.
-  deleteFromRestriction,
-  updateFromUpdateTarget,
-  sqlChunkFromInsertTarget,
-  sqlFromInsertTarget,
-  sqlChunksFromRecordList,
+  deleteFromRestrict,
+  updateFromAssign,
+  chunkInsertFromRegister,
+  insertFromRegister,
+  chunkInsertFromRecords,
 
   -- * Deprecated
   restriction, restriction',
@@ -37,8 +37,9 @@ module Database.Relational.Effect (
   liftTargetAllColumn,
   updateTargetAllColumn, updateTargetAllColumn',
   insertTarget', insertTarget,
-  sqlWhereFromRestriction,
-  sqlFromUpdateTarget,
+  sqlWhereFromRestriction, deleteFromRestriction,
+  sqlFromUpdateTarget, updateFromUpdateTarget,
+  sqlChunkFromInsertTarget, sqlFromInsertTarget, sqlChunksFromRecordList,
   ) where
 
 import Control.Applicative ((<$>))
@@ -103,24 +104,29 @@ restriction' :: (Record Flat r -> Restrict (PlaceHolders p)) -> Restriction p r
 restriction' = id
 {-# DEPRECATED restriction' "same as id" #-}
 
-fromRestriction :: Config -> Table r -> (Record Flat r -> Restrict (PlaceHolders p)) -> (StringSQL, StringSQL)
-fromRestriction config tbl q = (qt, composeWhere $ map untypeRecord rs)
+fromRestrict :: Config -> Table r -> (Record Flat r -> Restrict (PlaceHolders p)) -> (StringSQL, StringSQL)
+fromRestrict config tbl q = (qt, composeWhere $ map untypeRecord rs)
   where (qt, rs) = Restrict.extract (withQualified tbl q) config
 
--- | SQL WHERE clause 'StringSQL' string from 'Restrict' computation.
+-- | Deprecated.
 sqlWhereFromRestriction :: Config -> Table r -> (Record Flat r -> Restrict (PlaceHolders p)) -> StringSQL
 sqlWhereFromRestriction config tbl q =
   composeWhere . map untypeRecord . snd $ Restrict.extract (withQualified tbl q) config
 {-# DEPRECATED sqlWhereFromRestriction "low-level API, this API will be expired." #-}
 
 -- | DELETE statement with WHERE clause 'StringSQL' string from 'Restrict' computation.
+deleteFromRestrict :: Config -> Table r -> (Record Flat r -> Restrict (PlaceHolders p)) -> StringSQL
+deleteFromRestrict config tbl r =
+  DELETE <> FROM <> uncurry (<>) (fromRestrict config tbl r)
+
+-- | Deprecated.
 deleteFromRestriction :: Config -> Table r -> (Record Flat r -> Restrict (PlaceHolders p)) -> StringSQL
-deleteFromRestriction config tbl r =
-  DELETE <> FROM <> uncurry (<>) (fromRestriction config tbl r)
+deleteFromRestriction = deleteFromRestrict
+{-# DEPRECATED deleteFromRestriction "low-level API, this API will be expired." #-}
 
 -- | Show WHERE clause.
 instance TableDerivable r => Show (Record Flat r -> Restrict (PlaceHolders p)) where
-  show = showStringSQL . snd . fromRestriction defaultConfig derivedTable
+  show = showStringSQL . snd . fromRestrict defaultConfig derivedTable
 
 
 -- | UpdateTarget type with place-holder parameter 'p' and projected record type 'r'.
@@ -174,24 +180,29 @@ updateTargetAllColumn' = liftTargetAllColumn'
 {-# DEPRECATED updateTargetAllColumn' "Use Database.Relational.updateAllColumn instead of this." #-}
 
 
-fromUpdateTarget :: Config -> Table r -> (Record Flat r -> Assign r (PlaceHolders p)) -> (StringSQL, StringSQL)
-fromUpdateTarget config tbl q = (qt, composeSets (asR tbl) <> (composeWhere $ map untypeRecord rs))
+fromAssign :: Config -> Table r -> (Record Flat r -> Assign r (PlaceHolders p)) -> (StringSQL, StringSQL)
+fromAssign config tbl q = (qt, composeSets (asR tbl) <> (composeWhere $ map untypeRecord rs))
   where ((qt, asR), rs) = Assign.extract (withQualified tbl q) config
 
--- | SQL SET clause and WHERE clause 'StringSQL' string from 'Assign' computation.
+-- | Deprecated.
 sqlFromUpdateTarget :: Config -> Table r -> (Record Flat r -> Assign r (PlaceHolders p)) -> StringSQL
 sqlFromUpdateTarget config tbl q = composeSets (asR tbl) <> (composeWhere $ map untypeRecord rs)
   where ((_, asR), rs) = Assign.extract (withQualified tbl q) config
 {-# DEPRECATED sqlFromUpdateTarget "low-level API, this API will be expired." #-}
 
 -- | UPDATE statement with SET clause and WHERE clause 'StringSQL' string from 'Assign' computation.
+updateFromAssign :: Config -> Table r -> (Record Flat r -> Assign r (PlaceHolders p)) -> StringSQL
+updateFromAssign config tbl ut =
+  UPDATE <> uncurry (<>) (fromAssign config tbl ut)
+
+-- | Deprecated.
 updateFromUpdateTarget :: Config -> Table r -> (Record Flat r -> Assign r (PlaceHolders p)) -> StringSQL
-updateFromUpdateTarget config tbl ut =
-  UPDATE <> uncurry (<>) (fromUpdateTarget config tbl ut)
+updateFromUpdateTarget = updateFromAssign
+{-# DEPRECATED updateFromUpdateTarget "low-level API, this API will be expired." #-}
 
 -- | Show Set clause and WHERE clause.
 instance TableDerivable r => Show (Record Flat r -> Assign r (PlaceHolders p)) where
-  show = showStringSQL . snd . fromUpdateTarget defaultConfig derivedTable
+  show = showStringSQL . snd . fromAssign defaultConfig derivedTable
 
 
 -- | InsertTarget type with place-holder parameter 'p' and projected record type 'r'.
@@ -218,12 +229,12 @@ piRegister pi' = do
   () <- ma
   return ph'
 
-sqlChunkFromInsertTarget' :: Config
-                          -> Int
-                          -> Table r
-                          -> InsertTarget p r
-                          -> StringSQL
-sqlChunkFromInsertTarget' config sz tbl q =
+fromRegister :: Config
+             -> Int
+             -> Table r
+             -> InsertTarget p r
+             -> StringSQL
+fromRegister config sz tbl q =
     INSERT <> INTO <> stringSQL (tableName tbl) <> composeChunkValuesWithColumns sz (asR tbl)
   where
     (_ph, asR) = Register.extract q config
@@ -238,27 +249,40 @@ countChunks config tbl =
     w  = Table.width tbl
 
 -- | Make 'StringSQL' string of SQL INSERT record chunk statement from 'InsertTarget'
+chunkInsertFromRegister :: Config
+                        -> Table r
+                        -> InsertTarget p r
+                        -> (StringSQL, Int)
+chunkInsertFromRegister config tbl it =
+    (fromRegister config n tbl it, n)
+  where
+    n = countChunks config tbl
+
+-- | Deprecated.
 sqlChunkFromInsertTarget :: Config
                          -> Table r
                          -> InsertTarget p r
                          -> (StringSQL, Int)
-sqlChunkFromInsertTarget config tbl it =
-    (sqlChunkFromInsertTarget' config n tbl it, n)
-  where
-    n = countChunks config tbl
+sqlChunkFromInsertTarget = chunkInsertFromRegister
+{-# DEPRECATED sqlChunkFromInsertTarget "low-level API, this API will be expired." #-}
 
 -- | Make 'StringSQL' string of SQL INSERT statement from 'InsertTarget'
+insertFromRegister :: Config -> Table r -> InsertTarget p r -> StringSQL
+insertFromRegister config = fromRegister config 1
+
+-- | Deprecated.
 sqlFromInsertTarget :: Config -> Table r -> InsertTarget p r -> StringSQL
-sqlFromInsertTarget config = sqlChunkFromInsertTarget' config 1
+sqlFromInsertTarget = insertFromRegister
+{-# DEPRECATED sqlFromInsertTarget "low-level API, this API will be expired." #-}
 
 -- | Make 'StringSQL' strings of SQL INSERT strings from records list
-sqlChunksFromRecordList :: LiteralSQL r'
-                        => Config
-                        -> Table r
-                        -> Pi r r'
-                        -> [r']
-                        -> [StringSQL]
-sqlChunksFromRecordList config tbl pi' xs =
+chunkInsertFromRecords :: LiteralSQL r'
+                       => Config
+                       -> Table r
+                       -> Pi r r'
+                       -> [r']
+                       -> [StringSQL]
+chunkInsertFromRecords config tbl pi' xs =
     [ INSERT <> INTO <> stringSQL (tableName tbl) <>
       composeValuesListWithColumns
       [ tf tbl
@@ -272,3 +296,13 @@ sqlChunksFromRecordList config tbl pi' xs =
     step ys
       | null ys    =  Nothing
       | otherwise  =  Just $ splitAt n ys
+
+-- | Deprecated.
+sqlChunksFromRecordList :: LiteralSQL r'
+                        => Config
+                        -> Table r
+                        -> Pi r r'
+                        -> [r']
+                        -> [StringSQL]
+sqlChunksFromRecordList = chunkInsertFromRecords
+{-# DEPRECATED sqlChunksFromRecordList "low-level API, this API will be expired." #-}

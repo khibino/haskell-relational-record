@@ -78,8 +78,8 @@ import Database.Relational.Monad.Register (Register)
 import Database.Relational.Relation (tableFromRelation)
 import Database.Relational.Effect
   (liftTargetAllColumn',
-   deleteFromRestriction, updateFromUpdateTarget, piRegister,
-   sqlChunkFromInsertTarget, sqlFromInsertTarget, sqlChunksFromRecordList)
+   deleteFromRestrict, updateFromAssign, piRegister,
+   chunkInsertFromRegister, insertFromRegister, chunkInsertFromRecords,)
 import Database.Relational.Pi (Pi)
 import Database.Relational.ProjectableClass (LiteralSQL)
 import Database.Relational.Projectable (PlaceHolders, unitPH)
@@ -169,7 +169,7 @@ unsafeTypedUpdate =  Update
 
 -- | Make untyped update SQL string from 'Table' and 'Assign' computation.
 updateSQL :: Config -> Table r -> (Record Flat r -> Assign r (PlaceHolders p)) -> String
-updateSQL config tbl ut = showStringSQL $ updateFromUpdateTarget config tbl ut
+updateSQL config tbl ut = showStringSQL $ updateFromAssign config tbl ut
 
 -- | Make typed 'Update' from 'Config', 'Table' and 'Assign' computation.
 typedUpdate' :: Config -> Table r -> (Record Flat r -> Assign r (PlaceHolders p)) -> Update p
@@ -313,10 +313,10 @@ derivedInsert = insert
 typedInsertValue' :: Config -> Table r -> Register r (PlaceHolders p) -> Insert p
 typedInsertValue' config tbl it =
     unsafeTypedInsert'
-    (showStringSQL $ sqlFromInsertTarget config tbl it)
+    (showStringSQL $ insertFromRegister config tbl it)
     (showStringSQL ci) n
   where
-    (ci, n) = sqlChunkFromInsertTarget config tbl it
+    (ci, n) = chunkInsertFromRegister config tbl it
 
 {-# DEPRECATED typedInsertValue "use `typedInsertValue' defaultConfig` instead of this." #-}
 -- | Make typed 'Insert' from 'Table' and monadic builded 'Register' object.
@@ -356,7 +356,7 @@ insertValueList' :: (TableDerivable r, LiteralSQL r')
                  -> [Insert ()]
 insertValueList' config pi' =
   map (unsafeTypedInsert . showStringSQL)
-  . sqlChunksFromRecordList config derivedTable pi'
+  . chunkInsertFromRecords config derivedTable pi'
 
 -- | Make typed 'Insert' list from records list.
 insertValueList :: (TableDerivable r, LiteralSQL r')
@@ -416,7 +416,7 @@ unsafeTypedDelete =  Delete
 
 -- | Make untyped delete SQL string from 'Table' and 'Restrict' computation.
 deleteSQL :: Config -> Table r -> (Record Flat r -> Restrict (PlaceHolders p)) -> String
-deleteSQL config tbl r = showStringSQL $ deleteFromRestriction config tbl r
+deleteSQL config tbl r = showStringSQL $ deleteFromRestrict config tbl r
 
 -- | Make typed 'Delete' from 'Config', 'Table' and 'Restrict' computation.
 typedDelete' :: Config -> Table r -> (Record Flat r -> Restrict (PlaceHolders p)) -> Delete p
