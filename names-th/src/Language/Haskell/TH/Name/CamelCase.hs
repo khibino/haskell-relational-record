@@ -25,7 +25,7 @@ module Language.Haskell.TH.Name.CamelCase (
   toVarExp, toVarPat,
   ) where
 
-import Data.Char (toUpper, toLower)
+import Data.Char (toUpper, toLower, isLetter, isDigit)
 import Data.Set (Set, fromList, member)
 import Language.Haskell.TH
   (Name, mkName, TypeQ, conT, ExpQ, conE, varE, PatQ, varP)
@@ -37,6 +37,24 @@ capitalize ""     = ""
 unCapitalize :: String -> String
 unCapitalize (c:cs) = toLower c : cs
 unCapitalize ""     = ""
+
+-- Adds a _ to the identifier which does not start with a letter or an
+-- underscore.
+letterStart :: String -> String
+letterStart (c:cs) | c == '_'   ||
+                     isLetter c    = c:cs
+                   | otherwise     = '_':c:cs
+letterStart ""                     = ""
+
+-- Only letters, digits, underscores and single quotes are allowed in an
+-- identifier.
+allowedChars :: String -> String
+allowedChars cs = map replaceUnallowed cs
+  where
+    replaceUnallowed c | isLetter c    ||
+                         isDigit  c    ||
+                         c `elem` "_'"    = c
+                       | otherwise        = '_'
 
 -- | rename the string that equals to reserved identifiers.
 rename :: String -> String
@@ -62,14 +80,16 @@ newtype ConName = ConName { conName :: Name {- ^ Get wrapped 'Name' -} }
 
 -- | Make constructor name from 'String'.
 toConName :: String -> ConName
-toConName =  ConName . mkName . rename . capitalize
+toConName =  ConName . mkName . rename . capitalize .
+             allowedChars . letterStart
 
 -- | Type to wrap variable\'s 'Name'.
 newtype VarName = VarName { varName :: Name {- ^ Get wrapped 'Name' -} }
 
 -- | Make variable name from 'String'.
 toVarName :: String -> VarName
-toVarName =  VarName . mkName . rename . unCapitalize
+toVarName =  VarName . mkName . rename . unCapitalize .
+             allowedChars . letterStart
 
 -- | 'Char' set used from camel-cased names.
 nameChars :: String
