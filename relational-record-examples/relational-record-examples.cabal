@@ -90,7 +90,7 @@ executable examples
 
   ghc-options:         -Wall
   if impl(ghc >= 8)
-    ghc-options:         -Wcompat -Wnoncanonical-monadfail-instances
+    ghc-options:         -Wcompat
 
   default-language:    Haskell2010
 
@@ -112,6 +112,6 @@ executable specialized-examples
 
   ghc-options:         -Wall
   if impl(ghc >= 8)
-    ghc-options:         -Wcompat -Wnoncanonical-monadfail-instances
+    ghc-options:         -Wcompat
 
   default-language:    Haskell2010
