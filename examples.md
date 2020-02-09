@@ -246,7 +246,7 @@ employee_4_3_2 :: Relation () Employee2
 employee_4_3_2 = relation $ do
   e <- query employee
   wheres $ #startDate e .>=. unsafeSQLiteDayValue "2001-01-01"
-  wheres $ #startDate e .<=. unsafeSQLiteDayValue "2003-01-01"
+  wheres $ #startDate e .<. unsafeSQLiteDayValue "2003-01-01"
   return $ Employee2 |$| #empId e
                      |*| #fname e
                      |*| #lname e
@@ -270,7 +270,7 @@ SELECT ALL T0.emp_id AS f0,
            T0.lname AS f2,
            T0.start_date AS f3
 FROM MAIN.employee T0
-WHERE ((T0.start_date >= '2001-01-01') AND (T0.start_date <= '2003-01-01'))
+WHERE ((T0.start_date >= '2001-01-01') AND (T0.start_date < '2003-01-01'))
 {% endhighlight %}
 
 HRR with structured placeholder:
