@@ -12,7 +12,7 @@ license:             BSD3
 license-file:        LICENSE
 author:              Kei Hibino, Shohei Murayama, Shohei Yasutake, Sho KURODA
 maintainer:          ex8k.hibino@gmail.com, shohei.murayama@gmail.com, amutake.s@gmail.com, krdlab@gmail.com
-copyright:           Copyright (c) 2013-2019 Kei Hibino, 2013 Shohei Murayama, 2013 Shohei Yasutake, 2013 Sho KURODA
+copyright:           Copyright (c) 2013-2020 Kei Hibino, 2013 Shohei Murayama, 2013 Shohei Yasutake, 2013 Sho KURODA
 category:            Database
 build-type:          Simple
 cabal-version:       >=1.10
