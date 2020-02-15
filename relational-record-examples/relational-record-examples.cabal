@@ -7,6 +7,7 @@ license-file:        LICENSE
 author:              Kazu Yamamoto <kazu@iij.ad.jp>
                      Shohei Murayama <shohei.murayama@gmail.com>
 maintainer:          Shohei Murayama <shohei.murayama@gmail.com>
+                     Kei Hibino <ex8k.hibino@gmail.com>
 category:            Database
 build-type:          Simple
 cabal-version:       >=1.10
