@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.6.0.5
+
+- apply compat interface packages of TH.
+
 ## 0.6.0.4
 
 - update documentation.
