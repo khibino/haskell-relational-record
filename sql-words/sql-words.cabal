@@ -1,5 +1,5 @@
 name:                sql-words
-version:             0.1.6.3
+version:             0.1.6.4
 synopsis:            SQL keywords data constructors into OverloadedString
 description:         This package contiains SQL keywords constructors defined as
                      OverloadedString literals and helper functions to concate these.
