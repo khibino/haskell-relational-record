@@ -1,5 +1,10 @@
 <!-- -*- Markdown -*- -->
 
+## 0.1.8.0
+
+- update for GHC 8.8.x.
+- allow more type-categories of PostgreSQL.
+
 ## 0.1.7.0
 
 - adjust sub-directory modules of each DBMS to top module name.
