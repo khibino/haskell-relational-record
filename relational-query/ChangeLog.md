@@ -1,5 +1,10 @@
 <!-- -*- Markdown -*- -->
 
+## 0.12.2.3
+
+- update for GHC 8.8.x.
+- apply compat interface packages of TH.
+
 ## 0.12.2.2
 
 - bugfix. fix record width of fromMaybe.
