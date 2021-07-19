@@ -77,6 +77,8 @@ library
                        Database.Relational.Derives
                        Database.Relational.TH
 
+                       Database.Relational.Export
+
                        -- for GHC version equal or more than 8.0
                        Database.Relational.OverloadedProjection
                        Database.Relational.OverloadedInstances
@@ -118,6 +120,8 @@ library
                        , persistable-record >= 0.6
   if impl(ghc == 7.4.*)
     build-depends:       ghc-prim == 0.2.*
+  if impl(ghc == 7.4.*) || impl(ghc == 7.6.*)
+    build-depends:       bytestring-short
 
   hs-source-dirs:      src
   ghc-options:         -Wall -fsimpl-tick-factor=200
