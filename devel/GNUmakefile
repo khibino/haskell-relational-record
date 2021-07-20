@@ -15,11 +15,29 @@ v1 = $$(case $$(cabal --numeric-version) in \
 
 
 ncpu = $(shell cat /proc/cpuinfo | egrep '^processor' | wc -l)
-jobs = --jobs=$(shell expr $(ncpu) '*' 3 '/' 4)
+jobs = $$(case $$(ghc --numeric-version) in \
+            9.*|8.*|7.10.*|7.8.*) \
+              echo -j$$(expr $(ncpu) '*' 3 '/' 4) \
+              ;; \
+            7.6.*|7.4.*) \
+              ;; \
+            *) \
+              ;; \
+          esac)
+
+gc = $$(case $$(ghc --numeric-version) in \
+            9.*|8.8.*|8.6.*|8.4.*|8.2.*) \
+              echo --ghc-option=+RTS --ghc-option=-qn2 --ghc-option=-RTS \
+              ;; \
+            8.0.*|7.*) \
+              ;; \
+            *) \
+              ;; \
+          esac)
 
 build:
 	cabal $(v1)configure -O0 --enable-tests
-	cabal $(v1)build $(jobs) --ghc-option=-Wall
+	cabal $(v1)build $(jobs) --ghc-option=-Wall $(gc)
 	cabal $(v1)haddock $(haddock_opt)
 	cabal $(v1)test
 
@@ -32,6 +50,8 @@ check:
 
 info:
 	@echo v1prefix=$(v1)
+	@echo jobs=$(jobs)
+	@echo gc=$(gc)
 
 wc:
 	make clean-hs
