@@ -3,7 +3,7 @@ all: clean build
 
 haddock_opt = --hyperlink-source --haddock-options=--css=../devel/black.css
 
-v1 = $$(case $$(cabal --numeric-version) in \
+v1 = $$(case $(shell cabal --numeric-version) in \
           3.*|2.4.*) \
             echo 'v1-'; \
             ;; \
@@ -15,22 +15,24 @@ v1 = $$(case $$(cabal --numeric-version) in \
 
 
 ncpu = $(shell cat /proc/cpuinfo | egrep '^processor' | wc -l)
-jobs = $$(case $$(ghc --numeric-version) in \
+njobs = $(shell expr $(ncpu) '*' 3 '/' 4)
+ghc_version = $(shell ghc --numeric-version)
+jobs = $$(case $(ghc_version) in \
             7.4.*|7.6.*) \
               ;; \
             *) \
-              echo -j$$(expr $(ncpu) '*' 3 '/' 4) \
+              echo -j$(njobs); \
               ;; \
           esac)
 
-gc = $$(case $$(ghc --numeric-version) in \
+gc = $$(case $(ghc_version) in \
             7.4.*|7.6.*) \
               ;; \
             7.8.*|7.10.*|8.0.*) \
-              echo --ghc-option=+RTS --ghc-option=-qg --ghc-option=-RTS \
+              echo --ghc-option=+RTS --ghc-option=-qg --ghc-option=-RTS; \
               ;; \
             *) \
-              echo --ghc-option=+RTS --ghc-option=-qn2 --ghc-option=-RTS \
+              echo --ghc-option=+RTS --ghc-option=-qn2 --ghc-option=-RTS; \
               ;; \
           esac)
 
