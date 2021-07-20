@@ -184,6 +184,32 @@ test-suite sqlsArrow
 
   default-language:    Haskell2010
 
+test-suite exports
+  build-depends:         base <5
+                       , quickcheck-simple
+                       , product-isomorphic
+                       , relational-query
+                       , containers
+                       , transformers
+                       , bytestring
+  if impl(ghc == 7.4.*)
+    build-depends:        ghc-prim == 0.2.*
+  if impl(ghc == 7.4.*) || impl(ghc == 7.6.*)
+    build-depends:       bytestring-short
+
+  type:                exitcode-stdio-1.0
+  main-is:             exportsEq.hs
+  other-modules:
+                       Lex
+                       Model
+                       Export
+
+  hs-source-dirs:      test
+  ghc-options:         -Wall -fsimpl-tick-factor=200
+  if impl(ghc >= 8)
+    ghc-options:         -Wcompat
+
+  default-language:    Haskell2010
 
 source-repository head
   type:       git
