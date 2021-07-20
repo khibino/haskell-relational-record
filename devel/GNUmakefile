@@ -47,7 +47,7 @@ haddock:
 	cabal $(v1)haddock $(haddock_opt)
 
 check:
-	cabal $(v1)check
+	cabal check
 
 info:
 	@echo v1prefix=$(v1)
