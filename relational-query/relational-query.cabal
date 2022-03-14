@@ -31,6 +31,11 @@ tested-with:           GHC == 8.8.1, GHC == 8.8.2
                      , GHC == 7.4.1, GHC == 7.4.2
 extra-source-files:  ChangeLog.md
 
+flag IsLabel
+  default: True
+  manual: True
+  description: Define an IsLabel instance for Database.Relational.Typed.Record.PI
+
 library
   exposed-modules:
                        Database.Relational.Arrow
@@ -132,6 +137,9 @@ library
     ghc-options:         -Wnoncanonical-monadfail-instances
 
   default-language:    Haskell2010
+  if flag(IsLabel)
+    ghc-options: -DISLABEL
+
 
 test-suite sqls
   build-depends:         base <5
