@@ -15,6 +15,8 @@
 module Database.Relational.Pure () where
 
 import Control.Applicative (pure)
+import qualified Data.ByteString.Char8 as BC
+import qualified Data.ByteString.Lazy.Char8 as BCL
 import Data.Int (Int8, Int16, Int32, Int64)
 import Data.Word (Word8, Word16, Word32, Word64, Word)
 import Data.Text (Text)
@@ -129,6 +131,12 @@ instance LiteralSQL TimeOfDay where
 -- | Constant SQL terms of 'LocalTime'.
 instance LiteralSQL LocalTime where
   showLiteral' = pure . Lit.timestamp TIMESTAMP "%Y-%m-%d %H:%M:%S"
+
+instance LiteralSQL BC.ByteString where
+    showLiteral' = pure . Lit.stringExpr . BC.unpack
+
+instance LiteralSQL BCL.ByteString where
+    showLiteral' = pure . Lit.stringExpr . BCL.unpack
 
 showMaybeTerms :: LiteralSQL a => PersistableRecordWidth a -> Maybe a -> DList StringSQL
 showMaybeTerms wa = d  where
