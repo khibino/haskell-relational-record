@@ -27,10 +27,10 @@ import Language.Haskell.TH
    TypeQ, forallT, varT, tupleT, appT,
    Dec, sigD, valD, instanceD,
    TyVarBndr (PlainTV),
-   #if MIN_VERSION_base(4,15,0)
-   Specificity(..)
-   #endif
    )
+#if MIN_VERSION_base(4,15,0)
+import Language.Haskell.TH (Specificity(..))
+#endif
 import Language.Haskell.TH.Compat.Constraint (classP)
 import Database.Record.Persistable
   (PersistableWidth, persistableWidth,
