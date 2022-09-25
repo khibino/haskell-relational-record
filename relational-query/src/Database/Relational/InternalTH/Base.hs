@@ -25,7 +25,11 @@ import Language.Haskell.TH
   (Q, Name, mkName, normalB, varP,
    TypeQ, forallT, varT, tupleT, appT,
    Dec, sigD, valD, instanceD,
-   TyVarBndr (PlainTV), )
+   TyVarBndr (PlainTV),
+   #if MIN_VERSION_bse(4,15,0)
+   Specificity(..)
+   #endif
+   )
 import Language.Haskell.TH.Compat.Constraint (classP)
 import Database.Record.Persistable
   (PersistableWidth, persistableWidth,
@@ -34,7 +38,13 @@ import Database.Record.Persistable
 import Database.Relational.ProjectableClass (LiteralSQL (..))
 import Database.Relational.Pi.Unsafe (Pi, definePi)
 
-
+#if MIN_VERSION_base(4,15,0)
+plainTV :: Name -> TyVarBndr
+plainTV = PlainTV
+#else
+plainTV :: Name -> TyVarBndr Specificity
+plainTV n = PlainTV n SpecifiedSpec
+#endif
 tupleN :: Int -> (([Name], [TypeQ]), TypeQ)
 tupleN n = ((ns, vs), foldl' appT (tupleT n) vs)
   where
@@ -59,7 +69,7 @@ defineRecordProjections tyRec avs sels cts =
     template :: TypeQ -> [TypeQ] -> Name -> Q [Dec]
     template ct pcts selN = do
       sig <- sigD selN $
-             forallT (map PlainTV avs)
+             forallT (map plainTV avs)
              (mapM (classP ''PersistableWidth . (:[]) . varT) avs)
              [t| Pi $tyRec $ct |]
       let runPW t = [| runPersistableRecordWidth (persistableWidth :: PersistableRecordWidth $t) |]
