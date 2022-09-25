@@ -40,12 +40,13 @@ import Database.Relational.ProjectableClass (LiteralSQL (..))
 import Database.Relational.Pi.Unsafe (Pi, definePi)
 
 #if MIN_VERSION_base(4,15,0)
-plainTV :: Name -> TyVarBndr
-plainTV = PlainTV
-#else
 plainTV :: Name -> TyVarBndr Specificity
 plainTV n = PlainTV n SpecifiedSpec
+#else
+plainTV :: Name -> TyVarBndr
+plainTV = PlainTV
 #endif
+
 tupleN :: Int -> (([Name], [TypeQ]), TypeQ)
 tupleN n = ((ns, vs), foldl' appT (tupleT n) vs)
   where
