@@ -27,7 +27,7 @@ import Language.Haskell.TH
    TypeQ, forallT, varT, tupleT, appT,
    Dec, sigD, valD, instanceD,
    TyVarBndr (PlainTV),
-   #if MIN_VERSION_bse(4,15,0)
+   #if MIN_VERSION_base(4,15,0)
    Specificity(..)
    #endif
    )
