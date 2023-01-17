@@ -7,17 +7,17 @@ ncpu = $(shell cat /proc/cpuinfo | egrep '^processor' | wc -l)
 jobs = --jobs=$(shell expr $(ncpu) '*' 3 '/' 4)
 
 build:
-	cabal v1-configure -O0 --enable-tests
-	cabal v1-build $(jobs) --ghc-option=-Wall
-	cabal v1-haddock $(haddock_opt)
-	cabal v1-test
+	cabal configure -O0 --enable-tests
+	cabal build $(jobs) --ghc-option=-Wall
+	cabal haddock $(haddock_opt)
+	cabal test
 
 haddock:
-	cabal v1-configure
-	cabal v1-haddock $(haddock_opt)
+	cabal configure
+	cabal haddock $(haddock_opt)
 
 check:
-	cabal v1-check
+	cabal check
 
 wc:
 	make clean-hs
@@ -25,7 +25,7 @@ wc:
 
 clean:
 	make clean-hs
-	cabal v1-clean
+	cabal clean
 	[ ! -d .debian-build ] || rm -r .debian-build
 	[ ! -d .stack-work ] || rm -r .stack-work
 	test ! -d src || find src \( -name '*.o' -o -name '*.hi' -o -name '*.dyn_o' -o  -name '*.dyn_hi' \) -exec rm {} \;
