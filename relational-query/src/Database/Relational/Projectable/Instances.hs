@@ -37,9 +37,9 @@ instance SqlContext Aggregated where
 instance SqlContext OverWindow where
   unsafeProjectSqlTerms = Record.unsafeFromSqlTerms
 
--- | full SQL expression is availabe in Flat context
+-- | full SQL expression is available in Flat context
 instance OperatorContext Flat
--- | full SQL expression is availabe in Aggregated context
+-- | full SQL expression is available in Aggregated context
 instance OperatorContext Aggregated
 
 -- | 'Aggregated' context is aggregated context

@@ -1,7 +1,7 @@
 name:                relational-query
 version:             0.12.2.3
 synopsis:            Typeful, Modular, Relational, algebraic query engine
-description:         This package contiains typeful relation structure and
+description:         This package contains typeful relation structure and
                      relational-algebraic query building DSL which can
                      translate into SQL query.
                      .

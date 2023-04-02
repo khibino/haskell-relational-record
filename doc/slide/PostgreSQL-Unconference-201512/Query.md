@@ -17,7 +17,7 @@
 * SQL building DSL using Haskell
     * http://khibino.github.io/haskell-relational-record/
 * The appeal point of this DSL is composability and type-safety
-* Compile time schema loading and generating type informations
+* Compile time schema loading and generating type information
  -->
 
 結合式の例/Joined Query building

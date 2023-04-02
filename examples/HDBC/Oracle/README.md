@@ -1,4 +1,4 @@
 Setup
 =====
 
-Don't forget to load enviroment setup script like oraenv.
+Don't forget to load environment setup script like oraenv.

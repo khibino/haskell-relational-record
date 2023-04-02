@@ -121,11 +121,11 @@ relation' =  unsafeTypeRelation . Simple.toSubQuery
 relation :: QuerySimple (Record Flat r) -> Relation () r
 relation =  relation' . addUnitPH
 
--- | Finalize 'QueryAggregate' monad and geneate 'Relation' with place-holder parameter 'p'.
+-- | Finalize 'QueryAggregate' monad and generate 'Relation' with place-holder parameter 'p'.
 aggregateRelation' :: AggregatedQuery p r -> Relation p r
 aggregateRelation' =  unsafeTypeRelation . Aggregate.toSubQuery
 
--- | Finalize 'QueryAggregate' monad and geneate 'Relation'.
+-- | Finalize 'QueryAggregate' monad and generate 'Relation'.
 aggregateRelation :: QueryAggregate (Record Aggregated r) -> Relation () r
 aggregateRelation =  aggregateRelation' . addUnitPH
 

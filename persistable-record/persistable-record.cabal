@@ -1,7 +1,7 @@
 name:                persistable-record
 version:             0.6.0.5
 synopsis:            Binding between SQL database values and haskell records.
-description:         This package contiains types to represent table constraints and
+description:         This package contains types to represent table constraints and
                      interfaces to bind between SQL database values and Haskell records.
 homepage:            http://khibino.github.io/haskell-relational-record/
 license:             BSD3

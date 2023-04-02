@@ -35,7 +35,6 @@ $(defineTable defaultConfig "TEST" "set_c"
   , ("may_str_c3" ,    [t| Maybe String |]) ]
   [''Generic] [0] $ Just 0)
 
-
 $(defineTable defaultConfig "TEST" "set_i"
   [ ("int_i0" ,    [t| Int32 |])  ]
   [''Generic] [0] $ Just 0)

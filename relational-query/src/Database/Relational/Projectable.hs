@@ -234,12 +234,12 @@ exists :: OperatorContext c
 exists =  unsafeProjectSql' . SQL.paren . SQL.defineUniOp SQL.EXISTS
           . Record.unsafeStringSqlList unsafeShowSql'
 
--- | Concatinate operator corresponding SQL /||/ .
+-- | Concatenate operator corresponding SQL /||/ .
 (.||.) :: OperatorContext c
        => Record c a -> Record c a -> Record c a
 (.||.) =  unsafeBinOp (SQL..||.)
 
--- | Concatinate operator corresponding SQL /||/ . Maybe type version.
+-- | Concatenate operator corresponding SQL /||/ . Maybe type version.
 (?||?) :: (OperatorContext c, IsString a)
        => Record c (Maybe a) -> Record c (Maybe a) -> Record c (Maybe a)
 (?||?) =  unsafeBinOp (SQL..||.)

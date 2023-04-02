@@ -33,13 +33,13 @@ relationalQuery :: Relation p r  -- ^ relation to finalize building
                 -> Query p r     -- ^ finalized query
 relationalQuery = relationalQuery_ config
 
--- | Make 'Insert' from derived table and monadic builded 'Register' object.
+-- | Make 'Insert' from derived table and monadic built 'Register' object.
 insertValue :: TableDerivable r
             => Register r (PlaceHolders p)
             -> Insert p
 insertValue = insertValue' config
 
--- | Make 'Insert' from derived table and monadic builded 'Register' object with no(unit) placeholder.
+-- | Make 'Insert' from derived table and monadic built 'Register' object with no(unit) placeholder.
 insertValueNoPH :: TableDerivable r
                 => Register r ()
                 -> Insert ()

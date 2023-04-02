@@ -9,7 +9,7 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- This module defines typed SQLs derived from type informations.
+-- This module defines typed SQLs derived from type information.
 module Database.Relational.Derives (
   -- * Query derivation
   specifiedKey,

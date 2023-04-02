@@ -41,7 +41,7 @@ Conflicts: ${haskell:Conflicts}
 Provides: ${haskell:Provides}
 Replaces: ${haskell:Replaces}
 Description: Typeful, Modular, Relational, algebraic query engine
- This package contiains typeful relation structure and
+ This package contains typeful relation structure and
  relational-algebraic query building DSL which can
  translate into SQL query.
  Supported query features are below:
@@ -67,7 +67,7 @@ Conflicts: ${haskell:Conflicts}
 Provides: ${haskell:Provides}
 Replaces: ${haskell:Replaces}
 Description: Typeful, Modular, Relational, algebraic query engine
- This package contiains typeful relation structure and
+ This package contains typeful relation structure and
  relational-algebraic query building DSL which can
  translate into SQL query.
  Supported query features are below:
@@ -94,7 +94,7 @@ Conflicts: ${haskell:Conflicts}
 Provides: ${haskell:Provides}
 Replaces: ${haskell:Replaces}
 Description: Typeful, Modular, Relational, algebraic query engine
- This package contiains typeful relation structure and
+ This package contains typeful relation structure and
  relational-algebraic query building DSL which can
  translate into SQL query.
  Supported query features are below:

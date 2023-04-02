@@ -130,7 +130,7 @@ agesOfFamiliesO <span class="fu">=</span>  aggregateRelation <span class="fu">$<
   my <span class="ot">&lt;-</span> query myTable
   gFam <span class="ot">&lt;-</span> groupBy <span class="fu">$</span> my <span class="fu">!</span> family'
   <span class="kw">let</span> s <span class="fu">=</span> sum' (my <span class="fu">!</span> age')
-  orderBy s <span class="dt">Desc</span>    <span class="co">-- Only aggregated value is allowd to pass</span>
+  orderBy s <span class="dt">Desc</span>    <span class="co">-- Only aggregated value is allowed to pass</span>
   orderBy gFam <span class="dt">Asc</span>
   return <span class="fu">$</span> gFam <span class="fu">&gt;&lt;</span> s</code></pre></div>
 </div>

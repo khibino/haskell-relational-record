@@ -1,7 +1,7 @@
 name:                sql-words
 version:             0.1.6.4
 synopsis:            SQL keywords data constructors into OverloadedString
-description:         This package contiains SQL keywords constructors defined as
+description:         This package contains SQL keywords constructors defined as
                      OverloadedString literals and helper functions to concate these.
 homepage:            http://khibino.github.io/haskell-relational-record/
 license:             BSD3

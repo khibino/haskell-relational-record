@@ -23,7 +23,7 @@ import Data.Semigroup (Semigroup (..))
 import Data.Monoid (Monoid (..))
 
 
--- | Diff String type for low-cost concatination.
+-- | Diff String type for low-cost concatenation.
 newtype DString = DString (String -> String)
 
 -- | Make 'DString' from 'String'
@@ -147,7 +147,7 @@ a `kappend` b = fromDString $ toDString a `append'` toDString b
 instance Semigroup Keyword where
   (<>) = kappend
 
--- | 'Keyword' default concatination separate by space.
+-- | 'Keyword' default concatenation separate by space.
 instance Monoid Keyword where
   mempty  = fromDString mempty
   mappend = (<>)

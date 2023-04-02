@@ -29,7 +29,7 @@ Conflicts: ${haskell:Conflicts}
 Provides: ${haskell:Provides}
 Replaces: ${haskell:Replaces}
 Description: Binding between SQL database values and haskell records.
- This package contiains types to represent table constraints and
+ This package contains types to represent table constraints and
  interfaces to bind between SQL database values and Haskell records.
  .
   Author: Kei Hibino
@@ -49,7 +49,7 @@ Conflicts: ${haskell:Conflicts}
 Provides: ${haskell:Provides}
 Replaces: ${haskell:Replaces}
 Description: Binding between SQL database values and haskell records.
- This package contiains types to represent table constraints and
+ This package contains types to represent table constraints and
  interfaces to bind between SQL database values and Haskell records.
  .
   Author: Kei Hibino
@@ -70,7 +70,7 @@ Conflicts: ${haskell:Conflicts}
 Provides: ${haskell:Provides}
 Replaces: ${haskell:Replaces}
 Description: Binding between SQL database values and haskell records.
- This package contiains types to represent table constraints and
+ This package contains types to represent table constraints and
  interfaces to bind between SQL database values and Haskell records.
  .
   Author: Kei Hibino

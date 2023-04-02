@@ -14,7 +14,7 @@
 
 ## 0.6.0.2
 
-- bugfix: pass correct table name to macro for field label defintion.
+- bugfix: pass correct table name to macro for field label definition.
 
 ## 0.6.0.1
 
