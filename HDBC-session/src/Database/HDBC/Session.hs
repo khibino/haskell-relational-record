@@ -114,7 +114,7 @@ withConnectionIO' = withConnectionIO
 
 -- | Run a transaction on a HDBC 'IConnection' and commit at last, and then close the connection.
 --   In other words, the transaction with no exception is committed.
---   Handy defintion for simple transactions.
+--   Handy definition for simple transactions.
 transaction :: IConnection conn
             => IO conn        -- ^ Connect action
             -> (conn -> IO a) -- ^ Transaction body

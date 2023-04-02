@@ -77,7 +77,7 @@ agesOfFamiliesO =  aggregateRelation $ do
   my <- query myTable
   gFam <- groupBy $ my ! family'
   let s = sum' (my ! age')
-  orderBy s Desc    -- Only aggregated value is allowd to pass
+  orderBy s Desc    -- Only aggregated value is allowed to pass
   orderBy gFam Asc
   return $ gFam >< s
 ~~~~~

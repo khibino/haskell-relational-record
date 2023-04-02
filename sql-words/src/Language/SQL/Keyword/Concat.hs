@@ -9,10 +9,10 @@
 -- Stability   : experimental
 -- Portability : unknown
 --
--- Concatinations on 'Keyword' types
+-- Concatenations on 'Keyword' types
 module Language.SQL.Keyword.Concat (
-  -- * List concatination functions
-  -- $listConcatination
+  -- * List concatenation functions
+  -- $listConcatenation
   unwords',
 
   sepBy, parenSepBy,
@@ -44,23 +44,23 @@ import Data.Monoid (mempty, mconcat, (<>))
 import Language.SQL.Keyword.Internal.Type (Keyword (..), word, wordShow, toDString, fromDString)
 
 
-{- $listConcatination
-Functions to concatinate 'Keyword' list.
+{- $listConcatenation
+Functions to concatenate 'Keyword' list.
 -}
 
 -- | Separate 'Keyword' list with delimiter 'Keyword' and map to 'String' list.
 sepBy' :: [Keyword] -> Keyword -> [String]
 ws `sepBy'` d =  map wordShow . intersperse d $ ws
 
--- | Concatinate 'Keyword' list like unwords on 'String' list.
+-- | Concatenate 'Keyword' list like unwords on 'String' list.
 unwords' :: [Keyword] -> Keyword
 unwords' =  mconcat
 
--- | Concatinate 'String' list into one 'Keyword'.
+-- | Concatenate 'String' list into one 'Keyword'.
 concatStr :: [String] -> Keyword
 concatStr =  word . concat
 
--- | Separate 'Keyword' list with delimiter 'Keyword' and concatinate into one 'Keyword'.
+-- | Separate 'Keyword' list with delimiter 'Keyword' and concatenate into one 'Keyword'.
 sepBy :: [Keyword] -> Keyword -> Keyword
 ws `sepBy` d = concatStr $ ws `sepBy'` d
 
@@ -69,10 +69,10 @@ parenSepBy :: [Keyword] -> Keyword -> Keyword
 ws `parenSepBy` d = concatStr $ "(" : (ws `sepBy'` d) ++ [")"]
 
 {- $binaryOperators
-Binary operators on SQL. Result is concatinated into one 'Keyword'.
+Binary operators on SQL. Result is concatenated into one 'Keyword'.
 -}
 
--- | Directly concatinate SQL string without whitespaces.
+-- | Directly concatenate SQL string without whitespaces.
 (<++>) :: Keyword -> Keyword -> Keyword
 x <++> y = fromDString $ toDString x <> toDString y
 
@@ -97,7 +97,7 @@ defineBinOp op a b = mconcat [a, op, b]
 (|*|) :: Keyword -> Keyword -> Keyword
 (|*|)  =  defineBinOp' ", "
 
--- | Binary operator for SQL string expression concatination.
+-- | Binary operator for SQL string expression concatenation.
 (.||.) :: Keyword -> Keyword -> Keyword
 (.||.) =  defineBinOp "||"
 
@@ -145,7 +145,7 @@ fold op =  d  where
   d []       = mempty
   d xs@(_:_) = foldr1 op xs
 
--- | Define unary operator on 'Keyword' type represeted by specified 'Keyword'.
+-- | Define unary operator on 'Keyword' type represented by specified 'Keyword'.
 --   Result is delimited by whitespace like unwords on 'String' list.
 defineUniOp :: Keyword -> Keyword -> Keyword
 defineUniOp op e = mconcat [op, e]

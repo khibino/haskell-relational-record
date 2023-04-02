@@ -10,7 +10,7 @@ Concepts
     * http://khibino.github.io/haskell-relational-record/
 * Composability and Type-Safety
     * Want to find errors of SQL at compile time
-* Compile time schema loading and generating type informations
+* Compile time schema loading and generating type information
 
 Intro
 =====

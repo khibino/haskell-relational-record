@@ -33,7 +33,7 @@ $(defineTable defaultConfig "TEST" "set_c"
   , ("may_str_c3" ,    [t| Maybe String |]) ]
   [''Generic] [0] $ Just 0)
 
--- column name conflict with Confict.conflictB
+-- column name conflict with Conflict.conflictB
 $(defineTable defaultConfig "TEST" "conflict_a"
  [ ("foo" ,    [t| String |])
  , ("bar" ,    [t| Int32 |])

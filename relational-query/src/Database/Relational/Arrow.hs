@@ -11,7 +11,7 @@
 -- Portability : unknown
 --
 -- This module defines arrow version combinators which
--- improves type-safty on building queries.
+-- improves type-safety on building queries.
 -- Referencing the local projected records may cause to break
 -- the result query.
 -- It is possible to controls injection of previous local projected records

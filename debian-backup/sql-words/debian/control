@@ -20,7 +20,7 @@ Conflicts: ${haskell:Conflicts}
 Provides: ${haskell:Provides}
 Replaces: ${haskell:Replaces}
 Description: Simple idea SQL keywords data constructor into OverloadedString
- This package contiains SQL keywords constructors defined as
+ This package contains SQL keywords constructors defined as
  OverloadedString literals and helper functions to concate these.
  .
   Author: Kei Hibino
@@ -40,7 +40,7 @@ Conflicts: ${haskell:Conflicts}
 Provides: ${haskell:Provides}
 Replaces: ${haskell:Replaces}
 Description: Simple idea SQL keywords data constructor into OverloadedString
- This package contiains SQL keywords constructors defined as
+ This package contains SQL keywords constructors defined as
  OverloadedString literals and helper functions to concate these.
  .
   Author: Kei Hibino
@@ -61,7 +61,7 @@ Conflicts: ${haskell:Conflicts}
 Provides: ${haskell:Provides}
 Replaces: ${haskell:Replaces}
 Description: Simple idea SQL keywords data constructor into OverloadedString
- This package contiains SQL keywords constructors defined as
+ This package contains SQL keywords constructors defined as
  OverloadedString literals and helper functions to concate these.
  .
   Author: Kei Hibino

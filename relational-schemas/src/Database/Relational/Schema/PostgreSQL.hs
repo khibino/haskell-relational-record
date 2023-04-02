@@ -10,7 +10,7 @@
 -- Portability : unknown
 --
 -- This module implements queries to get
--- table schema and table constraint informations
+-- table schema and table constraint information
 -- from system catalog of PostgreSQL.
 module Database.Relational.Schema.PostgreSQL (
   module Database.Relational.Schema.PostgreSQL.Config,

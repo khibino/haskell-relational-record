@@ -169,7 +169,7 @@ list =  List
 unsafeListFromSubQuery :: SubQuery -> RecordList p t
 unsafeListFromSubQuery =  Sub
 
--- | Map record show operatoions and concatinate to single SQL expression.
+-- | Map record show operatoions and concatenate to single SQL expression.
 unsafeStringSqlList :: (p t -> StringSQL) -> RecordList p t -> StringSQL
 unsafeStringSqlList sf = d  where
   d (List ps) = listStringSQL $ map sf ps
