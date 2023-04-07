@@ -241,7 +241,7 @@ unsafeUpdateValuesWithIndexes key a =
 --   UPDATE /table/ SET /c0/ = ?, /c1/ = ?, /c2/ = ? ... WHERE /key0/ = ? AND /key1/ = ? AND /key2/ = ? ...
 -- @
 --
---   using printer function object infered by ToSql ra q.
+--   using printer function object inferred by ToSql ra q.
 updateValuesByUnique :: ToSql q ra
                      => KeyConstraint Unique ra -- ^ Unique key table constraint printer function object.
                      -> ra

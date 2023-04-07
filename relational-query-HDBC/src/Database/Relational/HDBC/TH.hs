@@ -149,7 +149,7 @@ tableAlongWithSchema connect drv scm tbl cmap derives = do
       cols1 = [ (,) cn . maybe ty (liftMaybe ty) . Map.lookup cn $ Map.fromList cmap | (cn, ty) <- cols ]
   defineTableDefault config scm tbl cols1 derives primaryIxs (listToMaybe notNullIdxs)
 
--- | Generate all HDBC templates using system catalog informations with specified config.
+-- | Generate all HDBC templates using system catalog information with specified config.
 defineTableFromDB' :: IConnection conn
                    => IO conn           -- ^ Connect action to system catalog database
                    -> Driver conn       -- ^ Driver definition
@@ -160,7 +160,7 @@ defineTableFromDB' :: IConnection conn
                    -> Q [Dec]           -- ^ Result declaration
 defineTableFromDB' = tableAlongWithSchema
 
--- | Generate all HDBC templates using system catalog informations.
+-- | Generate all HDBC templates using system catalog information.
 defineTableFromDB :: IConnection conn
                   => IO conn     -- ^ Connect action to system catalog database
                   -> Driver conn -- ^ Driver definition

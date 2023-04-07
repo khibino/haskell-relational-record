@@ -31,5 +31,5 @@ class SqlContext c => OperatorContext c
 class AggregatedContext ac
 
 
--- | Placeholder parameter type which has real parameter type arguemnt 'p'.
+-- | Placeholder parameter type which has real parameter type argument 'p'.
 data PlaceHolders p = PlaceHolders

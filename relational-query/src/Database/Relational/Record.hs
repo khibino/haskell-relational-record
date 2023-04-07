@@ -155,7 +155,7 @@ just = Typed.just
 
 {-# DEPRECATED
     unsafeToAggregated, unsafeToFlat, unsafeChangeContext
-    "use unsafeProejctSql . recordColumns instead of this." #-}
+    "use unsafeProjectSql . recordColumns instead of this." #-}
 unsafeToAggregated :: Record Flat r -> Record Aggregated r
 unsafeToAggregated = Typed.unsafeToAggregated
 

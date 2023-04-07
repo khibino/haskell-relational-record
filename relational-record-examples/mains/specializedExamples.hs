@@ -676,7 +676,7 @@ selfJoin_5_3aT = relation $ do
 -- | sql/6.4.1a
 --
 -- The standard SQL allows the syntax of UNION that has an order clause
--- at the last of query. Unfortunately, HRR dows not support. In addition,
+-- at the last of query. Unfortunately, HRR does not support. In addition,
 -- HRR put a select statement having an order clause into parentheses.
 -- If you want to sort whole row returned from UNION, place a order
 -- clouse outside of the union relation.

@@ -73,7 +73,7 @@ assignTo vp target = Assignings . tell
   leftsR = recordColumns . targetRecord target
   rights = recordColumns vp
 
--- | Add and assginment.
+-- | Add and assignment.
 (<-#) :: Monad m => AssignTarget r v -> Record Flat v -> Assignings r m ()
 (<-#) =  flip assignTo
 

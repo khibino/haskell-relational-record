@@ -309,7 +309,7 @@ insert = typedInsert' defaultConfig derivedTable
 derivedInsert :: (PersistableWidth r, TableDerivable r) => Pi r r' -> Insert r'
 derivedInsert = insert
 
--- | Make typed 'Insert' from 'Config', 'Table' and monadic builded 'Register' object.
+-- | Make typed 'Insert' from 'Config', 'Table' and monadic built 'Register' object.
 typedInsertValue' :: Config -> Table r -> Register r (PlaceHolders p) -> Insert p
 typedInsertValue' config tbl it =
     unsafeTypedInsert'
@@ -319,11 +319,11 @@ typedInsertValue' config tbl it =
     (ci, n) = chunkInsertFromRegister config tbl it
 
 {-# DEPRECATED typedInsertValue "use `typedInsertValue' defaultConfig` instead of this." #-}
--- | Make typed 'Insert' from 'Table' and monadic builded 'Register' object.
+-- | Make typed 'Insert' from 'Table' and monadic built 'Register' object.
 typedInsertValue :: Table r -> Register r (PlaceHolders p) -> Insert p
 typedInsertValue = typedInsertValue' defaultConfig
 
--- | Make typed 'Insert' from 'Config', derived table and monadic builded 'Register' object.
+-- | Make typed 'Insert' from 'Config', derived table and monadic built 'Register' object.
 insertValue' :: TableDerivable r => Config -> Register r (PlaceHolders p) -> Insert p
 insertValue' config rs = typedInsertValue' config (rt rs) rs
   where
@@ -331,20 +331,20 @@ insertValue' config rs = typedInsertValue' config (rt rs) rs
     rt =  const derivedTable
 
 {-# DEPRECATED derivedInsertValue' "use `insertValue'` instead of this." #-}
--- | Make typed 'Insert' from 'Config', derived table and monadic builded 'Register' object.
+-- | Make typed 'Insert' from 'Config', derived table and monadic built 'Register' object.
 derivedInsertValue' :: TableDerivable r => Config -> Register r (PlaceHolders p) -> Insert p
 derivedInsertValue' = insertValue'
 
--- | Make typed 'Insert' from 'defaultConfig', derived table and monadic builded 'Register' object.
+-- | Make typed 'Insert' from 'defaultConfig', derived table and monadic built 'Register' object.
 insertValue :: TableDerivable r => Register r (PlaceHolders p) -> Insert p
 insertValue = insertValue' defaultConfig
 
--- | Make typed 'Insert' from 'defaultConfig', derived table and monadic builded 'Register' object with no(unit) placeholder.
+-- | Make typed 'Insert' from 'defaultConfig', derived table and monadic built 'Register' object with no(unit) placeholder.
 insertValueNoPH :: TableDerivable r => Register r () -> Insert ()
 insertValueNoPH = insertValue . (>> return unitPH)
 
 {-# DEPRECATED derivedInsertValue "use `insertValue` instead of this." #-}
--- | Make typed 'Insert' from 'defaultConfig', derived table and monadic builded 'Register' object.
+-- | Make typed 'Insert' from 'defaultConfig', derived table and monadic built 'Register' object.
 derivedInsertValue :: TableDerivable r => Register r (PlaceHolders p) -> Insert p
 derivedInsertValue = insertValue
 
@@ -457,7 +457,7 @@ instance Show (Delete p) where
   show = untypeDelete
 
 
--- | Untype interface for typed no-result type statments
+-- | Untype interface for typed no-result type statements
 --   with single type parameter which represents place-holder parameter 'p'.
 class UntypeableNoFetch s where
   untypeNoFetch :: s p -> String

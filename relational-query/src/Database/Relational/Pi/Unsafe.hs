@@ -82,7 +82,7 @@ unsafeExpandIndexes' :: PersistableRecordWidth a -> Pi a b -> [Int]
 unsafeExpandIndexes' = expandIndexes'
 {-# DEPRECATED unsafeExpandIndexes' "Use expandIndexes' instead of this." #-}
 
--- | Expand indexes from key. Infered width version.
+-- | Expand indexes from key. Inferred width version.
 expandIndexes :: PersistableWidth a => Pi a b -> [Int]
 expandIndexes = expandIndexes' persistableWidth
 

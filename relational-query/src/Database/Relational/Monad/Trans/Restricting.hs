@@ -62,7 +62,7 @@ instance MonadQuery q => MonadQuery (Restrictings c q) where
   query'             = restrictings . query'
   queryMaybe'        = restrictings . queryMaybe'
 
--- | Resticted 'MonadAggregate' instance.
+-- | Restricted 'MonadAggregate' instance.
 instance MonadAggregate m => MonadAggregate (Restrictings c m) where
   groupBy  = restrictings . groupBy
   groupBy' = restrictings . groupBy'

@@ -171,7 +171,7 @@ userGroupAggregate2 =
   , ()  <- asc c
   ]
 
--- Concatinate operator
+-- Concatenate operator
 userGroupStr :: Relation () (Maybe String)
 userGroupStr =
   relation
@@ -182,7 +182,7 @@ userGroupStr =
         g = ug ! snd'
   ]
 
--- Type check is imcomplete when nested case
+-- Type check is incomplete when nested case
 userGroup2Fail :: Relation () (Maybe User, Maybe Group)
 userGroup2Fail =
   relation
@@ -242,7 +242,7 @@ userGroupU =
         g  = umg ! snd'
   ]
 
--- Window funcions
+-- Window functions
 windowRankByGroup :: Relation () ((Int64, Maybe Int32), (Maybe String, Maybe String))
 windowRankByGroup =  relation $ do
   u <- query user

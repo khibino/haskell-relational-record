@@ -166,7 +166,7 @@ userGroupAggregate2 =
     asc -< c
     returnA -< g >< c >< every (uid .<. just (value 3))
 
--- Concatinate operator
+-- Concatenate operator
 userGroupStr :: Relation () (Maybe String)
 userGroupStr =
   relation $ proc () -> do
@@ -237,7 +237,7 @@ userGroupU =
         g  = umg ! snd'
     returnA -< (ph, u >< g)
 
--- Window funcions
+-- Window functions
 windowRankByGroup :: Relation () ((Int64, Maybe Int32), (Maybe String, Maybe String))
 windowRankByGroup =  relation $ proc () -> do
   u <- query user       -< ()

@@ -19,6 +19,6 @@ import Data.Monoid (mconcat)
 import Language.SQL.Keyword.Internal.Type (Keyword (..), word, wordShow, DString)
 
 
--- | Concatinate keywords into 'String' like unwords
+-- | Concatenate keywords into 'String' like unwords
 unwordsSQL :: [Keyword] -> String
 unwordsSQL =  wordShow . mconcat
