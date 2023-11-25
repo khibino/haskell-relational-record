@@ -10,7 +10,7 @@ license:             BSD3
 license-file:        LICENSE
 author:              Kei Hibino
 maintainer:          ex8k.hibino@gmail.com
-copyright:           Copyright (c) 2017-2019 Kei Hibino
+copyright:           Copyright (c) 2017-2023 Kei Hibino
 category:            Testing
 build-type:          Simple
 -- extra-source-files:
