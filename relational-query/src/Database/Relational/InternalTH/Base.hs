@@ -27,6 +27,7 @@ import Language.Haskell.TH
    Dec, sigD, valD, instanceD,
    TyVarBndr (PlainTV), )
 import Language.Haskell.TH.Compat.Constraint (classP)
+import Language.Haskell.TH.Compat.Data (plainTVspecified)
 import Database.Record.Persistable
   (PersistableWidth, persistableWidth,
    PersistableRecordWidth, runPersistableRecordWidth)
@@ -59,7 +60,7 @@ defineRecordProjections tyRec avs sels cts =
     template :: TypeQ -> [TypeQ] -> Name -> Q [Dec]
     template ct pcts selN = do
       sig <- sigD selN $
-             forallT (map PlainTV avs)
+             forallT (map plainTVspecified avs)
              (mapM (classP ''PersistableWidth . (:[]) . varT) avs)
              [t| Pi $tyRec $ct |]
       let runPW t = [| runPersistableRecordWidth (persistableWidth :: PersistableRecordWidth $t) |]
