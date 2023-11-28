@@ -219,14 +219,14 @@ employee_4_1_2P = relation' . placeholder $ \ph -> do
 -- @
 --   SELECT ALL T0.emp_id AS f0, T0.fname AS f1, T0.lname AS f2,
 --   T0.start_date AS f3 FROM MAIN.employee T0 WHERE ((T0.start_date >=
---   '2001-01-01') AND (T0.start_date < '2003-01-01'))
+--   '2001-01-01') AND (T0.start_date <= '2002-12-31'))
 -- @
 --
 employee_4_3_2 :: Relation () Employee2
 employee_4_3_2 = relation $ do
   e <- query employee
   wheres $ e ! Employee.startDate' .>=. unsafeSQLiteDayValue "2001-01-01"
-  wheres $ e ! Employee.startDate' .<. unsafeSQLiteDayValue "2003-01-01"
+  wheres $ e ! Employee.startDate' .<=. unsafeSQLiteDayValue "2002-12-31"
   return $ Employee2 |$| e ! Employee.empId'
                      |*| e ! Employee.fname'
                      |*| e ! Employee.lname'
