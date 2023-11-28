@@ -61,6 +61,17 @@ account_3_7 = relation $ do
   asc proj
   return proj
 
+-----
+
+data Account2 = Account2
+  { a2AccountId :: Int
+  , a2ProductCd :: String
+  , a2OpenDate :: Day
+  , a2AvailBalance :: Maybe Double
+  } deriving (Show, Generic)
+
+$(makeRelationalRecord ''Account2)
+
 -- | sql/3.7.1
 --
 -- Handwritten SQL:
@@ -88,14 +99,17 @@ account_3_7_1 = relation $ do
                     |*| #openDate a
                     |*| #availBalance a
 
-data Account2 = Account2
-  { a2AccountId :: Int
-  , a2ProductCd :: String
-  , a2OpenDate :: Day
-  , a2AvailBalance :: Maybe Double
+-----
+
+data Employee1 = Employee1
+  { e1EmpId :: Int
+  , e1Title :: Maybe String
+  , e1StartDate :: Day
+  , e1Fname :: String
+  , e1Lname' :: String
   } deriving (Show, Generic)
 
-$(makeRelationalRecord ''Account2)
+$(makeRelationalRecord ''Employee1)
 
 -- | sql/3.7.3
 --
@@ -129,16 +143,6 @@ employee_3_7_3 = relation $ do
                      |*| #startDate e
                      |*| #fname e
                      |*| #lname e
-
-data Employee1 = Employee1
-  { e1EmpId :: Int
-  , e1Title :: Maybe String
-  , e1StartDate :: Day
-  , e1Fname :: String
-  , e1Lname' :: String
-  } deriving (Show, Generic)
-
-$(makeRelationalRecord ''Employee1)
 
 -- | sql/4.1.2
 --
@@ -199,6 +203,17 @@ employee_4_1_2P = relation' . placeholder $ \ph -> do
      `or'` #startDate e .<. ph
   return e
 
+-----
+
+data Employee2 = Employee2
+  { e2EmpId :: Int
+  , e2Fname :: String
+  , e2Lname :: String
+  , e2StartDate :: Day
+  } deriving (Show, Generic)
+
+$(makeRelationalRecord ''Employee2)
+
 -- | sql/4.3.2
 --
 -- Handwritten SQL:
@@ -252,15 +267,6 @@ employee_4_3_2P = relation' . placeholder $ \ph -> do
                      |*| #lname e
                      |*| date
 
-data Employee2 = Employee2
-  { e2EmpId :: Int
-  , e2Fname :: String
-  , e2Lname :: String
-  , e2StartDate :: Day
-  } deriving (Show, Generic)
-
-$(makeRelationalRecord ''Employee2)
-
 -- | sql/4.3.3a
 --
 -- Handwritten SQL:
@@ -302,6 +308,17 @@ account_4_3_3aT = relation $ do
   wheres $ #productCd a `in'` values ["CHK", "SAV", "CD", "MM"]
   return $ (,,,) |$| #accountId a |*| #productCd a |*| #custId a |*| #availBalance a
 
+-----
+
+data Account1 = Account1
+  { a1AccountId :: Int
+  , a1ProductCd :: String
+  , a1CustId :: Int
+  , a1AvailBalance :: Maybe Double
+  } deriving (Show, Generic)
+
+$(makeRelationalRecord ''Account1)
+
 -- |
 -- Adhoc defined record version of Generated SQL:
 --
@@ -321,15 +338,6 @@ account_4_3_3aR = relation $ do
                     |*| #productCd a
                     |*| #custId a
                     |*| #availBalance a
-
-data Account1 = Account1
-  { a1AccountId :: Int
-  , a1ProductCd :: String
-  , a1CustId :: Int
-  , a1AvailBalance :: Maybe Double
-  } deriving (Show, Generic)
-
-$(makeRelationalRecord ''Account1)
 
 -- |
 -- 9.1 What is a subquery?
@@ -504,6 +512,17 @@ join_5_1_2aT = relation $ do
   on $ #deptId e .=. just (#deptId d)
   return $ (,,) |$| #fname e |*| #lname e |*| #name d
 
+-----
+
+data Account4 = Account4
+  { a4AccountId :: Int
+  , a4CustId :: Int
+  , a4Fname :: Maybe String
+  , a4Lname :: Maybe String
+  } deriving (Show, Generic)
+
+$(makeRelationalRecord ''Account4)
+
 -- |
 -- Left Outer Join
 --
@@ -532,15 +551,6 @@ account_LeftOuterJoin = relation $ do
                     |*| (? #fname) i
                     |*| (? #lname) i
 
-data Account4 = Account4
-  { a4AccountId :: Int
-  , a4CustId :: Int
-  , a4Fname :: Maybe String
-  , a4Lname :: Maybe String
-  } deriving (Show, Generic)
-
-$(makeRelationalRecord ''Account4)
-
 -- |
 -- Right Outer Join
 --
@@ -568,6 +578,17 @@ business_RightOuterJoin = relation $ do
   b <- query business
   on $ (? #custId) c .=. just (#custId b)
   return ((? #custId) c >< #name b)
+
+-----
+
+data Account3 = Account3
+  { a3AccountId :: Int
+  , a3CustId :: Int
+  , a3OpenDate :: Day
+  , a3ProductCd :: String
+  } deriving (Show, Generic)
+
+$(makeRelationalRecord ''Account3)
 
 -- | sql/5.1.3
 --
@@ -611,15 +632,6 @@ join_5_1_3 = relation $ do
                     |*| #custId a
                     |*| #openDate a
                     |*| #productCd a
-
-data Account3 = Account3
-  { a3AccountId :: Int
-  , a3CustId :: Int
-  , a3OpenDate :: Day
-  , a3ProductCd :: String
-  } deriving (Show, Generic)
-
-$(makeRelationalRecord ''Account3)
 
 -- | sql/5.3a
 --
@@ -768,6 +780,16 @@ group_8_1a = aggregateRelation $ do
   asc $ g
   return $ g >< count (#accountId a)
 
+-----
+
+data Customer1 = Customer1
+  { c1Custid :: Int
+  , c1CustTypeCd :: String
+  , c1City :: Maybe String
+  } deriving (Show, Generic)
+
+$(makeRelationalRecord ''Customer1)
+
 -- |
 -- 9.4 Correlated Subqueries
 --
@@ -801,19 +823,11 @@ customer_9_4 = relation $ do
   wheres $ just (value (2 :: Int64)) .=. ca
   return (customer1 c)
 
-data Customer1 = Customer1
-  { c1Custid :: Int
-  , c1CustTypeCd :: String
-  , c1City :: Maybe String
-  } deriving (Show, Generic)
-
 customer1 :: SqlContext c
           => Record c Customer -> Record c Customer1
 customer1 c = Customer1 |$| #custId c
                         |*| #custTypeCd c
                         |*| #city c
-
-$(makeRelationalRecord ''Customer1)
 
 -- |
 -- (from script) The insert statement
@@ -840,6 +854,18 @@ insertBranch_s1 = insertValueNoPH $ do
   #state    <-#  value (Just "MA")
   #zip      <-#  value (Just "02451")
 
+-----
+
+data Branch1 = Branch1
+  { b1Name :: String
+  , b1Address :: Maybe String
+  , b1City :: Maybe String
+  , b1State :: Maybe String
+  , b1Zip :: Maybe String
+  } deriving (Generic)
+
+$(makeRelationalRecord ''Branch1)
+
 -- |
 -- Placeholder version of Generated SQL:
 --
@@ -857,16 +883,6 @@ piBranch1 = Branch1 |$| #name
                     |*| #city
                     |*| #state
                     |*| #zip
-
-data Branch1 = Branch1
-  { b1Name :: String
-  , b1Address :: Maybe String
-  , b1City :: Maybe String
-  , b1State :: Maybe String
-  , b1Zip :: Maybe String
-  } deriving (Generic)
-
-$(makeRelationalRecord ''Branch1)
 
 branch1 :: Branch1
 branch1 = Branch1
@@ -927,6 +943,18 @@ branchTuple = ("Headquarters",
               Just "MA",
               Just "02451")
 
+-----
+
+data Employee3 = Employee3
+  { e3Fname :: String
+  , e3Lname :: String
+  , e3StartDate :: Day
+  , e3DeptId :: Maybe Int
+  , e3Title :: Maybe String
+  , e3AssignedBranchId :: Maybe Int
+  } deriving (Generic)
+
+$(makeRelationalRecord ''Employee3)
 
 -- |
 -- (from script) The insert statement
@@ -978,17 +1006,6 @@ piEmployee3 = Employee3 |$| #fname
                         |*| #title
                         |*| #assignedBranchId
 
-data Employee3 = Employee3
-  { e3Fname :: String
-  , e3Lname :: String
-  , e3StartDate :: Day
-  , e3DeptId :: Maybe Int
-  , e3Title :: Maybe String
-  , e3AssignedBranchId :: Maybe Int
-  } deriving (Generic)
-
-$(makeRelationalRecord ''Employee3)
-
 -- |
 -- In the following code we simulate to use queryScalar with using
 -- unsafeUnique. By that means we throw away the safety given by HRR
@@ -1021,6 +1038,8 @@ insertEmployee_s2U = insertQuery piEmployee3 . relation $ do
                      |*| d
                      |*| value (Just "President")
                      |*| b
+
+-----
 
 -- place the definition of Employee4 that contains template-haskell, before
 -- insertEmployee_s2P uses the function to be generated.
