@@ -10,6 +10,7 @@ packages: ./HDBC-session
           ./relational-query
           ./relational-query-HDBC
           ./relational-record
+          ./relational-record-examples
           ./relational-schemas
           ./sql-words
           ./text-postgresql
