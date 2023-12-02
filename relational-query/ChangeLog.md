@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.12.2.4
+
+- fix typo.
+
 ## 0.12.2.3
 
 - update for GHC 8.8.x.
