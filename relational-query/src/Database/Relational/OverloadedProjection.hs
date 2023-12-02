@@ -7,6 +7,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies #-}
 
 #if __GLASGOW_HASKELL__ >= 800
 -- |
@@ -20,6 +21,7 @@
 --
 -- This module provides interfaces of overloaded projections.
 module Database.Relational.OverloadedProjection (
+  PiLabel(..),
   HasProjection (..),
   ) where
 
@@ -40,23 +42,23 @@ class HasProjection l a b | l a -> b where
   projection :: PiLabel l -> Pi a b
 
 #if __GLASGOW_HASKELL__ >= 802
--- | Derive 'IsLabel' instance from 'HasProjection'.
-instance HasProjection l a b => IsLabel l (Pi a b) where
-  fromLabel = projection (GetPi :: PiLabel l)
-
--- | Derive 'PI' label.
-instance (PersistableWidth a, HasProjection l a b)
-          => IsLabel l (PI c a b) where
-  fromLabel = (! projection (GetPi :: PiLabel l))
+#define FROM_LABEL fromLabel
 #else
+#define FROM_LABEL fromLabel _
+#endif
+
+instance l ~ l' => IsLabel l (PiLabel l') where -- a type equality constraint makes better type inference
+  FROM_LABEL = GetPi
+
 -- | Derive 'IsLabel' instance from 'HasProjection'.
 instance HasProjection l a b => IsLabel l (Pi a b) where
-  fromLabel _ = projection (GetPi :: PiLabel l)
+  FROM_LABEL = projection (GetPi :: PiLabel l)
 
+#if defined(ISLABEL)
 -- | Derive 'PI' label.
 instance (PersistableWidth a, HasProjection l a b)
           => IsLabel l (PI c a b) where
-  fromLabel _ = (! projection (GetPi :: PiLabel l))
+  FROM_LABEL = (! projection (GetPi :: PiLabel l))
 #endif
 #else
 module Database.Relational.OverloadedProjection () where
