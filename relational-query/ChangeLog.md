@@ -1,11 +1,17 @@
 <!-- -*- Markdown -*- -->
 
+## 0.12.3.1
+
+- compat for template-haskell 2.17.0.0
+- fix typo.
+
 ## 0.12.3.0
 
 - add module to export SQL string representation for other systems.
 
 ## 0.12.2.4
 
+- compat for template-haskell 2.17.0.0
 - fix typo.
 
 ## 0.12.2.3
