@@ -1,5 +1,9 @@
 <!-- -*- Markdown -*- -->
 
+## 0.7.2.1
+
+- fix typo.
+
 ## 0.7.2.0
 
 - apply new module names of relational-schema.
